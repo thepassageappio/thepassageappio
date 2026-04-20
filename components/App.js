@@ -8,6 +8,18 @@ const C = {
   rose: "#c47a7a", roseFaint: "#fdf3f3", amber: "#b07a3a",
 };
 
+const saveLead = async (data) => {
+  try {
+    await fetch('/api/saveLead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.error('Lead save failed:', err);
+  }
+};
+
 const Btn = ({ children, onClick, variant = "primary", disabled, style = {} }) => {
   const base = {
     border: "none", borderRadius: 14, padding: "15px 28px", fontSize: 15,
@@ -21,7 +33,6 @@ const Btn = ({ children, onClick, variant = "primary", disabled, style = {} }) =
     secondary: { background: C.bgCard, color: C.ink, border: `1.5px solid ${C.border}` },
     ghost: { background: "transparent", color: C.mid, padding: "12px 20px" },
     rose: { background: C.rose, color: "#fff", boxShadow: `0 4px 20px ${C.rose}35` },
-    dark: { background: C.bgDark, color: "#fff" },
   };
   return (
     <button onClick={onClick} disabled={disabled} style={{ ...base, ...variants[variant], ...style }}>
@@ -128,14 +139,9 @@ function Landing({ onPlan, onEmergency }) {
   }, []);
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Nunito', system-ui, sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;500;600;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Nunito', system-ui, sans-serif; }
-      `}</style>
+    <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "system-ui, sans-serif" }}>
+      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } body { font-family: system-ui, sans-serif; }`}</style>
 
-      {/* NAV */}
       <nav style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 28px",
         display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -143,7 +149,7 @@ function Landing({ onPlan, onEmergency }) {
             background: `radial-gradient(circle at 40% 40%, ${C.sageLight}, ${C.sage}80)`,
             boxShadow: breathe ? `0 0 24px ${C.sage}50` : `0 0 8px ${C.sage}20`,
             transition: "box-shadow 3.8s ease-in-out" }} />
-          <span style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 22, color: C.ink }}>Passage</span>
+          <span style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink }}>Passage</span>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <span style={{ fontSize: 13, color: C.mid, cursor: "pointer" }}>Sign in</span>
@@ -153,20 +159,17 @@ function Landing({ onPlan, onEmergency }) {
         </div>
       </nav>
 
-      {/* HERO */}
       <div style={{ maxWidth: 780, margin: "0 auto", padding: "56px 28px 36px", textAlign: "center",
         opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(18px)",
         transition: "all 0.75s ease" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8,
           background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 20,
-          padding: "6px 16px", fontSize: 12, color: C.sage, fontWeight: 700,
-          marginBottom: 30, letterSpacing: "0.02em" }}>
+          padding: "6px 16px", fontSize: 12, color: C.sage, fontWeight: 700, marginBottom: 30 }}>
           🕊️ The family operating system for the end of life
         </div>
 
-        <h1 style={{ fontFamily: "'Lora', Georgia, serif",
-          fontSize: "clamp(32px, 5.5vw, 60px)", lineHeight: 1.12,
-          color: C.ink, marginBottom: 22, fontWeight: 400 }}>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(32px, 5.5vw, 58px)",
+          lineHeight: 1.12, color: C.ink, marginBottom: 22, fontWeight: 400 }}>
           Your family shouldn't have to{" "}
           <em style={{ color: C.sage }}>figure it out</em>
           <br />while they're grieving.
@@ -184,9 +187,7 @@ function Landing({ onPlan, onEmergency }) {
         </p>
 
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 20 }}>
-          <Btn onClick={onPlan} style={{ padding: "17px 34px", fontSize: 16 }}>
-            Start planning now →
-          </Btn>
+          <Btn onClick={onPlan} style={{ padding: "17px 34px", fontSize: 16 }}>Start planning now →</Btn>
           <Btn variant="rose" onClick={onEmergency} style={{ padding: "17px 28px", fontSize: 15 }}>
             Someone just passed ↗
           </Btn>
@@ -194,27 +195,21 @@ function Landing({ onPlan, onEmergency }) {
 
         <div style={{ display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap" }}>
           {["Free to start", "No credit card required", "Your data, always yours"].map(t => (
-            <div key={t} style={{ display: "flex", alignItems: "center", gap: 6,
-              fontSize: 12, color: C.soft }}>
+            <div key={t} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: C.soft }}>
               <span style={{ color: C.sage, fontWeight: 700 }}>✓</span>{t}
             </div>
           ))}
         </div>
       </div>
 
-      {/* AMBIENT GLOW */}
       <div style={{ height: 100, maxWidth: 600, margin: "0 auto 50px",
         background: `radial-gradient(ellipse at 50% 100%, ${C.sageLight}55, transparent 70%)`,
         borderRadius: "50% 50% 0 0 / 100% 100% 0 0" }} />
 
-      {/* HOW IT WORKS — REWRITTEN */}
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "20px 28px 60px" }}>
         <div style={{ textAlign: "center", marginBottom: 44 }}>
-          <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 32,
-            color: C.ink, marginBottom: 10 }}>How it works</div>
-          <div style={{ fontSize: 15, color: C.mid }}>
-            Set it up while there's time. Let it take over when there isn't.
-          </div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 32, color: C.ink, marginBottom: 10 }}>How it works</div>
+          <div style={{ fontSize: 15, color: C.mid }}>Set it up while there's time. Let it take over when there isn't.</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
           {[
@@ -225,34 +220,28 @@ function Landing({ onPlan, onEmergency }) {
             { n: "03", icon: "⚡", title: "One confirmation activates everything",
               body: "Your sister gets instructions. Your attorney gets documents. The funeral home is contacted. Everything happens — so your family doesn't have to." },
           ].map(item => (
-            <div key={item.n} style={{ background: C.bgCard, borderRadius: 20, padding: "28px",
-              border: `1px solid ${C.border}` }}>
+            <div key={item.n} style={{ background: C.bgCard, borderRadius: 20, padding: "28px", border: `1px solid ${C.border}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                 <span style={{ fontSize: 26 }}>{item.icon}</span>
-                <span style={{ fontSize: 10, color: C.sage, fontWeight: 700,
-                  letterSpacing: "0.18em", textTransform: "uppercase" }}>{item.n}</span>
+                <span style={{ fontSize: 10, color: C.sage, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" }}>{item.n}</span>
               </div>
-              <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 18,
-                color: C.ink, marginBottom: 10, lineHeight: 1.3 }}>{item.title}</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: 18, color: C.ink, marginBottom: 10, lineHeight: 1.3 }}>{item.title}</div>
               <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.75 }}>{item.body}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* TRIGGER ECOSYSTEM */}
       <div style={{ background: C.bgSage, padding: "56px 28px" }}>
         <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 28,
-            color: C.ink, marginBottom: 10 }}>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 28, color: C.ink, marginBottom: 10 }}>
             When the trigger fires, your plan comes to life
           </div>
           <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.75, marginBottom: 32 }}>
             You're not just notifying people.<br />
             You're orchestrating the most important moment your family will ever face.
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10,
-            maxWidth: 480, margin: "0 auto 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, maxWidth: 480, margin: "0 auto 24px" }}>
             {[["👨‍👩‍👧‍👦","Family"],["⚖️","Attorney"],["🏛️","Funeral home"],["🌸","Florist"],
               ["🍽️","Caterer"],["⛪","Cemetery"],["📰","Obituaries"],["📱","Socials"]].map(([icon, label]) => (
               <div key={label} style={{ background: C.bgCard, borderRadius: 12, padding: "14px 8px",
@@ -269,7 +258,6 @@ function Landing({ onPlan, onEmergency }) {
         </div>
       </div>
 
-      {/* SOCIAL PROOF */}
       <div style={{ background: C.bgDark, padding: "56px 28px" }}>
         <div style={{ maxWidth: 940, margin: "0 auto" }}>
           <div style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase",
@@ -282,12 +270,9 @@ function Landing({ onPlan, onEmergency }) {
               { q: "Two months after losing my mom I realized I'd missed the Social Security survivor benefit window. That was thousands of dollars.", a: "Son, 31" },
               { q: "We sat with the funeral director for two hours and left more confused than when we walked in. I wish we'd had this.", a: "Family navigating Medicaid pre-planning" },
             ].map((v, i) => (
-              <div key={i} style={{ background: "#252520", borderRadius: 16, padding: "24px",
-                border: "1px solid #333" }}>
-                <div style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic",
-                  fontSize: 14.5, color: "#e8e4dc", lineHeight: 1.75, marginBottom: 14 }}>
-                  "{v.q}"
-                </div>
+              <div key={i} style={{ background: "#252520", borderRadius: 16, padding: "24px", border: "1px solid #333" }}>
+                <div style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 14.5,
+                  color: "#e8e4dc", lineHeight: 1.75, marginBottom: 14 }}>"{v.q}"</div>
                 <div style={{ fontSize: 11, color: C.soft, letterSpacing: "0.04em" }}>— {v.a}</div>
               </div>
             ))}
@@ -295,10 +280,8 @@ function Landing({ onPlan, onEmergency }) {
         </div>
       </div>
 
-      {/* PRICING ANCHOR */}
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "60px 28px", textAlign: "center" }}>
-        <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 30,
-          color: C.ink, marginBottom: 12 }}>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 30, color: C.ink, marginBottom: 12 }}>
           Start your family's plan today
         </div>
         <div style={{ fontSize: 14.5, color: C.mid, marginBottom: 10, lineHeight: 1.75 }}>
@@ -308,12 +291,8 @@ function Landing({ onPlan, onEmergency }) {
           Less than the cost of a single hour with an estate attorney.
         </div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 16 }}>
-          <Btn onClick={onPlan} style={{ padding: "17px 36px", fontSize: 16 }}>
-            Start planning — it's free →
-          </Btn>
-          <Btn variant="rose" onClick={onEmergency} style={{ padding: "17px 24px", fontSize: 14 }}>
-            Someone just passed
-          </Btn>
+          <Btn onClick={onPlan} style={{ padding: "17px 36px", fontSize: 16 }}>Start planning — it's free →</Btn>
+          <Btn variant="rose" onClick={onEmergency} style={{ padding: "17px 24px", fontSize: 14 }}>Someone just passed</Btn>
         </div>
         <div style={{ fontSize: 12, color: C.muted }}>No credit card required to start</div>
       </div>
@@ -334,13 +313,9 @@ function PlannedOnboarding({ onComplete, onBack }) {
   const [selectedPlan, setSelectedPlan] = useState("annual");
 
   const steps = [
-    // 0 — Who
     <StepCard key={0}>
-      <StepTitle
-        eyebrow="Let's build your plan"
-        title="Who are you protecting?"
-        sub="Passage works whether you're planning for yourself or helping someone you love get organized."
-      />
+      <StepTitle eyebrow="Let's build your plan" title="Who are you protecting?"
+        sub="Passage works whether you're planning for yourself or helping someone you love get organized." />
       {[
         { value: "self", icon: "🙋", title: "Myself", desc: "I want to set up my own plan so my family has everything they need." },
         { value: "parent", icon: "👴👵", title: "A parent or grandparent", desc: "I'm helping someone I love get their wishes organized before it's urgent." },
@@ -349,21 +324,15 @@ function PlannedOnboarding({ onComplete, onBack }) {
         <OptionCard key={o.value} icon={o.icon} title={o.title} desc={o.desc}
           selected={forWhom === o.value} onClick={() => setForWhom(o.value)} />
       ))}
-      <Btn onClick={() => setStep(1)} disabled={!forWhom} style={{ width: "100%", marginTop: 8 }}>
-        Let's start →
-      </Btn>
+      <Btn onClick={() => setStep(1)} disabled={!forWhom} style={{ width: "100%", marginTop: 8 }}>Let's start →</Btn>
     </StepCard>,
 
-    // 1 — Basic info
     <StepCard key={1}>
       <ProgressBar current={1} total={5} />
-      <StepTitle
-        eyebrow={forWhom === "self" ? "About you" : "About them"}
+      <StepTitle eyebrow={forWhom === "self" ? "About you" : "About them"}
         title={forWhom === "self" ? "Let's personalize your plan" : "Tell us about the person this plan protects"}
-        sub="This pre-fills notifications, letters, and documents so your family never has to look anything up."
-      />
-      <Input label="Full legal name" placeholder="e.g. Patricia Anne Collins"
-        value={name} onChange={setName}
+        sub="This pre-fills notifications, letters, and documents so your family never has to look anything up." />
+      <Input label="Full legal name" placeholder="e.g. Patricia Anne Collins" value={name} onChange={setName}
         hint="Appears on all official notifications and letters." />
       <Input label="Date of birth" type="date" value={dob} onChange={setDob} />
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
@@ -372,14 +341,11 @@ function PlannedOnboarding({ onComplete, onBack }) {
       </div>
     </StepCard>,
 
-    // 2 — Wishes
     <StepCard key={2}>
       <ProgressBar current={2} total={5} />
-      <StepTitle
-        eyebrow="Final wishes"
+      <StepTitle eyebrow="Final wishes"
         title="The decisions your family would otherwise have to make without you"
-        sub="Being specific here is the greatest gift you can give. It removes the guesswork at the worst possible moment."
-      />
+        sub="Being specific here is the greatest gift you can give. It removes the guesswork at the worst possible moment." />
       {[
         { label: "Burial or cremation?", value: disposition, onChange: setDisposition,
           options: [["","Choose one..."],["cremation","Cremation"],["burial","Traditional burial"],
@@ -395,56 +361,43 @@ function PlannedOnboarding({ onComplete, onBack }) {
           <select value={value} onChange={e => onChange(e.target.value)}
             style={{ width: "100%", padding: "14px 16px", borderRadius: 12, fontSize: 15,
               border: `1.5px solid ${C.border}`, background: C.bgCard,
-              color: value ? C.ink : C.soft, fontFamily: "inherit",
-              outline: "none", boxSizing: "border-box" }}>
+              color: value ? C.ink : C.soft, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}>
             {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
         </div>
       ))}
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={() => setStep(1)}>← Back</Btn>
-        <Btn onClick={() => setStep(3)} disabled={!disposition || !serviceType} style={{ flex: 1 }}>
-          Continue →
-        </Btn>
+        <Btn onClick={() => setStep(3)} disabled={!disposition || !serviceType} style={{ flex: 1 }}>Continue →</Btn>
       </div>
     </StepCard>,
 
-    // 3 — People
     <StepCard key={3}>
       <ProgressBar current={3} total={5} />
-      <StepTitle
-        eyebrow="Your people"
-        title="Who do you trust to carry this out?"
-        sub="They'll know exactly what to do when the time comes — because you already told them."
-      />
+      <StepTitle eyebrow="Your people" title="Who do you trust to carry this out?"
+        sub="They'll know exactly what to do when the time comes — because you already told them." />
       <div style={{ background: C.bgSubtle, borderRadius: 14, padding: "18px 20px", marginBottom: 16 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: C.sage, marginBottom: 4 }}>⚖️ Executor</div>
         <div style={{ fontSize: 12, color: C.mid, marginBottom: 14, lineHeight: 1.5 }}>
-          The person who manages the estate. They'll receive their full task list the moment the trigger fires.
+          The person who manages the estate. They receive their full task list the moment the trigger fires.
         </div>
         <Input label="Full name" placeholder="e.g. Sarah Collins" value={executorName} onChange={setExecutorName} />
         <Input label="Email" type="email" placeholder="sarah@email.com" value={executorEmail} onChange={setExecutorEmail} />
       </div>
       <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`,
         borderRadius: 10, padding: "12px 16px", fontSize: 12.5, color: C.gold, marginBottom: 18 }}>
-        💡 Upgrade to add a Witness who co-confirms the trigger, and Recipients who get personal messages from you — delivered automatically.
+        💡 Upgrade to add a Witness who co-confirms the trigger, and Recipients who get personal messages from you.
       </div>
       <div style={{ display: "flex", gap: 12 }}>
         <Btn variant="ghost" onClick={() => setStep(2)}>← Back</Btn>
-        <Btn onClick={() => setStep(4)} disabled={!executorName || !executorEmail} style={{ flex: 1 }}>
-          Continue →
-        </Btn>
+        <Btn onClick={() => setStep(4)} disabled={!executorName || !executorEmail} style={{ flex: 1 }}>Continue →</Btn>
       </div>
     </StepCard>,
 
-    // 4 — Accounts preview
     <StepCard key={4}>
       <ProgressBar current={4} total={5} />
-      <StepTitle
-        eyebrow="Account map"
-        title="Where are the important accounts?"
-        sub="Your family won't have to hunt. Everything in one place — pre-filled into notification letters automatically."
-      />
+      <StepTitle eyebrow="Account map" title="Where are the important accounts?"
+        sub="Your family won't have to hunt. Everything in one place — pre-filled into notification letters automatically." />
       <div style={{ background: C.bgSubtle, borderRadius: 14, padding: "16px 18px", marginBottom: 16 }}>
         {[
           { icon: "🏦", label: "Primary bank account", locked: false },
@@ -458,14 +411,13 @@ function PlannedOnboarding({ onComplete, onBack }) {
             <span style={{ fontSize: 18 }}>{item.icon}</span>
             <div style={{ flex: 1, fontSize: 13, color: item.locked ? C.muted : C.ink }}>{item.label}</div>
             {item.locked
-              ? <span style={{ fontSize: 10, color: C.gold, fontWeight: 700,
-                  background: C.goldFaint, padding: "2px 8px", borderRadius: 6 }}>Upgrade</span>
+              ? <span style={{ fontSize: 10, color: C.gold, fontWeight: 700, background: C.goldFaint, padding: "2px 8px", borderRadius: 6 }}>Upgrade</span>
               : <span style={{ fontSize: 10, color: C.sage, fontWeight: 700 }}>+ Add</span>}
           </div>
         ))}
       </div>
       <div style={{ fontSize: 12, color: C.soft, marginBottom: 20, lineHeight: 1.6 }}>
-        Free plan includes up to 5 accounts. Upgrade for unlimited — including subscriptions, crypto, and property.
+        Free plan includes up to 5 accounts. Upgrade for unlimited.
       </div>
       <div style={{ display: "flex", gap: 12 }}>
         <Btn variant="ghost" onClick={() => setStep(3)}>← Back</Btn>
@@ -473,21 +425,18 @@ function PlannedOnboarding({ onComplete, onBack }) {
       </div>
     </StepCard>,
 
-    // 5 — PAYWALL (rewritten)
     <StepCard key={5} maxWidth={540}>
       <ProgressBar current={5} total={5} />
-
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div style={{ fontSize: 36, marginBottom: 14 }}>🕊️</div>
-        <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 24,
-          color: C.ink, marginBottom: 10, lineHeight: 1.25 }}>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 24, color: C.ink, marginBottom: 10, lineHeight: 1.25 }}>
           Your plan is built.<br />Now make it real.
         </div>
         <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 18px",
           fontSize: 13.5, color: C.mid, lineHeight: 1.7, marginBottom: 6 }}>
           Right now, this is just a draft.{" "}
           <strong style={{ color: C.ink }}>Without activation, your family won't see any of this.</strong>{" "}
-          Activate it so your plan actually executes when they need it most.
+          Activate so your plan executes when they need it most.
         </div>
         <div style={{ fontSize: 12.5, color: C.gold, fontWeight: 700, marginTop: 10 }}>
           Less than the cost of a single hour with an estate attorney.
@@ -495,12 +444,9 @@ function PlannedOnboarding({ onComplete, onBack }) {
       </div>
 
       {[
-        { id: "annual", label: "Annual", price: "$79", per: "/year",
-          badge: "Best value — save 45%", popular: true },
-        { id: "monthly", label: "Monthly", price: "$12", per: "/month",
-          badge: "Start anytime, cancel anytime" },
-        { id: "lifetime", label: "Lifetime", price: "$249", per: "one time",
-          badge: "Pay once. Active forever. Never think about it again." },
+        { id: "annual", label: "Annual", price: "$79", per: "/year", badge: "Best value — save 45%", popular: true },
+        { id: "monthly", label: "Monthly", price: "$12", per: "/month", badge: "Start anytime, cancel anytime" },
+        { id: "lifetime", label: "Lifetime", price: "$249", per: "one time", badge: "Pay once. Active forever." },
       ].map(plan => (
         <div key={plan.id} onClick={() => setSelectedPlan(plan.id)} style={{
           border: `2px solid ${selectedPlan === plan.id ? C.sage : C.border}`,
@@ -510,47 +456,39 @@ function PlannedOnboarding({ onComplete, onBack }) {
           transition: "all 0.15s", marginBottom: 8, position: "relative",
         }}>
           {plan.popular && (
-            <div style={{ position: "absolute", top: -10, left: 16,
-              background: C.sage, color: "#fff", fontSize: 10, fontWeight: 700,
-              padding: "2px 10px", borderRadius: 10, letterSpacing: "0.05em" }}>
-              RECOMMENDED
-            </div>
+            <div style={{ position: "absolute", top: -10, left: 16, background: C.sage, color: "#fff",
+              fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 10 }}>RECOMMENDED</div>
           )}
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: C.ink }}>{plan.label}</div>
-            <div style={{ fontSize: 11, color: C.soft, marginTop: 3, lineHeight: 1.4 }}>{plan.badge}</div>
+            <div style={{ fontSize: 11, color: C.soft, marginTop: 3 }}>{plan.badge}</div>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <span style={{ fontSize: 22, fontWeight: 800,
-              color: selectedPlan === plan.id ? C.sage : C.ink }}>{plan.price}</span>
+          <div>
+            <span style={{ fontSize: 22, fontWeight: 800, color: selectedPlan === plan.id ? C.sage : C.ink }}>{plan.price}</span>
             <span style={{ fontSize: 12, color: C.soft }}> {plan.per}</span>
           </div>
         </div>
       ))}
 
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 20, marginTop: 8 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-          Everything that activates immediately:
-        </div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 8 }}>Everything that activates immediately:</div>
         {[
           `Death trigger — ${executorName || "your executor"} and family receive their task lists`,
           "All vendor notifications — funeral home, attorney, florist, caterer, cemetery",
-          "Social media posts — drafted, family-approved, then sent",
+          "Social posts drafted and family-approved before sending",
           "Unlimited wishes, accounts, and documents",
-          "Memory vault — voice notes, letters, photos delivered after death",
+          "Memory vault — voice notes and letters delivered after death",
           "Financial assistance finder — benefits, survivor payments, deadlines",
         ].map((f, i) => (
-          <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start",
-            fontSize: 12, color: C.mid, padding: "4px 0" }}>
+          <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", fontSize: 12, color: C.mid, padding: "4px 0" }}>
             <span style={{ color: C.sage, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✓</span>{f}
           </div>
         ))}
       </div>
 
-      <Btn onClick={onComplete} style={{ width: "100%", padding: "17px", fontSize: 16, marginBottom: 10 }}>
+      <Btn onClick={() => onComplete("paid")} style={{ width: "100%", padding: "17px", fontSize: 16, marginBottom: 10 }}>
         Activate my plan →
       </Btn>
-
       <div style={{ textAlign: "center" }}>
         <button onClick={() => onComplete("draft")} style={{ background: "none", border: "none",
           fontSize: 12.5, color: C.soft, cursor: "pointer", fontFamily: "inherit",
@@ -558,9 +496,8 @@ function PlannedOnboarding({ onComplete, onBack }) {
           Save as draft — I understand nothing will activate until I upgrade
         </button>
       </div>
-
       <div style={{ fontSize: 11, color: C.muted, textAlign: "center", marginTop: 10 }}>
-        Secure checkout · If your subscription lapses, the trigger freezes until you reactivate.
+        Secure checkout · If subscription lapses, trigger freezes until reactivated.
       </div>
     </StepCard>,
   ];
@@ -590,36 +527,32 @@ function EmergencyOnboarding({ onComplete, onBack }) {
     { icon: "👨‍👩‍👧‍👦", task: "Notify extended family and close friends", deadline: "Immediately", urgent: true },
     { icon: "⚖️", task: "Contact estate attorney", deadline: "Within 1 week", urgent: false },
     { icon: "📰", task: "Draft and place obituary", deadline: "Before service", urgent: false },
-    { icon: "💰", task: "Check Social Security survivor benefits — time-sensitive deadline", deadline: "Within 60 days", urgent: false },
+    { icon: "💰", task: "Check Social Security survivor benefits — time-sensitive", deadline: "Within 60 days", urgent: false },
     { icon: "🛡️", task: "Locate and file life insurance claims", deadline: "Within 30 days", urgent: false },
   ];
 
   const steps = [
-    // 0 — Triage
     <StepCard key={0}>
       <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`,
         borderRadius: 16, padding: "24px 20px", marginBottom: 24, textAlign: "center" }}>
         <div style={{ fontSize: 36, marginBottom: 12 }}>🕊️</div>
-        <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 22,
-          color: C.ink, marginBottom: 10 }}>We're so sorry for your loss.</div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, marginBottom: 10 }}>
+          We're so sorry for your loss.
+        </div>
         <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.75 }}>
-          Let's get you organized right now. Answer a few quick questions
-          and Passage will build your immediate action plan.
+          We'll guide you step by step. Nothing will be missed.<br />
+          Answer two quick questions and we'll build your plan.
         </div>
       </div>
-      <Input label="Name of the person who passed"
-        placeholder="e.g. Robert James Collins"
+      <Input label="Name of the person who passed" placeholder="e.g. Robert James Collins"
         value={deceasedName} onChange={setDeceasedName} />
       <div style={{ marginBottom: 18 }}>
         <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: C.mid,
-          letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 7 }}>
-          Your relationship to them
-        </label>
+          letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 7 }}>Your relationship</label>
         <select value={relationship} onChange={e => setRelationship(e.target.value)}
           style={{ width: "100%", padding: "14px 16px", borderRadius: 12, fontSize: 15,
             border: `1.5px solid ${C.border}`, background: C.bgCard,
-            color: relationship ? C.ink : C.soft, fontFamily: "inherit",
-            outline: "none", boxSizing: "border-box" }}>
+            color: relationship ? C.ink : C.soft, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}>
           {[["","Select..."],["child","Son or daughter"],["spouse","Spouse or partner"],
             ["sibling","Brother or sister"],["grandchild","Grandchild"],["other","Other"]].map(([v,l]) => (
             <option key={v} value={v}>{l}</option>
@@ -632,49 +565,37 @@ function EmergencyOnboarding({ onComplete, onBack }) {
       </Btn>
     </StepCard>,
 
-    // 1 — Who's handling it
     <StepCard key={1}>
       <ProgressBar current={1} total={3} color={C.rose} />
-      <StepTitle
-        eyebrow="Almost there"
-        title="Who's handling things right now?"
-        sub="We'll build a prioritized task list specific to your situation."
-      />
+      <StepTitle eyebrow="Almost there" title="Who's handling things right now?"
+        sub="We'll send your task list here so you always have it." />
       <Input label="Your name" placeholder="Your full name" value={yourName} onChange={setYourName} />
-      <Input label="Your email" type="email" placeholder="your@email.com"
-        value={yourEmail} onChange={setYourEmail}
-        hint="We'll send your task list here so you don't lose it." />
+      <Input label="Your email" type="email" placeholder="your@email.com" value={yourEmail} onChange={setYourEmail}
+        hint="We'll email your task list so you don't lose it." />
       <div style={{ display: "flex", gap: 12 }}>
         <Btn variant="ghost" onClick={() => setStep(0)}>← Back</Btn>
         <Btn onClick={() => setStep(2)} disabled={!yourName || !yourEmail}
           style={{ flex: 1, background: C.rose, boxShadow: `0 4px 20px ${C.rose}35` }}>
-          Build my task list →
+          Build my plan →
         </Btn>
       </div>
     </StepCard>,
 
-    // 2 — Task list + paywall
     <StepCard key={2} maxWidth={580}>
       <ProgressBar current={2} total={3} color={C.rose} />
-      <StepTitle
-        eyebrow={`For ${deceasedName.split(" ")[0] || "your loved one"}`}
+      <StepTitle eyebrow={`For ${deceasedName.split(" ")[0] || "your loved one"}`}
         title="Everything that needs to happen now"
-        sub={`${yourName} — here's your prioritized plan for the next 30 days. Nothing gets missed.`}
-      />
+        sub={`${yourName} — here's your prioritized plan. Nothing gets missed.`} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 24 }}>
         {urgentTasks.map((t, i) => (
-          <div key={i} style={{
-            background: t.urgent ? C.roseFaint : C.bgCard,
+          <div key={i} style={{ background: t.urgent ? C.roseFaint : C.bgCard,
             border: `1px solid ${t.urgent ? C.rose + "40" : C.border}`,
-            borderRadius: 12, padding: "13px 16px",
-            display: "flex", alignItems: "center", gap: 14,
-          }}>
+            borderRadius: 12, padding: "13px 16px", display: "flex", alignItems: "center", gap: 14 }}>
             <span style={{ fontSize: 18, flexShrink: 0 }}>{t.icon}</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>{t.task}</div>
-              <div style={{ fontSize: 11, color: t.urgent ? C.rose : C.amber,
-                marginTop: 3, fontWeight: 600 }}>
+              <div style={{ fontSize: 11, color: t.urgent ? C.rose : C.amber, marginTop: 3, fontWeight: 600 }}>
                 {t.urgent ? "⚡ " : "● "}{t.deadline}
               </div>
             </div>
@@ -682,22 +603,20 @@ function EmergencyOnboarding({ onComplete, onBack }) {
         ))}
       </div>
 
-      {/* Red path paywall — framed as support */}
       <div style={{ background: C.bgSubtle, borderRadius: 16, padding: "20px", marginBottom: 16 }}>
-        <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 17,
-          color: C.ink, marginBottom: 8 }}>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 8 }}>
           Don't navigate this alone.
         </div>
-        <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.7, marginBottom: 16 }}>
-          With Passage, you can track every task, assign responsibilities to family members,
+        <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.7, marginBottom: 14 }}>
+          With Passage, you can assign each task to a specific family member, track progress,
           store documents in one place, and make sure nothing slips through the cracks.
         </div>
         {[
           "Assign each task to a specific family member",
           "Pre-filled notification letters — Social Security, banks, employer",
-          "Document vault — store everything in one secure place",
+          "Document vault — everything in one secure place",
           "Reminders so critical deadlines aren't missed",
-          "Everyone invited gets their first year free",
+          "Everyone you invite gets their first year free",
         ].map((f, i) => (
           <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start",
             fontSize: 12.5, color: C.mid, padding: "4px 0" }}>
@@ -707,10 +626,9 @@ function EmergencyOnboarding({ onComplete, onBack }) {
       </div>
 
       <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}20`,
-        borderRadius: 12, padding: "12px 16px", fontSize: 12, color: C.rose,
-        marginBottom: 16, lineHeight: 1.6 }}>
-        🎁 <strong>Everyone you invite to help</strong> — the executor, the florist, the officiant —
-        gets their first year of Passage free. They experience the product. They keep it for their own family.
+        borderRadius: 12, padding: "12px 16px", fontSize: 12, color: C.rose, marginBottom: 16, lineHeight: 1.6 }}>
+        🎁 <strong>Everyone you invite to help</strong> — executor, florist, officiant —
+        gets their first year of Passage free.
       </div>
 
       <Btn onClick={() => onComplete("emergency_paid")}
@@ -718,14 +636,11 @@ function EmergencyOnboarding({ onComplete, onBack }) {
           background: C.rose, boxShadow: `0 4px 20px ${C.rose}35` }}>
         Continue with support — from $12/mo →
       </Btn>
-
       <button onClick={() => onComplete("emergency_free")}
         style={{ width: "100%", padding: "11px", background: "none", border: `1px solid ${C.border}`,
-          borderRadius: 12, fontSize: 13, color: C.mid, cursor: "pointer",
-          fontFamily: "inherit", marginBottom: 8 }}>
+          borderRadius: 12, fontSize: 13, color: C.mid, cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>
         Download this list only (free)
       </button>
-
       <div style={{ fontSize: 11, color: C.muted, textAlign: "center" }}>
         Free plan saves your list but doesn't assign, track, or remind.
       </div>
@@ -744,49 +659,37 @@ function EmergencyOnboarding({ onComplete, onBack }) {
 
 // ─── SUCCESS ──────────────────────────────────────────────────────────────────
 function Success({ mode }) {
-  const isDraft = mode === "draft";
-  const isEmergencyFree = mode === "emergency_free";
-  const isEmergencyPaid = mode === "emergency_paid";
-
-  if (isDraft) {
+  if (mode === "draft") {
     return (
       <div style={{ background: C.bg, minHeight: "100vh", display: "flex",
         alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ background: C.bgCard, borderRadius: 24, padding: "44px 36px",
-          maxWidth: 440, width: "100%", textAlign: "center",
-          boxShadow: "0 2px 40px rgba(0,0,0,0.07)" }}>
+          maxWidth: 440, width: "100%", textAlign: "center", boxShadow: "0 2px 40px rgba(0,0,0,0.07)" }}>
           <div style={{ fontSize: 36, marginBottom: 14 }}>📄</div>
-          <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 22,
-            color: C.ink, marginBottom: 12 }}>Your draft is saved.</div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, marginBottom: 12 }}>Your draft is saved.</div>
           <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`,
             borderRadius: 12, padding: "14px 18px", fontSize: 13.5, color: C.amber,
             lineHeight: 1.7, marginBottom: 24 }}>
-            ⚠️ This is only a draft. Nothing will be shared, triggered, or sent to your family until you activate your plan.
+            ⚠️ This is only a draft. Nothing will be shared, triggered, or sent to your family until you activate.
           </div>
           <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.7, marginBottom: 24 }}>
             When you're ready, activate your plan so it actually works when your family needs it.
           </div>
-          <Btn style={{ width: "100%" }} onClick={() => window.location.reload()}>
-            Activate my plan →
-          </Btn>
-          <div style={{ marginTop: 14, fontSize: 12, color: C.muted }}>
-            We'll send you a reminder in 7 days.
-          </div>
+          <Btn style={{ width: "100%" }} onClick={() => window.location.reload()}>Activate my plan →</Btn>
+          <div style={{ marginTop: 14, fontSize: 12, color: C.muted }}>We'll send you a reminder in 7 days.</div>
         </div>
       </div>
     );
   }
 
-  if (isEmergencyFree) {
+  if (mode === "emergency_free") {
     return (
       <div style={{ background: C.bg, minHeight: "100vh", display: "flex",
         alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ background: C.bgCard, borderRadius: 24, padding: "44px 36px",
-          maxWidth: 440, width: "100%", textAlign: "center",
-          boxShadow: "0 2px 40px rgba(0,0,0,0.07)" }}>
+          maxWidth: 440, width: "100%", textAlign: "center", boxShadow: "0 2px 40px rgba(0,0,0,0.07)" }}>
           <div style={{ fontSize: 36, marginBottom: 14 }}>📋</div>
-          <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 22,
-            color: C.ink, marginBottom: 12 }}>Your task list is saved.</div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, marginBottom: 12 }}>Your task list is saved.</div>
           <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.75, marginBottom: 20 }}>
             We've emailed it to you. Take a breath. You have what you need to start.
           </div>
@@ -794,8 +697,8 @@ function Success({ mode }) {
             fontSize: 13, color: C.mid, lineHeight: 1.7, marginBottom: 24 }}>
             When you're ready, upgrading will let you assign tasks, track progress, and make sure nothing gets missed.
           </div>
-          <Btn style={{ width: "100%", background: C.rose,
-            boxShadow: `0 4px 20px ${C.rose}30` }} onClick={() => window.location.reload()}>
+          <Btn style={{ width: "100%", background: C.rose, boxShadow: `0 4px 20px ${C.rose}30` }}
+            onClick={() => window.location.reload()}>
             Get full support →
           </Btn>
         </div>
@@ -807,27 +710,22 @@ function Success({ mode }) {
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex",
       alignItems: "center", justifyContent: "center", padding: 24 }}>
       <div style={{ background: C.bgCard, borderRadius: 24, padding: "48px 36px",
-        maxWidth: 440, width: "100%", textAlign: "center",
-        boxShadow: "0 2px 40px rgba(0,0,0,0.08)" }}>
+        maxWidth: 440, width: "100%", textAlign: "center", boxShadow: "0 2px 40px rgba(0,0,0,0.08)" }}>
         <div style={{ width: 72, height: 72, borderRadius: "50%",
-          background: isEmergencyPaid ? C.roseFaint : C.sageFaint,
+          background: mode === "emergency_paid" ? C.roseFaint : C.sageFaint,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 32, margin: "0 auto 24px" }}>🕊️</div>
-
-        <div style={{ fontFamily: "'Lora', Georgia, serif", fontSize: 26,
-          color: C.ink, marginBottom: 12 }}>
-          {isEmergencyPaid ? "Your plan is live." : "Your file is activated."}
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 26, color: C.ink, marginBottom: 12 }}>
+          {mode === "emergency_paid" ? "Your plan is live." : "Your file is activated."}
         </div>
-
         <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.8, marginBottom: 28 }}>
-          {isEmergencyPaid
+          {mode === "emergency_paid"
             ? "Your task list is active. Family members are being notified. Take a breath — your family has what they need."
             : "Your family will never have to guess. When the time comes, everything is already waiting — tasks assigned, notifications ready, letters drafted."}
         </div>
-
         <div style={{ background: C.sageFaint, borderRadius: 12, padding: "14px 18px",
           fontSize: 13, color: C.sage, fontWeight: 600 }}>
-          {isEmergencyPaid
+          {mode === "emergency_paid"
             ? "Everyone you've invited will receive their tasks shortly."
             : "Welcome to Passage. Your family is protected. 🕊️"}
         </div>
@@ -841,12 +739,20 @@ export default function App() {
   const [view, setView] = useState("landing");
   const [successMode, setSuccessMode] = useState("paid");
 
-  const handlePlanComplete = (mode = "paid") => {
+  const handlePlanComplete = async (mode = "paid") => {
+    await saveLead({
+      flow_type: "planning",
+      mode: mode,
+    });
     setSuccessMode(mode);
     setView("success");
   };
 
-  const handleEmergencyComplete = (mode = "emergency_paid") => {
+  const handleEmergencyComplete = async (mode = "emergency_paid") => {
+    await saveLead({
+      flow_type: "immediate",
+      mode: mode,
+    });
     setSuccessMode(mode);
     setView("success");
   };
