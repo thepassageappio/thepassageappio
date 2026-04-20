@@ -3,15 +3,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, flow_type, name, executor_name, relationship } = req.body;
+  const { email, name, flow_type, mode, timestamp } = req.body;
 
   console.log('🕊️ New Passage Lead:', {
     email,
-    flow_type,
     name,
-    executor_name,
-    relationship,
-    timestamp: new Date().toISOString(),
+    flow_type,
+    mode,
+    timestamp: timestamp || new Date().toISOString(),
   });
 
   return res.status(200).json({ success: true });
