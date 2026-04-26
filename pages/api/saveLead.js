@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY // service role for server-side writes
 );
 
 export default async function handler(req, res) {
@@ -10,61 +10,57 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const {
-    // Red path fields
-    email,
-    your_email,
-    first_name,
-    your_name,
-    deceased_name,
-    relationship,
-    // Green path fields
-    executor_email,
-    executor_name,
-    person_name,
-    disposition,
-    service_type,
-    // Shared
-    flow_type,
-    mode,
-  } = req.body;
-
-  console.log('🕊️ New Passage Lead:', { flow_type, mode });
-
   try {
-    const { error } = await supabase
-      .from('leads')
-      .insert([{
-        // Green path uses executor_email as the contact
-        // Red path uses your_email
-        email: executor_email || email || your_email || null,
-        first_name: person_name || first_name || your_name || null,
-        flow_type,
-        source: 'onboarding',
-        notes: JSON.stringify({
-          // Red path
-          deceased_name,
-          relationship,
-          your_name,
-          // Green path
-          executor_name,
-          executor_email,
-          person_name,
-          disposition,
-          service_type,
-          mode,
-        }),
-      }]);
+    const body = req.body || {};
+    const {
+      email,
+      your_email,
+      name,
+      your_name,
+      first_name,
+      flow_type,
+      mode,
+      deceased_name,
+      relationship,
+      executor_name,
+      executor_email,
+      disposition,
+      service_type,
+      timestamp,
+    } = body;
+
+    // Resolve email and name from either field name
+    const resolvedEmail = email || your_email || executor_email || null;
+    const resolvedName = name || your_name || first_name || executor_name || null;
+
+    console.log('🕊️ Passage lead:', { resolvedEmail, resolvedName, flow_type, mode });
+
+    // Write to Supabase leads table
+    const { error } = await supabase.from('leads').insert([{
+      email: resolvedEmail,
+      first_name: resolvedName,
+      flow_type: flow_type || 'unknown',
+      source: 'web',
+      notes: JSON.stringify({
+        mode,
+        deceased_name,
+        relationship,
+        executor_name,
+        executor_email,
+        disposition,
+        service_type,
+        timestamp: timestamp || new Date().toISOString(),
+      }),
+    }]);
 
     if (error) {
-      console.error('Supabase error:', error);
-      return res.status(500).json({ error: error.message });
+      console.error('Lead save error:', error);
+      // Don't fail the request — lead capture is non-critical
     }
 
     return res.status(200).json({ success: true });
-
   } catch (err) {
-    console.error('Server error:', err);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('saveLead handler error:', err);
+    return res.status(200).json({ success: true }); // still 200 — never block the flow
   }
 }
