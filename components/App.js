@@ -153,7 +153,9 @@ const saveAllTasks = async (workflowId, userId) => {
         status: 'pending',
       }))
     );
-    const { data, error } = await supabase.from('tasks').insert(rows).select();
+    const { data, error } = await supabase.from('tasks')
+      .upsert(rows, { onConflict: 'workflow_id,title', ignoreDuplicates: true })
+      .select();
     if (error) { console.error('saveAllTasks:', error); return []; }
     return data || [];
   } catch (e) { console.error('saveAllTasks:', e); return []; }
