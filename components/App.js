@@ -28,11 +28,52 @@ const saveLead = async (data) => {
   }
 };
 
+const saveProfile = async (userId, data) => {
+  if (!userId) return;
+  try {
+    // Update user record
+    await supabase.from('users').update({
+      updated_at: new Date().toISOString(),
+    }).eq('id', userId);
+
+    // Upsert profile
+    await supabase.from('profiles').upsert({
+      user_id: userId,
+      disposition: data.disposition || null,
+      service_type: data.service_type || null,
+      special_requests: data.special_requests || null,
+      attorney_name: data.executor_name || null,
+      attorney_email: data.executor_email || null,
+      wishes_complete: true,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+
+    // Upsert executor as a person
+    if (data.executor_name && data.executor_email) {
+      await supabase.from('people').upsert({
+        owner_id: userId,
+        first_name: data.executor_name.split(' ')[0] || data.executor_name,
+        last_name: data.executor_name.split(' ').slice(1).join(' ') || '',
+        email: data.executor_email,
+        role: 'executor',
+        notify_on_trigger: true,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'owner_id,email' });
+    }
+  } catch (err) {
+    console.error('Profile save failed:', err);
+  }
+};
+
 const signInWithGoogle = async () => {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: 'https://thepassageapp.io' }
   });
+};
+
+const signOut = async () => {
+  await supabase.auth.signOut();
 };
 
 const Btn = ({ children, onClick, variant = "primary", disabled, style = {} }) => {
@@ -133,7 +174,7 @@ const StepTitle = ({ eyebrow, title, sub }) => (
   </div>
 );
 
-const NavHeader = ({ onBack, label, user }) => (
+const NavHeader = ({ onBack, label, user, onDashboard }) => (
   <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`,
     padding: "16px 24px", display: "flex", alignItems: "center",
     justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
@@ -144,8 +185,11 @@ const NavHeader = ({ onBack, label, user }) => (
     </div>
     {label && <div style={{ fontSize: 12, color: C.soft, fontWeight: 500 }}>{label}</div>}
     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-      {user && (
-        <div style={{ fontSize: 11, color: C.sage, fontWeight: 600 }}>{user.email}</div>
+      {user && onDashboard && (
+        <button onClick={onDashboard} style={{ background: "none", border: "none",
+          fontSize: 12, color: C.sage, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
+          My file
+        </button>
       )}
       <button onClick={onBack} style={{ background: "none", border: "none",
         fontSize: 13, color: C.soft, cursor: "pointer", fontFamily: "inherit" }}>
@@ -173,8 +217,219 @@ const GoogleBtn = ({ label = "Continue with Google" }) => (
   </button>
 );
 
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function Dashboard({ user, onBack, onStartPlan }) {
+  const [profile, setProfile] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      try {
+        const [{ data: u }, { data: p }] = await Promise.all([
+          supabase.from('users').select('*').eq('id', user.id).single(),
+          supabase.from('profiles').select('*').eq('user_id', user.id).single(),
+        ]);
+        setUserData(u);
+        setProfile(p);
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
+  const plan = userData?.plan || 'free';
+  const planStatus = userData?.plan_status || 'active';
+  const completionPct = userData?.file_completion_pct || 0;
+
+  const planDetails = {
+    free: { label: "Free Plan", color: C.soft, price: "$0", interval: "forever", next_charge: "None", renewal: "N/A" },
+    monthly: { label: "Monthly Plan", color: C.sage, price: "$12", interval: "/month", next_charge: "Next month", renewal: "Monthly" },
+    annual: { label: "Annual Plan", color: C.sage, price: "$79", interval: "/year", next_charge: "Next year", renewal: "Annual" },
+    lifetime: { label: "Lifetime Plan", color: C.gold, price: "$249", interval: "one time", next_charge: "Never", renewal: "Never" },
+  };
+
+  const pd = planDetails[plan] || planDetails.free;
+
+  const sections = [
+    { label: "Wishes", complete: profile?.wishes_complete, icon: "📝", desc: profile?.disposition ? `${profile.disposition} · ${profile.service_type || ''}` : "Not started" },
+    { label: "Accounts", complete: profile?.accounts_complete, icon: "🗂️", desc: "Map your financial accounts" },
+    { label: "People", complete: profile?.people_complete, icon: "👥", desc: profile?.attorney_name ? `Executor: ${profile.attorney_name}` : "Designate your people" },
+    { label: "Documents", complete: profile?.documents_complete, icon: "📄", desc: "Upload important documents" },
+    { label: "Memories", complete: profile?.vault_complete, icon: "🎙️", desc: "Record voice notes & letters" },
+  ];
+
+  const completeSections = sections.filter(s => s.complete).length;
+  const pct = Math.round((completeSections / sections.length) * 100);
+
+  return (
+    <div style={{ background: C.bg, minHeight: "100vh" }}>
+      {/* Nav */}
+      <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`,
+        padding: "16px 24px", display: "flex", alignItems: "center",
+        justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: "50%",
+            background: `radial-gradient(circle, ${C.sageLight}, ${C.sage}70)` }} />
+          <span style={{ fontFamily: "Georgia, serif", fontSize: 18, color: C.ink }}>Passage</span>
+        </div>
+        <div style={{ fontSize: 12, color: C.soft }}>{user?.email}</div>
+        <button onClick={signOut} style={{ background: "none", border: `1px solid ${C.border}`,
+          borderRadius: 8, padding: "6px 14px", fontSize: 12, color: C.mid,
+          cursor: "pointer", fontFamily: "inherit" }}>
+          Sign out
+        </button>
+      </div>
+
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "32px 20px 80px" }}>
+
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "60px 0", color: C.soft }}>Loading your file...</div>
+        ) : (
+          <>
+            {/* Welcome */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: 26, color: C.ink, marginBottom: 6 }}>
+                Welcome back{userData?.first_name ? `, ${userData.first_name}` : ""}.
+              </div>
+              <div style={{ fontSize: 14, color: C.mid }}>
+                Your family is{plan === 'free' ? ' not yet protected — activate your plan to change that.' : ' protected. Your plan is active.'}
+              </div>
+            </div>
+
+            {/* Subscription Card */}
+            <div style={{ background: C.bgCard, borderRadius: 20, padding: "24px",
+              border: `1px solid ${C.border}`, marginBottom: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase",
+                    color: C.soft, fontWeight: 600, marginBottom: 4 }}>Current Plan</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: pd.color, fontWeight: 400 }}>
+                    {pd.label}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: pd.color }}>{pd.price}</div>
+                  <div style={{ fontSize: 11, color: C.soft }}>{pd.interval}</div>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
+                {[
+                  { label: "Status", value: planStatus === 'active' ? '✓ Active' : planStatus, color: planStatus === 'active' ? C.green : C.rose },
+                  { label: "Next Charge", value: pd.next_charge },
+                  { label: "Renewal", value: pd.renewal },
+                ].map(item => (
+                  <div key={item.label} style={{ background: C.bgSubtle, borderRadius: 12, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 10, color: C.soft, textTransform: "uppercase",
+                      letterSpacing: "0.1em", fontWeight: 600, marginBottom: 4 }}>{item.label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: item.color || C.ink }}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {plan === 'free' && (
+                <div style={{ background: `linear-gradient(135deg, ${C.sage}15, ${C.gold}10)`,
+                  border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: "16px 18px" }}>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink, marginBottom: 6 }}>
+                    Activate your plan
+                  </div>
+                  <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 14, lineHeight: 1.6 }}>
+                    Right now nothing will execute. Upgrade to protect your family for real.
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {[
+                      { id: "monthly", label: "Monthly", price: "$12/mo" },
+                      { id: "annual", label: "Annual", price: "$79/yr", badge: "Best value" },
+                      { id: "lifetime", label: "Lifetime", price: "$249" },
+                    ].map(p => (
+                      <div key={p.id} style={{ flex: 1, minWidth: 100, background: C.bgCard,
+                        border: `1.5px solid ${p.id === 'annual' ? C.sage : C.border}`,
+                        borderRadius: 12, padding: "10px 12px", cursor: "pointer",
+                        textAlign: "center" }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: C.ink }}>{p.label}</div>
+                        {p.badge && <div style={{ fontSize: 9, color: C.sage, fontWeight: 700 }}>{p.badge}</div>}
+                        <div style={{ fontSize: 13, fontWeight: 800, color: p.id === 'annual' ? C.sage : C.ink, marginTop: 2 }}>{p.price}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 11, color: C.soft, textAlign: "center", marginTop: 10 }}>
+                    If your subscription lapses, the trigger freezes until you reactivate.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* File Progress */}
+            <div style={{ background: C.bgCard, borderRadius: 20, padding: "24px",
+              border: `1px solid ${C.border}`, marginBottom: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: 18, color: C.ink }}>Your file</div>
+                <div style={{ fontSize: 13, color: C.sage, fontWeight: 700 }}>{completeSections}/{sections.length} sections complete</div>
+              </div>
+              <div style={{ height: 6, background: C.border, borderRadius: 3, marginBottom: 20 }}>
+                <div style={{ height: "100%", borderRadius: 3, background: C.sage, width: `${pct}%`, transition: "width 0.4s ease" }} />
+              </div>
+              {sections.map((s, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 14,
+                  padding: "11px 0", borderBottom: i < sections.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: "50%",
+                    background: s.complete ? C.sageFaint : C.bgSubtle,
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 16 }}>{s.complete ? "✓" : s.icon}</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: s.complete ? C.sage : C.ink }}>{s.label}</div>
+                    <div style={{ fontSize: 11.5, color: C.soft, marginTop: 2 }}>{s.desc}</div>
+                  </div>
+                  {!s.complete && (
+                    <button onClick={onStartPlan} style={{ fontSize: 11, color: C.sage,
+                      fontWeight: 700, background: C.sageFaint, border: "none",
+                      borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontFamily: "inherit" }}>
+                      Add →
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Account Info */}
+            <div style={{ background: C.bgCard, borderRadius: 20, padding: "24px",
+              border: `1px solid ${C.border}`, marginBottom: 16 }}>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: 18, color: C.ink, marginBottom: 16 }}>Account</div>
+              {[
+                { label: "Email", value: user?.email },
+                { label: "Member since", value: userData?.created_at ? new Date(userData.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "—" },
+                { label: "Plan status", value: planStatus },
+                { label: "File completion", value: `${pct}%` },
+              ].map(item => (
+                <div key={item.label} style={{ display: "flex", justifyContent: "space-between",
+                  padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
+                  <div style={{ fontSize: 12, color: C.soft, fontWeight: 600 }}>{item.label}</div>
+                  <div style={{ fontSize: 13, color: C.ink, fontWeight: 500 }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Sign out */}
+            <button onClick={signOut} style={{ width: "100%", padding: "13px",
+              background: "none", border: `1px solid ${C.border}`, borderRadius: 12,
+              fontSize: 13, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>
+              Sign out of Passage
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── LANDING ──────────────────────────────────────────────────────────────────
-function Landing({ onPlan, onEmergency, user }) {
+function Landing({ onPlan, onEmergency, user, onDashboard }) {
   const [visible, setVisible] = useState(false);
   const [breathe, setBreathe] = useState(false);
 
@@ -205,12 +460,20 @@ function Landing({ onPlan, onEmergency, user }) {
             Join beta
           </button>
           {user ? (
-            <button onClick={onPlan}
-              style={{ background: C.sage, border: "none", borderRadius: 10,
-                padding: "9px 20px", fontSize: 13, fontWeight: 700,
-                cursor: "pointer", color: "#fff", fontFamily: "inherit" }}>
-              My file →
-            </button>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button onClick={onDashboard}
+                style={{ background: C.sage, border: "none", borderRadius: 10,
+                  padding: "9px 20px", fontSize: 13, fontWeight: 700,
+                  cursor: "pointer", color: "#fff", fontFamily: "inherit" }}>
+                My file →
+              </button>
+              <button onClick={signOut}
+                style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 10,
+                  padding: "8px 14px", fontSize: 12, cursor: "pointer",
+                  color: C.mid, fontFamily: "inherit" }}>
+                Sign out
+              </button>
+            </div>
           ) : (
             <button onClick={signInWithGoogle}
               style={{ background: C.bgCard, border: `1.5px solid ${C.border}`,
@@ -255,12 +518,8 @@ function Landing({ onPlan, onEmergency, user }) {
           Set it up while there's time. Let it take over when there isn't.
         </p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 20 }}>
-          <Btn onClick={onPlan} style={{ padding: "17px 34px", fontSize: 16 }}>
-            Start planning now →
-          </Btn>
-          <Btn variant="rose" onClick={onEmergency} style={{ padding: "17px 28px", fontSize: 15 }}>
-            Someone just passed ↗
-          </Btn>
+          <Btn onClick={onPlan} style={{ padding: "17px 34px", fontSize: 16 }}>Start planning now →</Btn>
+          <Btn variant="rose" onClick={onEmergency} style={{ padding: "17px 28px", fontSize: 15 }}>Someone just passed ↗</Btn>
         </div>
         <div style={{ display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap" }}>
           {["Free to start", "No credit card required", "Your data, always yours"].map(t => (
@@ -300,16 +559,12 @@ function Landing({ onPlan, onEmergency, user }) {
 
       <div style={{ background: C.bgSage, padding: "56px 28px" }}>
         <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ fontFamily: "Georgia, serif", fontSize: 28, color: C.ink, marginBottom: 10 }}>
-            When the trigger fires, your plan comes to life
-          </div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 28, color: C.ink, marginBottom: 10 }}>When the trigger fires, your plan comes to life</div>
           <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.75, marginBottom: 32 }}>
-            You're not just notifying people.<br />
-            You're orchestrating the most important moment your family will ever face.
+            You're not just notifying people.<br />You're orchestrating the most important moment your family will ever face.
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, maxWidth: 480, margin: "0 auto 24px" }}>
-            {[["👨‍👩‍👧‍👦","Family"],["⚖️","Attorney"],["🏛️","Funeral home"],["🌸","Florist"],
-              ["🍽️","Caterer"],["⛪","Cemetery"],["📰","Obituaries"],["📱","Socials"]].map(([icon, label]) => (
+            {[["👨‍👩‍👧‍👦","Family"],["⚖️","Attorney"],["🏛️","Funeral home"],["🌸","Florist"],["🍽️","Caterer"],["⛪","Cemetery"],["📰","Obituaries"],["📱","Socials"]].map(([icon, label]) => (
               <div key={label} style={{ background: C.bgCard, borderRadius: 12, padding: "14px 8px", textAlign: "center", border: `1px solid ${C.border}` }}>
                 <div style={{ fontSize: 20, marginBottom: 5 }}>{icon}</div>
                 <div style={{ fontSize: 10.5, color: C.mid, fontWeight: 600 }}>{label}</div>
@@ -317,8 +572,7 @@ function Landing({ onPlan, onEmergency, user }) {
             ))}
           </div>
           <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.6 }}>
-            Social posts are always family-approved before going live.<br />
-            Two people must confirm before anything triggers.
+            Social posts are always family-approved before going live.<br />Two people must confirm before anything triggers.
           </div>
         </div>
       </div>
@@ -370,6 +624,7 @@ function PlannedOnboarding({ onComplete, onBack, user }) {
   const [selectedPlan, setSelectedPlan] = useState("annual");
 
   const handleActivate = async (mode) => {
+    // Save lead for analytics
     await saveLead({
       flow_type: "planning",
       mode,
@@ -380,6 +635,15 @@ function PlannedOnboarding({ onComplete, onBack, user }) {
       service_type: serviceType,
       timestamp: new Date().toISOString(),
     });
+    // Save profile to Supabase if logged in
+    if (user) {
+      await saveProfile(user.id, {
+        disposition,
+        service_type: serviceType,
+        executor_name: executorName,
+        executor_email: executorEmail,
+      });
+    }
     onComplete(mode);
   };
 
@@ -566,7 +830,7 @@ function PlannedOnboarding({ onComplete, onBack, user }) {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
-      <NavHeader onBack={onBack} label="Setting up your plan" user={user} />
+      <NavHeader onBack={onBack} label="Setting up your plan" user={user} onDashboard={() => {}} />
       <div style={{ padding: "32px 20px 80px", display: "flex", justifyContent: "center" }}>
         <div style={{ width: "100%" }}>{steps[step]}</div>
       </div>
@@ -584,12 +848,9 @@ function EmergencyOnboarding({ onComplete, onBack }) {
 
   const handleComplete = async (mode) => {
     await saveLead({
-      flow_type: "immediate",
-      mode,
-      your_name: yourName,
-      your_email: yourEmail,
-      deceased_name: deceasedName,
-      relationship,
+      flow_type: "immediate", mode,
+      your_name: yourName, your_email: yourEmail,
+      deceased_name: deceasedName, relationship,
       timestamp: new Date().toISOString(),
     });
     onComplete(mode);
@@ -612,8 +873,7 @@ function EmergencyOnboarding({ onComplete, onBack }) {
         <div style={{ fontSize: 36, marginBottom: 12 }}>🕊️</div>
         <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, marginBottom: 10 }}>We're so sorry for your loss.</div>
         <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.75 }}>
-          We'll guide you step by step. Nothing will be missed.<br />
-          Answer two quick questions and we'll build your plan.
+          We'll guide you step by step. Nothing will be missed.<br />Answer two quick questions and we'll build your plan.
         </div>
       </div>
       <Input label="Name of the person who passed" placeholder="e.g. Robert James Collins" value={deceasedName} onChange={setDeceasedName} />
@@ -701,7 +961,7 @@ function EmergencyOnboarding({ onComplete, onBack }) {
 }
 
 // ─── SUCCESS ──────────────────────────────────────────────────────────────────
-function Success({ mode }) {
+function Success({ mode, onDashboard }) {
   const isDraft = mode === "draft";
   const isEmergencyFree = mode === "emergency_free";
   const isEmergencyPaid = mode === "emergency_paid";
@@ -733,16 +993,19 @@ function Success({ mode }) {
               ? "Your task list is active. Family members are being notified. Take a breath — your family has what they need."
               : "Your family will never have to guess. When the time comes, everything is already waiting — tasks assigned, notifications ready, letters drafted."}
           </div>
-          {isDraft && (
-            <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 12, padding: "12px 16px", fontSize: 13, color: C.amber, lineHeight: 1.6, marginBottom: 20 }}>
-              ⚠️ Activate your plan so it actually works when your family needs it.
-            </div>
-          )}
-          <div style={{ background: isDraft ? C.goldFaint : C.sageFaint, borderRadius: 12, padding: "12px 16px", fontSize: 13, color: isDraft ? C.amber : C.sage, fontWeight: 600 }}>
+          <div style={{ background: isDraft ? C.goldFaint : C.sageFaint, borderRadius: 12, padding: "12px 16px", fontSize: 13, color: isDraft ? C.amber : C.sage, fontWeight: 600, marginBottom: 20 }}>
             {isDraft ? "We'll send you a reminder in 7 days."
               : isEmergencyPaid ? "Everyone you've invited will receive their tasks shortly."
               : "Welcome to Passage. 🕊️"}
           </div>
+          {onDashboard && (
+            <button onClick={onDashboard}
+              style={{ width: "100%", padding: "13px", background: C.sage, border: "none",
+                borderRadius: 12, fontSize: 14, fontWeight: 700, color: "#fff",
+                cursor: "pointer", fontFamily: "inherit" }}>
+              View my file →
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -777,10 +1040,40 @@ export default function App() {
 
   return (
     <>
-      {view === "landing" && <Landing onPlan={() => setView("plan")} onEmergency={() => setView("emergency")} user={user} />}
-      {view === "plan" && <PlannedOnboarding onComplete={handlePlanComplete} onBack={() => setView("landing")} user={user} />}
-      {view === "emergency" && <EmergencyOnboarding onComplete={handleEmergencyComplete} onBack={() => setView("landing")} />}
-      {view === "success" && <Success mode={successMode} />}
+      {view === "landing" && (
+        <Landing
+          onPlan={() => setView("plan")}
+          onEmergency={() => setView("emergency")}
+          user={user}
+          onDashboard={() => setView("dashboard")}
+        />
+      )}
+      {view === "plan" && (
+        <PlannedOnboarding
+          onComplete={handlePlanComplete}
+          onBack={() => setView("landing")}
+          user={user}
+        />
+      )}
+      {view === "emergency" && (
+        <EmergencyOnboarding
+          onComplete={handleEmergencyComplete}
+          onBack={() => setView("landing")}
+        />
+      )}
+      {view === "success" && (
+        <Success
+          mode={successMode}
+          onDashboard={user ? () => setView("dashboard") : null}
+        />
+      )}
+      {view === "dashboard" && (
+        <Dashboard
+          user={user}
+          onBack={() => setView("landing")}
+          onStartPlan={() => setView("plan")}
+        />
+      )}
     </>
   );
 }
