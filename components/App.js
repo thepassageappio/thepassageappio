@@ -1,4 +1,10 @@
 import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 const C = {
   bg: "#f6f3ee", bgCard: "#ffffff", bgSubtle: "#f0ece5", bgSage: "#e8eeea",
@@ -20,6 +26,13 @@ const saveLead = async (data) => {
   } catch (err) {
     console.error('Lead save failed:', err);
   }
+};
+
+const signInWithGoogle = async () => {
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: 'https://thepassageapp.io' }
+  });
 };
 
 const Btn = ({ children, onClick, variant = "primary", disabled, style = {} }) => {
@@ -120,7 +133,7 @@ const StepTitle = ({ eyebrow, title, sub }) => (
   </div>
 );
 
-const NavHeader = ({ onBack, label }) => (
+const NavHeader = ({ onBack, label, user }) => (
   <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`,
     padding: "16px 24px", display: "flex", alignItems: "center",
     justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
@@ -129,48 +142,43 @@ const NavHeader = ({ onBack, label }) => (
         background: `radial-gradient(circle, ${C.sageLight}, ${C.sage}70)` }} />
       <span style={{ fontFamily: "Georgia, serif", fontSize: 18, color: C.ink }}>Passage</span>
     </div>
-    {label && (
-      <div style={{ fontSize: 12, color: C.soft, fontWeight: 500 }}>{label}</div>
-    )}
-    <button onClick={onBack} style={{ background: "none", border: "none",
-      fontSize: 13, color: C.soft, cursor: "pointer", fontFamily: "inherit" }}>
-      ← Back
-    </button>
+    {label && <div style={{ fontSize: 12, color: C.soft, fontWeight: 500 }}>{label}</div>}
+    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      {user && (
+        <div style={{ fontSize: 11, color: C.sage, fontWeight: 600 }}>
+          {user.email}
+        </div>
+      )}
+      <button onClick={onBack} style={{ background: "none", border: "none",
+        fontSize: 13, color: C.soft, cursor: "pointer", fontFamily: "inherit" }}>
+        ← Back
+      </button>
+    </div>
   </div>
 );
 
-// ─── TALLY EMBED ──────────────────────────────────────────────────────────────
-function TallyEmbed({ flow }) {
-  const url = `${TALLY_URL}?flow=${flow}`;
-  return (
-    <div style={{ marginTop: 24, borderRadius: 16, overflow: "hidden",
-      border: `1px solid ${C.border}`, background: C.bgCard }}>
-      <div style={{ padding: "16px 20px", background: C.sageFaint,
-        borderBottom: `1px solid ${C.sageLight}` }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: C.sage,
-          letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 2 }}>
-          🕊️ Join the Beta
-        </div>
-        <div style={{ fontSize: 13, color: C.mid }}>
-          Leave your details and we'll keep you updated as we build.
-        </div>
-      </div>
-      <iframe
-        src={url}
-        width="100%"
-        height="320"
-        frameBorder="0"
-        marginHeight="0"
-        marginWidth="0"
-        title="Passage Beta Waitlist"
-        style={{ display: "block" }}
-      />
-    </div>
-  );
-}
+// ─── GOOGLE SIGN IN BUTTON ───────────────────────────────────────────────────
+const GoogleBtn = ({ label = "Continue with Google" }) => (
+  <button onClick={signInWithGoogle} style={{
+    width: "100%", padding: "13px 20px", borderRadius: 12, fontSize: 14,
+    fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+    background: C.bgCard, border: `1.5px solid ${C.border}`,
+    color: C.ink, display: "flex", alignItems: "center",
+    justifyContent: "center", gap: 10, marginBottom: 12,
+    transition: "all 0.15s",
+  }}>
+    <svg width="18" height="18" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>
+    {label}
+  </button>
+);
 
 // ─── LANDING ──────────────────────────────────────────────────────────────────
-function Landing({ onPlan, onEmergency }) {
+function Landing({ onPlan, onEmergency, user }) {
   const [visible, setVisible] = useState(false);
   const [breathe, setBreathe] = useState(false);
 
@@ -204,12 +212,28 @@ function Landing({ onPlan, onEmergency }) {
               color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>
             Join beta
           </button>
-          <button onClick={onPlan}
-            style={{ background: C.bgCard, border: `1.5px solid ${C.border}`,
-              borderRadius: 10, padding: "9px 20px", fontSize: 13, fontWeight: 700,
-              cursor: "pointer", color: C.ink, fontFamily: "inherit" }}>
-            Get started free
-          </button>
+          {user ? (
+            <button onClick={onPlan}
+              style={{ background: C.sage, border: "none", borderRadius: 10,
+                padding: "9px 20px", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", color: "#fff", fontFamily: "inherit" }}>
+              My file →
+            </button>
+          ) : (
+            <button onClick={signInWithGoogle}
+              style={{ background: C.bgCard, border: `1.5px solid ${C.border}`,
+                borderRadius: 10, padding: "9px 18px", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", color: C.ink, fontFamily: "inherit",
+                display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Sign in with Google
+            </button>
+          )}
         </div>
       </nav>
 
@@ -389,7 +413,7 @@ function Landing({ onPlan, onEmergency }) {
 }
 
 // ─── PLANNED ONBOARDING ───────────────────────────────────────────────────────
-function PlannedOnboarding({ onComplete, onBack }) {
+function PlannedOnboarding({ onComplete, onBack, user }) {
   const [step, setStep] = useState(0);
   const [forWhom, setForWhom] = useState("");
   const [name, setName] = useState("");
@@ -399,18 +423,18 @@ function PlannedOnboarding({ onComplete, onBack }) {
   const [executorName, setExecutorName] = useState("");
   const [executorEmail, setExecutorEmail] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("annual");
-  const [showTally, setShowTally] = useState(false);
 
   const handleActivate = async (mode) => {
     await saveLead({
       flow_type: "planning",
-      mode: mode,
+      mode,
       executor_name: executorName,
       executor_email: executorEmail,
       person_name: name,
+      disposition,
+      service_type: serviceType,
       timestamp: new Date().toISOString(),
     });
-    setShowTally(true);
     onComplete(mode);
   };
 
@@ -433,8 +457,19 @@ function PlannedOnboarding({ onComplete, onBack }) {
         <OptionCard key={o.value} icon={o.icon} title={o.title} desc={o.desc}
           selected={forWhom === o.value} onClick={() => setForWhom(o.value)} />
       ))}
+      {!user && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 12, color: C.soft, textAlign: "center", marginBottom: 10 }}>
+            Sign in to save your plan and come back anytime.
+          </div>
+          <GoogleBtn label="Continue with Google" />
+          <div style={{ fontSize: 11, color: C.muted, textAlign: "center", marginBottom: 8 }}>
+            or continue without signing in
+          </div>
+        </div>
+      )}
       <Btn onClick={() => setStep(1)} disabled={!forWhom}
-        style={{ width: "100%", marginTop: 8 }}>
+        style={{ width: "100%", marginTop: 4 }}>
         Let's start →
       </Btn>
     </StepCard>,
@@ -588,7 +623,6 @@ function PlannedOnboarding({ onComplete, onBack }) {
           Less than the cost of a single hour with an estate attorney.
         </div>
       </div>
-
       {[
         { id: "annual", label: "Annual", price: "$79", per: "/year",
           badge: "Best value — save 45%", popular: true },
@@ -620,7 +654,6 @@ function PlannedOnboarding({ onComplete, onBack }) {
           </div>
         </div>
       ))}
-
       <div style={{ background: C.bgSubtle, borderRadius: 12,
         padding: "14px 16px", marginBottom: 20, marginTop: 8 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
@@ -640,7 +673,6 @@ function PlannedOnboarding({ onComplete, onBack }) {
           </div>
         ))}
       </div>
-
       <Btn onClick={() => handleActivate("paid")}
         style={{ width: "100%", padding: "17px", fontSize: 16, marginBottom: 10 }}>
         Activate my plan →
@@ -660,7 +692,7 @@ function PlannedOnboarding({ onComplete, onBack }) {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
-      <NavHeader onBack={onBack} label="Setting up your plan" />
+      <NavHeader onBack={onBack} label="Setting up your plan" user={user} />
       <div style={{ padding: "32px 20px 80px", display: "flex", justifyContent: "center" }}>
         <div style={{ width: "100%" }}>{steps[step]}</div>
       </div>
@@ -679,11 +711,11 @@ function EmergencyOnboarding({ onComplete, onBack }) {
   const handleComplete = async (mode) => {
     await saveLead({
       flow_type: "immediate",
-      mode: mode,
+      mode,
       your_name: yourName,
       your_email: yourEmail,
       deceased_name: deceasedName,
-      relationship: relationship,
+      relationship,
       timestamp: new Date().toISOString(),
     });
     onComplete(mode);
@@ -701,7 +733,6 @@ function EmergencyOnboarding({ onComplete, onBack }) {
   ];
 
   const steps = [
-    // STEP 0 — Triage
     <StepCard key={0}>
       <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`,
         borderRadius: 16, padding: "24px 20px", marginBottom: 24, textAlign: "center" }}>
@@ -738,14 +769,10 @@ function EmergencyOnboarding({ onComplete, onBack }) {
       </Btn>
     </StepCard>,
 
-    // STEP 1 — Contact info
     <StepCard key={1}>
       <ProgressBar current={1} total={3} color={C.rose} />
-      <StepTitle
-        eyebrow="Almost there"
-        title="Who's handling things right now?"
-        sub="We'll send your task list here so you always have it."
-      />
+      <StepTitle eyebrow="Almost there" title="Who's handling things right now?"
+        sub="We'll send your task list here so you always have it." />
       <Input label="Your name" placeholder="Your full name"
         value={yourName} onChange={setYourName} />
       <Input label="Your email" type="email" placeholder="your@email.com"
@@ -760,7 +787,6 @@ function EmergencyOnboarding({ onComplete, onBack }) {
       </div>
     </StepCard>,
 
-    // STEP 2 — Task list + paywall
     <StepCard key={2} maxWidth={580}>
       <ProgressBar current={2} total={3} color={C.rose} />
       <StepTitle
@@ -768,7 +794,6 @@ function EmergencyOnboarding({ onComplete, onBack }) {
         title="Everything that needs to happen now"
         sub={`${yourName} — here's your prioritized plan. Nothing gets missed.`}
       />
-
       <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 24 }}>
         {urgentTasks.map((t, i) => (
           <div key={i} style={{
@@ -788,7 +813,6 @@ function EmergencyOnboarding({ onComplete, onBack }) {
           </div>
         ))}
       </div>
-
       <div style={{ background: C.bgSubtle, borderRadius: 16, padding: "20px", marginBottom: 16 }}>
         <div style={{ fontFamily: "Georgia, serif", fontSize: 17,
           color: C.ink, marginBottom: 8 }}>Don't navigate this alone.</div>
@@ -809,14 +833,12 @@ function EmergencyOnboarding({ onComplete, onBack }) {
           </div>
         ))}
       </div>
-
       <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}20`,
         borderRadius: 12, padding: "12px 16px", fontSize: 12,
         color: C.rose, marginBottom: 16, lineHeight: 1.6 }}>
         🎁 <strong>Everyone you invite to help</strong> — executor, florist, officiant —
         gets their first year of Passage free.
       </div>
-
       <Btn onClick={() => handleComplete("emergency_paid")}
         style={{ width: "100%", padding: "17px", fontSize: 16, marginBottom: 10,
           background: C.rose, boxShadow: `0 4px 20px ${C.rose}35` }}>
@@ -856,8 +878,6 @@ function Success({ mode }) {
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex",
       alignItems: "flex-start", justifyContent: "center", padding: "40px 20px 80px" }}>
       <div style={{ maxWidth: 520, width: "100%" }}>
-
-        {/* Main card */}
         <div style={{ background: C.bgCard, borderRadius: 24, padding: "44px 36px",
           textAlign: "center", boxShadow: "0 2px 40px rgba(0,0,0,0.08)", marginBottom: 24 }}>
           <div style={{ width: 72, height: 72, borderRadius: "50%",
@@ -866,7 +886,6 @@ function Success({ mode }) {
             fontSize: 32, margin: "0 auto 24px" }}>
             {isDraft ? "📄" : isEmergencyFree ? "📋" : "🕊️"}
           </div>
-
           <div style={{ fontFamily: "Georgia, serif", fontSize: 24,
             color: C.ink, marginBottom: 12 }}>
             {isDraft ? "Your draft is saved."
@@ -874,7 +893,6 @@ function Success({ mode }) {
               : isEmergencyPaid ? "Your plan is live."
               : "Your file is activated."}
           </div>
-
           <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.8, marginBottom: 20 }}>
             {isDraft
               ? "Nothing will be triggered or sent to your family until you activate your plan."
@@ -884,7 +902,6 @@ function Success({ mode }) {
               ? "Your task list is active. Family members are being notified. Take a breath — your family has what they need."
               : "Your family will never have to guess. When the time comes, everything is already waiting — tasks assigned, notifications ready, letters drafted."}
           </div>
-
           {isDraft && (
             <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`,
               borderRadius: 12, padding: "12px 16px", fontSize: 13,
@@ -892,19 +909,15 @@ function Success({ mode }) {
               ⚠️ Activate your plan so it actually works when your family needs it.
             </div>
           )}
-
           <div style={{ background: isDraft ? C.goldFaint : C.sageFaint,
             borderRadius: 12, padding: "12px 16px",
             fontSize: 13, color: isDraft ? C.amber : C.sage, fontWeight: 600 }}>
-            {isDraft
-              ? "We'll send you a reminder in 7 days."
-              : isEmergencyPaid
-              ? "Everyone you've invited will receive their tasks shortly."
+            {isDraft ? "We'll send you a reminder in 7 days."
+              : isEmergencyPaid ? "Everyone you've invited will receive their tasks shortly."
               : "Welcome to Passage. 🕊️"}
           </div>
         </div>
 
-        {/* Tally form embedded here — captures name, email, date */}
         <div style={{ background: C.bgCard, borderRadius: 24,
           overflow: "hidden", boxShadow: "0 2px 40px rgba(0,0,0,0.06)" }}>
           <div style={{ padding: "20px 24px 0" }}>
@@ -929,7 +942,6 @@ function Success({ mode }) {
             style={{ display: "block" }}
           />
         </div>
-
       </div>
     </div>
   );
@@ -939,6 +951,21 @@ function Success({ mode }) {
 export default function App() {
   const [view, setView] = useState("landing");
   const [successMode, setSuccessMode] = useState("paid");
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handlePlanComplete = (mode = "paid") => {
     setSuccessMode(mode);
@@ -956,12 +983,14 @@ export default function App() {
         <Landing
           onPlan={() => setView("plan")}
           onEmergency={() => setView("emergency")}
+          user={user}
         />
       )}
       {view === "plan" && (
         <PlannedOnboarding
           onComplete={handlePlanComplete}
           onBack={() => setView("landing")}
+          user={user}
         />
       )}
       {view === "emergency" && (
