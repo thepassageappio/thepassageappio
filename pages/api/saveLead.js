@@ -11,30 +11,47 @@ export default async function handler(req, res) {
   }
 
   const {
+    // Red path fields
     email,
     your_email,
     first_name,
     your_name,
-    flow_type,
     deceased_name,
     relationship,
+    // Green path fields
+    executor_email,
+    executor_name,
+    person_name,
+    disposition,
+    service_type,
+    // Shared
+    flow_type,
     mode,
   } = req.body;
 
-  console.log('🕊️ New Passage Lead:', { email, your_email, flow_type, mode });
+  console.log('🕊️ New Passage Lead:', { flow_type, mode });
 
   try {
     const { error } = await supabase
       .from('leads')
       .insert([{
-        email: email || your_email || null,
-        first_name: first_name || your_name || null,
+        // Green path uses executor_email as the contact
+        // Red path uses your_email
+        email: executor_email || email || your_email || null,
+        first_name: person_name || first_name || your_name || null,
         flow_type,
         source: 'onboarding',
         notes: JSON.stringify({
+          // Red path
           deceased_name,
           relationship,
           your_name,
+          // Green path
+          executor_name,
+          executor_email,
+          person_name,
+          disposition,
+          service_type,
           mode,
         }),
       }]);
