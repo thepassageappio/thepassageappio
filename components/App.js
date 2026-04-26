@@ -153,7 +153,7 @@ const saveAllTasks = async (workflowId, userId) => {
         status: 'pending',
       }))
     );
-    const { data, error } = await supabase.from('tasks').insert(rows).select('id, title, status, assigned_to_name, assigned_to_email');
+    const { data, error } = await supabase.from('tasks').insert(rows).select();
     if (error) { console.error('saveAllTasks:', error); return []; }
     return data || [];
   } catch (e) { console.error('saveAllTasks:', e); return []; }
@@ -201,7 +201,17 @@ const savePerson = async (userId, person) => {
     role: 'recipient',
     notify_on_trigger: true,
   }]).select().single();
-  if (error) { console.error('savePerson:', error); return null; }
+  if (error) {
+    // If conflict (same person already exists), fetch them instead
+    if (error.code === '23505') {
+      const { data: existing } = await supabase.from('people')
+        .select().eq('owner_id', userId || '00000000-0000-0000-0000-000000000000')
+        .eq('first_name', nameParts[0] || person.name).maybeSingle();
+      return existing;
+    }
+    console.error('savePerson:', error);
+    return null;
+  }
   return data;
 };
 
@@ -384,6 +394,8 @@ const GoogleSignInBtn = ({ label = "Continue with Google" }) => (
 
 // ─── ASSIGN MODAL ─────────────────────────────────────────────────────────────
 function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
+  // step: "pick" = choose mode/role, "details" = enter contact info
+  const [step, setStep] = useState("pick");
   const [mode, setMode] = useState("roster");
   const [selectedRole, setSelectedRole] = useState("");
   const [name, setName] = useState("");
@@ -392,16 +404,25 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // When a roster role is tapped, pre-fill role and advance to details
+  const handleRoleSelect = (r) => {
+    setSelectedRole(r);
+    setRole(r);
+    setName(""); // clear name so user fills in the actual person's name
+    setStep("details");
+  };
+
   const handleAssign = async () => {
     setSaving(true);
-    const personData = mode === "roster"
-      ? { name: selectedRole, role: selectedRole, email: "", phone: "" }
-      : { name, role, email, phone };
+    const personData = {
+      name: name || selectedRole, // fall back to role if no name entered
+      role: role || selectedRole,
+      email,
+      phone,
+    };
 
-    // Save person to DB
     const saved = await savePerson(userId, personData);
 
-    // Update task in DB with assignment
     if (task.dbId) {
       await updateTask(task.dbId, {
         assigned_to_name: personData.name,
@@ -410,7 +431,6 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
       });
     }
 
-    // Queue notification actions for when trigger fires
     if (saved && workflowId) {
       await saveWorkflowAction(workflowId, saved, task.title, 'email');
       if (personData.phone) {
@@ -427,46 +447,75 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto" }}>
         <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
-        <Heading size={18}>Assign this task</Heading>
+
+        <Heading size={18}>{step === "pick" ? "Assign this task" : "Add their details"}</Heading>
         <div style={{ fontSize: 12.5, color: C.mid, background: C.bgSubtle, borderRadius: 9, padding: "9px 13px", marginBottom: 18, lineHeight: 1.4 }}>{task.title}</div>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-          {[["roster","Choose from list"],["custom","Add someone new"]].map(([m, l]) => (
-            <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: "9px", borderRadius: 9, border: `1.5px solid ${mode === m ? C.rose : C.border}`, background: mode === m ? C.roseFaint : C.bgCard, fontSize: 12.5, fontWeight: 600, color: mode === m ? C.rose : C.mid, cursor: "pointer", fontFamily: "inherit" }}>{l}</button>
-          ))}
-        </div>
+        {step === "pick" && (
+          <>
+            <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+              {[["roster","Choose from list"],["custom","Add someone new"]].map(([m, l]) => (
+                <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: "9px", borderRadius: 9, border: `1.5px solid ${mode === m ? C.rose : C.border}`, background: mode === m ? C.roseFaint : C.bgCard, fontSize: 12.5, fontWeight: 600, color: mode === m ? C.rose : C.mid, cursor: "pointer", fontFamily: "inherit" }}>{l}</button>
+              ))}
+            </div>
 
-        {mode === "roster" ? (
-          <div>
-            {PEOPLE_ROLES.map(group => (
-              <div key={group.group} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: C.soft, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 7 }}>{group.group}</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {group.roles.map(r => (
-                    <button key={r} onClick={() => setSelectedRole(r)} style={{ padding: "6px 13px", borderRadius: 18, fontSize: 12, fontWeight: 500, border: `1.5px solid ${selectedRole === r ? C.rose : C.border}`, background: selectedRole === r ? C.roseFaint : C.bgCard, color: selectedRole === r ? C.rose : C.mid, cursor: "pointer", fontFamily: "inherit" }}>{r}</button>
-                  ))}
+            {mode === "roster" ? (
+              <div>
+                {PEOPLE_ROLES.map(group => (
+                  <div key={group.group} style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: C.soft, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 7 }}>{group.group}</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {group.roles.map(r => (
+                        <button key={r} onClick={() => handleRoleSelect(r)} style={{ padding: "6px 13px", borderRadius: 18, fontSize: 12, fontWeight: 500, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>{r}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <div style={{ fontSize: 11, color: C.soft, marginTop: 8, fontStyle: "italic" }}>
+                  Tap a role to add their contact details
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
+            ) : (
+              <div>
+                <Field label="Their name *" placeholder="e.g. Sarah Collins" value={name} onChange={setName} />
+                <Field label="Their role (optional)" placeholder="e.g. My sister, Estate attorney" value={role} onChange={setRole} />
+                <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                  <Btn variant="ghost" onClick={onClose}>Cancel</Btn>
+                  <Btn variant="rose" onClick={() => setStep("details")} disabled={!name} style={{ flex: 1 }}>Add details →</Btn>
+                </div>
+              </div>
+            )}
+
+            {mode === "roster" && (
+              <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+                <Btn variant="ghost" onClick={onClose}>Cancel</Btn>
+              </div>
+            )}
+          </>
+        )}
+
+        {step === "details" && (
           <div>
-            <Field label="Their name *" placeholder="e.g. Sarah Collins" value={name} onChange={setName} />
-            <Field label="Their role (optional)" placeholder="e.g. My sister" value={role} onChange={setRole} />
-            <Field label="Email — for notification when trigger fires" type="email" placeholder="sarah@email.com" value={email} onChange={setEmail} />
-            <Field label="Phone — for SMS notification" placeholder="(555) 000-0000" value={phone} onChange={setPhone} />
-            <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "9px 13px", fontSize: 11, color: C.mid, marginBottom: 4 }}>
-              📧 Email and phone are saved now. When the trigger fires, Passage will send them their tasks automatically.
+            {selectedRole && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 9, padding: "5px 12px", marginBottom: 16 }}>
+                <span style={{ fontSize: 12, color: C.rose, fontWeight: 600 }}>Role: {selectedRole || role}</span>
+              </div>
+            )}
+            <Field label="Their name *" placeholder="e.g. Rabbi David Cohen" value={name} onChange={setName}
+              hint="The name that will appear on task assignments and notifications." />
+            <Field label="Email — receives task notification when trigger fires" type="email" placeholder="rabbi@temple.org" value={email} onChange={setEmail} />
+            <Field label="Phone — receives SMS when trigger fires" placeholder="(555) 000-0000" value={phone} onChange={setPhone} />
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "9px 13px", fontSize: 11, color: C.mid, marginBottom: 16 }}>
+              📧 Email and phone are saved now and used automatically when the trigger fires. Both are optional but recommended.
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn variant="ghost" onClick={() => setStep("pick")}>← Back</Btn>
+              <Btn variant="rose" onClick={handleAssign} disabled={!name || saving} style={{ flex: 1 }}>
+                {saving ? "Saving..." : "Assign →"}
+              </Btn>
             </div>
           </div>
         )}
-
-        <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
-          <Btn variant="ghost" onClick={onClose}>Cancel</Btn>
-          <Btn variant="rose" onClick={handleAssign} disabled={!(mode === "roster" ? selectedRole : name) || saving} style={{ flex: 1 }}>
-            {saving ? "Saving..." : "Assign →"}
-          </Btn>
-        </div>
       </div>
     </div>
   );
