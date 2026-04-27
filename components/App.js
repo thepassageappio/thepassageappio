@@ -1559,6 +1559,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [loading, setLoading] = useState(true);
   const [archiving, setArchiving] = useState(null);
 
+  const [taskStats, setTaskStats] = useState({});
+
   useEffect(() => {
     const load = async () => {
       if (!user) return;
@@ -1567,6 +1569,21 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
         loadUserWorkflows(user.id),
       ]);
       setUserData(u); setProfile(p); setWorkflows(wfs); setLoading(false);
+
+      // Load task completion stats for all workflows
+      const { data: stats } = await supabase.from('tasks')
+        .select('workflow_id, status, assigned_to_name')
+        .in('workflow_id', (wfs || []).map(w => w.id));
+      if (stats) {
+        const grouped = {};
+        stats.forEach(t => {
+          if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, completed: 0, assigned: 0 };
+          grouped[t.workflow_id].total++;
+          if (t.status === 'completed') grouped[t.workflow_id].completed++;
+          if (t.assigned_to_name) grouped[t.workflow_id].assigned++;
+        });
+        setTaskStats(grouped);
+      }
     };
     load();
   }, [user]);
@@ -1608,7 +1625,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
           <>
             <div style={{ marginBottom: 18 }}>
               <Heading size={23}>Welcome back{userData?.first_name ? `, ${userData.first_name}` : ""}.</Heading>
-              <Sub>{plan === 'free' ? 'Your plan is not yet active — upgrade to protect your family.' : 'Your plan is active.'}</Sub>
+              <Sub>{plan === 'free' ? 'Set up a plan now, or start an emergency plan if someone just passed.' : 'Your plan is active.'}</Sub>
             </div>
 
             {/* Subscription */}
@@ -1628,7 +1645,16 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                   </div>
                 ))}
               </div>
-              {plan === 'free' && <button onClick={onStartPlan} style={{ width: "100%", padding: "10px", background: C.sage, border: "none", borderRadius: 11, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>Activate my plan →</button>}
+              {plan === 'free' && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={onStartPlan} style={{ flex: 1, padding: "10px", background: C.sage, border: "none", borderRadius: 11, fontSize: 12.5, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
+                    🗓️ Plan ahead →
+                  </button>
+                  <button onClick={onEmergency} style={{ flex: 1, padding: "10px", background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 11, fontSize: 12.5, fontWeight: 700, color: C.rose, cursor: "pointer", fontFamily: "inherit" }}>
+                    🚨 Start emergency plan
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Red path active plans */}
@@ -1652,6 +1678,22 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                               {wfCoord && `Coordinator: ${wfCoord} · `}
                               Started {new Date(wfDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </div>
+                            {taskStats[wfId] && (() => {
+                              const s = taskStats[wfId];
+                              const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
+                              return (
+                                <div style={{ marginTop: 7 }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                                    <span style={{ fontSize: 10.5, color: C.mid }}>{s.completed} of {s.total} tasks done</span>
+                                    <span style={{ fontSize: 10.5, fontWeight: 700, color: pct > 0 ? C.sage : C.soft }}>{pct}%</span>
+                                  </div>
+                                  <div style={{ height: 4, borderRadius: 2, background: C.border, overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? C.sage : C.rose, borderRadius: 2, transition: 'width 0.3s' }} />
+                                  </div>
+                                  {s.assigned > 0 && <div style={{ fontSize: 10, color: C.soft, marginTop: 3 }}>{s.assigned} task{s.assigned > 1 ? 's' : ''} assigned</div>}
+                                </div>
+                              );
+                            })()}
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                             <span style={{ fontSize: 10.5, color: C.rose, fontWeight: 700, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 7, padding: "2px 9px" }}>Active</span>
