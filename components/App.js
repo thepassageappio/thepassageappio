@@ -1807,13 +1807,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
           <>
             <div style={{ marginBottom: 18 }}>
               <Heading size={23}>Welcome back{userData?.first_name ? `, ${userData.first_name}` : ""}.</Heading>
-              <Sub>
-                {redWorkflows.length > 0 && redWorkflows[0]
-                  ? 'Next: assign tasks and add service details to notify your people.'
-                  : plan === 'free'
-                    ? 'Start a plan now, or coordinate an estate if someone just passed.'
-                    : 'Your plan is active.'}
-              </Sub>
+              {redWorkflows.length > 0 ? (
+                <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 13, color: C.sage, fontWeight: 500 }}>
+                  ✓ Estate plan active — assign tasks to notify people automatically
+                </div>
+              ) : (
+                <Sub>Set up a plan now, or coordinate an estate if someone just passed.</Sub>
+              )}
             </div>
 
             {/* Subscription */}
