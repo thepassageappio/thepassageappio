@@ -904,9 +904,8 @@ function SocialModal({ workflowId, deceasedName, coordinatorName, obituaryUrl, o
       twitter: shortened,
       instagram: master.slice(0, 200) + (master.length > 200 ? "..." : "") + NL2 + NL2 + "#InMemory #ForeverLoved",
       sms: master.slice(0, 280),
-    });
-  });
-  }
+   });
+}
 
   function handleSave() {
     setSaving(true);
