@@ -295,6 +295,31 @@ const loadUserProfile = async (userId) => {
   return { user, profile };
 };
 
+const saveWorkflowEvent = async (workflowId, eventData) => {
+  const { data, error } = await supabase.from('workflow_events').insert([{
+    workflow_id: workflowId,
+    event_type: eventData.type,
+    name: eventData.name || null,
+    date: eventData.date || null,
+    time: eventData.time || null,
+    location_name: eventData.locationName || null,
+    location_address: eventData.locationAddress || null,
+    notes: eventData.notes || null,
+  }]).select().single();
+  if (error) { console.error('saveWorkflowEvent:', error); return null; }
+  return data;
+};
+
+const loadWorkflowEvents = async (workflowId) => {
+  if (!workflowId) return [];
+  const { data } = await supabase.from('workflow_events').select('*').eq('workflow_id', workflowId).order('date', { ascending: true });
+  return data || [];
+};
+
+const updateWorkflowName = async (workflowId, newName) => {
+  await supabase.from('workflows').update({ plan_name: newName, name: newName }).eq('id', workflowId);
+};
+
 const handleSignInWithGoogle = async () => {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -585,9 +610,208 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
   );
 }
 
+// ─── SERVICE EVENTS MODAL ────────────────────────────────────────────────────
+// Captures wake, funeral, burial, reception — feeds into all notifications
+function EventsModal({ workflowId, deceasedName, onClose, onSaved }) {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(null); // null or event type being added
+  const [form, setForm] = useState({ type: 'funeral', name: '', date: '', time: '', locationName: '', locationAddress: '', notes: '' });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadWorkflowEvents(workflowId).then(evts => { setEvents(evts); setLoading(false); });
+  }, [workflowId]);
+
+  const EVENT_TYPES = [
+    { type: 'visitation', label: 'Visitation / Wake / Shiva', icon: '🕯️' },
+    { type: 'funeral', label: 'Funeral / Memorial Service', icon: '🕊️' },
+    { type: 'burial', label: 'Burial / Committal', icon: '⚱️' },
+    { type: 'reception', label: 'Reception / Gathering', icon: '🌿' },
+  ];
+
+  const handleSave = async () => {
+    if (!form.type) return;
+    setSaving(true);
+    const saved = await saveWorkflowEvent(workflowId, form);
+    if (saved) setEvents(prev => [...prev, saved]);
+    setAdding(null);
+    setForm({ type: 'funeral', name: '', date: '', time: '', locationName: '', locationAddress: '', notes: '' });
+    setSaving(false);
+    onSaved && onSaved(events.length + 1);
+  };
+
+  const formatEventDate = (d, t) => {
+    if (!d) return '';
+    const date = new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    return t ? `${date} at ${t}` : date;
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={adding ? undefined : onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: '20px 20px 0 0', padding: '24px 20px 48px', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto' }}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: '0 auto 18px' }} />
+
+        {!adding ? (
+          <>
+            <Heading size={18}>Service details</Heading>
+            <Sub>Add event details so notifications include the right place and time.</Sub>
+
+            {loading && <div style={{ textAlign: 'center', padding: 30, color: C.soft }}>Loading...</div>}
+
+            {!loading && events.length > 0 && (
+              <div style={{ marginBottom: 18 }}>
+                {events.map((ev, i) => {
+                  const evType = EVENT_TYPES.find(t => t.type === ev.event_type) || { icon: '📅', label: ev.event_type };
+                  return (
+                    <div key={i} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: '13px 14px', marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
+                        <span style={{ fontSize: 18 }}>{evType.icon}</span>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: C.ink }}>{ev.name || evType.label}</div>
+                        <span style={{ marginLeft: 'auto', fontSize: 10.5, color: C.sage, fontWeight: 700 }}>✓ Saved</span>
+                      </div>
+                      {ev.date && <div style={{ fontSize: 12, color: C.mid, paddingLeft: 27 }}>{formatEventDate(ev.date, ev.time)}</div>}
+                      {ev.location_name && <div style={{ fontSize: 12, color: C.mid, paddingLeft: 27 }}>{ev.location_name}</div>}
+                      {ev.location_address && <div style={{ fontSize: 11, color: C.soft, paddingLeft: 27 }}>{ev.location_address}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div style={{ marginBottom: 18 }}>
+              {EVENT_TYPES.map(et => {
+                const exists = events.find(e => e.event_type === et.type);
+                return (
+                  <button key={et.type} onClick={() => { setAdding(et.type); setForm(f => ({ ...f, type: et.type })); }}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', borderRadius: 11, border: `1.5px solid ${exists ? C.sageLight : C.border}`, background: exists ? C.sageFaint : C.bgCard, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', marginBottom: 7 }}>
+                    <span style={{ fontSize: 20 }}>{et.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: exists ? C.sage : C.ink }}>{et.label}</div>
+                      {exists && <div style={{ fontSize: 11, color: C.sage }}>Added — tap to edit</div>}
+                      {!exists && <div style={{ fontSize: 11, color: C.soft }}>Date, time, location</div>}
+                    </div>
+                    <span style={{ color: exists ? C.sage : C.mid, fontSize: 14 }}>{exists ? '✓' : '+'}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 11, padding: '11px 14px', fontSize: 12, color: C.amber, marginBottom: 18, lineHeight: 1.5 }}>
+              📍 These details appear in every notification sent to family and vendors — so nobody has to ask where or when.
+            </div>
+            <Btn variant="sage" onClick={onClose} style={{ width: '100%' }}>Done</Btn>
+          </>
+        ) : (
+          <>
+            <button onClick={() => setAdding(null)} style={{ background: 'none', border: 'none', fontSize: 12, color: C.mid, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14 }}>← Back</button>
+            <Heading size={17}>{EVENT_TYPES.find(t => t.type === adding)?.label || 'Add event'}</Heading>
+            <Sub>This will appear in all notifications for {deceasedName || "the estate"}.</Sub>
+            <div style={{ height: 12 }} />
+            <Field label="Event name (optional)" placeholder={`e.g. ${adding === 'funeral' ? "Robert Collins Funeral Service" : "Family reception"}`} value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ flex: 1 }}><Field label="Date" type="date" value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} /></div>
+              <div style={{ width: 120 }}><Field label="Time" type="time" value={form.time} onChange={v => setForm(f => ({ ...f, time: v }))} /></div>
+            </div>
+            <Field label="Venue / location name" placeholder="e.g. St. Patrick's Cathedral" value={form.locationName} onChange={v => setForm(f => ({ ...f, locationName: v }))} />
+            <Field label="Full address" placeholder="5th Ave & 50th St, New York, NY" value={form.locationAddress} onChange={v => setForm(f => ({ ...f, locationAddress: v }))} />
+            <Field label="Additional notes (optional)" placeholder="Parking available on West side. Dress: dark colors." value={form.notes} onChange={v => setForm(f => ({ ...f, notes: v }))} />
+            <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+              <Btn variant="ghost" onClick={() => setAdding(null)}>Cancel</Btn>
+              <Btn variant="sage" onClick={handleSave} disabled={saving || !form.date} style={{ flex: 1 }}>
+                {saving ? 'Saving...' : 'Save event →'}
+              </Btn>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── MESSAGE PREVIEW MODAL ────────────────────────────────────────────────────
+function MessagePreviewModal({ personName, personEmail, personPhone, notifyChannel, taskTitle, deceasedName, coordinatorName, workflowId, onConfirmSend, onClose }) {
+  const [editedEmail, setEditedEmail] = useState('');
+  const [editedSMS, setEditedSMS] = useState('');
+  const [sending, setSending] = useState(false);
+  const [tab, setTab] = useState(notifyChannel === 'sms' ? 'sms' : 'email');
+
+  useEffect(() => {
+    setEditedEmail(`Hi ${personName},
+
+${coordinatorName || 'A family member'} is coordinating the estate of ${deceasedName || 'their loved one'} and has asked you to help with the following:
+
+"${taskTitle}"
+
+You'll receive full details — including service dates, times, and locations — when the plan is activated. Nothing is required from you right now.
+
+With gratitude,
+Passage`);
+    setEditedSMS(`Passage: ${coordinatorName || 'A family member'} has asked you to help with: "${taskTitle}" for ${deceasedName || "the estate"}. You'll receive full details when the plan activates. → thepassageapp.io`);
+  }, [personName, coordinatorName, deceasedName, taskTitle]);
+
+  const handleSend = async () => {
+    setSending(true);
+    await onConfirmSend({ emailBody: editedEmail, smsBody: editedSMS });
+    setSending(false);
+  };
+
+  const showEmail = notifyChannel !== 'sms';
+  const showSMS = notifyChannel !== 'email';
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 16px' }}>
+      <div style={{ background: C.bgCard, borderRadius: 20, padding: '24px 20px', width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto' }}>
+        <div style={{ marginBottom: 16 }}>
+          <Heading size={17}>Preview message to {personName}</Heading>
+          <Sub>Review and edit before sending. This is exactly what they'll receive.</Sub>
+        </div>
+
+        {showEmail && showSMS && (
+          <div style={{ display: 'flex', gap: 7, marginBottom: 16 }}>
+            {[['email', '📧 Email'], ['sms', '📱 SMS']].map(([t, l]) => (
+              <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px', borderRadius: 9, border: `1.5px solid ${tab === t ? C.sage : C.border}`, background: tab === t ? C.sageFaint : C.bgCard, fontSize: 12.5, fontWeight: 600, color: tab === t ? C.sage : C.mid, cursor: 'pointer', fontFamily: 'inherit' }}>{l}</button>
+            ))}
+          </div>
+        )}
+
+        {(tab === 'email' && showEmail) && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: C.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Email to {personEmail || 'no email provided'}</div>
+            <textarea value={editedEmail} onChange={e => setEditedEmail(e.target.value)}
+              style={{ width: '100%', height: 200, padding: '12px', borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia, serif', fontSize: 12.5, color: C.ink, lineHeight: 1.65, resize: 'vertical', boxSizing: 'border-box', background: C.bgSubtle }} />
+          </div>
+        )}
+
+        {(tab === 'sms' && showSMS) && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: C.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>SMS to {personPhone || 'no phone provided'}</div>
+            <div style={{ background: '#e8e8e8', borderRadius: '16px 16px 4px 16px', padding: '12px 14px', maxWidth: '80%', marginLeft: 'auto', marginBottom: 8 }}>
+              <div style={{ fontSize: 12.5, color: '#1a1a1a', lineHeight: 1.5 }}>{editedSMS}</div>
+            </div>
+            <textarea value={editedSMS} onChange={e => setEditedSMS(e.target.value)}
+              style={{ width: '100%', height: 100, padding: '12px', borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: 'inherit', fontSize: 12.5, color: C.ink, lineHeight: 1.65, resize: 'vertical', boxSizing: 'border-box', background: C.bgSubtle }} />
+            <div style={{ fontSize: 11, color: C.soft, marginTop: 4 }}>{editedSMS.length}/160 characters</div>
+          </div>
+        )}
+
+        <div style={{ background: C.bgSubtle, borderRadius: 10, padding: '10px 13px', fontSize: 11.5, color: C.mid, marginBottom: 18, lineHeight: 1.5 }}>
+          🔒 Messages are sent securely via {showEmail && 'email'}{showEmail && showSMS && ' and '}{showSMS && 'SMS'}. Nothing sends until you confirm here.
+        </div>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Btn variant="ghost" onClick={onClose}>Edit later</Btn>
+          <Btn variant="sage" onClick={handleSend} disabled={sending} style={{ flex: 1 }}>
+            {sending ? 'Sending...' : `Send now →`}
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── ASSIGN MODAL ─────────────────────────────────────────────────────────────
-function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
-  // step: "pick" = choose mode/role, "details" = enter contact info
+function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName, coordinatorName }) {
   const [step, setStep] = useState("pick");
   const [mode, setMode] = useState("roster");
   const [selectedRole, setSelectedRole] = useState("");
@@ -595,7 +819,9 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
   const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [notifyChannel, setNotifyChannel] = useState("both");
   const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   // When a roster role is tapped, pre-fill role and advance to details
   const handleRoleSelect = (r) => {
@@ -605,13 +831,37 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
     setStep("details");
   };
 
+  const handleSendWithPreview = async ({ emailBody, smsBody }) => {
+    setSaving(true);
+    const personData = { name: name || selectedRole, role: role || selectedRole, email, phone, notifyChannel };
+    const saved = await savePerson(userId, { ...personData, notify_channel: notifyChannel });
+    if (task.dbId) {
+      await updateTask(task.dbId, { assigned_to_name: personData.name, assigned_to_email: personData.email || null, assigned_to_person_id: saved?.id || null });
+    }
+    if (saved && workflowId) {
+      await saveWorkflowAction(workflowId, saved, task.title, 'email');
+      if (personData.phone) await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
+      if (personData.email && notifyChannel !== 'sms') {
+        fetch('/api/sendEmail', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: personData.email, toName: personData.name, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'assignment', customBody: emailBody }) }).catch(() => {});
+      }
+      if (personData.phone && notifyChannel !== 'email') {
+        fetch('/api/sendSMS', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: personData.phone, toName: personData.name, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'assignment', customBody: smsBody }) }).catch(() => {});
+      }
+    }
+    onAssign(task.id, personData.name, personData.role);
+    setSaving(false);
+    setShowPreview(false);
+    onClose();
+  };
+
   const handleAssign = async () => {
     setSaving(true);
     const personData = {
-      name: name || selectedRole, // fall back to role if no name entered
+      name: name || selectedRole,
       role: role || selectedRole,
-      email,
-      phone,
+      email, phone, notifyChannel,
     };
 
     const saved = await savePerson(userId, personData);
@@ -711,15 +961,37 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
             )}
             <Field label="Their name *" placeholder="e.g. Rabbi David Cohen" value={name} onChange={setName}
               hint="The name that will appear on task assignments and notifications." />
-            <Field label="Email — receives task notification when trigger fires" type="email" placeholder="rabbi@temple.org" value={email} onChange={setEmail} />
-            <Field label="Phone — receives SMS when trigger fires" placeholder="(555) 000-0000" value={phone} onChange={setPhone} />
-            <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "9px 13px", fontSize: 11, color: C.mid, marginBottom: 16 }}>
-              📧 Email and phone are saved now and used automatically when the trigger fires. Both are optional but recommended.
+            <Field label="Email" type="email" placeholder="rabbi@temple.org" value={email} onChange={setEmail} />
+            <Field label="Phone" placeholder="(555) 000-0000" value={phone} onChange={setPhone} />
+
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Notify via</div>
+              <div style={{ display: "flex", gap: 7 }}>
+                {[["both","📧 + 📱 Both"],["email","📧 Email only"],["sms","📱 SMS only"]].map(([v, l]) => (
+                  <button key={v} onClick={() => setNotifyChannel(v)}
+                    style={{ flex: 1, padding: "7px 4px", borderRadius: 9, border: `1.5px solid ${notifyChannel === v ? C.sage : C.border}`, background: notifyChannel === v ? C.sageFaint : C.bgCard, fontSize: 11, fontWeight: 600, color: notifyChannel === v ? C.sage : C.mid, cursor: "pointer", fontFamily: "inherit" }}>{l}</button>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: C.soft, marginTop: 5 }}>
+                {notifyChannel === "both" ? "SMS for immediate attention, email as the paper trail." : notifyChannel === "email" ? "Email only — best for vendors and professionals." : "SMS only — best for family members."}
+              </div>
             </div>
+
+            {showPreview && (
+              <MessagePreviewModal
+                personName={name} personEmail={email} personPhone={phone}
+                notifyChannel={notifyChannel} taskTitle={task.title}
+                deceasedName={deceasedName} coordinatorName={coordinatorName}
+                workflowId={workflowId}
+                onConfirmSend={handleSendWithPreview}
+                onClose={() => setShowPreview(false)}
+              />
+            )}
+
             <div style={{ display: "flex", gap: 10 }}>
               <Btn variant="ghost" onClick={() => setStep("pick")}>← Back</Btn>
-              <Btn variant="rose" onClick={handleAssign} disabled={!name || saving} style={{ flex: 1 }}>
-                {saving ? "Saving..." : "Assign →"}
+              <Btn variant="rose" onClick={() => setShowPreview(true)} disabled={!name || saving} style={{ flex: 1 }}>
+                {saving ? "Sending..." : "Preview & send →"}
               </Btn>
             </div>
           </div>
@@ -732,6 +1004,8 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
 function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, onDashboard, onSignOut }) {
   const [showRoleTemplates, setShowRoleTemplates] = useState(false);
+  const [showEvents, setShowEvents] = useState(false);
+  const [eventCount, setEventCount] = useState(0);
   const [toast, setToast] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -961,6 +1235,9 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
                 <div style={{ fontSize: 12, color: C.mid }}>{done} done · {assigned} assigned · {tasks.length - done} remaining</div>
                 <div style={{ fontSize: 10.5, color: C.soft }}>Changes save automatically as you go</div>
               </div>
+              <button onClick={() => setShowEvents(true)} style={{ background: C.goldFaint, color: C.amber, border: `1px solid ${C.gold}30`, borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                📍 {eventCount > 0 ? `${eventCount} event${eventCount > 1 ? "s" : ""}` : "Add events"}
+              </button>
               <button onClick={() => setShowRoleTemplates(true)} style={{ background: C.roseFaint, color: C.rose, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                 ⚡ Quick assign
               </button>
@@ -977,7 +1254,13 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
 
       {assigningTask && (
         <AssignModal task={assigningTask} workflowId={workflowId} userId={userId}
+          deceasedName={deceasedName} coordinatorName={coordinatorName}
           onAssign={handleAssign} onClose={() => setAssigningTask(null)} />
+      )}
+      {showEvents && workflowId && (
+        <EventsModal workflowId={workflowId} deceasedName={deceasedName}
+          onClose={() => setShowEvents(false)}
+          onSaved={(count) => { setEventCount(count); setToast(`✅ Service details saved — included in all notifications`); }} />
       )}
       {showRoleTemplates && workflowId && (
         <RoleTemplateModal
@@ -1085,13 +1368,43 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
 
   const activate = async (mode) => {
     await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, person_name: name, disposition, service_type: serviceType, timestamp: new Date().toISOString() });
-    if (user?.id && executorEmail) {
+    if (user?.id) {
+      const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
       const wf = await createWorkflow(user.id, name, user.email, user.email);
-      if (wf?.id) {
-        await supabase.from('workflow_actions').insert([
-          { workflow_id: wf["id"], action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, subject: `You've been named executor — ${name || 'estate plan'}`, body: `${executorName} — you have been designated as executor in Passage. When the plan is activated, you will receive your full task list via email and SMS.`, status: 'pending', delay_hours: 0 },
-          { workflow_id: wf["id"], action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, subject: 'Passage executor notification', body: `${executorName}, you've been named executor in Passage. You'll receive a full task list when the plan activates.`, status: 'pending', delay_hours: 0 },
-        ]);
+      if (wf) {
+        const wfId = wf.id;
+        // Mark as green path with trigger token and ready status
+        await supabase.from('workflows').update({
+          path: 'green',
+          status: mode === 'paid' ? 'ready' : 'draft',
+          trigger_token: token,
+          trigger_people: executorEmail ? [executorEmail] : [],
+          confirmation_count: 2,
+        }).eq('id', wfId);
+
+        // Save all tasks for the green path plan
+        await saveAllTasks(wfId, user.id);
+
+        // Queue notification actions for executor
+        if (executorEmail) {
+          await supabase.from('workflow_actions').insert([
+            { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
+            { workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
+          ]);
+        }
+
+        // If activating, send executor their "you have been named" email
+        if (mode === 'paid' && executorEmail) {
+          fetch('/api/sendEmail', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: executorEmail, toName: executorName,
+              taskTitle: 'You have been named executor of this estate plan',
+              deceasedName: name, coordinatorName: user.email,
+              workflowId: wfId, actionType: 'assignment',
+            }),
+          }).catch(() => {});
+        }
       }
     }
     onComplete(mode);
@@ -1141,18 +1454,27 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
 
     <Card key={3}>
       <StepBar current={3} total={5} />
-      <Eyebrow text="Your people" />
-      <Heading>Who do you trust to carry this out?</Heading>
-      <Sub>They'll know exactly what to do when the time comes.</Sub>
-      <div style={{ height: 16 }} />
-      <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "16px 18px", marginBottom: 14 }}>
-        <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, marginBottom: 4 }}>⚖️ Executor</div>
-        <div style={{ fontSize: 12, color: C.mid, marginBottom: 12, lineHeight: 1.5 }}>Receives their full task list the moment the trigger fires — via email and SMS.</div>
-        <Field label="Full name" placeholder="e.g. Sarah Collins" value={executorName} onChange={setExecutorName} />
-        <Field label="Email" type="email" placeholder="sarah@email.com" value={executorEmail} onChange={setExecutorEmail} hint="Used for automatic notification when trigger fires." />
+      <Eyebrow text="The trust mechanism" color={C.sage} />
+      <Heading>Who activates your plan?</Heading>
+      <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "14px 16px", marginBottom: 16, fontSize: 12.5, color: C.mid, lineHeight: 1.65 }}>
+        🔒 <strong style={{ color: C.ink }}>Two people must independently confirm your passing</strong> before anything sends. This prevents accidental activation and gives your family confidence the system is trustworthy.
       </div>
-      <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 9, padding: "10px 14px", fontSize: 12, color: C.gold, marginBottom: 14 }}>
-        💡 Upgrade to add a Witness, multiple recipients, and custom message delivery.
+
+      <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, marginBottom: 4 }}>⚖️ Primary Executor</div>
+        <div style={{ fontSize: 12, color: C.mid, marginBottom: 12, lineHeight: 1.5 }}>Receives the full task list the moment both confirmations arrive.</div>
+        <Field label="Full name" placeholder="e.g. Sarah Collins" value={executorName} onChange={setExecutorName} />
+        <Field label="Email" type="email" placeholder="sarah@email.com" value={executorEmail} onChange={setExecutorEmail} hint="Used for automatic notification when plan activates." />
+      </div>
+
+      <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 4 }}>👤 Second Confirmer</div>
+        <div style={{ fontSize: 12, color: C.mid, marginBottom: 10, lineHeight: 1.5 }}>The second person who confirms your passing. Can be the same as executor or someone different.</div>
+        <div style={{ fontSize: 12, color: C.soft, fontStyle: "italic" }}>You can add this after setup — they'll receive a unique confirmation link.</div>
+      </div>
+
+      <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 9, padding: "10px 14px", fontSize: 12, color: C.amber, marginBottom: 14, lineHeight: 1.5 }}>
+        💡 Passage sends each person a unique, secure link. When both tap confirm, your plan activates automatically.
       </div>
       <div style={{ display: "flex", gap: 10 }}>
         <Btn variant="ghost" onClick={() => setStep(2)}>← Back</Btn>
@@ -1265,7 +1587,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
     lifetime: { label: "Lifetime", color: C.gold, price: "$249", nextCharge: "Never", renewal: "Never" },
   };
   const pd = planMap[plan] || planMap.free;
-  const redWorkflows = workflows.filter(w => w.status !== 'archived');
+  const redWorkflows = workflows.filter(w => w.status !== 'archived' && w.path !== 'green');
+  const greenWorkflows = workflows.filter(w => w.status !== 'archived' && w.path === 'green');
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
@@ -1323,7 +1646,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                       <button onClick={() => onOpenPlan(wf)}
                         style={{ width: "100%", background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 12, padding: "13px 14px", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                          <div>
+                          <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
                             <div style={{ fontSize: 11, color: C.mid, marginTop: 2 }}>
                               {wfCoord && `Coordinator: ${wfCoord} · `}
@@ -1340,6 +1663,50 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                         style={{ width: "100%", padding: "6px", fontSize: 11, color: C.soft, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
                         {archiving === wfId ? "Archiving..." : "Archive plan"}
                       </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Green path advance plans */}
+            {greenWorkflows.length > 0 && (
+              <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Your advance plans</div>
+                <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>Activates automatically when two people confirm</div>
+                {greenWorkflows.map((wf) => {
+                  const wfId = wf.id;
+                  const wfName = wf.name;
+                  const wfStatus = wf.status;
+                  const confirmCount = (wf.confirmed_by || []).length;
+                  const reqCount = wf.confirmation_count || 2;
+                  const triggerUrl = typeof window !== 'undefined' ? `${window.location.origin}/confirm?token=${wf.trigger_token}` : '';
+                  return (
+                    <div key={wfId} style={{ marginBottom: 7 }}>
+                      <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "13px 14px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
+                          <span style={{ fontSize: 10.5, color: wfStatus === 'ready' ? C.sage : C.amber, fontWeight: 700, background: wfStatus === 'ready' ? C.sageFaint : C.goldFaint, border: `1px solid ${wfStatus === 'ready' ? C.sageLight : C.gold}30`, borderRadius: 7, padding: "2px 9px" }}>
+                            {wfStatus === 'triggered' ? '🔔 Activated' : wfStatus === 'ready' ? '✓ Ready' : '⏳ Draft'}
+                          </span>
+                        </div>
+                        {wfStatus === 'ready' && (
+                          <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.55, marginBottom: 8 }}>
+                            <strong>{confirmCount} of {reqCount}</strong> confirmations received.
+                            {confirmCount < reqCount && " Waiting for second person to confirm."}
+                          </div>
+                        )}
+                        {wfStatus === 'ready' && triggerUrl && (
+                          <div style={{ background: C.bgSubtle, borderRadius: 9, padding: "9px 12px", marginBottom: 8 }}>
+                            <div style={{ fontSize: 10.5, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Confirmation link</div>
+                            <div style={{ fontSize: 11, color: C.mid, wordBreak: "break-all", marginBottom: 6 }}>{triggerUrl}</div>
+                            <button onClick={() => navigator.clipboard.writeText(triggerUrl).then(() => alert('Link copied!'))}
+                              style={{ fontSize: 11, color: C.sage, fontWeight: 700, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 11px", cursor: "pointer", fontFamily: "inherit" }}>
+                              Copy link
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
