@@ -111,6 +111,41 @@ const PEOPLE_ROLES = [
   { group: "Personal", roles: ["Best friend", "Neighbor", "Employer / HR", "Religious community contact"] },
 ];
 
+// ─── PRE-CONFIGURED ROLE TEMPLATES ───────────────────────────────────────────
+// The "aha" moment: 15-min full orchestration setup
+const ROLE_TEMPLATES = [
+  {
+    id: "executor", label: "Executor / Estate Attorney", icon: "⚖️",
+    tasks: ["Locate the will and advance directives", "Contact estate attorney to begin probate process", "Notify primary bank and all financial institutions", "Notify all credit card companies", "File final tax return for the deceased"],
+    desc: "Handles legal and financial estate matters"
+  },
+  {
+    id: "funeral", label: "Funeral Home / Director", icon: "🕊️",
+    tasks: ["Contact the funeral home", "Meet with funeral director to finalize arrangements", "Request an itemized funeral home contract", "Contact the cemetery or crematorium"],
+    desc: "Coordinates transportation, service, burial or cremation"
+  },
+  {
+    id: "clergy", label: "Religious Leader / Clergy", icon: "🙏",
+    tasks: ["Notify the faith community or religious leader", "Select readings, music, and pallbearers", "Plan the reception or post-service gathering"],
+    desc: "Officiates the service and provides spiritual support"
+  },
+  {
+    id: "family_lead", label: "Family Coordinator", icon: "👨‍👩‍👧",
+    tasks: ["Notify immediate family members", "Notify close friends and extended family", "Coordinate out-of-town family travel and lodging", "Collect contact info for thank you notes"],
+    desc: "Coordinates family communication and logistics"
+  },
+  {
+    id: "obituary", label: "Obituary & Communications", icon: "📰",
+    tasks: ["Draft and submit the obituary", "Gather photos and memories for the service", "Notify the deceased's employer"],
+    desc: "Writes and distributes obituary, photos, and announcements"
+  },
+  {
+    id: "home", label: "Home & Property", icon: "🏠",
+    tasks: ["Secure the home and valuables", "Set up mail forwarding or hold with USPS", "Cancel voter registration", "Contact the DMV to cancel the driver's license"],
+    desc: "Secures property, cancels registrations and subscriptions"
+  },
+];
+
 // ─── SUPABASE HELPERS ─────────────────────────────────────────────────────────
 const saveLead = async (data) => {
   try {
@@ -121,7 +156,7 @@ const saveLead = async (data) => {
   } catch (e) { console.warn('saveLead:', e); }
 };
 
-const createWorkflow = async (userId, deceasedName, coordinatorName, coordinatorEmail) => {
+const createWorkflow = async (userId, deceasedName, coordinatorName, coordinatorEmail, dateOfDeath) => {
   try {
     const { data, error } = await supabase.from('workflows').insert([{
       user_id: userId || null,
@@ -129,6 +164,7 @@ const createWorkflow = async (userId, deceasedName, coordinatorName, coordinator
       deceased_name: deceasedName || null,
       coordinator_name: coordinatorName || null,
       coordinator_email: coordinatorEmail || null,
+      date_of_death: dateOfDeath || null,
       status: 'active',
       trigger_type: 'death_confirmed',
       is_custom: false,
@@ -241,8 +277,13 @@ const loadUserWorkflows = async (userId) => {
     .from('workflows')
     .select('id, name, deceased_name, coordinator_name, status, trigger_type, created_at')
     .eq('user_id', userId)
+    .neq('status', 'archived')
     .order('created_at', { ascending: false });
   return data || [];
+};
+
+const archiveWorkflow = async (workflowId) => {
+  await supabase.from('workflows').update({ status: 'archived' }).eq('id', workflowId);
 };
 
 const loadUserProfile = async (userId) => {
@@ -366,9 +407,9 @@ const Sub = ({ children }) => (
 );
 
 // Top navigation bar used across all inner screens
-const TopNav = ({ user, onDashboard, onBack, onSignOut, label, accentColor }) => (
+const TopNav = ({ user, onDashboard, onBack, onSignOut, label, accentColor, onHome }) => (
   <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+    <div onClick={onHome || onDashboard || onBack} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}>
       <div style={{ width: 24, height: 24, borderRadius: "50%", background: `radial-gradient(circle, ${C.sageLight}, ${C.sage}70)` }} />
       <span style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink }}>Passage</span>
     </div>
@@ -393,6 +434,156 @@ const GoogleSignInBtn = ({ label = "Continue with Google" }) => (
     {label}
   </button>
 );
+
+// ─── TOAST NOTIFICATION ───────────────────────────────────────────────────────
+function Toast({ message, type = "success", onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3500);
+    return () => clearTimeout(t);
+  }, []);
+  const bg = type === "success" ? C.sage : type === "error" ? C.rose : C.gold;
+  return (
+    <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", background: bg, color: "#fff", borderRadius: 14, padding: "13px 22px", fontSize: 13, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 24px rgba(0,0,0,0.18)", whiteSpace: "nowrap", maxWidth: "90vw", textAlign: "center" }}>
+      {message}
+    </div>
+  );
+}
+
+// ─── ROLE TEMPLATE MODAL ──────────────────────────────────────────────────────
+function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, onClose, onDone }) {
+  const [selected, setSelected] = useState(null);
+  const [step, setStep] = useState("pick"); // pick | details
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [assigned, setAssigned] = useState([]);
+
+  const handleAssignTemplate = async () => {
+    if (!selected || !name) return;
+    setSaving(true);
+    const nameParts = name.trim().split(" ");
+    const { data: saved } = await supabase.from("people").insert([{
+      owner_id: userId || null,
+      first_name: nameParts[0],
+      last_name: nameParts.slice(1).join(" ") || "",
+      email: email || null,
+      phone: phone || null,
+      relationship: selected.label,
+      role: "recipient",
+      notify_on_trigger: true,
+    }]).select().single();
+
+    // Assign all tasks in this template to this person
+    for (const taskTitle of selected.tasks) {
+      const { data: taskRow } = await supabase.from("tasks")
+        .select("id").eq("workflow_id", workflowId).eq("title", taskTitle).maybeSingle();
+      if (taskRow) {
+        await supabase.from("tasks").update({
+          assigned_to_name: name,
+          assigned_to_email: email || null,
+          assigned_to_person_id: saved?.id || null,
+        }).eq("id", taskRow.id);
+      }
+    }
+
+    if (saved && workflowId) {
+      await saveWorkflowAction(workflowId, saved, `${selected.label} role`, "email");
+      if (phone) await saveWorkflowAction(workflowId, { ...saved, phone }, `${selected.label} role`, "sms");
+      if (email) {
+        fetch("/api/sendEmail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to: email, toName: name, taskTitle: `${selected.tasks.length} tasks assigned as ${selected.label}`, deceasedName, coordinatorName, workflowId, actionType: "assignment" }),
+        }).catch(() => {});
+      }
+      if (phone) {
+        fetch("/api/sendSMS", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to: phone, toName: name, taskTitle: `${selected.label} tasks`, deceasedName, coordinatorName, workflowId, actionType: "assignment" }),
+        }).catch(() => {});
+      }
+    }
+
+    setAssigned(prev => [...prev, { name, role: selected.label, tasks: selected.tasks.length }]);
+    setToast(email ? `✅ ${name} notified as ${selected.label}` : `✅ ${name} assigned as ${selected.label}`);
+    setSaving(false);
+    setStep("pick");
+    setSelected(null);
+    setName(""); setEmail(""); setPhone("");
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={step === "pick" ? onClose : undefined}>
+      <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
+
+        {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+
+        {step === "pick" && (
+          <>
+            <Heading size={18}>Quick setup — assign roles</Heading>
+            <Sub>Pick a role, add the person's contact info, and they'll be notified automatically.</Sub>
+            {assigned.length > 0 && (
+              <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.sage, marginBottom: 6 }}>ASSIGNED SO FAR</div>
+                {assigned.map((a, i) => (
+                  <div key={i} style={{ fontSize: 12, color: C.mid, marginBottom: 3 }}>✓ {a.name} — {a.role} ({a.tasks} tasks)</div>
+                ))}
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 18 }}>
+              {ROLE_TEMPLATES.map(t => (
+                <button key={t.id} onClick={() => { setSelected(t); setStep("details"); }}
+                  style={{ textAlign: "left", padding: "13px 14px", borderRadius: 12, border: `1.5px solid ${C.border}`, background: C.bgCard, cursor: "pointer", fontFamily: "inherit" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 20 }}>{t.icon}</span>
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{t.label}</div>
+                      <div style={{ fontSize: 11, color: C.soft, marginTop: 2 }}>{t.desc} · {t.tasks.length} tasks</div>
+                    </div>
+                    <span style={{ marginLeft: "auto", color: C.mid }}>→</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn variant="ghost" onClick={onClose}>Close</Btn>
+              {assigned.length > 0 && <Btn variant="sage" onClick={onDone} style={{ flex: 1 }}>Done — view task list →</Btn>}
+            </div>
+          </>
+        )}
+
+        {step === "details" && selected && (
+          <>
+            <button onClick={() => { setStep("pick"); setSelected(null); }} style={{ background: "none", border: "none", fontSize: 12, color: C.mid, cursor: "pointer", fontFamily: "inherit", marginBottom: 14 }}>← Back to roles</button>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, padding: "8px 14px", marginBottom: 16 }}>
+              <span style={{ fontSize: 18 }}>{selected.icon}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.sage }}>{selected.label}</div>
+                <div style={{ fontSize: 11, color: C.mid }}>{selected.tasks.length} tasks will be assigned</div>
+              </div>
+            </div>
+            <Field label="Their full name *" placeholder="e.g. Rabbi David Cohen" value={name} onChange={setName} />
+            <Field label="Email — receives notification immediately" type="email" placeholder="rabbi@temple.org" value={email} onChange={setEmail} />
+            <Field label="Phone — receives SMS immediately" placeholder="(845) 000-0000" value={phone} onChange={setPhone} />
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "9px 13px", fontSize: 11, color: C.mid, marginBottom: 16 }}>
+              📧 They'll receive a notification immediately with their assigned tasks.
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn variant="ghost" onClick={() => setStep("pick")}>← Back</Btn>
+              <Btn variant="rose" onClick={handleAssignTemplate} disabled={!name || saving} style={{ flex: 1 }}>
+                {saving ? "Assigning..." : `Assign ${selected.tasks.length} tasks + notify →`}
+              </Btn>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ─── ASSIGN MODAL ─────────────────────────────────────────────────────────────
 function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
@@ -540,6 +731,8 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
 
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
 function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, onDashboard, onSignOut }) {
+  const [showRoleTemplates, setShowRoleTemplates] = useState(false);
+  const [toast, setToast] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [assigningTask, setAssigningTask] = useState(null);
@@ -768,6 +961,9 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
                 <div style={{ fontSize: 12, color: C.mid }}>{done} done · {assigned} assigned · {tasks.length - done} remaining</div>
                 <div style={{ fontSize: 10.5, color: C.soft }}>Changes save automatically as you go</div>
               </div>
+              <button onClick={() => setShowRoleTemplates(true)} style={{ background: C.roseFaint, color: C.rose, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                ⚡ Quick assign
+              </button>
               <button onClick={handleSave} style={{ background: saveStatus === "saved" ? C.sageFaint : C.sage, color: saveStatus === "saved" ? C.sage : "#fff", border: saveStatus === "saved" ? `1px solid ${C.sageLight}` : "none", borderRadius: 10, padding: "9px 18px", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}>
                 {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "✓ Saved" : "Save progress"}
               </button>
@@ -783,6 +979,15 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
         <AssignModal task={assigningTask} workflowId={workflowId} userId={userId}
           onAssign={handleAssign} onClose={() => setAssigningTask(null)} />
       )}
+      {showRoleTemplates && workflowId && (
+        <RoleTemplateModal
+          workflowId={workflowId} userId={userId}
+          deceasedName={deceasedName} coordinatorName={coordinatorName}
+          onClose={() => setShowRoleTemplates(false)}
+          onDone={() => setShowRoleTemplates(false)}
+        />
+      )}
+      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </div>
   );
 }
@@ -791,17 +996,17 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
 function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
   const [step, setStep] = useState(0);
   const [deceasedName, setDeceasedName] = useState("");
+  const [dateOfDeath, setDateOfDeath] = useState("");
   const [relationship, setRelationship] = useState("");
   const [yourName, setYourName] = useState(() => user?.user_metadata?.full_name || "");
   const [yourEmail, setYourEmail] = useState(() => user?.email || "");
   const [workflowId, setWorkflowId] = useState(null);
   const [building, setBuilding] = useState(false);
   const [showTaskList, setShowTaskList] = useState(false);
-
   const buildPlan = async () => {
     setBuilding(true);
-    await saveLead({ flow_type: "immediate", your_name: yourName, your_email: yourEmail, deceased_name: deceasedName, relationship, timestamp: new Date().toISOString() });
-    const wf = await createWorkflow(user?.id, deceasedName, yourName, yourEmail);
+    await saveLead({ flow_type: "immediate", your_name: yourName, your_email: yourEmail, deceased_name: deceasedName, relationship, date_of_death: dateOfDeath, timestamp: new Date().toISOString() });
+    const wf = await createWorkflow(user?.id, deceasedName, yourName, yourEmail, dateOfDeath);
     if (wf?.id) {
       setWorkflowId(wf.id);
       await saveAllTasks(wf.id, user?.id);
@@ -827,6 +1032,7 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
                 <Sub>We'll guide you step by step. Nothing will be missed.</Sub>
               </div>
               <Field label="Name of the person who passed" placeholder="e.g. Robert James Collins" value={deceasedName} onChange={setDeceasedName} />
+              <Field label="Date of passing" type="date" placeholder="" value={dateOfDeath} onChange={setDateOfDeath} hint="Needed for death certificates and official documents." />
               <Select label="Your relationship" value={relationship} onChange={setRelationship} options={[["","Select..."],["child","Son or daughter"],["spouse","Spouse or partner"],["sibling","Brother or sister"],["grandchild","Grandchild"],["friend","Close friend"],["other","Other"]]} />
               <Btn onClick={() => setStep(1)} disabled={!deceasedName || !relationship} style={{ width: "100%", background: C.rose }}>Continue →</Btn>
             </Card>
@@ -1028,6 +1234,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [profile, setProfile] = useState(null);
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [archiving, setArchiving] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -1041,6 +1248,14 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
     load();
   }, [user]);
 
+  const handleArchive = async (wfId) => {
+    if (!confirm("Archive this estate plan? You can still view it but it will be marked as complete.")) return;
+    setArchiving(wfId);
+    await archiveWorkflow(wfId);
+    setWorkflows(prev => prev.filter(w => w.id !== wfId));
+    setArchiving(null);
+  };
+
   const plan = userData?.plan || 'free';
   const planMap = {
     free: { label: "Free Plan", color: C.soft, price: "$0", nextCharge: "None", renewal: "N/A" },
@@ -1049,12 +1264,12 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
     lifetime: { label: "Lifetime", color: C.gold, price: "$249", nextCharge: "Never", renewal: "Never" },
   };
   const pd = planMap[plan] || planMap.free;
-  const redWorkflows = workflows.filter(w => w.trigger_type === 'death_confirmed');
+  const redWorkflows = workflows.filter(w => w.status !== 'archived');
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+        <div onClick={onSignOut} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }} title="Home">
           <div style={{ width: 24, height: 24, borderRadius: "50%", background: `radial-gradient(circle, ${C.sageLight}, ${C.sage}70)` }} />
           <span style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink }}>Passage</span>
         </div>
@@ -1113,6 +1328,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                         <span style={{ color: C.mid, fontSize: 14 }}>→</span>
                       </div>
                     </div>
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); handleArchive(wf.id); }}
+                    style={{ width: "100%", padding: "6px", fontSize: 11, color: C.soft, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "center", marginBottom: 4 }}>
+                    {archiving === wf.id ? "Archiving..." : "Archive plan"}
                   </button>
                 ))}
               </div>
