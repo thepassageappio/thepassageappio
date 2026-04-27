@@ -1,92 +1,75 @@
-import { createClient } from '@supabase/supabase-js';
-import Stripe from 'stripe';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
+﻿const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepassageapp.io';
 const PLANS = {
-  annual: {
-    price: process.env.STRIPE_PRICE_ANNUAL || 'price_annual',
-    amount: 4900,
-    label: 'Passage Annual',
-    interval: 'year',
-  },
-  monthly: {
-    price: process.env.STRIPE_PRICE_MONTHLY || 'price_monthly',
-    amount: 999,
-    label: 'Passage Monthly',
-    interval: 'month',
-  },
-  lifetime: {
-    price: process.env.STRIPE_PRICE_LIFETIME || 'price_lifetime',
-    amount: 24900,
-    label: 'Passage Lifetime',
-    interval: null,
-  },
+  annual:   { amount: 4900,  label: 'Passage Annual',   interval: 'year',  priceEnv: 'STRIPE_PRICE_ANNUAL' },
+  monthly:  { amount: 999,   label: 'Passage Monthly',  interval: 'month', priceEnv: 'STRIPE_PRICE_MONTHLY' },
+  lifetime: { amount: 24900, label: 'Passage Lifetime', interval: null,    priceEnv: 'STRIPE_PRICE_LIFETIME' },
 };
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepassageapp.io';
-
+async function stripePost(path, params) {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error('STRIPE_SECRET_KEY not set');
+  const res = await fetch('https://api.stripe.com/v1' + path, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(params).toString(),
+  });
+  return res.json();
+}
+async function stripeGet(path) {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error('STRIPE_SECRET_KEY not set');
+  const res = await fetch('https://api.stripe.com/v1' + path, { headers: { 'Authorization': 'Bearer ' + key } });
+  return res.json();
+}
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-
   const { planId, userId, userEmail } = req.body;
   if (!planId || !userId) return res.status(400).json({ error: 'Missing planId or userId' });
-
   const plan = PLANS[planId];
   if (!plan) return res.status(400).json({ error: 'Invalid plan' });
-
   if (!process.env.STRIPE_SECRET_KEY) {
-    return res.status(200).json({ url: BASE_URL + '/?upgrade=pending', mock: true });
+    return res.status(200).json({ url: BASE_URL + '/?upgrade=pending&plan=' + planId, mock: true });
   }
-
   try {
-    // Get or create Stripe customer
-    let customerId;
-    const { data: existing } = await supabase.from('users')
-      .select('stripe_customer_id').eq('id', userId).single();
-
-    if (existing && existing.stripe_customer_id) {
-      customerId = existing.stripe_customer_id;
-    } else {
-      const customer = await stripe.customers.create({
-        email: userEmail || undefined,
-        metadata: { userId },
-      });
-      customerId = customer.id;
-      await supabase.from('users').update({ stripe_customer_id: customerId }).eq('id', userId);
+    let customerId = null;
+    if (userEmail) {
+      const search = await stripeGet('/customers?email=' + encodeURIComponent(userEmail) + '&limit=1');
+      if (search.data && search.data.length > 0) customerId = search.data[0].id;
     }
-
-    const sessionConfig = {
+    if (!customerId) {
+      const customer = await stripePost('/customers', { email: userEmail || '', 'metadata[userId]': userId });
+      customerId = customer.id;
+    }
+    const priceId = process.env[plan.priceEnv];
+    const sessionParams = {
       customer: customerId,
       success_url: BASE_URL + '/?upgraded=true&plan=' + planId,
       cancel_url: BASE_URL + '/?upgrade=cancelled',
-      metadata: { userId, planId },
+      'metadata[userId]': userId,
+      'metadata[planId]': planId,
     };
-
-    if (plan.interval) {
-      sessionConfig.mode = 'subscription';
-      sessionConfig.line_items = [{ price: plan.price, quantity: 1 }];
+    if (plan.interval && priceId) {
+      sessionParams.mode = 'subscription';
+      sessionParams['line_items[0][price]'] = priceId;
+      sessionParams['line_items[0][quantity]'] = '1';
+    } else if (plan.interval) {
+      sessionParams.mode = 'subscription';
+      sessionParams['line_items[0][price_data][currency]'] = 'usd';
+      sessionParams['line_items[0][price_data][product_data][name]'] = plan.label;
+      sessionParams['line_items[0][price_data][recurring][interval]'] = plan.interval;
+      sessionParams['line_items[0][price_data][unit_amount]'] = String(plan.amount);
+      sessionParams['line_items[0][quantity]'] = '1';
     } else {
-      sessionConfig.mode = 'payment';
-      sessionConfig.line_items = [{
-        price_data: {
-          currency: 'usd',
-          product_data: { name: plan.label },
-          unit_amount: plan.amount,
-        },
-        quantity: 1,
-      }];
+      sessionParams.mode = 'payment';
+      sessionParams['line_items[0][price_data][currency]'] = 'usd';
+      sessionParams['line_items[0][price_data][product_data][name]'] = plan.label;
+      sessionParams['line_items[0][price_data][unit_amount]'] = String(plan.amount);
+      sessionParams['line_items[0][quantity]'] = '1';
     }
-
-    const session = await stripe.checkout.sessions.create(sessionConfig);
+    const session = await stripePost('/checkout/sessions', sessionParams);
+    if (session.error) return res.status(500).json({ error: session.error.message });
     return res.status(200).json({ url: session.url });
   } catch (err) {
-    console.error('Stripe checkout error:', err);
+    console.error('Checkout error:', err);
     return res.status(500).json({ error: err.message });
   }
 }
