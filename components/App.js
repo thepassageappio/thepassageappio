@@ -1008,8 +1008,9 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
     await saveLead({ flow_type: "immediate", your_name: yourName, your_email: yourEmail, deceased_name: deceasedName, relationship, date_of_death: dateOfDeath, timestamp: new Date().toISOString() });
     const wf = await createWorkflow(user?.id, deceasedName, yourName, yourEmail, dateOfDeath);
     if (wf?.id) {
-      setWorkflowId(wf.id);
-      await saveAllTasks(wf.id, user?.id);
+      const wfId = wf.id;
+      setWorkflowId(wfId);
+      await saveAllTasks(wfId, user?.id);
     }
     setBuilding(false);
     setShowTaskList(true);
@@ -1088,8 +1089,8 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       const wf = await createWorkflow(user.id, name, user.email, user.email);
       if (wf?.id) {
         await supabase.from('workflow_actions').insert([
-          { workflow_id: wf.id, action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, subject: `You've been named executor — ${name || 'estate plan'}`, body: `${executorName} — you have been designated as executor in Passage. When the plan is activated, you will receive your full task list via email and SMS.`, status: 'pending', delay_hours: 0 },
-          { workflow_id: wf.id, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, subject: 'Passage executor notification', body: `${executorName}, you've been named executor in Passage. You'll receive a full task list when the plan activates.`, status: 'pending', delay_hours: 0 },
+          { workflow_id: wf["id"], action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, subject: `You've been named executor — ${name || 'estate plan'}`, body: `${executorName} — you have been designated as executor in Passage. When the plan is activated, you will receive your full task list via email and SMS.`, status: 'pending', delay_hours: 0 },
+          { workflow_id: wf["id"], action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, subject: 'Passage executor notification', body: `${executorName}, you've been named executor in Passage. You'll receive a full task list when the plan activates.`, status: 'pending', delay_hours: 0 },
         ]);
       }
     }
@@ -1312,28 +1313,36 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Active estate plans</div>
                 <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>Tap to view and manage tasks</div>
-                {redWorkflows.map(wf => (
-                  <button key={wf.id} onClick={() => onOpenPlan(wf)}
-                    style={{ width: "100%", background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 12, padding: "13px 14px", cursor: "pointer", fontFamily: "inherit", textAlign: "left", marginBottom: 7 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wf.name}</div>
-                        <div style={{ fontSize: 11, color: C.mid, marginTop: 2 }}>
-                          {wf.coordinator_name && `Coordinator: ${wf.coordinator_name} · `}
-                          Started {new Date(wf.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {redWorkflows.map((wf) => {
+                  const wfId = wf.id;
+                  const wfName = wf.name;
+                  const wfCoord = wf.coordinator_name;
+                  const wfDate = wf.created_at;
+                  return (
+                    <div key={wfId} style={{ marginBottom: 7 }}>
+                      <button onClick={() => onOpenPlan(wf)}
+                        style={{ width: "100%", background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 12, padding: "13px 14px", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <div>
+                            <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
+                            <div style={{ fontSize: 11, color: C.mid, marginTop: 2 }}>
+                              {wfCoord && `Coordinator: ${wfCoord} · `}
+                              Started {new Date(wfDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                            <span style={{ fontSize: 10.5, color: C.rose, fontWeight: 700, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 7, padding: "2px 9px" }}>Active</span>
+                            <span style={{ color: C.mid, fontSize: 14 }}>→</span>
+                          </div>
                         </div>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                        <span style={{ fontSize: 10.5, color: C.rose, fontWeight: 700, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 7, padding: "2px 9px" }}>Active</span>
-                        <span style={{ color: C.mid, fontSize: 14 }}>→</span>
-                      </div>
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleArchive(wfId); }}
+                        style={{ width: "100%", padding: "6px", fontSize: 11, color: C.soft, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
+                        {archiving === wfId ? "Archiving..." : "Archive plan"}
+                      </button>
                     </div>
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); handleArchive(wf.id); }}
-                    style={{ width: "100%", padding: "6px", fontSize: 11, color: C.soft, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "center", marginBottom: 4 }}>
-                    {archiving === wf.id ? "Archiving..." : "Archive plan"}
-                  </button>
-                ))}
+                  );
+                })}
               </div>
             )}
 
