@@ -846,34 +846,25 @@ function buildDefaultTexts(deceasedName, coordinatorName, events) {
     serviceLines.push("Reception: " + fmtDate(reception.date, reception.time) + (reception.location_name ? " at " + reception.location_name : ""));
   }
 
-  var serviceBlock = serviceLines.length > 0 ? "
+  var NL = String.fromCharCode(10);
+  var serviceBlock = serviceLines.length > 0 ? NL + NL + serviceLines.join(NL) : "";
 
-" + serviceLines.join("
-") : "";
+  var facebook = [
+    "It is with deep sadness that we share the passing of " + deceasedName + ". " + deceasedName + " was deeply loved and will be forever in our hearts." + serviceBlock,
+    "In lieu of flowers, the family welcomes your thoughts, memories, and prayers.",
+    "With love," + NL + (coordinatorName || "The Family"),
+  ].join(NL + NL);
 
-  var facebook = "It is with deep sadness that we share the passing of " + deceasedName + ". " + (deceasedName) + " was deeply loved and will be forever in our hearts." + serviceBlock + "
+  var linkedin = [
+    "We share with heavy hearts the passing of " + deceasedName + "." + serviceBlock,
+    "We are grateful for your kindness and support during this time.",
+    "- " + (coordinatorName || "The Family"),
+  ].join(NL + NL);
 
-In lieu of flowers, the family welcomes your thoughts, memories, and prayers.
+  var twitterBase = deceasedName + " passed away peacefully, surrounded by love. We are sharing the news with all who knew " + deceasedName + ".";
+  var twitter = twitterBase.length > 260 ? "We are heartbroken to share the passing of " + deceasedName + ". Details to follow." : twitterBase;
 
-With love,
-" + (coordinatorName || "The Family");
-
-  var linkedin = "We share with heavy hearts the passing of " + deceasedName + "." + serviceBlock + "
-
-We are grateful for your kindness and support during this time.
-
-— " + (coordinatorName || "The Family");
-
-  var twitter = deceasedName + " passed away peacefully, surrounded by love. We are sharing the news with all who knew and loved " + (deceasedName) + ". Details below.";
-  if (twitter.length > 260) {
-    twitter = "We are heartbroken to share the passing of " + deceasedName + ". Details to follow.";
-  }
-
-  var instagram = "Forever in our hearts. 🕊️
-
-" + deceasedName + " — loved beyond measure, missed beyond words." + serviceBlock + "
-
-#InMemory #ForeverLoved";
+  var instagram = ["Forever in our hearts. ", deceasedName + " - loved beyond measure, missed beyond words." + serviceBlock, "#InMemory #ForeverLoved"].join(NL + NL);
 
   var sms = "Hi, this is " + (coordinatorName || "the family") + ". We wanted to let you know that " + deceasedName + " has passed away." + (funeral && funeral.date ? " The service will be held " + fmtDate(funeral.date, funeral.time) + (funeral.location_name ? " at " + funeral.location_name : "") + "." : "") + " Our family is grateful for your love and support.";
 
