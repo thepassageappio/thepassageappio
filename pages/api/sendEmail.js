@@ -1,4 +1,3 @@
-
 // pages/api/sendEmail.js
 // Sends task assignment emails via Resend
 // Called when a task is assigned OR when trigger fires
