@@ -44,6 +44,7 @@ const POST_DEATH_TASKS = [
     tasks: [
       { id: "t2_01", title: "Order death certificates — minimum 15 copies", desc: "Banks, insurance, government, employers each require originals. ~$10–25 each.", category: "legal" },
       { id: "t2_02", title: "Notify close friends and extended family", desc: "Use a phone tree or designate someone to help spread the word.", category: "notifications" },
+      { id: "t2_social", title: "Share the news on social media", desc: "Post an announcement on Facebook, Instagram, LinkedIn, and X so the wider community knows. Passage pre-writes the announcement for you.", category: "notifications", isSocial: true },
       { id: "t2_03", title: "Meet with funeral director to finalize arrangements", desc: "Confirm burial vs cremation, service type, casket or urn, date/time.", category: "service" },
       { id: "t2_04", title: "Draft and submit the obituary", desc: "Contact local newspapers. Most require 24–48 hour lead time.", category: "memorial" },
       { id: "t2_05", title: "Notify the deceased's employer", desc: "Contact HR for final paycheck, benefits continuation, employer life insurance.", category: "notifications" },
@@ -182,6 +183,7 @@ const saveAllTasks = async (workflowId, userId) => {
         workflow_id: workflowId,
         user_id: userId || null,
         title: t.title,
+        isSocial: t.isSocial || false,
         description: t.desc,
         category: t.category,
         priority: tier.tier === 1 ? 'urgent' : tier.tier === 2 ? 'high' : 'normal',
@@ -810,6 +812,279 @@ Passage`);
   );
 }
 
+// ─── SOCIAL ANNOUNCEMENT MODAL ───────────────────────────────────────────────
+// The "get the word out" moment — write once, share everywhere
+// No OAuth needed — uses native share URLs for each platform
+
+const SOCIAL_PLATFORMS = [
+  { id: "facebook", label: "Facebook", icon: "f", color: "#1877F2", charLimit: 63206 },
+  { id: "linkedin", label: "LinkedIn", icon: "in", color: "#0A66C2", charLimit: 3000 },
+  { id: "twitter", label: "X / Twitter", icon: "𝕏", color: "#000000", charLimit: 280 },
+  { id: "instagram", label: "Instagram", icon: "◎", color: "#E1306C", charLimit: 2200 },
+  { id: "sms", label: "Text Message", icon: "💬", color: "#34C759", charLimit: 300 },
+];
+
+function buildDefaultTexts(deceasedName, coordinatorName, events) {
+  var funeral = events && events.find(function(e) { return e.event_type === "funeral"; });
+  var visitation = events && events.find(function(e) { return e.event_type === "visitation"; });
+  var reception = events && events.find(function(e) { return e.event_type === "reception"; });
+
+  function fmtDate(d, t) {
+    if (!d) return "";
+    var dt = new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+    return t ? dt + " at " + t : dt;
+  }
+
+  var serviceLines = [];
+  if (visitation && visitation.date) {
+    serviceLines.push("Visitation: " + fmtDate(visitation.date, visitation.time) + (visitation.location_name ? " at " + visitation.location_name : ""));
+  }
+  if (funeral && funeral.date) {
+    serviceLines.push("Funeral Service: " + fmtDate(funeral.date, funeral.time) + (funeral.location_name ? " at " + funeral.location_name : ""));
+  }
+  if (reception && reception.date) {
+    serviceLines.push("Reception: " + fmtDate(reception.date, reception.time) + (reception.location_name ? " at " + reception.location_name : ""));
+  }
+
+  var serviceBlock = serviceLines.length > 0 ? "
+
+" + serviceLines.join("
+") : "";
+
+  var facebook = "It is with deep sadness that we share the passing of " + deceasedName + ". " + (deceasedName) + " was deeply loved and will be forever in our hearts." + serviceBlock + "
+
+In lieu of flowers, the family welcomes your thoughts, memories, and prayers.
+
+With love,
+" + (coordinatorName || "The Family");
+
+  var linkedin = "We share with heavy hearts the passing of " + deceasedName + "." + serviceBlock + "
+
+We are grateful for your kindness and support during this time.
+
+— " + (coordinatorName || "The Family");
+
+  var twitter = deceasedName + " passed away peacefully, surrounded by love. We are sharing the news with all who knew and loved " + (deceasedName) + ". Details below.";
+  if (twitter.length > 260) {
+    twitter = "We are heartbroken to share the passing of " + deceasedName + ". Details to follow.";
+  }
+
+  var instagram = "Forever in our hearts. 🕊️
+
+" + deceasedName + " — loved beyond measure, missed beyond words." + serviceBlock + "
+
+#InMemory #ForeverLoved";
+
+  var sms = "Hi, this is " + (coordinatorName || "the family") + ". We wanted to let you know that " + deceasedName + " has passed away." + (funeral && funeral.date ? " The service will be held " + fmtDate(funeral.date, funeral.time) + (funeral.location_name ? " at " + funeral.location_name : "") + "." : "") + " Our family is grateful for your love and support.";
+
+  return { facebook: facebook, linkedin: linkedin, twitter: twitter, instagram: instagram, sms: sms };
+}
+
+function SocialModal({ workflowId, deceasedName, coordinatorName, obituaryUrl, onClose }) {
+  var [events, setEvents] = useState([]);
+  var [activeTab, setActiveTab] = useState("facebook");
+  var [texts, setTexts] = useState(null);
+  var [master, setMaster] = useState("");
+  var [step, setStep] = useState("compose"); // compose | platforms | done
+  var [saving, setSaving] = useState(false);
+  var [copied, setCopied] = useState(null);
+  var [loaded, setLoaded] = useState(false);
+
+  useEffect(function() {
+    loadWorkflowEvents(workflowId).then(function(evts) {
+      setEvents(evts);
+      var defaults = buildDefaultTexts(deceasedName, coordinatorName, evts);
+      var masterDefault = "It is with deep sadness that we share the passing of " + deceasedName + ". " + deceasedName + " was deeply loved and will be forever in our hearts. Our family is grateful for your love, support, and prayers during this time.";
+      setMaster(masterDefault);
+      setTexts(defaults);
+      setLoaded(true);
+    });
+  }, [workflowId]);
+
+  function handleRegenerateFromMaster() {
+    if (!master.trim()) return;
+    var defaults = buildDefaultTexts(deceasedName, coordinatorName, events);
+    var shortened = master.length > 260 ? master.slice(0, 240) + "..." : master;
+    setTexts({
+      facebook: master + (defaults.facebook.includes("Service") ? "
+
+" + defaults.facebook.split("
+
+").slice(1).join("
+
+") : ""),
+      linkedin: master,
+      twitter: shortened,
+      instagram: master.slice(0, 200) + (master.length > 200 ? "..." : "") + "
+
+#InMemory #ForeverLoved",
+      sms: master.slice(0, 280),
+    });
+  }
+
+  function handleSave() {
+    setSaving(true);
+    supabase.from("workflow_announcements").upsert([{
+      workflow_id: workflowId,
+      master_text: master,
+      facebook_text: texts.facebook,
+      linkedin_text: texts.linkedin,
+      twitter_text: texts.twitter,
+      instagram_text: texts.instagram,
+      sms_text: texts.sms,
+      updated_at: new Date().toISOString(),
+    }], { onConflict: "workflow_id" }).then(function() {
+      setSaving(false);
+      setStep("platforms");
+    });
+  }
+
+  function handleShare(platform) {
+    var text = texts[platform] || "";
+    var url = obituaryUrl || "https://thepassageapp.io";
+    var shareUrl = "";
+    if (platform === "facebook") {
+      shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url) + "&quote=" + encodeURIComponent(text.slice(0, 500));
+    } else if (platform === "linkedin") {
+      shareUrl = "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(url) + "&summary=" + encodeURIComponent(text.slice(0, 700));
+    } else if (platform === "twitter") {
+      shareUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text.slice(0, 270));
+    } else if (platform === "instagram" || platform === "sms") {
+      navigator.clipboard.writeText(text).then(function() { setCopied(platform); setTimeout(function() { setCopied(null); }, 2500); });
+      return;
+    }
+    if (shareUrl) window.open(shareUrl, "_blank", "width=600,height=500");
+  }
+
+  if (!loaded) {
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ background: C.bgCard, borderRadius: 20, padding: 32, color: C.soft }}>Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={step === "compose" ? onClose : undefined}>
+      <div onClick={function(e) { e.stopPropagation(); }} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 580, maxHeight: "94vh", overflowY: "auto" }}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
+
+        {step === "compose" && (
+          <>
+            <Heading size={18}>Share the news</Heading>
+            <Sub>Write your announcement once. Passage formats it for every platform.</Sub>
+
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Your announcement</div>
+              <textarea
+                value={master}
+                onChange={function(e) { setMaster(e.target.value); }}
+                style={{ width: "100%", height: 140, padding: "13px", borderRadius: 12, border: "1.5px solid " + C.border, fontFamily: "Georgia, serif", fontSize: 13.5, color: C.ink, lineHeight: 1.7, resize: "vertical", boxSizing: "border-box", background: C.bgSubtle }}
+              />
+              <button onClick={handleRegenerateFromMaster} style={{ fontSize: 11.5, color: C.sage, fontWeight: 700, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", marginTop: 4 }}>
+                ↻ Reformat all platforms from this text
+              </button>
+            </div>
+
+            {events.length === 0 && (
+              <div style={{ background: C.goldFaint, border: "1px solid " + C.gold + "30", borderRadius: 10, padding: "10px 13px", fontSize: 12, color: C.amber, marginBottom: 14, lineHeight: 1.5 }}>
+                📍 Add service details (date, time, location) from the task list and they will appear automatically in your announcements.
+              </div>
+            )}
+
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Preview by platform</div>
+              <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 12 }}>
+                {SOCIAL_PLATFORMS.map(function(p) {
+                  var isActive = activeTab === p.id;
+                  var tlen = texts[p.id] ? texts[p.id].length : 0;
+                  var overLimit = tlen > p.charLimit;
+                  return (
+                    <button key={p.id} onClick={function() { setActiveTab(p.id); }}
+                      style={{ padding: "6px 12px", borderRadius: 18, border: "1.5px solid " + (isActive ? p.color : C.border), background: isActive ? p.color + "14" : C.bgCard, fontSize: 12, fontWeight: 600, color: isActive ? p.color : C.mid, cursor: "pointer", fontFamily: "inherit" }}>
+                      {p.label}{overLimit ? " ⚠️" : ""}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {texts && (function() {
+                var plat = SOCIAL_PLATFORMS.find(function(p) { return p.id === activeTab; });
+                var txt = texts[activeTab] || "";
+                return (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                      <div style={{ fontSize: 11, color: C.soft }}>{plat.label} preview</div>
+                      <div style={{ fontSize: 11, color: txt.length > plat.charLimit ? C.rose : C.soft }}>{txt.length}/{plat.charLimit} chars</div>
+                    </div>
+                    <textarea
+                      value={txt}
+                      onChange={function(e) {
+                        var updated = Object.assign({}, texts);
+                        updated[activeTab] = e.target.value;
+                        setTexts(updated);
+                      }}
+                      style={{ width: "100%", height: activeTab === "twitter" ? 90 : activeTab === "sms" ? 90 : 160, padding: "12px", borderRadius: 11, border: "1.5px solid " + (txt.length > plat.charLimit ? C.rose : C.border), fontFamily: activeTab === "instagram" || activeTab === "sms" ? "inherit" : "Georgia, serif", fontSize: 12.5, color: C.ink, lineHeight: 1.65, resize: "vertical", boxSizing: "border-box", background: C.bgSubtle }}
+                    />
+                    {activeTab === "instagram" && (
+                      <div style={{ fontSize: 11, color: C.soft, marginTop: 4 }}>Instagram does not support direct web sharing. Tap Share below to copy — then paste into Instagram.</div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn variant="ghost" onClick={onClose}>Cancel</Btn>
+              <Btn variant="sage" onClick={handleSave} disabled={saving || !master.trim()} style={{ flex: 1 }}>
+                {saving ? "Saving..." : "Save & share →"}
+              </Btn>
+            </div>
+          </>
+        )}
+
+        {step === "platforms" && (
+          <>
+            <Heading size={18}>Share {deceasedName ? deceasedName + "'s" : "the"} announcement</Heading>
+            <Sub>Tap each platform to open the share dialog. Instagram copies to clipboard.</Sub>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+              {SOCIAL_PLATFORMS.map(function(p) {
+                var isCopied = copied === p.id;
+                var isInsta = p.id === "instagram";
+                var isSMS = p.id === "sms";
+                var label = isCopied ? "✅ Copied!" : isInsta ? "Copy for Instagram" : isSMS ? "Copy to send by text" : "Share on " + p.label;
+                return (
+                  <button key={p.id} onClick={function() { handleShare(p.id); }}
+                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 13, border: "1.5px solid " + (isCopied ? C.sageLight : C.border), background: isCopied ? C.sageFaint : C.bgCard, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: p.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: p.id === "sms" ? 20 : 14, fontWeight: 900, color: p.color, flexShrink: 0 }}>{p.icon}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{label}</div>
+                      <div style={{ fontSize: 11, color: C.soft, marginTop: 2 }}>
+                        {texts && texts[p.id] ? texts[p.id].slice(0, 60) + (texts[p.id].length > 60 ? "..." : "") : ""}
+                      </div>
+                    </div>
+                    <span style={{ color: C.mid, fontSize: 16 }}>{isCopied ? "" : isInsta || isSMS ? "⎘" : "→"}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 12, color: C.mid, marginBottom: 18, lineHeight: 1.55 }}>
+              ✅ Your announcement is saved. You can return to edit or reshare anytime from the task list.
+            </div>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn variant="ghost" onClick={function() { setStep("compose"); }}>← Edit text</Btn>
+              <Btn variant="sage" onClick={onClose} style={{ flex: 1 }}>Done</Btn>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── ASSIGN MODAL ─────────────────────────────────────────────────────────────
 function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName, coordinatorName }) {
   const [step, setStep] = useState("pick");
@@ -1005,6 +1280,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
 function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, onDashboard, onSignOut }) {
   const [showRoleTemplates, setShowRoleTemplates] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
+  const [showSocial, setShowSocial] = useState(false);
   const [eventCount, setEventCount] = useState(0);
   const [toast, setToast] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -1188,9 +1464,15 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
                         </div>
 
                         {!task.completed && (
-                          <button onClick={() => setAssigningTask(task)} style={{ fontSize: 11, fontWeight: 700, color: task.assignedTo ? C.sage : C.soft, background: task.assignedTo ? C.sageFaint : C.bgSubtle, border: "none", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
-                            {task.assignedTo ? "Reassign" : "Assign"}
-                          </button>
+                          task.isSocial ? (
+                            <button onClick={() => setShowSocial(true)} style={{ fontSize: 11, fontWeight: 700, color: "#1877F2", background: "#f0f4ff", border: "1px solid #1877F220", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
+                              📣 Share
+                            </button>
+                          ) : (
+                            <button onClick={() => setAssigningTask(task)} style={{ fontSize: 11, fontWeight: 700, color: task.assignedTo ? C.sage : C.soft, background: task.assignedTo ? C.sageFaint : C.bgSubtle, border: "none", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                              {task.assignedTo ? "Reassign" : "Assign"}
+                            </button>
+                          )
                         )}
                       </div>
                     </div>
@@ -1235,6 +1517,9 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
                 <div style={{ fontSize: 12, color: C.mid }}>{done} done · {assigned} assigned · {tasks.length - done} remaining</div>
                 <div style={{ fontSize: 10.5, color: C.soft }}>Changes save automatically as you go</div>
               </div>
+              <button onClick={() => setShowSocial(true)} style={{ background: "#f0f4ff", color: "#1877F2", border: "1px solid #1877F220", borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                📣 Share news
+              </button>
               <button onClick={() => setShowEvents(true)} style={{ background: C.goldFaint, color: C.amber, border: `1px solid ${C.gold}30`, borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                 📍 {eventCount > 0 ? `${eventCount} event${eventCount > 1 ? "s" : ""}` : "Add events"}
               </button>
@@ -1261,6 +1546,11 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
         <EventsModal workflowId={workflowId} deceasedName={deceasedName}
           onClose={() => setShowEvents(false)}
           onSaved={(count) => { setEventCount(count); setToast(`✅ Service details saved — included in all notifications`); }} />
+      )}
+      {showSocial && workflowId && (
+        <SocialModal workflowId={workflowId} deceasedName={deceasedName}
+          coordinatorName={coordinatorName}
+          onClose={() => { setShowSocial(false); setToast("✅ Announcement saved"); }} />
       )}
       {showRoleTemplates && workflowId && (
         <RoleTemplateModal
