@@ -1,7 +1,4 @@
 // pages/api/sendEmail.js
-// Sends task assignment emails via Resend
-// Called when a task is assigned OR when trigger fires
-
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -12,138 +9,135 @@ const supabase = createClient(
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { 
-    to,           // email address
-    toName,       // recipient name
-    subject,      // email subject
-    taskTitle,    // specific task being assigned
-    deceasedName, // name of the deceased
-    coordinatorName, // who is coordinating
-    workflowId,   // for tracking
-    actionType = 'assignment', // 'assignment' | 'trigger'
+  const {
+    to, toName, subject, taskTitle, deceasedName,
+    coordinatorName, workflowId, actionType, events
   } = req.body;
 
-  if (!to) return res.status(400).json({ error: 'Missing recipient email' });
+  if (!to) return res.status(400).json({ error: 'Missing recipient' });
+
+  const KEY = process.env.RESEND_API_KEY;
+  if (!KEY) return res.status(200).json({ success: true, skipped: true });
 
   try {
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (!RESEND_API_KEY) {
-      console.warn('RESEND_API_KEY not set — email not sent');
-      return res.status(200).json({ success: true, skipped: true });
+    const name = toName || to;
+    const deceased = deceasedName || 'your loved one';
+    const coordinator = coordinatorName || 'the family';
+
+    // Build service block from events
+    let serviceRows = '';
+    if (events && events.length > 0) {
+      events.forEach(function(e) {
+        if (!e.date) return;
+        const label = e.event_type === 'funeral' ? 'Funeral Service' :
+                      e.event_type === 'visitation' ? 'Visitation' :
+                      e.event_type === 'burial' ? 'Burial' :
+                      e.event_type === 'reception' ? 'Reception' : 'Service';
+        const dt = new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        const time = e.time ? ' at ' + e.time : '';
+        const loc = e.location_name ? ' at ' + e.location_name : '';
+        const addr = e.location_address ? '<br><span style="color:#a09890;font-size:12px;">' + e.location_address + '</span>' : '';
+        serviceRows += '<tr><td style="padding:6px 0;color:#6a6560;font-size:14px;border-bottom:1px solid #f0ece5;"><strong style="color:#1a1916;">' + label + '</strong><br>' + dt + time + loc + addr + '</td></tr>';
+      });
     }
 
-    const emailBody = actionType === 'trigger' ? buildTriggerEmail(toName, deceasedName, coordinatorName) : buildAssignmentEmail(toName, taskTitle, deceasedName, coordinatorName);
+    const serviceBlock = serviceRows ? '<table style="width:100%;border-collapse:collapse;margin:20px 0;background:#f0f5f1;border-radius:12px;padding:4px 16px;"><tbody>' + serviceRows + '</tbody></table>' : '';
 
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Passage <notifications@thepassageapp.io>',
-        to: [to],
-        subject: subject || `You've been asked to help — ${deceasedName || 'estate coordination'}`,
-        html: emailBody,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Resend error:', data);
-      return res.status(500).json({ error: data });
+    let html;
+    if (actionType === 'trigger') {
+      html = triggerEmail(name, deceased, coordinator, serviceBlock);
+    } else if (actionType === 'invite') {
+      html = inviteEmail(name, deceased, coordinator, req.body.confirmUrl);
+    } else {
+      html = assignmentEmail(name, taskTitle, deceased, coordinator, serviceBlock);
     }
 
-    // Mark workflow_action as sent
-    if (workflowId) {
-      await supabase.from('workflow_actions')
-        .update({ status: 'sent', sent_at: new Date().toISOString() })
-        .eq('workflow_id', workflowId)
-        .eq('action_type', 'email')
-        .eq('recipient_email', to);
+    const emailSubject = subject ||
+      (actionType === 'trigger' ? deceased + "'s estate plan has been activated" :
+       actionType === 'invite' ? 'You have been designated as a confirmation contact' :
+       'You have been asked to help — ' + deceased);
+
+    // Try verified domain first, fall back to onboarding@resend.dev
+    const fromOptions = [
+      'Passage <notifications@thepassageapp.io>',
+      'Passage <onboarding@resend.dev>',
+    ];
+
+    let lastError = null;
+    for (const from of fromOptions) {
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from, to: [to], subject: emailSubject, html }),
+      });
+      const data = await r.json();
+      if (r.ok && data.id) {
+        // Log success
+        await supabase.from('notification_log').insert([{
+          workflow_id: workflowId || null,
+          channel: 'email',
+          recipient_email: to,
+          recipient_name: name,
+          subject: emailSubject,
+          provider: 'resend',
+          provider_id: data.id,
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+        }]).catch(() => {});
+        if (workflowId) {
+          await supabase.from('workflow_actions')
+            .update({ status: 'sent', sent_at: new Date().toISOString(), delivery_status: 'sent', provider_message_id: data.id })
+            .eq('workflow_id', workflowId).eq('action_type', 'email').eq('recipient_email', to)
+            .catch(() => {});
+        }
+        return res.status(200).json({ success: true, id: data.id, from });
+      }
+      lastError = data;
     }
 
-    return res.status(200).json({ success: true, id: data.id });
+    console.error('All from addresses failed:', lastError);
+    return res.status(500).json({ error: lastError });
   } catch (err) {
     console.error('sendEmail error:', err);
     return res.status(500).json({ error: err.message });
   }
 }
 
-function buildAssignmentEmail(toName, taskTitle, deceasedName, coordinatorName) {
-  return `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><style>
-  body { font-family: Georgia, serif; background: #f6f3ee; margin: 0; padding: 40px 20px; }
-  .card { background: white; border-radius: 16px; padding: 40px; max-width: 520px; margin: 0 auto; }
-  .logo { font-size: 22px; color: #1a1916; margin-bottom: 32px; }
-  .dove { font-size: 28px; margin-bottom: 16px; }
-  h1 { font-size: 22px; color: #1a1916; font-weight: 400; margin: 0 0 16px; line-height: 1.3; }
-  p { color: #6a6560; font-size: 15px; line-height: 1.7; margin: 0 0 16px; }
-  .task-box { background: #f0f5f1; border: 1px solid #c8deca; border-radius: 12px; padding: 16px 20px; margin: 24px 0; }
-  .task-label { font-size: 10px; color: #6b8f71; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
-  .task-title { font-size: 15px; color: #1a1916; font-weight: 600; }
-  .footer { font-size: 12px; color: #a09890; margin-top: 32px; border-top: 1px solid #e4ddd4; padding-top: 20px; }
-  a { color: #6b8f71; }
-</style></head>
-<body>
-  <div class="card">
-    <div class="logo">🕊️ Passage</div>
-    <div class="dove"></div>
-    <h1>You've been asked to help${deceasedName ? ` with ${deceasedName}'s estate` : ''}.</h1>
-    <p>${coordinatorName || 'A family member'} is coordinating an estate plan through Passage and has assigned you a task.</p>
-
-    <div class="task-box">
-      <div class="task-label">Your assigned task</div>
-      <div class="task-title">${taskTitle || 'Estate coordination task'}</div>
-    </div>
-
-    <p>You'll receive more details, including any deadlines and instructions, when the full plan is activated. You don't need to do anything right now.</p>
-    <p>If you have questions, reach out to ${coordinatorName || 'the person coordinating'} directly.</p>
-
-    <div class="footer">
-      This message was sent by Passage on behalf of ${coordinatorName || 'a family member'}. 
-      Passage helps families coordinate everything before, during, and after a death.<br><br>
-      <a href="https://thepassageapp.io">thepassageapp.io</a>
-    </div>
-  </div>
-</body>
-</html>`;
+function wrap(body) {
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{font-family:Georgia,serif;background:#f6f3ee;margin:0;padding:32px 16px}.card{background:#fff;border-radius:16px;padding:36px 32px;max-width:520px;margin:0 auto;box-shadow:0 2px 16px rgba(0,0,0,0.06)}.logo{font-size:11px;color:#a09890;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:24px}.h1{font-size:22px;color:#1a1916;font-weight:400;line-height:1.35;margin:0 0 14px}.p{color:#6a6560;font-size:14px;line-height:1.75;margin:0 0 12px}.tag{display:inline-block;background:#f0f5f1;border:1px solid #c8deca;border-radius:8px;padding:3px 10px;font-size:11px;color:#6b8f71;font-weight:600;letter-spacing:0.05em;margin-bottom:20px}.task{background:#f6f3ee;border-radius:10px;padding:14px 16px;margin:18px 0}.task-label{font-size:10px;font-weight:700;color:#a09890;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:5px}.task-title{font-size:15px;color:#1a1916;font-weight:600}.btn{display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;padding:13px 26px;border-radius:11px;font-size:15px;font-family:Georgia,serif;font-weight:700;margin:20px 0}.footer{font-size:11px;color:#a09890;margin-top:28px;padding-top:20px;border-top:1px solid #f0ece5;line-height:1.6}</style></head><body><div class="card"><div class="logo">Passage</div>' + body + '<div class="footer">Passage helps families coordinate everything before, during, and after a death.<br><a href="https://thepassageapp.io" style="color:#6b8f71;">thepassageapp.io</a></div></div></body></html>';
 }
 
-function buildTriggerEmail(toName, deceasedName, coordinatorName) {
-  return `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><style>
-  body { font-family: Georgia, serif; background: #f6f3ee; margin: 0; padding: 40px 20px; }
-  .card { background: white; border-radius: 16px; padding: 40px; max-width: 520px; margin: 0 auto; }
-  .logo { font-size: 22px; color: #1a1916; margin-bottom: 32px; }
-  h1 { font-size: 22px; color: #1a1916; font-weight: 400; margin: 0 0 16px; line-height: 1.3; }
-  p { color: #6a6560; font-size: 15px; line-height: 1.7; margin: 0 0 16px; }
-  .cta { display: inline-block; background: #6b8f71; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-size: 15px; font-weight: 700; margin: 16px 0; }
-  .footer { font-size: 12px; color: #a09890; margin-top: 32px; border-top: 1px solid #e4ddd4; padding-top: 20px; }
-  a { color: #6b8f71; }
-</style></head>
-<body>
-  <div class="card">
-    <div class="logo">🕊️ Passage</div>
-    <h1>${deceasedName ? `${deceasedName}'s` : 'The'} estate plan has been activated.</h1>
-    <p>We're so sorry for your loss.</p>
-    <p>${toName ? `${toName}, you` : 'You'} have been designated to help coordinate the estate of ${deceasedName || 'your loved one'}. Your full task list is ready.</p>
-    <p>Passage has organized everything that needs to happen — from the next 24 hours through the next 60 days. Nothing will be missed.</p>
-    
-    <a href="https://thepassageapp.io" class="cta">View your task list →</a>
+function assignmentEmail(name, task, deceased, coordinator, serviceBlock) {
+  return wrap(
+    '<div class="tag">Task assignment</div>' +
+    '<div class="h1">You have been asked to help.</div>' +
+    '<p class="p">' + coordinator + ' is coordinating the estate of ' + deceased + ' and has designated you for the following task:</p>' +
+    '<div class="task"><div class="task-label">Your task</div><div class="task-title">' + (task || 'Estate coordination') + '</div></div>' +
+    serviceBlock +
+    '<p class="p">You will receive full details when the plan activates. Nothing is required from you right now.</p>' +
+    '<p class="p">Questions? Reach out to ' + coordinator + ' directly.</p>'
+  );
+}
 
-    <p style="margin-top: 24px;">If you have questions, reach out to ${coordinatorName || 'the family coordinator'} directly.</p>
-    
-    <div class="footer">
-      This message was sent by Passage. Two family members confirmed this event before this message was sent.<br><br>
-      <a href="https://thepassageapp.io">thepassageapp.io</a> · <a href="https://thepassageapp.io">Manage notifications</a>
-    </div>
-  </div>
-</body>
-</html>`;
+function triggerEmail(name, deceased, coordinator, serviceBlock) {
+  return wrap(
+    '<div class="tag">Plan activated</div>' +
+    '<div class="h1">' + deceased + "'s estate plan has been activated.</div>" +
+    '<p class="p">We are so sorry for your loss.</p>' +
+    '<p class="p">' + name + ', you have been designated to help coordinate the estate of ' + deceased + '. Your full task list is ready.</p>' +
+    serviceBlock +
+    '<a href="https://thepassageapp.io" class="btn">View your task list</a>' +
+    '<p class="p" style="margin-top:16px;">Questions? Reach out to ' + coordinator + ' directly.</p>'
+  );
+}
+
+function inviteEmail(name, deceased, coordinator, confirmUrl) {
+  return wrap(
+    '<div class="tag">Confirmation request</div>' +
+    '<div class="h1">You have been designated as a confirmation contact.</div>' +
+    '<p class="p">' + coordinator + ' has set up an advance estate plan through Passage for ' + deceased + '.</p>' +
+    '<p class="p">When the time comes, you will receive a secure link to confirm. Once two people confirm, the plan activates and all assigned contacts are notified automatically.</p>' +
+    (confirmUrl ? '<a href="' + confirmUrl + '" class="btn">View confirmation page</a>' : '') +
+    '<p class="p" style="color:#a09890;font-size:12px;margin-top:16px;">You do not need to do anything right now.</p>'
+  );
 }
