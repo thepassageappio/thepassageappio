@@ -194,7 +194,7 @@ const insertCustomTask = async (workflowId, userId, title, tier) => {
 const savePerson = async (userId, person) => {
   const nameParts = (person.name || '').trim().split(' ');
   const { data, error } = await supabase.from('people').insert([{
-    owner_id: userId || '00000000-0000-0000-0000-000000000000',
+    owner_id: userId || null,
     first_name: nameParts[0] || person.name,
     last_name: nameParts.slice(1).join(' ') || '',
     email: person.email || null,
@@ -207,7 +207,7 @@ const savePerson = async (userId, person) => {
     // If conflict (same person already exists), fetch them instead
     if (error.code === '23505') {
       const { data: existing } = await supabase.from('people')
-        .select().eq('owner_id', userId || '00000000-0000-0000-0000-000000000000')
+        .select().eq('owner_id', userId || null)
         .eq('first_name', nameParts[0] || person.name).maybeSingle();
       return existing;
     }
@@ -437,6 +437,21 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose }) {
       await saveWorkflowAction(workflowId, saved, task.title, 'email');
       if (personData.phone) {
         await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
+      }
+      // Fire immediate assignment notification if contact info provided
+      if (personData.email) {
+        fetch('/api/sendEmail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: personData.email, toName: personData.name, taskTitle: task.title, workflowId, actionType: 'assignment' }),
+        }).catch(e => console.warn('Email send failed:', e));
+      }
+      if (personData.phone) {
+        fetch('/api/sendSMS', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: personData.phone, toName: personData.name, taskTitle: task.title, workflowId, actionType: 'assignment' }),
+        }).catch(e => console.warn('SMS send failed:', e));
       }
     }
 
