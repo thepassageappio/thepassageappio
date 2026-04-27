@@ -44,7 +44,8 @@ const POST_DEATH_TASKS = [
     tasks: [
       { id: "t2_01", title: "Order death certificates — minimum 15 copies", desc: "Banks, insurance, government, employers each require originals. ~$10–25 each.", category: "legal" },
       { id: "t2_02", title: "Notify close friends and extended family", desc: "Use a phone tree or designate someone to help spread the word.", category: "notifications" },
-      { id: "t2_social", title: "Share the news on social media", desc: "Post an announcement on Facebook, Instagram, LinkedIn, and X so the wider community knows. Passage pre-writes the announcement for you.", category: "notifications", isSocial: true },
+      { id: "t2_social", title: "Share the news on social media", desc: "Post an announcement on Facebook, Instagram, LinkedIn, and X. Passage pre-writes it for you.", category: "notifications", isSocial: true },
+      { id: "t2_obituary", title: "Draft the obituary", desc: "Passage guides you through writing the obituary. Takes 5 minutes.", category: "notifications", isObituary: true },
       { id: "t2_03", title: "Meet with funeral director to finalize arrangements", desc: "Confirm burial vs cremation, service type, casket or urn, date/time.", category: "service" },
       { id: "t2_04", title: "Draft and submit the obituary", desc: "Contact local newspapers. Most require 24–48 hour lead time.", category: "memorial" },
       { id: "t2_05", title: "Notify the deceased's employer", desc: "Contact HR for final paycheck, benefits continuation, employer life insurance.", category: "notifications" },
@@ -184,6 +185,7 @@ const saveAllTasks = async (workflowId, userId) => {
         user_id: userId || null,
         title: t.title,
         isSocial: t.isSocial || false,
+        isObituary: t.isObituary || false,
         description: t.desc,
         category: t.category,
         priority: tier.tier === 1 ? 'urgent' : tier.tier === 2 ? 'high' : 'normal',
@@ -1024,6 +1026,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
 function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, onDashboard, onSignOut }) {
   const [showRoleTemplates, setShowRoleTemplates] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
+  const [showObituary, setShowObituary] = useState(false);
   const [eventCount, setEventCount] = useState(0);
   const [toast, setToast] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -1211,6 +1214,10 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
                             <button onClick={() => { var p = new URLSearchParams({wid: workflowId||"", dn: deceasedName||"", cn: coordinatorName||""}); window.open("/share?" + p.toString(), "_blank"); }} style={{ fontSize: 11, fontWeight: 700, color: "#1877F2", background: "#f0f4ff", border: "1px solid #1877F220", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
                               📣 Share
                             </button>
+                          ) : task.isObituary ? (
+                            <button onClick={() => setShowObituary(true)} style={{ fontSize: 11, fontWeight: 700, color: C.ink, background: C.bgSubtle, border: "none", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                              🕊️ Draft
+                            </button>
                           ) : (
                             <button onClick={() => setAssigningTask(task)} style={{ fontSize: 11, fontWeight: 700, color: task.assignedTo ? C.sage : C.soft, background: task.assignedTo ? C.sageFaint : C.bgSubtle, border: "none", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
                               {task.assignedTo ? "Reassign" : "Assign"}
@@ -1297,6 +1304,13 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
           deceasedName={deceasedName} coordinatorName={coordinatorName}
           onClose={() => setShowRoleTemplates(false)}
           onDone={() => setShowRoleTemplates(false)}
+        />
+      )}
+      {showObituary && (
+        <ObituaryModal
+          workflowId={workflowId} userId={userId}
+          deceasedName={deceasedName}
+          onClose={() => setShowObituary(false)}
         />
       )}
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
@@ -1581,6 +1595,106 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
+// ─── OBITUARY MODAL ──────────────────────────────────────────────────────────
+function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose }) {
+  const [form, setForm] = useState({
+    full_name: deceasedName || '',
+    date_of_death: dateOfDeath || '',
+    date_of_birth: '',
+    city_of_residence: '',
+    occupation: '',
+    survivors: '',
+    preceded_by: '',
+    life_summary: '',
+    memorial_fund: '',
+  });
+  const [draft, setDraft] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const generateDraft = async () => {
+    setGenerating(true);
+    const NL = String.fromCharCode(10);
+    const d = form;
+    const lines = [];
+    lines.push((d.full_name || 'Our loved one') + ' passed away' + (d.date_of_death ? ' on ' + new Date(d.date_of_death + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '') + '.');
+    if (d.city_of_residence) lines.push((d.full_name || 'They') + ' lived in ' + d.city_of_residence + '.');
+    if (d.occupation) lines.push((d.full_name || 'They') + ' was known for their work as ' + d.occupation + '.');
+    if (d.life_summary) lines.push(d.life_summary);
+    if (d.survivors) lines.push((d.full_name || 'They') + ' is survived by ' + d.survivors + '.');
+    if (d.preceded_by) lines.push((d.full_name || 'They') + ' was preceded in death by ' + d.preceded_by + '.');
+    if (d.memorial_fund) lines.push('In lieu of flowers, the family requests donations to ' + d.memorial_fund + '.');
+    setDraft(lines.join(NL + NL));
+    setGenerating(false);
+  };
+
+  const saveDraft = async () => {
+    setSaving(true);
+    await supabase.from('obituaries').upsert([{
+      workflow_id: workflowId || null,
+      user_id: userId || null,
+      ...form,
+      draft,
+      updated_at: new Date().toISOString(),
+    }], { onConflict: 'workflow_id' });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const set = (k) => (v) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: '20px 20px 0 0', padding: '24px 20px 48px', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto' }}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: '0 auto 18px' }} />
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 19, color: C.ink, marginBottom: 4 }}>Obituary</div>
+        <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 20, lineHeight: 1.55 }}>Fill in what you know. Passage drafts it for you.</div>
+
+        <Field label="Full name" value={form.full_name} onChange={set('full_name')} placeholder="Robert James Collins" />
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flex: 1 }}><Field label="Date of birth" type="date" value={form.date_of_birth} onChange={set('date_of_birth')} /></div>
+          <div style={{ flex: 1 }}><Field label="Date of passing" type="date" value={form.date_of_death} onChange={set('date_of_death')} /></div>
+        </div>
+        <Field label="City of residence" value={form.city_of_residence} onChange={set('city_of_residence')} placeholder="New York, NY" />
+        <Field label="Occupation / life work" value={form.occupation} onChange={set('occupation')} placeholder="e.g. retired teacher, business owner" />
+        <Field label="Survived by" value={form.survivors} onChange={set('survivors')} placeholder="e.g. his wife Mary, daughters Sarah and Kate" />
+        <Field label="Preceded in death by" value={form.preceded_by} onChange={set('preceded_by')} placeholder="e.g. his parents John and Ruth" />
+        <Field label="Life in your words (optional)" value={form.life_summary} onChange={set('life_summary')} placeholder="A few sentences about who they were..." />
+        <Field label="Memorial fund / charity (optional)" value={form.memorial_fund} onChange={set('memorial_fund')} placeholder="e.g. American Heart Association" />
+
+        <button onClick={generateDraft} disabled={generating || !form.full_name}
+          style={{ width: '100%', padding: '11px', borderRadius: 11, border: 'none', background: C.ink, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14 }}>
+          {generating ? 'Writing...' : 'Generate obituary draft'}
+        </button>
+
+        {draft && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Your draft — edit as needed</div>
+            <textarea value={draft} onChange={e => setDraft(e.target.value)}
+              style={{ width: '100%', height: 200, padding: '12px', borderRadius: 11, border: '1.5px solid ' + C.border, fontFamily: 'Georgia, serif', fontSize: 13, color: C.ink, lineHeight: 1.7, resize: 'vertical', boxSizing: 'border-box', background: C.bgSubtle }} />
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button onClick={saveDraft} disabled={saving}
+                style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: saved ? C.sage : C.sage, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save draft'}
+              </button>
+              <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Copied to clipboard'))}
+                style={{ padding: '10px 16px', borderRadius: 10, border: '1.5px solid ' + C.border, background: C.bgCard, fontSize: 13, color: C.mid, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Copy
+              </button>
+            </div>
+          </div>
+        )}
+
+        <button onClick={onClose} style={{ width: '100%', padding: '10px', borderRadius: 11, border: '1.5px solid ' + C.border, background: C.bgCard, fontSize: 13, color: C.mid, cursor: 'pointer', fontFamily: 'inherit' }}>
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PeopleList({ userId }) {
   const [people, setPeople] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -1615,6 +1729,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [archiving, setArchiving] = useState(null);
   const [showWishes, setShowWishes] = useState(false);
   const [showPeople, setShowPeople] = useState(false);
+  const [showObituary, setShowObituary] = useState(false);
   const [wishesData, setWishesData] = useState({});
   const [wishesToast, setWishesToast] = useState("");
 
@@ -1843,11 +1958,11 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
               <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 14 }}>Your planning file</div>
               {[
-                { label: "Wishes", complete: profile?.wishes_complete, icon: "📝", desc: profile?.disposition || "Not started" },
-                { label: "Accounts", complete: profile?.accounts_complete, icon: "🗂️", desc: "Map your financial accounts" },
-                { label: "People", complete: profile?.people_complete, icon: "👥", desc: profile?.attorney_name ? `Executor: ${profile.attorney_name}` : "Designate your people" },
-                { label: "Documents", complete: profile?.documents_complete, icon: "📄", desc: "Upload important documents" },
-                { label: "Memories", complete: profile?.vault_complete, icon: "🎙️", desc: "Record voice notes and letters" },
+                { label: "Wishes", complete: profile?.wishes_complete, icon: "📝", desc: "Service preferences, burial, religious wishes", action: "wishes" },
+                { label: "Obituary", complete: false, icon: "🕊️", desc: "Draft an obituary — Passage writes it for you", action: "obituary" },
+                { label: "People", complete: profile?.people_complete, icon: "👥", desc: "Designate executor, attorney, contacts", action: "people" },
+                { label: "Documents", complete: profile?.documents_complete, icon: "📄", desc: "Upload will, insurance, advance directive", action: null },
+                { label: "Memories", complete: profile?.vault_complete, icon: "🎙️", desc: "Voice notes and letters, delivered later", action: null },
               ].map((s, i, arr) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none" }}>
                   <div style={{ width: 34, height: 34, borderRadius: "50%", background: s.complete ? C.sageFaint : C.bgSubtle, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1859,6 +1974,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                   </div>
                   <button onClick={() => {
                     if (s.label === "Wishes") setShowWishes(true);
+                    else if (s.label === "Obituary") setShowObituary(true);
                     else if (s.label === "People") setShowPeople(true);
                     else onStartPlan();
                   }} style={{ fontSize: 11, color: C.sage, fontWeight: 700, background: C.sageFaint, border: "none", borderRadius: 7, padding: "4px 11px", cursor: "pointer", fontFamily: "inherit" }}>
@@ -1899,6 +2015,16 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
       </div>
       {wishesToast ? (
         <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: C.sage, color: "#fff", borderRadius: 12, padding: "11px 20px", fontSize: 13, fontWeight: 600, zIndex: 999 }}>{wishesToast}</div>
+      ) : null}
+
+      {showObituary ? (
+        <ObituaryModal
+          workflowId={redWorkflows.length > 0 ? redWorkflows[0].id : null}
+          userId={user && user.id}
+          deceasedName={redWorkflows.length > 0 ? redWorkflows[0].deceased_name : null}
+          dateOfDeath={redWorkflows.length > 0 ? redWorkflows[0].date_of_death : null}
+          onClose={() => setShowObituary(false)}
+        />
       ) : null}
 
       {showWishes ? (
