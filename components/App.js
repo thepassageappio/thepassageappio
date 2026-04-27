@@ -894,23 +894,18 @@ function SocialModal({ workflowId, deceasedName, coordinatorName, obituaryUrl, o
 
   function handleRegenerateFromMaster() {
     if (!master.trim()) return;
+    var NL2 = String.fromCharCode(10);
     var defaults = buildDefaultTexts(deceasedName, coordinatorName, events);
     var shortened = master.length > 260 ? master.slice(0, 240) + "..." : master;
+    var serviceAppend = defaults.facebook.includes("Service") ? NL2 + NL2 + defaults.facebook.split(NL2 + NL2).slice(1).join(NL2 + NL2) : "";
     setTexts({
-      facebook: master + (defaults.facebook.includes("Service") ? "
-
-" + defaults.facebook.split("
-
-").slice(1).join("
-
-") : ""),
+      facebook: master + serviceAppend,
       linkedin: master,
       twitter: shortened,
-      instagram: master.slice(0, 200) + (master.length > 200 ? "..." : "") + "
-
-#InMemory #ForeverLoved",
+      instagram: master.slice(0, 200) + (master.length > 200 ? "..." : "") + NL2 + NL2 + "#InMemory #ForeverLoved",
       sms: master.slice(0, 280),
     });
+  });
   }
 
   function handleSave() {
