@@ -35,12 +35,16 @@ export default async function handler(req, res) {
       }
     }
 
+    // Keep under 122 chars — Twilio trial prepends 38 chars
     let message;
     if (actionType === 'trigger') {
-      message = 'Passage: ' + deceased + "'s estate plan has been activated." + serviceDetail + ' Your task list is ready. thepassageapp.io';
+      message = 'Passage: ' + deceased + ' estate plan activated.' + serviceDetail + ' thepassageapp.io';
     } else {
-      message = 'Passage: ' + coordinator + ' has asked you to help with "' + (taskTitle || 'an estate task') + '" for ' + deceased + '. You will receive full details when the plan activates. thepassageapp.io';
+      var shortTask = (taskTitle || 'a task').slice(0, 40);
+      message = 'Passage: ' + (toName || 'You') + ' assigned to "' + shortTask + '" thepassageapp.io';
     }
+    // Hard cap at 155 chars to be safe
+    if (message.length > 155) message = message.slice(0, 152) + '...';
 
     const credentials = Buffer.from(TWILIO_SID + ':' + TWILIO_TOKEN).toString('base64');
     const response = await fetch(
