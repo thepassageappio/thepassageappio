@@ -1839,8 +1839,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                     <button onClick={onStartPlan} style={{ flex: 1, padding: "10px", background: C.sage, border: "none", borderRadius: 11, fontSize: 12.5, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
                       🗓️ Plan ahead →
                     </button>
-                    <button onClick={onEmergency} style={{ flex: 1, padding: "10px", background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 11, fontSize: 12.5, fontWeight: 700, color: C.rose, cursor: "pointer", fontFamily: "inherit" }}>
-                      🚨 Emergency plan
+                    <button onClick={() => window.location.href = '/urgent'} style={{ flex: 1, padding: "10px", background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 11, fontSize: 12.5, fontWeight: 700, color: C.rose, cursor: "pointer", fontFamily: "inherit" }}>
+                      🚨 Someone just passed
                     </button>
                   </div>
                   <button onClick={() => handleCheckout('annual', user && user.id, user && user.email)}
@@ -1991,7 +1991,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             <div style={{ background: C.roseFaint, borderRadius: 18, padding: "18px", border: `1px solid ${C.rose}22`, marginBottom: 12 }}>
               <div style={{ fontFamily: "Georgia, serif", fontSize: 15.5, color: C.ink, marginBottom: 5 }}>Someone in your family passed away?</div>
               <Sub>Start an emergency estate plan. We'll build a full task list and help coordinate everything.</Sub>
-              <button onClick={onEmergency} style={{ marginTop: 12, padding: "10px 18px", background: C.rose, border: "none", borderRadius: 11, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
+              <button onClick={() => window.location.href = '/urgent'} style={{ marginTop: 12, padding: "10px 18px", background: C.rose, border: "none", borderRadius: 11, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
                 Start emergency plan →
               </button>
             </div>
@@ -2139,8 +2139,8 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </p>
         <p style={{ fontSize: 13.5, color: C.soft, marginBottom: 32, fontStyle: "italic" }}>Set it up while there's time. Let it take over when there isn't.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 18 }}>
-          <Btn onClick={onPlan} style={{ padding: "16px 32px", fontSize: 15.5 }}>Start planning now →</Btn>
-          <Btn variant="rose" onClick={onEmergency} style={{ padding: "16px 24px", fontSize: 14.5 }}>Someone just passed ↗</Btn>
+          <Btn variant="rose" onClick={() => window.location.href = '/urgent'} style={{ padding: "16px 32px", fontSize: 15.5 }}>Someone just passed →</Btn>
+          <Btn variant="ghost" onClick={onPlan} style={{ padding: "16px 24px", fontSize: 14.5, border: "1.5px solid " + C.border }}>Start planning ahead</Btn>
         </div>
         <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}>
           {["Free to start","No credit card required","Your data, always yours"].map(t => (
@@ -2216,7 +2216,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <div style={{ fontSize: 12.5, color: C.gold, fontWeight: 700, margin: "8px 0 28px" }}>Less than the cost of a single hour with an estate attorney.</div>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 12 }}>
           <Btn onClick={onPlan} style={{ padding: "16px 32px", fontSize: 15.5 }}>Start planning — it's free →</Btn>
-          <Btn variant="rose" onClick={onEmergency} style={{ padding: "16px 22px", fontSize: 14 }}>Someone just passed</Btn>
+          <Btn variant="rose" onClick={() => window.location.href = '/urgent'} style={{ padding: "16px 22px", fontSize: 14 }}>Someone just passed</Btn>
         </div>
         <div style={{ fontSize: 11.5, color: C.muted }}>No credit card required to start</div>
       </div>
