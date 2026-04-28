@@ -89,8 +89,8 @@ function Shell({ step, total, onBack, children }) {
                 return <div key={i} style={{ width: i < step ? 18 : 8, height: 4, borderRadius: 2, background: i < step ? SAGE : BORDER, transition: 'all 0.3s' }} />;
               })}
             </div>
-            {onBack && step > 1 && (
-              <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 12, color: SOFT, cursor: 'pointer', fontFamily: 'inherit' }}>Back</button>
+            {onBack && (
+              <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 12, color: SOFT, cursor: 'pointer', fontFamily: 'inherit' }}>← Back</button>
             )}
           </div>
         )}
@@ -226,7 +226,9 @@ export default function UrgentPage() {
       <div style={{ fontSize: 14, color: SOFT, marginBottom: 28, lineHeight: 1.6 }}>You don't need the full legal name yet.</div>
       <Field label="First name" placeholder="e.g. Robert" value={data.firstName || ''} onChange={function(v) { set('firstName', v); }} />
       <Field label="Last name (optional)" placeholder="" value={data.lastName || ''} onChange={function(v) { set('lastName', v); }} />
-      <Field label="Date of passing (optional)" type="date" value={data.dateOfDeath || ''} onChange={function(v) { set('dateOfDeath', v); }} />
+      {data.situation !== 'expected_soon' && (
+        <Field label="Date of passing (optional)" type="date" value={data.dateOfDeath || ''} onChange={function(v) { set('dateOfDeath', v); }} />
+      )}
       <div style={{ height: 8 }} />
       <Btn onClick={function() { setStep(2); }} disabled={!data.firstName}>Continue</Btn>
       <Btn variant="ghost" onClick={function() { set('firstName', 'My loved one'); setStep(2); }}>I'd rather not say yet</Btn>
@@ -310,36 +312,48 @@ export default function UrgentPage() {
   // Screen 6 — First 24-hour plan
   if (step === 6) return (
     <Shell step={6} total={6}>
-      <div style={{ marginBottom: 28 }}>
+      <div style={{ marginBottom: 24 }}>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: 24, color: INK, marginBottom: 8 }}>Here's what matters first.</div>
         <div style={{ fontSize: 14, color: SOFT, lineHeight: 1.7 }}>Based on what you told us, focus on these next steps. Everything else can wait.</div>
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        {firstSteps.map(function(task, i) {
-          return (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 13, padding: '13px 0', borderBottom: i < firstSteps.length - 1 ? '1px solid ' + BORDER : 'none' }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2px solid ' + BORDER, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: SOFT, flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
-              <div>
-                <div style={{ fontSize: 14, color: INK, fontWeight: 600, lineHeight: 1.4 }}>{task.title}</div>
-                {task.timeframe === 'now' && <div style={{ fontSize: 11, color: ROSE, fontWeight: 700, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Right now</div>}
-                {task.timeframe === '24_hours' && <div style={{ fontSize: 11, color: MID, fontWeight: 600, marginTop: 3 }}>Within 24 hours</div>}
+      {firstSteps.length > 0 ? (
+        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '4px 16px', marginBottom: 20 }}>
+          {firstSteps.map(function(task, i) {
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 13, padding: '14px 0', borderBottom: i < firstSteps.length - 1 ? '1px solid ' + BORDER : 'none' }}>
+                <div style={{ width: 26, height: 26, borderRadius: '50%', background: task.timeframe === 'now' ? ROSE_FAINT : SUBTLE, border: '1.5px solid ' + (task.timeframe === 'now' ? ROSE : BORDER), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: task.timeframe === 'now' ? ROSE : SOFT, flexShrink: 0, marginTop: 1, fontWeight: 700 }}>{i + 1}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, color: INK, fontWeight: 600, lineHeight: 1.45 }}>{task.title}</div>
+                  {task.timeframe === 'now' && <div style={{ fontSize: 11, color: ROSE, fontWeight: 700, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Right now</div>}
+                  {task.timeframe === '24_hours' && <div style={{ fontSize: 11, color: MID, fontWeight: 500, marginTop: 3 }}>Within 24 hours</div>}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ background: SUBTLE, borderRadius: 12, padding: '16px', marginBottom: 20, fontSize: 14, color: MID }}>
+          Your plan is being saved. Check back shortly for your task list.
+        </div>
+      )}
 
-      <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '16px', marginBottom: 16 }}>
+      <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '16px', marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: SAGE, marginBottom: 6 }}>Want help coordinating this with family?</div>
         <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 12 }}>Passage can help assign tasks, prepare messages, and keep everyone aligned. You stay in control of what gets sent and when.</div>
-        <button onClick={function() { window.location.href = estateId ? '/estate?id=' + estateId + '&setup=true' : '/'; }}
+        <button onClick={function() {
+          if (user) {
+            window.location.href = '/';
+          } else {
+            window.location.href = '/?signup=true&estate=' + (estateId || '');
+          }
+        }}
           style={{ width: '100%', padding: '12px', borderRadius: 11, border: 'none', background: SAGE, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'Georgia, serif' }}>
           Set up family coordination →
         </button>
       </div>
 
-      <button onClick={function() { window.location.href = estateId ? '/estate?id=' + estateId : '/'; }}
+      <button onClick={function() { window.location.href = '/'; }}
         style={{ width: '100%', padding: '12px', borderRadius: 11, border: '1.5px solid ' + BORDER, background: CARD, color: MID, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
         I'll coordinate later — just save this
       </button>

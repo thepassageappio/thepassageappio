@@ -1676,8 +1676,8 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose 
               style={{ width: '100%', height: 200, padding: '12px', borderRadius: 11, border: '1.5px solid ' + C.border, fontFamily: 'Georgia, serif', fontSize: 13, color: C.ink, lineHeight: 1.7, resize: 'vertical', boxSizing: 'border-box', background: C.bgSubtle }} />
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <button onClick={saveDraft} disabled={saving}
-                style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: saved ? C.sage : C.sage, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save draft'}
+                style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: saved ? C.sageFaint : C.sage, color: saved ? C.sage : '#fff', border: saved ? "1px solid " + C.sageLight : "none", fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}>
+                {saving ? 'Saving...' : saved ? '✓ Saved to your planning file' : 'Save draft'}
               </button>
               <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Copied to clipboard'))}
                 style={{ padding: '10px 16px', borderRadius: 10, border: '1.5px solid ' + C.border, background: C.bgCard, fontSize: 13, color: C.mid, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -1730,6 +1730,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [showWishes, setShowWishes] = useState(false);
   const [showPeople, setShowPeople] = useState(false);
   const [showObituary, setShowObituary] = useState(false);
+  const [showDocumentsInfo, setShowDocumentsInfo] = useState(false);
+  const [showMemoriesInfo, setShowMemoriesInfo] = useState(false);
   const [wishesData, setWishesData] = useState({});
   const [wishesToast, setWishesToast] = useState("");
 
@@ -1976,7 +1978,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                     if (s.label === "Wishes") setShowWishes(true);
                     else if (s.label === "Obituary") setShowObituary(true);
                     else if (s.label === "People") setShowPeople(true);
-                    else onStartPlan();
+                    else if (s.label === "Documents") setShowDocumentsInfo(true);
+                    else if (s.label === "Memories") setShowMemoriesInfo(true);
                   }} style={{ fontSize: 11, color: C.sage, fontWeight: 700, background: C.sageFaint, border: "none", borderRadius: 7, padding: "4px 11px", cursor: "pointer", fontFamily: "inherit" }}>
                     {s.complete ? "Edit" : "Add"} →
                   </button>
@@ -2025,6 +2028,38 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
           dateOfDeath={redWorkflows.length > 0 ? redWorkflows[0].date_of_death : null}
           onClose={() => setShowObituary(false)}
         />
+      ) : null}
+
+      {showDocumentsInfo ? (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setShowDocumentsInfo(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "28px 20px 48px", width: "100%", maxWidth: 560 }}>
+            <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 20px" }} />
+            <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 8 }}>Documents</div>
+            <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.7, marginBottom: 20 }}>
+              Securely store your will, insurance policies, advance directives, and other important documents so your family can find them when needed.
+            </div>
+            <div style={{ background: C.goldFaint, border: "1px solid " + C.gold + "30", borderRadius: 11, padding: "12px 14px", fontSize: 13, color: C.amber, marginBottom: 20, lineHeight: 1.55 }}>
+              📄 Document upload is coming soon. For now, note the location of important documents in the Wishes section.
+            </div>
+            <button onClick={() => setShowDocumentsInfo(false)} style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Got it</button>
+          </div>
+        </div>
+      ) : null}
+
+      {showMemoriesInfo ? (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setShowMemoriesInfo(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "28px 20px 48px", width: "100%", maxWidth: 560 }}>
+            <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 20px" }} />
+            <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 8 }}>Memories</div>
+            <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.7, marginBottom: 20 }}>
+              Record voice notes, write letters to loved ones, and preserve memories to be delivered at the right moment — at a birthday, graduation, or simply when someone needs to hear from you.
+            </div>
+            <div style={{ background: C.goldFaint, border: "1px solid " + C.gold + "30", borderRadius: 11, padding: "12px 14px", fontSize: 13, color: C.amber, marginBottom: 20, lineHeight: 1.55 }}>
+              🎙️ Memories and timed delivery are coming soon. This is one of Passage's most meaningful features.
+            </div>
+            <button onClick={() => setShowMemoriesInfo(false)} style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Got it</button>
+          </div>
+        </div>
       ) : null}
 
       {showWishes ? (
