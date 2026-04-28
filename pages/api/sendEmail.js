@@ -57,46 +57,42 @@ export default async function handler(req, res) {
        actionType === 'invite' ? 'You have been designated as a confirmation contact' :
        'You have been asked to help — ' + deceased);
 
-    // Try verified domain first, fall back to onboarding@resend.dev
-    const fromOptions = [
-      'Passage <notifications@thepassageapp.io>',
-      'Passage <onboarding@resend.dev>',
-    ];
+    // Use onboarding@resend.dev — works without domain verification
+    // Switch to notifications@thepassageapp.io once DNS propagates
+    const from = 'Passage <onboarding@resend.dev>';
 
-    let lastError = null;
-    for (const from of fromOptions) {
-      const r = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from, to: [to], subject: emailSubject, html }),
-      });
-      const data = await r.json();
-      if (r.ok && data.id) {
-        // Log success
-        await supabase.from('notification_log').insert([{
-          workflow_id: workflowId || null,
-          channel: 'email',
-          recipient_email: to,
-          recipient_name: name,
-          subject: emailSubject,
-          provider: 'resend',
-          provider_id: data.id,
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-        }]).catch(() => {});
-        if (workflowId) {
-          await supabase.from('workflow_actions')
-            .update({ status: 'sent', sent_at: new Date().toISOString(), delivery_status: 'sent', provider_message_id: data.id })
-            .eq('workflow_id', workflowId).eq('action_type', 'email').eq('recipient_email', to)
-            .catch(() => {});
-        }
-        return res.status(200).json({ success: true, id: data.id, from });
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from, to: [to], subject: emailSubject, html }),
+    });
+    const data = await r.json();
+
+    console.log('Resend response:', JSON.stringify(data));
+
+    if (r.ok && data.id) {
+      await supabase.from('notification_log').insert([{
+        workflow_id: workflowId || null,
+        channel: 'email',
+        recipient_email: to,
+        recipient_name: name,
+        subject: emailSubject,
+        provider: 'resend',
+        provider_id: data.id,
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+      }]).catch(() => {});
+      if (workflowId) {
+        await supabase.from('workflow_actions')
+          .update({ status: 'sent', sent_at: new Date().toISOString(), delivery_status: 'sent', provider_message_id: data.id })
+          .eq('workflow_id', workflowId).eq('action_type', 'email').eq('recipient_email', to)
+          .catch(() => {});
       }
-      lastError = data;
+      return res.status(200).json({ success: true, id: data.id, from });
     }
 
-    console.error('All from addresses failed:', lastError);
-    return res.status(500).json({ error: lastError });
+    console.error('Resend failed:', JSON.stringify(data));
+    return res.status(500).json({ error: data });
   } catch (err) {
     console.error('sendEmail error:', err);
     return res.status(500).json({ error: err.message });
