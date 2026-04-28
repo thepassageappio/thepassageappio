@@ -35,16 +35,20 @@ export default async function handler(req, res) {
       }
     }
 
-    // Keep under 122 chars — Twilio trial prepends 38 chars
-    let message;
+    // ASCII only — avoid UCS-2 encoding which halves the character limit
+    // Keep under 122 chars — Twilio trial adds 38 char prefix
+    var shortTask = (taskTitle || 'a task').slice(0, 35);
+    var shortName = (toName || 'You').slice(0, 20);
+    var shortDeceased = (deceased || 'estate').slice(0, 20);
+
+    var message;
     if (actionType === 'trigger') {
-      message = 'Passage: ' + deceased + ' estate plan activated.' + serviceDetail + ' thepassageapp.io';
+      message = 'Passage: ' + shortDeceased + ' estate plan is now active. Your tasks are ready at thepassageapp.io';
     } else {
-      var shortTask = (taskTitle || 'a task').slice(0, 40);
-      message = 'Passage: ' + (toName || 'You') + ' assigned to "' + shortTask + '" thepassageapp.io';
+      message = 'Passage: ' + shortName + ' - task assigned: ' + shortTask + '. Details at thepassageapp.io';
     }
-    // Hard cap at 155 chars to be safe
-    if (message.length > 155) message = message.slice(0, 152) + '...';
+    // Hard cap at 120 chars
+    if (message.length > 120) message = message.slice(0, 117) + '...';
 
     const credentials = Buffer.from(TWILIO_SID + ':' + TWILIO_TOKEN).toString('base64');
     const response = await fetch(
