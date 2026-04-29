@@ -2129,165 +2129,211 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
 
 // ─── LANDING ──────────────────────────────────────────────────────────────────
 function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
-  const [visible, setVisible] = useState(false);
-  const [breathe, setBreathe] = useState(false);
+  const [entered, setEntered] = useState(false);
+  useEffect(() => { setTimeout(() => setEntered(true), 80); }, []);
 
-  useEffect(() => {
-    setTimeout(() => setVisible(true), 80);
-    setTimeout(() => setBreathe(true), 500);
-    const t = setInterval(() => setBreathe(b => !b), 3800);
-    return () => clearInterval(t);
-  }, []);
+  const anim = { opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(16px)', transition: 'all 0.7s ease' };
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "system-ui, sans-serif" }}>
-      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
+    <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
 
-      <nav style={{ maxWidth: 1080, margin: "0 auto", padding: "18px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: `radial-gradient(circle at 40% 40%, ${C.sageLight}, ${C.sage}80)`, boxShadow: breathe ? `0 0 22px ${C.sage}50` : `0 0 7px ${C.sage}20`, transition: "box-shadow 3.8s ease-in-out" }} />
-          <span style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink }}>Passage</span>
+      {/* ── NAV ── */}
+      <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: `radial-gradient(circle at 40% 40%, ${C.sageLight}, ${C.sage}80)`, boxShadow: `0 0 7px ${C.sage}20` }} />
+          <span style={{ fontFamily: 'Georgia, serif', fontSize: 21, color: C.ink }}>Passage</span>
         </div>
-        <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
-          <button onClick={() => window.open(TALLY_URL, '_blank')} style={{ background: "none", border: "none", fontSize: 13, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Join beta</button>
+        <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
           {user ? (
-            <>
-              <button onClick={onDashboard} style={{ background: C.sage, border: "none", borderRadius: 9, padding: "8px 17px", fontSize: 13, fontWeight: 700, cursor: "pointer", color: "#fff", fontFamily: "inherit" }}>My file →</button>
-              <button onClick={onSignOut} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 9, padding: "7px 13px", fontSize: 12, cursor: "pointer", color: C.mid, fontFamily: "inherit" }}>Sign out</button>
-            </>
-          ) : (
-            <button onClick={handleSignInWithGoogle} style={{ background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 9, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", color: C.ink, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-              Sign in with Google
+            <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>
+              My estate
             </button>
+          ) : (
+            <>
+              <button style={{ background: 'none', border: 'none', fontSize: 13, color: C.mid, cursor: 'pointer', fontFamily: 'inherit' }}>Join beta</button>
+              <button onClick={onDashboard} style={{ background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: C.ink, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Sign in
+              </button>
+            </>
           )}
         </div>
       </nav>
 
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "50px 24px 32px", textAlign: "center", opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(16px)", transition: "all 0.7s ease" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 18, padding: "5px 14px", fontSize: 11.5, color: C.sage, fontWeight: 700, marginBottom: 26 }}>🕊️ The family operating system for the end of life</div>
-        <h1 style={{ fontFamily: "Georgia, serif", fontSize: "clamp(30px, 5.5vw, 55px)", lineHeight: 1.13, color: C.ink, marginBottom: 20, fontWeight: 400 }}>
-          Your family shouldn't have to{" "}<em style={{ color: C.sage }}>figure it out</em><br />while they're grieving.
+      {/* ── HERO ── */}
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '52px 24px 20px', textAlign: 'center', ...anim }}>
+        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 5vw, 52px)', lineHeight: 1.15, color: C.ink, marginBottom: 20, fontWeight: 400 }}>
+          When someone dies, your family needs{' '}
+          <em style={{ color: C.sage }}>a clear next step.</em>
         </h1>
-        <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.mid, lineHeight: 1.8, maxWidth: 540, margin: "0 auto 12px" }}>
-          Passage lets you capture everything your family would otherwise have to guess — your wishes, your accounts, your people — so when the time comes, your plan executes itself.
+        <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: C.mid, lineHeight: 1.8, maxWidth: 520, margin: '0 auto 12px' }}>
+          Passage helps families know what matters first, who owns each task, and what is already handled — without forcing anyone to figure it out while they're grieving.
         </p>
-        <p style={{ fontSize: 13.5, color: C.soft, marginBottom: 32, fontStyle: "italic" }}>Set it up while there's time. Let it take over when there isn't.</p>
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 18 }}>
-          <Btn variant="rose" onClick={() => window.location.href = '/urgent'} style={{ padding: "16px 32px", fontSize: 15.5 }}>Someone just passed →</Btn>
-          <Btn variant="ghost" onClick={onPlan} style={{ padding: "16px 24px", fontSize: 14.5, border: "1.5px solid " + C.border }}>Start planning ahead</Btn>
-        </div>
-        <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}>
-          {["Free to start","No credit card required","Your data, always yours"].map(t => (
-            <div key={t} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: C.soft }}>
-              <span style={{ color: C.sage, fontWeight: 700 }}>✓</span>{t}
-            </div>
-          ))}
-        </div>
-      </div>
+        <p style={{ fontSize: 13, color: C.soft, marginBottom: 36, lineHeight: 1.6 }}>
+          Nothing is sent or shared without your family's approval.
+        </p>
 
-      <div style={{ height: 90, maxWidth: 560, margin: "0 auto 44px", background: `radial-gradient(ellipse at 50% 100%, ${C.sageLight}50, transparent 70%)`, borderRadius: "50% 50% 0 0 / 100% 100% 0 0" }} />
-
-      <div style={{ maxWidth: 940, margin: "0 auto", padding: "16px 24px 56px" }}>
-        <div style={{ textAlign: "center", marginBottom: 38 }}>
-          <Heading size={30}>How it works</Heading>
-          <Sub>Set it up while there's time. Let it take over when there isn't.</Sub>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 18 }}>
-          {[
-            { n: "01", icon: "📝", title: "Capture everything that matters", body: "Your wishes, accounts, documents, and the people responsible for each decision." },
-            { n: "02", icon: "👨‍👩‍👧‍👦", title: "Assign the right people ahead of time", body: "Everyone knows their role. Tasks pre-assigned. Letters pre-written. Responsibility clear." },
-            { n: "03", icon: "⚡", title: "One confirmation activates everything", body: "Your attorney gets documents. The funeral home is contacted. Everything happens — so your family doesn't have to." },
-          ].map(item => (
-            <div key={item.n} style={{ background: C.bgCard, borderRadius: 18, padding: "24px", border: `1px solid ${C.border}` }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 13 }}>
-                <span style={{ fontSize: 24 }}>{item.icon}</span>
-                <span style={{ fontSize: 9.5, color: C.sage, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" }}>{item.n}</span>
-              </div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 9, lineHeight: 1.3 }}>{item.title}</div>
-              <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.7 }}>{item.body}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ background: C.bgSage, padding: "50px 24px" }}>
-        <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
-          <Heading size={26}>When the trigger fires, your plan comes to life</Heading>
-          <Sub>You're not just notifying people. You're orchestrating the most important moment your family will ever face.</Sub>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, maxWidth: 440, margin: "28px auto 20px" }}>
-            {[["👨‍👩‍👧‍👦","Family"],["⚖️","Attorney"],["🏛️","Funeral home"],["🌸","Florist"],["🍽️","Caterer"],["⛪","Cemetery"],["📰","Obituaries"],["📱","Socials"]].map(([icon,label]) => (
-              <div key={label} style={{ background: C.bgCard, borderRadius: 11, padding: "12px 6px", textAlign: "center", border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 19, marginBottom: 4 }}>{icon}</div>
-                <div style={{ fontSize: 10, color: C.mid, fontWeight: 600 }}>{label}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.6 }}>Social posts are family-approved before going live.<br />Two people must confirm before anything triggers.</div>
-        </div>
-      </div>
-
-      <div style={{ background: C.bgDark, padding: "50px 24px" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ fontSize: 10.5, letterSpacing: "0.2em", textTransform: "uppercase", color: C.soft, fontWeight: 600, textAlign: "center", marginBottom: 32 }}>What families say</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 14 }}>
-            {[
-              { q: "I had no idea I needed to notify the DMV, the passport office, AND three credit bureaus. Nobody tells you this.", a: "Adult daughter, 54" },
-              { q: "Two months after losing my mom I realized I'd missed the Social Security survivor benefit window. That was thousands of dollars.", a: "Son, 31" },
-              { q: "We sat with the funeral director for two hours and left more confused than when we walked in. I wish we'd had this.", a: "Family navigating Medicaid pre-planning" },
-            ].map((v,i) => (
-              <div key={i} style={{ background: "#252520", borderRadius: 14, padding: "22px", border: "1px solid #333" }}>
-                <div style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: 14, color: "#e8e4dc", lineHeight: 1.75, marginBottom: 12 }}>"{v.q}"</div>
-                <div style={{ fontSize: 11, color: C.soft }}>— {v.a}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ maxWidth: 520, margin: "0 auto", padding: "56px 24px", textAlign: "center" }}>
-        <Heading size={28}>Start your family's plan today</Heading>
-        <Sub>Free to set up. Activate when you're ready.</Sub>
-        <div style={{ fontSize: 12.5, color: C.gold, fontWeight: 700, margin: "8px 0 28px" }}>Less than the cost of a single hour with an estate attorney.</div>
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 12 }}>
-          <Btn onClick={onPlan} style={{ padding: "16px 32px", fontSize: 15.5 }}>Start planning — it's free →</Btn>
-          <Btn variant="rose" onClick={() => window.location.href = '/urgent'} style={{ padding: "16px 22px", fontSize: 14 }}>Someone just passed</Btn>
-        </div>
-        <div style={{ fontSize: 11.5, color: C.muted }}>No credit card required to start</div>
-      </div>
-    </div>
-  );
-}
-
-// ─── SUCCESS ──────────────────────────────────────────────────────────────────
-function Success({ mode, onDashboard }) {
-  const isDraft = mode === "draft";
-  return (
-    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "36px 16px" }}>
-      <div style={{ maxWidth: 460, width: "100%" }}>
-        <div style={{ background: C.bgCard, borderRadius: 22, padding: "44px 32px", textAlign: "center", boxShadow: "0 2px 36px rgba(0,0,0,0.07)" }}>
-          <div style={{ width: 68, height: 68, borderRadius: "50%", background: isDraft ? C.goldFaint : C.sageFaint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, margin: "0 auto 22px" }}>
-            {isDraft ? "📄" : "🕊️"}
-          </div>
-          <Heading size={24}>{isDraft ? "Your draft is saved." : "Your file is activated."}</Heading>
-          <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.8, margin: "10px 0 22px" }}>
-            {isDraft ? "Nothing will be triggered until you activate your plan." : "Your family will never have to guess. When the time comes, everything is waiting."}
-          </div>
-          <div style={{ background: isDraft ? C.goldFaint : C.sageFaint, borderRadius: 11, padding: "11px 15px", fontSize: 13, color: isDraft ? C.amber : C.sage, fontWeight: 600, marginBottom: onDashboard ? 18 : 0 }}>
-            {isDraft ? "We'll remind you to activate in 7 days." : "Welcome to Passage. 🕊️"}
-          </div>
-          {onDashboard && (
-            <button onClick={onDashboard} style={{ width: "100%", padding: "12px", background: C.sage, border: "none", borderRadius: 11, fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
-              View my file →
+        {/* Split path CTAs */}
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+          <div style={{ textAlign: 'center' }}>
+            <button onClick={() => window.location.href = '/urgent'}
+              style={{ display: 'block', background: C.rose, color: '#fff', border: 'none', borderRadius: 14, padding: '16px 32px', fontSize: 15.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6, minWidth: 220 }}>
+              Someone just passed
             </button>
-          )}
+            <div style={{ fontSize: 12, color: C.soft }}>Get a first 24-hour plan</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <button onClick={onPlan}
+              style={{ display: 'block', background: C.bgCard, color: C.mid, border: `1.5px solid ${C.border}`, borderRadius: 14, padding: '16px 24px', fontSize: 14.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6, minWidth: 180 }}>
+              Plan ahead
+            </button>
+            <div style={{ fontSize: 12, color: C.soft }}>Organize before it's needed</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap', marginTop: 16 }}>
+          {['Free to start', 'No credit card', 'Nothing sends without approval'].map(function(t, i) {
+            return <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: C.soft }}><span style={{ color: C.sage, fontWeight: 700 }}>✓</span>{t}</div>;
+          })}
         </div>
       </div>
+
+      {/* ── PRODUCT PREVIEW ── */}
+      <div style={{ maxWidth: 480, margin: '44px auto 0', padding: '0 24px' }}>
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: '20px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: 'uppercase', letterSpacing: '0.12em' }}>First 24 hours</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '3px 10px' }}>You're on track</div>
+          </div>
+          {[
+            { title: 'Funeral arrangements', owner: 'You', status: 'Not started', urgent: true },
+            { title: 'Notify immediate family', owner: 'Needs owner', status: 'Needs owner', urgent: false },
+            { title: 'Secure home, pets, and vehicle', owner: 'Unassigned', status: 'Not started', urgent: false },
+          ].map(function(item, i) {
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderTop: `1px solid ${C.border}` }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: item.urgent ? C.roseFaint : C.bgSubtle, border: `1.5px solid ${item.urgent ? C.rose : C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: item.urgent ? C.rose : C.soft, flexShrink: 0 }}>{i+1}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, color: C.ink, fontWeight: 600, lineHeight: 1.3 }}>{item.title}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: 11, color: item.owner === 'Needs owner' ? '#b07d2e' : C.mid, background: item.owner === 'Needs owner' ? '#fdf8ee' : C.bgSubtle, borderRadius: 5, padding: '1px 7px', fontWeight: 600 }}>Owner: {item.owner}</span>
+                    <span style={{ fontSize: 11, color: C.soft, background: C.bgSubtle, borderRadius: 5, padding: '1px 7px' }}>{item.status}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ marginTop: 14, padding: '10px 14px', background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, fontSize: 12, color: C.sage, lineHeight: 1.55 }}>
+            Nothing is sent or shared until your family reviews and approves.
+          </div>
+        </div>
+      </div>
+
+      {/* ── HOW IT WORKS ── */}
+      <div style={{ maxWidth: 940, margin: '0 auto', padding: '64px 24px 48px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 38 }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, color: C.ink, lineHeight: 1.25, marginBottom: 10 }}>How Passage works</div>
+          <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.65 }}>Passage prepares and coordinates. Your family reviews and approves.</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 18 }}>
+          {[
+            { n: '01', icon: '📍', title: 'What matters right now', body: 'Passage generates the first 24-hour plan immediately. No setup required for urgent situations.' },
+            { n: '02', icon: '👤', title: 'Who owns each task', body: 'Every outcome has an owner. You assign or Passage suggests. Nothing is ambiguous.' },
+            { n: '03', icon: '✓', title: 'What is already handled', body: 'As tasks are completed, the plan updates. Your family always knows what is done and what still needs attention.' },
+          ].map(function(s, i) {
+            return (
+              <div key={i} style={{ background: C.bgCard, borderRadius: 18, padding: 24, border: `1px solid ${C.border}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
+                  <span style={{ fontSize: 24 }}>{s.icon}</span>
+                  <span style={{ fontSize: 9.5, color: C.sage, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{s.n}</span>
+                </div>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: 17, color: C.ink, marginBottom: 9, lineHeight: 1.3 }}>{s.title}</div>
+                <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.7 }}>{s.body}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── COORDINATION (with guardrails) ── */}
+      <div style={{ background: '#e8eeea', padding: '50px 24px' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: C.ink, lineHeight: 1.25, marginBottom: 10 }}>
+            When your family needs it, Passage helps them take the next step
+          </div>
+          <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.65, marginBottom: 28 }}>
+            Coordinate people, tasks, and messages — all in one place.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, maxWidth: 380, margin: '0 auto 20px' }}>
+            {[['👨‍👩‍👧‍👦','Family'],['⚖️','Attorney'],['🏛️','Funeral home'],['📄','Documents'],['📱','Announcements'],['🗓️','Service'],['📰','Obituary'],['🏠','Property']].map(function(item, i) {
+              return (
+                <div key={i} style={{ background: C.bgCard, borderRadius: 11, padding: '12px 6px', textAlign: 'center', border: `1px solid ${C.border}` }}>
+                  <div style={{ fontSize: 19, marginBottom: 4 }}>{item[0]}</div>
+                  <div style={{ fontSize: 10, color: C.mid, fontWeight: 600 }}>{item[1]}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 12, padding: '13px 16px', fontSize: 13, color: C.mid, lineHeight: 1.6 }}>
+            Your family stays in control. Passage prepares, tracks, and coordinates. Nothing sends without approval.
+          </div>
+        </div>
+      </div>
+
+      {/* ── TESTIMONIALS ── */}
+      <div style={{ background: '#1e1e1a', padding: '50px 24px' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <div style={{ fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: C.soft, fontWeight: 600, textAlign: 'center', marginBottom: 32 }}>Why families need this before they need it</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14 }}>
+            {[
+              { quote: 'I had no idea I needed to notify the DMV, the passport office, AND three credit bureaus. Nobody tells you this.', attr: '— Adult daughter, 54' },
+              { quote: "Two months after losing my mom I realized I'd missed the Social Security survivor benefit window. That was thousands of dollars.", attr: '— Son, 31' },
+              { quote: "We sat with the funeral director for two hours and left more confused than when we walked in. I wish we'd had this.", attr: '— Family navigating Medicaid pre-planning' },
+            ].map(function(t, i) {
+              return (
+                <div key={i} style={{ background: '#252520', borderRadius: 14, padding: 22, border: '1px solid #333' }}>
+                  <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14, color: '#e8e4dc', lineHeight: 1.75, marginBottom: 12 }}>"{t.quote}"</div>
+                  <div style={{ fontSize: 11, color: C.soft }}>{t.attr}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── FINAL CTA ── */}
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '56px 24px', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: C.ink, lineHeight: 1.25, marginBottom: 10 }}>
+          Your family shouldn't have to figure it out while they're grieving.
+        </div>
+        <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.65, marginBottom: 32 }}>
+          Start with what matters right now, or organize everything before it's needed.
+        </div>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+          <div style={{ textAlign: 'center' }}>
+            <button onClick={() => window.location.href = '/urgent'}
+              style={{ display: 'block', background: C.rose, color: '#fff', border: 'none', borderRadius: 14, padding: '16px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6 }}>
+              Someone just passed
+            </button>
+            <div style={{ fontSize: 12, color: C.soft }}>Get a first 24-hour plan</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <button onClick={onPlan}
+              style={{ display: 'block', background: C.sage, color: '#fff', border: 'none', borderRadius: 14, padding: '16px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6 }}>
+              Plan ahead — it's free
+            </button>
+            <div style={{ fontSize: 12, color: C.soft }}>No credit card required</div>
+          </div>
+        </div>
+        <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.6 }}>
+          Nothing is sent or shared without your family's approval.
+        </div>
+      </div>
+
     </div>
   );
 }
 
-// ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [view, setView] = useState("landing");
   const [successMode, setSuccessMode] = useState("paid");

@@ -589,7 +589,7 @@ export default function UrgentPage() {
         ) : (
           <PrimaryBtn onClick={function() {
             if (firstIncomplete >= 0) { setExpanded(firstIncomplete); }
-            else if (estateId) { window.location.href = '/?estate=' + estateId; }
+            else if (estateId) { window.location.href = '/estate?id=' + estateId; }
             else { window.location.href = '/'; }
           }}>
             Start with the first item
@@ -597,7 +597,7 @@ export default function UrgentPage() {
         )}
       </div>
 
-      <button onClick={function() { window.location.href = '/'; }}
+      <button onClick={function() { window.location.href = estateId ? '/estate?id=' + estateId : '/'; }}
         style={{ width: '100%', padding: '14px', borderRadius: 13, border: '1.5px solid ' + BORDER, background: CARD, color: MID, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 50 }}>
         Get help coordinating
       </button>
