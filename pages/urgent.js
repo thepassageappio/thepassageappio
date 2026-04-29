@@ -1,7 +1,8 @@
 // pages/urgent.js
-// Sprint 10 — exact spec, state persistence, owner system, status transitions
+// Spec-compliant: state machine, 3 outcomes, one CTA, feedback on every action
+// Routes: /urgent → flow → results → /estate?id=
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 var sb = createClient(
@@ -9,171 +10,102 @@ var sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-// ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
-var BG = '#f6f3ee';
-var CARD = '#ffffff';
-var INK = '#1a1916';
-var MID = '#6a6560';
-var SOFT = '#a09890';
-var BORDER = '#e4ddd4';
-var SUBTLE = '#f0ece5';
-var SAGE = '#6b8f71';
-var SAGE_FAINT = '#f0f5f1';
-var SAGE_LIGHT = '#c8deca';
-var ROSE = '#c47a7a';
-var ROSE_FAINT = '#fdf3f3';
-var AMBER = '#b07d2e';
-var AMBER_FAINT = '#fdf8ee';
+// ── TOKENS ────────────────────────────────────────────────────────────────────
+var T = {
+  bg: '#f6f3ee', card: '#ffffff', ink: '#1a1916', mid: '#6a6560',
+  soft: '#a09890', border: '#e4ddd4', subtle: '#f0ece5',
+  sage: '#6b8f71', sageFaint: '#f0f5f1', sageLight: '#c8deca',
+  rose: '#c47a7a', roseFaint: '#fdf3f3',
+  amber: '#b07d2e', amberFaint: '#fdf8ee', amberBorder: 'rgba(176,125,46,0.25)',
+  blue: '#2563eb', blueFaint: '#eff6ff',
+};
 
-// ─── OUTCOME ENGINE ───────────────────────────────────────────────────────────
-// Exactly 3 initial outcomes per spec, with location-aware logic
-function buildOutcomes(situation, location, role) {
+// ── OUTCOME ENGINE ─────────────────────────────────────────────────────────────
+// Always exactly 3. No owner = needs_owner status.
+function buildOutcomes(location) {
   var isHome = location === 'home' || location === 'unexpected';
   var isFacility = location === 'hospital' || location === 'facility' || location === 'hospice';
-  var isHelper = situation === 'helping';
-  var isDecisionMaker = role === 'spouse' || role === 'child' || role === 'executor';
 
-  var outcomes = [];
+  var third = isHome
+    ? {
+        id: 'secure_home', title: 'Secure home, pets, and vehicle',
+        description: 'This prevents avoidable issues in the first 24 hours.',
+        why: 'Once word spreads, the home should be secured. Pets need care and valuables should be protected.',
+        action: 'Arrange for someone to check the home and care for any pets.',
+        reassurance: 'This can wait a few hours — handle the more urgent items first.',
+        priority: 'high',
+      }
+    : isFacility
+    ? {
+        id: 'confirm_facility', title: 'Confirm what the facility will handle',
+        description: 'Reduces confusion and duplicate effort.',
+        why: 'Hospitals and facilities handle much of the official paperwork. Knowing what they cover prevents duplicate calls.',
+        action: 'Speak with a patient advocate, social worker, or charge nurse before you leave.',
+        reassurance: 'The facility staff are experienced with this — they will guide you.',
+        priority: 'high',
+      }
+    : {
+        id: 'confirm_coordinator', title: 'Confirm who is coordinating',
+        description: 'One point of contact prevents confusion.',
+        why: 'Having one person be the point of contact prevents duplicate calls and conflicting decisions.',
+        action: 'Decide who is the primary coordinator and let close family know.',
+        reassurance: 'This does not have to be you alone. Passage can help share the load.',
+        priority: 'high',
+      };
 
-  // Outcome 1 — always funeral arrangements (critical)
-  outcomes.push({
-    id: 'funeral',
-    title: 'Funeral arrangements',
-    description: 'This should be started soon.',
-    why: 'The funeral home coordinates transportation, paperwork, and all arrangements. This is the most time-sensitive decision in the first 24 hours.',
-    action: isFacility ? 'Ask the facility if they have a funeral home they work with, or choose one yourself.' : 'Search for a local funeral home and call them today.',
-    reassurance: 'Most families contact a funeral home within the first 24 hours.',
-    owner: isDecisionMaker ? 'You' : null,
-    status: isDecisionMaker ? 'not_started' : 'needs_owner',
-    priority: 'critical',
-    timeframe: 'today',
-    category: 'funeral',
-  });
-
-  // Outcome 2 — notify immediate family (critical)
-  outcomes.push({
-    id: 'family',
-    title: 'Notify immediate family',
-    description: 'Close family should hear directly first.',
-    why: 'Close family should hear directly from you before broader announcements. This is one of the most important first calls.',
-    action: 'Start with the closest family members — a short call is all that is needed right now.',
-    reassurance: 'You do not need to have all the details before you call. Just let them know.',
-    owner: null,
-    status: 'needs_owner',
-    priority: 'critical',
-    timeframe: 'today',
-    category: 'family',
-  });
-
-  // Outcome 3 — situation-specific (high)
-  if (isHome) {
-    outcomes.push({
-      id: 'home',
-      title: 'Secure home, pets, and vehicle',
-      description: 'This prevents avoidable issues.',
-      why: 'Once word spreads, it helps to ensure the home is secured. Pets need care, and valuables should be protected.',
-      action: 'Arrange for someone to check the home and care for any pets.',
-      reassurance: 'This can wait a few hours — handle the more urgent items first.',
-      owner: null,
-      status: 'needs_owner',
-      priority: 'high',
-      timeframe: 'today',
-      category: 'property',
-    });
-  } else if (location === 'hospital' || location === 'facility') {
-    outcomes.push({
-      id: 'facility',
-      title: 'Confirm what the facility will handle',
-      description: 'Reduces duplicate effort and confusion.',
-      why: 'Hospitals and facilities handle much of the official paperwork. Knowing what they cover prevents duplicate calls and confusion.',
-      action: 'Speak with a patient advocate, social worker, or charge nurse before you leave.',
-      reassurance: 'The facility staff are experienced with this — they will guide you.',
-      owner: isDecisionMaker ? 'You' : null,
-      status: isDecisionMaker ? 'not_started' : 'needs_owner',
-      priority: 'high',
-      timeframe: 'now',
-      category: 'medical_legal',
-    });
-  } else if (location === 'hospice') {
-    outcomes.push({
-      id: 'hospice',
-      title: 'Confirm what hospice will coordinate',
-      description: 'Hospice teams handle more than most families realize.',
-      why: 'Hospice teams typically have a direct relationship with funeral homes and handle the official confirmation. Knowing what they cover saves time.',
-      action: 'Call your hospice coordinator to confirm what they are handling next.',
-      reassurance: 'Hospice teams are experienced with this — they will guide you through what comes next.',
-      owner: isDecisionMaker ? 'You' : null,
-      status: isDecisionMaker ? 'not_started' : 'needs_owner',
-      priority: 'high',
-      timeframe: 'now',
-      category: 'medical_legal',
-    });
-  } else {
-    outcomes.push({
-      id: 'coordination',
-      title: 'Confirm who is coordinating',
-      description: 'One point of contact prevents confusion.',
-      why: 'Having one person be the point of contact prevents duplicate calls, conflicting decisions, and confusion in the next few days.',
-      action: 'Decide who is the primary coordinator and let close family know.',
-      reassurance: 'This does not have to be you alone. Passage can help you share the load.',
-      owner: isHelper ? null : 'You',
-      status: isHelper ? 'needs_owner' : 'not_started',
-      priority: 'high',
-      timeframe: 'today',
-      category: 'coordination',
-    });
-  }
-
-  return outcomes;
+  return [
+    {
+      id: 'funeral', title: 'Funeral arrangements',
+      description: 'This should be started soon.',
+      why: 'The funeral home coordinates transportation, paperwork, and all arrangements. Most time-sensitive decision in the first 24 hours.',
+      action: isFacility
+        ? 'Ask the facility if they have a funeral home they work with, or choose one yourself.'
+        : 'Search for a local funeral home and call them today.',
+      reassurance: 'Most families contact a funeral home within the first 24 hours.',
+      priority: 'critical',
+      owner: null, status: 'needs_owner',
+    },
+    {
+      id: 'family', title: 'Notify immediate family',
+      description: 'Close family should hear directly first.',
+      why: 'Close family should hear directly from you before any broader announcement. One of the most important first calls.',
+      action: 'Start with the closest family members. A short call is all that is needed right now.',
+      reassurance: 'You do not need all the details before you call. Just let them know.',
+      priority: 'critical',
+      owner: null, status: 'needs_owner',
+    },
+    Object.assign({}, third, { owner: null, status: 'needs_owner' }),
+  ];
 }
 
-// ─── PERSISTENCE ──────────────────────────────────────────────────────────────
-var SESSION_KEY_PREFIX = 'passage_urgent_';
-
-function getSessionKey() {
-  if (typeof window === 'undefined') return null;
-  var key = localStorage.getItem('passage_session_key');
-  if (!key) {
-    key = SESSION_KEY_PREFIX + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    localStorage.setItem('passage_session_key', key);
-  }
-  return key;
+// ── PERSISTENCE ────────────────────────────────────────────────────────────────
+function save(data) {
+  try { localStorage.setItem('psg_urgent', JSON.stringify(data)); } catch (e) {}
+}
+function load() {
+  try { var r = localStorage.getItem('psg_urgent'); return r ? JSON.parse(r) : null; } catch (e) { return null; }
+}
+function clear() {
+  try { localStorage.removeItem('psg_urgent'); } catch (e) {}
 }
 
-function saveLocal(data) {
-  try { localStorage.setItem('passage_urgent_state', JSON.stringify(data)); } catch (e) {}
-}
-
-function loadLocal() {
-  try {
-    var raw = localStorage.getItem('passage_urgent_state');
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
-}
-
-function clearLocal() {
-  try { localStorage.removeItem('passage_urgent_state'); } catch (e) {}
-}
-
-// ─── COMPONENTS ───────────────────────────────────────────────────────────────
-function Shell({ step, total, onBack, hideProgress, children }) {
+// ── SHELL ──────────────────────────────────────────────────────────────────────
+function Shell({ step, total, onBack, bare, children }) {
   return (
-    <div style={{ background: BG, minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'Georgia, serif' }}>
-      <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid ' + BORDER, background: CARD }}>
+    <div style={{ background: T.bg, minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'Georgia, serif' }}>
+      <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid ' + T.border, background: T.card }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle, ' + SAGE_LIGHT + ', ' + SAGE + '70)' }} />
-          <span style={{ fontSize: 14, color: INK }}>Passage</span>
+          <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle, ' + T.sageLight + ', ' + T.sage + '70)' }} />
+          <span style={{ fontSize: 14, color: T.ink }}>Passage</span>
         </div>
-        {!hideProgress && step > 0 && step < 6 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        {!bare && step > 0 && step < 5 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ display: 'flex', gap: 4 }}>
               {Array.from({ length: total }).map(function(_, i) {
-                return <div key={i} style={{ width: i < step ? 18 : 7, height: 3, borderRadius: 2, background: i < step ? SAGE : BORDER, transition: 'all 0.25s' }} />;
+                return <div key={i} style={{ width: i < step ? 18 : 7, height: 3, borderRadius: 2, background: i < step ? T.sage : T.border, transition: 'all 0.25s' }} />;
               })}
             </div>
-            {onBack && (
-              <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 12, color: SOFT, cursor: 'pointer', fontFamily: 'inherit', padding: 0, minHeight: 44 }}>Back</button>
-            )}
+            {onBack && <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: 12, color: T.soft, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44, padding: '0 4px' }}>Back</button>}
           </div>
         )}
       </div>
@@ -184,129 +116,172 @@ function Shell({ step, total, onBack, hideProgress, children }) {
   );
 }
 
-function PrimaryBtn({ children, onClick, disabled }) {
+// ── ATOMS ──────────────────────────────────────────────────────────────────────
+function PrimaryBtn({ label, onClick, disabled }) {
   return (
     <button onClick={onClick} disabled={!!disabled}
-      style={{ width: '100%', padding: '16px', borderRadius: 13, border: 'none', background: disabled ? BORDER : SAGE, color: disabled ? SOFT : '#fff', fontSize: 16, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: 'Georgia, serif', minHeight: 52, transition: 'background 0.15s' }}>
-      {children}
+      style={{ width: '100%', padding: '16px', borderRadius: 13, border: 'none', background: disabled ? T.border : T.sage, color: disabled ? T.soft : '#fff', fontSize: 16, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: 'Georgia, serif', minHeight: 54 }}>
+      {label}
     </button>
   );
 }
 
-function SecondaryBtn({ children, onClick }) {
+function GhostBtn({ label, onClick }) {
   return (
     <button onClick={onClick}
-      style={{ width: '100%', padding: '14px', borderRadius: 13, border: '1.5px solid ' + BORDER, background: CARD, color: MID, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 50, marginTop: 10 }}>
-      {children}
+      style={{ width: '100%', padding: '14px', borderRadius: 13, border: '1.5px solid ' + T.border, background: T.card, color: T.mid, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 50, marginTop: 10 }}>
+      {label}
     </button>
   );
 }
 
-function Option({ label, sublabel, selected, onClick }) {
+function Option({ label, sub, selected, onClick }) {
   return (
     <button onClick={onClick}
-      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px', borderRadius: 13, border: '1.5px solid ' + (selected ? SAGE : BORDER), background: selected ? SAGE_FAINT : CARD, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', marginBottom: 8, minHeight: 56, transition: 'all 0.12s' }}>
+      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px', borderRadius: 13, border: '1.5px solid ' + (selected ? T.sage : T.border), background: selected ? T.sageFaint : T.card, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', marginBottom: 9, minHeight: 58, transition: 'all 0.12s' }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: selected ? SAGE : INK, lineHeight: 1.3 }}>{label}</div>
-        {sublabel && <div style={{ fontSize: 13, color: SOFT, marginTop: 3, lineHeight: 1.4 }}>{sublabel}</div>}
+        <div style={{ fontSize: 15, fontWeight: 600, color: selected ? T.sage : T.ink }}>{label}</div>
+        {sub && <div style={{ fontSize: 13, color: T.soft, marginTop: 3 }}>{sub}</div>}
       </div>
-      <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid ' + (selected ? SAGE : BORDER), background: selected ? SAGE : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid ' + (selected ? T.sage : T.border), background: selected ? T.sage : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {selected && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
       </div>
     </button>
   );
 }
 
-function InlineAssign({ onAssign, onClose }) {
-  var s1 = useState(''); var name = s1[0]; var setName = s1[1];
+// ── STATUS PILL ────────────────────────────────────────────────────────────────
+function StatusPill({ status }) {
+  var map = {
+    needs_owner: { label: 'Needs owner', color: T.amber, bg: T.amberFaint },
+    not_started: { label: 'Not started', color: T.soft, bg: T.subtle },
+    in_progress: { label: 'In progress', color: T.blue, bg: T.blueFaint },
+    handled: { label: 'Handled', color: T.sage, bg: T.sageFaint },
+  };
+  var s = map[status] || map.not_started;
+  return <span style={{ fontSize: 12, fontWeight: 600, color: s.color, background: s.bg, borderRadius: 6, padding: '2px 9px', display: 'inline-block' }}>{s.label}</span>;
+}
+
+// ── INLINE OWNER SELECTOR ──────────────────────────────────────────────────────
+function OwnerSelector({ onSave, onClose }) {
+  var s = useState(''); var name = s[0]; var setName = s[1];
   return (
-    <div style={{ background: SUBTLE, borderRadius: 11, padding: '14px', marginTop: 10 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Who owns this?</div>
+    <div style={{ background: T.subtle, borderRadius: 11, padding: 14, marginTop: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: T.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Who owns this?</div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <input value={name} onChange={function(e) { setName(e.target.value); }} placeholder="Their name"
-          style={{ flex: 1, padding: '10px 12px', borderRadius: 9, border: '1.5px solid ' + BORDER, fontFamily: 'inherit', fontSize: 14, color: INK, outline: 'none', background: CARD, minHeight: 44 }} />
-        <button onClick={function() { if (name.trim()) onAssign(name.trim()); }}
-          style={{ padding: '10px 16px', borderRadius: 9, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44, whiteSpace: 'nowrap' }}>
+        <input value={name} onChange={function(e) { setName(e.target.value); }}
+          placeholder="Their name" autoFocus
+          style={{ flex: 1, padding: '10px 12px', borderRadius: 9, border: '1.5px solid ' + T.border, fontFamily: 'inherit', fontSize: 14, color: T.ink, outline: 'none', background: T.card, minHeight: 44, boxSizing: 'border-box' }} />
+        <button onClick={function() { if (name.trim()) onSave(name.trim()); }}
+          style={{ padding: '10px 16px', borderRadius: 9, border: 'none', background: T.sage, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44, whiteSpace: 'nowrap' }}>
           Assign
         </button>
       </div>
-      <button onClick={function() { onAssign('You'); }}
-        style={{ width: '100%', padding: '9px', borderRadius: 9, border: '1.5px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40 }}>
+      <button onClick={function() { onSave('You'); }}
+        style={{ width: '100%', padding: '9px', borderRadius: 9, border: '1.5px solid ' + T.sageLight, background: T.sageFaint, color: T.sage, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40, marginBottom: 6 }}>
         Assign to me
       </button>
       <button onClick={onClose}
-        style={{ width: '100%', padding: '7px', borderRadius: 9, border: 'none', background: 'none', color: SOFT, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4 }}>
+        style={{ width: '100%', padding: '6px', borderRadius: 9, border: 'none', background: 'none', color: T.soft, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
         Cancel
       </button>
     </div>
   );
 }
 
-function OutcomeCard({ outcome, expanded, onToggle, onMarkHandled, onStarted, onAssignOpen, onAssignClose, showAssign, onAssignSave }) {
-  var statusColor = outcome.status === 'handled' ? SAGE : outcome.status === 'needs_owner' ? AMBER : outcome.status === 'in_progress' ? '#2563eb' : MID;
-  var statusBg = outcome.status === 'handled' ? SAGE_FAINT : outcome.status === 'needs_owner' ? AMBER_FAINT : outcome.status === 'in_progress' ? '#eff6ff' : SUBTLE;
-  var statusLabel = outcome.status === 'handled' ? 'Handled' : outcome.status === 'needs_owner' ? 'Needs owner' : outcome.status === 'in_progress' ? 'In progress' : 'Not started';
+// ── TOAST ──────────────────────────────────────────────────────────────────────
+function Toast({ msg }) {
+  if (!msg) return null;
+  return (
+    <div style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', background: T.sage, color: '#fff', borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', whiteSpace: 'nowrap', pointerEvents: 'none', transition: 'opacity 0.2s' }}>
+      {msg}
+    </div>
+  );
+}
+
+// ── OUTCOME CARD ───────────────────────────────────────────────────────────────
+function OutcomeCard({ outcome, index, expanded, showOwner, onToggle, onAssign, onAssignClose, onAssignSave, onStart, onHandled, lastAction }) {
+  var isHandled = outcome.status === 'handled';
+  var borderColor = isHandled ? T.sageLight : outcome.status === 'needs_owner' ? T.amberBorder : T.border;
+  var bg = isHandled ? T.sageFaint : T.card;
 
   return (
-    <div style={{ background: CARD, border: '1.5px solid ' + (outcome.status === 'handled' ? SAGE_LIGHT : outcome.status === 'needs_owner' ? AMBER + '60' : BORDER), borderRadius: 14, marginBottom: 10, overflow: 'hidden', transition: 'border-color 0.2s' }}>
+    <div style={{ background: bg, border: '1.5px solid ' + borderColor, borderRadius: 14, marginBottom: 10, overflow: 'hidden', transition: 'all 0.2s' }}>
       <button onClick={onToggle}
-        style={{ width: '100%', padding: '16px 18px', cursor: 'pointer', textAlign: 'left', background: 'none', border: 'none', fontFamily: 'inherit', minHeight: 72 }}>
+        style={{ width: '100%', padding: '16px 18px', cursor: 'pointer', textAlign: 'left', background: 'none', border: 'none', fontFamily: 'inherit', minHeight: 78 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: INK, lineHeight: 1.35, marginBottom: 8 }}>{outcome.title}</div>
-            <div style={{ fontSize: 13, color: MID, marginBottom: 8, lineHeight: 1.4 }}>{outcome.description}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.ink, lineHeight: 1.35, marginBottom: 6 }}>{outcome.title}</div>
+            <div style={{ fontSize: 13, color: T.mid, marginBottom: 8, lineHeight: 1.4 }}>{outcome.description}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Owner</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: outcome.owner ? INK : AMBER, background: outcome.owner ? SUBTLE : AMBER_FAINT, borderRadius: 6, padding: '2px 8px' }}>{outcome.owner || 'Unassigned'}</span>
-              </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: statusColor, background: statusBg, borderRadius: 6, padding: '2px 8px' }}>{statusLabel}</span>
-              {outcome.timeframe === 'now' && <span style={{ fontSize: 11, fontWeight: 700, color: ROSE, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Right now</span>}
+              <span style={{ fontSize: 11, fontWeight: 700, color: T.soft, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Owner</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: outcome.owner ? T.ink : T.amber, background: outcome.owner ? T.subtle : T.amberFaint, borderRadius: 6, padding: '2px 8px' }}>
+                {outcome.owner || 'Unassigned'}
+              </span>
+              <StatusPill status={outcome.status} />
+              {outcome.priority === 'critical' && !isHandled && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: T.rose, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Critical</span>
+              )}
             </div>
+            {/* Inline confirmation after action */}
+            {lastAction === 'assigned' && outcome.owner && !expanded && (
+              <div style={{ fontSize: 12, color: T.sage, marginTop: 6, fontWeight: 500 }}>{outcome.owner} is handling this</div>
+            )}
           </div>
-          <div style={{ fontSize: 16, color: SOFT, flexShrink: 0, paddingTop: 2 }}>{expanded ? '↑' : '↓'}</div>
+          <span style={{ fontSize: 14, color: T.soft, flexShrink: 0, paddingTop: 2 }}>{expanded ? '↑' : '↓'}</span>
         </div>
       </button>
 
-      {expanded && (
-        <div style={{ padding: '0 18px 18px', borderTop: '1px solid ' + BORDER }}>
-          <div style={{ paddingTop: 14 }}>
-            <div style={{ fontSize: 14, color: MID, lineHeight: 1.7, marginBottom: 12 }}>{outcome.why}</div>
-            <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '10px 13px', fontSize: 13, color: SAGE, marginBottom: 14, lineHeight: 1.55, fontStyle: 'italic' }}>
+      {expanded && !isHandled && (
+        <div style={{ padding: '0 18px 18px', borderTop: '1px solid ' + T.border, paddingTop: 14 }}>
+          {outcome.why && <div style={{ fontSize: 14, color: T.mid, lineHeight: 1.7, marginBottom: 12 }}>{outcome.why}</div>}
+          {outcome.reassurance && (
+            <div style={{ background: T.sageFaint, border: '1px solid ' + T.sageLight, borderRadius: 10, padding: '10px 13px', fontSize: 13, color: T.sage, marginBottom: 14, lineHeight: 1.55, fontStyle: 'italic' }}>
               {outcome.reassurance}
             </div>
-            {outcome.action && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>Recommended action</div>
-                <div style={{ fontSize: 14, color: INK, lineHeight: 1.55 }}>{outcome.action}</div>
-              </div>
+          )}
+          {outcome.action && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: T.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>Recommended action</div>
+              <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.55 }}>{outcome.action}</div>
+            </div>
+          )}
+
+          {/* Per-status action buttons per spec */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {outcome.status === 'needs_owner' && (
+              <button onClick={onAssign}
+                style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: T.sage, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 46 }}>
+                Assign
+              </button>
             )}
-            {outcome.status !== 'handled' && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {outcome.status === 'not_started' && (
-                  <button onClick={onStarted}
-                    style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: '#eff6ff', color: '#2563eb', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
-                    In progress
-                  </button>
-                )}
-                <button onClick={onMarkHandled}
-                  style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
-                  Mark as handled
+            {outcome.status === 'not_started' && (
+              <>
+                <button onClick={onStart}
+                  style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: T.blueFaint, color: T.blue, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 46 }}>
+                  Start
                 </button>
-                <button onClick={onAssignOpen}
-                  style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid ' + BORDER, background: CARD, color: MID, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
-                  {outcome.owner ? 'Change owner' : 'Assign'}
+                <button onClick={onAssign}
+                  style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1.5px solid ' + T.border, background: T.card, color: T.mid, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 46 }}>
+                  Assign
                 </button>
-              </div>
+              </>
             )}
-            {outcome.status === 'handled' && (
-              <div style={{ padding: '12px', borderRadius: 10, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, fontSize: 14, fontWeight: 700, color: SAGE, textAlign: 'center' }}>
-                This is handled
-              </div>
+            {outcome.status === 'in_progress' && (
+              <button onClick={onHandled}
+                style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: T.sage, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 46 }}>
+                Mark handled
+              </button>
             )}
-            {showAssign && (
-              <InlineAssign onAssign={onAssignSave} onClose={onAssignClose} />
-            )}
+          </div>
+          {showOwner && <OwnerSelector onSave={onAssignSave} onClose={onAssignClose} />}
+        </div>
+      )}
+
+      {isHandled && expanded && (
+        <div style={{ padding: '0 18px 16px', borderTop: '1px solid ' + T.border, paddingTop: 14 }}>
+          <div style={{ padding: '12px', borderRadius: 10, background: T.sageFaint, border: '1px solid ' + T.sageLight, fontSize: 14, fontWeight: 700, color: T.sage, textAlign: 'center' }}>
+            This is handled
           </div>
         </div>
       )}
@@ -314,7 +289,89 @@ function OutcomeCard({ outcome, expanded, onToggle, onMarkHandled, onStarted, on
   );
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// ── REASSURANCE BANNER ─────────────────────────────────────────────────────────
+function ReassuranceBanner({ outcomes, isReturn }) {
+  var handledCount = outcomes.filter(function(o) { return o.status === 'handled'; }).length;
+  var needsOwner = outcomes.filter(function(o) { return o.status === 'needs_owner'; }).length;
+  var criticalHandled = outcomes.filter(function(o) { return o.priority === 'critical' && o.status === 'handled'; }).length;
+  var criticalTotal = outcomes.filter(function(o) { return o.priority === 'critical'; }).length;
+
+  var text, color, bg, border;
+  if (isReturn) {
+    text = "You're still on track.";
+    color = T.sage; bg = T.sageFaint; border = T.sageLight;
+  } else if (criticalTotal > 0 && criticalHandled === criticalTotal) {
+    text = "You're on track. Nothing urgent is missing right now.";
+    color = T.sage; bg = T.sageFaint; border = T.sageLight;
+  } else if (needsOwner > 0) {
+    text = 'Some important items still need an owner.';
+    color = T.amber; bg = T.amberFaint; border = T.amberBorder;
+  } else {
+    text = "You're on track.";
+    color = T.sage; bg = T.sageFaint; border = T.sageLight;
+  }
+
+  return (
+    <div style={{ background: bg, border: '1px solid ' + border, borderRadius: 13, padding: '14px 18px', marginBottom: 18 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: color, marginBottom: 4 }}>{text}</div>
+      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 6 }}>
+        {handledCount > 0 && <span style={{ fontSize: 12, color: T.sage }}><b>{handledCount}</b> handled</span>}
+        {needsOwner > 0 && <span style={{ fontSize: 12, color: T.amber }}><b>{needsOwner}</b> need an owner</span>}
+        {outcomes.filter(function(o) { return o.status === 'not_started'; }).length > 0 && (
+          <span style={{ fontSize: 12, color: T.soft }}><b>{outcomes.filter(function(o) { return o.status === 'not_started'; }).length}</b> not started</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── PRIMARY CTA ────────────────────────────────────────────────────────────────
+function PrimaryCTA({ outcomes, onScrollTo }) {
+  var next = outcomes.findIndex(function(o) { return o.status !== 'handled'; });
+  var allHandled = outcomes.every(function(o) { return o.status === 'handled'; });
+
+  if (allHandled) {
+    return (
+      <div style={{ background: T.sageFaint, border: '1px solid ' + T.sageLight, borderRadius: 13, padding: 18, marginBottom: 10, textAlign: 'center' }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: T.sage, marginBottom: 4 }}>You're in a good place for now.</div>
+        <div style={{ fontSize: 13, color: T.mid, lineHeight: 1.6 }}>Nothing urgent is missing. We'll guide you through what comes next when you're ready.</div>
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={function() { onScrollTo(next); }}
+      style={{ width: '100%', padding: '16px', borderRadius: 13, border: 'none', background: T.sage, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'Georgia, serif', marginBottom: 10, minHeight: 54 }}>
+      Start here — we'll guide you
+    </button>
+  );
+}
+
+// ── COLLAPSED NEXT SECTION ─────────────────────────────────────────────────────
+function CollapsedNextSection() {
+  var s = useState(false); var open = s[0]; var setOpen = s[1];
+  var items = ['Gather important documents', 'Begin service planning', 'Contact an estate attorney'];
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button onClick={function() { setOpen(!open); }}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: T.subtle, borderRadius: 12, padding: '12px 16px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', minHeight: 48 }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: T.mid }}>Up next</span>
+        <span style={{ fontSize: 13, color: T.soft }}>{open ? '↑' : '↓'}</span>
+      </button>
+      {open && items.map(function(t, i) {
+        return <div key={i} style={{ background: T.card, border: '1px solid ' + T.border, borderRadius: 10, padding: '12px 16px', marginTop: 6, fontSize: 13.5, color: T.mid }}>{t}</div>;
+      })}
+    </div>
+  );
+}
+
+// ── PAUSE STATE ────────────────────────────────────────────────────────────────
+function shouldShowPause(outcomes, interactionCount) {
+  var handled = outcomes.filter(function(o) { return o.status === 'handled'; }).length;
+  return handled >= 1 || interactionCount >= 2;
+}
+
+// ── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 export default function UrgentPage() {
   var s0 = useState('loading'); var step = s0[0]; var setStep = s0[1];
   var s1 = useState(null); var situation = s1[0]; var setSituation = s1[1];
@@ -326,67 +383,105 @@ export default function UrgentPage() {
   var s7 = useState(false); var saving = s7[0]; var setSaving = s7[1];
   var s8 = useState(null); var user = s8[0]; var setUser = s8[1];
   var s9 = useState(-1); var expanded = s9[0]; var setExpanded = s9[1];
-  var s10 = useState(-1); var showAssign = s10[0]; var setShowAssign = s10[1];
-  var s11 = useState(''); var feedback = s11[0]; var setFeedback = s11[1];
+  var s10 = useState(-1); var showOwner = s10[0]; var setShowOwner = s10[1];
+  var s11 = useState(''); var toast = s11[0]; var setToast = s11[1];
+  var s12 = useState({}); var lastActions = s12[0]; var setLastActions = s12[1];
+  var s13 = useState(0); var interactions = s13[0]; var setInteractions = s13[1];
+  var s14 = useState(false); var isReturn = s14[0]; var setIsReturn = s14[1];
 
-  // Persist state to localStorage on every change
+  // Persist on every change
   useEffect(function() {
     if (step === 'loading') return;
-    saveLocal({ step: step, situation: situation, location: location, firstName: firstName, role: role, estateId: estateId, outcomes: outcomes });
+    save({ step: step, situation: situation, location: location, firstName: firstName, role: role, estateId: estateId, outcomes: outcomes });
   }, [step, situation, location, firstName, role, estateId, outcomes]);
 
-  // On mount — restore state or start fresh
+  // Load on mount
   useEffect(function() {
     sb.auth.getSession().then(function(r) {
       if (r.data && r.data.session) setUser(r.data.session.user);
     });
-    var saved = loadLocal();
-    if (saved && saved.step && saved.step !== 0) {
+    var saved = load();
+    if (saved && saved.step && saved.step !== 0 && saved.step !== 'loading') {
       setSituation(saved.situation || null);
       setLocation(saved.location || null);
       setFirstName(saved.firstName || '');
       setRole(saved.role || null);
       setEstateId(saved.estateId || null);
-      if (saved.outcomes && saved.outcomes.length > 0) setOutcomes(saved.outcomes);
+      if (saved.outcomes && saved.outcomes.length > 0) {
+        setOutcomes(saved.outcomes);
+        setIsReturn(saved.step === 'results');
+      }
       setStep(saved.step);
     } else {
       setStep(0);
     }
   }, []);
 
-  function back() {
-    setStep(function(s) {
-      var n = typeof s === 'number' ? s - 1 : 0;
-      return Math.max(0, n);
-    });
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(function() { setToast(''); }, 2200);
   }
 
-  function updateOutcome(index, updates) {
+  function back() { setStep(function(s) { return typeof s === 'number' ? Math.max(0, s - 1) : 0; }); }
+
+  function updateOutcome(i, updates) {
     setOutcomes(function(prev) {
-      return prev.map(function(o, i) { return i === index ? Object.assign({}, o, updates) : o; });
+      return prev.map(function(o, idx) { return idx === i ? Object.assign({}, o, updates) : o; });
     });
     setExpanded(-1);
-    setShowAssign(-1);
-    if (updates.status === 'handled') setFeedback('This is handled');
-    else if (updates.status === 'in_progress') setFeedback('Marked as in progress');
-    else if (updates.owner) setFeedback('Assigned to ' + updates.owner);
-    setTimeout(function() { setFeedback(''); }, 2000);
+    setShowOwner(-1);
+    setInteractions(function(n) { return n + 1; });
+  }
+
+  function handleAssignSave(i, ownerName) {
+    var newStatus = outcomes[i].status === 'needs_owner' ? 'in_progress' : outcomes[i].status;
+    updateOutcome(i, { owner: ownerName, status: 'in_progress' });
+    setLastActions(function(prev) { var n = Object.assign({}, prev); n[i] = 'assigned'; return n; });
+    showToast('Assigned.');
+    // Persist to DB if estateId exists
+    if (estateId && outcomes[i].dbId) {
+      sb.from('outcomes').update({ owner_label: ownerName, status: 'in_progress', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
+    }
+  }
+
+  function handleStart(i) {
+    updateOutcome(i, { status: 'in_progress' });
+    showToast('Started.');
+    if (estateId && outcomes[i].dbId) {
+      sb.from('outcomes').update({ status: 'in_progress', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
+    }
+  }
+
+  function handleHandled(i) {
+    updateOutcome(i, { status: 'handled' });
+    setLastActions(function(prev) { var n = Object.assign({}, prev); n[i] = 'handled'; return n; });
+    showToast('This is handled.');
+    if (estateId && outcomes[i].dbId) {
+      sb.from('outcomes').update({ status: 'handled', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
+    }
+  }
+
+  function scrollToCard(i) {
+    setExpanded(i);
+    setTimeout(function() {
+      var el = document.getElementById('outcome-' + i);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
   }
 
   async function createPlan() {
     setSaving(true);
-    var generated = buildOutcomes(situation, location, role);
+    var generated = buildOutcomes(location);
     setOutcomes(generated);
     try {
-      var name = firstName.trim() || 'my loved one';
       var res = await sb.from('workflows').insert([{
         user_id: user ? user.id : null,
-        deceased_name: name,
+        deceased_name: firstName.trim() || 'my loved one',
         deceased_first_name: firstName.trim() || null,
         coordinator_name: user ? ((user.user_metadata && user.user_metadata.full_name) || user.email) : null,
         coordinator_email: user ? user.email : null,
         status: 'urgent_first_steps_generated',
-        path: 'red',
+        path: 'red', mode: 'red',
         relationship_to_deceased: role,
         urgent_situation: situation,
         estate_name: (firstName.trim() || 'Loved one') + ' estate',
@@ -395,215 +490,151 @@ export default function UrgentPage() {
       if (res.data) {
         var wid = res.data.id;
         setEstateId(wid);
-        // Save outcomes to DB
         var outcomeRows = generated.map(function(o, i) {
-          return {
-            estate_id: wid,
-            title: o.title,
-            description: o.description,
-            why_it_matters: o.why,
-            recommended_action: o.action,
-            reassurance: o.reassurance,
-            owner_label: o.owner,
-            status: o.status,
-            priority: o.priority,
-            timeframe: o.timeframe,
-            category: o.category,
-            position: i,
-            source: 'system',
-          };
+          return { estate_id: wid, title: o.title, description: o.description, why_it_matters: o.why, recommended_action: o.action, reassurance: o.reassurance, owner_label: null, status: o.status, priority: o.priority, timeframe: o.priority === 'critical' ? 'today' : 'today', category: o.id, position: i, source: 'system' };
         });
-        await sb.from('outcomes').insert(outcomeRows);
+        var inserted = await sb.from('outcomes').insert(outcomeRows).select();
+        if (inserted.data) {
+          var dbIds = inserted.data.map(function(r) { return r.id; });
+          setOutcomes(function(prev) {
+            return prev.map(function(o, i) { return Object.assign({}, o, { dbId: dbIds[i] }); });
+          });
+        }
       }
     } catch (e) { console.error('Plan error:', e); }
     setSaving(false);
-    setStep(5);
+    setStep('results');
   }
 
-  // Banner logic per spec
-  var handledCount = outcomes.filter(function(o) { return o.status === 'handled'; }).length;
-  var needsOwnerCount = outcomes.filter(function(o) { return o.status === 'needs_owner'; }).length;
-  var criticalHandled = outcomes.filter(function(o) { return o.priority === 'critical' && o.status === 'handled'; }).length;
-  var criticalTotal = outcomes.filter(function(o) { return o.priority === 'critical'; }).length;
-
-  var bannerText = needsOwnerCount > 0
-    ? 'Some important items still need an owner.'
-    : 'You\'re on track. Nothing urgent is missing right now.';
-  var bannerColor = needsOwnerCount > 0 ? AMBER : SAGE;
-  var bannerBg = needsOwnerCount > 0 ? AMBER_FAINT : SAGE_FAINT;
-  var bannerBorder = needsOwnerCount > 0 ? AMBER + '50' : SAGE_LIGHT;
-
-  // Primary CTA — first non-handled outcome
-  var firstIncomplete = outcomes.findIndex(function(o) { return o.status !== 'handled'; });
-  var allHandled = handledCount === outcomes.length && outcomes.length > 0;
-
+  var allHandled = outcomes.length > 0 && outcomes.every(function(o) { return o.status === 'handled'; });
+  var showPause = shouldShowPause(outcomes, interactions) && !allHandled;
   var name = firstName.trim() || 'your loved one';
 
-  // Loading state
+  // ── LOADING ────────────────────────────────────────────────────────────────
   if (step === 'loading') return (
-    <div style={{ background: BG, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif' }}>
-      <div style={{ color: SOFT, fontSize: 14 }}>Loading...</div>
+    <div style={{ background: T.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif' }}>
+      <div style={{ color: T.soft, fontSize: 14 }}>Loading...</div>
     </div>
   );
 
-  // ── SCREEN 0: Emotional acknowledgment ──────────────────────────────────────
+  // ── SCREEN 0: Intro ────────────────────────────────────────────────────────
   if (step === 0) return (
-    <Shell step={0} total={4} hideProgress>
-      <div style={{ textAlign: 'center', paddingTop: 52 }}>
+    <Shell step={0} total={4} bare>
+      <div style={{ textAlign: 'center', paddingTop: 56 }}>
         <div style={{ fontSize: 56, marginBottom: 28 }}>🕊️</div>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: 32, color: INK, lineHeight: 1.3, marginBottom: 18 }}>We're so sorry.</div>
-        <div style={{ fontSize: 17, color: MID, lineHeight: 1.8, maxWidth: 360, margin: '0 auto 44px' }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 32, color: T.ink, lineHeight: 1.3, marginBottom: 18 }}>We're so sorry.</div>
+        <div style={{ fontSize: 17, color: T.mid, lineHeight: 1.8, maxWidth: 360, margin: '0 auto 44px' }}>
           We'll help you figure out what needs to happen next.
         </div>
         <div style={{ maxWidth: 380, margin: '0 auto' }}>
-          <PrimaryBtn onClick={function() { setStep(1); }}>Start</PrimaryBtn>
-          <div style={{ fontSize: 13, color: SOFT, marginTop: 12, lineHeight: 1.6 }}>Takes less than two minutes. You can stop anytime.</div>
+          <PrimaryBtn label="Start" onClick={function() { setStep(1); }} />
+          <div style={{ fontSize: 13, color: T.soft, marginTop: 12, lineHeight: 1.6 }}>Takes less than two minutes. You can stop anytime.</div>
         </div>
       </div>
     </Shell>
   );
 
-  // ── SCREEN 1: What happened ──────────────────────────────────────────────────
+  // ── SCREEN 1: What happened ────────────────────────────────────────────────
   if (step === 1) return (
     <Shell step={1} total={4} onBack={back}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: INK, marginBottom: 10, lineHeight: 1.3 }}>What happened?</div>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.ink, marginBottom: 10, lineHeight: 1.3 }}>What happened?</div>
       <div style={{ height: 20 }} />
       <Option label="Someone has passed away" selected={situation === 'passed'} onClick={function() { setSituation('passed'); }} />
-      <Option label="I'm helping someone who just lost someone" sublabel="A family member or friend asked for your help" selected={situation === 'helping'} onClick={function() { setSituation('helping'); }} />
-      <Option label="I'm not sure what to do" sublabel="Something happened and I need guidance" selected={situation === 'unsure'} onClick={function() { setSituation('unsure'); }} />
+      <Option label="I'm helping someone who just lost someone" sub="A family member or friend asked for your help" selected={situation === 'helping'} onClick={function() { setSituation('helping'); }} />
+      <Option label="I'm not sure what to do" sub="Something happened and I need guidance" selected={situation === 'unsure'} onClick={function() { setSituation('unsure'); }} />
       <div style={{ height: 20 }} />
-      <PrimaryBtn onClick={function() { setStep(2); }} disabled={!situation}>Continue</PrimaryBtn>
+      <PrimaryBtn label="Continue" onClick={function() { setStep(2); }} disabled={!situation} />
     </Shell>
   );
 
-  // ── SCREEN 2: Where ──────────────────────────────────────────────────────────
+  // ── SCREEN 2: Where ────────────────────────────────────────────────────────
   if (step === 2) return (
     <Shell step={2} total={4} onBack={back}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: INK, marginBottom: 10, lineHeight: 1.3 }}>Where did this happen?</div>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.ink, marginBottom: 10, lineHeight: 1.3 }}>Where did this happen?</div>
       <div style={{ height: 20 }} />
       <Option label="At home" selected={location === 'home'} onClick={function() { setLocation('home'); }} />
       <Option label="At a hospital" selected={location === 'hospital'} onClick={function() { setLocation('hospital'); }} />
       <Option label="In hospice care" selected={location === 'hospice'} onClick={function() { setLocation('hospice'); }} />
-      <Option label="In a facility" sublabel="Nursing home, assisted living, memory care" selected={location === 'facility'} onClick={function() { setLocation('facility'); }} />
+      <Option label="In a facility" sub="Nursing home, assisted living, memory care" selected={location === 'facility'} onClick={function() { setLocation('facility'); }} />
       <Option label="I'm not sure" selected={location === 'unknown'} onClick={function() { setLocation('unknown'); }} />
       <div style={{ height: 20 }} />
-      <PrimaryBtn onClick={function() { setStep(3); }} disabled={!location}>Continue</PrimaryBtn>
+      <PrimaryBtn label="Continue" onClick={function() { setStep(3); }} disabled={!location} />
     </Shell>
   );
 
-  // ── SCREEN 3: Who passed ─────────────────────────────────────────────────────
+  // ── SCREEN 3: Who ──────────────────────────────────────────────────────────
   if (step === 3) return (
     <Shell step={3} total={4} onBack={back}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: INK, marginBottom: 10, lineHeight: 1.3 }}>Who passed away?</div>
-      <div style={{ fontSize: 15, color: SOFT, marginBottom: 28, lineHeight: 1.6 }}>First name (optional)</div>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.ink, marginBottom: 10, lineHeight: 1.3 }}>Who passed away?</div>
+      <div style={{ fontSize: 15, color: T.soft, marginBottom: 24 }}>First name (optional)</div>
       <input value={firstName} onChange={function(e) { setFirstName(e.target.value); }} placeholder="First name" autoFocus
-        style={{ width: '100%', padding: '16px', borderRadius: 13, border: '1.5px solid ' + BORDER, fontFamily: 'Georgia, serif', fontSize: 17, color: INK, outline: 'none', boxSizing: 'border-box', background: CARD, minHeight: 56 }} />
-      <div style={{ height: 20 }} />
-      <PrimaryBtn onClick={function() { setStep(4); }}>Continue</PrimaryBtn>
-      <SecondaryBtn onClick={function() { setFirstName(''); setStep(4); }}>Skip</SecondaryBtn>
+        style={{ width: '100%', padding: '16px', borderRadius: 13, border: '1.5px solid ' + T.border, fontFamily: 'Georgia, serif', fontSize: 17, color: T.ink, outline: 'none', boxSizing: 'border-box', background: T.card, minHeight: 56, marginBottom: 16 }} />
+      <PrimaryBtn label="Continue" onClick={function() { setStep(4); }} />
+      <GhostBtn label="Skip" onClick={function() { setFirstName(''); setStep(4); }} />
     </Shell>
   );
 
-  // ── SCREEN 4: Who are you ────────────────────────────────────────────────────
+  // ── SCREEN 4: Role ─────────────────────────────────────────────────────────
   if (step === 4) return (
     <Shell step={4} total={4} onBack={back}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: INK, marginBottom: 10, lineHeight: 1.3 }}>Who are you in this?</div>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.ink, marginBottom: 10, lineHeight: 1.3 }}>Who are you in this?</div>
       <div style={{ height: 20 }} />
-      {[
-        ['spouse', 'Spouse or partner'],
-        ['child', 'Child'],
-        ['sibling', 'Sibling'],
-        ['parent', 'Parent'],
-        ['executor', 'Executor'],
-        ['friend', 'Friend'],
-        ['other', 'Other'],
-      ].map(function(r) {
+      {[['spouse','Spouse or partner'],['child','Child'],['sibling','Sibling'],['parent','Parent'],['executor','Executor'],['friend','Friend'],['other','Other']].map(function(r) {
         return <Option key={r[0]} label={r[1]} selected={role === r[0]} onClick={function() { setRole(r[0]); }} />;
       })}
       <div style={{ height: 20 }} />
-      <PrimaryBtn onClick={createPlan} disabled={!role || saving}>
-        {saving ? 'Building your plan...' : 'Continue'}
-      </PrimaryBtn>
+      <PrimaryBtn label={saving ? 'Building your plan...' : 'Continue'} onClick={createPlan} disabled={!role || saving} />
     </Shell>
   );
 
-  // ── SCREEN 5: Command view ───────────────────────────────────────────────────
-  if (step === 5) return (
-    <Shell step={5} total={4} hideProgress>
-      {feedback ? (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: SAGE, color: '#fff', borderRadius: 12, padding: '11px 22px', fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', whiteSpace: 'nowrap' }}>
-          {feedback}
-        </div>
-      ) : null}
+  // ── RESULTS: First 24 Hours Command View ───────────────────────────────────
+  if (step === 'results') return (
+    <Shell step={5} total={4} bare>
+      <Toast msg={toast} />
 
-      <div style={{ marginBottom: 18 }}>
-        <div style={{ background: bannerBg, border: '1px solid ' + bannerBorder, borderRadius: 13, padding: '14px 16px', marginBottom: 16 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: bannerColor, marginBottom: 4 }}>{bannerText}</div>
-          {!allHandled && (
-            <div style={{ fontSize: 13, color: MID, lineHeight: 1.55 }}>
-              Here is what matters first for {name}. Tap any item to see what to do and why.
-            </div>
-          )}
-        </div>
+      <ReassuranceBanner outcomes={outcomes} isReturn={isReturn} />
 
-        <div style={{ fontSize: 16, fontWeight: 700, color: INK, marginBottom: 12 }}>Here's what matters first</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: T.ink, marginBottom: 12 }}>Here's what matters first</div>
 
-        {outcomes.map(function(outcome, i) {
-          return (
+      {outcomes.map(function(outcome, i) {
+        return (
+          <div key={outcome.id} id={'outcome-' + i}>
             <OutcomeCard
-              key={outcome.id}
               outcome={outcome}
+              index={i}
               expanded={expanded === i}
-              showAssign={showAssign === i}
-              onToggle={function() { setExpanded(expanded === i ? -1 : i); setShowAssign(-1); }}
-              onMarkHandled={function() { updateOutcome(i, { status: 'handled' }); }}
-              onStarted={function() { updateOutcome(i, { status: 'in_progress' }); }}
-              onAssignOpen={function() { setShowAssign(i); setExpanded(i); }}
-              onAssignClose={function() { setShowAssign(-1); }}
-              onAssignSave={function(ownerName) {
-                updateOutcome(i, { owner: ownerName, status: ownerName ? (outcomes[i].status === 'needs_owner' ? 'not_started' : outcomes[i].status) : 'needs_owner' });
-              }}
+              showOwner={showOwner === i}
+              lastAction={lastActions[i]}
+              onToggle={function() { setExpanded(expanded === i ? -1 : i); setShowOwner(-1); }}
+              onAssign={function() { setShowOwner(i); setExpanded(i); }}
+              onAssignClose={function() { setShowOwner(-1); }}
+              onAssignSave={function(name) { handleAssignSave(i, name); }}
+              onStart={function() { handleStart(i); }}
+              onHandled={function() { handleHandled(i); }}
             />
-          );
-        })}
-
-        <div style={{ marginTop: 12, padding: '14px 16px', background: SUBTLE, borderRadius: 12 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: MID, marginBottom: 8 }}>Up next</div>
-          {[
-            'Gather important documents',
-            'Begin service planning',
-          ].map(function(t, i) {
-            return (
-              <div key={i} style={{ fontSize: 13, color: SOFT, padding: '6px 0', borderTop: i > 0 ? '1px solid ' + BORDER : 'none', lineHeight: 1.4 }}>{t}</div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 10 }}>
-        {allHandled ? (
-          <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '16px', marginBottom: 14, textAlign: 'center' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: SAGE, marginBottom: 4 }}>You're in a good place for now.</div>
-            <div style={{ fontSize: 14, color: MID, lineHeight: 1.6 }}>We'll guide you through what comes next when you're ready.</div>
           </div>
-        ) : (
-          <PrimaryBtn onClick={function() {
-            if (firstIncomplete >= 0) { setExpanded(firstIncomplete); }
-            else if (estateId) { window.location.href = '/estate?id=' + estateId; }
-            else { window.location.href = '/'; }
-          }}>
-            Start with the first item
-          </PrimaryBtn>
-        )}
-      </div>
+        );
+      })}
+
+      <CollapsedNextSection />
+
+      {/* Pause state */}
+      {showPause && (
+        <div style={{ background: T.sageFaint, border: '1px solid ' + T.sageLight, borderRadius: 13, padding: '14px 16px', marginBottom: 14, textAlign: 'center' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: T.sage, marginBottom: 4 }}>You're in a good place for now.</div>
+          <div style={{ fontSize: 13, color: T.mid, lineHeight: 1.6 }}>Nothing urgent is missing. Take a breath when you need to.</div>
+        </div>
+      )}
+
+      <PrimaryCTA outcomes={outcomes} onScrollTo={scrollToCard} />
 
       <button onClick={function() { window.location.href = estateId ? '/estate?id=' + estateId : '/'; }}
-        style={{ width: '100%', padding: '14px', borderRadius: 13, border: '1.5px solid ' + BORDER, background: CARD, color: MID, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 50 }}>
+        style={{ width: '100%', padding: '14px', borderRadius: 13, border: '1.5px solid ' + T.border, background: T.card, color: T.mid, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 50 }}>
         Get help coordinating
       </button>
 
-      <div style={{ fontSize: 12, color: SOFT, textAlign: 'center', marginTop: 16, lineHeight: 1.65 }}>
-        Your plan is saved. You can come back anytime and pick up where you left off.
+      <div style={{ fontSize: 11.5, color: T.soft, textAlign: 'center', marginTop: 16, lineHeight: 1.65 }}>
+        Your plan is saved. Come back anytime and pick up where you left off.
       </div>
     </Shell>
   );
