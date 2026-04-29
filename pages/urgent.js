@@ -132,126 +132,116 @@ function Option({ label, sub, selected, onClick }) {
 }
 
 // ── 1. REASSURANCE BLOCK ───────────────────────────────────────────────────────
-// Dominant. Most whitespace. Visually larger than any card. Anchors emotional state.
+// Dominant. Anchors emotional state. Always shows both lines.
+// No variation unless critical owner missing.
 function ReassuranceBlock({ outcomes, isReturn }) {
   var criticalNeedsOwner = outcomes.filter(function(o) { return o.priority === 'critical' && o.status === 'needs_owner'; }).length;
 
-  var headline = isReturn
+  var headline = criticalNeedsOwner > 0
     ? "You're still on track."
     : "You're on track.";
-
   var sub = criticalNeedsOwner > 0
     ? "A few things need an owner before they're fully handled."
-    : isReturn
-    ? "Nothing urgent has been missed. Pick up where you left off."
-    : "Nothing urgent is missing right now. We'll walk you through what matters next.";
+    : "Nothing urgent is missing right now.";
 
   return (
-    <div style={{ paddingTop: 16, paddingBottom: 36, borderBottom: '1px solid ' + T.border, marginBottom: 32 }}>
+    <div style={{ paddingTop: 16, paddingBottom: 32, borderBottom: '1px solid ' + T.border, marginBottom: 30 }}>
       <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: T.ink, lineHeight: 1.25, marginBottom: 10, fontWeight: 400 }}>{headline}</div>
-      <div style={{ fontSize: 15, color: T.mid, lineHeight: 1.75 }}>{sub}</div>
+      <div style={{ fontSize: 15, color: T.mid, lineHeight: 1.75, marginBottom: 4 }}>{sub}</div>
+      <div style={{ fontSize: 15, color: T.mid, lineHeight: 1.75 }}>We'll walk you through what matters next.</div>
     </div>
   );
 }
 
 // ── 2. PRIMARY FOCUS CARD ─────────────────────────────────────────────────────
-// ONLY ONE outcome in full detail. This is the "Now" item.
-// All other outcomes must not compete visually.
+// ONLY ONE outcome. Dominant. "Start here" is the largest label on the page.
+// One action. No scanning. No competing elements.
 function PrimaryFocusCard({ outcome, onStart, onAssign, onAssignSave, onAssignClose, onHandled, showAssign, feedback }) {
   if (!outcome) return null;
   var isHandled = outcome.status === 'handled';
 
   return (
-    <div style={{ background: T.card, border: '1.5px solid ' + (isHandled ? T.sageLight : T.border), borderRadius: 18, overflow: 'hidden', marginBottom: 20, transition: 'all 0.3s' }}>
-      {/* Phase label */}
-      <div style={{ background: isHandled ? T.sageFaint : '#fef2f2', padding: '10px 20px', borderBottom: '1px solid ' + (isHandled ? T.sageLight : '#fde8e8') }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: isHandled ? T.sage : T.rose, letterSpacing: '0.14em' }}>{outcome.phase}</span>
+    <div style={{ background: T.card, border: '1.5px solid ' + (isHandled ? T.sageLight : T.border), borderRadius: 20, overflow: 'hidden', marginBottom: 28, transition: 'opacity 0.25s ease', opacity: isHandled ? 0.82 : 1 }}>
+
+      {/* "Start here" — largest label on the page. Instruction, not category. */}
+      <div style={{ background: isHandled ? T.sageFaint : T.sage, padding: '14px 24px 12px' }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color: isHandled ? T.sage : '#fff', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          {isHandled ? 'Handled' : 'Start here'}
+        </span>
       </div>
 
-      <div style={{ padding: '22px 20px' }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, color: T.ink, marginBottom: 6, lineHeight: 1.3 }}>{outcome.title}</div>
-        <div style={{ fontSize: 14, color: T.mid, marginBottom: 18, lineHeight: 1.6 }}>{outcome.support}</div>
+      <div style={{ padding: '26px 24px 28px' }}>
+        {/* Title */}
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: T.ink, marginBottom: 6, lineHeight: 1.25 }}>{outcome.title}</div>
+        <div style={{ fontSize: 14, color: T.mid, marginBottom: 24, lineHeight: 1.65 }}>{outcome.support}</div>
 
-        {/* Why it matters */}
+        {/* Why it matters — no label, just the content */}
         {!isHandled && (
-          <div style={{ background: T.subtle, borderRadius: 11, padding: '14px 16px', marginBottom: 18 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: T.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Why this matters</div>
-            <div style={{ fontSize: 13.5, color: T.mid, lineHeight: 1.65 }}>{outcome.why}</div>
+          <div style={{ background: T.subtle, borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
+            <div style={{ fontSize: 13.5, color: T.mid, lineHeight: 1.7 }}>{outcome.why}</div>
           </div>
         )}
 
-        {/* Recommended action */}
+        {/* What to do */}
         {!isHandled && outcome.action && (
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: T.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>What to do</div>
-            <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.65 }}>{outcome.action}</div>
+          <div style={{ marginBottom: 22 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: T.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 7 }}>What to do</div>
+            <div style={{ fontSize: 14.5, color: T.ink, lineHeight: 1.65, fontWeight: 500 }}>{outcome.action}</div>
           </div>
         )}
 
-        {/* Owner state */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, padding: '12px 14px', background: T.subtle, borderRadius: 10 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: T.soft, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Owner</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: outcome.owner ? T.ink : T.amber }}>
-            {outcome.owner ? outcome.owner + ' is handling this' : 'No one is handling this yet.'}
-          </span>
-        </div>
+        {/* Owner — always visible, no ambiguity */}
+        {!isHandled && (
+          <div style={{ marginBottom: 22, padding: '13px 16px', background: outcome.owner ? T.sageFaint : T.amberFaint, border: '1px solid ' + (outcome.owner ? T.sageLight : T.amber + '40'), borderRadius: 11 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: outcome.owner ? T.sage : T.amber, lineHeight: 1.5 }}>
+              {outcome.owner
+                ? outcome.owner + " is handling this. You don't need to take this on."
+                : 'No one is handling this yet.'}
+            </div>
+          </div>
+        )}
 
-        {/* Persistent inline feedback — never disappears */}
-        {feedback === 'started' && (
-          <div style={{ background: T.sageFaint, border: '1px solid ' + T.sageLight, borderRadius: 10, padding: '13px 16px', marginBottom: 16 }}>
+        {/* Persistent started feedback */}
+        {feedback === 'started' && !isHandled && (
+          <div style={{ background: T.sageFaint, border: '1px solid ' + T.sageLight, borderRadius: 10, padding: '13px 16px', marginBottom: 18 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: T.sage, marginBottom: 3 }}>You've started this.</div>
             <div style={{ fontSize: 13, color: T.mid }}>We'll keep track of it here.</div>
           </div>
         )}
-        {feedback === 'assigned' && outcome.owner && (
-          <div style={{ background: T.sageFaint, border: '1px solid ' + T.sageLight, borderRadius: 10, padding: '13px 16px', marginBottom: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.sage, marginBottom: 3 }}>{outcome.owner} is handling this.</div>
-            <div style={{ fontSize: 13, color: T.mid }}>You don't need to carry this.</div>
-          </div>
-        )}
 
-        {/* Handled confirmation — persistent */}
+        {/* Handled — close the loop completely */}
         {isHandled && (
-          <div style={{ background: T.sageFaint, border: '1px solid ' + T.sageLight, borderRadius: 12, padding: '18px 20px', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: T.sage, marginBottom: 6 }}>That's taken care of.</div>
-            <div style={{ fontSize: 13, color: T.mid, lineHeight: 1.6 }}>This is handled. Nothing is being missed here.</div>
+          <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, color: T.sage, marginBottom: 8 }}>That's taken care of.</div>
+            <div style={{ fontSize: 14, color: T.mid, lineHeight: 1.65 }}>Nothing else is needed here.</div>
           </div>
         )}
 
-        {/* Single primary action — one button only */}
+        {/* Single primary action — one button, no alternatives visible */}
         {!isHandled && !showAssign && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-            {outcome.status === 'needs_owner' && (
-              <Btn label="Assign owner" onClick={onAssign} />
-            )}
-            {outcome.status === 'not_started' && (
-              <Btn label="Start" onClick={onStart} />
-            )}
-            {outcome.status === 'in_progress' && (
-              <Btn label="Mark as handled" onClick={onHandled} />
-            )}
+          <div style={{ marginTop: 6 }}>
+            {outcome.status === 'needs_owner' && <Btn label="Assign owner" onClick={onAssign} />}
+            {outcome.status === 'not_started' && <Btn label="Start" onClick={onStart} />}
+            {outcome.status === 'in_progress' && <Btn label="Mark as handled" onClick={onHandled} />}
           </div>
         )}
 
-        {/* Inline owner selector */}
+        {/* Owner selector */}
         {showAssign && (
           <div style={{ background: T.subtle, borderRadius: 12, padding: 16, marginTop: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: T.soft, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Who will handle this?</div>
+            <div style={{ fontSize: 14, color: T.mid, marginBottom: 12, lineHeight: 1.55 }}>Who will handle this? Once assigned, it's off your plate.</div>
             <InlineOwner onSave={onAssignSave} onClose={onAssignClose} />
           </div>
         )}
 
-        {/* Reassurance note */}
-        {!isHandled && outcome.reassurance && (
-          <div style={{ fontSize: 12, color: T.soft, marginTop: 14, lineHeight: 1.6, fontStyle: 'italic', textAlign: 'center' }}>
-            {outcome.reassurance}
-          </div>
+        {/* Reassurance — only when unowned */}
+        {!isHandled && !outcome.owner && outcome.reassurance && (
+          <div style={{ fontSize: 12, color: T.soft, marginTop: 14, lineHeight: 1.65, fontStyle: 'italic', textAlign: 'center' }}>{outcome.reassurance}</div>
         )}
       </div>
     </div>
   );
 }
-
 // ── INLINE OWNER ───────────────────────────────────────────────────────────────
 function InlineOwner({ onSave, onClose }) {
   var s = useState(''); var name = s[0]; var setName = s[1];
@@ -295,7 +285,7 @@ function SecondaryCollapsedGroup({ outcomes }) {
         <div style={{ marginTop: 10 }}>
           {outcomes.map(function(o) {
             return (
-              <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: T.card, border: '1px solid ' + T.border, borderRadius: 12, marginBottom: 8, opacity: 0.75 }}>
+              <div key={o.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: T.card, border: '1px solid ' + T.border, borderRadius: 12, marginBottom: 8, opacity: 0.6 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, color: T.soft, letterSpacing: '0.1em', textTransform: 'uppercase', minWidth: 38 }}>{o.phase}</span>
                 <div>
                   <div style={{ fontSize: 13, color: T.mid, fontWeight: 500 }}>{o.title}</div>
@@ -311,38 +301,37 @@ function SecondaryCollapsedGroup({ outcomes }) {
 }
 
 // ── 5. PAUSE BLOCK ─────────────────────────────────────────────────────────────
-// A final state, not a suggestion. Explicit permission to stop.
+// Final state. Not a suggestion. No hedging. Explicit permission to stop.
 function PauseBlock() {
   return (
     <div style={{ background: T.card, border: '1px solid ' + T.border, borderRadius: 16, padding: '24px 22px', marginBottom: 24, textAlign: 'center' }}>
       <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: T.ink, marginBottom: 8, lineHeight: 1.3 }}>
-        You're in a good place for now.
+        You're in a good place for now.<br />Nothing urgent is being missed.
       </div>
-      <div style={{ fontSize: 14, color: T.mid, lineHeight: 1.75 }}>
-        Nothing urgent is being missed.<br />
-        You can stop here and come back anytime.
+      <div style={{ fontSize: 15, color: T.mid, lineHeight: 1.75, marginTop: 10 }}>
+        You can stop here.
       </div>
     </div>
   );
 }
 
 // ── 6. PRIMARY CTA ─────────────────────────────────────────────────────────────
-// Context-aware. Single. Never competing.
+// Single. Context-aware. Short label. Support text below.
 function PrimaryCTA({ primaryHandled, onStart }) {
   if (primaryHandled) {
     return (
-      <div style={{ padding: '16px 20px', borderRadius: 13, background: T.sageFaint, border: '1px solid ' + T.sageLight, textAlign: 'center', marginBottom: 8 }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, color: T.sage }}>You're good for now.</div>
+      <div style={{ padding: '18px 20px', borderRadius: 13, background: T.sageFaint, border: '1px solid ' + T.sageLight, textAlign: 'center', marginBottom: 8 }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 17, color: T.sage }}>You're good for now.</div>
       </div>
     );
   }
   return (
     <div style={{ marginBottom: 8 }}>
       <button onClick={onStart}
-        style={{ width: '100%', padding: '17px', borderRadius: 13, border: 'none', background: T.sage, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'Georgia, serif', minHeight: 56 }}>
+        style={{ width: '100%', padding: '18px', borderRadius: 13, border: 'none', background: T.sage, color: '#fff', fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'Georgia, serif', minHeight: 58 }}>
         Start here
       </button>
-      <div style={{ fontSize: 12, color: T.soft, textAlign: 'center', marginTop: 8 }}>We'll guide you step by step.</div>
+      <div style={{ fontSize: 13, color: T.soft, textAlign: 'center', marginTop: 10 }}>We'll guide you step by step.</div>
     </div>
   );
 }

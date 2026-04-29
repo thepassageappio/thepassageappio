@@ -2140,7 +2140,18 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       {/* ── NAV ── */}
       <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: `radial-gradient(circle at 40% 40%, ${C.sageLight}, ${C.sage}80)`, boxShadow: `0 0 7px ${C.sage}20` }} />
+          <style>{`
+            @keyframes candleFlicker {
+              0%   { box-shadow: 0 0 6px 2px #6b8f7130, 0 0 12px 4px #6b8f7115; opacity: 1; transform: scale(1); }
+              15%  { box-shadow: 0 0 9px 3px #6b8f7145, 0 0 18px 6px #6b8f7120; opacity: 0.92; transform: scale(1.03); }
+              30%  { box-shadow: 0 0 5px 2px #6b8f7120, 0 0 10px 3px #6b8f7110; opacity: 0.97; transform: scale(0.99); }
+              50%  { box-shadow: 0 0 11px 4px #6b8f7150, 0 0 22px 7px #6b8f7125; opacity: 0.89; transform: scale(1.04); }
+              65%  { box-shadow: 0 0 7px 2px #6b8f7135, 0 0 14px 4px #6b8f7118; opacity: 0.95; transform: scale(1.01); }
+              80%  { box-shadow: 0 0 4px 1px #6b8f7115, 0 0 8px 2px #6b8f7108; opacity: 0.98; transform: scale(0.98); }
+              100% { box-shadow: 0 0 6px 2px #6b8f7130, 0 0 12px 4px #6b8f7115; opacity: 1; transform: scale(1); }
+            }
+          `}</style>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: `radial-gradient(circle at 40% 40%, ${C.sageLight}, ${C.sage}80)`, animation: 'candleFlicker 3.8s ease-in-out infinite', cursor: 'pointer' }} />
           <span style={{ fontFamily: 'Georgia, serif', fontSize: 21, color: C.ink }}>Passage</span>
         </div>
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
@@ -2150,7 +2161,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             </button>
           ) : (
             <>
-              <button style={{ background: 'none', border: 'none', fontSize: 13, color: C.mid, cursor: 'pointer', fontFamily: 'inherit' }}>Join beta</button>
+              <button onClick={onDashboard} style={{ background: 'none', border: 'none', fontSize: 13, color: C.mid, cursor: 'pointer', fontFamily: 'inherit' }}>Sign up free</button>
               <button onClick={onDashboard} style={{ background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: C.ink, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                 Sign in
@@ -2161,7 +2172,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       </nav>
 
       {/* ── HERO ── */}
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '52px 24px 20px', textAlign: 'center', ...anim }}>
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '52px 24px 20px', textAlign: 'center', opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(16px)', transition: 'all 0.7s ease' }}>
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 5vw, 52px)', lineHeight: 1.15, color: C.ink, marginBottom: 20, fontWeight: 400 }}>
           When someone dies, your family needs{' '}
           <em style={{ color: C.sage }}>a clear next step.</em>
