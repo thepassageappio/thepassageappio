@@ -433,7 +433,7 @@ export default function UrgentPage() {
     var newStatus = outcomes[i].status === 'needs_owner' ? 'in_progress' : outcomes[i].status;
     updateOutcome(i, { owner: ownerName, status: 'in_progress' });
     setLastActions(function(prev) { var n = Object.assign({}, prev); n[i] = 'assigned'; return n; });
-    showToast('They've got this.')
+    showToast("They've got this.")
     // Persist to DB if estateId exists
     if (estateId && outcomes[i].dbId) {
       sb.from('outcomes').update({ owner_label: ownerName, status: 'in_progress', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
@@ -442,7 +442,7 @@ export default function UrgentPage() {
 
   function handleStart(i) {
     updateOutcome(i, { status: 'in_progress' });
-    showToast('You're moving forward.')
+    showToast("You're moving forward.")
     if (estateId && outcomes[i].dbId) {
       sb.from('outcomes').update({ status: 'in_progress', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
     }
@@ -451,7 +451,7 @@ export default function UrgentPage() {
   function handleHandled(i) {
     updateOutcome(i, { status: 'handled' });
     setLastActions(function(prev) { var n = Object.assign({}, prev); n[i] = 'handled'; return n; });
-    showToast('That's taken care of.')
+    showToast("That's taken care of.")
     if (estateId && outcomes[i].dbId) {
       sb.from('outcomes').update({ status: 'handled', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
     }
