@@ -79,7 +79,7 @@ const PLANS = {
     amount: 7999,
     mode: 'payment',
     priceEnv: 'STRIPE_PRICE_URGENT',
-    impact: '20_donation_grief_support_or_memorial_trees',
+    impact: '15_percent_pledge_grief_support_or_memorial_impact',
   },
   monthly: null,
   semiannual: null,

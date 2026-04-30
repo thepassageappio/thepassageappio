@@ -28,6 +28,36 @@ var AMBER = '#b07d2e';
 var AMBER_FAINT = '#fdf8ee';
 var AMBER_BORDER = 'rgba(176,125,46,0.3)';
 
+var PLAYBOOKS = {
+  funeral: {
+    title: 'Prepare the funeral home call',
+    draft: 'Hello, my name is [your name]. I am calling because [name] has passed away. We need help with transportation and first arrangements. What do you need from us first?',
+    steps: ['Confirm who has authority to speak', 'Ask what documents are needed', 'Write down the next appointment time']
+  },
+  notifications: {
+    title: 'Prepare a family notification',
+    draft: 'I am so sorry to share that [name] has passed away. We are using Passage to coordinate next steps and will share updates here as we have them.',
+    steps: ['Choose the closest people first', 'Review the wording', 'Send only after approval']
+  },
+  documents: {
+    title: 'Gather the right document',
+    draft: 'Please locate the document for this step. If you find a digital copy, upload it to the estate command center before sharing.',
+    steps: ['Find the document or note its location', 'Upload a copy if available', 'Share only after review']
+  },
+  default: {
+    title: 'Prepare the next step',
+    draft: 'Here is the task that needs attention. Review the details, decide who owns it, and mark it handled only when the family has confirmed it is complete.',
+    steps: ['Review what is needed', 'Assign or self-own the task', 'Track the outcome here']
+  }
+};
+
+function playbookFor(outcome) {
+  var key = outcome.category === 'service' ? 'funeral' :
+    outcome.category === 'notifications' ? 'notifications' :
+    outcome.category === 'legal' ? 'documents' : 'default';
+  return PLAYBOOKS[key] || PLAYBOOKS.default;
+}
+
 // ── INLINE ASSIGN ─────────────────────────────────────────────────────────────
 function InlineAssign({ onSave, onClose }) {
   var s = useState(''); var name = s[0]; var setName = s[1];
@@ -100,6 +130,21 @@ function OutcomeCard({ outcome, expanded, showAssign, onToggle, onMarkHandled, o
                 <div style={{ fontSize: 14, color: INK, lineHeight: 1.55 }}>{outcome.recommended_action}</div>
               </div>
             )}
+            <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '13px 14px', marginBottom: 14 }}>
+              {(() => {
+                var p = playbookFor(outcome);
+                return (
+                  <>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Passage prepared this</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: INK, marginBottom: 8 }}>{p.title}</div>
+                    <div style={{ background: CARD, borderRadius: 10, padding: 12, fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 10 }}>{p.draft}</div>
+                    {p.steps.map(function(step, i) {
+                      return <div key={i} style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 3 }}>{i + 1}. {step}</div>;
+                    })}
+                  </>
+                );
+              })()}
+            </div>
             {outcome.status !== 'handled' && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {outcome.status === 'not_started' && (
@@ -167,6 +212,7 @@ export default function EstatePage() {
   var s7 = useState(''); var toast = s7[0]; var setToast = s7[1];
   var s8 = useState(false); var showAnnounce = s8[0]; var setShowAnnounce = s8[1];
   var s9 = useState(false); var showUpNext = s9[0]; var setShowUpNext = s9[1];
+  var s10 = useState([]); var events = s10[0]; var setEvents = s10[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -177,10 +223,12 @@ export default function EstatePage() {
       sb.from('workflows').select('*').eq('id', estateId).single(),
       sb.from('outcomes').select('*').eq('estate_id', estateId).order('position'),
       sb.from('tasks').select('*').eq('workflow_id', estateId).eq('status', 'pending').order('position').limit(20),
+      sb.from('estate_events').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(8),
     ]).then(function(results) {
       if (results[0].data) setEstate(results[0].data);
       if (results[1].data) setOutcomes(results[1].data);
       if (results[2].data) setTasks(results[2].data);
+      if (results[3].data) setEvents(results[3].data);
       setLoading(false);
       // Update last viewed
       sb.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', estateId).then(function() {});
@@ -195,6 +243,12 @@ export default function EstatePage() {
   async function updateOutcome(index, updates) {
     var outcome = outcomes[index];
     await sb.from('outcomes').update(Object.assign({ updated_at: new Date().toISOString() }, updates)).eq('id', outcome.id);
+    var eventTitle = updates.status === 'handled' ? 'Task handled' : updates.owner_label ? 'Owner assigned' : 'Task updated';
+    var eventDescription = updates.owner_label ? outcome.title + ' assigned to ' + updates.owner_label : outcome.title;
+    var eventRow = { estate_id: estateId, event_type: updates.status === 'handled' ? 'task_completed' : updates.owner_label ? 'owner_assigned' : 'task_updated', title: eventTitle, description: eventDescription, actor: updates.owner_label || coordinatorName };
+    sb.from('estate_events').insert([eventRow]).then(function() {
+      setEvents(function(prev) { return [Object.assign({ id: 'local_' + Date.now(), created_at: new Date().toISOString() }, eventRow)].concat(prev).slice(0, 8); });
+    });
     setOutcomes(function(prev) {
       return prev.map(function(o, i) { return i === index ? Object.assign({}, o, updates) : o; });
     });
@@ -292,6 +346,25 @@ export default function EstatePage() {
         </div>
 
         {/* Outcomes — generated from /urgent or empty state */}
+        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 10 }}>Orchestration status</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <div style={{ background: AMBER_FAINT, borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: AMBER }}>{needsOwnerCount}</div>
+              <div style={{ fontSize: 10.5, color: MID }}>Needs owner</div>
+            </div>
+            <div style={{ background: SUBTLE, borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: MID }}>{outcomes.filter(function(o) { return o.status === 'in_progress' || o.status === 'not_started'; }).length}</div>
+              <div style={{ fontSize: 10.5, color: MID }}>In motion</div>
+            </div>
+            <div style={{ background: SAGE_FAINT, borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: SAGE }}>{handledCount}</div>
+              <div style={{ fontSize: 10.5, color: MID }}>Completed</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 12, color: SOFT, marginTop: 10, lineHeight: 1.5 }}>Passage keeps this estate separate from every other estate you manage.</div>
+        </div>
+
         {outcomes.length > 0 ? (
           <>
             <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 12 }}>Here's what matters first</div>
@@ -379,6 +452,21 @@ export default function EstatePage() {
             onClick={function() { window.location.href = '/'; }}
           />
         </div>
+
+        {events.length > 0 && (
+          <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 10 }}>Activity history</div>
+            {events.slice(0, 5).map(function(e) {
+              return (
+                <div key={e.id} style={{ borderTop: '1px solid ' + BORDER, padding: '9px 0' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>{e.title}</div>
+                  {e.description && <div style={{ fontSize: 12, color: MID, lineHeight: 1.45 }}>{e.description}</div>}
+                  <div style={{ fontSize: 10.5, color: SOFT, marginTop: 2 }}>{new Date(e.created_at).toLocaleString()}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Primary CTA */}
         {!allHandled && firstIncomplete >= 0 && (

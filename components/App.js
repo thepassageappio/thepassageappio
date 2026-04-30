@@ -34,6 +34,24 @@ const PLAN_OPTIONS = [
   { id: "couple_monthly", label: "Couple Monthly", price: "$14.99", per: "/month", badge: "Two estates, monthly", group: "Monthly" },
   { id: "family_monthly", label: "Family Monthly", price: "$24.99", per: "/month", badge: "Up to five estates, monthly", group: "Monthly" },
 ];
+const PLAN_SEATS = {
+  free: 1,
+  monthly: 1,
+  annual: 1,
+  lifetime: 1,
+  semiannual: 1,
+  single_monthly: 1,
+  single_annual: 1,
+  single_lifetime: 1,
+  couple_monthly: 2,
+  couple_annual: 2,
+  family_monthly: 5,
+  family_annual: 5,
+};
+const ADDON_OPTIONS = [
+  { id: "addon_monthly", label: "Add one estate", price: "$4.99", per: "/month" },
+  { id: "addon_annual", label: "Add one estate", price: "$39.99", per: "/year" },
+];
 // ─── TASK DATA — 47 research-backed post-death tasks ─────────────────────────
 const POST_DEATH_TASKS = [
   {
@@ -246,6 +264,7 @@ const savePerson = async (userId, person) => {
   const nameParts = (person.name || '').trim().split(' ');
   const firstName = nameParts[0] || person.name;
   const lastName = nameParts.slice(1).join(' ') || '';
+  const inviteToken = person.invitation_token || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`);
   if (userId && person.id) {
     const { data, error } = await supabase.from('people').update({
       first_name: firstName,
@@ -254,6 +273,8 @@ const savePerson = async (userId, person) => {
       phone: person.phone || null,
       relationship: person.role || null,
       notify_on_trigger: true,
+      estate_role_label: person.role || null,
+      participant_discount_offered: true,
       updated_at: new Date().toISOString(),
     }).eq('id', person.id).eq('owner_id', userId).select().single();
     if (!error) return data;
@@ -275,6 +296,8 @@ const savePerson = async (userId, person) => {
         phone: person.phone || existing.phone || null,
         relationship: person.role || existing.relationship || null,
         notify_on_trigger: true,
+        estate_role_label: person.role || existing.estate_role_label || null,
+        participant_discount_offered: true,
         updated_at: new Date().toISOString(),
       }).eq('id', existing.id).select().single();
       if (!error) return data;
@@ -289,6 +312,10 @@ const savePerson = async (userId, person) => {
     relationship: person.role || null,
     role: 'recipient',
     notify_on_trigger: true,
+    invitation_token: inviteToken,
+    participant_status: 'not_invited',
+    participant_discount_offered: true,
+    estate_role_label: person.role || null,
   }]).select().single();
   if (error) {
     // If conflict (same person already exists), fetch them instead
@@ -399,6 +426,18 @@ const handleCheckout = async (planId, userId, userEmail, workflowId = null) => {
     alert(err.message || 'Checkout could not be started. Please try again.');
   }
 };
+
+const getEstateSeatLimit = (userData) => {
+  const fromDb = Number(userData?.estate_seats_total || 0);
+  if (fromDb > 0) return fromDb;
+  return PLAN_SEATS[userData?.plan || 'free'] || 1;
+};
+
+const getUsedGreenSeatCount = (workflows) => workflows.filter(w =>
+  w.status !== 'archived' &&
+  w.path === 'green' &&
+  (w.seat_status || 'active') !== 'archived'
+).length;
 
 const shorten = (value, max) => {
   const text = String(value || '').replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim();
@@ -2256,6 +2295,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const pd = planMap[plan] || planMap.free;
   const redWorkflows = workflows.filter(w => w.status !== 'archived' && w.path !== 'green');
   const greenWorkflows = workflows.filter(w => w.status !== 'archived' && w.path === 'green');
+  const estateSeatLimit = getEstateSeatLimit(userData);
+  const usedGreenSeats = getUsedGreenSeatCount(workflows);
+  const availableGreenSeats = Math.max(0, estateSeatLimit - usedGreenSeats);
+  const isPaidPlan = plan !== 'free' && userData?.plan_status === 'active';
 
   const saveWishes = async () => {
     if (!user) return;
@@ -2319,7 +2362,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                 <div style={{ fontSize: 18, fontWeight: 800, color: pd.color }}>{pd.price}</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: plan === 'free' ? 12 : 0 }}>
-                {[{l:"Status",v:userData?.plan_status === 'active' ? '✓ Active' : 'Free'},{l:"Next Charge",v:pd.nextCharge},{l:"Renewal",v:pd.renewal}].map(i => (
+                {[{l:"Status",v:userData?.plan_status === 'active' ? '✓ Active' : 'Free'},{l:"Estate Seats",v:`${usedGreenSeats}/${estateSeatLimit} used`},{l:"Renewal",v:pd.renewal}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 9, padding: "9px 11px" }}>
                     <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600, marginBottom: 3 }}>{i.l}</div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.ink }}>{i.v}</div>
@@ -2366,8 +2409,19 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                 </div>
               )}
               {plan !== 'free' && (
-                <div style={{ background: C.sageFaint, borderRadius: 10, padding: "10px 14px", fontSize: 12, color: C.sage, fontWeight: 600 }}>
-                  ✓ Active plan — full access
+                <div style={{ background: C.sageFaint, borderRadius: 10, padding: "10px 14px", fontSize: 12, color: C.sage, fontWeight: 600, lineHeight: 1.5 }}>
+                  ✓ Active plan — {availableGreenSeats > 0 ? `${availableGreenSeats} estate slot${availableGreenSeats === 1 ? '' : 's'} available` : 'all estate slots are currently used'}
+                </div>
+              )}
+              {plan !== 'free' && (
+                <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+                  {ADDON_OPTIONS.map(option => (
+                    <button key={option.id} onClick={() => handleCheckout(option.id, user && user.id, user && user.email)}
+                      style={{ textAlign: "left", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 11, padding: "10px 11px", cursor: "pointer", fontFamily: "inherit" }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{option.label}</div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: C.sage }}>{option.price}<span style={{ fontSize: 10.5, color: C.mid }}> {option.per}</span></div>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -2426,11 +2480,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
               </div>
             )}
 
-            {/* Green path advance plans */}
-            {greenWorkflows.length > 0 && (
+            {/* Green path estate slots */}
+            {estateSeatLimit > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-                <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Your advance plans</div>
-                <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>Activates automatically when two people confirm</div>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Your planning estate slots</div>
+                <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>
+                  {usedGreenSeats} of {estateSeatLimit} planning estate slots in use. Each estate is configured independently.
+                </div>
                 {greenWorkflows.map((wf) => {
                   const wfId = wf.id;
                   const wfName = wf.name;
@@ -2467,6 +2523,31 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                     </div>
                   );
                 })}
+                {Array.from({ length: Math.max(0, estateSeatLimit - greenWorkflows.length) }).map((_, i) => (
+                  <button key={`slot-${i}`} onClick={isPaidPlan || greenWorkflows.length === 0 ? onStartPlan : undefined}
+                    style={{ width: "100%", background: i === 0 && greenWorkflows.length === 0 ? C.sageFaint : C.bgSubtle, border: `1px dashed ${i === 0 && greenWorkflows.length === 0 ? C.sageLight : C.border}`, borderRadius: 12, padding: "13px 14px", cursor: isPaidPlan || greenWorkflows.length === 0 ? "pointer" : "default", fontFamily: "inherit", textAlign: "left", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink }}>
+                          {greenWorkflows.length === 0 && i === 0 ? "Starter planning estate" : `Available estate slot ${greenWorkflows.length + i + 1}`}
+                        </div>
+                        <div style={{ fontSize: 11.5, color: C.mid, marginTop: 3, lineHeight: 1.45 }}>
+                          {greenWorkflows.length === 0 && i === 0
+                            ? "Visible before payment. Build the plan, then unlock full orchestration at checkout."
+                            : "Set up this estate separately when you are ready."}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: C.sage, background: C.sageFaint, borderRadius: 7, padding: "3px 9px" }}>
+                        {isPaidPlan || greenWorkflows.length === 0 ? "Set up" : "Locked"}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+                {plan === 'free' && greenWorkflows.length > 0 && (
+                  <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.amber, lineHeight: 1.5 }}>
+                    Upgrade to unlock additional estate slots for a spouse, parent, or family plan.
+                  </div>
+                )}
               </div>
             )}
 
@@ -2822,6 +2903,19 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       </div>
 
       {/* ── TESTIMONIALS ── */}
+      <div style={{ maxWidth: 820, margin: '0 auto', padding: '58px 24px 28px' }}>
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 18, padding: '28px 30px', boxShadow: '0 10px 34px rgba(55,45,35,.05)' }}>
+          <div style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 12 }}>Our mission</div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: C.ink, lineHeight: 1.22, marginBottom: 14 }}>Passage was created because families deserve more than a folder, a checklist, and a dozen disconnected phone calls.</div>
+          <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.85 }}>
+            The idea came from real moments: planning a grandmother's prepaid funeral, trying to understand Medicaid rules, sitting across from funeral homes, and watching friends and family lose loved ones without knowing where to start. Again and again, the burden fell on grieving people while the system around them stayed fragmented.
+          </div>
+          <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.85, marginTop: 12 }}>
+            Passage exists to take ownership of that transition. We help families prepare before a death, respond when one happens, coordinate the people involved, and keep track of what has been sent, approved, completed, and still needs care. Our mission is simple: no family should have to become an operations manager in the middle of grief.
+          </div>
+        </div>
+      </div>
+
       <div style={{ maxWidth: 980, margin: '0 auto', padding: '58px 24px 42px' }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, color: C.ink, lineHeight: 1.25, marginBottom: 10 }}>Plans for one estate, a couple, or a family</div>

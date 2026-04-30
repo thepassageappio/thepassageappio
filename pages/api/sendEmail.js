@@ -111,6 +111,8 @@ function assignmentEmail(name, task, deceased, coordinator, serviceBlock) {
     '<div class="task"><div class="task-label">Your task</div><div class="task-title">' + (task || 'Estate coordination') + '</div></div>' +
     serviceBlock +
     '<p class="p">You will receive full details when the plan activates. Nothing is required from you right now.</p>' +
+    '<a href="' + SITE_URL + '" class="btn">Create your Passage account</a>' +
+    '<p class="p" style="font-size:12px;color:#a09890;">You can see estates where you have a role, complete assigned tasks, and start your own plan with participant pricing when available.</p>' +
     '<p class="p">Questions? Reach out to ' + coordinator + ' directly.</p>'
   );
 }
@@ -123,6 +125,7 @@ function triggerEmail(name, deceased, coordinator, serviceBlock) {
     '<p class="p">' + name + ', you have been designated to help coordinate the estate of ' + deceased + '. Your full task list is ready.</p>' +
     serviceBlock +
     '<a href="' + SITE_URL + '" class="btn">View your task list</a>' +
+    '<p class="p" style="font-size:12px;color:#a09890;">Once you create an account, Passage can show every estate where you have a role in one place.</p>' +
     '<p class="p" style="margin-top:16px;">Questions? Reach out to ' + coordinator + ' directly.</p>'
   );
 }
@@ -134,6 +137,7 @@ function inviteEmail(name, deceased, coordinator, confirmUrl) {
     '<p class="p">' + coordinator + ' has set up an advance estate plan through Passage for ' + deceased + '.</p>' +
     '<p class="p">When the time comes, you will receive a secure link to confirm. Once two people confirm, the plan activates and all assigned contacts are notified automatically.</p>' +
     (confirmUrl ? '<a href="' + confirmUrl + '" class="btn">View confirmation page</a>' : '') +
+    '<p class="p">You can also create your own Passage account to see estate roles assigned to you and start a plan for your own family.</p>' +
     '<p class="p" style="color:#a09890;font-size:12px;margin-top:16px;">You do not need to do anything right now.</p>'
   );
 }

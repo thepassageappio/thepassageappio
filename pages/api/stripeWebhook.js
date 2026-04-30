@@ -40,10 +40,135 @@ function verifyStripeSignature(raw, header, secret) {
 
 async function updateUserPlan(userId, updates) {
   if (!userId) return;
-  await sb.from('users').update({
+  const { error } = await sb.from('users').update({
     ...updates,
     updated_at: new Date().toISOString(),
   }).eq('id', userId);
+  if (error) throw error;
+}
+
+function seatsForPlan(planId) {
+  const seats = {
+    single_monthly: 1,
+    single_annual: 1,
+    single_lifetime: 1,
+    monthly: 1,
+    annual: 1,
+    lifetime: 1,
+    semiannual: 1,
+    couple_monthly: 2,
+    couple_annual: 2,
+    family_monthly: 5,
+    family_annual: 5,
+  };
+  return seats[planId] || 1;
+}
+
+function amountForPlan(planId, fallback) {
+  const amounts = {
+    single_monthly: 999,
+    single_annual: 7999,
+    single_lifetime: 29999,
+    monthly: 999,
+    annual: 7999,
+    lifetime: 29999,
+    semiannual: 4999,
+    couple_monthly: 1499,
+    couple_annual: 11999,
+    family_monthly: 2499,
+    family_annual: 19999,
+    addon_monthly: 499,
+    addon_annual: 3999,
+    urgent: 7999,
+  };
+  return amounts[planId] || fallback || 0;
+}
+
+function isAddon(planId, metadata) {
+  return planId === 'addon_monthly' || planId === 'addon_annual' || metadata?.addOn === 'true';
+}
+
+async function recordEntitlement(userId, session) {
+  if (!userId) return;
+  const metadata = session.metadata || {};
+  const planId = metadata.planId || 'paid';
+  const addon = isAddon(planId, metadata);
+  const estateSeats = addon ? 0 : Number(metadata.estateSeats || seatsForPlan(planId));
+  const addonSeats = addon ? Number(metadata.estateSeats || 1) : 0;
+
+  const entitlement = {
+    user_id: userId,
+    plan_id: planId,
+    source: 'stripe',
+    stripe_customer_id: session.customer || null,
+    stripe_subscription_id: session.subscription || null,
+    stripe_session_id: session.id || null,
+    estate_seats: estateSeats,
+    addon_seats: addonSeats,
+    status: 'active',
+    updated_at: new Date().toISOString(),
+  };
+
+  const lookupColumn = session.subscription ? 'stripe_subscription_id' : 'stripe_session_id';
+  const lookupValue = session.subscription || session.id;
+  const { data: existing } = await sb
+    .from('account_entitlements')
+    .select('id')
+    .eq(lookupColumn, lookupValue)
+    .maybeSingle();
+
+  if (existing?.id) {
+    await sb.from('account_entitlements').update(entitlement).eq('id', existing.id);
+  } else {
+    await sb.from('account_entitlements').insert([{
+      ...entitlement,
+      created_at: new Date().toISOString(),
+    }]);
+  }
+
+  if (addon) {
+    const { data: userRow } = await sb.from('users').select('estate_seats_addon').eq('id', userId).single();
+    await updateUserPlan(userId, {
+      estate_seats_addon: (userRow?.estate_seats_addon || 0) + addonSeats,
+      plan_status: 'active',
+      stripe_customer_id: session.customer || null,
+    });
+    return;
+  }
+
+  await updateUserPlan(userId, {
+    plan: planId,
+    plan_status: 'active',
+    estate_seats_included: estateSeats,
+    plan_activated_at: new Date().toISOString(),
+    stripe_customer_id: session.customer || null,
+    stripe_subscription_id: session.subscription || null,
+  });
+}
+
+async function recordImpactCommitment(userId, session) {
+  const metadata = session.metadata || {};
+  const planId = metadata.planId;
+  if (planId !== 'urgent') return;
+  const sourceAmount = amountForPlan(planId, session.amount_total || 7999);
+  const pledgeAmount = Math.round(sourceAmount * 0.15);
+  const workflowId = metadata.workflowId || null;
+  let honoreeName = null;
+  if (workflowId) {
+    const { data } = await sb.from('workflows').select('deceased_name,name').eq('id', workflowId).single();
+    honoreeName = data?.deceased_name || data?.name || null;
+  }
+  await sb.from('impact_commitments').insert([{
+    workflow_id: workflowId,
+    user_id: userId || null,
+    source_plan_id: planId,
+    source_amount_cents: sourceAmount,
+    pledge_percent: 15,
+    pledge_amount_cents: pledgeAmount,
+    honoree_name: honoreeName,
+    charity_category: 'grief_support',
+    status: 'pledged',
+  }]);
 }
 
 async function updateWorkflowAfterCheckout(metadata) {
@@ -53,8 +178,20 @@ async function updateWorkflowAfterCheckout(metadata) {
   await sb.from('workflows').update({
     path,
     status: path === 'red' ? 'active' : 'ready',
+    seat_status: 'active',
+    setup_stage: path === 'red' ? 'active' : 'ready',
+    activation_status: path === 'red' ? 'activated' : 'ready',
+    entitlement_source: metadata.planId || null,
     updated_at: new Date().toISOString(),
   }).eq('id', workflowId);
+
+  await sb.from('estate_events').insert([{
+    estate_id: workflowId,
+    event_type: 'checkout_completed',
+    title: path === 'red' ? 'Urgent estate plan activated' : 'Planning estate unlocked',
+    description: metadata.planId ? `Plan: ${metadata.planId}` : null,
+    actor: 'Passage',
+  }]);
 }
 
 export default async function handler(req, res) {
@@ -75,14 +212,9 @@ export default async function handler(req, res) {
     if (event.type === 'checkout.session.completed') {
       const userId = object.metadata && object.metadata.userId;
       const planId = object.metadata && object.metadata.planId;
-      await updateUserPlan(userId, {
-        plan: planId || 'paid',
-        plan_status: 'active',
-        plan_activated_at: new Date().toISOString(),
-        stripe_customer_id: object.customer || null,
-        stripe_subscription_id: object.subscription || null,
-      });
+      await recordEntitlement(userId, object);
       await updateWorkflowAfterCheckout(object.metadata || {});
+      await recordImpactCommitment(userId, object);
     }
 
     if (event.type === 'customer.subscription.deleted') {
