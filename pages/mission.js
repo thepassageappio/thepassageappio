@@ -8,8 +8,9 @@ export default function MissionPage() {
       <nav style={{ maxWidth: 980, margin: '0 auto', padding: '22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Link href="/" style={{ color: C.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
         <div style={{ display: 'flex', gap: 14, fontSize: 13 }}>
+          <Link href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</Link>
+          <Link href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</Link>
           <Link href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</Link>
-          <Link href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Content</Link>
           <Link href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</Link>
         </div>
       </nav>

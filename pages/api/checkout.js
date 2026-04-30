@@ -17,13 +17,6 @@ const PLANS = {
     estateSeats: 1,
     priceEnv: ['STRIPE_PRICE_SINGLE_ANNUAL', 'STRIPE_PRICE_PLANNING_SINGLE_ANNUAL', 'STRIPE_PRICE_ANNUAL_GREEN', 'STRIPE_PRICE_ANNUAL'],
   },
-  single_lifetime: {
-    label: 'Passage Single Estate Lifetime',
-    amount: 29999,
-    mode: 'payment',
-    estateSeats: 1,
-    priceEnv: ['STRIPE_PRICE_SINGLE_LIFETIME', 'STRIPE_PRICE_PLANNING_SINGLE_LIFETIME', 'STRIPE_PRICE_LIFETIME_GREEN', 'STRIPE_PRICE_LIFETIME'],
-  },
   couple_monthly: {
     label: 'Passage Couple Monthly',
     amount: 1499,
@@ -40,13 +33,6 @@ const PLANS = {
     estateSeats: 2,
     priceEnv: ['STRIPE_PRICE_COUPLE_ANNUAL', 'STRIPE_PRICE_PLANNING_COUPLE_ANNUAL'],
   },
-  couple_lifetime: {
-    label: 'Passage Couple Lifetime',
-    amount: 44999,
-    mode: 'payment',
-    estateSeats: 2,
-    priceEnv: ['STRIPE_PRICE_COUPLE_LIFETIME', 'STRIPE_PRICE_PLANNING_COUPLE_LIFETIME'],
-  },
   family_monthly: {
     label: 'Passage Family Steward Monthly',
     amount: 2499,
@@ -62,13 +48,6 @@ const PLANS = {
     interval: 'year',
     estateSeats: 5,
     priceEnv: ['STRIPE_PRICE_FAMILY_ANNUAL', 'STRIPE_PRICE_PLANNING_FAMILY_ANNUAL'],
-  },
-  family_lifetime: {
-    label: 'Passage Family Steward Lifetime',
-    amount: 79999,
-    mode: 'payment',
-    estateSeats: 5,
-    priceEnv: ['STRIPE_PRICE_FAMILY_LIFETIME', 'STRIPE_PRICE_PLANNING_FAMILY_LIFETIME'],
   },
   addon_monthly: {
     label: 'Passage Additional Estate Monthly',
@@ -98,12 +77,10 @@ const PLANS = {
   monthly: null,
   semiannual: null,
   annual: null,
-  lifetime: null,
 };
 
 PLANS.monthly = PLANS.single_monthly;
 PLANS.annual = PLANS.single_annual;
-PLANS.lifetime = PLANS.single_lifetime;
 PLANS.semiannual = {
   label: 'Passage Semi-Annual',
   amount: 4999,
@@ -120,6 +97,30 @@ function getConfiguredPrice(plan) {
     if (process.env[key]) return { key, value: process.env[key].trim() };
   }
   return { key: keys[0], value: '' };
+}
+
+function getParticipantDiscount(plan) {
+  if (plan.mode !== 'subscription' || plan.addOn || planIdIsUrgent(plan)) return null;
+
+  const keys = plan.interval === 'year'
+    ? ['STRIPE_PROMOTION_CODE_PARTICIPANT_ANNUAL', 'STRIPE_PROMO_PARTICIPANT_ANNUAL', 'STRIPE_COUPON_PARTICIPANT_ANNUAL']
+    : ['STRIPE_PROMOTION_CODE_PARTICIPANT_MONTHLY', 'STRIPE_PROMO_PARTICIPANT_MONTHLY', 'STRIPE_COUPON_PARTICIPANT_MONTHLY'];
+
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (value) {
+      return {
+        key,
+        param: key.includes('COUPON') ? 'discounts[0][coupon]' : 'discounts[0][promotion_code]',
+        value,
+      };
+    }
+  }
+  return null;
+}
+
+function planIdIsUrgent(plan) {
+  return plan.label === PLANS.urgent.label;
 }
 
 function dollars(cents) {
@@ -169,7 +170,7 @@ async function validateConfiguredPrice(priceId, plan, planId, envKey) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { planId, userId, userEmail, workflowId } = req.body || {};
+  const { planId, userId, userEmail, workflowId, participantDiscount } = req.body || {};
   const plan = PLANS[planId];
 
   if (!plan) return res.status(400).json({ error: 'Unknown plan' });
@@ -190,10 +191,18 @@ export default async function handler(req, res) {
       'metadata[workflowId]': workflowId || '',
       'metadata[estateSeats]': String(plan.estateSeats || 1),
       'metadata[addOn]': plan.addOn ? 'true' : 'false',
+      'metadata[participantDiscountRequested]': participantDiscount ? 'true' : 'false',
       'line_items[0][quantity]': '1',
-      allow_promotion_codes: 'true',
       submit_type: plan.mode === 'subscription' ? 'subscribe' : 'pay',
     });
+
+    const participantPromo = participantDiscount ? getParticipantDiscount(plan) : null;
+    if (participantPromo) {
+      body.set(participantPromo.param, participantPromo.value);
+      body.set('metadata[participantDiscountApplied]', participantPromo.key);
+    } else {
+      body.set('allow_promotion_codes', 'true');
+    }
 
     if (plan.impact) body.set('metadata[impact]', plan.impact);
 

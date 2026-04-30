@@ -46,7 +46,7 @@ var PLAYBOOKS = {
   },
   default: {
     title: 'Prepare the next step',
-    draft: 'Here is the task that needs attention. Review the details, decide who owns it, and mark it handled only when the family has confirmed it is complete.',
+    draft: 'Here is the task that needs attention. Review the details, decide who owns it, and mark it handled only when the family has confirmed it is taken care of.',
     steps: ['Review what is needed', 'Assign or self-own the task', 'Track the outcome here']
   }
 };
@@ -359,7 +359,7 @@ export default function EstatePage() {
             </div>
             <div style={{ background: SAGE_FAINT, borderRadius: 10, padding: 10 }}>
               <div style={{ fontSize: 18, fontWeight: 800, color: SAGE }}>{handledCount}</div>
-              <div style={{ fontSize: 10.5, color: MID }}>Completed</div>
+              <div style={{ fontSize: 10.5, color: MID }}>Handled</div>
             </div>
           </div>
           <div style={{ fontSize: 12, color: SOFT, marginTop: 10, lineHeight: 1.5 }}>Passage keeps this estate separate from every other estate you manage.</div>
@@ -404,7 +404,7 @@ export default function EstatePage() {
             </>
           ) : (
             <div style={{ background: SUBTLE, borderRadius: 14, padding: '24px', textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 14, color: SOFT, lineHeight: 1.7 }}>No outcomes yet. Complete the intake flow to generate your first 24-hour plan.</div>
+              <div style={{ fontSize: 14, color: SOFT, lineHeight: 1.7 }}>No outcomes yet. Finish the intake flow to generate your first 24-hour plan.</div>
               <button onClick={function() { window.location.href = '/urgent'; }}
                 style={{ marginTop: 14, padding: '11px 20px', borderRadius: 11, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Georgia, serif' }}>
                 Start urgent intake

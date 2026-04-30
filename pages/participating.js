@@ -79,6 +79,7 @@ export default function ParticipatingPage() {
         <Link href="/" style={{ color: C.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
         <div style={{ display: 'flex', gap: 14, fontSize: 13, alignItems: 'center' }}>
           <Link href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</Link>
+          <Link href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</Link>
           <Link href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</Link>
           {user && <button onClick={signOut} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '7px 12px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Sign out</button>}
         </div>
@@ -156,9 +157,9 @@ export default function ParticipatingPage() {
 
             <aside style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, alignSelf: 'start' }}>
               <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>Planning for your own family?</div>
-              <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7 }}>Participants are often the people who understand the value first. Passage can offer participant pricing when discounts are enabled.</p>
+              <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7 }}>Participants are often the people who understand the value first. When participant pricing is enabled, Passage can offer a quieter discounted path to set up their own family plan.</p>
               {data.discountEligible && <div style={{ background: C.sageFaint, color: C.sage, borderRadius: 12, padding: 12, fontSize: 13, fontWeight: 800, marginBottom: 12 }}>Participant discount eligible</div>}
-              <Link href="/" style={{ display: 'block', textAlign: 'center', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', textDecoration: 'none', fontWeight: 800 }}>Join Passage</Link>
+              <Link href="/pricing?participant=1" style={{ display: 'block', textAlign: 'center', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', textDecoration: 'none', fontWeight: 800 }}>See participant pricing</Link>
             </aside>
           </div>
         )}

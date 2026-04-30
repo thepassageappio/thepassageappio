@@ -58,10 +58,8 @@ function seatsForPlan(planId) {
     semiannual: 1,
     couple_monthly: 2,
     couple_annual: 2,
-    couple_lifetime: 2,
     family_monthly: 5,
     family_annual: 5,
-    family_lifetime: 5,
   };
   return seats[planId] || 1;
 }
@@ -77,10 +75,8 @@ function amountForPlan(planId, fallback) {
     semiannual: 4999,
     couple_monthly: 1499,
     couple_annual: 11999,
-    couple_lifetime: 44999,
     family_monthly: 2499,
     family_annual: 19999,
-    family_lifetime: 79999,
     addon_monthly: 499,
     addon_annual: 3999,
     urgent: 7999,

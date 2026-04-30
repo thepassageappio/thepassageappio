@@ -50,7 +50,8 @@ export default function ContactPage() {
         <Link href="/" style={{ color: C.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
         <div style={{ display: 'flex', gap: 14, fontSize: 13 }}>
           <Link href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</Link>
-          <Link href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Content</Link>
+          <Link href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</Link>
+          <Link href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</Link>
           <Link href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</Link>
         </div>
       </nav>

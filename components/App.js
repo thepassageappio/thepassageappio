@@ -45,10 +45,8 @@ const PLAN_SEATS = {
   single_lifetime: 1,
   couple_monthly: 2,
   couple_annual: 2,
-  couple_lifetime: 2,
   family_monthly: 5,
   family_annual: 5,
-  family_lifetime: 5,
 };
 const ADDON_OPTIONS = [
   { id: "addon_monthly", label: "Add one estate", price: "$4.99", per: "/month" },
@@ -63,7 +61,6 @@ const PLAN_GROUPS = [
     options: [
       { id: 'single_monthly', label: 'Monthly', price: '$9.99', per: '/mo' },
       { id: 'single_annual', label: 'Annual', price: '$79.99', per: '/yr', note: 'Most chosen' },
-      { id: 'single_lifetime', label: 'Lifetime', price: '$299.99', per: 'one time' },
     ],
   },
   {
@@ -74,7 +71,6 @@ const PLAN_GROUPS = [
     options: [
       { id: 'couple_monthly', label: 'Monthly', price: '$14.99', per: '/mo' },
       { id: 'couple_annual', label: 'Annual', price: '$119.99', per: '/yr' },
-      { id: 'couple_lifetime', label: 'Lifetime', price: '$449.99', per: 'one time' },
     ],
   },
   {
@@ -85,7 +81,6 @@ const PLAN_GROUPS = [
     options: [
       { id: 'family_monthly', label: 'Monthly', price: '$24.99', per: '/mo' },
       { id: 'family_annual', label: 'Annual', price: '$199.99', per: '/yr' },
-      { id: 'family_lifetime', label: 'Lifetime', price: '$799.99', per: 'one time' },
     ],
   },
 ];
@@ -2660,7 +2655,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                             </div>
                             <span style={{ fontSize: 10.5, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: "3px 8px", height: 18 }}>{group.seats}</span>
                           </div>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7 }}>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 7 }}>
                             {group.options.map(option => {
                               const disabled = option.price === 'Soon';
                               return (
@@ -3315,6 +3310,121 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   );
 }
 
+function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
+  const [entered, setEntered] = useState(false);
+  useEffect(() => { setTimeout(() => setEntered(true), 80); }, []);
+
+  const navLink = { fontSize: 12.5, color: C.mid, textDecoration: 'none' };
+
+  return (
+    <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
+      <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <CandleLogo size={32} nameSize={21} />
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <a href="/mission" style={navLink}>Mission</a>
+          <a href="/pricing" style={navLink}>Pricing</a>
+          <a href="/content" style={navLink}>Resources</a>
+          <a href="/contact" style={navLink}>Contact</a>
+          <a href="/participating" style={navLink}>Participating</a>
+          {user ? (
+            <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>My estate</button>
+          ) : (
+            <button onClick={onDashboard} style={{ background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: C.ink, fontFamily: 'inherit' }}>Sign in</button>
+          )}
+        </div>
+      </nav>
+
+      <section style={{ maxWidth: 960, margin: '0 auto', padding: '54px 24px 32px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 34, alignItems: 'center', opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(14px)', transition: 'all .7s ease' }}>
+        <div>
+          <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 16 }}>The operating system for transition</div>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(34px, 5.2vw, 62px)', lineHeight: 1.05, color: C.ink, margin: '0 0 18px', fontWeight: 400 }}>
+            When someone dies, your family needs one clear next step.
+          </h1>
+          <p style={{ fontSize: 17, color: C.mid, lineHeight: 1.8, maxWidth: 590, margin: '0 0 24px' }}>
+            Passage helps families see what matters first, who owns it, and what is already handled, without forcing anyone to manage everything while grieving.
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>
+            <button onClick={() => window.location.href = '/urgent'} style={{ background: C.rose, color: '#fff', border: 'none', borderRadius: 14, padding: '16px 26px', fontSize: 15.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 212 }}>
+              Someone just passed
+              <span style={{ display: 'block', fontSize: 11.5, opacity: .86, fontWeight: 500, marginTop: 4 }}>Start with what matters now</span>
+            </button>
+            <button onClick={onPlan} style={{ background: C.bgCard, color: C.ink, border: `1.5px solid ${C.border}`, borderRadius: 14, padding: '16px 24px', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 178 }}>
+              Plan ahead
+              <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 500, marginTop: 4 }}>Prepare your family</span>
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', color: C.soft, fontSize: 12.5 }}>
+            {['Free to start', 'No credit card required', 'Nothing sends without approval'].map(t => (
+              <span key={t}><strong style={{ color: C.sage }}>✓</strong> {t}</span>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, boxShadow: '0 18px 46px rgba(55,45,35,.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 13 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.13em' }}>First 24 hours</div>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '4px 9px' }}>Nothing urgent is missing</div>
+          </div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 19, color: C.ink, lineHeight: 1.35, marginBottom: 12 }}>You're on track. Start here.</div>
+          <div style={{ border: `1px solid ${C.rose}30`, background: C.roseFaint, borderRadius: 14, padding: 15, marginBottom: 10 }}>
+            <div style={{ fontSize: 12, color: C.rose, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 7 }}>Start here</div>
+            <div style={{ fontSize: 16, color: C.ink, fontWeight: 800, marginBottom: 5 }}>Funeral arrangements</div>
+            <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.6 }}>Choose who will call the funeral home. Passage prepares the script and tracks the next step.</div>
+          </div>
+          {['Notify immediate family', 'Secure home, pets, and vehicle'].map(title => (
+            <div key={title} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderTop: `1px solid ${C.border}`, color: C.mid, fontSize: 13 }}>
+              <span>{title}</span>
+              <span style={{ color: C.soft }}>Waiting</span>
+            </div>
+          ))}
+          <div style={{ marginTop: 12, padding: '10px 13px', background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, fontSize: 12.5, color: C.sage, lineHeight: 1.55 }}>
+            Passage prepares the work. Your family approves before anything is sent.
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 960, margin: '0 auto', padding: '24px 24px 34px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+          {[
+            ['1', 'Know what matters first', 'Passage narrows the first decisions so families are not staring at a giant checklist.'],
+            ['2', 'Give every task an owner', 'Handle it yourself or assign someone. The task keeps the script, instructions, and status.'],
+            ['3', 'Activate with approval', 'Before messages or documents go out, Passage shows who receives what and asks for approval.'],
+          ].map(([n, title, body]) => (
+            <div key={n} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
+              <div style={{ fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 10 }}>{n}</div>
+              <div style={{ fontSize: 16, color: C.ink, fontWeight: 800, marginBottom: 8 }}>{title}</div>
+              <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>{body}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 820, margin: '0 auto', padding: '8px 24px 52px' }}>
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 18, padding: '24px 26px', textAlign: 'center' }}>
+          <div style={{ fontSize: 10.5, letterSpacing: '.18em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 10 }}>Why Passage exists</div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 24, lineHeight: 1.3, color: C.ink, marginBottom: 10 }}>
+            Families deserve more than a folder, a checklist, and a dozen disconnected calls.
+          </div>
+          <p style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.8, margin: '0 auto 16px', maxWidth: 650 }}>
+            Passage was created after seeing funeral planning, Medicaid questions, documents, family notifications, and service providers fall on grieving people with no single system taking ownership.
+          </p>
+          <a href="/mission" style={{ color: C.sage, fontSize: 13, fontWeight: 800, textDecoration: 'none' }}>Read the mission</a>
+        </div>
+      </section>
+
+      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '20px 24px 38px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
+        <div>Passage coordinates life-to-death transitions with care.</div>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          <a href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</a>
+          <a href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</a>
+          <a href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</a>
+          <a href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</a>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
 export default function App() {
   const [view, setView] = useState("landing");
   const [successMode, setSuccessMode] = useState("paid");
@@ -3345,7 +3455,7 @@ export default function App() {
 
   return (
     <>
-      {view === "landing" && <Landing {...commonProps} onPlan={() => setView("plan")} onEmergency={() => setView("emergency")} />}
+      {view === "landing" && <CompactLanding {...commonProps} onPlan={() => setView("plan")} onEmergency={() => setView("emergency")} />}
       {view === "plan" && <PlanFlow {...commonProps} onComplete={(mode) => { setSuccessMode(mode); setView("success"); }} onBack={() => setView("landing")} />}
       {view === "emergency" && <EmergencyFlow {...commonProps} onBack={() => setView("landing")} />}
       {view === "success" && <Success mode={successMode} onDashboard={user ? () => setView("dashboard") : null} />}

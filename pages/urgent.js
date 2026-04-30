@@ -62,8 +62,8 @@ const taskPlaybooks = {
   },
   home: {
     title: 'Home check instructions prepared',
-    body: 'Please check the home, pets, vehicle, mail, doors, windows, and any urgent safety concerns. Send a short update when complete, including anything that needs another person.',
-    steps: ['Confirm who has keys or access', 'Ask for a photo/update when complete', 'Mark the task handled only after the check is done'],
+    body: 'Please check the home, pets, vehicle, mail, doors, windows, and any urgent safety concerns. Send a short update when it is handled, including anything that needs another person.',
+    steps: ['Confirm who has keys or access', 'Ask for a photo/update when handled', 'Mark the task handled only after the check is done'],
   },
 };
 
