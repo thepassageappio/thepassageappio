@@ -5,6 +5,51 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
+
+async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail }) {
+  if (!workflowId) return;
+  const now = new Date().toISOString();
+  const taskUpdates = {
+    status,
+    last_action_at: now,
+    last_actor: actor || recipient || 'Passage',
+    channel,
+    recipient,
+    updated_at: now,
+  };
+  if (status === 'sent') taskUpdates.notified_at = now;
+  if (status === 'delivered') taskUpdates.delivered_at = now;
+  if (status === 'acknowledged') taskUpdates.acknowledged_at = now;
+  if (isUuid(taskId)) await supabase.from('tasks').update(taskUpdates).eq('id', taskId).eq('workflow_id', workflowId).catch(() => {});
+  if (isUuid(actionId)) await supabase.from('workflow_actions').update({
+    status,
+    delivery_status: status,
+    last_action_at: now,
+    last_actor: actor || recipient || 'Passage',
+    channel,
+    recipient,
+    updated_at: now,
+  }).eq('id', actionId).eq('workflow_id', workflowId).catch(() => {});
+  await supabase.from('task_status_events').insert([{
+    workflow_id: workflowId,
+    task_id: isUuid(taskId) ? taskId : null,
+    action_id: isUuid(actionId) ? actionId : null,
+    status,
+    last_action_at: now,
+    last_actor: actor || recipient || 'Passage',
+    channel,
+    recipient,
+    detail,
+  }]).catch(() => {});
+  await supabase.from('estate_events').insert([{
+    estate_id: workflowId,
+    event_type: status === 'sent' ? 'task_message_sent' : 'task_status_updated',
+    title: status === 'sent' ? 'Message sent' : 'Task status updated',
+    description: detail || ((recipient || 'Recipient') + ' - ' + status),
+    actor: actor || 'Passage',
+  }]).catch(() => {});
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -12,7 +57,7 @@ export default async function handler(req, res) {
   const auth = await verifyDeliveryRequest(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
-  const { to, toName, taskTitle, taskId, deceasedName, coordinatorName, workflowId, actionType, events } = req.body;
+  const { to, toName, taskTitle, taskId, actionId, deceasedName, coordinatorName, workflowId, actionType, events } = req.body;
   if (!to) return res.status(400).json({ error: 'Missing phone number' });
 
   const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
@@ -107,9 +152,19 @@ export default async function handler(req, res) {
 
     if (workflowId) {
       await supabase.from('workflow_actions')
-        .update({ status: 'sent', sent_at: new Date().toISOString(), delivery_status: 'sent', provider_message_id: data.sid })
+        .update({ status: 'sent', sent_at: new Date().toISOString(), delivery_status: 'sent', provider_message_id: data.sid, last_action_at: new Date().toISOString(), last_actor: coordinatorName || 'Passage', channel: 'sms', recipient: toName || phone })
         .eq('workflow_id', workflowId).eq('action_type', 'sms').eq('recipient_phone', to);
     }
+    await recordTaskStatus({
+      workflowId,
+      taskId,
+      actionId,
+      status: 'sent',
+      actor: coordinatorName || 'Passage',
+      channel: 'sms',
+      recipient: toName || phone,
+      detail: 'Text sent to ' + (toName || phone) + (taskTitle ? ' - ' + taskTitle : ''),
+    });
 
     return res.status(200).json({ success: true, sid: data.sid });
   } catch (err) {

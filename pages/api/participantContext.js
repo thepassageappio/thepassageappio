@@ -27,11 +27,11 @@ export default async function handler(req, res) {
   try {
     const [{ data: actions }, { data: tasks }, { data: people }, { data: access }] = await Promise.all([
       admin.from('workflow_actions')
-        .select('id, workflow_id, action_type, subject, body, status, delivery_status, recipient_email, recipient_phone, recipient_name, task_title, notes, outcome_status, follow_up_at, created_at, sent_at')
+        .select('id, workflow_id, action_type, subject, body, status, delivery_status, recipient_email, recipient_phone, recipient_name, task_title, notes, outcome_status, follow_up_at, created_at, sent_at, accepted_at, handled_at, help_requested_at, last_action_at, last_actor, channel, recipient, acknowledged_at')
         .ilike('recipient_email', email)
         .order('created_at', { ascending: false }),
       admin.from('tasks')
-        .select('id, workflow_id, title, description, status, assigned_to_name, assigned_to_email, notes, outcome_status, follow_up_at, completed_at, created_at')
+        .select('id, workflow_id, title, description, status, assigned_to_name, assigned_to_email, notes, outcome_status, follow_up_at, completed_at, created_at, accepted_at, handled_at, help_requested_at, last_action_at, last_actor, channel, recipient, acknowledged_at')
         .ilike('assigned_to_email', email)
         .order('created_at', { ascending: false }),
       admin.from('people')

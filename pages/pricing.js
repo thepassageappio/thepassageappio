@@ -78,11 +78,11 @@ export default function PricingPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignIn={!user ? signIn : null} />
 
-      <section style={{ maxWidth: 1060, margin: '0 auto', padding: '58px 22px 84px' }}>
-        <div style={{ maxWidth: 760, marginBottom: 26 }}>
-          <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 14 }}>Pricing</div>
-          <h1 style={{ fontSize: 48, lineHeight: 1.08, margin: '0 0 14px', fontWeight: 400 }}>Choose the plan that can carry your family.</h1>
-          <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.75, margin: 0 }}>Start with one trial estate to see how Passage feels. When you are ready, choose the number of estates your family needs protected. Urgent coordination stays separate at $79.99 per case.</p>
+      <section style={{ maxWidth: 1060, margin: '0 auto', padding: '26px 22px 58px' }}>
+        <div style={{ maxWidth: 820, marginBottom: 18 }}>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Pricing</div>
+          <h1 style={{ fontSize: 'clamp(32px, 4vw, 40px)', lineHeight: 1.05, margin: '0 0 10px', fontWeight: 400 }}>Choose the plan that can carry your family.</h1>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Start with one trial estate to see how Passage feels. When you are ready, choose the number of estates your family needs protected. Urgent coordination stays separate at $79.99 per case.</p>
         </div>
 
         {participantDiscount && (
@@ -91,13 +91,13 @@ export default function PricingPage() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(310px, 100%), 1fr))', gap: 14, marginBottom: 22 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 22 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(310px, 100%), 1fr))', gap: 12, marginBottom: 16 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
             <div style={{ fontSize: 12, color: C.sage, textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 800, marginBottom: 8 }}>Planning ahead</div>
             <div style={{ fontSize: 22, lineHeight: 1.2, marginBottom: 8 }}>Start with one trial estate. Pick a plan when your family is ready.</div>
             <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.7 }}>Good for proactive planning, spouses, parents, and multi-estate families who want the system set before it is needed.</div>
           </div>
-          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 18, padding: 22 }}>
+          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 16, padding: 18 }}>
             <div style={{ fontSize: 12, color: C.rose, textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 800, marginBottom: 8 }}>Someone just passed</div>
             <div style={{ fontSize: 22, lineHeight: 1.2, marginBottom: 8 }}>$79.99 urgent estate coordination</div>
             <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.7 }}>A focused first-24-hours command center. Passage will match 15% toward a grief-support or memorial-impact donation.</div>

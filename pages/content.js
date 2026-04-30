@@ -33,14 +33,14 @@ export default function ContentPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '48px 22px 84px' }}>
-        <div style={{ maxWidth: 720, marginBottom: 30 }}>
-          <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 14 }}>Resources</div>
-          <h1 style={{ fontSize: 46, lineHeight: 1.08, margin: '0 0 14px', fontWeight: 400 }}>Practical guidance for families, planners, and the people asked to help.</h1>
-          <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.75, margin: 0 }}>Guides and partner briefs for families, participants, and care providers. Request the resource you need and Passage will follow up directly.</p>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 22px 58px' }}>
+        <div style={{ maxWidth: 760, marginBottom: 18 }}>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Resources</div>
+          <h1 style={{ fontSize: 'clamp(30px, 4vw, 40px)', lineHeight: 1.06, margin: '0 0 10px', fontWeight: 400 }}>Practical guidance for families, planners, and the people asked to help.</h1>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Guides and partner briefs for families, participants, and care providers. Request the resource you need and Passage will follow up directly.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 22 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
             {resources.map(r => (
               <button key={r.title} onClick={() => setInterest(r.title)} style={{ textAlign: 'left', background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>

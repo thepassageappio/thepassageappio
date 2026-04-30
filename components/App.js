@@ -712,6 +712,12 @@ const buildTaskList = (dbTasks) => {
         followUpAt: db?.follow_up_at || null,
         updatedAt: db?.updated_at || db?.created_at || null,
         completedAt: db?.completed_at || null,
+        lastActionAt: db?.last_action_at || db?.notified_at || db?.updated_at || null,
+        lastActor: db?.last_actor || db?.completed_by_email || null,
+        channel: db?.channel || null,
+        recipient: db?.recipient || db?.execution_recipient_email || db?.assigned_to_name || db?.assigned_to_email || null,
+        acknowledgedAt: db?.acknowledged_at || null,
+        deliveredAt: db?.delivered_at || null,
         assignedTo: db?.assigned_to_name || null,
         assignedEmail: db?.assigned_to_email || null,
         isCustom: false,
@@ -736,6 +742,12 @@ const buildTaskList = (dbTasks) => {
       followUpAt: d.follow_up_at || null,
       updatedAt: d.updated_at || d.created_at || null,
       completedAt: d.completed_at || null,
+      lastActionAt: d.last_action_at || d.notified_at || d.updated_at || null,
+      lastActor: d.last_actor || d.completed_by_email || null,
+      channel: d.channel || null,
+      recipient: d.recipient || d.execution_recipient_email || d.assigned_to_name || d.assigned_to_email || null,
+      acknowledgedAt: d.acknowledged_at || null,
+      deliveredAt: d.delivered_at || null,
       assignedTo: d.assigned_to_name || null,
       assignedEmail: d.assigned_to_email || null,
       isCustom: true, dbId: d.id,
@@ -746,6 +758,10 @@ const buildTaskList = (dbTasks) => {
 
 const taskAwareness = (task) => {
   if (!task || task.completed || task.status === 'not_applicable') return '';
+  const when = task.lastActionAt ? new Date(task.lastActionAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+  if (task.status === 'sent') return `Message sent to ${task.recipient || task.assignedTo || 'recipient'}${when ? ' at ' + when : ''}`;
+  if (task.status === 'delivered') return `Delivered to ${task.recipient || task.assignedTo || 'recipient'}${when ? ' at ' + when : ''}`;
+  if (task.status === 'acknowledged') return `${task.lastActor || task.recipient || task.assignedTo || 'Someone'} confirmed this${when ? ' at ' + when : ''}`;
   if (['assigned', 'waiting', 'in_progress'].includes(task.status) && task.assignedTo) return `${task.assignedTo} is working on this`;
   if (['assigned', 'waiting', 'in_progress'].includes(task.status)) return 'Someone is working on this';
   return '';
@@ -1277,6 +1293,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const [followUp, setFollowUp] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sentAt, setSentAt] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [actionNotice, setActionNotice] = useState('');
   const [savedPulse, setSavedPulse] = useState(false);
@@ -1293,10 +1310,15 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
     const res = await fetch('/api/sendEmail', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
-      body: JSON.stringify({ to: recipientEmail, cc: userEmail || undefined, subject: playbook.subject, taskTitle: task.title, deceasedName, coordinatorName, actionType: 'execution', messageText: draft }),
+      body: JSON.stringify({ to: recipientEmail, cc: userEmail || undefined, subject: playbook.subject, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'execution', messageText: draft }),
     });
     setSending(false);
-    if (res.ok) { setSent(true); setActionNotice(`Message sent to ${recipientEmail}`); }
+    if (res.ok) {
+      const stamp = new Date();
+      setSent(true);
+      setSentAt(stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+      setActionNotice(`Message sent to ${recipientEmail} at ${stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+    }
     else alert('Passage could not send that email yet. You can copy the draft and try again.');
   };
 
@@ -1407,7 +1429,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         </div>
         {(sent || actionNotice) && (
           <div style={{ marginBottom: 8, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "10px 12px", color: C.sage, fontSize: 12.5, fontWeight: 800, lineHeight: 1.5 }}>
-            {actionNotice || 'Message sent and copied to the estate record.'} Save the outcome below so the plan knows what happened next.
+            {actionNotice || (sentAt ? 'Message sent at ' + sentAt : 'Message sent and copied to the estate record.')} Save the outcome below so the plan knows what happened next.
           </div>
         )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
@@ -1996,6 +2018,12 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                           </div>
                           {task.desc && !task.completed && <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.5, marginBottom: task.assignedTo ? 5 : 0 }}>{task.desc}</div>}
                           {taskAwareness(task) && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>{taskAwareness(task)}</div>}
+                          {['sent', 'delivered'].includes(task.status) && !task.acknowledgedAt && (
+                            <div style={{ marginTop: 5, display: "flex", gap: 7, alignItems: "center", flexWrap: "wrap" }}>
+                              <span style={{ fontSize: 11.5, color: C.soft, fontWeight: 700 }}>Waiting for response</span>
+                              <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, borderRadius: 7, padding: "3px 8px", fontSize: 11, fontFamily: "inherit", cursor: "pointer" }}>Send reminder</button>
+                            </div>
+                          )}
                           {task.completed && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>That's taken care of. You're all set here.</div>}
                           {task.assignedTo && (
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "2px 9px", marginTop: 4 }}>
@@ -3792,7 +3820,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
-      <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+      <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
         <CandleLogo size={32} nameSize={21} />
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <a href="/mission" style={navLink}>Mission</a>
@@ -3808,21 +3836,21 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </div>
       </nav>
 
-      <section style={{ maxWidth: 960, margin: '0 auto', padding: '54px 24px 32px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 34, alignItems: 'center', opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(14px)', transition: 'all .7s ease' }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 24px 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 24, alignItems: 'center', opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(14px)', transition: 'all .7s ease' }}>
         <div>
-          <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 16 }}>The operating system for transition</div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(34px, 5.2vw, 62px)', lineHeight: 1.05, color: C.ink, margin: '0 0 18px', fontWeight: 400 }}>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 10 }}>The operating system for transition</div>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(34px, 4.6vw, 54px)', lineHeight: 1.03, color: C.ink, margin: '0 0 12px', fontWeight: 400 }}>
             When someone dies, your family needs one clear next step.
           </h1>
-          <p style={{ fontSize: 17, color: C.mid, lineHeight: 1.8, maxWidth: 590, margin: '0 0 24px' }}>
+          <p style={{ fontSize: 15.5, color: C.mid, lineHeight: 1.55, maxWidth: 620, margin: '0 0 16px' }}>
             Passage helps families see what matters first, who owns it, and what is already handled, without forcing anyone to manage everything while grieving.
           </p>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>
-            <button onClick={() => window.location.href = '/urgent'} style={{ background: C.rose, color: '#fff', border: 'none', borderRadius: 14, padding: '16px 26px', fontSize: 15.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 212 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+            <button onClick={() => window.location.href = '/urgent'} style={{ background: C.rose, color: '#fff', border: 'none', borderRadius: 13, padding: '13px 22px', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 196 }}>
               Someone just passed
               <span style={{ display: 'block', fontSize: 11.5, opacity: .86, fontWeight: 500, marginTop: 4 }}>Start with what matters now</span>
             </button>
-            <button onClick={onPlan} style={{ background: C.bgCard, color: C.ink, border: `1.5px solid ${C.border}`, borderRadius: 14, padding: '16px 24px', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 178 }}>
+            <button onClick={onPlan} style={{ background: C.bgCard, color: C.ink, border: `1.5px solid ${C.border}`, borderRadius: 13, padding: '13px 22px', fontSize: 14.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 166 }}>
               Plan ahead
               <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 500, marginTop: 4 }}>Prepare your family</span>
             </button>
@@ -3832,13 +3860,13 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           </div>
         </div>
 
-        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18, boxShadow: '0 20px 54px rgba(55,45,35,.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, boxShadow: '0 20px 54px rgba(55,45,35,.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.14em' }}>First 24 hours</div>
             <div style={{ fontSize: 11.5, fontWeight: 800, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '4px 10px' }}>Approval first</div>
           </div>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, color: C.ink, lineHeight: 1.25, marginBottom: 14 }}>You're on track. Start here.</div>
-          <div style={{ border: `1px solid ${C.rose}30`, background: C.roseFaint, borderRadius: 13, padding: 16, marginBottom: 12 }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 19, color: C.ink, lineHeight: 1.2, marginBottom: 10 }}>You're on track. Start here.</div>
+          <div style={{ border: `1px solid ${C.rose}30`, background: C.roseFaint, borderRadius: 13, padding: 13, marginBottom: 10 }}>
             <div style={{ fontSize: 11.5, color: C.rose, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.11em', marginBottom: 7 }}>Start here</div>
             <div style={{ fontSize: 17, color: C.ink, fontWeight: 800, marginBottom: 6 }}>Funeral arrangements</div>
             <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.55 }}>Choose who will call. Passage prepares the script, text, email, and next step.</div>
@@ -3849,7 +3877,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <span style={{ color: C.soft, flexShrink: 0 }}>Waiting</span>
             </div>
           ))}
-          <div style={{ marginTop: 14, padding: '13px 15px', background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 11, fontSize: 13, color: C.sage, lineHeight: 1.55 }}>
+          <div style={{ marginTop: 10, padding: '11px 13px', background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 11, fontSize: 12.5, color: C.sage, lineHeight: 1.45 }}>
             Passage prepares the work. Your family reviews and approves before anything is sent.
           </div>
         </div>

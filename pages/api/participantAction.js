@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid participant action.' });
   }
 
-  const status = action === 'accept' ? 'assigned'
+  const status = action === 'accept' ? 'acknowledged'
     : ['handled', 'delivered', 'confirmed'].includes(action) ? 'handled'
     : ['waiting', 'needs_details', 'quoted', 'scheduled'].includes(action) ? 'waiting'
     : action === 'unavailable' ? 'needs_review'
@@ -38,7 +38,12 @@ export default async function handler(req, res) {
     outcome_status: outcomeStatus || action,
     completed_by_email: email,
     coordinator_notified_at: new Date().toISOString(),
+    last_action_at: new Date().toISOString(),
+    last_actor: email,
+    channel: 'participant',
+    recipient: email,
   };
+  if (status === 'acknowledged') updates.acknowledged_at = new Date().toISOString();
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
   if (typeof notes === 'string' && notes.trim()) updates.notes = notes.trim();
   const { data, error } = await admin
@@ -53,10 +58,21 @@ export default async function handler(req, res) {
   if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
   await admin.from('estate_events').insert([{
     estate_id: data.workflow_id,
-    event_type: status === 'handled' ? 'participant_handled' : status === 'waiting' ? 'participant_waiting' : 'participant_updated',
-    title: status === 'handled' ? 'Participant handled a task' : status === 'waiting' ? 'Participant update waiting' : 'Participant updated a task',
+    event_type: status === 'handled' ? 'participant_handled' : status === 'waiting' ? 'participant_waiting' : status === 'acknowledged' ? 'participant_acknowledged' : 'participant_updated',
+    title: status === 'handled' ? 'Participant handled a task' : status === 'waiting' ? 'Participant update waiting' : status === 'acknowledged' ? 'Participant confirmed a task' : 'Participant updated a task',
     description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
     actor: email,
+  }]).catch(() => {});
+  await admin.from('task_status_events').insert([{
+    workflow_id: data.workflow_id,
+    task_id: kind === 'task' ? data.id : null,
+    action_id: kind === 'action' ? data.id : null,
+    status,
+    last_action_at: new Date().toISOString(),
+    last_actor: email,
+    channel: 'participant',
+    recipient: email,
+    detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
   }]).catch(() => {});
   return res.status(200).json({ success: true, item: data });
 }

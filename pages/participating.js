@@ -14,6 +14,7 @@ async function signIn(returnTo = '/participating') {
 
 function statusLabel(value) {
   if (value === 'needs_review') return 'Needs review';
+  if (value === 'acknowledged') return 'Acknowledged';
   if (value === 'sent' || value === 'assigned') return 'Assigned';
   if (value === 'handled' || value === 'completed') return 'Handled';
   return 'Waiting';
@@ -131,7 +132,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const handled = isHandled(itemStatus(item));
   const kind = roleKind(estate?.role, item);
   const contract = requestContract(kind, estate, item);
-  const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
+  const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'acknowledged' ? 'Status: Confirmed' : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
   const [savedPulse, setSavedPulse] = useState(false);
   const noteChange = (value) => {
     onNotes(value);
@@ -255,11 +256,11 @@ export default function ParticipatingPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '48px 22px 84px' }}>
-        <div style={{ maxWidth: 760, marginBottom: 28 }}>
-          <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 14 }}>Participating in an estate</div>
-          <h1 style={{ fontSize: 'clamp(34px, 5vw, 48px)', lineHeight: 1.08, margin: '0 0 14px', fontWeight: 400 }}>Your Passage assignments, in one calm place.</h1>
-          <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.7, margin: 0 }}>See the estate, the task that needs you now, and the notes the coordinator needs back. No hunting through old texts.</p>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 22px 58px' }}>
+        <div style={{ maxWidth: 760, marginBottom: 18 }}>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Participating in an estate</div>
+          <h1 style={{ fontSize: 'clamp(30px, 4vw, 40px)', lineHeight: 1.06, margin: '0 0 10px', fontWeight: 400 }}>Your Passage assignments, in one calm place.</h1>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>See the estate, the task that needs you now, and the notes the coordinator needs back. No hunting through old texts.</p>
         </div>
 
         {!user && (

@@ -8,6 +8,55 @@ const supabase = createClient(
 );
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
+
+async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail }) {
+  if (!workflowId) return;
+  const now = new Date().toISOString();
+  const taskUpdates = {
+    status,
+    last_action_at: now,
+    last_actor: actor || recipient || 'Passage',
+    channel,
+    recipient,
+    updated_at: now,
+  };
+  if (status === 'sent') taskUpdates.notified_at = now;
+  if (status === 'delivered') taskUpdates.delivered_at = now;
+  if (status === 'acknowledged') taskUpdates.acknowledged_at = now;
+  if (isUuid(taskId)) {
+    await supabase.from('tasks').update(taskUpdates).eq('id', taskId).eq('workflow_id', workflowId).catch(() => {});
+  }
+  if (isUuid(actionId)) {
+    await supabase.from('workflow_actions').update({
+      status,
+      delivery_status: status,
+      last_action_at: now,
+      last_actor: actor || recipient || 'Passage',
+      channel,
+      recipient,
+      updated_at: now,
+    }).eq('id', actionId).eq('workflow_id', workflowId).catch(() => {});
+  }
+  await supabase.from('task_status_events').insert([{
+    workflow_id: workflowId,
+    task_id: isUuid(taskId) ? taskId : null,
+    action_id: isUuid(actionId) ? actionId : null,
+    status,
+    last_action_at: now,
+    last_actor: actor || recipient || 'Passage',
+    channel,
+    recipient,
+    detail,
+  }]).catch(() => {});
+  await supabase.from('estate_events').insert([{
+    estate_id: workflowId,
+    event_type: status === 'sent' ? 'task_message_sent' : 'task_status_updated',
+    title: status === 'sent' ? 'Message sent' : 'Task status updated',
+    description: detail || ((recipient || 'Recipient') + ' - ' + status),
+    actor: actor || 'Passage',
+  }]).catch(() => {});
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -16,7 +65,7 @@ export default async function handler(req, res) {
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
   const {
-    to, toName, subject, taskTitle, taskId, deceasedName,
+    to, toName, subject, taskTitle, taskId, actionId, deceasedName,
     coordinatorName, workflowId, actionType, events, messageText, cc
   } = req.body;
 
@@ -90,10 +139,20 @@ export default async function handler(req, res) {
       }]).catch(() => {});
       if (workflowId) {
         await supabase.from('workflow_actions')
-          .update({ status: 'sent', sent_at: new Date().toISOString(), delivery_status: 'sent', provider_message_id: data.id })
+          .update({ status: 'sent', sent_at: new Date().toISOString(), delivery_status: 'sent', provider_message_id: data.id, last_action_at: new Date().toISOString(), last_actor: coordinatorName || 'Passage', channel: 'email', recipient: to })
           .eq('workflow_id', workflowId).eq('action_type', 'email').eq('recipient_email', to)
           .catch(() => {});
       }
+      await recordTaskStatus({
+        workflowId,
+        taskId,
+        actionId,
+        status: 'sent',
+        actor: coordinatorName || cc || 'Passage',
+        channel: 'email',
+        recipient: toName || to,
+        detail: 'Message sent to ' + (toName || to) + (taskTitle ? ' - ' + taskTitle : ''),
+      });
       return res.status(200).json({ success: true, id: data.id, from });
     }
 

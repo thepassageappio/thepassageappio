@@ -23,8 +23,8 @@ const navLink = { color: CHROME_COLORS.mid, textDecoration: 'none' };
 
 export function SiteHeader({ user, onSignIn, onSignOut }) {
   return (
-    <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-      <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
+    <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
+      <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 22, fontWeight: 700 }}>Passage</Link>
       <div style={{ display: 'flex', gap: 14, fontSize: 13, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={navLink}>{label}</Link>)}
         <Link href="/" style={{ background: CHROME_COLORS.sage, color: '#fff', textDecoration: 'none', borderRadius: 10, padding: '8px 14px', fontWeight: 800 }}>My estate</Link>
@@ -41,7 +41,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
 
 export function SiteFooter() {
   return (
-    <footer style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 22px 42px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: CHROME_COLORS.soft }}>
+    <footer style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 22px 32px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: CHROME_COLORS.soft }}>
       <div>Passage</div>
       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={navLink}>{label}</Link>)}

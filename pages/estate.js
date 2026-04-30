@@ -128,6 +128,8 @@ function statusText(status) {
   var value = String(status || '').replace(/_/g, ' ');
   if (!value || value === 'pending') return 'Waiting';
   if (value === 'sent') return 'Sent';
+  if (value === 'delivered') return 'Delivered';
+  if (value === 'acknowledged') return 'Acknowledged';
   if (value === 'assigned') return 'Assigned';
   if (value === 'waiting') return 'Waiting';
   if (value === 'needs review') return 'Needs review';
@@ -715,7 +717,8 @@ export default function EstatePage() {
       .map(function(t) {
         var working = ['assigned', 'waiting', 'in_progress'].includes(t.status || '');
         var signal = participantSignal(t);
-        return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: signal || (working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this') };
+        var responseWait = ['sent', 'delivered'].includes(t.status || '') && !t.acknowledged_at ? 'Waiting for response' : '';
+        return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: signal || responseWait || (working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this') };
       });
     return Object.assign({}, bucket, { items: outcomeItems.concat(taskItems) });
   });
@@ -723,8 +726,8 @@ export default function EstatePage() {
   var next72Group = timelineGroups.find(function(g) { return g.key === '72h'; }) || { items: [] };
   var readyFor72 = nowGroup.items.length === 0 && next72Group.items.length > 0 && !allHandled;
   var upNextTasks = tasks.filter(function(t) { return !isHandledStatus(t.status); }).slice(3, 8);
-  var resumeEvent = events.find(function(e) { return e.event_type === 'task_updated' || e.event_type === 'task_completed' || e.event_type === 'owner_assigned' || e.event_type === 'participant_updated' || e.event_type === 'participant_waiting'; });
-  var recentParticipantEvents = events.filter(function(e) { return ['participant_handled', 'participant_updated', 'participant_waiting'].includes(e.event_type); }).slice(0, 3);
+  var resumeEvent = events.find(function(e) { return e.event_type === 'task_updated' || e.event_type === 'task_completed' || e.event_type === 'owner_assigned' || e.event_type === 'participant_updated' || e.event_type === 'participant_waiting' || e.event_type === 'participant_acknowledged'; });
+  var recentParticipantEvents = events.filter(function(e) { return ['participant_handled', 'participant_updated', 'participant_waiting', 'participant_acknowledged', 'task_message_sent'].includes(e.event_type); }).slice(0, 4);
   var firstOpenOutcome = outcomes.find(function(o) { return !isHandledStatus(o.status); });
   var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t.status); });
   var firstFastTitle = firstOpenOutcome ? firstOpenOutcome.title : firstOpenTask ? firstOpenTask.title : '';
@@ -886,7 +889,7 @@ export default function EstatePage() {
               <div style={{ fontSize: 11, color: SAGE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>People helping right now</div>
               {recentParticipantEvents.map(function(e) {
                 var actor = e.actor || 'Someone';
-                var action = e.event_type === 'participant_handled' ? 'marked this as handled' : e.event_type === 'participant_waiting' ? 'updated this as waiting' : 'accepted or updated this task';
+                var action = e.event_type === 'participant_handled' ? 'marked this as handled' : e.event_type === 'participant_waiting' ? 'updated this as waiting' : e.event_type === 'participant_acknowledged' ? 'confirmed this' : e.event_type === 'task_message_sent' ? 'was sent a message' : 'accepted or updated this task';
                 return <div key={e.id} style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, padding: '3px 0' }}><strong style={{ color: INK }}>{actor}</strong> {action}{timeAgo(e.created_at) ? ' ' + timeAgo(e.created_at) : ''}: {e.description || e.title}</div>;
               })}
             </div>
