@@ -11,7 +11,7 @@ async function signIn() {
 }
 
 function statusLabel(value) {
-  if (value === 'failed') return 'Needs review';
+  if (value === 'needs_review') return 'Needs review';
   if (value === 'sent' || value === 'assigned') return 'Assigned';
   if (value === 'handled' || value === 'completed') return 'Handled';
   return 'Waiting';
@@ -24,6 +24,7 @@ export default function ParticipatingPage() {
   const [error, setError] = useState('');
   const [emailLogin, setEmailLogin] = useState('');
   const [magicSent, setMagicSent] = useState(false);
+  const [notesByItem, setNotesByItem] = useState({});
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -55,7 +56,7 @@ export default function ParticipatingPage() {
     await fetch('/api/participantAction', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({ kind, id, action }),
+      body: JSON.stringify({ kind, id, action, notes: notesByItem[kind + ':' + id] || '' }),
     });
     await load(token);
   }
@@ -142,7 +143,9 @@ export default function ParticipatingPage() {
                     {[...estate.tasks.map(t => ({ ...t, _kind: 'task' })), ...estate.actions.map(a => ({ ...a, _kind: 'action' }))].slice(0, 8).map(item => (
                       <div key={(item.id || item.title) + item.status} style={{ borderTop: `1px solid ${C.border}`, padding: '10px 0', color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
                         <strong style={{ color: C.ink }}>{item.title || item.subject || item.action_type || 'Estate coordination'}</strong><br />
+                        {item.description && <span>{item.description}<br /></span>}
                         Status: {statusLabel(item.status || item.delivery_status)}
+                        <textarea value={notesByItem[item._kind + ':' + item.id] || item.notes || ''} onChange={e => setNotesByItem(prev => ({ ...prev, [item._kind + ':' + item.id]: e.target.value }))} placeholder="Add notes for the coordinator" style={{ width: '100%', boxSizing: 'border-box', minHeight: 72, marginTop: 8, padding: '9px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
                         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                           <button onClick={() => participantAction(item._kind, item.id, 'accept')} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Accept</button>
                           <button onClick={() => participantAction(item._kind, item.id, 'handled')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '6px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Mark handled</button>

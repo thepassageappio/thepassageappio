@@ -58,6 +58,37 @@ function playbookFor(outcome) {
   return PLAYBOOKS[key] || PLAYBOOKS.default;
 }
 
+var TIMELINE_BUCKETS = [
+  { key: 'now', label: 'Now', range: [0, 0], help: 'What needs attention first.' },
+  { key: '72h', label: 'Next 72 hours', range: [1, 3], help: 'Calls and coordination that should happen soon.' },
+  { key: 'week', label: 'First week', range: [4, 7], help: 'Service, records, and family coordination.' },
+  { key: 'month', label: 'First month', range: [8, 31], help: 'Accounts, benefits, and estate admin.' },
+  { key: 'year', label: 'First year', range: [32, 365], help: 'Longer-tail estate and remembrance work.' },
+];
+
+function normalizeDueDay(task) {
+  var raw = task.due_days_after_trigger ?? task.due_day ?? task.position ?? 0;
+  var num = Number(raw);
+  return Number.isFinite(num) ? Math.max(0, num) : 0;
+}
+
+function bucketForTask(task) {
+  var due = normalizeDueDay(task);
+  for (var i = 0; i < TIMELINE_BUCKETS.length; i++) {
+    var b = TIMELINE_BUCKETS[i];
+    if (due >= b.range[0] && due <= b.range[1]) return b.key;
+  }
+  return 'year';
+}
+
+function isHandledStatus(status) {
+  return ['handled', 'completed', 'done', 'not_applicable'].includes(status);
+}
+
+function ownerForTask(task) {
+  return task.assigned_to_name || task.assigned_to_email || task.owner_label || task.owner_kind || 'Needs owner';
+}
+
 // ── INLINE ASSIGN ─────────────────────────────────────────────────────────────
 function InlineAssign({ onSave, onClose }) {
   var s = useState(''); var name = s[0]; var setName = s[1];
@@ -222,7 +253,7 @@ export default function EstatePage() {
     Promise.all([
       sb.from('workflows').select('*').eq('id', estateId).single(),
       sb.from('outcomes').select('*').eq('estate_id', estateId).order('position'),
-      sb.from('tasks').select('*').eq('workflow_id', estateId).eq('status', 'pending').order('position').limit(20),
+      sb.from('tasks').select('*').eq('workflow_id', estateId).order('position'),
       sb.from('estate_events').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(8),
     ]).then(function(results) {
       if (results[0].data) setEstate(results[0].data);
@@ -265,7 +296,7 @@ export default function EstatePage() {
   var allHandled = handledCount === outcomes.length && outcomes.length > 0;
 
   var bannerText = allHandled
-    ? "You're in a good place for now."
+    ? "You've handled what's needed right now. You're in a good place."
     : needsOwnerCount > 0
       ? 'Some important items still need an owner.'
       : "You're on track. Nothing urgent is missing right now.";
@@ -276,7 +307,28 @@ export default function EstatePage() {
   var firstIncomplete = outcomes.findIndex(function(o) { return o.status !== 'handled'; });
   var name = estate ? (estate.deceased_first_name || estate.deceased_name || 'your loved one') : 'your loved one';
   var coordinatorName = estate ? (estate.coordinator_name || 'You') : 'You';
-  var upNextTasks = tasks.slice(3, 8);
+  var timelineGroups = TIMELINE_BUCKETS.map(function(bucket) {
+    var outcomeItems = outcomes
+      .filter(function(o) {
+        if (isHandledStatus(o.status)) return false;
+        if (bucket.key === 'now') return o.timeframe === 'now' || o.timeframe === 'today' || o.priority === 'critical';
+        if (bucket.key === '72h') return o.timeframe === '72h' || o.timeframe === 'next_72_hours';
+        if (bucket.key === 'week') return o.timeframe === 'week' || o.timeframe === 'first_week';
+        if (bucket.key === 'month') return o.timeframe === 'month' || o.timeframe === 'first_month';
+        if (bucket.key === 'year') return o.timeframe === 'year' || o.timeframe === 'first_year';
+        return false;
+      })
+      .map(function(o) {
+        return { id: 'outcome_' + o.id, title: o.title, owner: o.owner_label || 'Needs owner', status: o.status || 'not_started', next: o.status === 'needs_owner' ? 'Assign an owner' : 'Open task' };
+      });
+    var taskItems = tasks
+      .filter(function(t) { return !isHandledStatus(t.status) && bucketForTask(t) === bucket.key; })
+      .map(function(t) {
+        return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this' };
+      });
+    return Object.assign({}, bucket, { items: outcomeItems.concat(taskItems) });
+  });
+  var upNextTasks = tasks.filter(function(t) { return !isHandledStatus(t.status); }).slice(3, 8);
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
   if (loading) return (
@@ -316,6 +368,7 @@ export default function EstatePage() {
             style={{ background: 'none', border: 'none', fontSize: 13, color: SOFT, cursor: 'pointer', fontFamily: 'inherit', padding: 0, marginRight: 4 }}>
             ←
           </button>
+          <span style={{ fontSize: 12, color: SOFT }}>Back to estate</span>
           <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle, ' + SAGE_LIGHT + ', ' + SAGE + '70)' }} />
           <span style={{ fontSize: 14, color: INK }}>Passage</span>
         </div>
@@ -363,6 +416,44 @@ export default function EstatePage() {
             </div>
           </div>
           <div style={{ fontSize: 12, color: SOFT, marginTop: 10, lineHeight: 1.5 }}>Passage keeps this estate separate from every other estate you manage.</div>
+        </div>
+
+        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 4 }}>Plan timeline</div>
+              <div style={{ fontSize: 12, color: SOFT, lineHeight: 1.45 }}>Tasks grouped by when they matter, with ownership and the next move.</div>
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '4px 9px', whiteSpace: 'nowrap' }}>
+              {timelineGroups.reduce(function(total, g) { return total + g.items.length; }, 0)} open
+            </div>
+          </div>
+          {timelineGroups.map(function(group) {
+            return (
+              <div key={group.key} style={{ borderTop: '1px solid ' + BORDER, paddingTop: 12, marginTop: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>{group.label}</div>
+                  <div style={{ fontSize: 11.5, color: SOFT, textAlign: 'right' }}>{group.help}</div>
+                </div>
+                {group.items.length > 0 ? group.items.map(function(item) {
+                  return (
+                    <div key={item.id} style={{ background: SUBTLE, borderRadius: 10, padding: '10px 12px', marginBottom: 7 }}>
+                      <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.35, marginBottom: 6 }}>{item.title}</div>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <span style={{ fontSize: 11.5, color: item.owner === 'Needs owner' ? AMBER : SAGE, fontWeight: 700 }}>{item.owner}</span>
+                        <span style={{ width: 3, height: 3, borderRadius: '50%', background: SOFT }} />
+                        <span style={{ fontSize: 11.5, color: SOFT }}>{item.next}</span>
+                      </div>
+                    </div>
+                  );
+                }) : (
+                  <div style={{ background: SAGE_FAINT, borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: SAGE, fontWeight: 700 }}>
+                    Nothing waiting here.
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {outcomes.length > 0 ? (
@@ -477,7 +568,7 @@ export default function EstatePage() {
         )}
         {allHandled && (
           <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '16px', marginBottom: 10, textAlign: 'center' }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: SAGE, marginBottom: 4 }}>You're in a good place for now.</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: SAGE, marginBottom: 4 }}>You've handled what's needed right now. You're in a good place.</div>
             <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>We'll guide you through what comes next when you're ready.</div>
           </div>
         )}

@@ -165,6 +165,7 @@ const POST_DEATH_TASKS = [
 ];
 
 const PEOPLE_ROLES = [
+  { group: "Passage access", roles: ["owner", "participant", "external_partner", "activator"] },
   { group: "Family", roles: ["Spouse / Partner", "Adult child", "Parent", "Sibling", "Other family member"] },
   { group: "Legal & Financial", roles: ["Estate attorney", "Financial advisor", "Accountant / CPA", "Insurance agent", "Banker"] },
   { group: "Funeral Service", roles: ["Funeral home director", "Cemetery contact", "Crematorium contact", "Officiant"] },
@@ -219,9 +220,10 @@ const saveLead = async (data) => {
   } catch (e) { console.warn('saveLead:', e); }
 };
 
-const createWorkflow = async (userId, deceasedName, coordinatorName, coordinatorEmail, dateOfDeath) => {
+const createWorkflow = async (userId, deceasedName, coordinatorName, coordinatorEmail, dateOfDeath, options = {}) => {
   try {
-    const { data, error } = await supabase.from('workflows').insert([{
+    const path = options.path || options.mode || null;
+    const baseRow = {
       user_id: userId || null,
       name: `Estate of ${deceasedName || "Loved One"}`,
       deceased_name: deceasedName || null,
@@ -231,6 +233,47 @@ const createWorkflow = async (userId, deceasedName, coordinatorName, coordinator
       status: 'active',
       trigger_type: 'death_confirmed',
       is_custom: false,
+      updated_at: new Date().toISOString(),
+    };
+    if (path) {
+      baseRow.path = path;
+      baseRow.mode = path;
+    }
+
+    if (options.workflowId) {
+      const { data, error } = await supabase.from('workflows')
+        .update(baseRow)
+        .eq('id', options.workflowId)
+        .select()
+        .single();
+      if (error) { console.error('createWorkflow update:', error); return null; }
+      return data;
+    }
+
+    if (path === 'red' && (userId || coordinatorEmail) && deceasedName) {
+      let query = supabase.from('workflows')
+        .select('*')
+        .neq('status', 'archived')
+        .eq('path', 'red')
+        .eq('deceased_name', deceasedName);
+      if (dateOfDeath) query = query.eq('date_of_death', dateOfDeath);
+      if (userId) query = query.eq('user_id', userId);
+      else query = query.eq('coordinator_email', coordinatorEmail);
+      const { data: existing } = await query.order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      if (existing?.id) {
+        const { data, error } = await supabase.from('workflows')
+          .update(baseRow)
+          .eq('id', existing.id)
+          .select()
+          .single();
+        if (error) { console.error('createWorkflow reuse:', error); return existing; }
+        return data;
+      }
+    }
+
+    const { data, error } = await supabase.from('workflows').insert([{
+      ...baseRow,
+      created_at: new Date().toISOString(),
     }]).select().single();
     if (error) { console.error('createWorkflow:', error); return null; }
     return data;
@@ -277,15 +320,40 @@ const updateTask = async (taskId, updates) => {
   await supabase.from('tasks').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', taskId);
 };
 
+const accessRoleFor = (role = '') => {
+  const value = role.toLowerCase();
+  if (['owner', 'participant', 'external_partner', 'activator'].includes(value)) return value;
+  if (value.includes('funeral') || value.includes('cemetery') || value.includes('crematorium') || value.includes('attorney') || value.includes('accountant') || value.includes('banker')) return 'external_partner';
+  if (value.includes('executor') || value.includes('trusted') || value.includes('activator')) return 'activator';
+  return 'participant';
+};
+
+const grantEstateAccess = async (workflowId, person) => {
+  if (!workflowId || !person?.email) return;
+  const email = person.email.toLowerCase().trim();
+  if (!email) return;
+  const role = accessRoleFor(person.role || person.relationship || person.estate_role_label);
+  const row = { workflow_id: workflowId, email, role, status: 'active', updated_at: new Date().toISOString() };
+  const { data: existing } = await supabase
+    .from('estate_access')
+    .select('id')
+    .eq('workflow_id', workflowId)
+    .ilike('email', email)
+    .limit(1)
+    .maybeSingle();
+  if (existing?.id) await supabase.from('estate_access').update(row).eq('id', existing.id);
+  else await supabase.from('estate_access').insert([{ ...row, created_at: new Date().toISOString() }]);
+};
+
 const humanStatus = (status) => {
   if (status === 'handled' || status === 'completed' || status === 'done') return 'Handled';
   if (status === 'sent' || status === 'assigned') return 'Assigned';
-  if (status === 'failed') return 'Needs review';
+  if (status === 'needs_review') return 'Needs review';
   if (status === 'in_progress' || status === 'pending') return 'Waiting';
   return status ? status.replace(/_/g, ' ') : 'Waiting';
 };
 
-const taskIsHandled = (status) => status === 'handled' || status === 'completed' || status === 'done';
+const taskIsHandled = (status) => status === 'handled' || status === 'completed' || status === 'done' || status === 'not_applicable';
 
 const insertCustomTask = async (workflowId, userId, title, tier) => {
   const { data, error } = await supabase.from('tasks').insert([{
@@ -456,9 +524,31 @@ const updateWorkflowName = async (workflowId, newName) => {
 
 const handleCheckout = async (planId, userId, userEmail, workflowId = null) => {
   try {
+    let checkoutUserId = userId;
+    let checkoutUserEmail = userEmail;
+    if (!checkoutUserId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      checkoutUserId = session?.user?.id || null;
+      checkoutUserEmail = checkoutUserEmail || session?.user?.email || '';
+    }
+    if (!checkoutUserId) {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('passage_pending_checkout', JSON.stringify({
+          planId,
+          workflowId,
+          userEmail: checkoutUserEmail || '',
+          createdAt: new Date().toISOString(),
+        }));
+      }
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: SITE_URL },
+      });
+      return;
+    }
     const res = await fetch('/api/checkout', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ planId, userId, userEmail, workflowId }),
+      body: JSON.stringify({ planId, userId: checkoutUserId, userEmail: checkoutUserEmail, workflowId }),
     });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Checkout could not be started');
@@ -557,6 +647,8 @@ const buildTaskList = (dbTasks) => {
         tier: tier.tier, tierLabel: tier.tierLabel,
         tierColor: tier.tierColor, tierBg: tier.tierBg, tierIcon: tier.icon,
         completed: db ? taskIsHandled(db.status) : false,
+        status: db?.status || 'pending',
+        notes: db?.notes || '',
         assignedTo: db?.assigned_to_name || null,
         assignedEmail: db?.assigned_to_email || null,
         isCustom: false,
@@ -575,6 +667,8 @@ const buildTaskList = (dbTasks) => {
       tier: tierNum, tierLabel: tierMeta.tierLabel,
       tierColor: tierMeta.tierColor, tierBg: tierMeta.tierBg, tierIcon: tierMeta.icon,
       completed: taskIsHandled(d.status),
+      status: d.status || 'pending',
+      notes: d.notes || '',
       assignedTo: d.assigned_to_name || null,
       assignedEmail: d.assigned_to_email || null,
       isCustom: true, dbId: d.id,
@@ -1087,10 +1181,11 @@ Passage`);
   );
 }
 
-function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, onHandled, onAssign, onClose }) {
+function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, onHandled, onNotApplicable, onAssign, onClose }) {
   const playbook = executionForTask(task, deceasedName, coordinatorName, userEmail);
   const [recipientEmail, setRecipientEmail] = useState(task?.assignedEmail || playbook.recipientEmail || '');
   const [draft, setDraft] = useState(playbook.draft);
+  const [notes, setNotes] = useState(task?.notes || '');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -1113,6 +1208,10 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, onH
         <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 8 }}>Handle this task</div>
         <div style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>{task.title}</div>
         <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Passage prepared the next action. You can handle it yourself or assign it to someone else.</div>
+        <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: C.ink, marginBottom: 8 }}>Are you handling this?</div>
+          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55 }}>Choose "I am handling this" to use the script and notes here, or assign it to someone else.</div>
+        </div>
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.sage, marginBottom: 8 }}>What to do right now</div>
           {playbook.steps.map((step, i) => (
@@ -1131,13 +1230,18 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, onH
           <textarea value={draft} onChange={e => setDraft(e.target.value)} style={{ width: "100%", minHeight: 180, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
           {userEmail && <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>You will be copied at {userEmail} when the email is sent.</div>}
         </div>
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Notes</div>
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Save confirmation numbers, names, next appointment times, or anything the family should know." style={{ width: "100%", minHeight: 96, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 8 }}>
           <button onClick={sendDraft} disabled={!recipientEmail || sending} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : sent ? "Sent" : "Send prepared email"}</button>
           <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Draft copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy draft</button>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
+          <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not applicable</button>
           <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Assign instead</button>
-          <button onClick={onHandled} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>Mark handled</button>
+          <button onClick={() => onHandled(notes)} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>I am handling this</button>
         </div>
       </div>
     </div>
@@ -1225,6 +1329,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
     setSaving(true);
     const personData = { name: name || selectedRole, role: role || selectedRole, email, phone, notifyChannel };
     const saved = await savePerson(userId, { ...personData, id: selectedPerson?.id, notify_channel: notifyChannel });
+    await grantEstateAccess(workflowId, personData);
     if (task.dbId) {
       await updateTask(task.dbId, { assigned_to_name: personData.name, assigned_to_email: personData.email || null, assigned_to_person_id: saved?.id || null });
     }
@@ -1265,6 +1370,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
     };
 
     const saved = await savePerson(userId, { ...personData, id: selectedPerson?.id });
+    await grantEstateAccess(workflowId, personData);
 
     if (task.dbId) {
       await updateTask(task.dbId, {
@@ -1470,11 +1576,19 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role } : t));
   };
 
-  const markHandled = async (task) => {
-    if (task.dbId) await updateTask(task.dbId, { status: 'handled', completed_at: new Date().toISOString(), owner_kind: 'self' });
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: true } : t));
+  const markHandled = async (task, notes = '') => {
+    if (task.dbId) await updateTask(task.dbId, { status: 'handled', completed_at: new Date().toISOString(), owner_kind: 'self', notes });
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: true, status: 'handled', notes } : t));
     setExecutingTask(null);
     setToast("Handled.");
+  };
+
+  const markNotApplicable = async (task, notes = '') => {
+    const savedNotes = notes?.trim() ? notes : 'Not applicable';
+    if (task.dbId) await updateTask(task.dbId, { status: 'not_applicable', completed_at: new Date().toISOString(), owner_kind: 'self', notes: savedNotes });
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: true, status: 'not_applicable', notes: savedNotes } : t));
+    setExecutingTask(null);
+    setToast("Removed from the timeline.");
   };
 
   const openActivationPreview = async () => {
@@ -1519,7 +1633,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   }, {});
 
   const getFiltered = (tier) => {
-    const t = tasks.filter(t => t.tier === tier);
+    const t = tasks.filter(t => t.tier === tier && t.status !== 'not_applicable');
     if (filter === "pending") return t.filter(t => !t.completed && !t.assignedTo);
     if (filter === "assigned") return t.filter(t => t.assignedTo && !t.completed);
     if (filter === "done") return t.filter(t => t.completed);
@@ -1721,7 +1835,8 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
           deceasedName={deceasedName}
           coordinatorName={coordinatorName}
           userEmail={userEmail}
-          onHandled={() => markHandled(executingTask)}
+          onHandled={(notes) => markHandled(executingTask, notes)}
+          onNotApplicable={(notes) => markNotApplicable(executingTask, notes)}
           onAssign={() => { setAssigningTask(executingTask); setExecutingTask(null); }}
           onClose={() => setExecutingTask(null)}
         />
@@ -1778,7 +1893,7 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
     setBuilding(true);
     await saveLead({ flow_type: "immediate", your_name: yourName, your_email: yourEmail, deceased_name: deceasedName, relationship, date_of_death: dateOfDeath, timestamp: new Date().toISOString() });
     let createdWorkflowId = workflowId;
-    const wf = await createWorkflow(user?.id, deceasedName, yourName, yourEmail, dateOfDeath);
+    const wf = await createWorkflow(user?.id, deceasedName, yourName, yourEmail, dateOfDeath, { workflowId, path: 'red' });
     if (wf?.id) {
       const wfId = wf.id;
       createdWorkflowId = wfId;
@@ -1871,7 +1986,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     let createdWorkflowId = null;
     if (user?.id) {
       const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      const wf = await createWorkflow(user.id, name, user.email, user.email);
+      const wf = await createWorkflow(user.id, name, user.email, user.email, null, { path: 'green' });
       if (wf) {
         const wfId = wf.id;
         createdWorkflowId = wfId;
@@ -3438,6 +3553,18 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id || typeof window === 'undefined') return;
+    const raw = window.localStorage.getItem('passage_pending_checkout');
+    if (!raw) return;
+    let pending = null;
+    try { pending = JSON.parse(raw); } catch { pending = null; }
+    window.localStorage.removeItem('passage_pending_checkout');
+    if (pending?.planId) {
+      handleCheckout(pending.planId, user.id, user.email || pending.userEmail || '', pending.workflowId || null);
+    }
+  }, [user]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

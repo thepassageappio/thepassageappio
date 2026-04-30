@@ -25,24 +25,29 @@ export default async function handler(req, res) {
   const email = userData.user.email.toLowerCase();
 
   try {
-    const [{ data: actions }, { data: tasks }, { data: people }] = await Promise.all([
+    const [{ data: actions }, { data: tasks }, { data: people }, { data: access }] = await Promise.all([
       admin.from('workflow_actions')
-        .select('id, workflow_id, action_type, subject, body, status, delivery_status, recipient_email, recipient_phone, created_at, sent_at')
+        .select('id, workflow_id, action_type, subject, body, status, delivery_status, recipient_email, recipient_phone, notes, created_at, sent_at')
         .ilike('recipient_email', email)
         .order('created_at', { ascending: false }),
       admin.from('tasks')
-        .select('id, workflow_id, title, status, assigned_to_name, assigned_to_email, completed_at, created_at')
+        .select('id, workflow_id, title, description, status, assigned_to_name, assigned_to_email, notes, completed_at, created_at')
         .ilike('assigned_to_email', email)
         .order('created_at', { ascending: false }),
       admin.from('people')
         .select('id, owner_id, first_name, last_name, email, relationship, estate_role_label, participant_status, participant_discount_offered, created_at')
         .ilike('email', email)
         .order('created_at', { ascending: false }),
+      admin.from('estate_access')
+        .select('workflow_id, role, status')
+        .ilike('email', email)
+        .neq('status', 'revoked'),
     ]);
 
     const workflowIds = unique([
       ...(actions || []).map(a => a.workflow_id),
       ...(tasks || []).map(t => t.workflow_id),
+      ...(access || []).map(a => a.workflow_id),
     ]);
 
     let workflows = [];
@@ -63,7 +68,8 @@ export default async function handler(req, res) {
 
     const estates = workflows.map(w => ({
       ...w,
-      role: (people || []).find(p => p.email && p.email.toLowerCase() === email)?.estate_role_label ||
+      role: (access || []).find(a => a.workflow_id === w.id)?.role ||
+        (people || []).find(p => p.email && p.email.toLowerCase() === email)?.estate_role_label ||
         (people || []).find(p => p.email && p.email.toLowerCase() === email)?.relationship ||
         'Participant',
       actions: (actions || []).filter(a => a.workflow_id === w.id),
