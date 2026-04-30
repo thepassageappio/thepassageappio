@@ -103,6 +103,7 @@ async function handleDeathConfirmed(payload) {
 
   for (const action of actions) {
     try {
+      let delivered = false;
       if (action.action_type === 'email' && action.recipient_email) {
         const emailRes = await fetch(BASE_URL + '/api/sendEmail', {
           method: 'POST',
@@ -117,7 +118,7 @@ async function handleDeathConfirmed(payload) {
             events: events || [],
           }),
         });
-        if (emailRes.ok) sent++;
+        if (emailRes.ok) { sent++; delivered = true; }
         else failed++;
       }
 
@@ -135,13 +136,18 @@ async function handleDeathConfirmed(payload) {
             events: events || [],
           }),
         });
-        if (smsRes.ok) sent++;
+        if (smsRes.ok) { sent++; delivered = true; }
         else failed++;
       }
 
-      await supabase.from('workflow_actions').update({
+      await supabase.from('workflow_actions').update(delivered ? {
         status: 'sent',
         sent_at: new Date().toISOString(),
+        delivery_status: 'sent',
+      } : {
+        status: 'needs_review',
+        delivery_status: 'needs_review',
+        error_message: 'Delivery was attempted but the provider did not confirm success.',
       }).eq('id', action.id);
     } catch (err) {
       failed++;

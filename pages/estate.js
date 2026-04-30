@@ -124,6 +124,54 @@ function ownerForTask(task) {
   return task.assigned_to_name || task.assigned_to_email || task.owner_label || task.owner_kind || 'Needs owner';
 }
 
+function statusText(status) {
+  var value = String(status || '').replace(/_/g, ' ');
+  if (!value || value === 'pending') return 'Waiting';
+  if (value === 'sent') return 'Sent';
+  if (value === 'assigned') return 'Assigned';
+  if (value === 'waiting') return 'Waiting';
+  if (value === 'needs review') return 'Needs review';
+  if (value === 'handled' || value === 'completed') return 'Handled';
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function proofRowsFor(actions, tasks, events) {
+  var rows = [];
+  (actions || []).forEach(function(a) {
+    rows.push({
+      id: 'action_' + a.id,
+      title: (a.action_type === 'sms' ? 'Text' : a.action_type === 'email' ? 'Email' : 'Message') + ' to ' + (a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'),
+      detail: a.task_title || a.subject || a.body || 'Estate coordination notice',
+      status: statusText(a.delivery_status || a.status),
+      at: a.sent_at || a.updated_at || a.created_at,
+      tone: a.status === 'sent' || a.delivery_status === 'sent' ? 'good' : a.status === 'needs_review' ? 'warn' : 'soft'
+    });
+  });
+  (tasks || []).filter(function(t) { return t.outcome_status || t.completed_at || t.follow_up_at || t.assigned_to_email || t.assigned_to_name; }).forEach(function(t) {
+    rows.push({
+      id: 'task_' + t.id,
+      title: t.title,
+      detail: t.outcome_status ? statusText(t.outcome_status) : (t.assigned_to_name || t.assigned_to_email ? 'Assigned to ' + (t.assigned_to_name || t.assigned_to_email) : 'Task updated'),
+      status: statusText(t.status),
+      at: t.completed_at || t.follow_up_at || t.updated_at || t.created_at,
+      tone: isHandledStatus(t.status) ? 'good' : t.status === 'needs_review' ? 'warn' : 'soft'
+    });
+  });
+  (events || []).slice(0, 8).forEach(function(e) {
+    rows.push({
+      id: 'event_' + e.id,
+      title: e.title || 'Estate update',
+      detail: e.description || '',
+      status: 'Recorded',
+      at: e.created_at,
+      tone: e.event_type === 'plan_started' || e.event_type === 'task_completed' || e.event_type === 'plan_approved' ? 'good' : 'soft'
+    });
+  });
+  return rows.sort(function(a, b) {
+    return String(b.at || '').localeCompare(String(a.at || ''));
+  }).slice(0, 10);
+}
+
 // ── INLINE ASSIGN ─────────────────────────────────────────────────────────────
 function InlineAssign({ onSave, onClose }) {
   var s = useState(''); var name = s[0]; var setName = s[1];
@@ -359,13 +407,16 @@ function EstateOrchestrationMap({ estateId, name, serviceEvents, people, actions
 
 function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activating }) {
   var pendingActions = (actions || []).filter(function(a) { return !['sent', 'handled', 'cancelled'].includes(a.status || a.delivery_status || 'draft'); });
+  var sentActions = (actions || []).filter(function(a) { return (a.status || a.delivery_status) === 'sent' || a.sent_at; });
+  var needsReview = (actions || []).filter(function(a) { return a.status === 'needs_review' || a.delivery_status === 'needs_review'; });
   var assignedTasks = (tasks || []).filter(function(t) { return t.assigned_to_email || t.assigned_to_name || t.owner_label; });
   var missingOwners = (outcomes || []).filter(function(o) { return !o.owner_label && o.status !== 'handled'; }).length +
     (tasks || []).filter(function(t) { return !isHandledStatus(t.status) && ownerForTask(t) === 'Needs owner'; }).length;
-  var activated = ['activated', 'approved', 'in_motion'].includes(estate?.activation_status || estate?.status || '');
+  var activated = ['activated', 'approved', 'in_motion', 'triggered'].includes(estate?.activation_status || estate?.status || '');
   var rows = [
-    ['Email', pendingActions.filter(function(a) { return a.recipient_email || a.action_type === 'email'; }).length, 'prepared for approval'],
-    ['Text', pendingActions.filter(function(a) { return a.recipient_phone || a.action_type === 'sms'; }).length, 'prepared for approval'],
+    ['Email', pendingActions.filter(function(a) { return a.recipient_email || a.action_type === 'email'; }).length, activated ? 'still waiting' : 'prepared for approval'],
+    ['Text', pendingActions.filter(function(a) { return a.recipient_phone || a.action_type === 'sms'; }).length, activated ? 'still waiting' : 'prepared for approval'],
+    ['Sent', sentActions.length, 'delivery receipts recorded'],
     ['Tasks', assignedTasks.length, 'assigned to people'],
   ];
 
@@ -375,7 +426,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: activated ? SAGE : AMBER, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>{activated ? 'Plan active' : 'Activate plan'}</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>{activated ? 'This estate is in motion.' : "Here's what will happen."}</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Review the people, messages, and assigned work before Passage moves anything forward.</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>{activated ? 'Passage is tracking what was sent, what is waiting, and what needs review.' : 'Review recipients, channels, and assigned work before Passage sends anything.'}</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: activated ? SAGE : AMBER, background: activated ? CARD : AMBER_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>
           {activated ? 'Approved' : 'Review first'}
@@ -399,16 +450,66 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
         </div>
       )}
 
+      {needsReview.length > 0 && (
+        <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, color: ROSE, lineHeight: 1.55, fontWeight: 700, marginBottom: 12 }}>
+          {needsReview.length} message{needsReview.length === 1 ? '' : 's'} need review before they are considered handled.
+        </div>
+      )}
+
       {!activated ? (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <button onClick={function() { window.location.href = '/?open=people&backEstate=' + encodeURIComponent(estate.id); }} style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, color: MID, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Review</button>
-          <button onClick={onActivate} disabled={activating} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: activating ? 'default' : 'pointer', opacity: activating ? .7 : 1 }}>{activating ? 'Activating...' : 'Approve plan'}</button>
+          <button onClick={onActivate} disabled={activating || pendingActions.length === 0} style={{ border: 'none', background: pendingActions.length === 0 ? SOFT : SAGE, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: activating || pendingActions.length === 0 ? 'default' : 'pointer', opacity: activating ? .7 : 1 }}>{activating ? 'Starting...' : 'Approve and send'}</button>
         </div>
       ) : (
         <div style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', color: SAGE, fontSize: 13, fontWeight: 800, textAlign: 'center' }}>
-          Passage has a record of this approval. Keep working from the next clear task.
+          Passage has a record of this activation. Keep working from the next clear task.
         </div>
       )}
+    </div>
+  );
+}
+
+function ProofPanel({ actions, tasks, events }) {
+  var rows = proofRowsFor(actions, tasks, events);
+  var sent = rows.filter(function(r) { return r.status === 'Sent' || r.status === 'Handled' || r.status === 'Recorded'; }).length;
+  var waiting = rows.filter(function(r) { return r.status === 'Waiting' || r.status === 'Assigned'; }).length;
+  var review = rows.filter(function(r) { return r.status === 'Needs review'; }).length;
+  return (
+    <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Proof of progress</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>What Passage has recorded</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Messages, accepted work, waiting items, and handled tasks stay visible here.</div>
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 800, color: review ? ROSE : SAGE, background: review ? ROSE_FAINT : SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>
+          {review ? review + ' review' : 'Tracked'}
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
+        <div style={{ background: SAGE_FAINT, borderRadius: 11, padding: 10 }}><div style={{ fontSize: 16, color: SAGE, fontWeight: 800 }}>{sent}</div><div style={{ fontSize: 10.5, color: MID }}>recorded</div></div>
+        <div style={{ background: SUBTLE, borderRadius: 11, padding: 10 }}><div style={{ fontSize: 16, color: MID, fontWeight: 800 }}>{waiting}</div><div style={{ fontSize: 10.5, color: MID }}>waiting</div></div>
+        <div style={{ background: review ? ROSE_FAINT : SAGE_FAINT, borderRadius: 11, padding: 10 }}><div style={{ fontSize: 16, color: review ? ROSE : SAGE, fontWeight: 800 }}>{review}</div><div style={{ fontSize: 10.5, color: MID }}>needs review</div></div>
+      </div>
+      {rows.length === 0 ? (
+        <div style={{ background: SUBTLE, borderRadius: 12, padding: '12px 13px', fontSize: 13, color: MID, lineHeight: 1.55 }}>
+          Nothing has been sent or completed yet. Start with one task, then Passage will record the outcome here.
+        </div>
+      ) : rows.map(function(row, i) {
+        var color = row.tone === 'good' ? SAGE : row.tone === 'warn' ? ROSE : MID;
+        var bg = row.tone === 'good' ? SAGE_FAINT : row.tone === 'warn' ? ROSE_FAINT : SUBTLE;
+        return (
+          <div key={row.id} style={{ borderTop: i ? '1px solid ' + BORDER : 'none', padding: '9px 0', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10, alignItems: 'start' }}>
+            <div>
+              <div style={{ fontSize: 13.5, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{row.title}</div>
+              {row.detail && <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginTop: 2 }}>{row.detail}</div>}
+              {row.at && <div style={{ fontSize: 10.5, color: SOFT, marginTop: 3 }}>{new Date(row.at).toLocaleString()}</div>}
+            </div>
+            <span style={{ fontSize: 10.5, fontWeight: 800, color: color, background: bg, borderRadius: 999, padding: '4px 8px', whiteSpace: 'nowrap' }}>{row.status}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -496,15 +597,27 @@ export default function EstatePage() {
     if (!estate) return;
     setActivating(true);
     var now = new Date().toISOString();
-    await sb.from('workflows').update({ activation_status: 'approved', updated_at: now }).eq('id', estateId);
-    await sb.from('workflow_actions').update({ status: 'approved', approved_at: now, updated_at: now }).eq('workflow_id', estateId).is('approved_at', null);
-    var eventRow = { estate_id: estateId, event_type: 'plan_approved', title: 'Plan approved', description: 'The family reviewed what will happen and approved the plan.', actor: coordinatorName };
+    var session = await sb.auth.getSession();
+    var token = session && session.data && session.data.session ? session.data.session.access_token : '';
+    var res = await fetch('/api/handleEvent', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+      body: JSON.stringify({ type: 'death_confirmed', payload: { workflowId: estateId } })
+    });
+    if (!res.ok) {
+      setActivating(false);
+      showToast('Passage could not send yet. Review contacts and try again.');
+      return;
+    }
+    await sb.from('workflows').update({ activation_status: 'activated', updated_at: now }).eq('id', estateId);
+    var eventRow = { estate_id: estateId, event_type: 'plan_started', title: 'Plan started', description: 'The family approved the plan and Passage sent queued messages.', actor: coordinatorName };
     await sb.from('estate_events').insert([eventRow]);
-    setEstate(function(prev) { return Object.assign({}, prev || {}, { activation_status: 'approved' }); });
-    setActions(function(prev) { return prev.map(function(a) { return a.approved_at ? a : Object.assign({}, a, { status: 'approved', approved_at: now }); }); });
+    var actionReload = await sb.from('workflow_actions').select('*').eq('workflow_id', estateId).order('sort_order', { ascending: true });
+    setEstate(function(prev) { return Object.assign({}, prev || {}, { activation_status: 'activated', status: 'triggered' }); });
+    if (actionReload.data) setActions(actionReload.data);
     setEvents(function(prev) { return [Object.assign({ id: 'local_plan_' + Date.now(), created_at: now }, eventRow)].concat(prev).slice(0, 8); });
     setActivating(false);
-    showToast('Plan approved. Passage is ready to guide the next step.');
+    showToast('Plan started. Messages and task assignments are being tracked.');
   }
 
   // Banner logic
@@ -633,6 +746,12 @@ export default function EstatePage() {
           outcomes={outcomes}
           activating={activating}
           onActivate={activatePlan}
+        />
+
+        <ProofPanel
+          actions={actions}
+          tasks={tasks}
+          events={events}
         />
 
         <EstateOrchestrationMap

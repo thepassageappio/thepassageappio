@@ -46,10 +46,17 @@ export default async function handler(req, res) {
     .update(updates)
     .eq('id', id)
     .ilike(emailColumn, email)
-    .select('id,status')
+    .select(kind === 'task' ? 'id,status,workflow_id,title' : 'id,status,workflow_id,subject,task_title')
     .maybeSingle();
 
   if (error) return res.status(500).json({ error: error.message });
   if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
+  await admin.from('estate_events').insert([{
+    estate_id: data.workflow_id,
+    event_type: status === 'handled' ? 'participant_handled' : status === 'waiting' ? 'participant_waiting' : 'participant_updated',
+    title: status === 'handled' ? 'Participant handled a task' : status === 'waiting' ? 'Participant update waiting' : 'Participant updated a task',
+    description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
+    actor: email,
+  }]).catch(() => {});
   return res.status(200).json({ success: true, item: data });
 }

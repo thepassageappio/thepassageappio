@@ -476,7 +476,8 @@ const saveWorkflowAction = async (workflowId, personData, taskTitle, actionType)
       recipient_email: personData.email || null,
       recipient_phone: personData.phone || null,
       subject: `You've been assigned a task`,
-      body: `${personData.first_name || personData.name} — you've been asked to help coordinate an estate task in Passage.\n\nTask: ${taskTitle}\n\nYou will receive full details and instructions when the plan is activated.`,
+      task_title: taskTitle,
+      body: `${personData.first_name || personData.name} - you've been asked to help coordinate an estate task in Passage.\n\nTask: ${taskTitle}\n\nOpen Passage to accept the task, add notes, or ask for more details. The coordinator will see your update.`,
       status: 'pending',
       delay_hours: 0,
     }]);
@@ -1262,13 +1263,14 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
     setSending(true);
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
-    await fetch('/api/sendEmail', {
+    const res = await fetch('/api/sendEmail', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
       body: JSON.stringify({ to: recipientEmail, cc: userEmail || undefined, subject: playbook.subject, taskTitle: task.title, deceasedName, coordinatorName, actionType: 'execution', messageText: draft }),
     });
     setSending(false);
-    setSent(true);
+    if (res.ok) setSent(true);
+    else alert('Passage could not send that email yet. You can copy the draft and try again.');
   };
 
   const lowerTitle = String(task?.title || '').toLowerCase();
@@ -1367,6 +1369,11 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
           <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Draft copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy draft</button>
           <button onClick={() => navigator.clipboard.writeText(smsDraft).then(() => alert('Text copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy text</button>
         </div>
+        {sent && (
+          <div style={{ marginBottom: 8, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "10px 12px", color: C.sage, fontSize: 12.5, fontWeight: 800, lineHeight: 1.5 }}>
+            Email sent and copied to the estate record. Save the outcome below so the plan knows what happened next.
+          </div>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
           <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not applicable</button>
           <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Assign instead</button>
@@ -1386,6 +1393,11 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
   const [sending, setSending] = useState(false);
   const pendingActions = (actions || []).filter(a => !['sent', 'handled', 'completed'].includes(a.status));
   const assignedTasks = (tasks || []).filter(t => t.assignedTo || t.assignedEmail).slice(0, 12);
+  const channels = [
+    ['Email', pendingActions.filter(a => a.action_type === 'email' || a.recipient_email).length],
+    ['Text', pendingActions.filter(a => a.action_type === 'sms' || a.recipient_phone).length],
+    ['Assigned tasks', assignedTasks.length],
+  ];
   const sendAll = async () => {
     setSending(true);
     const { data: sessionData } = await supabase.auth.getSession();
@@ -1399,12 +1411,20 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
       <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto" }}>
         <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
         <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.rose, fontWeight: 800, marginBottom: 8 }}>Activate plan</div>
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>Here's what will happen.</div>
-        <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Nothing sends until you approve. This activation is for {deceasedName || 'this estate'}.</div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>Approve the plan and Passage begins.</div>
+        <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Nothing sends until you press the button below. After that, Passage records what was sent and what needs follow-up for {deceasedName || 'this estate'}.</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginBottom: 14 }}>
+          {channels.map(([label, count]) => (
+            <div key={label} style={{ background: C.bgSubtle, borderRadius: 12, padding: 11 }}>
+              <div style={{ fontSize: 18, color: C.ink, fontWeight: 800 }}>{count}</div>
+              <div style={{ fontSize: 10.5, color: C.mid }}>{label}</div>
+            </div>
+          ))}
+        </div>
         <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.rose, marginBottom: 8 }}>What will be sent</div>
           {pendingActions.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No pending messages are queued yet. Assign people to tasks first.</div> : pendingActions.map((a, i) => (
-            <div key={a.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "8px 0", fontSize: 13, color: C.mid, lineHeight: 1.5 }}><strong style={{ color: C.ink }}>{a.action_type === 'sms' ? 'Text' : 'Email'}</strong> to {a.recipient_email || a.recipient_phone || 'recipient'}<br /><span>{a.subject || a.body || 'Estate coordination notice'}</span></div>
+            <div key={a.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "8px 0", fontSize: 13, color: C.mid, lineHeight: 1.5 }}><strong style={{ color: C.ink }}>{a.action_type === 'sms' ? 'Text' : 'Email'}</strong> to {a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'}<br /><span>{a.task_title || a.subject || a.body || 'Estate coordination notice'}</span><br /><span style={{ color: C.soft, fontSize: 12 }}>They will land on their assigned task in Passage.</span></div>
           ))}
         </div>
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
@@ -1414,7 +1434,7 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
         {events?.length > 0 && <div style={{ background: C.bgSubtle, borderRadius: 13, padding: 14, marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 800, color: C.soft, marginBottom: 8 }}>Service details included</div>{events.map((e, i) => <div key={e.id || i} style={{ fontSize: 13, color: C.mid, padding: "5px 0" }}>{e.name || e.event_type}{e.date ? ` - ${e.date}` : ''}{e.location_name ? ` at ${e.location_name}` : ''}</div>)}</div>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
           <button onClick={onClose} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Review / edit</button>
-          <button onClick={sendAll} disabled={sending || pendingActions.length === 0} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.rose, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : "Approve and send all"}</button>
+          <button onClick={sendAll} disabled={sending || pendingActions.length === 0} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.rose, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Starting..." : "Approve and begin"}</button>
         </div>
       </div>
     </div>

@@ -8,8 +8,8 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 
-async function signIn() {
-  await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/participating' } });
+async function signIn(returnTo = '/participating') {
+  await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + returnTo } });
 }
 
 function statusLabel(value) {
@@ -80,9 +80,57 @@ function actionSet(kind) {
   ];
 }
 
+function requestContract(kind, estate, item) {
+  const coordinator = estate?.coordinator_name || 'The coordinator';
+  const service = (estate?.events || [])[0];
+  const serviceLine = service ? `${service.name || service.event_type || 'Service'}${service.date ? `, ${service.date}` : ''}${service.time ? ` at ${service.time}` : ''}${service.location_name ? `, ${service.location_name}` : ''}` : 'Service details will appear here when the family adds them.';
+  if (kind === 'vendor') return {
+    label: 'Vendor request',
+    action: 'Confirm whether you can provide this service, or ask for the missing details.',
+    authority: 'This is a coordination request. Treat payment, pricing, and final approval as separate until the coordinator confirms them.',
+    serviceLine,
+    payer: 'Payment / approval: confirm with ' + coordinator + ' before placing an order.'
+  };
+  if (kind === 'officiant') return {
+    label: 'Officiant request',
+    action: 'Confirm whether you are available, or ask for service details if anything is missing.',
+    authority: coordinator + ' is the family contact for this request.',
+    serviceLine,
+    payer: 'No payment or honorarium is confirmed inside Passage unless the coordinator adds it in notes.'
+  };
+  if (kind === 'executor') return {
+    label: 'Responsible family task',
+    action: 'Accept ownership if you can carry this, or mark what is waiting so the family is not guessing.',
+    authority: 'Only handle legal, financial, or account steps if you have authority or the coordinator confirms it.',
+    serviceLine: 'Estate: ' + (estate?.deceased_name || estate?.name || 'this estate'),
+    payer: 'Keep confirmation numbers, deadlines, and document requests in the notes.'
+  };
+  return {
+    label: 'Family helper task',
+    action: 'Accept it if you can help, mark waiting if you are blocked, or ask for help.',
+    authority: 'You are responsible for this task only, not the whole estate.',
+    serviceLine,
+    payer: 'The coordinator will see your update.'
+  };
+}
+
+function actionConfirmation(action) {
+  if (action === 'confirmed') return 'Availability confirmed. The coordinator can see it.';
+  if (action === 'delivered') return 'Marked delivered. The coordinator can see it.';
+  if (action === 'scheduled') return 'Marked scheduled. The coordinator can see it.';
+  if (action === 'quoted') return 'Quote status saved. The coordinator can see it.';
+  if (action === 'needs_details') return 'Saved as needing details. The coordinator can see what is missing.';
+  if (action === 'waiting') return 'Saved as waiting. This stays visible.';
+  if (action === 'unavailable') return 'Saved as unavailable. The coordinator can reassign it.';
+  if (action === 'help') return 'Help request saved. The coordinator can see it.';
+  if (action === 'handled') return 'This is handled. The coordinator can see your update.';
+  return 'Accepted. The coordinator can see that you own this task.';
+}
+
 function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, estate }) {
   const handled = isHandled(itemStatus(item));
   const kind = roleKind(estate?.role, item);
+  const contract = requestContract(kind, estate, item);
   return (
     <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, background: linked || primary ? C.sageFaint : C.card, borderRadius: 14, padding: primary ? 15 : 12, marginTop: 10, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 6 }}>
@@ -100,6 +148,16 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           </div>
         </div>
       )}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
+          <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em' }}>{contract.label}</div>
+          <div style={{ fontSize: 11, color: C.mid, fontWeight: 800 }}>{statusLabel(itemStatus(item))}</div>
+        </div>
+        <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.5, fontWeight: 800 }}>{contract.action}</div>
+        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 5 }}>{contract.serviceLine}</div>
+        <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.45, marginTop: 5 }}>{contract.authority}</div>
+        <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>{contract.payer}</div>
+      </div>
       {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
       {!handled && (
         <>
@@ -128,6 +186,7 @@ export default function ParticipatingPage() {
   const [notesByItem, setNotesByItem] = useState({});
   const [expandedEstateId, setExpandedEstateId] = useState('');
   const [showHandled, setShowHandled] = useState({});
+  const [actionNotice, setActionNotice] = useState('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -160,11 +219,12 @@ export default function ParticipatingPage() {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     if (!token) return;
-    await fetch('/api/participantAction', {
+    const r = await fetch('/api/participantAction', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify({ kind, id, action, notes: notesByItem[kind + ':' + id] || '' }),
     });
+    setActionNotice(r.ok ? actionConfirmation(action) : 'Passage could not save that update. Please try again.');
     await load(token);
   }
 
@@ -176,7 +236,7 @@ export default function ParticipatingPage() {
 
   async function sendMagicLink() {
     if (!emailLogin) return;
-    const { error } = await supabase.auth.signInWithOtp({ email: emailLogin, options: { emailRedirectTo: SITE_URL + '/participating' } });
+    const { error } = await supabase.auth.signInWithOtp({ email: emailLogin, options: { emailRedirectTo: SITE_URL + (router.asPath || '/participating') } });
     if (error) setError(error.message);
     else setMagicSent(true);
   }
@@ -198,7 +258,7 @@ export default function ParticipatingPage() {
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
               Sign in with the email that received the Passage invite. You will only see the estate work connected to you, with the task, notes, and service details the coordinator shared.
             </p>
-            <button onClick={signIn} style={{ border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+            <button onClick={() => signIn(router.asPath || '/participating')} style={{ border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
             <div style={{ height: 12 }} />
             <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
             <button onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Email me a sign-in link</button>
@@ -216,8 +276,13 @@ export default function ParticipatingPage() {
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
                   <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>This is the task someone asked you to help with.</div>
                   <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>
-                    Accept it if you can take it, add notes if something changes, or ask for help. The coordinator will see the update in Passage.
+                    Start with the task below. You can accept it, ask for details, or record what happened. The coordinator will see your update in Passage.
                   </div>
+                </div>
+              )}
+              {actionNotice && (
+                <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 14, color: C.sage, fontSize: 13, fontWeight: 800, lineHeight: 1.5 }}>
+                  {actionNotice}
                 </div>
               )}
               {data.estates.length === 0 ? (
@@ -227,6 +292,7 @@ export default function ParticipatingPage() {
                 </div>
               ) : data.estates
                 .slice()
+                .filter(estate => !router.query.estate || estate.id === router.query.estate)
                 .sort((a, b) => (a.id === router.query.estate ? -1 : b.id === router.query.estate ? 1 : 0))
                 .map(estate => {
                   const items = normalizeItems(estate).sort((a, b) => (a.id === router.query.task ? -1 : b.id === router.query.task ? 1 : 0));
@@ -243,7 +309,7 @@ export default function ParticipatingPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.2, color: C.ink }}>{estate.deceased_name || estate.name || 'Estate plan'}</div>
-                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>Role: {estate.role} | Coordinator: {estate.coordinator_name || 'Family coordinator'}</div>
+                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>Role: {estate.role} | Coordinator: {estate.coordinator_name || 'Family coordinator'}{estate.coordinator_email ? ` (${estate.coordinator_email})` : ''}</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: openItems.length ? C.rose : C.sage, background: openItems.length ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{openItems.length ? `${openItems.length} need you` : 'All clear'}</span>
                         {handledItems.length > 0 && <span style={{ fontSize: 11, fontWeight: 800, color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{handledItems.length} handled</span>}
