@@ -29,10 +29,20 @@ var AMBER_FAINT = '#fdf8ee';
 var AMBER_BORDER = 'rgba(176,125,46,0.3)';
 
 var PLAYBOOKS = {
+  details: {
+    title: 'Record the official details',
+    draft: 'Private record: date of death, time of death, location, who pronounced, who was notified, and the next official contact. Keep this factual so no one has to reconstruct it later.',
+    steps: ['Write the date, time, and location exactly as given', 'Record the provider or official who confirmed it', 'Save names, numbers, and case/reference IDs']
+  },
   funeral: {
     title: 'Prepare the funeral home call',
-    draft: 'Hello, my name is [your name]. I am calling because [name] has passed away. We need help with transportation and first arrangements. What do you need from us first?',
-    steps: ['Confirm who has authority to speak', 'Ask what documents are needed', 'Write down the next appointment time']
+    draft: 'Hello, my name is [your name]. I am calling because [name] has passed away. We need help with transportation and first arrangements. What do you need from us first, and can you send itemized pricing before anything is approved?',
+    steps: ['Confirm who has authority to speak', 'Ask what documents are needed', 'Request itemized pricing', 'Write down the next appointment time']
+  },
+  certificate: {
+    title: 'Get the document path clear',
+    draft: 'Can you confirm who will provide the official pronouncement and how certified death certificates should be ordered? Please tell us how many copies you recommend and what information you need from the family.',
+    steps: ['Confirm pronouncement source', 'Ask how certificates are ordered', 'Record cost, timing, and pickup or mailing instructions']
   },
   notifications: {
     title: 'Prepare a family notification',
@@ -44,6 +54,21 @@ var PLAYBOOKS = {
     draft: 'Please locate the document for this step. If you find a digital copy, upload it to the estate command center before sharing.',
     steps: ['Find the document or note its location', 'Upload a copy if available', 'Share only after review']
   },
+  property: {
+    title: 'Secure the home and immediate care',
+    draft: 'Can you please check the home, pets, mail, vehicle, and anything urgent? Please reply with what you found, what needs attention, and whether anything was moved.',
+    steps: ['Ask a trusted local person to check the property', 'Do not remove valuables unless authorized', 'Record photos or notes if something needs follow-up']
+  },
+  benefits: {
+    title: 'Start the benefits call',
+    draft: 'I am helping coordinate next steps for [name]. Can you tell us what survivor, benefit, claim, or account documents are required and what deadline we should know about?',
+    steps: ['Gather identifying information and death certificate if available', 'Ask for claim numbers and deadlines', 'Save upload, mail, or appointment instructions']
+  },
+  legal: {
+    title: 'Clarify legal authority',
+    draft: 'I am helping coordinate the estate of [name]. We need guidance on the will, probate requirements, and who is authorized to act. What is the next step?',
+    steps: ['Locate will, trust, and attorney contact', 'Confirm whether probate is needed', 'Do not distribute assets until authority is clear']
+  },
   default: {
     title: 'Prepare the next step',
     draft: 'Here is the task that needs attention. Review the details, decide who owns it, and mark it handled only when the family has confirmed it is taken care of.',
@@ -52,7 +77,13 @@ var PLAYBOOKS = {
 };
 
 function playbookFor(outcome) {
-  var key = outcome.category === 'service' ? 'funeral' :
+  var title = String(outcome.title || '').toLowerCase();
+  var key = title.includes('date') || title.includes('time') || title.includes('location of death') ? 'details' :
+    title.includes('certificate') || title.includes('pronouncement') ? 'certificate' :
+    title.includes('home') || title.includes('pet') || title.includes('vehicle') || title.includes('secure') ? 'property' :
+    title.includes('social security') || title.includes('benefit') || title.includes('insurance') || title.includes('bank') || title.includes('account') ? 'benefits' :
+    title.includes('attorney') || title.includes('probate') || title.includes('will') ? 'legal' :
+    outcome.category === 'service' ? 'funeral' :
     outcome.category === 'notifications' ? 'notifications' :
     outcome.category === 'legal' ? 'documents' : 'default';
   return PLAYBOOKS[key] || PLAYBOOKS.default;
@@ -273,6 +304,11 @@ export default function EstatePage() {
   function showToast(msg) {
     setToast(msg);
     setTimeout(function() { setToast(''); }, 2200);
+  }
+
+  function homeLink(open) {
+    var query = open ? '?open=' + encodeURIComponent(open) + '&backEstate=' + encodeURIComponent(estateId || '') : '';
+    return '/' + query;
   }
 
   async function updateOutcome(index, updates) {
@@ -566,19 +602,19 @@ export default function EstatePage() {
             title="People and coordination"
             meta={outcomes.filter(function(o) { return !o.owner_label; }).length + ' items need an owner'}
             cta="Review"
-            onClick={function() { window.location.href = '/'; }}
+            onClick={function() { window.location.href = homeLink('people'); }}
           />
           <SecondaryCard
             title="Planning file"
             meta="Documents, wishes, obituary, voice notes"
             cta="Open"
-            onClick={function() { window.location.href = '/'; }}
+            onClick={function() { window.location.href = homeLink('documents'); }}
           />
           <SecondaryCard
             title="Scheduled messages"
             meta="Letters, texts, or voice notes for dates and milestones"
             cta="Open My file"
-            onClick={function() { window.location.href = '/'; }}
+            onClick={function() { window.location.href = homeLink('memories'); }}
           />
         </div>
 

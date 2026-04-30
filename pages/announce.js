@@ -60,7 +60,6 @@ var CHANNELS = [
   { id: 'sms', label: 'Text message', sub: 'Send directly via SMS' },
   { id: 'email', label: 'Email', sub: 'Send via email' },
   { id: 'copy', label: 'Copy to share', sub: 'Copy the message and share it yourself' },
-  { id: 'social_pending', label: 'Post to social media', sub: 'Coming soon — direct posting not yet available', disabled: true },
 ];
 
 function Shell({ step, total, onBack, children }) {
@@ -115,7 +114,7 @@ function Option({ label, sub, selected, onClick, disabled }) {
     <button onClick={disabled ? undefined : onClick} disabled={!!disabled}
       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px', borderRadius: 13, border: '1.5px solid ' + (selected ? SAGE : BORDER), background: selected ? SAGE_FAINT : disabled ? SUBTLE : CARD, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', textAlign: 'left', marginBottom: 8, minHeight: 56, opacity: disabled ? 0.5 : 1 }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: selected ? SAGE : disabled ? SOFT : INK }}>{label}{disabled ? ' — Coming soon' : ''}</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: selected ? SAGE : disabled ? SOFT : INK }}>{label}</div>
         {sub && <div style={{ fontSize: 13, color: SOFT, marginTop: 3 }}>{sub}</div>}
       </div>
       <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid ' + (selected ? SAGE : BORDER), background: selected ? SAGE : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

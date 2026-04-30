@@ -31,30 +31,30 @@ export default function MissionPage() {
         </div>
       </nav>
 
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '52px 22px 28px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 28, alignItems: 'end' }}>
-          <div>
-            <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 14 }}>Our mission</div>
-            <h1 style={{ fontSize: 'clamp(42px, 7vw, 78px)', lineHeight: 1, margin: '0 0 18px', fontWeight: 400, letterSpacing: 0 }}>
-              Families need a handrail through the hardest transition.
+      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '34px 22px 22px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 30, alignItems: 'center' }}>
+          <div style={{ maxWidth: 610 }}>
+            <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 12 }}>Our mission</div>
+            <h1 style={{ fontSize: 'clamp(38px, 5.2vw, 62px)', lineHeight: 1.04, margin: '0 0 16px', fontWeight: 400, letterSpacing: 0 }}>
+              Families need one calm next step.
             </h1>
-            <p style={{ color: C.mid, fontSize: 17, lineHeight: 1.75, maxWidth: 700, margin: 0 }}>
-              Passage turns the blur after a death, and the planning before one, into one calm place to know what matters, who owns it, and what happens next.
+            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.7, maxWidth: 560, margin: 0 }}>
+              Passage turns the blur after a death, and the planning before one, into one place to know what matters, who owns it, and what happens next.
             </p>
           </div>
-          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 22, boxShadow: '0 16px 50px rgba(55,45,35,.07)' }}>
-            <div style={{ fontSize: 12, color: C.soft, textTransform: 'uppercase', letterSpacing: '.14em', fontWeight: 800, marginBottom: 12 }}>We believe</div>
+          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 20, boxShadow: '0 14px 42px rgba(55,45,35,.06)' }}>
+            <div style={{ fontSize: 11, color: C.soft, textTransform: 'uppercase', letterSpacing: '.14em', fontWeight: 800, marginBottom: 10 }}>We believe</div>
             {['No one should become an operations manager in grief.', 'Every task should answer: what do I do right now?', 'Planning ahead should feel loving, not morbid.'].map((line) => (
-              <div key={line} style={{ display: 'flex', gap: 10, padding: '9px 0', borderTop: '1px solid ' + C.border }}>
+              <div key={line} style={{ display: 'flex', gap: 10, padding: '8px 0', borderTop: '1px solid ' + C.border }}>
                 <span style={{ color: C.sage, fontWeight: 800 }}>✓</span>
-                <span style={{ color: C.mid, fontSize: 14, lineHeight: 1.55 }}>{line}</span>
+                <span style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5 }}>{line}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 22px' }}>
+      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '12px 22px 18px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 14 }}>
           {[
             ['When someone just passed', 'Passage narrows the first hours into a guided command center: calls, documents, family updates, owners, and timing.'],

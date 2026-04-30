@@ -603,11 +603,20 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
     steps: ['Review the prepared note.', 'Add any missing details.', 'Send it or copy it into the right portal.', 'Mark handled when you have confirmation.'],
   };
 
+  if (lower.includes('document the date') || lower.includes('date, time') || lower.includes('location of death')) {
+    return { ...base, recipientLabel: 'your private estate notes', subject: `${deceased} - death details record`, draft: `For Passage records:\n\nName: ${deceased}\nDate of death:\nTime of death:\nLocation of death:\nPronouncing provider or official:\nFuneral home or next contact:\n\nNotes:\n`, sms: `Passage: ${coordinator} is recording official death details for ${shorten(deceased, 24)}. Sign in if you were assigned this task.`, steps: ['Write down the date, time, and exact location as provided by the medical professional or official.', 'Record who pronounced the death and how they can be reached.', 'Keep this private until death certificates are ordered.', 'Mark handled once the details are saved in notes.'] };
+  }
   if (lower.includes('funeral home') || lower.includes('funeral director')) {
     return { ...base, recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating funeral arrangements for ${shorten(deceased, 26)}. Please sign in to Passage for task details.`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
   }
+  if (lower.includes('hospice') || lower.includes('home care')) {
+    return { ...base, recipientLabel: 'hospice or home care provider', subject: `${deceased} - care provider notification`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you please confirm any equipment pickup, final care records, medication disposal instructions, and billing or benefits steps we need to handle?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is notifying hospice or care providers for ${shorten(deceased, 23)}. Sign in to Passage for details.`, steps: ['Call the hospice or home care main number.', 'Ask about equipment pickup, medications, records, and final billing.', 'Record any pickup window or case number.', 'Mark handled after the provider confirms the next step.'] };
+  }
   if (lower.includes('death certificate') || lower.includes('pronouncement')) {
     return { ...base, recipientLabel: 'physician, hospice nurse, coroner, or funeral director', link: 'https://www.cdc.gov/nchs/w2w/index.htm', linkLabel: 'Find state vital records office', subject: `${deceased} - official pronouncement / death certificates`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you confirm who will provide the official pronouncement and how we should order certified death certificates?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} needs help with death certificate steps for ${shorten(deceased, 26)}. Sign in to Passage for details.`, steps: ['Confirm who is legally pronouncing the death.', 'Ask how many certified death certificates to order.', 'Record the contact name and phone number.', 'Use the state vital records link if certificates must be ordered directly.', 'Mark handled once the document path is clear.'] };
+  }
+  if (lower.includes('minor children')) {
+    return { ...base, recipientLabel: 'guardian or trusted family contact', subject: `${deceased} - immediate care for minor children`, draft: `Hello,\n\nWe need to confirm immediate care for the children connected to ${deceased}. Can you please confirm who has them, where they are staying, and whether any school, medication, or transportation needs must be handled today?\n\nThank you,\n${coordinator}`, sms: `Passage: urgent child-care coordination for ${shorten(deceased, 24)}. Please sign in to Passage if assigned.`, steps: ['Confirm the children are physically safe and with an approved adult.', 'Write down where they are, who is with them, and any medication or school needs.', 'Avoid permanent custody decisions until the legal guardian path is clear.', 'Mark handled when immediate care is confirmed.'] };
   }
   if (lower.includes('family') || lower.includes('notify')) {
     return { ...base, recipientLabel: 'family contact', subject: `${deceased} - family update`, draft: `Hello,\n\nI am so sorry to share that ${deceased} has passed away. ${coordinator} is helping coordinate next steps through Passage so the family can keep tasks, service details, and updates in one place.\n\nPlease sign in to Passage if you have been assigned a role or task.\n\nWith care,\n${coordinator}`, sms: `Passage: ${coordinator} shared a family update for ${shorten(deceased, 26)}. If assigned, sign in to Passage for details.`, steps: ['Choose the closest family contact first.', 'Use the prepared message or soften it in your own voice.', 'Avoid broadcasting service details until they are confirmed.', 'Mark handled once the first family circle knows who is coordinating.'] };
@@ -618,11 +627,23 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   if (lower.includes('social security')) {
     return { ...base, recipientLabel: 'Social Security Administration', link: 'https://www.ssa.gov/benefits/survivors/', linkLabel: 'Open SSA survivor benefits', subject: `${deceased} - survivor benefits`, sms: `Passage: ${coordinator} is starting Social Security survivor steps for ${shorten(deceased, 22)}. Sign in to Passage for details.`, steps: ['Open the SSA survivor benefits page.', 'Gather Social Security numbers, death certificate, marriage/birth records if applicable.', 'Call SSA or schedule the required appointment.', 'Mark handled once the appointment or claim is started.'] };
   }
+  if (lower.includes('medicare') || lower.includes('medicaid')) {
+    return { ...base, recipientLabel: 'Medicare, Medicaid, or benefits office', link: 'https://www.medicare.gov/basics/reporting-medicare-fraud-and-abuse/report-death', linkLabel: 'Open Medicare death reporting guidance', subject: `${deceased} - health benefits notification`, sms: `Passage: ${coordinator} is handling Medicare or Medicaid steps for ${shorten(deceased, 22)}. Sign in for details.`, steps: ['Confirm whether the funeral home reports the death automatically.', 'Gather Medicare/Medicaid ID and certified death certificate if requested.', 'Ask about final claims, premiums, or estate recovery notices.', 'Mark handled once the agency path is recorded.'] };
+  }
+  if (lower.includes('veteran') || lower.includes('va ') || lower.includes('military')) {
+    return { ...base, recipientLabel: 'U.S. Department of Veterans Affairs', link: 'https://www.va.gov/burials-memorials/', linkLabel: 'Open VA burial and survivor benefits', subject: `${deceased} - veteran burial and survivor benefits`, sms: `Passage: ${coordinator} is checking VA benefits for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Find DD214 or military service records if available.', 'Open VA burial and survivor benefit guidance.', 'Ask about burial allowance, flag, headstone, and survivor benefits.', 'Mark handled when the claim or appointment is started.'] };
+  }
   if (lower.includes('dmv') || lower.includes('driver')) {
     return { ...base, recipientLabel: 'state DMV', link: 'https://www.usa.gov/motor-vehicle-services', linkLabel: 'Find state DMV office', subject: `${deceased} - license and vehicle records`, sms: `Passage: ${coordinator} is handling DMV or vehicle records for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Open your state DMV site.', 'Search for deceased driver license cancellation or vehicle title transfer.', 'Gather death certificate and title/registration.', 'Mark handled once the DMV instruction or appointment is saved.'] };
   }
   if (lower.includes('credit bureaus')) {
     return { ...base, recipientLabel: 'Equifax, Experian, and TransUnion', link: 'https://www.identitytheft.gov/', linkLabel: 'Open identity theft/deceased alert guidance', subject: `${deceased} - deceased alert`, sms: `Passage: ${coordinator} is handling credit bureau alerts for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Contact each credit bureau to place a deceased alert.', 'Prepare certified death certificate and proof of authority.', 'Save confirmation numbers.', 'Mark handled after all three bureaus are notified.'] };
+  }
+  if (lower.includes('mail') || lower.includes('usps')) {
+    return { ...base, recipientLabel: 'USPS or trusted mail contact', link: 'https://www.usps.com/manage/forward.htm', linkLabel: 'Open USPS mail forwarding', subject: `${deceased} - mail forwarding`, sms: `Passage: ${coordinator} is handling mail forwarding for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Decide who is authorized to receive estate mail.', 'Forward or hold mail through USPS if appropriate.', 'Watch mail for bank, insurance, tax, and benefits notices.', 'Mark handled once mail is controlled.'] };
+  }
+  if (lower.includes('passport') || lower.includes('voter') || lower.includes('license') || lower.includes('professional')) {
+    return { ...base, recipientLabel: 'issuing agency', link: 'https://www.usa.gov/death-notification', linkLabel: 'Open government death notification guidance', subject: `${deceased} - government record update`, sms: `Passage: ${coordinator} is updating government records for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Identify the agency for this record.', 'Gather certified death certificate and proof of authority.', 'Ask whether the record should be cancelled, returned, or updated.', 'Mark handled once the agency confirms what happens next.'] };
   }
   if (lower.includes('employer') || lower.includes('hr')) {
     return { ...base, recipientLabel: 'employer / HR department', subject: `${deceased} - employment and benefits notification`, draft: `Hello,\n\nI am writing to notify you that ${deceased} has passed away. Can you please let us know the next steps for final pay, benefits, life insurance, and any required paperwork?\n\nPlease copy me at ${userEmail || 'this email'} on the response.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling employer or benefits steps for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Find HR or benefits contact information.', 'Ask about final pay, employer life insurance, retirement plans, and required forms.', 'Save names, deadlines, and claim numbers.', 'Mark handled when HR confirms the next step.'] };
@@ -635,6 +656,15 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   }
   if (lower.includes('bank') || lower.includes('account') || lower.includes('insurance') || lower.includes('subscription')) {
     return { ...base, recipientLabel: 'institution or account provider', subject: `${deceased} - account notification`, draft: `Hello,\n\nI am helping coordinate account notifications for ${deceased}. Can you please tell us what documentation is required to update or close this account and whether there are beneficiary or survivor claim steps?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling account or insurance steps for ${shorten(deceased, 23)}. Sign in to Passage for details.`, steps: ['Find the institution contact and account type.', 'Ask what documents are required before sharing private information.', 'Record claim numbers, deadlines, and mailing/upload instructions.', 'Mark handled once the institution confirms the next step.'] };
+  }
+  if (lower.includes('pension') || lower.includes('retirement') || lower.includes('beneficiary')) {
+    return { ...base, recipientLabel: 'retirement plan or benefits administrator', subject: `${deceased} - retirement or beneficiary claim`, draft: `Hello,\n\nI am helping coordinate benefits for ${deceased}. Can you please tell us what beneficiary, pension, retirement, or survivor claim steps are required and what documents should be submitted?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling retirement or beneficiary steps for ${shorten(deceased, 22)}. Sign in for details.`, steps: ['Locate the plan administrator or benefits portal.', 'Ask what beneficiary claim forms are required.', 'Record deadlines, claim numbers, and document upload instructions.', 'Mark handled once the claim path is clear.'] };
+  }
+  if (lower.includes('tax')) {
+    return { ...base, recipientLabel: 'tax preparer or estate accountant', link: 'https://www.irs.gov/individuals/file-the-final-income-tax-returns-of-a-deceased-person', linkLabel: 'Open IRS final return guidance', subject: `${deceased} - final tax return`, draft: `Hello,\n\nI am helping coordinate final tax steps for ${deceased}. Can you please advise what records you need for the final income tax return and whether any estate tax filing may be required?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling final tax steps for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Gather prior tax returns, income statements, and account records.', 'Contact the tax preparer or review IRS final return guidance.', 'Ask whether estate tax filings may apply.', 'Mark handled once the tax owner and next deadline are recorded.'] };
+  }
+  if (lower.includes('digital') || lower.includes('password') || lower.includes('online')) {
+    return { ...base, recipientLabel: 'executor or digital account contact', subject: `${deceased} - digital account access`, draft: `Hello,\n\nWe need to inventory digital accounts for ${deceased}. Please do not reset or delete anything yet. Can you help identify critical accounts, password manager access, and any accounts with bills or family photos?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating digital accounts for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['List critical accounts before changing passwords.', 'Look for a password manager, recovery email, or documented instructions.', 'Preserve photos, billing accounts, and financial records.', 'Mark handled once access and next steps are documented.'] };
   }
   if (lower.includes('obituary')) {
     return { ...base, recipientLabel: 'newspaper, funeral home, or family reviewer', subject: `${deceased} - obituary draft`, draft: `Hello,\n\nWe are preparing an obituary for ${deceased}. Can you please review the draft for names, dates, service details, and any memorial donation language before it is published?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is preparing the obituary for ${shorten(deceased, 26)}. Sign in to Passage if you were asked to review.`, steps: ['Draft the obituary with names, dates, survivors, and service information.', 'Ask one trusted person to review before publishing.', 'Confirm publication cost and deadline if using a newspaper.', 'Mark handled once the draft is saved or submitted.'] };
@@ -2533,7 +2563,7 @@ function MemoriesModal({ userId, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [file, setFile] = useState(null);
-  const [form, setForm] = useState({ title: '', to_name: '', to_email: '', content_type: 'letter', delivery_trigger: 'on_death', delivery_date: '', delivery_event: '', content_text: '' });
+  const [form, setForm] = useState({ title: '', to_name: '', to_email: '', to_phone: '', delivery_channel: 'email', content_type: 'letter', delivery_trigger: 'on_death', delivery_date: '', delivery_event: '', content_text: '' });
 
   const loadItems = useCallback(() => {
     if (!userId) return;
@@ -2547,6 +2577,14 @@ function MemoriesModal({ userId, onClose, onSaved }) {
 
   const saveMemory = async () => {
     if (!form.title.trim() || (!form.content_text.trim() && !file)) return;
+    if ((form.delivery_channel === 'email' || form.delivery_channel === 'email_and_sms') && !form.to_email.trim()) {
+      setError('Add an email recipient for this delivery.');
+      return;
+    }
+    if ((form.delivery_channel === 'sms' || form.delivery_channel === 'email_and_sms') && !form.to_phone.trim()) {
+      setError('Add a phone number for this text delivery.');
+      return;
+    }
     if ((form.delivery_trigger === 'on_date' || form.delivery_trigger === 'on_event') && !form.delivery_date) {
       setError('Choose the date this should be delivered.');
       return;
@@ -2569,6 +2607,8 @@ function MemoriesModal({ userId, onClose, onSaved }) {
       title: form.title.trim(),
       to_name: form.to_name || null,
       to_email: form.to_email || null,
+      to_phone: form.to_phone || null,
+      delivery_channel: form.delivery_channel,
       content_type: form.content_type,
       delivery_trigger: form.delivery_trigger,
       delivery_date: form.delivery_date || null,
@@ -2580,7 +2620,7 @@ function MemoriesModal({ userId, onClose, onSaved }) {
     if (!error) {
       await supabase.from('profiles').upsert([{ user_id: userId, vault_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
       setLoaded(false);
-      setForm({ title: '', to_name: '', to_email: '', content_type: 'letter', delivery_trigger: 'on_death', delivery_date: '', delivery_event: '', content_text: '' });
+      setForm({ title: '', to_name: '', to_email: '', to_phone: '', delivery_channel: 'email', content_type: 'letter', delivery_trigger: 'on_death', delivery_date: '', delivery_event: '', content_text: '' });
       setFile(null);
       loadItems();
       if (onSaved) onSaved('Memory saved.');
@@ -2597,7 +2637,12 @@ function MemoriesModal({ userId, onClose, onSaved }) {
         <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 5 }}>Memories</div>
         <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6, marginBottom: 18 }}>Write or attach something for someone to receive later. Passage will keep it waiting until the plan activates or the date you choose.</div>
         <Field label="Title" placeholder="For Emma on a hard day" value={form.title} onChange={v => setForm(f => ({ ...f, title: v }))} />
-        <div style={{ display: "flex", gap: 10 }}><div style={{ flex: 1 }}><Field label="Recipient name" value={form.to_name} onChange={v => setForm(f => ({ ...f, to_name: v }))} /></div><div style={{ flex: 1 }}><Field label="Recipient email" value={form.to_email} onChange={v => setForm(f => ({ ...f, to_email: v }))} /></div></div>
+        <Field label="Recipient name" value={form.to_name} onChange={v => setForm(f => ({ ...f, to_name: v }))} />
+        <Select label="Delivery method" value={form.delivery_channel} onChange={v => setForm(f => ({ ...f, delivery_channel: v }))} options={[["email","Email"],["sms","Text message"],["email_and_sms","Email + text"]]} />
+        <div style={{ display: "flex", gap: 10 }}>
+          {(form.delivery_channel === 'email' || form.delivery_channel === 'email_and_sms') && <div style={{ flex: 1 }}><Field label="Recipient email" value={form.to_email} onChange={v => setForm(f => ({ ...f, to_email: v }))} /></div>}
+          {(form.delivery_channel === 'sms' || form.delivery_channel === 'email_and_sms') && <div style={{ flex: 1 }}><Field label="Recipient phone" placeholder="+12297027753" value={form.to_phone} onChange={v => setForm(f => ({ ...f, to_phone: v }))} hint="Use E.164 format, including +1 for U.S. numbers." /></div>}
+        </div>
         <Select label="Type" value={form.content_type} onChange={v => setForm(f => ({ ...f, content_type: v }))} options={[["letter","Letter"],["voice_note","Voice note transcript"],["photo_album","Photo note"]]} />
         <Select label="When should this unlock?" value={form.delivery_trigger} onChange={v => setForm(f => ({ ...f, delivery_trigger: v }))} options={[["on_death","When my plan activates"],["on_date","On a future date"],["on_event","On a milestone"]]} />
         {(form.delivery_trigger === 'on_date' || form.delivery_trigger === 'on_event') && (
@@ -2623,7 +2668,7 @@ function MemoriesModal({ userId, onClose, onSaved }) {
         {!loaded ? <div style={{ fontSize: 13, color: C.soft }}>Loading...</div> : items.length === 0 ? <div style={{ fontSize: 13, color: C.soft, marginBottom: 16 }}>No memories saved yet.</div> : items.map(item => (
           <div key={item.id} style={{ background: C.bgSubtle, borderRadius: 11, padding: "11px 13px", marginBottom: 7 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{item.title}</div>
-            <div style={{ fontSize: 11.5, color: C.soft, marginTop: 2 }}>{item.to_name || 'Recipient not set'} - {item.delivery_trigger?.replace(/_/g, ' ')}</div>
+            <div style={{ fontSize: 11.5, color: C.soft, marginTop: 2 }}>{item.to_name || 'Recipient not set'} - {(item.delivery_channel || 'email').replace(/_/g, ' + ')} - {item.delivery_trigger?.replace(/_/g, ' ')}</div>
             {item.delivery_date && <div style={{ fontSize: 11.5, color: C.sage, marginTop: 3 }}>Scheduled for {item.delivery_date}{item.delivery_event ? ` (${item.delivery_event})` : ''}</div>}
             {item.content_url && <div style={{ fontSize: 11.5, color: C.sage, marginTop: 3 }}>Attachment saved</div>}
             <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.5, marginTop: 6 }}>{item.content_text}</div>
@@ -2652,6 +2697,21 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [wishesToast, setWishesToast] = useState("");
 
   const [taskStats, setTaskStats] = useState({});
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const open = (params.get('open') || '').toLowerCase();
+    if (!open) return;
+    if (open === 'documents' || open === 'document') setShowDocuments(true);
+    else if (open === 'memories' || open === 'scheduled' || open === 'messages') setShowMemories(true);
+    else if (open === 'people' || open === 'participants') setShowPeople(true);
+    else if (open === 'wishes') setShowWishes(true);
+    else if (open === 'obituary') setShowObituary(true);
+    params.delete('open');
+    const next = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (next ? '?' + next : ''));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -2767,6 +2827,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const usedGreenSeats = getUsedGreenSeatCount(workflows);
   const availableGreenSeats = Math.max(0, estateSeatLimit - usedGreenSeats);
   const isPaidPlan = plan !== 'free' && userData?.plan_status === 'active';
+  const backEstateId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('backEstate') : '';
 
   const saveWishes = async () => {
     if (!user) return;
@@ -2800,7 +2861,12 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
         <div style={{ display: "flex", alignItems: "center", gap: 9 }} title="Passage">
           <CandleLogo size={24} nameSize={16} />
         </div>
-        <div style={{ fontSize: 11, color: C.soft, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+          {backEstateId && (
+            <button onClick={() => { window.location.href = '/estate?id=' + encodeURIComponent(backEstateId); }} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "5px 11px", fontSize: 11.5, color: C.sage, cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>Back to estate</button>
+          )}
+          <div style={{ fontSize: 11, color: C.soft, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>
+        </div>
         <button onClick={onSignOut} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Sign out</button>
       </div>
 
@@ -3187,7 +3253,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
               Securely store your will, insurance policies, advance directives, and other important documents so your family can find them when needed.
             </div>
             <div style={{ background: C.goldFaint, border: "1px solid " + C.gold + "30", borderRadius: 11, padding: "12px 14px", fontSize: 13, color: C.amber, marginBottom: 20, lineHeight: 1.55 }}>
-              📄 Document upload is coming soon. For now, note the location of important documents in the Wishes section.
+              Documents are live. Upload the file when you have it, or save the location so your family is not searching later.
             </div>
             <button onClick={() => setShowDocumentsInfo(false)} style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Got it</button>
           </div>
@@ -3203,7 +3269,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
               Record voice notes, write letters to loved ones, and preserve memories to be delivered at the right moment — at a birthday, graduation, or simply when someone needs to hear from you.
             </div>
             <div style={{ background: C.goldFaint, border: "1px solid " + C.gold + "30", borderRadius: 11, padding: "12px 14px", fontSize: 13, color: C.amber, marginBottom: 20, lineHeight: 1.55 }}>
-              🎙️ Memories and timed delivery are coming soon. This is one of Passage's most meaningful features.
+              Timed delivery is live for saved letters, photos, and voice-note files. Passage sends them when the delivery rule is reached and automation is approved.
             </div>
             <button onClick={() => setShowMemoriesInfo(false)} style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Got it</button>
           </div>
@@ -3614,25 +3680,25 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           </div>
         </div>
 
-        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, boxShadow: '0 18px 46px rgba(55,45,35,.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 13 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.13em' }}>First 24 hours</div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '4px 9px' }}>Approval first</div>
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18, boxShadow: '0 20px 54px rgba(55,45,35,.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.14em' }}>First 24 hours</div>
+            <div style={{ fontSize: 11.5, fontWeight: 800, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '4px 10px' }}>Approval first</div>
           </div>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: 19, color: C.ink, lineHeight: 1.35, marginBottom: 12 }}>You're on track. Start here.</div>
-          <div style={{ border: `1px solid ${C.rose}30`, background: C.roseFaint, borderRadius: 14, padding: 15, marginBottom: 10 }}>
-            <div style={{ fontSize: 12, color: C.rose, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 7 }}>Start here</div>
-            <div style={{ fontSize: 16, color: C.ink, fontWeight: 800, marginBottom: 5 }}>Funeral arrangements</div>
-            <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.6 }}>Choose who will call. Passage prepares the script, text, email, and next step.</div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 20, color: C.ink, lineHeight: 1.25, marginBottom: 14 }}>You're on track. Start here.</div>
+          <div style={{ border: `1px solid ${C.rose}30`, background: C.roseFaint, borderRadius: 13, padding: 16, marginBottom: 12 }}>
+            <div style={{ fontSize: 11.5, color: C.rose, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.11em', marginBottom: 7 }}>Start here</div>
+            <div style={{ fontSize: 17, color: C.ink, fontWeight: 800, marginBottom: 6 }}>Funeral arrangements</div>
+            <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.55 }}>Choose who will call. Passage prepares the script, text, email, and next step.</div>
           </div>
           {['Notify immediate family', 'Secure home, pets, and vehicle'].map(title => (
-            <div key={title} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderTop: `1px solid ${C.border}`, color: C.mid, fontSize: 13 }}>
-              <span>{title}</span>
-              <span style={{ color: C.soft }}>Waiting</span>
+            <div key={title} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderTop: `1px solid ${C.border}`, color: C.mid, fontSize: 13.5 }}>
+              <span style={{ minWidth: 0 }}>{title}</span>
+              <span style={{ color: C.soft, flexShrink: 0 }}>Waiting</span>
             </div>
           ))}
-          <div style={{ marginTop: 12, padding: '10px 13px', background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, fontSize: 12.5, color: C.sage, lineHeight: 1.55 }}>
-            Passage prepares the work. Your family reviews and approves before messages, documents, or announcements are sent.
+          <div style={{ marginTop: 14, padding: '13px 15px', background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 11, fontSize: 13, color: C.sage, lineHeight: 1.55 }}>
+            Passage prepares the work. Your family reviews and approves before anything is sent.
           </div>
         </div>
       </section>

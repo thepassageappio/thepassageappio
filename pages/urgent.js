@@ -179,7 +179,7 @@ function AssignModal({ task, savedPeople, onClose, onSave }) {
           <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Optional" />
         </div>
 
-        <div className="modal-note">We will keep this owner available for other tasks. Next sprint: Passage will draft the email or call script for the person handling it.</div>
+        <div className="modal-note">Passage will keep this owner available for other tasks and include task instructions when they receive a Passage assignment.</div>
         <div className="actions">
           <button className="ghost" onClick={onClose}>Cancel</button>
           <button className="primary" disabled={!name.trim()} onClick={() => onSave({ id: personId || `p_${Date.now()}`, name: name.trim(), role: role.trim(), phone: phone.trim(), email: email.trim() })}>
