@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
 const C = {
   bg: '#f6f3ee', card: '#ffffff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890',
@@ -56,15 +57,7 @@ export default function ContactPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
-      <nav style={{ maxWidth: 980, margin: '0 auto', padding: '22px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link href="/" style={{ color: C.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
-        <div style={{ display: 'flex', gap: 14, fontSize: 13 }}>
-          <Link href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</Link>
-          <Link href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</Link>
-          <Link href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</Link>
-          <Link href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</Link>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <section style={{ maxWidth: 980, margin: '0 auto', padding: '62px 22px 80px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 28 }}>
         <div>
@@ -106,6 +99,7 @@ export default function ContactPage() {
           {state === 'error' && <p style={{ color: C.rose, fontSize: 13, lineHeight: 1.6 }}>Something did not send. Please email <SupportEmail />.</p>}
         </form>
       </section>
+      <SiteFooter />
     </main>
   );
 }

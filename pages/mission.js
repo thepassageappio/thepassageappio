@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
 const C = {
   bg: '#f6f3ee',
@@ -21,15 +22,7 @@ const navLink = { color: C.mid, textDecoration: 'none' };
 export default function MissionPage() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
-      <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-        <Link href="/" style={{ color: C.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
-        <div style={{ display: 'flex', gap: 14, fontSize: 13, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <Link href="/pricing" style={navLink}>Pricing</Link>
-          <Link href="/content" style={navLink}>Resources</Link>
-          <Link href="/contact" style={navLink}>Contact</Link>
-          <Link href="/participating" style={navLink}>Participating</Link>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '34px 22px 22px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 30, alignItems: 'center' }}>
@@ -83,6 +76,7 @@ export default function MissionPage() {
           </Link>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

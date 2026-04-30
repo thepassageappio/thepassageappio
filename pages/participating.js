@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
+import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -62,13 +63,13 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary }) {
         <>
           <textarea value={notes} onChange={e => onNotes(e.target.value)} placeholder="Add notes for the coordinator" style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
           <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-            <button onClick={() => onAction('accept')} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Accept</button>
-            <button onClick={() => onAction('handled')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Mark handled</button>
+            <button onClick={() => onAction('accept')} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I can handle this</button>
+            <button onClick={() => onAction('handled')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>This is handled</button>
             <button onClick={() => onAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Ask for help</button>
           </div>
         </>
       )}
-      {handled && <div style={{ color: C.sage, fontWeight: 800, fontSize: 12 }}>This item is handled.</div>}
+      {handled && <div style={{ color: C.sage, fontWeight: 800, fontSize: 12 }}>This is handled. The coordinator can see your update.</div>}
     </div>
   );
 }
@@ -139,15 +140,7 @@ export default function ParticipatingPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
-      <nav style={{ maxWidth: 1040, margin: '0 auto', padding: '22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link href="/" style={{ color: C.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
-        <div style={{ display: 'flex', gap: 14, fontSize: 13, alignItems: 'center' }}>
-          <Link href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</Link>
-          <Link href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</Link>
-          <Link href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</Link>
-          {user && <button onClick={signOut} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '7px 12px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Sign out</button>}
-        </div>
-      </nav>
+      <SiteHeader user={user} onSignOut={user ? signOut : null} />
 
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '48px 22px 84px' }}>
         <div style={{ maxWidth: 760, marginBottom: 28 }}>
@@ -198,6 +191,7 @@ export default function ParticipatingPage() {
                   const primaryItem = linkedItem || openItems[0] || handledItems[0];
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
                   const expanded = expandedEstateId === estate.id;
+                  const focusedInvite = Boolean(router.query.estate || router.query.task);
                   return (
                 <div key={estate.id} style={{ background: C.card, border: `1px solid ${expanded ? C.sage : C.border}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: expanded ? '0 14px 38px rgba(55,45,35,.05)' : 'none' }}>
                   <button onClick={() => setExpandedEstateId(expanded ? '' : estate.id)} style={{ width: '100%', background: 'none', border: 'none', padding: 20, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
@@ -241,7 +235,7 @@ export default function ParticipatingPage() {
                     </div>
                   )}
 
-                      {otherOpen.length > 0 && (
+                      {otherOpen.length > 0 && !focusedInvite && (
                         <div style={{ marginTop: 14 }}>
                           <div style={{ fontSize: 12, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 8 }}>Also assigned to you</div>
                           {otherOpen.slice(0, 4).map(item => (
@@ -284,6 +278,7 @@ export default function ParticipatingPage() {
           </div>
         )}
       </section>
+      <SiteFooter />
     </main>
   );
 }

@@ -140,13 +140,32 @@ export default function AnnouncePage() {
   var s8 = useState(''); var feedback = s8[0]; var setFeedback = s8[1];
   var s9 = useState(false); var done = s9[0]; var setDone = s9[1];
   var s10 = useState('draft'); var savedStatus = s10[0]; var setSavedStatus = s10[1];
+  var s11 = useState([]); var serviceEvents = s11[0]; var setServiceEvents = s11[1];
+
+  useEffect(function() {
+    if (!estateId) return;
+    sb.from('workflow_events').select('*').eq('workflow_id', estateId).order('date', { ascending: true }).then(function(r) {
+      setServiceEvents(r.data || []);
+    });
+  }, [estateId]);
 
   function back() { setStep(function(s) { return Math.max(1, s - 1); }); }
 
   function selectTone(toneId) {
     setTone(toneId);
     var t = TONES.find(function(t) { return t.id === toneId; });
-    if (t) setMessage(t.preview(deceasedName));
+    if (t) setMessage(t.preview(deceasedName) + serviceDetailsBlock());
+  }
+
+  function serviceDetailsBlock() {
+    if (!serviceEvents || serviceEvents.length === 0) return '';
+    var lines = serviceEvents.filter(function(e) { return e.date || e.time || e.location_name; }).map(function(e) {
+      var label = (e.name || e.event_type || 'Service detail').replace(/_/g, ' ');
+      var when = [e.date, e.time].filter(Boolean).join(' at ');
+      var where = [e.location_name, e.location_address].filter(Boolean).join(', ');
+      return label + ': ' + [when, where].filter(Boolean).join(' - ');
+    });
+    return lines.length ? '\n\nService details:\n' + lines.join('\n') : '';
   }
 
   async function saveDraft() {

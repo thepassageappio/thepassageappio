@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
+import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
@@ -75,15 +76,7 @@ export default function PricingPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
-      <nav style={{ maxWidth: 1060, margin: '0 auto', padding: '22px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-        <Link href="/" style={{ color: C.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
-        <div style={{ display: 'flex', gap: 14, fontSize: 13, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <Link href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</Link>
-          <Link href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</Link>
-          <Link href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</Link>
-          {!user && <button onClick={signIn} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 10, padding: '8px 14px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>}
-        </div>
-      </nav>
+      <SiteHeader user={user} onSignIn={!user ? signIn : null} />
 
       <section style={{ maxWidth: 1060, margin: '0 auto', padding: '58px 22px 84px' }}>
         <div style={{ maxWidth: 760, marginBottom: 26 }}>
@@ -141,6 +134,7 @@ export default function PricingPage() {
         </div>
         {message && <div style={{ marginTop: 14, color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 14, fontSize: 13 }}>{message}</div>}
       </section>
+      <SiteFooter />
     </main>
   );
 }

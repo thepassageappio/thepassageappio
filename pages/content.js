@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', gold: '#b8945a' };
 
@@ -30,15 +31,7 @@ export default function ContentPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
-      <nav style={{ maxWidth: 1040, margin: '0 auto', padding: '22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link href="/" style={{ color: C.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
-        <div style={{ display: 'flex', gap: 14, fontSize: 13 }}>
-          <Link href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</Link>
-          <Link href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</Link>
-          <Link href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</Link>
-          <Link href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</Link>
-        </div>
-      </nav>
+      <SiteHeader />
 
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '48px 22px 84px' }}>
         <div style={{ maxWidth: 720, marginBottom: 30 }}>
@@ -71,6 +64,7 @@ export default function ContentPage() {
           </form>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

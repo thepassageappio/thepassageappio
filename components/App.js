@@ -1250,6 +1250,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const [notes, setNotes] = useState(task?.notes || '');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   const sendDraft = async () => {
     if (!recipientEmail) return;
@@ -1325,8 +1326,13 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
           <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not applicable</button>
           <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Assign instead</button>
-          <button onClick={() => onHandled(notes)} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>I am handling this</button>
+          <button onClick={() => { setConfirmed(true); setTimeout(() => onHandled(notes), 500); }} style={{ padding: "11px", borderRadius: 11, border: "none", background: confirmed ? C.sage : C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{confirmed ? "That's handled." : "Mark this handled"}</button>
         </div>
+        {confirmed && (
+          <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "11px 12px", color: C.sage, fontSize: 13, fontWeight: 800, textAlign: "center" }}>
+            We've saved this. Passage will use it to guide what comes next.
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1658,7 +1664,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
     if (task.dbId) await updateTask(task.dbId, { status: 'handled', completed_at: new Date().toISOString(), owner_kind: 'self', notes });
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: true, status: 'handled', notes } : t));
     setExecutingTask(null);
-    setToast("Handled.");
+    setToast("That's handled. We've saved it and updated the plan.");
   };
 
   const markNotApplicable = async (task, notes = '') => {
@@ -3337,7 +3343,8 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <CandleLogo size={32} nameSize={21} />
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
           <a href="/mission" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Mission</a>
-          <a href="/content" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Content</a>
+          <a href="/content" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Resources</a>
+          <a href="/pricing" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Pricing</a>
           <a href="/contact" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Contact</a>
           <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Participating</a>
           {user ? (
@@ -3603,10 +3610,12 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       <footer style={{ maxWidth: 980, margin: '0 auto', padding: '20px 24px 42px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
         <div>Passage coordinates life-to-death transitions with care.</div>
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <a href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Our Mission</a>
+          <a href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</a>
+          <a href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</a>
+          <a href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</a>
           <a href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</a>
-          <a href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Content</a>
           <a href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</a>
+          <a href="/" style={{ color: C.mid, textDecoration: 'none' }}>My estate</a>
         </div>
       </footer>
 
@@ -3627,6 +3636,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <a href="/mission" style={navLink}>Mission</a>
           <a href="/content" style={navLink}>Resources</a>
+          <a href="/pricing" style={navLink}>Pricing</a>
           <a href="/contact" style={navLink}>Contact</a>
           <a href="/participating" style={navLink}>Participating</a>
           {user ? (
@@ -3687,10 +3697,12 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       <footer style={{ maxWidth: 980, margin: '0 auto', padding: '26px 24px 38px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
         <div>Passage coordinates life-to-death transitions with care.</div>
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <a href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</a>
           <a href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</a>
-          <a href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</a>
           <a href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</a>
+          <a href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</a>
+          <a href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</a>
+          <a href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</a>
+          <a href="/" style={{ color: C.mid, textDecoration: 'none' }}>My estate</a>
         </div>
       </footer>
     </div>

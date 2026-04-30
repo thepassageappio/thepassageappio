@@ -264,6 +264,155 @@ function SecondaryCard({ title, meta, cta, onClick, collapsed, onToggle }) {
 }
 
 // ── MAIN PAGE ─────────────────────────────────────────────────────────────────
+function formatEventDate(ev) {
+  if (!ev || !ev.date) return 'Date not set';
+  try {
+    return new Date(ev.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  } catch (e) {
+    return ev.date;
+  }
+}
+
+function eventLabel(ev) {
+  var raw = String(ev.event_type || ev.name || 'Service detail').replace(/_/g, ' ');
+  if (raw.toLowerCase() === 'funeral') return 'Funeral service';
+  if (raw.toLowerCase() === 'burial') return 'Cemetery / burial';
+  if (raw.toLowerCase() === 'visitation') return 'Wake / visitation';
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+function roleLooksLikeService(role) {
+  var r = String(role || '').toLowerCase();
+  return ['funeral', 'cemetery', 'crematorium', 'officiant', 'florist', 'caterer', 'reception', 'pastor', 'rabbi', 'imam', 'priest', 'director'].some(function(word) {
+    return r.includes(word);
+  });
+}
+
+function EstateOrchestrationMap({ estateId, name, serviceEvents, people, actions, announcements, tasks, outcomes }) {
+  var sortedEvents = (serviceEvents || []).slice().sort(function(a, b) {
+    var da = (a.date || '9999-12-31') + ' ' + (a.time || '');
+    var db = (b.date || '9999-12-31') + ' ' + (b.time || '');
+    return da.localeCompare(db);
+  });
+  var servicePeople = (people || []).filter(function(p) { return roleLooksLikeService(p.role) || roleLooksLikeService(p.estate_role_label) || roleLooksLikeService(p.relationship); }).slice(0, 6);
+  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
+  var ownerGaps = (outcomes || []).filter(function(o) { return !o.owner_label && o.status !== 'handled'; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
+  var pendingMessages = (announcements || []).filter(function(a) { return ['draft', 'pending_review', 'approved'].includes(a.status || 'draft'); }).length + (actions || []).filter(function(a) { return !['sent', 'handled', 'cancelled'].includes(a.status || a.delivery_status || 'draft'); }).length;
+  var missing = [];
+  if (sortedEvents.length === 0) missing.push('Add wake, funeral, cemetery, or reception details when known.');
+  sortedEvents.forEach(function(ev) {
+    if (!ev.date || !ev.time || !ev.location_name) missing.push(eventLabel(ev) + ' needs ' + [!ev.date ? 'date' : '', !ev.time ? 'time' : '', !ev.location_name ? 'location' : ''].filter(Boolean).join(', ') + '.');
+  });
+  if (ownerGaps > 0) missing.push(ownerGaps + ' open item' + (ownerGaps === 1 ? ' needs' : 's need') + ' an owner.');
+  var nextMove = missing[0] || (pendingMessages > 0 ? 'Review the prepared message before anything is sent.' : 'The current map is clear. Keep handling one next item at a time.');
+
+  return (
+    <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16, boxShadow: '0 12px 34px rgba(55,45,35,.04)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Estate map</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>What is happening for {name}</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Service details, owners, and messages in one place.</div>
+        </div>
+        <button onClick={function() { window.location.href = '/share?wid=' + encodeURIComponent(estateId); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>Social drafts</button>
+      </div>
+      <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '12px 13px', marginBottom: 14 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 5 }}>Next clear move</div>
+        <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.55 }}>{nextMove}</div>
+      </div>
+      <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
+        {sortedEvents.length > 0 ? sortedEvents.map(function(ev, idx) {
+          var detailsMissing = !ev.date || !ev.time || !ev.location_name;
+          return (
+            <div key={ev.id || idx} style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr)', gap: 10, alignItems: 'stretch' }}>
+              <div style={{ background: detailsMissing ? AMBER_FAINT : SUBTLE, border: '1px solid ' + (detailsMissing ? AMBER_BORDER : BORDER), borderRadius: 12, padding: 10, textAlign: 'center' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: detailsMissing ? AMBER : SAGE }}>{formatEventDate(ev)}</div>
+                <div style={{ fontSize: 12, color: MID, marginTop: 4 }}>{ev.time || 'Time open'}</div>
+              </div>
+              <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '11px 12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: INK, lineHeight: 1.3 }}>{ev.name || eventLabel(ev)}</div>
+                  <span style={{ fontSize: 10.5, color: detailsMissing ? AMBER : SAGE, fontWeight: 800, whiteSpace: 'nowrap' }}>{detailsMissing ? 'Needs detail' : 'Set'}</span>
+                </div>
+                <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>{ev.location_name || 'Location not set'}{ev.location_address ? ', ' + ev.location_address : ''}</div>
+                {ev.notes && <div style={{ fontSize: 12, color: SOFT, lineHeight: 1.5, marginTop: 4 }}>{ev.notes}</div>}
+              </div>
+            </div>
+          );
+        }) : (
+          <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER_BORDER, borderRadius: 13, padding: '13px 14px', fontSize: 13, color: AMBER, lineHeight: 1.55, fontWeight: 700 }}>No service times are mapped yet. Add them once the wake, funeral, cemetery, or reception is known.</div>
+        )}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
+        <div style={{ background: SUBTLE, borderRadius: 11, padding: 10 }}><div style={{ fontSize: 16, color: INK, fontWeight: 800 }}>{servicePeople.length}</div><div style={{ fontSize: 10.5, color: MID }}>service contacts</div></div>
+        <div style={{ background: ownerGaps ? AMBER_FAINT : SAGE_FAINT, borderRadius: 11, padding: 10 }}><div style={{ fontSize: 16, color: ownerGaps ? AMBER : SAGE, fontWeight: 800 }}>{ownerGaps}</div><div style={{ fontSize: 10.5, color: MID }}>owner gaps</div></div>
+        <div style={{ background: pendingMessages ? AMBER_FAINT : SAGE_FAINT, borderRadius: 11, padding: 10 }}><div style={{ fontSize: 16, color: pendingMessages ? AMBER : SAGE, fontWeight: 800 }}>{pendingMessages}</div><div style={{ fontSize: 10.5, color: MID }}>messages waiting</div></div>
+      </div>
+      {servicePeople.length > 0 && <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 12 }}>{servicePeople.map(function(p) { return <span key={p.id} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 999, padding: '5px 9px', fontSize: 11.5, color: MID }}>{p.first_name}{p.last_name ? ' ' + p.last_name : ''} - {p.estate_role_label || p.role || p.relationship || 'contact'}</span>; })}</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <button onClick={function() { window.location.href = '/?open=people&backEstate=' + encodeURIComponent(estateId); }} style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 11, padding: '10px 12px', fontSize: 12.5, color: MID, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Review people</button>
+        <button onClick={function() { window.location.href = '/announce?estate=' + encodeURIComponent(estateId) + '&name=' + encodeURIComponent(name); }} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 11, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Prepare announcement</button>
+      </div>
+    </div>
+  );
+}
+
+function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activating }) {
+  var pendingActions = (actions || []).filter(function(a) { return !['sent', 'handled', 'cancelled'].includes(a.status || a.delivery_status || 'draft'); });
+  var assignedTasks = (tasks || []).filter(function(t) { return t.assigned_to_email || t.assigned_to_name || t.owner_label; });
+  var missingOwners = (outcomes || []).filter(function(o) { return !o.owner_label && o.status !== 'handled'; }).length +
+    (tasks || []).filter(function(t) { return !isHandledStatus(t.status) && ownerForTask(t) === 'Needs owner'; }).length;
+  var activated = ['activated', 'approved', 'in_motion'].includes(estate?.activation_status || estate?.status || '');
+  var rows = [
+    ['Email', pendingActions.filter(function(a) { return a.recipient_email || a.action_type === 'email'; }).length, 'prepared for approval'],
+    ['Text', pendingActions.filter(function(a) { return a.recipient_phone || a.action_type === 'sms'; }).length, 'prepared for approval'],
+    ['Tasks', assignedTasks.length, 'assigned to people'],
+  ];
+
+  return (
+    <div style={{ background: activated ? SAGE_FAINT : CARD, border: '1px solid ' + (activated ? SAGE_LIGHT : BORDER), borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: activated ? SAGE : AMBER, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>{activated ? 'Plan active' : 'Activate plan'}</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>{activated ? 'This estate is in motion.' : "Here's what will happen."}</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Review the people, messages, and assigned work before Passage moves anything forward.</div>
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 800, color: activated ? SAGE : AMBER, background: activated ? CARD : AMBER_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>
+          {activated ? 'Approved' : 'Review first'}
+        </span>
+      </div>
+
+      <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+        {rows.map(function(row) {
+          return (
+            <div key={row[0]} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, background: SUBTLE, borderRadius: 11, padding: '10px 12px' }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: INK }}>{row[0]}</div>
+              <div style={{ fontSize: 12.5, color: MID }}>{row[1]} {row[2]}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {missingOwners > 0 && (
+        <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER_BORDER, borderRadius: 12, padding: '10px 12px', fontSize: 12.5, color: AMBER, lineHeight: 1.55, fontWeight: 700, marginBottom: 12 }}>
+          {missingOwners} item{missingOwners === 1 ? '' : 's'} still need an owner before this feels complete.
+        </div>
+      )}
+
+      {!activated ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <button onClick={function() { window.location.href = '/?open=people&backEstate=' + encodeURIComponent(estate.id); }} style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, color: MID, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Review</button>
+          <button onClick={onActivate} disabled={activating} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: activating ? 'default' : 'pointer', opacity: activating ? .7 : 1 }}>{activating ? 'Activating...' : 'Approve plan'}</button>
+        </div>
+      ) : (
+        <div style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', color: SAGE, fontSize: 13, fontWeight: 800, textAlign: 'center' }}>
+          Passage has a record of this approval. Keep working from the next clear task.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EstatePage() {
   var params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   var estateId = params.get('id');
@@ -279,6 +428,11 @@ export default function EstatePage() {
   var s8 = useState(false); var showAnnounce = s8[0]; var setShowAnnounce = s8[1];
   var s9 = useState(false); var showUpNext = s9[0]; var setShowUpNext = s9[1];
   var s10 = useState([]); var events = s10[0]; var setEvents = s10[1];
+  var s11 = useState([]); var serviceEvents = s11[0]; var setServiceEvents = s11[1];
+  var s12 = useState([]); var people = s12[0]; var setPeople = s12[1];
+  var s13 = useState([]); var actions = s13[0]; var setActions = s13[1];
+  var s14 = useState([]); var announcements = s14[0]; var setAnnouncements = s14[1];
+  var s15 = useState(false); var activating = s15[0]; var setActivating = s15[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -290,11 +444,19 @@ export default function EstatePage() {
       sb.from('outcomes').select('*').eq('estate_id', estateId).order('position'),
       sb.from('tasks').select('*').eq('workflow_id', estateId).order('position'),
       sb.from('estate_events').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(8),
+      sb.from('workflow_events').select('*').eq('workflow_id', estateId).order('date', { ascending: true }),
+      sb.from('people').select('*').eq('estate_id', estateId).order('created_at', { ascending: true }),
+      sb.from('workflow_actions').select('*').eq('workflow_id', estateId).order('sort_order', { ascending: true }),
+      sb.from('announcements').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(10),
     ]).then(function(results) {
       if (results[0].data) setEstate(results[0].data);
       if (results[1].data) setOutcomes(results[1].data);
       if (results[2].data) setTasks(results[2].data);
       if (results[3].data) setEvents(results[3].data);
+      if (results[4].data) setServiceEvents(results[4].data);
+      if (results[5].data) setPeople(results[5].data);
+      if (results[6].data) setActions(results[6].data);
+      if (results[7].data) setAnnouncements(results[7].data);
       setLoading(false);
       // Update last viewed
       sb.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', estateId).then(function() {});
@@ -328,6 +490,21 @@ export default function EstatePage() {
     if (updates.status === 'handled') showToast('This is handled');
     else if (updates.status === 'in_progress') showToast('Marked as in progress');
     else if (updates.owner_label) showToast('Assigned to ' + updates.owner_label);
+  }
+
+  async function activatePlan() {
+    if (!estate) return;
+    setActivating(true);
+    var now = new Date().toISOString();
+    await sb.from('workflows').update({ activation_status: 'approved', updated_at: now }).eq('id', estateId);
+    await sb.from('workflow_actions').update({ status: 'approved', approved_at: now, updated_at: now }).eq('workflow_id', estateId).is('approved_at', null);
+    var eventRow = { estate_id: estateId, event_type: 'plan_approved', title: 'Plan approved', description: 'The family reviewed what will happen and approved the plan.', actor: coordinatorName };
+    await sb.from('estate_events').insert([eventRow]);
+    setEstate(function(prev) { return Object.assign({}, prev || {}, { activation_status: 'approved' }); });
+    setActions(function(prev) { return prev.map(function(a) { return a.approved_at ? a : Object.assign({}, a, { status: 'approved', approved_at: now }); }); });
+    setEvents(function(prev) { return [Object.assign({ id: 'local_plan_' + Date.now(), created_at: now }, eventRow)].concat(prev).slice(0, 8); });
+    setActivating(false);
+    showToast('Plan approved. Passage is ready to guide the next step.');
   }
 
   // Banner logic
@@ -449,6 +626,26 @@ export default function EstatePage() {
         </div>
 
         {/* Outcomes — generated from /urgent or empty state */}
+        <ActivatePlanView
+          estate={estate}
+          actions={actions}
+          tasks={tasks}
+          outcomes={outcomes}
+          activating={activating}
+          onActivate={activatePlan}
+        />
+
+        <EstateOrchestrationMap
+          estateId={estateId}
+          name={name}
+          serviceEvents={serviceEvents}
+          people={people}
+          actions={actions}
+          announcements={announcements}
+          tasks={tasks}
+          outcomes={outcomes}
+        />
+
         <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 10 }}>Orchestration status</div>
           <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 12, marginBottom: 10 }}>
