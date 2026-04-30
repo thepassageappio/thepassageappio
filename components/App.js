@@ -414,6 +414,11 @@ const buildAssignmentSms = ({ toName, taskTitle, deceasedName }) => {
   return shorten(`Passage: ${name}, ${deceased} task: ${task}. Details: thepassageapp.io`, 118);
 };
 
+const safeFileName = (name) => String(name || 'file')
+  .replace(/[^\w.\-]+/g, '-')
+  .replace(/-+/g, '-')
+  .slice(0, 90);
+
 const handleSignInWithGoogle = async () => {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -1796,7 +1801,17 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose,
   useEffect(() => {
     if (!userId) return;
     supabase.from('profiles').select('obituary_draft').eq('user_id', userId).maybeSingle().then(({ data }) => {
-      if (data?.obituary_draft) setDraft(data.obituary_draft);
+      if (data?.obituary_draft) {
+        try {
+          const saved = JSON.parse(data.obituary_draft);
+          if (saved && typeof saved === 'object') {
+            if (saved.form) setForm(f => ({ ...f, ...saved.form }));
+            if (saved.draft) setDraft(saved.draft);
+            return;
+          }
+        } catch {}
+        setDraft(data.obituary_draft);
+      }
     });
   }, [userId]);
 
@@ -1823,9 +1838,10 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose,
     }
     setSaving(true);
     setError('');
+    const payload = JSON.stringify({ form, draft, saved_at: new Date().toISOString() });
     const { error } = await supabase.from('profiles').upsert([{
       user_id: userId,
-      obituary_draft: draft,
+      obituary_draft: payload,
       updated_at: new Date().toISOString(),
     }], { onConflict: 'user_id' });
     setSaving(false);
@@ -1835,7 +1851,7 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose,
       return;
     }
     setSaved(true);
-    if (onSaved) onSaved(draft);
+    if (onSaved) onSaved(payload);
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -1895,16 +1911,37 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose,
 function PeopleList({ userId }) {
   const [people, setPeople] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  useEffect(() => {
-    supabase.from('people').select('*').eq('owner_id', userId).order('created_at').then(({ data }) => {
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ name: '', role: '', email: '', phone: '' });
+  const load = useCallback(() => {
+    if (!userId) return;
+    supabase.from('people').select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).then(({ data }) => {
       setPeople(data || []);
       setLoaded(true);
     });
   }, [userId]);
+  useEffect(() => { load(); }, [load]);
+  const startEdit = (person = null) => {
+    setEditing(person || { id: null });
+    setForm(person ? {
+      name: [person.first_name, person.last_name].filter(Boolean).join(' '),
+      role: person.relationship || '',
+      email: person.email || '',
+      phone: person.phone || '',
+    } : { name: '', role: '', email: '', phone: '' });
+  };
+  const save = async () => {
+    if (!form.name.trim()) return;
+    await savePerson(userId, { id: editing?.id, name: form.name, role: form.role, email: form.email, phone: form.phone });
+    await supabase.from('profiles').upsert([{ user_id: userId, people_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
+    setEditing(null);
+    load();
+  };
   if (!loaded) return <div style={{ fontSize: 12, color: C.soft }}>Loading...</div>;
-  if (people.length === 0) return <div style={{ fontSize: 13, color: C.soft, fontStyle: "italic" }}>No people added yet. Use Quick assign in an estate plan to add people.</div>;
   return (
     <div>
+      <button onClick={() => startEdit()} style={{ width: "100%", padding: "10px 12px", borderRadius: 11, border: "1.5px solid " + C.sageLight, background: C.sageFaint, color: C.sage, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 12 }}>Add a trusted person</button>
+      {people.length === 0 ? <div style={{ fontSize: 13, color: C.soft, fontStyle: "italic", marginBottom: 12 }}>No people added yet.</div> : null}
       {people.map((p, i) => (
         <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < people.length - 1 ? "1px solid " + C.border : "none" }}>
           <div style={{ width: 32, height: 32, borderRadius: "50%", background: C.sageFaint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>👤</div>
@@ -1912,8 +1949,23 @@ function PeopleList({ userId }) {
             <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{p.first_name} {p.last_name}</div>
             <div style={{ fontSize: 11, color: C.soft }}>{p.relationship || "No role"} {p.email ? "· " + p.email : ""}</div>
           </div>
+          <button onClick={() => startEdit(p)} style={{ border: "none", background: C.bgSubtle, borderRadius: 8, padding: "5px 10px", fontSize: 11, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Edit</button>
         </div>
       ))}
+      {editing ? (
+        <div style={{ marginTop: 14, background: C.bgSubtle, borderRadius: 12, padding: 14, border: "1px solid " + C.border }}>
+          <Field label="Name" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} />
+          <Field label="Role / relationship" value={form.role} onChange={v => setForm(f => ({ ...f, role: v }))} placeholder="Brother, spouse, attorney, funeral director" />
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ flex: 1 }}><Field label="Email" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} /></div>
+            <div style={{ flex: 1 }}><Field label="Phone" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} /></div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setEditing(null)} style={{ flex: 1, padding: "9px", borderRadius: 10, border: "1.5px solid " + C.border, background: C.bgCard, color: C.mid, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+            <button onClick={save} disabled={!form.name.trim()} style={{ flex: 1, padding: "9px", borderRadius: 10, border: "none", background: C.sage, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Save person</button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1922,6 +1974,8 @@ function DocumentsModal({ userId, onClose, onSaved }) {
   const [docs, setDocs] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [file, setFile] = useState(null);
   const [form, setForm] = useState({ label: '', document_type: 'will', notes: '', unlocks_on_trigger: true });
 
   const loadDocs = useCallback(() => {
@@ -1937,10 +1991,24 @@ function DocumentsModal({ userId, onClose, onSaved }) {
   const saveDoc = async () => {
     if (!form.label.trim()) return;
     setSaving(true);
+    setError('');
+    let filePath = null;
+    if (file) {
+      filePath = `${userId}/${Date.now()}-${safeFileName(file.name)}`;
+      const { error: uploadError } = await supabase.storage.from('passage-documents').upload(filePath, file, { upsert: false });
+      if (uploadError) {
+        setError(uploadError.message || 'Could not upload this document.');
+        setSaving(false);
+        return;
+      }
+    }
     const { error } = await supabase.from('documents').insert([{
       user_id: userId,
       label: form.label.trim(),
       document_type: form.document_type,
+      file_url: filePath,
+      file_size_bytes: file ? file.size : null,
+      file_type: file ? file.type : null,
       notes: form.notes || null,
       unlocks_on_trigger: form.unlocks_on_trigger,
     }]);
@@ -1948,8 +2016,11 @@ function DocumentsModal({ userId, onClose, onSaved }) {
       await supabase.from('profiles').upsert([{ user_id: userId, documents_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
       setLoaded(false);
       setForm({ label: '', document_type: 'will', notes: '', unlocks_on_trigger: true });
+      setFile(null);
       loadDocs();
-      if (onSaved) onSaved('Document note saved.');
+      if (onSaved) onSaved(filePath ? 'Document uploaded.' : 'Document note saved.');
+    } else {
+      setError(error.message || 'Could not save this document.');
     }
     setSaving(false);
   };
@@ -1959,20 +2030,27 @@ function DocumentsModal({ userId, onClose, onSaved }) {
       <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
         <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
         <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 5 }}>Documents</div>
-        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6, marginBottom: 18 }}>Tell your family where the important papers live. Uploads come next; this already removes the first layer of panic.</div>
+        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6, marginBottom: 18 }}>Upload the document or note where it lives. Nothing is shared unless your plan activates and access is approved.</div>
         <Field label="Document name" placeholder="Will in fire safe, blue folder" value={form.label} onChange={v => setForm(f => ({ ...f, label: v }))} />
         <Select label="Document type" value={form.document_type} onChange={v => setForm(f => ({ ...f, document_type: v }))} options={[["will","Will"],["trust","Trust"],["advance_directive","Advance directive"],["power_of_attorney","Power of attorney"],["life_insurance","Life insurance"],["funeral_contract","Funeral contract"],["property_deed","Property deed"],["passport","Passport"],["tax_return","Tax return"],["other","Other"]]} />
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Upload file</div>
+          <input type="file" onChange={e => setFile(e.target.files?.[0] || null)} style={{ width: "100%", padding: 10, borderRadius: 11, border: "1.5px solid " + C.border, background: C.bgSubtle, boxSizing: "border-box" }} />
+          {file && <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>{file.name}</div>}
+        </div>
         <Field label="Where to find it" placeholder="Home office safe. Code held by executor." value={form.notes} onChange={v => setForm(f => ({ ...f, notes: v }))} />
         <label style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 13, color: C.ink, marginBottom: 14 }}>
           <input type="checkbox" checked={form.unlocks_on_trigger} onChange={e => setForm(f => ({ ...f, unlocks_on_trigger: e.target.checked }))} />
           Share with trusted contacts when the plan activates
         </label>
-        <button onClick={saveDoc} disabled={saving || !form.label.trim()} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 18 }}>{saving ? "Saving..." : "Save document note"}</button>
+        <button onClick={saveDoc} disabled={saving || !form.label.trim()} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>{saving ? "Saving..." : file ? "Upload document" : "Save document note"}</button>
+        {error && <div style={{ fontSize: 12, color: C.rose, marginBottom: 12 }}>{error}</div>}
         <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Saved</div>
         {!loaded ? <div style={{ fontSize: 13, color: C.soft }}>Loading...</div> : docs.length === 0 ? <div style={{ fontSize: 13, color: C.soft, marginBottom: 16 }}>No documents saved yet.</div> : docs.map(doc => (
           <div key={doc.id} style={{ background: C.bgSubtle, borderRadius: 11, padding: "11px 13px", marginBottom: 7 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{doc.label}</div>
             <div style={{ fontSize: 11.5, color: C.soft, marginTop: 2 }}>{doc.document_type?.replace(/_/g, ' ')}</div>
+            {doc.file_url && <div style={{ fontSize: 11.5, color: C.sage, marginTop: 4 }}>File uploaded</div>}
             {doc.notes && <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.5, marginTop: 6 }}>{doc.notes}</div>}
           </div>
         ))}
@@ -1986,7 +2064,9 @@ function MemoriesModal({ userId, onClose, onSaved }) {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: '', to_name: '', to_email: '', content_type: 'letter', delivery_trigger: 'on_death', content_text: '' });
+  const [error, setError] = useState('');
+  const [file, setFile] = useState(null);
+  const [form, setForm] = useState({ title: '', to_name: '', to_email: '', content_type: 'letter', delivery_trigger: 'on_death', delivery_date: '', delivery_event: '', content_text: '' });
 
   const loadItems = useCallback(() => {
     if (!userId) return;
@@ -1999,8 +2079,23 @@ function MemoriesModal({ userId, onClose, onSaved }) {
   useEffect(() => { loadItems(); }, [loadItems]);
 
   const saveMemory = async () => {
-    if (!form.title.trim() || !form.content_text.trim()) return;
+    if (!form.title.trim() || (!form.content_text.trim() && !file)) return;
+    if ((form.delivery_trigger === 'on_date' || form.delivery_trigger === 'on_event') && !form.delivery_date) {
+      setError('Choose the date this should be delivered.');
+      return;
+    }
     setSaving(true);
+    setError('');
+    let contentUrl = null;
+    if (file) {
+      contentUrl = `${userId}/${Date.now()}-${safeFileName(file.name)}`;
+      const { error: uploadError } = await supabase.storage.from('passage-memories').upload(contentUrl, file, { upsert: false });
+      if (uploadError) {
+        setError(uploadError.message || 'Could not upload this memory.');
+        setSaving(false);
+        return;
+      }
+    }
     const { error } = await supabase.from('scheduled_deliveries').insert([{
       from_user_id: userId,
       title: form.title.trim(),
@@ -2008,15 +2103,21 @@ function MemoriesModal({ userId, onClose, onSaved }) {
       to_email: form.to_email || null,
       content_type: form.content_type,
       delivery_trigger: form.delivery_trigger,
+      delivery_date: form.delivery_date || null,
+      delivery_event: form.delivery_event || null,
       content_text: form.content_text,
+      content_url: contentUrl,
       status: 'scheduled',
     }]);
     if (!error) {
       await supabase.from('profiles').upsert([{ user_id: userId, vault_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
       setLoaded(false);
-      setForm({ title: '', to_name: '', to_email: '', content_type: 'letter', delivery_trigger: 'on_death', content_text: '' });
+      setForm({ title: '', to_name: '', to_email: '', content_type: 'letter', delivery_trigger: 'on_death', delivery_date: '', delivery_event: '', content_text: '' });
+      setFile(null);
       loadItems();
       if (onSaved) onSaved('Memory saved.');
+    } else {
+      setError(error.message || 'Could not save this memory.');
     }
     setSaving(false);
   };
@@ -2026,21 +2127,37 @@ function MemoriesModal({ userId, onClose, onSaved }) {
       <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
         <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
         <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 5 }}>Memories</div>
-        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6, marginBottom: 18 }}>Write a note for someone to receive later. For now Passage stores the message; delivery rules come after trigger confirmation is hardened.</div>
+        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6, marginBottom: 18 }}>Write or attach something for someone to receive later. Passage will keep it waiting until the plan activates or the date you choose.</div>
         <Field label="Title" placeholder="For Emma on a hard day" value={form.title} onChange={v => setForm(f => ({ ...f, title: v }))} />
         <div style={{ display: "flex", gap: 10 }}><div style={{ flex: 1 }}><Field label="Recipient name" value={form.to_name} onChange={v => setForm(f => ({ ...f, to_name: v }))} /></div><div style={{ flex: 1 }}><Field label="Recipient email" value={form.to_email} onChange={v => setForm(f => ({ ...f, to_email: v }))} /></div></div>
         <Select label="Type" value={form.content_type} onChange={v => setForm(f => ({ ...f, content_type: v }))} options={[["letter","Letter"],["voice_note","Voice note transcript"],["photo_album","Photo note"]]} />
         <Select label="When should this unlock?" value={form.delivery_trigger} onChange={v => setForm(f => ({ ...f, delivery_trigger: v }))} options={[["on_death","When my plan activates"],["on_date","On a future date"],["on_event","On a milestone"]]} />
+        {(form.delivery_trigger === 'on_date' || form.delivery_trigger === 'on_event') && (
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ flex: 1 }}><Field label="Delivery date" type="date" value={form.delivery_date} onChange={v => setForm(f => ({ ...f, delivery_date: v }))} /></div>
+            {form.delivery_trigger === 'on_event' && <div style={{ flex: 1 }}><Field label="Milestone" placeholder="Birthday, graduation, anniversary" value={form.delivery_event} onChange={v => setForm(f => ({ ...f, delivery_event: v }))} /></div>}
+          </div>
+        )}
+        {(form.content_type === 'voice_note' || form.content_type === 'photo_album') && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>{form.content_type === 'voice_note' ? 'Attach audio' : 'Attach photo'}</div>
+            <input type="file" accept={form.content_type === 'voice_note' ? "audio/*" : "image/*"} onChange={e => setFile(e.target.files?.[0] || null)} style={{ width: "100%", padding: 10, borderRadius: 11, border: "1.5px solid " + C.border, background: C.bgSubtle, boxSizing: "border-box" }} />
+            {file && <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>{file.name}</div>}
+          </div>
+        )}
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Message</div>
           <textarea value={form.content_text} onChange={e => setForm(f => ({ ...f, content_text: e.target.value }))} placeholder="Say the thing they may need to hear..." style={{ width: "100%", minHeight: 150, padding: 12, borderRadius: 11, border: "1.5px solid " + C.border, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.7, boxSizing: "border-box" }} />
         </div>
-        <button onClick={saveMemory} disabled={saving || !form.title.trim() || !form.content_text.trim()} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 18 }}>{saving ? "Saving..." : "Save memory"}</button>
+        <button onClick={saveMemory} disabled={saving || !form.title.trim() || (!form.content_text.trim() && !file)} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>{saving ? "Saving..." : "Save memory"}</button>
+        {error && <div style={{ fontSize: 12, color: C.rose, marginBottom: 12 }}>{error}</div>}
         <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Saved</div>
         {!loaded ? <div style={{ fontSize: 13, color: C.soft }}>Loading...</div> : items.length === 0 ? <div style={{ fontSize: 13, color: C.soft, marginBottom: 16 }}>No memories saved yet.</div> : items.map(item => (
           <div key={item.id} style={{ background: C.bgSubtle, borderRadius: 11, padding: "11px 13px", marginBottom: 7 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{item.title}</div>
             <div style={{ fontSize: 11.5, color: C.soft, marginTop: 2 }}>{item.to_name || 'Recipient not set'} - {item.delivery_trigger?.replace(/_/g, ' ')}</div>
+            {item.delivery_date && <div style={{ fontSize: 11.5, color: C.sage, marginTop: 3 }}>Scheduled for {item.delivery_date}{item.delivery_event ? ` (${item.delivery_event})` : ''}</div>}
+            {item.content_url && <div style={{ fontSize: 11.5, color: C.sage, marginTop: 3 }}>Attachment saved</div>}
             <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.5, marginTop: 6 }}>{item.content_text}</div>
           </div>
         ))}
@@ -2518,8 +2635,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
       ) : null}
 
       {showPeople ? (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setShowPeople(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setShowPeople(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: 18, padding: "24px 20px 32px", width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,.24)" }}>
             <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
             <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 4 }}>Your people</div>
             <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 20, lineHeight: 1.55 }}>Designate who handles what when your plan activates. They receive their tasks automatically.</div>
