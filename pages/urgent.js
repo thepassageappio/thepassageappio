@@ -368,6 +368,221 @@ function PrimaryCTA({ primaryHandled, onStart }) {
   );
 }
 
+export default function UrgentPage() {
+  var s0 = useState('loading'); var step = s0[0]; var setStep = s0[1];
+  var s1 = useState(null); var situation = s1[0]; var setSituation = s1[1];
+  var s2 = useState(null); var location = s2[0]; var setLocation = s2[1];
+  var s3 = useState(''); var firstName = s3[0]; var setFirstName = s3[1];
+  var s4 = useState(null); var role = s4[0]; var setRole = s4[1];
+  var s5 = useState([]); var outcomes = s5[0]; var setOutcomes = s5[1];
+  var s6 = useState(null); var estateId = s6[0]; var setEstateId = s6[1];
+  var s7 = useState(false); var saving = s7[0]; var setSaving = s7[1];
+  var s8 = useState(null); var user = s8[0]; var setUser = s8[1];
+  var s9 = useState(-1); var expanded = s9[0]; var setExpanded = s9[1];
+  var s10 = useState(-1); var showOwner = s10[0]; var setShowOwner = s10[1];
+  var s11 = useState(''); var toast = s11[0]; var setToast = s11[1];
+  var s12 = useState({}); var lastActions = s12[0]; var setLastActions = s12[1];
+  var s13 = useState(0); var interactions = s13[0]; var setInteractions = s13[1];
+  var s14 = useState(false); var isReturn = s14[0]; var setIsReturn = s14[1];
+
+  // Persist on every change
+  useEffect(function() {
+    if (step === 'loading') return;
+    save({ step: step, situation: situation, location: location, firstName: firstName, role: role, estateId: estateId, outcomes: outcomes });
+  }, [step, situation, location, firstName, role, estateId, outcomes]);
+
+  // Load on mount
+  useEffect(function() {
+    sb.auth.getSession().then(function(r) {
+      if (r.data && r.data.session) setUser(r.data.session.user);
+    });
+    var saved = load();
+    if (saved && saved.step && saved.step !== 0 && saved.step !== 'loading') {
+      setSituation(saved.situation || null);
+      setLocation(saved.location || null);
+      setFirstName(saved.firstName || '');
+      setRole(saved.role || null);
+      setEstateId(saved.estateId || null);
+      if (saved.outcomes && saved.outcomes.length > 0) {
+        setOutcomes(saved.outcomes);
+        setIsReturn(saved.step === 'results');
+      }
+      setStep(saved.step);
+    } else {
+      setStep(0);
+    }
+  }, []);
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(function() { setToast(''); }, 2200);
+  }
+
+  function back() { setStep(function(s) { return typeof s === 'number' ? Math.max(0, s - 1) : 0; }); }
+
+  function updateOutcome(i, updates) {
+    setOutcomes(function(prev) {
+      return prev.map(function(o, idx) { return idx === i ? Object.assign({}, o, updates) : o; });
+    });
+    setExpanded(-1);
+    setShowOwner(-1);
+    setInteractions(function(n) { return n + 1; });
+  }
+
+  function handleAssignSave(i, ownerName) {
+    var newStatus = outcomes[i].status === 'needs_owner' ? 'in_progress' : outcomes[i].status;
+    updateOutcome(i, { owner: ownerName, status: 'in_progress' });
+    setLastActions(function(prev) { var n = Object.assign({}, prev); n[i] = 'assigned'; return n; });
+    showToast('They've got this.')
+    // Persist to DB if estateId exists
+    if (estateId && outcomes[i].dbId) {
+      sb.from('outcomes').update({ owner_label: ownerName, status: 'in_progress', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
+    }
+  }
+
+  function handleStart(i) {
+    updateOutcome(i, { status: 'in_progress' });
+    showToast('You're moving forward.')
+    if (estateId && outcomes[i].dbId) {
+      sb.from('outcomes').update({ status: 'in_progress', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
+    }
+  }
+
+  function handleHandled(i) {
+    updateOutcome(i, { status: 'handled' });
+    setLastActions(function(prev) { var n = Object.assign({}, prev); n[i] = 'handled'; return n; });
+    showToast('That's taken care of.')
+    if (estateId && outcomes[i].dbId) {
+      sb.from('outcomes').update({ status: 'handled', updated_at: new Date().toISOString() }).eq('id', outcomes[i].dbId).then(function() {});
+    }
+  }
+
+  function scrollToCard(i) {
+    setExpanded(i);
+    setTimeout(function() {
+      var el = document.getElementById('outcome-' + i);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
+  }
+
+  async function createPlan() {
+    setSaving(true);
+    var generated = buildOutcomes(location);
+    setOutcomes(generated);
+    try {
+      var res = await sb.from('workflows').insert([{
+        user_id: user ? user.id : null,
+        deceased_name: firstName.trim() || 'my loved one',
+        deceased_first_name: firstName.trim() || null,
+        coordinator_name: user ? ((user.user_metadata && user.user_metadata.full_name) || user.email) : null,
+        coordinator_email: user ? user.email : null,
+        status: 'urgent_first_steps_generated',
+        path: 'red', mode: 'red',
+        relationship_to_deceased: role,
+        urgent_situation: situation,
+        estate_name: (firstName.trim() || 'Loved one') + ' estate',
+      }]).select().single();
+
+      if (res.data) {
+        var wid = res.data.id;
+        setEstateId(wid);
+        var outcomeRows = generated.map(function(o, i) {
+          return { estate_id: wid, title: o.title, description: o.description, why_it_matters: o.why, recommended_action: o.action, reassurance: o.reassurance, owner_label: null, status: o.status, priority: o.priority, timeframe: o.priority === 'critical' ? 'today' : 'today', category: o.id, position: i, source: 'system' };
+        });
+        var inserted = await sb.from('outcomes').insert(outcomeRows).select();
+        if (inserted.data) {
+          var dbIds = inserted.data.map(function(r) { return r.id; });
+          setOutcomes(function(prev) {
+            return prev.map(function(o, i) { return Object.assign({}, o, { dbId: dbIds[i] }); });
+          });
+        }
+      }
+    } catch (e) { console.error('Plan error:', e); }
+    setSaving(false);
+    setStep('results');
+  }
+
+  var allHandled = outcomes.length > 0 && outcomes.every(function(o) { return o.status === 'handled'; });
+  var showPause = shouldShowPause(outcomes, interactions) && !allHandled;
+  var name = firstName.trim() || 'your loved one';
+
+  // ── LOADING ────────────────────────────────────────────────────────────────
+  if (step === 'loading') return (
+    <div style={{ background: T.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif' }}>
+      <div style={{ color: T.soft, fontSize: 14 }}>Loading...</div>
+    </div>
+  );
+
+  // ── SCREEN 0: Intro ────────────────────────────────────────────────────────
+  if (step === 0) return (
+    <Shell step={0} total={4} bare>
+      <div style={{ textAlign: 'center', paddingTop: 56 }}>
+        <div style={{ fontSize: 56, marginBottom: 28 }}>🕊️</div>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 32, color: T.ink, lineHeight: 1.3, marginBottom: 18 }}>We're so sorry.</div>
+        <div style={{ fontSize: 17, color: T.mid, lineHeight: 1.8, maxWidth: 360, margin: '0 auto 44px' }}>
+          We'll help you figure out what needs to happen next.
+        </div>
+        <div style={{ maxWidth: 380, margin: '0 auto' }}>
+          <PrimaryBtn label="Start" onClick={function() { setStep(1); }} />
+          <div style={{ fontSize: 13, color: T.soft, marginTop: 12, lineHeight: 1.6 }}>Takes less than two minutes. You can stop anytime.</div>
+        </div>
+      </div>
+    </Shell>
+  );
+
+  // ── SCREEN 1: What happened ────────────────────────────────────────────────
+  if (step === 1) return (
+    <Shell step={1} total={4} onBack={back}>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.ink, marginBottom: 10, lineHeight: 1.3 }}>What happened?</div>
+      <div style={{ height: 20 }} />
+      <Option label="Someone has passed away" selected={situation === 'passed'} onClick={function() { setSituation('passed'); }} />
+      <Option label="I'm helping someone who just lost someone" sub="A family member or friend asked for your help" selected={situation === 'helping'} onClick={function() { setSituation('helping'); }} />
+      <Option label="I'm not sure what to do" sub="Something happened and I need guidance" selected={situation === 'unsure'} onClick={function() { setSituation('unsure'); }} />
+      <div style={{ height: 20 }} />
+      <PrimaryBtn label="Continue" onClick={function() { setStep(2); }} disabled={!situation} />
+    </Shell>
+  );
+
+  // ── SCREEN 2: Where ────────────────────────────────────────────────────────
+  if (step === 2) return (
+    <Shell step={2} total={4} onBack={back}>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.ink, marginBottom: 10, lineHeight: 1.3 }}>Where did this happen?</div>
+      <div style={{ height: 20 }} />
+      <Option label="At home" selected={location === 'home'} onClick={function() { setLocation('home'); }} />
+      <Option label="At a hospital" selected={location === 'hospital'} onClick={function() { setLocation('hospital'); }} />
+      <Option label="In hospice care" selected={location === 'hospice'} onClick={function() { setLocation('hospice'); }} />
+      <Option label="In a facility" sub="Nursing home, assisted living, memory care" selected={location === 'facility'} onClick={function() { setLocation('facility'); }} />
+      <Option label="I'm not sure" selected={location === 'unknown'} onClick={function() { setLocation('unknown'); }} />
+      <div style={{ height: 20 }} />
+      <PrimaryBtn label="Continue" onClick={function() { setStep(3); }} disabled={!location} />
+    </Shell>
+  );
+
+  // ── SCREEN 3: Who ──────────────────────────────────────────────────────────
+  if (step === 3) return (
+    <Shell step={3} total={4} onBack={back}>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.ink, marginBottom: 10, lineHeight: 1.3 }}>Who passed away?</div>
+      <div style={{ fontSize: 15, color: T.soft, marginBottom: 24 }}>First name (optional)</div>
+      <input value={firstName} onChange={function(e) { setFirstName(e.target.value); }} placeholder="First name" autoFocus
+        style={{ width: '100%', padding: '16px', borderRadius: 13, border: '1.5px solid ' + T.border, fontFamily: 'Georgia, serif', fontSize: 17, color: T.ink, outline: 'none', boxSizing: 'border-box', background: T.card, minHeight: 56, marginBottom: 16 }} />
+      <PrimaryBtn label="Continue" onClick={function() { setStep(4); }} />
+      <GhostBtn label="Skip" onClick={function() { setFirstName(''); setStep(4); }} />
+    </Shell>
+  );
+
+  // ── SCREEN 4: Role ─────────────────────────────────────────────────────────
+  if (step === 4) return (
+    <Shell step={4} total={4} onBack={back}>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: T.ink, marginBottom: 10, lineHeight: 1.3 }}>Who are you in this?</div>
+      <div style={{ height: 20 }} />
+      {[['spouse','Spouse or partner'],['child','Child'],['sibling','Sibling'],['parent','Parent'],['executor','Executor'],['friend','Friend'],['other','Other']].map(function(r) {
+        return <Option key={r[0]} label={r[1]} selected={role === r[0]} onClick={function() { setRole(r[0]); }} />;
+      })}
+      <div style={{ height: 20 }} />
+      <PrimaryBtn label={saving ? 'Building your plan...' : 'Continue'} onClick={createPlan} disabled={!role || saving} />
+    </Shell>
+  );
+
   // ── RESULTS: Guided Support View ─────────────────────────────────────────────
   // Order: Reassurance → Primary Focus → Secondary Collapsed → Pause → CTA
   // No scanning. No competing signals. One clear next step.
@@ -410,5 +625,6 @@ function PrimaryCTA({ primaryHandled, onStart }) {
       </div>
     </Shell>
   );
+
   return null;
 }
