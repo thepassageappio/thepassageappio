@@ -44,15 +44,17 @@ export default async function handler(req, res) {
     var shortTask = clean(taskTitle || 'estate task', 28);
     var shortName = clean(toName || 'You', 16);
     var shortDeceased = clean(deceased || 'estate', 16);
+    var siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+    var detailUrl = workflowId ? siteUrl + '/estate?id=' + encodeURIComponent(workflowId) : siteUrl;
 
     var message;
     if (actionType === 'trigger') {
-      message = 'Passage: ' + shortDeceased + ' plan active. Tasks: thepassageapp.io';
+      message = 'Passage: ' + shortDeceased + ' plan active. View details: ' + detailUrl;
     } else {
-      message = 'Passage: ' + shortName + ', ' + shortDeceased + ' task: ' + shortTask + '. thepassageapp.io';
+      message = 'Passage: ' + shortName + ' is handling ' + shortTask + '. View details: ' + detailUrl;
     }
-    // Hard cap at 120 chars
-    message = clean(message, 118);
+    // Keep ASCII and compact; links may push this into two SMS segments, which is acceptable for task clarity.
+    message = clean(message, 240);
 
     const credentials = Buffer.from(TWILIO_SID + ':' + TWILIO_TOKEN).toString('base64');
     const response = await fetch(
