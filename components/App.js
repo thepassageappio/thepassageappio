@@ -26,8 +26,9 @@ const TALLY_URL = "https://tally.so/r/q4Ev05";
 const PROJECT_ID = "qsveqfchwylsbncsfgxe";
 
 const PLAN_OPTIONS = [
-  { id: "annual", label: "Annual", price: "$79", per: "/year", badge: "Best value - save 45%", popular: true },
-  { id: "monthly", label: "Monthly", price: "$10", per: "/month", badge: "Start anytime, cancel anytime" },
+  { id: "annual", label: "Annual", price: "$79.99", per: "/year", badge: "Best value for a full year of planning", popular: true },
+  { id: "semiannual", label: "Semi-annual", price: "$49.99", per: "every 6 months", badge: "A lighter commitment while you build the plan" },
+  { id: "monthly", label: "Monthly", price: "$9.99", per: "/month", badge: "Start anytime, cancel anytime" },
   { id: "lifetime", label: "Lifetime", price: "$299.99", per: "one time", badge: "Pay once. Active forever." },
 ];
 const PLAN_BY_ID = PLAN_OPTIONS.reduce((acc, plan) => {
@@ -2142,9 +2143,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const plan = userData?.plan || 'free';
   const planMap = {
     free: { label: "Free Plan", color: C.soft, price: "$0", nextCharge: "None", renewal: "N/A" },
-    monthly: { label: "Monthly", color: C.sage, price: "$12/mo", nextCharge: "Next month", renewal: "Monthly" },
-    annual: { label: "Annual", color: C.sage, price: "$79/yr", nextCharge: "Next year", renewal: "Annual" },
-    lifetime: { label: "Lifetime", color: C.gold, price: "$249", nextCharge: "Never", renewal: "Never" },
+    monthly: { label: "Monthly", color: C.sage, price: "$9.99/mo", nextCharge: "Next month", renewal: "Monthly" },
+    semiannual: { label: "Semi-annual", color: C.sage, price: "$49.99/6 mo", nextCharge: "In 6 months", renewal: "Every 6 months" },
+    annual: { label: "Annual", color: C.sage, price: "$79.99/yr", nextCharge: "Next year", renewal: "Annual" },
+    lifetime: { label: "Lifetime", color: C.gold, price: "$299.99", nextCharge: "Never", renewal: "Never" },
   };
   const pd = planMap[plan] || planMap.free;
   const redWorkflows = workflows.filter(w => w.status !== 'archived' && w.path !== 'green');

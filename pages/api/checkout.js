@@ -3,14 +3,22 @@ const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io'
 const PLANS = {
   monthly: {
     label: 'Passage Monthly',
-    amount: 1000,
+    amount: 999,
     mode: 'subscription',
     interval: 'month',
     priceEnv: ['STRIPE_PRICE_MONTHLY_GREEN', 'STRIPE_PRICE_MONTHLY'],
   },
+  semiannual: {
+    label: 'Passage Semi-Annual',
+    amount: 4999,
+    mode: 'subscription',
+    interval: 'month',
+    intervalCount: 6,
+    priceEnv: ['STRIPE_PRICE_SEMIANNUAL_GREEN', 'STRIPE_PRICE_SEMI_ANNUAL_GREEN'],
+  },
   annual: {
     label: 'Passage Annual',
-    amount: 7900,
+    amount: 7999,
     mode: 'subscription',
     interval: 'year',
     priceEnv: ['STRIPE_PRICE_ANNUAL_GREEN', 'STRIPE_PRICE_ANNUAL'],
@@ -23,7 +31,7 @@ const PLANS = {
   },
   urgent: {
     label: 'Passage Urgent Estate Plan',
-    amount: 7900,
+    amount: 7999,
     mode: 'payment',
     priceEnv: 'STRIPE_PRICE_URGENT',
     impact: '20_donation_grief_support_or_memorial_trees',
@@ -65,6 +73,11 @@ async function validateConfiguredPrice(priceId, plan, planId) {
   const priceInterval = price.recurring && price.recurring.interval;
   if (plan.interval && priceInterval !== plan.interval) {
     return `${plan.label} is configured as ${priceInterval || 'one-time'}, expected ${plan.interval}.`;
+  }
+
+  const intervalCount = (price.recurring && price.recurring.interval_count) || 1;
+  if (plan.interval && intervalCount !== (plan.intervalCount || 1)) {
+    return `${plan.label} is configured every ${intervalCount} ${priceInterval}, expected every ${plan.intervalCount || 1} ${plan.interval}.`;
   }
 
   if (!plan.interval && priceInterval) {
@@ -116,6 +129,9 @@ export default async function handler(req, res) {
       body.set('line_items[0][price_data][unit_amount]', String(plan.amount));
       if (plan.interval) {
         body.set('line_items[0][price_data][recurring][interval]', plan.interval);
+        if (plan.intervalCount) {
+          body.set('line_items[0][price_data][recurring][interval_count]', String(plan.intervalCount));
+        }
       }
     }
 
