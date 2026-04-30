@@ -41,17 +41,20 @@ const PLANS = {
 function getConfiguredPrice(plan) {
   const keys = Array.isArray(plan.priceEnv) ? plan.priceEnv : [plan.priceEnv];
   for (const key of keys) {
-    if (process.env[key]) return process.env[key];
+    if (process.env[key]) return { key, value: process.env[key].trim() };
   }
-  return '';
+  return { key: keys[0], value: '' };
 }
 
 function dollars(cents) {
   return '$' + (cents / 100).toFixed(cents % 100 === 0 ? 0 : 2);
 }
 
-async function validateConfiguredPrice(priceId, plan, planId) {
+async function validateConfiguredPrice(priceId, plan, planId, envKey) {
   if (!priceId) return null;
+  if (!priceId.startsWith('price_')) {
+    return `${envKey} must be a Stripe Price ID that starts with price_, not a product ID or payment link.`;
+  }
 
   const stripeRes = await fetch('https://api.stripe.com/v1/prices/' + encodeURIComponent(priceId), {
     headers: { Authorization: 'Bearer ' + process.env.STRIPE_SECRET_KEY },
@@ -59,7 +62,7 @@ async function validateConfiguredPrice(priceId, plan, planId) {
   const price = await stripeRes.json();
 
   if (!stripeRes.ok || price.error) {
-    return price.error?.message || 'Could not verify Stripe price for ' + planId + '.';
+    return price.error?.message || `Could not verify Stripe price for ${planId}. Check ${envKey}.`;
   }
 
   if (price.currency !== 'usd') {
@@ -67,7 +70,7 @@ async function validateConfiguredPrice(priceId, plan, planId) {
   }
 
   if (price.unit_amount !== plan.amount) {
-    return `${plan.label} is configured as ${dollars(price.unit_amount || 0)}, expected ${dollars(plan.amount)}. Check the Vercel price ID for ${planId}.`;
+      return `${plan.label} is configured as ${dollars(price.unit_amount || 0)}, expected ${dollars(plan.amount)}. Check ${envKey}.`;
   }
 
   const priceInterval = price.recurring && price.recurring.interval;
@@ -119,10 +122,10 @@ export default async function handler(req, res) {
     if (userEmail) body.set('customer_email', userEmail);
 
     const configuredPrice = getConfiguredPrice(plan);
-    if (configuredPrice) {
-      const priceError = await validateConfiguredPrice(configuredPrice, plan, planId);
+    if (configuredPrice.value) {
+      const priceError = await validateConfiguredPrice(configuredPrice.value, plan, planId, configuredPrice.key);
       if (priceError) return res.status(500).json({ error: priceError });
-      body.set('line_items[0][price]', configuredPrice);
+      body.set('line_items[0][price]', configuredPrice.value);
     } else {
       body.set('line_items[0][price_data][currency]', 'usd');
       body.set('line_items[0][price_data][product_data][name]', plan.label);

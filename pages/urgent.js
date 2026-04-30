@@ -121,6 +121,16 @@ function AssignModal({ task, savedPeople, onClose, onSave }) {
         <h2>{task.prompt}</h2>
         <p className="muted">{task.title}</p>
 
+        <button className="self-owner" onClick={() => onSave({
+          id: 'self',
+          name: 'Me',
+          role: 'Handling this myself',
+          phone: '',
+          email: '',
+        })}>
+          I will handle this myself
+        </button>
+
         {savedPeople.length > 0 && (
           <div className="field">
             <label>Use someone already added</label>
@@ -150,7 +160,7 @@ function AssignModal({ task, savedPeople, onClose, onSave }) {
           <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Optional" />
         </div>
 
-        <div className="modal-note">We will keep this person available for other tasks. You can assign them again without retyping.</div>
+        <div className="modal-note">We will keep this owner available for other tasks. Next sprint: Passage will draft the email or call script for the person handling it.</div>
         <div className="actions">
           <button className="ghost" onClick={onClose}>Cancel</button>
           <button className="primary" disabled={!name.trim()} onClick={() => onSave({ id: personId || `p_${Date.now()}`, name: name.trim(), role: role.trim(), phone: phone.trim(), email: email.trim() })}>
@@ -229,6 +239,8 @@ export default function UrgentPage() {
         .primary:disabled { opacity: .45; cursor: not-allowed; }
         .secondary { background: ${C.sage}; color: white; }
         .ghost { background: ${C.subtle}; color: ${C.mid}; border: 1px solid ${C.border}; }
+        .self-owner { width:100%; border:1px solid ${C.sageLight}; background:${C.sageFaint}; color:${C.sageDark}; border-radius:14px; padding:13px 14px; font-weight:800; cursor:pointer; margin:12px 0 18px; text-align:left; }
+        .self-owner:hover { border-color:${C.sage}; }
         .stack { display: flex; gap: 10px; flex-wrap: wrap; }
         .side { padding: 20px; }
         .meter { height: 8px; border-radius: 999px; background: ${C.subtle}; overflow: hidden; margin: 14px 0 16px; }

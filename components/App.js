@@ -26,16 +26,11 @@ const TALLY_URL = "https://tally.so/r/q4Ev05";
 const PROJECT_ID = "qsveqfchwylsbncsfgxe";
 
 const PLAN_OPTIONS = [
-  { id: "annual", label: "Annual", price: "$79.99", per: "/year", badge: "Best value for a full year of planning", popular: true },
-  { id: "semiannual", label: "Semi-annual", price: "$49.99", per: "every 6 months", badge: "A lighter commitment while you build the plan" },
-  { id: "monthly", label: "Monthly", price: "$9.99", per: "/month", badge: "Start anytime, cancel anytime" },
-  { id: "lifetime", label: "Lifetime", price: "$299.99", per: "one time", badge: "Pay once. Active forever." },
+  { id: "annual", label: "Annual", price: "$79.99", per: "/year", badge: "Best value for one planning estate", popular: true },
+  { id: "semiannual", label: "Semi-annual", price: "$49.99", per: "every 6 months", badge: "A lighter commitment for one planning estate" },
+  { id: "monthly", label: "Monthly", price: "$9.99", per: "/month", badge: "One active planning estate. Add more later." },
+  { id: "lifetime", label: "Lifetime", price: "$299.99", per: "one time", badge: "One planning estate active forever." },
 ];
-const PLAN_BY_ID = PLAN_OPTIONS.reduce((acc, plan) => {
-  acc[plan.id] = plan;
-  return acc;
-}, {});
-
 // ─── TASK DATA — 47 research-backed post-death tasks ─────────────────────────
 const POST_DEATH_TASKS = [
   {
@@ -2348,10 +2343,33 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                       🚨 Someone just passed
                     </button>
                   </div>
-                  <button onClick={() => handleCheckout('annual', user && user.id, user && user.email)}
-                    style={{ width: "100%", padding: "10px", background: "#1a1916", border: "none", borderRadius: 11, fontSize: 12.5, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
-                    Upgrade to Passage - {PLAN_BY_ID.annual.price}/yr
-                  </button>
+                  <div style={{ border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, background: C.bgCard }}>
+                    <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.soft, fontWeight: 700, marginBottom: 4 }}>Planning access</div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.45, marginBottom: 10 }}>
+                      Each plan includes one active planning estate. Urgent estate coordination stays separate at $79.99 per case.
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+                      {PLAN_OPTIONS.map(option => (
+                        <button key={option.id} onClick={() => handleCheckout(option.id, user && user.id, user && user.email)}
+                          style={{
+                            textAlign: "left",
+                            background: option.popular ? C.sageFaint : C.bgSubtle,
+                            border: `1px solid ${option.popular ? C.sageLight : C.border}`,
+                            borderRadius: 11,
+                            padding: "10px 11px",
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                          }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, marginBottom: 3 }}>
+                            <span style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{option.label}</span>
+                            {option.popular && <span style={{ fontSize: 9, color: C.sage, fontWeight: 800 }}>Best</span>}
+                          </div>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: option.id === "lifetime" ? C.gold : C.sage }}>{option.price}</div>
+                          <div style={{ fontSize: 10.5, color: C.mid, marginTop: 2 }}>{option.per}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
               {plan !== 'free' && (
