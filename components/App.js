@@ -3637,36 +3637,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </div>
       </section>
 
-      <section style={{ maxWidth: 960, margin: '0 auto', padding: '24px 24px 34px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-          {[
-            ['1', 'Know what matters first', 'Passage narrows the first decisions so families are not staring at a giant checklist.'],
-            ['2', 'Give every task an owner', 'Handle it yourself or assign someone. The task keeps the script, instructions, and status.'],
-            ['3', 'Activate with approval', 'Before messages or documents go out, Passage shows who receives what and asks for approval.'],
-          ].map(([n, title, body]) => (
-            <div key={n} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
-              <div style={{ fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 10 }}>{n}</div>
-              <div style={{ fontSize: 16, color: C.ink, fontWeight: 800, marginBottom: 8 }}>{title}</div>
-              <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>{body}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ maxWidth: 820, margin: '0 auto', padding: '8px 24px 52px' }}>
-        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 18, padding: '24px 26px', textAlign: 'center' }}>
-          <div style={{ fontSize: 10.5, letterSpacing: '.18em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 10 }}>Why Passage exists</div>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: 24, lineHeight: 1.3, color: C.ink, marginBottom: 10 }}>
-            Families deserve more than a folder, a checklist, and a dozen disconnected calls.
-          </div>
-          <p style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.8, margin: '0 auto 16px', maxWidth: 650 }}>
-            Passage was created after seeing funeral planning, Medicaid questions, documents, family notifications, and service providers fall on grieving people with no single system taking ownership.
-          </p>
-          <a href="/mission" style={{ color: C.sage, fontSize: 13, fontWeight: 800, textDecoration: 'none' }}>Read the mission</a>
-        </div>
-      </section>
-
-      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '20px 24px 38px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
+      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '26px 24px 38px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
         <div>Passage coordinates life-to-death transitions with care.</div>
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
           <a href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</a>
