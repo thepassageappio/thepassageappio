@@ -3,6 +3,10 @@
     {
       "path": "/api/processScheduledDeliveries",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/processTaskReminders",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

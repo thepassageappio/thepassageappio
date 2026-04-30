@@ -60,7 +60,7 @@ export default async function handler(req, res) {
   const auth = await verifyDeliveryRequest(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
-  const { to, toName, taskTitle, taskId, actionId, deceasedName, coordinatorName, workflowId, actionType, events } = req.body;
+  const { to, toName, taskTitle, taskId, actionId, deceasedName, coordinatorName, workflowId, actionType, events, messageText } = req.body;
   if (!to) return res.status(400).json({ error: 'Missing phone number' });
 
   const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
@@ -106,7 +106,9 @@ export default async function handler(req, res) {
       : siteUrl + '/participating';
 
     var message;
-    if (actionType === 'trigger') {
+    if (actionType === 'execution' && messageText) {
+      message = clean(messageText, 240);
+    } else if (actionType === 'trigger') {
       message = 'Passage: ' + shortDeceased + ' plan active. View details: ' + detailUrl;
     } else {
       message = 'Passage: ' + coordinator + ' asked you to help with ' + shortTask + '. Open: ' + detailUrl;

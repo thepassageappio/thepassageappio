@@ -3,6 +3,14 @@ alter table public.task_status_events
   add column if not exists provider_message_id text,
   add column if not exists provider_event_id text;
 
+alter table public.tasks
+  add column if not exists reminder_4h_sent_at timestamptz,
+  add column if not exists reminder_24h_sent_at timestamptz;
+
+alter table public.workflow_actions
+  add column if not exists reminder_4h_sent_at timestamptz,
+  add column if not exists reminder_24h_sent_at timestamptz;
+
 create unique index if not exists task_status_events_provider_event_uidx
   on public.task_status_events(provider, provider_event_id)
   where provider_event_id is not null;

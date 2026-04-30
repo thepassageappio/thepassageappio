@@ -49,6 +49,7 @@ export default async function handler(req, res) {
     recipient: to,
     detail: error ? `Twilio reported ${status}: ${error}` : `Twilio reported ${status}.`,
     errorMessage: error,
+    payload: Object.fromEntries(params.entries()),
   });
 
   return res.status(200).json({ success: true, result });

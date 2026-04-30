@@ -597,8 +597,11 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   const coordinator = coordinatorName || 'the family coordinator';
   const defaultSms = `Passage: ${coordinator} is handling ${shorten(title, 42)} for ${shorten(deceased, 22)}. Please sign in to Passage if you were assigned this task.`;
   const base = {
+    executionMode: 'message',
+    primaryLabel: 'Send message',
     recipientLabel: 'the right contact',
     recipientEmail: '',
+    recipientPhone: '',
     link: '',
     linkLabel: 'Open link',
     subject: `${deceased} - ${title}`,
@@ -608,16 +611,16 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   };
 
   if (lower.includes('document the date') || lower.includes('date, time') || lower.includes('location of death')) {
-    return { ...base, recipientLabel: 'your private estate notes', subject: `${deceased} - death details record`, draft: `For Passage records:\n\nName: ${deceased}\nDate of death:\nTime of death:\nLocation of death:\nPronouncing provider or official:\nFuneral home or next contact:\n\nNotes:\n`, sms: `Passage: ${coordinator} is recording official death details for ${shorten(deceased, 24)}. Sign in if you were assigned this task.`, steps: ['Write down the date, time, and exact location as provided by the medical professional or official.', 'Record who pronounced the death and how they can be reached.', 'Keep this private until death certificates are ordered.', 'Mark handled once the details are saved in notes.'] };
+    return { ...base, executionMode: 'record', primaryLabel: 'Save official details', recipientLabel: 'your private estate notes', subject: `${deceased} - death details record`, draft: `For Passage records:\n\nName: ${deceased}\nDate of death:\nTime of death:\nLocation of death:\nPronouncing provider or official:\nFuneral home or next contact:\n\nNotes:\n`, sms: `Passage: ${coordinator} is recording official death details for ${shorten(deceased, 24)}. Sign in if you were assigned this task.`, steps: ['Write down the date, time, and exact location as provided by the medical professional or official.', 'Record who pronounced the death and how they can be reached.', 'Keep this private until death certificates are ordered.', 'Mark handled once the details are saved in notes.'] };
   }
   if (lower.includes('funeral home') || lower.includes('funeral director')) {
-    return { ...base, recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating funeral arrangements for ${shorten(deceased, 26)}. Please sign in to Passage for task details.`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
+    return { ...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating funeral arrangements for ${shorten(deceased, 26)}. Please sign in to Passage for task details.`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
   }
   if (lower.includes('hospice') || lower.includes('home care')) {
-    return { ...base, recipientLabel: 'hospice or home care provider', subject: `${deceased} - care provider notification`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you please confirm any equipment pickup, final care records, medication disposal instructions, and billing or benefits steps we need to handle?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is notifying hospice or care providers for ${shorten(deceased, 23)}. Sign in to Passage for details.`, steps: ['Call the hospice or home care main number.', 'Ask about equipment pickup, medications, records, and final billing.', 'Record any pickup window or case number.', 'Mark handled after the provider confirms the next step.'] };
+    return { ...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'hospice or home care provider', subject: `${deceased} - care provider notification`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you please confirm any equipment pickup, final care records, medication disposal instructions, and billing or benefits steps we need to handle?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is notifying hospice or care providers for ${shorten(deceased, 23)}. Sign in to Passage for details.`, steps: ['Call the hospice or home care main number.', 'Ask about equipment pickup, medications, records, and final billing.', 'Record any pickup window or case number.', 'Mark handled after the provider confirms the next step.'] };
   }
   if (lower.includes('death certificate') || lower.includes('pronouncement')) {
-    return { ...base, recipientLabel: 'physician, hospice nurse, coroner, or funeral director', link: 'https://www.cdc.gov/nchs/w2w/index.htm', linkLabel: 'Find state vital records office', subject: `${deceased} - official pronouncement / death certificates`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you confirm who will provide the official pronouncement and how we should order certified death certificates?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} needs help with death certificate steps for ${shorten(deceased, 26)}. Sign in to Passage for details.`, steps: ['Confirm who is legally pronouncing the death.', 'Ask how many certified death certificates to order.', 'Record the contact name and phone number.', 'Use the state vital records link if certificates must be ordered directly.', 'Mark handled once the document path is clear.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open official records path', recipientLabel: 'physician, hospice nurse, coroner, or funeral director', link: 'https://www.cdc.gov/nchs/w2w/index.htm', linkLabel: 'Find state vital records office', subject: `${deceased} - official pronouncement / death certificates`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you confirm who will provide the official pronouncement and how we should order certified death certificates?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} needs help with death certificate steps for ${shorten(deceased, 26)}. Sign in to Passage for details.`, steps: ['Confirm who is legally pronouncing the death.', 'Ask how many certified death certificates to order.', 'Record the contact name and phone number.', 'Use the state vital records link if certificates must be ordered directly.', 'Mark handled once the document path is clear.'] };
   }
   if (lower.includes('minor children')) {
     return { ...base, recipientLabel: 'guardian or trusted family contact', subject: `${deceased} - immediate care for minor children`, draft: `Hello,\n\nWe need to confirm immediate care for the children connected to ${deceased}. Can you please confirm who has them, where they are staying, and whether any school, medication, or transportation needs must be handled today?\n\nThank you,\n${coordinator}`, sms: `Passage: urgent child-care coordination for ${shorten(deceased, 24)}. Please sign in to Passage if assigned.`, steps: ['Confirm the children are physically safe and with an approved adult.', 'Write down where they are, who is with them, and any medication or school needs.', 'Avoid permanent custody decisions until the legal guardian path is clear.', 'Mark handled when immediate care is confirmed.'] };
@@ -625,29 +628,41 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   if (lower.includes('family') || lower.includes('notify')) {
     return { ...base, recipientLabel: 'family contact', subject: `${deceased} - family update`, draft: `Hello,\n\nI am so sorry to share that ${deceased} has passed away. ${coordinator} is helping coordinate next steps through Passage so the family can keep tasks, service details, and updates in one place.\n\nPlease sign in to Passage if you have been assigned a role or task.\n\nWith care,\n${coordinator}`, sms: `Passage: ${coordinator} shared a family update for ${shorten(deceased, 26)}. If assigned, sign in to Passage for details.`, steps: ['Choose the closest family contact first.', 'Use the prepared message or soften it in your own voice.', 'Avoid broadcasting service details until they are confirmed.', 'Mark handled once the first family circle knows who is coordinating.'] };
   }
-  if (lower.includes('home') || lower.includes('pet') || lower.includes('vehicle') || lower.includes('valuables') || lower.includes('secure')) {
+  if (lower.includes('cemetery') || lower.includes('crematorium')) {
+    return { ...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'cemetery or crematorium', subject: `${deceased} - cemetery or crematorium coordination`, draft: `Hello,\n\nI am helping coordinate arrangements for ${deceased}. Can you please confirm availability, timing, fees, required documents, and who should approve the next step?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating cemetery or crematorium details for ${shorten(deceased, 22)}. Sign in for details.`, steps: ['Call the cemetery or crematorium.', 'Ask about timing, fees, required documents, and approvals.', 'Save the contact name and next deadline.', 'Mark handled once the next step is confirmed.'] };
+  }
+  if ((lower.includes('home') || lower.includes('pet') || lower.includes('vehicle') || lower.includes('valuables') || lower.includes('secure')) && !lower.includes('insurance')) {
     return { ...base, recipientLabel: 'trusted local person', subject: `${deceased} - home, pets, and property`, draft: `Hello,\n\nCan you help us check on ${deceased}'s home, pets, vehicle, and important belongings? We need someone to confirm the home is secure and let us know if anything urgent needs attention.\n\nPlease reply with what you find and any next steps.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} needs help checking home, pets, or vehicle for ${shorten(deceased, 24)}. Sign in to Passage for task details.`, steps: ['Ask a trusted local person to check doors, pets, mail, vehicle, and valuables.', 'Do not remove items unless the authorized person agrees.', 'Take notes or photos if something needs follow-up.', 'Save what was checked and mark handled.'] };
   }
   if (lower.includes('social security')) {
-    return { ...base, recipientLabel: 'Social Security Administration', link: 'https://www.ssa.gov/benefits/survivors/', linkLabel: 'Open SSA survivor benefits', subject: `${deceased} - survivor benefits`, sms: `Passage: ${coordinator} is starting Social Security survivor steps for ${shorten(deceased, 22)}. Sign in to Passage for details.`, steps: ['Open the SSA survivor benefits page.', 'Gather Social Security numbers, death certificate, marriage/birth records if applicable.', 'Call SSA or schedule the required appointment.', 'Mark handled once the appointment or claim is started.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open SSA path', recipientLabel: 'Social Security Administration', link: 'https://www.ssa.gov/benefits/survivors/', linkLabel: 'Open SSA survivor benefits', subject: `${deceased} - survivor benefits`, sms: `Passage: ${coordinator} is starting Social Security survivor steps for ${shorten(deceased, 22)}. Sign in to Passage for details.`, steps: ['Open the SSA survivor benefits page.', 'Gather Social Security numbers, death certificate, marriage/birth records if applicable.', 'Call SSA or schedule the required appointment.', 'Mark handled once the appointment or claim is started.'] };
   }
   if (lower.includes('medicare') || lower.includes('medicaid')) {
-    return { ...base, recipientLabel: 'Medicare, Medicaid, or benefits office', link: 'https://www.medicare.gov/basics/reporting-medicare-fraud-and-abuse/report-death', linkLabel: 'Open Medicare death reporting guidance', subject: `${deceased} - health benefits notification`, sms: `Passage: ${coordinator} is handling Medicare or Medicaid steps for ${shorten(deceased, 22)}. Sign in for details.`, steps: ['Confirm whether the funeral home reports the death automatically.', 'Gather Medicare/Medicaid ID and certified death certificate if requested.', 'Ask about final claims, premiums, or estate recovery notices.', 'Mark handled once the agency path is recorded.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open benefits guidance', recipientLabel: 'Medicare, Medicaid, or benefits office', link: 'https://www.medicare.gov/basics/reporting-medicare-fraud-and-abuse/report-death', linkLabel: 'Open Medicare death reporting guidance', subject: `${deceased} - health benefits notification`, sms: `Passage: ${coordinator} is handling Medicare or Medicaid steps for ${shorten(deceased, 22)}. Sign in for details.`, steps: ['Confirm whether the funeral home reports the death automatically.', 'Gather Medicare/Medicaid ID and certified death certificate if requested.', 'Ask about final claims, premiums, or estate recovery notices.', 'Mark handled once the agency path is recorded.'] };
   }
   if (lower.includes('veteran') || lower.includes('va ') || lower.includes('military')) {
-    return { ...base, recipientLabel: 'U.S. Department of Veterans Affairs', link: 'https://www.va.gov/burials-memorials/', linkLabel: 'Open VA burial and survivor benefits', subject: `${deceased} - veteran burial and survivor benefits`, sms: `Passage: ${coordinator} is checking VA benefits for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Find DD214 or military service records if available.', 'Open VA burial and survivor benefit guidance.', 'Ask about burial allowance, flag, headstone, and survivor benefits.', 'Mark handled when the claim or appointment is started.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open VA benefits path', recipientLabel: 'U.S. Department of Veterans Affairs', link: 'https://www.va.gov/burials-memorials/', linkLabel: 'Open VA burial and survivor benefits', subject: `${deceased} - veteran burial and survivor benefits`, sms: `Passage: ${coordinator} is checking VA benefits for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Find DD214 or military service records if available.', 'Open VA burial and survivor benefit guidance.', 'Ask about burial allowance, flag, headstone, and survivor benefits.', 'Mark handled when the claim or appointment is started.'] };
   }
   if (lower.includes('dmv') || lower.includes('driver')) {
-    return { ...base, recipientLabel: 'state DMV', link: 'https://www.usa.gov/motor-vehicle-services', linkLabel: 'Find state DMV office', subject: `${deceased} - license and vehicle records`, sms: `Passage: ${coordinator} is handling DMV or vehicle records for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Open your state DMV site.', 'Search for deceased driver license cancellation or vehicle title transfer.', 'Gather death certificate and title/registration.', 'Mark handled once the DMV instruction or appointment is saved.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open DMV path', recipientLabel: 'state DMV', link: 'https://www.usa.gov/motor-vehicle-services', linkLabel: 'Find state DMV office', subject: `${deceased} - license and vehicle records`, sms: `Passage: ${coordinator} is handling DMV or vehicle records for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Open your state DMV site.', 'Search for deceased driver license cancellation or vehicle title transfer.', 'Gather death certificate and title/registration.', 'Mark handled once the DMV instruction or appointment is saved.'] };
   }
   if (lower.includes('credit bureaus')) {
-    return { ...base, recipientLabel: 'Equifax, Experian, and TransUnion', link: 'https://www.identitytheft.gov/', linkLabel: 'Open identity theft/deceased alert guidance', subject: `${deceased} - deceased alert`, sms: `Passage: ${coordinator} is handling credit bureau alerts for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Contact each credit bureau to place a deceased alert.', 'Prepare certified death certificate and proof of authority.', 'Save confirmation numbers.', 'Mark handled after all three bureaus are notified.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open credit alert guidance', recipientLabel: 'Equifax, Experian, and TransUnion', link: 'https://www.identitytheft.gov/', linkLabel: 'Open identity theft/deceased alert guidance', subject: `${deceased} - deceased alert`, sms: `Passage: ${coordinator} is handling credit bureau alerts for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Contact each credit bureau to place a deceased alert.', 'Prepare certified death certificate and proof of authority.', 'Save confirmation numbers.', 'Mark handled after all three bureaus are notified.'] };
   }
   if (lower.includes('mail') || lower.includes('usps')) {
-    return { ...base, recipientLabel: 'USPS or trusted mail contact', link: 'https://www.usps.com/manage/forward.htm', linkLabel: 'Open USPS mail forwarding', subject: `${deceased} - mail forwarding`, sms: `Passage: ${coordinator} is handling mail forwarding for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Decide who is authorized to receive estate mail.', 'Forward or hold mail through USPS if appropriate.', 'Watch mail for bank, insurance, tax, and benefits notices.', 'Mark handled once mail is controlled.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open USPS path', recipientLabel: 'USPS or trusted mail contact', link: 'https://www.usps.com/manage/forward.htm', linkLabel: 'Open USPS mail forwarding', subject: `${deceased} - mail forwarding`, sms: `Passage: ${coordinator} is handling mail forwarding for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Decide who is authorized to receive estate mail.', 'Forward or hold mail through USPS if appropriate.', 'Watch mail for bank, insurance, tax, and benefits notices.', 'Mark handled once mail is controlled.'] };
   }
   if (lower.includes('passport') || lower.includes('voter') || lower.includes('license') || lower.includes('professional')) {
-    return { ...base, recipientLabel: 'issuing agency', link: 'https://www.usa.gov/death-notification', linkLabel: 'Open government death notification guidance', subject: `${deceased} - government record update`, sms: `Passage: ${coordinator} is updating government records for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Identify the agency for this record.', 'Gather certified death certificate and proof of authority.', 'Ask whether the record should be cancelled, returned, or updated.', 'Mark handled once the agency confirms what happens next.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open agency path', recipientLabel: 'issuing agency', link: 'https://www.usa.gov/death-notification', linkLabel: 'Open government death notification guidance', subject: `${deceased} - government record update`, sms: `Passage: ${coordinator} is updating government records for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Identify the agency for this record.', 'Gather certified death certificate and proof of authority.', 'Ask whether the record should be cancelled, returned, or updated.', 'Mark handled once the agency confirms what happens next.'] };
+  }
+  if (lower.includes('travel') || lower.includes('lodging') || lower.includes('hotel') || lower.includes('flight')) {
+    return { ...base, recipientLabel: 'travel coordinator or hotel contact', subject: `${deceased} - family travel coordination`, draft: `Hello,\n\nOur family is coordinating travel for services for ${deceased}. Can you please confirm availability, group rates, check-in details, and any deadlines we should know about?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating family travel for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Pick one person to coordinate travel questions.', 'Send the prepared note to hotel or travel contact.', 'Save rates, deadlines, and confirmation numbers.', 'Mark handled when lodging/travel instructions are clear.'] };
+  }
+  if (lower.includes('readings') || lower.includes('music') || lower.includes('pallbearers') || lower.includes('officiant')) {
+    return { ...base, recipientLabel: 'officiant or service coordinator', subject: `${deceased} - service readings and music`, draft: `Hello,\n\nWe are preparing service details for ${deceased}. Can you please confirm readings, music, pallbearers, timing, and anything needed from the family before the service?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating service details for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Choose one person to collect service preferences.', 'Send the prepared note to the officiant or coordinator.', 'Save readings, music, pallbearer names, and deadlines.', 'Mark handled when the service plan is confirmed.'] };
+  }
+  if (lower.includes('photos') || lower.includes('memories') || lower.includes('slideshow') || lower.includes('program')) {
+    return { ...base, recipientLabel: 'family photo coordinator', subject: `${deceased} - photos and memories for service`, draft: `Hello,\n\nCan you help gather photos and memories for ${deceased}'s service? Please reply with what you can provide and any deadlines for slideshow, boards, programs, or printed materials.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is gathering photos and memories for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Ask one person to gather photos and memories.', 'Send the prepared note to family contributors.', 'Save upload links, deadlines, and who is responsible.', 'Mark handled when the materials are with the service coordinator.'] };
   }
   if (lower.includes('employer') || lower.includes('hr')) {
     return { ...base, recipientLabel: 'employer / HR department', subject: `${deceased} - employment and benefits notification`, draft: `Hello,\n\nI am writing to notify you that ${deceased} has passed away. Can you please let us know the next steps for final pay, benefits, life insurance, and any required paperwork?\n\nPlease copy me at ${userEmail || 'this email'} on the response.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling employer or benefits steps for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Find HR or benefits contact information.', 'Ask about final pay, employer life insurance, retirement plans, and required forms.', 'Save names, deadlines, and claim numbers.', 'Mark handled when HR confirms the next step.'] };
@@ -665,7 +680,7 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
     return { ...base, recipientLabel: 'retirement plan or benefits administrator', subject: `${deceased} - retirement or beneficiary claim`, draft: `Hello,\n\nI am helping coordinate benefits for ${deceased}. Can you please tell us what beneficiary, pension, retirement, or survivor claim steps are required and what documents should be submitted?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling retirement or beneficiary steps for ${shorten(deceased, 22)}. Sign in for details.`, steps: ['Locate the plan administrator or benefits portal.', 'Ask what beneficiary claim forms are required.', 'Record deadlines, claim numbers, and document upload instructions.', 'Mark handled once the claim path is clear.'] };
   }
   if (lower.includes('tax')) {
-    return { ...base, recipientLabel: 'tax preparer or estate accountant', link: 'https://www.irs.gov/individuals/file-the-final-income-tax-returns-of-a-deceased-person', linkLabel: 'Open IRS final return guidance', subject: `${deceased} - final tax return`, draft: `Hello,\n\nI am helping coordinate final tax steps for ${deceased}. Can you please advise what records you need for the final income tax return and whether any estate tax filing may be required?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling final tax steps for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Gather prior tax returns, income statements, and account records.', 'Contact the tax preparer or review IRS final return guidance.', 'Ask whether estate tax filings may apply.', 'Mark handled once the tax owner and next deadline are recorded.'] };
+    return { ...base, executionMode: 'link', primaryLabel: 'Open IRS guidance', recipientLabel: 'tax preparer or estate accountant', link: 'https://www.irs.gov/individuals/file-the-final-income-tax-returns-of-a-deceased-person', linkLabel: 'Open IRS final return guidance', subject: `${deceased} - final tax return`, draft: `Hello,\n\nI am helping coordinate final tax steps for ${deceased}. Can you please advise what records you need for the final income tax return and whether any estate tax filing may be required?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling final tax steps for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Gather prior tax returns, income statements, and account records.', 'Contact the tax preparer or review IRS final return guidance.', 'Ask whether estate tax filings may apply.', 'Mark handled once the tax owner and next deadline are recorded.'] };
   }
   if (lower.includes('digital') || lower.includes('password') || lower.includes('online')) {
     return { ...base, recipientLabel: 'executor or digital account contact', subject: `${deceased} - digital account access`, draft: `Hello,\n\nWe need to inventory digital accounts for ${deceased}. Please do not reset or delete anything yet. Can you help identify critical accounts, password manager access, and any accounts with bills or family photos?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating digital accounts for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['List critical accounts before changing passwords.', 'Look for a password manager, recovery email, or documented instructions.', 'Preserve photos, billing accounts, and financial records.', 'Mark handled once access and next steps are documented.'] };
@@ -675,6 +690,9 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   }
   if (lower.includes('announcement') || lower.includes('social')) {
     return { ...base, recipientLabel: 'family reviewer', subject: `${deceased} - announcement review`, draft: `Hello,\n\nWe are preparing a family announcement for ${deceased}. Please review the wording before anything is shared publicly.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is preparing an announcement for ${shorten(deceased, 24)}. Sign in to Passage to review if assigned.`, steps: ['Write a short, calm announcement.', 'Confirm immediate family has been notified first.', 'Have one person review before posting.', 'Mark handled once the family-approved version is saved.'] };
+  }
+  if (lower.includes('thank you') || lower.includes('memorial fund') || lower.includes('charitable') || lower.includes('donation') || lower.includes('estate sale') || lower.includes('belongings')) {
+    return { ...base, recipientLabel: 'family coordinator or service provider', subject: `${deceased} - memorial follow-up`, draft: `Hello,\n\nI am helping coordinate follow-up for ${deceased}. Can you please confirm what is needed next, who owns it, and any deadlines or costs we should record?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating memorial follow-up for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Choose the person or provider responsible for this follow-up.', 'Send the prepared note or assign the task.', 'Save names, costs, deadlines, and confirmations.', 'Mark handled once the next step is clear.'] };
   }
   return base;
 };
@@ -1290,6 +1308,7 @@ Passage`);
 function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, workflowId, onHandled, onNotApplicable, onAssign, onOpenObituary, onClose }) {
   const playbook = executionForTask(task, deceasedName, coordinatorName, userEmail);
   const [recipientEmail, setRecipientEmail] = useState(task?.assignedEmail || playbook.recipientEmail || '');
+  const [recipientPhone, setRecipientPhone] = useState(playbook.recipientPhone || '');
   const [draft, setDraft] = useState(playbook.draft);
   const [smsDraft, setSmsDraft] = useState(playbook.sms || '');
   const [notes, setNotes] = useState(task?.notes || '');
@@ -1305,6 +1324,36 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const markSaved = () => {
     setSavedPulse(true);
     setTimeout(() => setSavedPulse(false), 1400);
+  };
+
+  const logTaskAction = async ({ status = 'waiting', channel = 'record', recipient = '', detail = '', outcomeStatus = '' }) => {
+    if (!task?.dbId) {
+      setActionNotice(detail || 'Saved locally. Add notes below so the plan knows what happened.');
+      return true;
+    }
+    setSendError('');
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const res = await fetch(`/api/tasks/${task.dbId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+      body: JSON.stringify({
+        status,
+        channel,
+        recipient,
+        detail,
+        notes,
+        outcomeStatus,
+        actor: coordinatorName || userEmail || 'Passage',
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setSendError(data.error || 'Passage could not save this yet. Try again before closing this task.');
+      return false;
+    }
+    setActionNotice(detail || 'Saved to the estate record.');
+    return true;
   };
 
   const sendDraft = async () => {
@@ -1330,9 +1379,31 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
     else setSendError(data.error || 'Failed to send - retry? You can copy the draft while Passage keeps this task open.');
   };
 
+  const sendSmsDraft = async () => {
+    if (!recipientPhone || !task?.dbId) return;
+    setSending(true);
+    setSendError('');
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const res = await fetch(`/api/tasks/${task.dbId}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+      body: JSON.stringify({ channel: 'sms', to: recipientPhone, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'execution', messageText: smsDraft }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setSending(false);
+    if (res.ok) {
+      const stamp = new Date();
+      setSent(true);
+      setSentAt(stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+      setActionNotice(`Text sent to ${recipientPhone} at ${stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Waiting for confirmation.`);
+    } else setSendError(data.error || 'Failed to send text - retry? Check the phone number and try again.');
+  };
+
   const lowerTitle = String(task?.title || '').toLowerCase();
-  const isCallTask = lowerTitle.includes('funeral') || lowerTitle.includes('hospice') || lowerTitle.includes('home care') || lowerTitle.includes('certificate') || lowerTitle.includes('pronouncement') || lowerTitle.includes('social security');
-  const isLinkTask = Boolean(playbook.link);
+  const isCallTask = playbook.executionMode === 'call' || lowerTitle.includes('funeral') || lowerTitle.includes('hospice') || lowerTitle.includes('home care');
+  const isLinkTask = playbook.executionMode === 'link' || Boolean(playbook.link);
+  const isRecordTask = playbook.executionMode === 'record';
   const outcomeOptions = lowerTitle.includes('funeral') ? [
     ['spoke_next_step_set', 'I spoke with them and saved the next step', 'handled'],
     ['left_voicemail', 'I left a voicemail', 'waiting'],
@@ -1400,6 +1471,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         </div>
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared text message</div>
+          <input value={recipientPhone} onChange={e => { setRecipientPhone(e.target.value); markSaved(); }} placeholder={`Phone for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
           <textarea value={smsDraft} onChange={e => { setSmsDraft(e.target.value); markSaved(); }} style={{ width: "100%", minHeight: 74, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.55 }} />
           <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>Texts should stay short and point people back to Passage when they are assigned a task.</div>
         </div>
@@ -1426,13 +1498,25 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 8 }}>
           {isCallTask ? (
-            <button onClick={() => setActionNotice('Call started. Save the outcome after the call so the estate knows what happened.')} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>Call now</button>
+            <button onClick={async () => {
+              if (recipientPhone) window.location.href = 'tel:' + recipientPhone.replace(/[^\d+]/g, '');
+              await logTaskAction({ status: 'waiting', channel: 'call', recipient: recipientPhone || playbook.recipientLabel, detail: `Call started for ${task.title}. Waiting for confirmation/outcome.`, outcomeStatus: 'call_started' });
+            }} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{recipientPhone ? "Call now" : playbook.primaryLabel || "Log call"}</button>
           ) : isLinkTask ? (
-            <button onClick={() => { setActionNotice('Link opened. Save the outcome after the form or website step is done.'); window.open(playbook.link, '_blank', 'noopener,noreferrer'); }} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>Open link</button>
+            <button onClick={async () => {
+              if (playbook.link) window.open(playbook.link, '_blank', 'noopener,noreferrer');
+              await logTaskAction({ status: 'waiting', channel: 'website', recipient: playbook.recipientLabel, detail: `${playbook.linkLabel || 'Official link'} opened for ${task.title}. Waiting for confirmation/outcome.`, outcomeStatus: 'link_opened' });
+            }} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{playbook.primaryLabel || playbook.linkLabel || "Open link"}</button>
+          ) : isRecordTask ? (
+            <button onClick={async () => {
+              const ok = await logTaskAction({ status: 'handled', channel: 'record', recipient: 'Estate record', detail: `${task.title} saved to the estate record.`, outcomeStatus: 'record_saved' });
+              if (ok) setOutcome('done_confirmed');
+            }} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{playbook.primaryLabel || "Save record"}</button>
           ) : (
             <button onClick={sendDraft} disabled={!recipientEmail || sending} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : sent ? "Message sent" : "Send message"}</button>
           )}
           <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Draft copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy draft</button>
+          <button onClick={sendSmsDraft} disabled={!recipientPhone || sending || !task?.dbId} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: recipientPhone && task?.dbId ? C.bgSubtle : C.bgCard, color: recipientPhone && task?.dbId ? C.ink : C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: recipientPhone && task?.dbId ? "pointer" : "not-allowed" }}>Send text</button>
           <button onClick={() => navigator.clipboard.writeText(smsDraft).then(() => alert('Text copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy text</button>
         </div>
         {(sent || actionNotice) && (

@@ -59,6 +59,7 @@ export default async function handler(req, res) {
     recipient,
     detail: recipient ? `${recipient} ${providerStatus.replace(/^email\./, '')}.` : `Resend reported ${providerStatus}.`,
     errorMessage: event?.data?.error || event?.data?.reason,
+    payload: event,
   });
 
   return res.status(200).json({ success: true, result });
