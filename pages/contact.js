@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 const C = {
@@ -26,6 +26,16 @@ function Field({ label, children }) {
 }
 
 const input = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 12, padding: '12px 14px', fontFamily: 'Georgia,serif', fontSize: 14, color: C.ink, outline: 'none', background: '#fff' };
+const SUPPORT_USER = 'thepassageappio';
+const SUPPORT_DOMAIN = 'gmail.com';
+
+function SupportEmail() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+  if (!ready) return <span>support email loading</span>;
+  const email = SUPPORT_USER + '@' + SUPPORT_DOMAIN;
+  return <a href={'mailto:' + email} style={{ color: C.ink }}>{email}</a>;
+}
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', category: categories[0], urgency: 'Normal', message: '' });
@@ -62,7 +72,7 @@ export default function ContactPage() {
           <h1 style={{ fontSize: 44, lineHeight: 1.08, margin: '0 0 16px', fontWeight: 400 }}>Tell us what is happening. We will route it with care.</h1>
           <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.75, margin: 0 }}>Use this form for support, billing, urgent-flow feedback, partnership inquiries, or content requests. For emergencies, please contact local emergency services or the appropriate funeral, medical, legal, or government office directly.</p>
           <div style={{ marginTop: 24, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, color: C.mid, fontSize: 13, lineHeight: 1.65 }}>
-            <strong style={{ color: C.ink }}>Support email:</strong> thepassageappio@gmail.com<br />
+            <strong style={{ color: C.ink }}>Support email:</strong> <SupportEmail /><br />
             <strong style={{ color: C.ink }}>Partnerships:</strong> funeral homes, attorneys, planners, and care teams can use the partner inquiry category.
           </div>
         </div>
@@ -93,7 +103,7 @@ export default function ContactPage() {
             {state === 'sending' ? 'Sending...' : 'Submit inquiry'}
           </button>
           {state === 'sent' && <p style={{ color: C.sage, fontSize: 13, lineHeight: 1.6 }}>We received it. Thank you.</p>}
-          {state === 'error' && <p style={{ color: C.rose, fontSize: 13, lineHeight: 1.6 }}>Something did not send. Please email thepassageappio@gmail.com.</p>}
+          {state === 'error' && <p style={{ color: C.rose, fontSize: 13, lineHeight: 1.6 }}>Something did not send. Please email <SupportEmail />.</p>}
         </form>
       </section>
     </main>

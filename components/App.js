@@ -1272,8 +1272,8 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 245, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto" }}>
         <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
-        <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.rose, fontWeight: 800, marginBottom: 8 }}>Activation preview</div>
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>Review what Passage will send before anything goes out.</div>
+        <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.rose, fontWeight: 800, marginBottom: 8 }}>Activate plan</div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>Here's what will happen.</div>
         <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Nothing sends until you approve. This activation is for {deceasedName || 'this estate'}.</div>
         <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.rose, marginBottom: 8 }}>What will be sent</div>
@@ -1286,8 +1286,8 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
           {assignedTasks.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No tasks are assigned yet.</div> : assignedTasks.map((t, i) => <div key={t.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "7px 0", fontSize: 13, color: C.mid }}><strong style={{ color: C.ink }}>{t.title}</strong><br />Owner: {t.assignedTo || t.assignedEmail}</div>)}
         </div>
         {events?.length > 0 && <div style={{ background: C.bgSubtle, borderRadius: 13, padding: 14, marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 800, color: C.soft, marginBottom: 8 }}>Service details included</div>{events.map((e, i) => <div key={e.id || i} style={{ fontSize: 13, color: C.mid, padding: "5px 0" }}>{e.name || e.event_type}{e.date ? ` - ${e.date}` : ''}{e.location_name ? ` at ${e.location_name}` : ''}</div>)}</div>}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <button onClick={onClose} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Edit first</button>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
+          <button onClick={onClose} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Review / edit</button>
           <button onClick={sendAll} disabled={sending || pendingActions.length === 0} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.rose, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : "Approve and send all"}</button>
         </div>
       </div>
@@ -3457,7 +3457,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>My estate</button>
           ) : (
-            <button onClick={onDashboard} style={{ background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: C.ink, fontFamily: 'inherit' }}>Sign in</button>
+            <button onClick={handleSignInWithGoogle} style={{ background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: C.ink, fontFamily: 'inherit' }}>Sign in</button>
           )}
         </div>
       </nav>
@@ -3549,6 +3549,33 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <a href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</a>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function Success({ mode, onDashboard }) {
+  const isPreview = mode === 'preview';
+  return (
+    <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ width: '100%', maxWidth: 560, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 20, padding: '28px 24px', textAlign: 'center', boxShadow: '0 18px 50px rgba(55,45,35,.08)' }}>
+        <div style={{ fontSize: 34, marginBottom: 12 }}>✓</div>
+        <div style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 10 }}>{isPreview ? 'Plan preview built' : 'Plan saved'}</div>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: C.ink, lineHeight: 1.2, marginBottom: 10 }}>
+          {isPreview ? 'Your first steps are ready.' : 'Your planning file has a place to keep growing.'}
+        </div>
+        <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.7, marginBottom: 20 }}>
+          {isPreview
+            ? 'Open the estate command center to handle tasks, assign owners, and see what comes next.'
+            : 'Continue in My file to add people, documents, wishes, participants, and active estates in one place.'}
+        </div>
+        {onDashboard ? (
+          <button onClick={onDashboard} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '13px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia, serif', fontWeight: 800, cursor: 'pointer' }}>
+            Continue to My file
+          </button>
+        ) : (
+          <GoogleSignInBtn label="Sign in to keep building" />
+        )}
+      </div>
     </div>
   );
 }
