@@ -338,6 +338,9 @@ export default function EstatePage() {
       });
     return Object.assign({}, bucket, { items: outcomeItems.concat(taskItems) });
   });
+  var nowGroup = timelineGroups.find(function(g) { return g.key === 'now'; }) || { items: [] };
+  var next72Group = timelineGroups.find(function(g) { return g.key === '72h'; }) || { items: [] };
+  var readyFor72 = nowGroup.items.length === 0 && next72Group.items.length > 0 && !allHandled;
   var upNextTasks = tasks.filter(function(t) { return !isHandledStatus(t.status); }).slice(3, 8);
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
@@ -476,6 +479,15 @@ export default function EstatePage() {
           })}
         </div>
 
+        {readyFor72 && (
+          <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: SAGE, marginBottom: 5 }}>The first urgent items are clear.</div>
+            <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>
+              If you have a little room now, Passage has the next 72 hours ready. Start with one item, or assign it to someone who can help.
+            </div>
+          </div>
+        )}
+
         {outcomes.length > 0 ? (
           <>
             <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 12 }}>Here's what matters first</div>
@@ -558,8 +570,14 @@ export default function EstatePage() {
           />
           <SecondaryCard
             title="Planning file"
-            meta="Wishes, obituary, documents"
+            meta="Documents, wishes, obituary, voice notes"
             cta="Open"
+            onClick={function() { window.location.href = '/'; }}
+          />
+          <SecondaryCard
+            title="Scheduled messages"
+            meta="Letters, texts, or voice notes for dates and milestones"
+            cta="Open My file"
             onClick={function() { window.location.href = '/'; }}
           />
         </div>

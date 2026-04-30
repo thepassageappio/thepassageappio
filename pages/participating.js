@@ -113,6 +113,14 @@ export default function ParticipatingPage() {
         {user && !loading && data && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 18 }}>
             <div>
+              {(router.query.estate || router.query.task) && (
+                <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
+                  <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>This is the task someone asked you to help with.</div>
+                  <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>
+                    Accept it if you can take it, add notes if something changes, or ask for help. The coordinator will see the update in Passage.
+                  </div>
+                </div>
+              )}
               {data.estates.length === 0 ? (
                 <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
                   <div style={{ fontSize: 20, marginBottom: 8 }}>No estate roles found for {data.email} yet.</div>

@@ -591,38 +591,56 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   const lower = title.toLowerCase();
   const deceased = deceasedName || 'your loved one';
   const coordinator = coordinatorName || 'the family coordinator';
+  const defaultSms = `Passage: ${coordinator} is handling ${shorten(title, 42)} for ${shorten(deceased, 22)}. Please sign in to Passage if you were assigned this task.`;
   const base = {
     recipientLabel: 'the right contact',
     recipientEmail: '',
     link: '',
+    linkLabel: 'Open the right website',
     subject: `${deceased} - ${title}`,
     draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. I am reaching out about: ${title}.\n\nCan you please let me know what information you need from us next?\n\nThank you,\n${coordinator}`,
+    sms: defaultSms,
     steps: ['Review the prepared note.', 'Add any missing details.', 'Send it or copy it into the right portal.', 'Mark handled when you have confirmation.'],
   };
 
   if (lower.includes('funeral home') || lower.includes('funeral director')) {
-    return { ...base, recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
+    return { ...base, recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating funeral arrangements for ${shorten(deceased, 26)}. Please sign in to Passage for task details.`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
   }
   if (lower.includes('death certificate') || lower.includes('pronouncement')) {
-    return { ...base, recipientLabel: 'physician, hospice nurse, coroner, or funeral director', subject: `${deceased} - official pronouncement / death certificates`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you confirm who will provide the official pronouncement and how we should order certified death certificates?\n\nThank you,\n${coordinator}`, steps: ['Confirm who is legally pronouncing the death.', 'Ask how many certified death certificates to order.', 'Record the contact name and phone number.', 'Mark handled once the document path is clear.'] };
+    return { ...base, recipientLabel: 'physician, hospice nurse, coroner, or funeral director', link: 'https://www.cdc.gov/nchs/w2w/index.htm', linkLabel: 'Find state vital records office', subject: `${deceased} - official pronouncement / death certificates`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you confirm who will provide the official pronouncement and how we should order certified death certificates?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} needs help with death certificate steps for ${shorten(deceased, 26)}. Sign in to Passage for details.`, steps: ['Confirm who is legally pronouncing the death.', 'Ask how many certified death certificates to order.', 'Record the contact name and phone number.', 'Use the state vital records link if certificates must be ordered directly.', 'Mark handled once the document path is clear.'] };
+  }
+  if (lower.includes('family') || lower.includes('notify')) {
+    return { ...base, recipientLabel: 'family contact', subject: `${deceased} - family update`, draft: `Hello,\n\nI am so sorry to share that ${deceased} has passed away. ${coordinator} is helping coordinate next steps through Passage so the family can keep tasks, service details, and updates in one place.\n\nPlease sign in to Passage if you have been assigned a role or task.\n\nWith care,\n${coordinator}`, sms: `Passage: ${coordinator} shared a family update for ${shorten(deceased, 26)}. If assigned, sign in to Passage for details.`, steps: ['Choose the closest family contact first.', 'Use the prepared message or soften it in your own voice.', 'Avoid broadcasting service details until they are confirmed.', 'Mark handled once the first family circle knows who is coordinating.'] };
+  }
+  if (lower.includes('home') || lower.includes('pet') || lower.includes('vehicle') || lower.includes('valuables') || lower.includes('secure')) {
+    return { ...base, recipientLabel: 'trusted local person', subject: `${deceased} - home, pets, and property`, draft: `Hello,\n\nCan you help us check on ${deceased}'s home, pets, vehicle, and important belongings? We need someone to confirm the home is secure and let us know if anything urgent needs attention.\n\nPlease reply with what you find and any next steps.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} needs help checking home, pets, or vehicle for ${shorten(deceased, 24)}. Sign in to Passage for task details.`, steps: ['Ask a trusted local person to check doors, pets, mail, vehicle, and valuables.', 'Do not remove items unless the authorized person agrees.', 'Take notes or photos if something needs follow-up.', 'Save what was checked and mark handled.'] };
   }
   if (lower.includes('social security')) {
-    return { ...base, recipientLabel: 'Social Security Administration', link: 'https://www.ssa.gov/benefits/survivors/', subject: `${deceased} - survivor benefits`, steps: ['Open the SSA survivor benefits page.', 'Gather Social Security numbers, death certificate, marriage/birth records if applicable.', 'Call SSA or schedule the required appointment.', 'Mark handled once the appointment or claim is started.'] };
+    return { ...base, recipientLabel: 'Social Security Administration', link: 'https://www.ssa.gov/benefits/survivors/', linkLabel: 'Open SSA survivor benefits', subject: `${deceased} - survivor benefits`, sms: `Passage: ${coordinator} is starting Social Security survivor steps for ${shorten(deceased, 22)}. Sign in to Passage for details.`, steps: ['Open the SSA survivor benefits page.', 'Gather Social Security numbers, death certificate, marriage/birth records if applicable.', 'Call SSA or schedule the required appointment.', 'Mark handled once the appointment or claim is started.'] };
   }
   if (lower.includes('dmv') || lower.includes('driver')) {
-    return { ...base, recipientLabel: 'state DMV', link: 'https://www.usa.gov/motor-vehicle-services', subject: `${deceased} - license and vehicle records`, steps: ['Open your state DMV site.', 'Search for deceased driver license cancellation or vehicle title transfer.', 'Gather death certificate and title/registration.', 'Mark handled once the DMV instruction or appointment is saved.'] };
+    return { ...base, recipientLabel: 'state DMV', link: 'https://www.usa.gov/motor-vehicle-services', linkLabel: 'Find state DMV office', subject: `${deceased} - license and vehicle records`, sms: `Passage: ${coordinator} is handling DMV or vehicle records for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Open your state DMV site.', 'Search for deceased driver license cancellation or vehicle title transfer.', 'Gather death certificate and title/registration.', 'Mark handled once the DMV instruction or appointment is saved.'] };
   }
   if (lower.includes('credit bureaus')) {
-    return { ...base, recipientLabel: 'Equifax, Experian, and TransUnion', link: 'https://www.identitytheft.gov/', subject: `${deceased} - deceased alert`, steps: ['Contact each credit bureau to place a deceased alert.', 'Prepare certified death certificate and proof of authority.', 'Save confirmation numbers.', 'Mark handled after all three bureaus are notified.'] };
+    return { ...base, recipientLabel: 'Equifax, Experian, and TransUnion', link: 'https://www.identitytheft.gov/', linkLabel: 'Open identity theft/deceased alert guidance', subject: `${deceased} - deceased alert`, sms: `Passage: ${coordinator} is handling credit bureau alerts for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Contact each credit bureau to place a deceased alert.', 'Prepare certified death certificate and proof of authority.', 'Save confirmation numbers.', 'Mark handled after all three bureaus are notified.'] };
   }
   if (lower.includes('employer') || lower.includes('hr')) {
-    return { ...base, recipientLabel: 'employer / HR department', subject: `${deceased} - employment and benefits notification`, draft: `Hello,\n\nI am writing to notify you that ${deceased} has passed away. Can you please let us know the next steps for final pay, benefits, life insurance, and any required paperwork?\n\nPlease copy me at ${userEmail || 'this email'} on the response.\n\nThank you,\n${coordinator}` };
+    return { ...base, recipientLabel: 'employer / HR department', subject: `${deceased} - employment and benefits notification`, draft: `Hello,\n\nI am writing to notify you that ${deceased} has passed away. Can you please let us know the next steps for final pay, benefits, life insurance, and any required paperwork?\n\nPlease copy me at ${userEmail || 'this email'} on the response.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling employer or benefits steps for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Find HR or benefits contact information.', 'Ask about final pay, employer life insurance, retirement plans, and required forms.', 'Save names, deadlines, and claim numbers.', 'Mark handled when HR confirms the next step.'] };
   }
   if (lower.includes('attorney') || lower.includes('probate') || lower.includes('will')) {
-    return { ...base, recipientLabel: 'estate attorney', subject: `${deceased} - estate documents and next steps`, draft: `Hello,\n\nI am helping coordinate the estate of ${deceased}. We need guidance on the will, probate requirements, and what documents you need from the family.\n\nCan you please advise on the next step?\n\nThank you,\n${coordinator}` };
+    return { ...base, recipientLabel: 'estate attorney', subject: `${deceased} - estate documents and next steps`, draft: `Hello,\n\nI am helping coordinate the estate of ${deceased}. We need guidance on the will, probate requirements, and what documents you need from the family.\n\nCan you please advise on the next step?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling attorney/probate steps for ${shorten(deceased, 24)}. Sign in to Passage for details.`, steps: ['Locate will, trust, power of attorney, and any attorney contact.', 'Ask whether probate is needed and who has authority to act.', 'Do not distribute assets until legal guidance is clear.', 'Mark handled when the attorney or court path is recorded.'] };
   }
   if (lower.includes('florist') || lower.includes('flowers') || lower.includes('reception') || lower.includes('cater')) {
-    return { ...base, recipientLabel: 'service provider', subject: `${deceased} - memorial service coordination`, draft: `Hello,\n\nOur family is coordinating memorial arrangements for ${deceased}. Can you please share availability, pricing, and what details you need from us?\n\nThank you,\n${coordinator}`, steps: ['Have one already? Add their contact and send the prepared note.', 'Need one? Passage can suggest local options once a service ZIP code is added.', 'Save pricing and availability.', 'Mark handled when the provider is confirmed.'] };
+    return { ...base, recipientLabel: 'service provider', subject: `${deceased} - memorial service coordination`, draft: `Hello,\n\nOur family is coordinating memorial arrangements for ${deceased}. Can you please share availability, pricing, and what details you need from us?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating memorial service details for ${shorten(deceased, 22)}. Sign in to Passage for details.`, steps: ['Have one already? Add their contact and send the prepared note.', 'Need one? Passage can suggest local options once a service ZIP code is added.', 'Save pricing and availability.', 'Mark handled when the provider is confirmed.'] };
+  }
+  if (lower.includes('bank') || lower.includes('account') || lower.includes('insurance') || lower.includes('subscription')) {
+    return { ...base, recipientLabel: 'institution or account provider', subject: `${deceased} - account notification`, draft: `Hello,\n\nI am helping coordinate account notifications for ${deceased}. Can you please tell us what documentation is required to update or close this account and whether there are beneficiary or survivor claim steps?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is handling account or insurance steps for ${shorten(deceased, 23)}. Sign in to Passage for details.`, steps: ['Find the institution contact and account type.', 'Ask what documents are required before sharing private information.', 'Record claim numbers, deadlines, and mailing/upload instructions.', 'Mark handled once the institution confirms the next step.'] };
+  }
+  if (lower.includes('obituary')) {
+    return { ...base, recipientLabel: 'newspaper, funeral home, or family reviewer', subject: `${deceased} - obituary draft`, draft: `Hello,\n\nWe are preparing an obituary for ${deceased}. Can you please review the draft for names, dates, service details, and any memorial donation language before it is published?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is preparing the obituary for ${shorten(deceased, 26)}. Sign in to Passage if you were asked to review.`, steps: ['Draft the obituary with names, dates, survivors, and service information.', 'Ask one trusted person to review before publishing.', 'Confirm publication cost and deadline if using a newspaper.', 'Mark handled once the draft is saved or submitted.'] };
+  }
+  if (lower.includes('announcement') || lower.includes('social')) {
+    return { ...base, recipientLabel: 'family reviewer', subject: `${deceased} - announcement review`, draft: `Hello,\n\nWe are preparing a family announcement for ${deceased}. Please review the wording before anything is shared publicly.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is preparing an announcement for ${shorten(deceased, 24)}. Sign in to Passage to review if assigned.`, steps: ['Write a short, calm announcement.', 'Confirm immediate family has been notified first.', 'Have one person review before posting.', 'Mark handled once the family-approved version is saved.'] };
   }
   return base;
 };
@@ -1198,6 +1216,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const playbook = executionForTask(task, deceasedName, coordinatorName, userEmail);
   const [recipientEmail, setRecipientEmail] = useState(task?.assignedEmail || playbook.recipientEmail || '');
   const [draft, setDraft] = useState(playbook.draft);
+  const [smsDraft, setSmsDraft] = useState(playbook.sms || '');
   const [notes, setNotes] = useState(task?.notes || '');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -1237,7 +1256,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
           <div style={{ marginTop: 10, fontSize: 12, color: C.mid }}>Have one? Add them. Need one? Passage can suggest options once a service ZIP code is available.</div>
         </div>
         {playbook.link && (
-          <a href={playbook.link} target="_blank" rel="noreferrer" style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>Open the right website</a>
+          <a href={playbook.link} target="_blank" rel="noreferrer" style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>{playbook.linkLabel || 'Open the right website'}</a>
         )}
         {(task.isSocial || task.isObituary) && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 14 }}>
@@ -1260,12 +1279,18 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
           {userEmail && <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>You will be copied at {userEmail} when the email is sent.</div>}
         </div>
         <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared text message</div>
+          <textarea value={smsDraft} onChange={e => setSmsDraft(e.target.value)} style={{ width: "100%", minHeight: 74, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.55 }} />
+          <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>Texts should stay short and point people back to Passage when they are assigned a task.</div>
+        </div>
+        <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Notes</div>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Save confirmation numbers, names, next appointment times, or anything the family should know." style={{ width: "100%", minHeight: 96, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 8 }}>
           <button onClick={sendDraft} disabled={!recipientEmail || sending} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : sent ? "Sent" : "Send prepared email"}</button>
           <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Draft copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy draft</button>
+          <button onClick={() => navigator.clipboard.writeText(smsDraft).then(() => alert('Text copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy text</button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
           <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not applicable</button>
@@ -1652,6 +1677,9 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   const assigned = tasks.filter(t => t.assignedTo).length;
   const pct = readinessPercentage(readiness);
   const requiredRemaining = Math.max(0, readiness.required - done);
+  const dayOneRequired = tasks.filter(t => t.tier === 1 && t.status !== 'not_applicable');
+  const dayOneHandled = dayOneRequired.filter(t => t.completed);
+  const dayOneReady = dayOneRequired.length > 0 && dayOneHandled.length === dayOneRequired.length;
 
   const tierMeta = POST_DEATH_TASKS.reduce((a, t) => {
     a[t.tier] = { label: t.tierLabel, color: t.tierColor, bg: t.tierBg, icon: t.icon }; return a;
@@ -1705,6 +1733,15 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
               ))}
             </div>
           </div>
+
+          {dayOneReady && (
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "13px 15px", marginBottom: 12 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: C.sage, marginBottom: 4 }}>You've handled what is needed right now.</div>
+              <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>
+                You're in a good place. If you have a little room, the next 72 hours are ready below. Take them one at a time.
+              </div>
+            </div>
+          )}
 
           {/* Filter */}
           <div style={{ display: "flex", gap: 6 }}>
@@ -3311,9 +3348,9 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: '20px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: 'uppercase', letterSpacing: '0.12em' }}>First 24 hours</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '3px 10px' }}>Nothing urgent is missing</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '3px 10px' }}>Approval first</div>
           </div>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: C.ink, lineHeight: 1.35, marginBottom: 8 }}>You're on track. Nothing urgent is missing right now.</div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: C.ink, lineHeight: 1.35, marginBottom: 8 }}>You're on track. Approval first right now.</div>
           {[
             { title: 'Start here: Funeral arrangements', owner: 'You', status: 'Next', urgent: true },
             { title: 'Notify immediate family', owner: 'Needs owner', status: 'Needs owner', urgent: false },
@@ -3572,23 +3609,21 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 500, marginTop: 4 }}>Prepare your family</span>
             </button>
           </div>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', color: C.soft, fontSize: 12.5 }}>
-            {['Free to start', 'No credit card required', 'Nothing sends without approval'].map(t => (
-              <span key={t}><strong style={{ color: C.sage }}>✓</strong> {t}</span>
-            ))}
+          <div style={{ color: C.soft, fontSize: 12.5, lineHeight: 1.6 }}>
+            Free to start. No credit card required.
           </div>
         </div>
 
         <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, boxShadow: '0 18px 46px rgba(55,45,35,.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 13 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.13em' }}>First 24 hours</div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '4px 9px' }}>Nothing urgent is missing</div>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '4px 9px' }}>Approval first</div>
           </div>
           <div style={{ fontFamily: 'Georgia, serif', fontSize: 19, color: C.ink, lineHeight: 1.35, marginBottom: 12 }}>You're on track. Start here.</div>
           <div style={{ border: `1px solid ${C.rose}30`, background: C.roseFaint, borderRadius: 14, padding: 15, marginBottom: 10 }}>
             <div style={{ fontSize: 12, color: C.rose, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 7 }}>Start here</div>
             <div style={{ fontSize: 16, color: C.ink, fontWeight: 800, marginBottom: 5 }}>Funeral arrangements</div>
-            <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.6 }}>Choose who will call the funeral home. Passage prepares the script and tracks the next step.</div>
+            <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.6 }}>Choose who will call. Passage prepares the script, text, email, and next step.</div>
           </div>
           {['Notify immediate family', 'Secure home, pets, and vehicle'].map(title => (
             <div key={title} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderTop: `1px solid ${C.border}`, color: C.mid, fontSize: 13 }}>
@@ -3597,7 +3632,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             </div>
           ))}
           <div style={{ marginTop: 12, padding: '10px 13px', background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, fontSize: 12.5, color: C.sage, lineHeight: 1.55 }}>
-            Passage prepares the work. Your family approves before anything is sent.
+            Passage prepares the work. Your family reviews and approves before messages, documents, or announcements are sent.
           </div>
         </div>
       </section>
