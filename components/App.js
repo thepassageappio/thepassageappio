@@ -45,12 +45,49 @@ const PLAN_SEATS = {
   single_lifetime: 1,
   couple_monthly: 2,
   couple_annual: 2,
+  couple_lifetime: 2,
   family_monthly: 5,
   family_annual: 5,
+  family_lifetime: 5,
 };
 const ADDON_OPTIONS = [
   { id: "addon_monthly", label: "Add one estate", price: "$4.99", per: "/month" },
   { id: "addon_annual", label: "Add one estate", price: "$39.99", per: "/year" },
+];
+const PLAN_GROUPS = [
+  {
+    key: 'individual',
+    label: 'Individual',
+    seats: '1 estate',
+    description: 'For your own plan or one parent.',
+    options: [
+      { id: 'single_monthly', label: 'Monthly', price: '$9.99', per: '/mo' },
+      { id: 'single_annual', label: 'Annual', price: '$79.99', per: '/yr', note: 'Most chosen' },
+      { id: 'single_lifetime', label: 'Lifetime', price: '$299.99', per: 'one time' },
+    ],
+  },
+  {
+    key: 'couple',
+    label: 'Couple',
+    seats: '2 estates',
+    description: 'For spouses, partners, or two parents.',
+    options: [
+      { id: 'couple_monthly', label: 'Monthly', price: '$14.99', per: '/mo' },
+      { id: 'couple_annual', label: 'Annual', price: '$119.99', per: '/yr' },
+      { id: 'couple_lifetime', label: 'Lifetime', price: '$449.99', per: 'one time' },
+    ],
+  },
+  {
+    key: 'family',
+    label: 'Family',
+    seats: '5 estates',
+    description: 'For adult children coordinating a wider family.',
+    options: [
+      { id: 'family_monthly', label: 'Monthly', price: '$24.99', per: '/mo' },
+      { id: 'family_annual', label: 'Annual', price: '$199.99', per: '/yr' },
+      { id: 'family_lifetime', label: 'Lifetime', price: '$799.99', per: 'one time' },
+    ],
+  },
 ];
 // ─── TASK DATA — 47 research-backed post-death tasks ─────────────────────────
 const POST_DEATH_TASKS = [
@@ -244,6 +281,16 @@ const updateTask = async (taskId, updates) => {
   if (!taskId) return;
   await supabase.from('tasks').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', taskId);
 };
+
+const humanStatus = (status) => {
+  if (status === 'handled' || status === 'completed' || status === 'done') return 'Handled';
+  if (status === 'sent' || status === 'assigned') return 'Assigned';
+  if (status === 'failed') return 'Needs review';
+  if (status === 'in_progress' || status === 'pending') return 'Waiting';
+  return status ? status.replace(/_/g, ' ') : 'Waiting';
+};
+
+const taskIsHandled = (status) => status === 'handled' || status === 'completed' || status === 'done';
 
 const insertCustomTask = async (workflowId, userId, title, tier) => {
   const { data, error } = await supabase.from('tasks').insert([{
@@ -444,6 +491,47 @@ const shorten = (value, max) => {
   return text.length > max ? text.slice(0, Math.max(0, max - 3)).trim() + '...' : text;
 };
 
+const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
+  const title = task?.title || 'Estate coordination task';
+  const lower = title.toLowerCase();
+  const deceased = deceasedName || 'your loved one';
+  const coordinator = coordinatorName || 'the family coordinator';
+  const base = {
+    recipientLabel: 'the right contact',
+    recipientEmail: '',
+    link: '',
+    subject: `${deceased} - ${title}`,
+    draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. I am reaching out about: ${title}.\n\nCan you please let me know what information you need from us next?\n\nThank you,\n${coordinator}`,
+    steps: ['Review the prepared note.', 'Add any missing details.', 'Send it or copy it into the right portal.', 'Mark handled when you have confirmation.'],
+  };
+
+  if (lower.includes('funeral home') || lower.includes('funeral director')) {
+    return { ...base, recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
+  }
+  if (lower.includes('death certificate') || lower.includes('pronouncement')) {
+    return { ...base, recipientLabel: 'physician, hospice nurse, coroner, or funeral director', subject: `${deceased} - official pronouncement / death certificates`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you confirm who will provide the official pronouncement and how we should order certified death certificates?\n\nThank you,\n${coordinator}`, steps: ['Confirm who is legally pronouncing the death.', 'Ask how many certified death certificates to order.', 'Record the contact name and phone number.', 'Mark handled once the document path is clear.'] };
+  }
+  if (lower.includes('social security')) {
+    return { ...base, recipientLabel: 'Social Security Administration', link: 'https://www.ssa.gov/benefits/survivors/', subject: `${deceased} - survivor benefits`, steps: ['Open the SSA survivor benefits page.', 'Gather Social Security numbers, death certificate, marriage/birth records if applicable.', 'Call SSA or schedule the required appointment.', 'Mark handled once the appointment or claim is started.'] };
+  }
+  if (lower.includes('dmv') || lower.includes('driver')) {
+    return { ...base, recipientLabel: 'state DMV', link: 'https://www.usa.gov/motor-vehicle-services', subject: `${deceased} - license and vehicle records`, steps: ['Open your state DMV site.', 'Search for deceased driver license cancellation or vehicle title transfer.', 'Gather death certificate and title/registration.', 'Mark handled once the DMV instruction or appointment is saved.'] };
+  }
+  if (lower.includes('credit bureaus')) {
+    return { ...base, recipientLabel: 'Equifax, Experian, and TransUnion', link: 'https://www.identitytheft.gov/', subject: `${deceased} - deceased alert`, steps: ['Contact each credit bureau to place a deceased alert.', 'Prepare certified death certificate and proof of authority.', 'Save confirmation numbers.', 'Mark handled after all three bureaus are notified.'] };
+  }
+  if (lower.includes('employer') || lower.includes('hr')) {
+    return { ...base, recipientLabel: 'employer / HR department', subject: `${deceased} - employment and benefits notification`, draft: `Hello,\n\nI am writing to notify you that ${deceased} has passed away. Can you please let us know the next steps for final pay, benefits, life insurance, and any required paperwork?\n\nPlease copy me at ${userEmail || 'this email'} on the response.\n\nThank you,\n${coordinator}` };
+  }
+  if (lower.includes('attorney') || lower.includes('probate') || lower.includes('will')) {
+    return { ...base, recipientLabel: 'estate attorney', subject: `${deceased} - estate documents and next steps`, draft: `Hello,\n\nI am helping coordinate the estate of ${deceased}. We need guidance on the will, probate requirements, and what documents you need from the family.\n\nCan you please advise on the next step?\n\nThank you,\n${coordinator}` };
+  }
+  if (lower.includes('florist') || lower.includes('flowers') || lower.includes('reception') || lower.includes('cater')) {
+    return { ...base, recipientLabel: 'service provider', subject: `${deceased} - memorial service coordination`, draft: `Hello,\n\nOur family is coordinating memorial arrangements for ${deceased}. Can you please share availability, pricing, and what details you need from us?\n\nThank you,\n${coordinator}`, steps: ['Have one already? Add their contact and send the prepared note.', 'Need one? Passage can suggest local options once a service ZIP code is added.', 'Save pricing and availability.', 'Mark handled when the provider is confirmed.'] };
+  }
+  return base;
+};
+
 const buildAssignmentSms = ({ toName, taskTitle, deceasedName }) => {
   const name = shorten(toName || 'You', 18);
   const task = shorten(taskTitle || 'estate task', 30);
@@ -473,7 +561,7 @@ const buildTaskList = (dbTasks) => {
         ...staticTask,
         tier: tier.tier, tierLabel: tier.tierLabel,
         tierColor: tier.tierColor, tierBg: tier.tierBg, tierIcon: tier.icon,
-        completed: db ? db.status === 'completed' : false,
+        completed: db ? taskIsHandled(db.status) : false,
         assignedTo: db?.assigned_to_name || null,
         assignedEmail: db?.assigned_to_email || null,
         isCustom: false,
@@ -491,7 +579,7 @@ const buildTaskList = (dbTasks) => {
       category: d.category || 'other',
       tier: tierNum, tierLabel: tierMeta.tierLabel,
       tierColor: tierMeta.tierColor, tierBg: tierMeta.tierBg, tierIcon: tierMeta.icon,
-      completed: d.status === 'completed',
+      completed: taskIsHandled(d.status),
       assignedTo: d.assigned_to_name || null,
       assignedEmail: d.assigned_to_email || null,
       isCustom: true, dbId: d.id,
@@ -515,6 +603,42 @@ const Field = ({ label, placeholder, value, onChange, type = "text", hint }) => 
     {hint && <div style={{ fontSize: 11, color: C.soft, marginTop: 5 }}>{hint}</div>}
   </div>
 );
+
+const AddressField = ({ label, value, onChange, placeholder }) => {
+  const inputRef = useCallback((node) => {
+    if (!node || typeof window === 'undefined') return;
+    const key = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+    if (!key) return;
+    const attach = () => {
+      if (!window.google?.maps?.places || node.dataset.autocompleteAttached) return;
+      node.dataset.autocompleteAttached = 'true';
+      const ac = new window.google.maps.places.Autocomplete(node, { types: ['establishment', 'geocode'], fields: ['formatted_address', 'name'] });
+      ac.addListener('place_changed', () => {
+        const place = ac.getPlace();
+        onChange(place.formatted_address || place.name || node.value);
+      });
+    };
+    if (window.google?.maps?.places) { attach(); return; }
+    if (!document.getElementById('passage-google-places')) {
+      const script = document.createElement('script');
+      script.id = 'passage-google-places';
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
+      script.async = true;
+      script.onload = attach;
+      document.head.appendChild(script);
+    } else {
+      setTimeout(attach, 600);
+    }
+  }, [onChange]);
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {label && <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.mid, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{label}</label>}
+      <input ref={inputRef} type="text" value={value || ""} onChange={e => onChange(e.target.value)} placeholder={placeholder || "Start typing an address or place"}
+        style={{ width: "100%", padding: "13px 15px", borderRadius: 11, fontSize: 15, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+      <div style={{ fontSize: 11, color: C.soft, marginTop: 5 }}>{process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY ? "Start typing to choose the right place." : "Address suggestions activate when Google Places is configured."}</div>
+    </div>
+  );
+};
 
 const Select = ({ label, value, onChange, options }) => (
   <div style={{ marginBottom: 16 }}>
@@ -871,7 +995,7 @@ function EventsModal({ workflowId, deceasedName, onClose, onSaved }) {
               <div style={{ width: 120 }}><Field label="Time" type="time" value={form.time} onChange={v => setForm(f => ({ ...f, time: v }))} /></div>
             </div>
             <Field label="Venue / location name" placeholder="e.g. St. Patrick's Cathedral" value={form.locationName} onChange={v => setForm(f => ({ ...f, locationName: v }))} />
-            <Field label="Full address" placeholder="5th Ave & 50th St, New York, NY" value={form.locationAddress} onChange={v => setForm(f => ({ ...f, locationAddress: v }))} />
+            <AddressField label="Full address" placeholder="5th Ave & 50th St, New York, NY" value={form.locationAddress} onChange={v => setForm(f => ({ ...f, locationAddress: v }))} />
             <Field label="Additional notes (optional)" placeholder="Parking available on West side. Dress: dark colors." value={form.notes} onChange={v => setForm(f => ({ ...f, notes: v }))} />
             <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
               <Btn variant="ghost" onClick={() => setAdding(null)}>Cancel</Btn>
@@ -962,6 +1086,100 @@ Passage`);
           <Btn variant="sage" onClick={handleSend} disabled={sending} style={{ flex: 1 }}>
             {sending ? 'Sending...' : `Send now →`}
           </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, onHandled, onAssign, onClose }) {
+  const playbook = executionForTask(task, deceasedName, coordinatorName, userEmail);
+  const [recipientEmail, setRecipientEmail] = useState(task?.assignedEmail || playbook.recipientEmail || '');
+  const [draft, setDraft] = useState(playbook.draft);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const sendDraft = async () => {
+    if (!recipientEmail) return;
+    setSending(true);
+    await fetch('/api/sendEmail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: recipientEmail, cc: userEmail || undefined, subject: playbook.subject, taskTitle: task.title, deceasedName, coordinatorName, actionType: 'execution', messageText: draft }),
+    });
+    setSending(false);
+    setSent(true);
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.58)", zIndex: 240, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 620, maxHeight: "92vh", overflowY: "auto" }}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
+        <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 8 }}>Handle this task</div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>{task.title}</div>
+        <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Passage prepared the next action. You can handle it yourself or assign it to someone else.</div>
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.sage, marginBottom: 8 }}>What to do right now</div>
+          {playbook.steps.map((step, i) => (
+            <div key={i} style={{ display: "flex", gap: 8, fontSize: 13, color: C.mid, lineHeight: 1.55, marginBottom: 6 }}>
+              <span style={{ color: C.sage, fontWeight: 800 }}>{i + 1}.</span><span>{step}</span>
+            </div>
+          ))}
+          <div style={{ marginTop: 10, fontSize: 12, color: C.mid }}>Have one? Add them. Need one? Passage can suggest options once a service ZIP code is available.</div>
+        </div>
+        {playbook.link && (
+          <a href={playbook.link} target="_blank" rel="noreferrer" style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>Open the right website</a>
+        )}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared email</div>
+          <input value={recipientEmail} onChange={e => setRecipientEmail(e.target.value)} placeholder={`Email for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
+          <textarea value={draft} onChange={e => setDraft(e.target.value)} style={{ width: "100%", minHeight: 180, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
+          {userEmail && <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>You will be copied at {userEmail} when the email is sent.</div>}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 8 }}>
+          <button onClick={sendDraft} disabled={!recipientEmail || sending} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : sent ? "Sent" : "Send prepared email"}</button>
+          <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Draft copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy draft</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+          <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Assign instead</button>
+          <button onClick={onHandled} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>Mark handled</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, onClose, onSent }) {
+  const [sending, setSending] = useState(false);
+  const pendingActions = (actions || []).filter(a => !['sent', 'handled', 'completed'].includes(a.status));
+  const assignedTasks = (tasks || []).filter(t => t.assignedTo || t.assignedEmail).slice(0, 12);
+  const sendAll = async () => {
+    setSending(true);
+    const res = await fetch('/api/handleEvent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'death_confirmed', payload: { workflowId } }) });
+    setSending(false);
+    if (res.ok) { onSent && onSent(); onClose(); } else alert('Passage could not send these yet. Review contacts and try again.');
+  };
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 245, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto" }}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
+        <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.rose, fontWeight: 800, marginBottom: 8 }}>Activation preview</div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>Review what Passage will send before anything goes out.</div>
+        <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Nothing sends until you approve. This activation is for {deceasedName || 'this estate'}.</div>
+        <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.rose, marginBottom: 8 }}>What will be sent</div>
+          {pendingActions.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No pending messages are queued yet. Assign people to tasks first.</div> : pendingActions.map((a, i) => (
+            <div key={a.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "8px 0", fontSize: 13, color: C.mid, lineHeight: 1.5 }}><strong style={{ color: C.ink }}>{a.action_type === 'sms' ? 'Text' : 'Email'}</strong> to {a.recipient_email || a.recipient_phone || 'recipient'}<br /><span>{a.subject || a.body || 'Estate coordination notice'}</span></div>
+          ))}
+        </div>
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.sage, marginBottom: 8 }}>Who owns what</div>
+          {assignedTasks.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No tasks are assigned yet.</div> : assignedTasks.map((t, i) => <div key={t.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "7px 0", fontSize: 13, color: C.mid }}><strong style={{ color: C.ink }}>{t.title}</strong><br />Owner: {t.assignedTo || t.assignedEmail}</div>)}
+        </div>
+        {events?.length > 0 && <div style={{ background: C.bgSubtle, borderRadius: 13, padding: 14, marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 800, color: C.soft, marginBottom: 8 }}>Service details included</div>{events.map((e, i) => <div key={e.id || i} style={{ fontSize: 13, color: C.mid, padding: "5px 0" }}>{e.name || e.event_type}{e.date ? ` - ${e.date}` : ''}{e.location_name ? ` at ${e.location_name}` : ''}</div>)}</div>}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <button onClick={onClose} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Edit first</button>
+          <button onClick={sendAll} disabled={sending || pendingActions.length === 0} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.rose, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : "Approve and send all"}</button>
         </div>
       </div>
     </div>
@@ -1208,7 +1426,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
 }
 
 // ─── TASK LIST ────────────────────────────────────────────────────────────────
-function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, onDashboard, onSignOut }) {
+function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail, onBack, onDashboard, onSignOut }) {
   const [showRoleTemplates, setShowRoleTemplates] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showObituary, setShowObituary] = useState(false);
@@ -1217,6 +1435,10 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
   const [tasks, setTasks] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [assigningTask, setAssigningTask] = useState(null);
+  const [executingTask, setExecutingTask] = useState(null);
+  const [showActivation, setShowActivation] = useState(false);
+  const [activationActions, setActivationActions] = useState([]);
+  const [activationEvents, setActivationEvents] = useState([]);
   const [expanded, setExpanded] = useState({ 1: true, 2: true, 3: false, 4: false });
   const [filter, setFilter] = useState("all");
   const [addingTier, setAddingTier] = useState(null);
@@ -1241,7 +1463,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
       const next = { ...t, completed: !t.completed };
       if (next.dbId) {
         updateTask(next.dbId, {
-          status: next.completed ? 'completed' : 'pending',
+          status: next.completed ? 'handled' : 'pending',
           completed_at: next.completed ? new Date().toISOString() : null,
         });
       }
@@ -1251,6 +1473,24 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
 
   const handleAssign = (taskId, name, role) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role } : t));
+  };
+
+  const markHandled = async (task) => {
+    if (task.dbId) await updateTask(task.dbId, { status: 'handled', completed_at: new Date().toISOString(), owner_kind: 'self' });
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: true } : t));
+    setExecutingTask(null);
+    setToast("Handled.");
+  };
+
+  const openActivationPreview = async () => {
+    if (!workflowId) return;
+    const [{ data: actions }, { data: events }] = await Promise.all([
+      supabase.from('workflow_actions').select('*').eq('workflow_id', workflowId).order('created_at', { ascending: true }),
+      supabase.from('workflow_events').select('*').eq('workflow_id', workflowId).order('date', { ascending: true }),
+    ]);
+    setActivationActions(actions || []);
+    setActivationEvents(events || []);
+    setShowActivation(true);
   };
 
   const addCustom = async (tier) => {
@@ -1313,7 +1553,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
           {/* Progress */}
           <div style={{ background: C.bgCard, borderRadius: 14, padding: "14px 16px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{done} of {tasks.length} tasks complete</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{done} of {tasks.length} tasks handled</span>
               <span style={{ fontSize: 14, fontWeight: 800, color: pct === 100 ? C.sage : C.ink }}>{pct}%</span>
             </div>
             <div style={{ height: 8, background: C.border, borderRadius: 4, marginBottom: 8 }}>
@@ -1323,7 +1563,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
               {[
                 { label: "Urgent remaining", value: tasks.filter(t => !t.completed && t.tier === 1).length, color: C.red },
                 { label: "Assigned", value: assigned, color: C.sage },
-                { label: "Done", value: done, color: C.mid },
+                { label: "Handled", value: done, color: C.mid },
               ].map(s => (
                 <div key={s.label} style={{ fontSize: 11.5, color: C.soft }}>
                   <span style={{ fontWeight: 700, color: s.color }}>{s.value}</span> {s.label}
@@ -1334,7 +1574,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
 
           {/* Filter */}
           <div style={{ display: "flex", gap: 6 }}>
-            {[["all","All"],["pending","To do"],["assigned","Assigned"],["done","Done"]].map(([v, l]) => (
+            {[["all","All"],["pending","To do"],["assigned","Assigned"],["done","Handled"]].map(([v, l]) => (
               <button key={v} onClick={() => setFilter(v)} style={{ padding: "6px 13px", borderRadius: 18, fontSize: 11.5, fontWeight: 600, border: `1.5px solid ${filter === v ? C.sage : C.border}`, background: filter === v ? C.sageFaint : C.bgCard, color: filter === v ? C.sage : C.mid, cursor: "pointer", fontFamily: "inherit" }}>{l}</button>
             ))}
           </div>
@@ -1356,9 +1596,9 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
                   <span style={{ fontSize: 17 }}>{meta.icon}</span>
                   <div style={{ flex: 1, textAlign: "left" }}>
                     <div style={{ fontSize: 12.5, fontWeight: 700, color: meta.color }}>{meta.label}</div>
-                    <div style={{ fontSize: 10.5, color: C.soft }}>{tierDone} of {allTier.length} complete</div>
+                    <div style={{ fontSize: 10.5, color: C.soft }}>{tierDone} of {allTier.length} handled</div>
                   </div>
-                  {tierDone === allTier.length && allTier.length > 0 && <span style={{ fontSize: 10.5, color: C.sage, fontWeight: 700, background: C.sageFaint, padding: "2px 8px", borderRadius: 8 }}>✓ All done</span>}
+                  {tierDone === allTier.length && allTier.length > 0 && <span style={{ fontSize: 10.5, color: C.sage, fontWeight: 700, background: C.sageFaint, padding: "2px 8px", borderRadius: 8 }}>All handled</span>}
                   <span style={{ fontSize: 13, color: meta.color }}>{isOpen ? "▾" : "▸"}</span>
                 </div>
               </button>
@@ -1404,8 +1644,8 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
                               🕊️ Draft
                             </button>
                           ) : (
-                            <button onClick={() => setAssigningTask(task)} style={{ fontSize: 11, fontWeight: 700, color: task.assignedTo ? C.sage : C.soft, background: task.assignedTo ? C.sageFaint : C.bgSubtle, border: "none", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
-                              {task.assignedTo ? "Reassign" : "Assign"}
+                            <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                              Handle
                             </button>
                           )
                         )}
@@ -1449,7 +1689,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
           ) : (
             <>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, color: C.mid }}>{done} done · {assigned} assigned · {tasks.length - done} remaining</div>
+                <div style={{ fontSize: 12, color: C.mid }}>{done} handled | {assigned} assigned | {tasks.length - done} remaining</div>
                 <div style={{ fontSize: 10.5, color: C.soft }}>Changes save automatically as you go</div>
               </div>
               <button onClick={() => { var p = new URLSearchParams({wid: workflowId||"", dn: deceasedName||"", cn: coordinatorName||""}); window.open("/share?" + p.toString(), "_blank"); }} style={{ background: "#f0f4ff", color: "#1877F2", border: "1px solid #1877F220", borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
@@ -1460,6 +1700,9 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
               </button>
               <button onClick={() => setShowRoleTemplates(true)} style={{ background: C.roseFaint, color: C.rose, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                 ⚡ Quick assign
+              </button>
+              <button onClick={openActivationPreview} style={{ background: C.ink, color: "#fff", border: "none", borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                Review & activate
               </button>
               <button onClick={handleSave} style={{ background: saveStatus === "saved" ? C.sageFaint : C.sage, color: saveStatus === "saved" ? C.sage : "#fff", border: saveStatus === "saved" ? `1px solid ${C.sageLight}` : "none", borderRadius: 10, padding: "9px 18px", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}>
                 {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "✓ Saved" : "Save progress"}
@@ -1476,6 +1719,28 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
         <AssignModal task={assigningTask} workflowId={workflowId} userId={userId}
           deceasedName={deceasedName} coordinatorName={coordinatorName}
           onAssign={handleAssign} onClose={() => setAssigningTask(null)} />
+      )}
+      {executingTask && (
+        <TaskExecutionView
+          task={executingTask}
+          deceasedName={deceasedName}
+          coordinatorName={coordinatorName}
+          userEmail={userEmail}
+          onHandled={() => markHandled(executingTask)}
+          onAssign={() => { setAssigningTask(executingTask); setExecutingTask(null); }}
+          onClose={() => setExecutingTask(null)}
+        />
+      )}
+      {showActivation && (
+        <PlanActivationView
+          workflowId={workflowId}
+          deceasedName={deceasedName}
+          tasks={tasks}
+          actions={activationActions}
+          events={activationEvents}
+          onClose={() => setShowActivation(false)}
+          onSent={() => setToast("Activation messages sent.")}
+        />
       )}
       {showEvents && workflowId && (
         <EventsModal workflowId={workflowId} deceasedName={deceasedName}
@@ -1534,7 +1799,7 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
   };
 
   if (showTaskList) {
-    return <TaskList deceasedName={deceasedName} coordinatorName={yourName} workflowId={workflowId} userId={user?.id} onBack={() => setShowTaskList(false)} onDashboard={user ? onDashboard : null} onSignOut={onSignOut} />;
+    return <TaskList deceasedName={deceasedName} coordinatorName={yourName} workflowId={workflowId} userId={user?.id} userEmail={user?.email || yourEmail} onBack={() => setShowTaskList(false)} onDashboard={user ? onDashboard : null} onSignOut={onSignOut} />;
   }
 
   return (
@@ -2109,7 +2374,8 @@ function MemoriesModal({ userId, onClose, onSaved }) {
     let contentUrl = null;
     if (file) {
       contentUrl = `${userId}/${Date.now()}-${safeFileName(file.name)}`;
-      const { error: uploadError } = await supabase.storage.from('passage-memories').upload(contentUrl, file, { upsert: false });
+      const bucket = form.content_type === 'voice_note' ? 'passage-voice-notes' : form.content_type === 'photo_album' ? 'passage-photos' : 'passage-memories';
+      const { error: uploadError } = await supabase.storage.from(bucket).upload(contentUrl, file, { upsert: false });
       if (uploadError) {
         setError(uploadError.message || 'Could not upload this memory.');
         setSaving(false);
@@ -2245,7 +2511,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             stats.forEach(t => {
               if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, completed: 0, assigned: 0 };
               grouped[t.workflow_id].total++;
-              if (t.status === 'completed') grouped[t.workflow_id].completed++;
+              if (taskIsHandled(t.status)) grouped[t.workflow_id].completed++;
               if (t.assigned_to_name) grouped[t.workflow_id].assigned++;
             });
             setTaskStats(grouped);
@@ -2270,7 +2536,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   }, [user]);
 
   const handleArchive = async (wfId) => {
-    if (!confirm("Archive this estate plan? You can still view it but it will be marked as complete.")) return;
+    if (!confirm("Archive this estate plan? You can still view it later, but it will leave your active estate list.")) return;
     setArchiving(wfId);
     await archiveWorkflow(wfId);
     setWorkflows(prev => prev.filter(w => w.id !== wfId));
@@ -2362,7 +2628,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                 <div style={{ fontSize: 18, fontWeight: 800, color: pd.color }}>{pd.price}</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: plan === 'free' ? 12 : 0 }}>
-                {[{l:"Status",v:userData?.plan_status === 'active' ? '✓ Active' : 'Free'},{l:"Estate Seats",v:`${usedGreenSeats}/${estateSeatLimit} used`},{l:"Renewal",v:pd.renewal}].map(i => (
+                {[{l:"Status",v:isPaidPlan ? 'Active' : 'Free'},{l:"Estate Seats",v:`${usedGreenSeats}/${estateSeatLimit} used`},{l:"Renewal",v:pd.renewal}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 9, padding: "9px 11px" }}>
                     <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600, marginBottom: 3 }}>{i.l}</div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.ink }}>{i.v}</div>
@@ -2382,38 +2648,43 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                   <div style={{ border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, background: C.bgCard }}>
                     <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.soft, fontWeight: 700, marginBottom: 4 }}>Planning access</div>
                     <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.45, marginBottom: 10 }}>
-                      Each plan includes one active planning estate. Urgent estate coordination stays separate at $79.99 per case.
+                      Start simple. Upgrade when your family needs more. Urgent estate coordination stays separate at $79.99 per case.
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
-                      {PLAN_OPTIONS.map(option => (
-                        <button key={option.id} onClick={() => handleCheckout(option.id, user && user.id, user && user.email)}
-                          style={{
-                            textAlign: "left",
-                            background: option.popular ? C.sageFaint : C.bgSubtle,
-                            border: `1px solid ${option.popular ? C.sageLight : C.border}`,
-                            borderRadius: 11,
-                            padding: "10px 11px",
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                          }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, marginBottom: 3 }}>
-                            <span style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{option.label}</span>
-                            {option.popular && <span style={{ fontSize: 9, color: C.sage, fontWeight: 800 }}>Best</span>}
+                    <div style={{ display: "grid", gap: 10 }}>
+                      {PLAN_GROUPS.map(group => (
+                        <div key={group.key} style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: 11 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+                            <div>
+                              <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{group.label}</div>
+                              <div style={{ fontSize: 11, color: C.soft }}>{group.description}</div>
+                            </div>
+                            <span style={{ fontSize: 10.5, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: "3px 8px", height: 18 }}>{group.seats}</span>
                           </div>
-                          <div style={{ fontSize: 15, fontWeight: 800, color: option.id === "lifetime" ? C.gold : C.sage }}>{option.price}</div>
-                          <div style={{ fontSize: 10.5, color: C.mid, marginTop: 2 }}>{option.per}</div>
-                        </button>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7 }}>
+                            {group.options.map(option => {
+                              const disabled = option.price === 'Soon';
+                              return (
+                                <button key={option.id} disabled={disabled} onClick={() => !disabled && handleCheckout(option.id, user && user.id, user && user.email)}
+                                  style={{ textAlign: "left", background: C.bgCard, border: `1px solid ${option.note ? C.sageLight : C.border}`, borderRadius: 10, padding: "9px 10px", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.55 : 1, fontFamily: "inherit" }}>
+                                  <div style={{ fontSize: 11, color: C.mid, fontWeight: 700 }}>{option.label}</div>
+                                  <div style={{ fontSize: 14, color: option.note ? C.sage : C.ink, fontWeight: 800 }}>{option.price}<span style={{ fontSize: 10, color: C.soft }}> {option.per}</span></div>
+                                  {option.note && <div style={{ fontSize: 9.5, color: C.sage, fontWeight: 800 }}>{option.note}</div>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
                 </div>
               )}
-              {plan !== 'free' && (
+              {isPaidPlan && (
                 <div style={{ background: C.sageFaint, borderRadius: 10, padding: "10px 14px", fontSize: 12, color: C.sage, fontWeight: 600, lineHeight: 1.5 }}>
                   ✓ Active plan — {availableGreenSeats > 0 ? `${availableGreenSeats} estate slot${availableGreenSeats === 1 ? '' : 's'} available` : 'all estate slots are currently used'}
                 </div>
               )}
-              {plan !== 'free' && (
+              {isPaidPlan && (
                 <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
                   {ADDON_OPTIONS.map(option => (
                     <button key={option.id} onClick={() => handleCheckout(option.id, user && user.id, user && user.email)}
@@ -2453,7 +2724,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                               return (
                                 <div style={{ marginTop: 7 }}>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10.5, color: C.mid }}>{s.completed} of {s.total} tasks done</span>
+                                    <span style={{ fontSize: 10.5, color: C.mid }}>{s.completed} of {s.total} tasks handled</span>
                                     <span style={{ fontSize: 10.5, fontWeight: 700, color: pct > 0 ? C.sage : C.soft }}>{pct}%</span>
                                   </div>
                                   <div style={{ height: 4, borderRadius: 2, background: C.border, overflow: 'hidden' }}>
@@ -2581,8 +2852,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                   </button>
                 </div>
               ))}
-              <button onClick={onStartPlan} style={{ width: "100%", marginTop: 12, padding: "10px", background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: C.sage, cursor: "pointer", fontFamily: "inherit" }}>
-                Continue building my file →
+              <button onClick={() => setShowWishes(true)} style={{ width: "100%", marginTop: 12, padding: "10px", background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: C.sage, cursor: "pointer", fontFamily: "inherit" }}>
+                Review my planning profile →
               </button>
             </div>
 
@@ -2795,10 +3066,6 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: C.mid, lineHeight: 1.8, maxWidth: 520, margin: '0 auto 12px' }}>
           Passage helps families know what matters first, who owns each task, and what is already handled — without forcing anyone to figure it out while they're grieving.
         </p>
-        <p style={{ fontSize: 13, color: C.soft, marginBottom: 36, lineHeight: 1.6 }}>
-          Nothing is sent or shared without your family's approval.
-        </p>
-
         {/* Split path CTAs */}
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
           <div style={{ textAlign: 'center' }}>
@@ -2806,19 +3073,19 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               style={{ display: 'block', background: C.rose, color: '#fff', border: 'none', borderRadius: 14, padding: '16px 32px', fontSize: 15.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6, minWidth: 220 }}>
               Someone just passed
             </button>
-            <div style={{ fontSize: 12, color: C.soft }}>Get a first 24-hour plan</div>
+            <div style={{ fontSize: 12, color: C.soft }}>Start with what matters now</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <button onClick={onPlan}
               style={{ display: 'block', background: C.bgCard, color: C.mid, border: `1.5px solid ${C.border}`, borderRadius: 14, padding: '16px 24px', fontSize: 14.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6, minWidth: 180 }}>
               Plan ahead
             </button>
-            <div style={{ fontSize: 12, color: C.soft }}>Organize before it's needed</div>
+            <div style={{ fontSize: 12, color: C.soft }}>Prepare your family</div>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap', marginTop: 16 }}>
-          {['Free to start', 'No credit card', 'Nothing sends without approval'].map(function(t, i) {
+          {['Free to start', 'No credit card required', 'Nothing sends without approval'].map(function(t, i) {
             return <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: C.soft }}><span style={{ color: C.sage, fontWeight: 700 }}>✓</span>{t}</div>;
           })}
         </div>
@@ -2829,10 +3096,11 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: '20px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: 'uppercase', letterSpacing: '0.12em' }}>First 24 hours</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '3px 10px' }}>You're on track</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '3px 10px' }}>Nothing urgent is missing</div>
           </div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: C.ink, lineHeight: 1.35, marginBottom: 8 }}>You're on track. Nothing urgent is missing right now.</div>
           {[
-            { title: 'Funeral arrangements', owner: 'You', status: 'Not started', urgent: true },
+            { title: 'Start here: Funeral arrangements', owner: 'You', status: 'Next', urgent: true },
             { title: 'Notify immediate family', owner: 'Needs owner', status: 'Needs owner', urgent: false },
             { title: 'Secure home, pets, and vehicle', owner: 'Unassigned', status: 'Not started', urgent: false },
           ].map(function(item, i) {
@@ -2865,7 +3133,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           {[
             { n: '01', icon: '📍', title: 'What matters right now', body: 'Passage generates the first 24-hour plan immediately. No setup required for urgent situations.' },
             { n: '02', icon: '👤', title: 'Who owns each task', body: 'Every outcome has an owner. You assign or Passage suggests. Nothing is ambiguous.' },
-            { n: '03', icon: '✓', title: 'What is already handled', body: 'As tasks are completed, the plan updates. Your family always knows what is done and what still needs attention.' },
+            { n: '03', icon: '✓', title: 'What is already handled', body: 'As tasks are handled, the plan updates. Your family always knows what is handled and what still needs attention.' },
           ].map(function(s, i) {
             return (
               <div key={i} style={{ background: C.bgCard, borderRadius: 18, padding: 24, border: `1px solid ${C.border}` }}>
@@ -2915,28 +3183,45 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             The idea came from real moments: planning a grandmother's prepaid funeral, trying to understand Medicaid rules, sitting across from funeral homes, and watching friends and family lose loved ones without knowing where to start. Again and again, the burden fell on grieving people while the system around them stayed fragmented.
           </div>
           <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.85, marginTop: 12 }}>
-            Passage exists to take ownership of that transition. We help families prepare before a death, respond when one happens, coordinate the people involved, and keep track of what has been sent, approved, completed, and still needs care. Our mission is simple: no family should have to become an operations manager in the middle of grief.
+            Passage exists to take ownership of that transition. We help families prepare before a death, respond when one happens, coordinate the people involved, and keep track of what has been sent, approved, handled, and still needs care. Our mission is simple: no family should have to become an operations manager in the middle of grief.
           </div>
         </div>
       </div>
 
       <div style={{ maxWidth: 980, margin: '0 auto', padding: '58px 24px 42px' }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, color: C.ink, lineHeight: 1.25, marginBottom: 10 }}>Plans for one estate, a couple, or a family</div>
-          <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.65 }}>Start with one planning estate. Upgrade when you are also organizing a spouse, parent, or wider family plan.</div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, color: C.ink, lineHeight: 1.25, marginBottom: 10 }}>Start simple. Upgrade when your family needs more.</div>
+          <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.65 }}>Two paths: planning ahead or urgent help now. Detailed pricing can wait until the family is ready.</div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
-          {[
-            { label: 'Single Estate', price: '$9.99/mo', alt: '$79.99/year or $299.99 lifetime', seats: '1 active planning estate', tone: C.sage },
-            { label: 'Couple Plan', price: '$14.99/mo', alt: '$119.99/year', seats: '2 active planning estates', tone: C.gold },
-            { label: 'Family Steward', price: '$24.99/mo', alt: '$199.99/year', seats: 'Up to 5 active planning estates', tone: C.sageDark },
-            { label: 'Urgent Estate', price: '$79.99', alt: 'one-time per urgent case', seats: 'First 24-hour orchestration', tone: C.rose },
-          ].map((p, i) => (
-            <div key={i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: p.tone, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>{p.label}</div>
-              <div style={{ fontSize: 27, fontWeight: 850, color: C.ink, marginBottom: 3 }}>{p.price}</div>
-              <div style={{ fontSize: 12, color: C.soft, marginBottom: 12 }}>{p.alt}</div>
-              <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>{p.seats}</div>
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            {[
+              { title: 'Planning ahead', body: 'Start free, then unlock the number of estates your family needs.', tone: C.sage },
+              { title: 'Someone just passed', body: 'Urgent estate coordination is $79.99 one time per case.', tone: C.rose },
+            ].map((p, i) => (
+              <div key={i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: p.tone, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>{p.title}</div>
+                <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>{p.body}</div>
+              </div>
+            ))}
+          </div>
+          {PLAN_GROUPS.map(group => (
+            <div key={group.key} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontSize: 15, color: C.ink, fontWeight: 800 }}>{group.label}</div>
+                  <div style={{ fontSize: 12, color: C.mid }}>{group.description}</div>
+                </div>
+                <div style={{ fontSize: 11, color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 9px', height: 18 }}>{group.seats}</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+                {group.options.map(option => (
+                  <div key={option.id} style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 11, padding: 10 }}>
+                    <div style={{ fontSize: 11, color: C.soft, fontWeight: 800 }}>{option.label}</div>
+                    <div style={{ fontSize: 16, color: option.price === 'Soon' ? C.soft : C.ink, fontWeight: 800 }}>{option.price}<span style={{ fontSize: 10, color: C.soft }}> {option.per}</span></div>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
@@ -2976,7 +3261,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             { q: 'Will Passage send messages automatically?', a: 'No. Messages, documents, and announcements are prepared first, then shown for review and approval before anything is sent.' },
             { q: 'How does pricing work for multiple people?', a: 'A single plan covers one planning estate. Couple plans cover two. Family Steward covers up to five. Urgent coordination is purchased per estate case.' },
             { q: 'Can I manage a parent and spouse separately?', a: 'Yes. Each estate should have its own command center with separate tasks, people, documents, obituary, memories, and activity history.' },
-            { q: 'What happens when a plan activates?', a: 'Trusted people confirm, Passage opens the estate command center, drafts next steps, and tracks what is waiting, sent, approved, and completed.' },
+            { q: 'What happens when a plan activates?', a: 'Trusted people confirm, Passage opens the estate command center, drafts next steps, and tracks what is waiting, sent, approved, and handled.' },
             { q: 'Is this legal advice?', a: 'No. Passage organizes wishes, documents, people, and tasks. Legal decisions still belong with attorneys, funeral homes, and appropriate professionals.' },
             { q: 'What if someone just died?', a: 'Use the urgent path. It starts with the first practical priorities and keeps choices small so the family does not face a giant checklist.' },
           ].map((item, i) => (
@@ -3071,6 +3356,7 @@ export default function App() {
           coordinatorName={activePlan.coordinator_name || user?.email || ""}
           workflowId={activePlan.id}
           userId={user?.id}
+          userEmail={user?.email}
           onBack={() => setView("dashboard")}
           onDashboard={() => setView("dashboard")}
           onSignOut={handleSignOut}

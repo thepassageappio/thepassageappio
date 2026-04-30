@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
   const {
     to, toName, subject, taskTitle, deceasedName,
-    coordinatorName, workflowId, actionType, events
+    coordinatorName, workflowId, actionType, events, messageText, cc
   } = req.body;
 
   if (!to) return res.status(400).json({ error: 'Missing recipient' });
@@ -50,6 +50,8 @@ export default async function handler(req, res) {
       html = triggerEmail(name, deceased, coordinator, serviceBlock);
     } else if (actionType === 'invite') {
       html = inviteEmail(name, deceased, coordinator, req.body.confirmUrl);
+    } else if (actionType === 'execution') {
+      html = executionEmail(name, taskTitle, deceased, coordinator, messageText);
     } else {
       html = assignmentEmail(name, taskTitle, deceased, coordinator, serviceBlock);
     }
@@ -64,7 +66,7 @@ export default async function handler(req, res) {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to: [to], subject: emailSubject, html }),
+      body: JSON.stringify({ from, to: [to], cc: cc ? [cc] : undefined, subject: emailSubject, html }),
     });
     const data = await r.json();
 
@@ -114,6 +116,16 @@ function assignmentEmail(name, task, deceased, coordinator, serviceBlock) {
     '<a href="' + SITE_URL + '/participating" class="btn">View my Passage role</a>' +
     '<p class="p" style="font-size:12px;color:#a09890;">You can see estates where you have a role, complete assigned tasks, and start your own plan with participant pricing when available.</p>' +
     '<p class="p">Questions? Reach out to ' + coordinator + ' directly.</p>'
+  );
+}
+
+function executionEmail(name, task, deceased, coordinator, messageText) {
+  return wrap(
+    '<div class="tag">Prepared next step</div>' +
+    '<div class="h1">A Passage task is ready to handle.</div>' +
+    '<p class="p">' + coordinator + ' is coordinating next steps for ' + deceased + '.</p>' +
+    '<div class="task"><div class="task-label">Task</div><div class="task-title">' + (task || 'Estate coordination') + '</div></div>' +
+    '<p class="p" style="white-space:pre-wrap;">' + String(messageText || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>'
   );
 }
 

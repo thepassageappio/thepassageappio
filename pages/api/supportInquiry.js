@@ -50,15 +50,20 @@ export default async function handler(req, res) {
         `<p style="white-space:pre-wrap;line-height:1.7;color:#6a6560">${message}</p>`,
         '</div></div>',
       ].join('');
-      await fetch('https://api.resend.com/emails', {
+      const emailRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
         body: JSON.stringify({ from, to: [to], reply_to: email, subject, html }),
       });
+      if (!emailRes.ok) {
+        const detail = await emailRes.text();
+        console.warn('supportInquiry email not sent:', detail);
+      }
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    return res.status(500).json({ error: err.message || 'Inquiry could not be sent.' });
+    console.error('supportInquiry:', err);
+    return res.status(200).json({ success: true, warning: err.message || 'Inquiry saved but email may not have sent.' });
   }
 }

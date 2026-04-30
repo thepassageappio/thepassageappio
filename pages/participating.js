@@ -10,11 +10,20 @@ async function signIn() {
   await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/participating' } });
 }
 
+function statusLabel(value) {
+  if (value === 'failed') return 'Needs review';
+  if (value === 'sent' || value === 'assigned') return 'Assigned';
+  if (value === 'handled' || value === 'completed') return 'Handled';
+  return 'Waiting';
+}
+
 export default function ParticipatingPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [emailLogin, setEmailLogin] = useState('');
+  const [magicSent, setMagicSent] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -39,10 +48,29 @@ export default function ParticipatingPage() {
     setLoading(false);
   }
 
+  async function participantAction(kind, id, action) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) return;
+    await fetch('/api/participantAction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ kind, id, action }),
+    });
+    await load(token);
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
     setUser(null);
     setData(null);
+  }
+
+  async function sendMagicLink() {
+    if (!emailLogin) return;
+    const { error } = await supabase.auth.signInWithOtp({ email: emailLogin, options: { emailRedirectTo: SITE_URL + '/participating' } });
+    if (error) setError(error.message);
+    else setMagicSent(true);
   }
 
   return (
@@ -68,6 +96,10 @@ export default function ParticipatingPage() {
             <div style={{ fontSize: 22, marginBottom: 8 }}>Sign in with the email that received the Passage invite.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Passage will look for estate roles and tasks connected to your email address.</p>
             <button onClick={signIn} style={{ border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+            <div style={{ height: 12 }} />
+            <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
+            <button onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Email me a sign-in link</button>
+            {magicSent && <p style={{ color: C.sage, fontSize: 13, lineHeight: 1.6 }}>Check your email for a secure sign-in link.</p>}
           </div>
         )}
 
@@ -106,10 +138,15 @@ export default function ParticipatingPage() {
 
                   <div style={{ marginTop: 16 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 8 }}>Your tasks and notices</div>
-                    {[...estate.tasks, ...estate.actions].slice(0, 8).map(item => (
+                    {[...estate.tasks.map(t => ({ ...t, _kind: 'task' })), ...estate.actions.map(a => ({ ...a, _kind: 'action' }))].slice(0, 8).map(item => (
                       <div key={(item.id || item.title) + item.status} style={{ borderTop: `1px solid ${C.border}`, padding: '10px 0', color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
                         <strong style={{ color: C.ink }}>{item.title || item.subject || item.action_type || 'Estate coordination'}</strong><br />
-                        Status: {item.status || item.delivery_status || 'pending'}
+                        Status: {statusLabel(item.status || item.delivery_status)}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                          <button onClick={() => participantAction(item._kind, item.id, 'accept')} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Accept</button>
+                          <button onClick={() => participantAction(item._kind, item.id, 'handled')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '6px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Mark handled</button>
+                          <button onClick={() => participantAction(item._kind, item.id, 'help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9, padding: '6px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Ask for help</button>
+                        </div>
                       </div>
                     ))}
                   </div>

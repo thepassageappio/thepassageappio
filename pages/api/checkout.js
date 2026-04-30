@@ -40,6 +40,13 @@ const PLANS = {
     estateSeats: 2,
     priceEnv: ['STRIPE_PRICE_COUPLE_ANNUAL', 'STRIPE_PRICE_PLANNING_COUPLE_ANNUAL'],
   },
+  couple_lifetime: {
+    label: 'Passage Couple Lifetime',
+    amount: 44999,
+    mode: 'payment',
+    estateSeats: 2,
+    priceEnv: ['STRIPE_PRICE_COUPLE_LIFETIME', 'STRIPE_PRICE_PLANNING_COUPLE_LIFETIME'],
+  },
   family_monthly: {
     label: 'Passage Family Steward Monthly',
     amount: 2499,
@@ -55,6 +62,13 @@ const PLANS = {
     interval: 'year',
     estateSeats: 5,
     priceEnv: ['STRIPE_PRICE_FAMILY_ANNUAL', 'STRIPE_PRICE_PLANNING_FAMILY_ANNUAL'],
+  },
+  family_lifetime: {
+    label: 'Passage Family Steward Lifetime',
+    amount: 79999,
+    mode: 'payment',
+    estateSeats: 5,
+    priceEnv: ['STRIPE_PRICE_FAMILY_LIFETIME', 'STRIPE_PRICE_PLANNING_FAMILY_LIFETIME'],
   },
   addon_monthly: {
     label: 'Passage Additional Estate Monthly',

@@ -57,7 +57,7 @@ export default async function handler(req, res) {
           .in('workflow_id', workflowIds)
           .order('date', { ascending: true }),
       ]);
-      workflows = wfData || [];
+      workflows = (wfData || []).filter(w => w.status !== 'archived');
       events = eventData || [];
     }
 
