@@ -2467,7 +2467,7 @@ function PeopleList({ userId }) {
   );
 }
 
-function DocumentsModal({ userId, onClose, onSaved }) {
+function DocumentsModal({ userId, workflowId, onClose, onSaved }) {
   const [docs, setDocs] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -2477,11 +2477,13 @@ function DocumentsModal({ userId, onClose, onSaved }) {
 
   const loadDocs = useCallback(() => {
     if (!userId) return;
-    supabase.from('documents').select('*').eq('user_id', userId).order('created_at', { ascending: false }).then(({ data }) => {
+    let query = supabase.from('documents').select('*').eq('user_id', userId);
+    query = workflowId ? query.eq('workflow_id', workflowId) : query.is('workflow_id', null);
+    query.order('created_at', { ascending: false }).then(({ data }) => {
       setDocs(data || []);
       setLoaded(true);
     });
-  }, [userId]);
+  }, [userId, workflowId]);
 
   useEffect(() => { loadDocs(); }, [loadDocs]);
 
@@ -2501,6 +2503,7 @@ function DocumentsModal({ userId, onClose, onSaved }) {
     }
     const { error } = await supabase.from('documents').insert([{
       user_id: userId,
+      workflow_id: workflowId || null,
       label: form.label.trim(),
       document_type: form.document_type,
       file_url: filePath,
@@ -2557,7 +2560,7 @@ function DocumentsModal({ userId, onClose, onSaved }) {
   );
 }
 
-function MemoriesModal({ userId, onClose, onSaved }) {
+function MemoriesModal({ userId, workflowId, onClose, onSaved }) {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -2567,11 +2570,13 @@ function MemoriesModal({ userId, onClose, onSaved }) {
 
   const loadItems = useCallback(() => {
     if (!userId) return;
-    supabase.from('scheduled_deliveries').select('*').eq('from_user_id', userId).order('created_at', { ascending: false }).then(({ data }) => {
+    let query = supabase.from('scheduled_deliveries').select('*').eq('from_user_id', userId);
+    query = workflowId ? query.eq('workflow_id', workflowId) : query.is('workflow_id', null);
+    query.order('created_at', { ascending: false }).then(({ data }) => {
       setItems(data || []);
       setLoaded(true);
     });
-  }, [userId]);
+  }, [userId, workflowId]);
 
   useEffect(() => { loadItems(); }, [loadItems]);
 
@@ -2604,6 +2609,7 @@ function MemoriesModal({ userId, onClose, onSaved }) {
     }
     const { error } = await supabase.from('scheduled_deliveries').insert([{
       from_user_id: userId,
+      workflow_id: workflowId || null,
       title: form.title.trim(),
       to_name: form.to_name || null,
       to_email: form.to_email || null,
@@ -2695,6 +2701,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [showMemoriesInfo, setShowMemoriesInfo] = useState(false);
   const [wishesData, setWishesData] = useState({});
   const [wishesToast, setWishesToast] = useState("");
+  const [activeFileWorkflowId, setActiveFileWorkflowId] = useState(null);
 
   const [taskStats, setTaskStats] = useState({});
 
@@ -2702,7 +2709,9 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const open = (params.get('open') || '').toLowerCase();
+    const backEstate = params.get('backEstate');
     if (!open) return;
+    if (backEstate) setActiveFileWorkflowId(backEstate);
     if (open === 'documents' || open === 'document') setShowDocuments(true);
     else if (open === 'memories' || open === 'scheduled' || open === 'messages') setShowMemories(true);
     else if (open === 'people' || open === 'participants') setShowPeople(true);
@@ -3101,6 +3110,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                                 <div style={{ fontSize: 10.5, color: C.mid, marginTop: 1 }}>{s.desc}</div>
                               </div>
                               <button onClick={() => {
+                                setActiveFileWorkflowId(wfId);
                                 if (s.label === "Wishes") setShowWishes(true);
                                 else if (s.label === "Obituary") setShowObituary(true);
                                 else if (s.label === "People") setShowPeople(true);
@@ -3192,6 +3202,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
       {showDocuments ? (
         <DocumentsModal
           userId={user && user.id}
+          workflowId={activeFileWorkflowId}
           onClose={() => setShowDocuments(false)}
           onSaved={(msg) => {
             setProfile(prev => ({ ...(prev || {}), documents_complete: true }));
@@ -3204,6 +3215,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
       {showMemories ? (
         <MemoriesModal
           userId={user && user.id}
+          workflowId={activeFileWorkflowId}
           onClose={() => setShowMemories(false)}
           onSaved={(msg) => {
             setProfile(prev => ({ ...(prev || {}), vault_complete: true }));
