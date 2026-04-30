@@ -2876,13 +2876,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
         ) : (
           <>
             <div style={{ marginBottom: 18 }}>
-              <Heading size={23}>My File{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
+              <Heading size={23}>My estates{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
               {redWorkflows.length > 0 ? (
                 <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 13, color: C.sage, fontWeight: 500 }}>
                   ✓ Estate plan active — assign tasks to notify people automatically
                 </div>
               ) : (
-                <Sub>Your planning file, active estates, participants, and documents live here.</Sub>
+                <Sub>Choose an estate first. Tasks, people, documents, wishes, and memories live inside each estate.</Sub>
               )}
             </div>
 
@@ -2962,37 +2962,14 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                       🚨 Someone just passed
                     </button>
                   </div>
-                  <div style={{ border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, background: C.bgCard }}>
-                    <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.soft, fontWeight: 700, marginBottom: 4 }}>Planning access</div>
-                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.45, marginBottom: 10 }}>
-                      Start simple. Upgrade when your family needs more. Urgent estate coordination stays separate at $79.99 per case.
+                  <div style={{ border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: 14, background: C.sageFaint }}>
+                    <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 5 }}>Upgrade when ready</div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginBottom: 11 }}>
+                      Choose the number of estates your family needs. Pricing details live on the pricing page so this file stays focused on coordination.
                     </div>
-                    <div style={{ display: "grid", gap: 10 }}>
-                      {PLAN_GROUPS.map(group => (
-                        <div key={group.key} style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: 11 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-                            <div>
-                              <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{group.label}</div>
-                              <div style={{ fontSize: 11, color: C.soft }}>{group.description}</div>
-                            </div>
-                            <span style={{ fontSize: 10.5, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: "3px 8px", height: 18 }}>{group.seats}</span>
-                          </div>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 7 }}>
-                            {group.options.map(option => {
-                              const disabled = option.price === 'Soon';
-                              return (
-                                <button key={option.id} disabled={disabled} onClick={() => !disabled && handleCheckout(option.id, user && user.id, user && user.email)}
-                                  style={{ textAlign: "left", background: C.bgCard, border: `1px solid ${option.note ? C.sageLight : C.border}`, borderRadius: 10, padding: "9px 10px", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.55 : 1, fontFamily: "inherit" }}>
-                                  <div style={{ fontSize: 11, color: C.mid, fontWeight: 700 }}>{option.label}</div>
-                                  <div style={{ fontSize: 14, color: option.note ? C.sage : C.ink, fontWeight: 800 }}>{option.price}<span style={{ fontSize: 10, color: C.soft }}> {option.per}</span></div>
-                                  {option.note && <div style={{ fontSize: 9.5, color: C.sage, fontWeight: 800 }}>{option.note}</div>}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <button onClick={() => window.location.href = '/pricing'} style={{ width: "100%", padding: "11px", background: C.sage, color: "#fff", border: "none", borderRadius: 11, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+                      Upgrade now →
+                    </button>
                   </div>
                 </div>
               )}
@@ -3108,6 +3085,33 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                             </button>
                           </div>
                         )}
+                        <div style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10 }}>
+                          <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 7 }}>Estate file</div>
+                          {[
+                            { label: "Wishes", complete: profile?.wishes_complete, desc: "Service preferences and final wishes" },
+                            { label: "Obituary", complete: !!profile?.obituary_draft, desc: "Draft and save obituary language" },
+                            { label: "People", complete: profile?.people_complete, desc: "Executor, activators, family, partners" },
+                            { label: "Documents", complete: profile?.documents_complete, desc: "Will, insurance, directives, records" },
+                            { label: "Memories", complete: profile?.vault_complete, desc: "Letters, voice notes, scheduled messages" },
+                          ].map((s) => (
+                            <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: `1px solid ${C.sageLight}55` }}>
+                              <div style={{ width: 20, height: 20, borderRadius: "50%", background: s.complete ? C.sage : C.bgCard, color: s.complete ? "#fff" : C.soft, border: `1px solid ${s.complete ? C.sage : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, flexShrink: 0 }}>{s.complete ? "✓" : ""}</div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{s.label}</div>
+                                <div style={{ fontSize: 10.5, color: C.mid, marginTop: 1 }}>{s.desc}</div>
+                              </div>
+                              <button onClick={() => {
+                                if (s.label === "Wishes") setShowWishes(true);
+                                else if (s.label === "Obituary") setShowObituary(true);
+                                else if (s.label === "People") setShowPeople(true);
+                                else if (s.label === "Documents") setShowDocuments(true);
+                                else if (s.label === "Memories") setShowMemories(true);
+                              }} style={{ fontSize: 11, color: C.sage, fontWeight: 800, background: C.bgCard, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontFamily: "inherit" }}>
+                                {s.complete ? "Edit" : "Add"}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   );
@@ -3139,41 +3143,6 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                 )}
               </div>
             )}
-
-            {/* Green path file */}
-            <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Your default planning file</div>
-              <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.5, marginBottom: 13 }}>This is your reusable planning profile. Estate-specific records live inside each estate command center.</div>
-              {[
-                { label: "Wishes", complete: profile?.wishes_complete, icon: "📝", desc: "Service preferences, burial, religious wishes", action: "wishes" },
-                { label: "Obituary", complete: !!profile?.obituary_draft, icon: "🕊️", desc: "Draft an obituary - Passage writes it for you", action: "obituary" },
-                { label: "People", complete: profile?.people_complete, icon: "👥", desc: "Designate executor, attorney, contacts", action: "people" },
-                { label: "Documents", complete: profile?.documents_complete, icon: "📄", desc: "Upload will, insurance, advance directive", action: null },
-                { label: "Memories", complete: profile?.vault_complete, icon: "🎙️", desc: "Voice notes and letters, delivered later", action: null },
-              ].map((s, i, arr) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: s.complete ? C.sageFaint : C.bgSubtle, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: 15 }}>{s.complete ? "✓" : s.icon}</span>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: s.complete ? C.sage : C.ink }}>{s.label}</div>
-                    <div style={{ fontSize: 11, color: C.soft, marginTop: 1 }}>{s.desc}</div>
-                  </div>
-                  <button onClick={() => {
-                    if (s.label === "Wishes") setShowWishes(true);
-                    else if (s.label === "Obituary") setShowObituary(true);
-                    else if (s.label === "People") setShowPeople(true);
-                    else if (s.label === "Documents") setShowDocuments(true);
-                    else if (s.label === "Memories") setShowMemories(true);
-                  }} style={{ fontSize: 11, color: C.sage, fontWeight: 700, background: C.sageFaint, border: "none", borderRadius: 7, padding: "4px 11px", cursor: "pointer", fontFamily: "inherit" }}>
-                    {s.complete ? "Edit" : "Add"} →
-                  </button>
-                </div>
-              ))}
-              <button onClick={() => setShowWishes(true)} style={{ width: "100%", marginTop: 12, padding: "10px", background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 11, fontSize: 12.5, fontWeight: 600, color: C.sage, cursor: "pointer", fontFamily: "inherit" }}>
-                Review my planning profile →
-              </button>
-            </div>
 
             {/* Start emergency */}
             <div style={{ background: C.roseFaint, borderRadius: 18, padding: "18px", border: `1px solid ${C.rose}22`, marginBottom: 12 }}>
