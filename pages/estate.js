@@ -126,12 +126,11 @@ function ownerForTask(task) {
 
 function statusText(status) {
   var value = String(status || '').replace(/_/g, ' ');
-  if (!value || value === 'pending') return 'Waiting';
-  if (value === 'sent') return 'Sent';
+  if (!value || value === 'pending') return 'Draft';
+  if (value === 'sent' || value === 'assigned' || value === 'waiting') return 'Waiting for confirmation';
   if (value === 'delivered') return 'Delivered';
-  if (value === 'acknowledged') return 'Acknowledged';
-  if (value === 'assigned') return 'Assigned';
-  if (value === 'waiting') return 'Waiting';
+  if (value === 'acknowledged') return 'Confirmed';
+  if (value === 'blocked') return 'Blocked';
   if (value === 'needs review') return 'Needs review';
   if (value === 'handled' || value === 'completed') return 'Handled';
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -153,7 +152,8 @@ function participantSignal(item) {
   var at = item.completed_at || item.handled_at || item.accepted_at || item.updated_at || item.sent_at || item.created_at;
   var ago = timeAgo(at);
   if (item.completed_by_email && isHandledStatus(item.status)) return actor + ' marked this as handled' + (ago ? ' ' + ago : '');
-  if (item.accepted_at || item.status === 'assigned') return (actor || 'Someone') + ' accepted this task' + (ago ? ' ' + ago : '');
+  if (item.accepted_at || item.status === 'acknowledged') return (actor || 'Someone') + ' accepted this task' + (ago ? ' ' + ago : '');
+  if ((item.status || item.delivery_status) === 'blocked' || (item.outcome_status === 'help' || item.outcome_status === 'unavailable')) return (actor || 'Someone') + ' needs help with this' + (ago ? ' ' + ago : '');
   if (['waiting', 'needs_review'].includes(item.status || item.delivery_status)) return (actor || 'Someone') + ' updated this' + (ago ? ' ' + ago : '');
   return '';
 }
@@ -164,20 +164,32 @@ function proofRowsFor(actions, tasks, events) {
     rows.push({
       id: 'action_' + a.id,
       title: (a.action_type === 'sms' ? 'Text' : a.action_type === 'email' ? 'Email' : 'Message') + ' to ' + (a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'),
-      detail: a.task_title || a.subject || a.body || 'Estate coordination notice',
+      detail: [
+        a.last_actor || a.sent_at ? 'Sent by ' + (a.last_actor || 'Passage') : 'Prepared by Passage',
+        a.last_action_at || a.sent_at ? new Date(a.last_action_at || a.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '',
+        'To: ' + (a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'),
+        'Channel: ' + ((a.channel || a.action_type || 'message') === 'sms' ? 'SMS' : 'email'),
+        a.task_title || a.subject || a.body || 'Estate coordination notice'
+      ].filter(Boolean).join(' | '),
       status: statusText(a.delivery_status || a.status),
       at: a.sent_at || a.updated_at || a.created_at,
-      tone: a.status === 'sent' || a.delivery_status === 'sent' ? 'good' : a.status === 'needs_review' ? 'warn' : 'soft'
+      tone: a.status === 'handled' || a.delivery_status === 'acknowledged' ? 'good' : ['needs_review', 'failed', 'blocked'].includes(a.status || a.delivery_status) ? 'warn' : 'soft'
     });
   });
   (tasks || []).filter(function(t) { return t.outcome_status || t.completed_at || t.follow_up_at || t.assigned_to_email || t.assigned_to_name; }).forEach(function(t) {
     rows.push({
       id: 'task_' + t.id,
       title: t.title,
-      detail: t.outcome_status ? statusText(t.outcome_status) : (t.assigned_to_name || t.assigned_to_email ? 'Assigned to ' + (t.assigned_to_name || t.assigned_to_email) : 'Task updated'),
+      detail: [
+        t.last_actor ? 'Updated by ' + t.last_actor : '',
+        t.last_action_at ? new Date(t.last_action_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '',
+        t.recipient || t.assigned_to_name || t.assigned_to_email ? 'To: ' + (t.recipient || t.assigned_to_name || t.assigned_to_email) : '',
+        t.channel ? 'Channel: ' + (t.channel === 'sms' ? 'SMS' : t.channel) : '',
+        t.outcome_status ? statusText(t.outcome_status) : (t.assigned_to_name || t.assigned_to_email ? 'Assigned to ' + (t.assigned_to_name || t.assigned_to_email) : 'Task updated')
+      ].filter(Boolean).join(' | '),
       status: statusText(t.status),
       at: t.completed_at || t.follow_up_at || t.updated_at || t.created_at,
-      tone: isHandledStatus(t.status) ? 'good' : t.status === 'needs_review' ? 'warn' : 'soft'
+      tone: isHandledStatus(t.status) || t.status === 'acknowledged' ? 'good' : ['needs_review', 'failed', 'blocked'].includes(t.status) ? 'warn' : 'soft'
     });
   });
   (events || []).slice(0, 8).forEach(function(e) {
@@ -436,8 +448,11 @@ function EstateOrchestrationMap({ estateId, name, serviceEvents, people, actions
 function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activating }) {
   var pendingActions = (actions || []).filter(function(a) { return !['sent', 'handled', 'cancelled'].includes(a.status || a.delivery_status || 'draft'); });
   var sentActions = (actions || []).filter(function(a) { return (a.status || a.delivery_status) === 'sent' || a.sent_at; });
+  var confirmedActions = (actions || []).filter(function(a) { return (a.status || a.delivery_status) === 'acknowledged'; });
+  var waitingActions = sentActions.filter(function(a) { return !['acknowledged', 'handled'].includes(a.delivery_status || a.status); });
   var needsReview = (actions || []).filter(function(a) { return a.status === 'needs_review' || a.delivery_status === 'needs_review'; });
   var assignedTasks = (tasks || []).filter(function(t) { return t.assigned_to_email || t.assigned_to_name || t.owner_label; });
+  var blockedTasks = (tasks || []).filter(function(t) { return t.status === 'blocked' || t.outcome_status === 'help' || t.outcome_status === 'unavailable'; });
   var missingOwners = (outcomes || []).filter(function(o) { return !o.owner_label && o.status !== 'handled'; }).length +
     (tasks || []).filter(function(t) { return !isHandledStatus(t.status) && ownerForTask(t) === 'Needs owner'; }).length;
   var activated = ['activated', 'approved', 'in_motion', 'triggered'].includes(estate?.activation_status || estate?.status || '');
@@ -492,11 +507,37 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
       ) : (
         <div style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '13px 14px', color: SAGE, fontSize: 13, fontWeight: 800, lineHeight: 1.55 }}>
           <div style={{ fontSize: 15, color: SAGE, marginBottom: 6 }}>Your plan is in motion.</div>
-          <div>We've:</div>
-          <div style={{ marginTop: 4 }}>- Contacted the funeral home</div>
-          <div>- Notified assigned people</div>
-          <div>- Set tasks in progress</div>
-          <div style={{ marginTop: 8 }}>We'll keep you updated.</div>
+          {sentActions.length > 0 && <div style={{ marginTop: 8 }}>
+            <div>Sent:</div>
+            {sentActions.slice(0, 5).map(function(a) {
+              return <div key={a.id} style={{ color: INK, fontWeight: 700 }}>- {(a.task_title || a.subject || (a.action_type === 'sms' ? 'Text' : 'Email')) + ' to ' + (a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient')}</div>;
+            })}
+          </div>}
+          {assignedTasks.length > 0 && <div style={{ marginTop: 8 }}>
+            <div>Assigned:</div>
+            {assignedTasks.slice(0, 5).map(function(t) {
+              return <div key={t.id} style={{ color: INK, fontWeight: 700 }}>- {(t.assigned_to_name || t.assigned_to_email || t.owner_label || 'Someone') + ' - ' + t.title}</div>;
+            })}
+          </div>}
+          {waitingActions.length > 0 && <div style={{ marginTop: 8 }}>
+            <div>Waiting on:</div>
+            {waitingActions.slice(0, 5).map(function(a) {
+              return <div key={'waiting_' + a.id} style={{ color: AMBER, fontWeight: 700 }}>- {(a.recipient_name || a.recipient_email || a.recipient_phone || 'Recipient') + ' confirmation'}</div>;
+            })}
+          </div>}
+          {confirmedActions.length > 0 && <div style={{ marginTop: 8 }}>
+            <div>Confirmed:</div>
+            {confirmedActions.slice(0, 3).map(function(a) {
+              return <div key={'confirmed_' + a.id} style={{ color: SAGE, fontWeight: 700 }}>- {(a.recipient_name || a.recipient_email || a.recipient_phone || 'Recipient') + ' confirmed'}</div>;
+            })}
+          </div>}
+          {blockedTasks.length > 0 && <div style={{ marginTop: 8, color: ROSE }}>
+            <div>Needs help:</div>
+            {blockedTasks.slice(0, 3).map(function(t) {
+              return <div key={'blocked_' + t.id} style={{ fontWeight: 700 }}>- {(t.last_actor || t.assigned_to_name || t.assigned_to_email || 'Someone') + ' needs help with ' + t.title}</div>;
+            })}
+          </div>}
+          <div style={{ marginTop: 10 }}>We'll keep you updated.</div>
         </div>
       )}
     </div>
@@ -506,7 +547,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
 function ProofPanel({ actions, tasks, events }) {
   var rows = proofRowsFor(actions, tasks, events);
   var sent = rows.filter(function(r) { return r.status === 'Sent' || r.status === 'Handled' || r.status === 'Recorded'; }).length;
-  var waiting = rows.filter(function(r) { return r.status === 'Waiting' || r.status === 'Assigned'; }).length;
+  var waiting = rows.filter(function(r) { return r.status === 'Waiting for confirmation' || r.status === 'Draft'; }).length;
   var review = rows.filter(function(r) { return r.status === 'Needs review'; }).length;
   return (
     <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
@@ -615,6 +656,21 @@ export default function EstatePage() {
         if (!payload.new) return;
         setActions(function(prev) { return prev.map(function(a) { return a.id === payload.new.id ? Object.assign({}, a, payload.new) : a; }); });
       })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'task_status_events', filter: 'workflow_id=eq.' + estateId }, function(payload) {
+        if (!payload.new) return;
+        setEvents(function(prev) {
+          var row = {
+            id: 'status_' + payload.new.id,
+            estate_id: estateId,
+            event_type: payload.new.status === 'blocked' ? 'participant_blocked' : 'task_status_updated',
+            title: payload.new.status === 'blocked' ? 'Participant needs help' : 'Task status updated',
+            description: payload.new.detail || ((payload.new.recipient || 'Recipient') + ' - ' + statusText(payload.new.status)),
+            actor: payload.new.last_actor || 'Passage',
+            created_at: payload.new.last_action_at || new Date().toISOString()
+          };
+          return [row].concat(prev).slice(0, 8);
+        });
+      })
       .subscribe();
     return function() { sb.removeChannel(channel); };
   }, [estateId]);
@@ -717,7 +773,7 @@ export default function EstatePage() {
       .map(function(t) {
         var working = ['assigned', 'waiting', 'in_progress'].includes(t.status || '');
         var signal = participantSignal(t);
-        var responseWait = ['sent', 'delivered'].includes(t.status || '') && !t.acknowledged_at ? 'Waiting for response' : '';
+        var responseWait = ['sent', 'delivered'].includes(t.status || '') && !t.acknowledged_at ? 'Waiting for confirmation' : '';
         return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: signal || responseWait || (working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this') };
       });
     return Object.assign({}, bucket, { items: outcomeItems.concat(taskItems) });
@@ -726,8 +782,8 @@ export default function EstatePage() {
   var next72Group = timelineGroups.find(function(g) { return g.key === '72h'; }) || { items: [] };
   var readyFor72 = nowGroup.items.length === 0 && next72Group.items.length > 0 && !allHandled;
   var upNextTasks = tasks.filter(function(t) { return !isHandledStatus(t.status); }).slice(3, 8);
-  var resumeEvent = events.find(function(e) { return e.event_type === 'task_updated' || e.event_type === 'task_completed' || e.event_type === 'owner_assigned' || e.event_type === 'participant_updated' || e.event_type === 'participant_waiting' || e.event_type === 'participant_acknowledged'; });
-  var recentParticipantEvents = events.filter(function(e) { return ['participant_handled', 'participant_updated', 'participant_waiting', 'participant_acknowledged', 'task_message_sent'].includes(e.event_type); }).slice(0, 4);
+  var resumeEvent = events.find(function(e) { return e.event_type === 'task_updated' || e.event_type === 'task_completed' || e.event_type === 'owner_assigned' || e.event_type === 'participant_updated' || e.event_type === 'participant_waiting' || e.event_type === 'participant_acknowledged' || e.event_type === 'participant_blocked'; });
+  var recentParticipantEvents = events.filter(function(e) { return ['participant_handled', 'participant_updated', 'participant_waiting', 'participant_acknowledged', 'participant_blocked', 'task_message_sent'].includes(e.event_type); }).slice(0, 4);
   var firstOpenOutcome = outcomes.find(function(o) { return !isHandledStatus(o.status); });
   var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t.status); });
   var firstFastTitle = firstOpenOutcome ? firstOpenOutcome.title : firstOpenTask ? firstOpenTask.title : '';
@@ -889,7 +945,7 @@ export default function EstatePage() {
               <div style={{ fontSize: 11, color: SAGE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>People helping right now</div>
               {recentParticipantEvents.map(function(e) {
                 var actor = e.actor || 'Someone';
-                var action = e.event_type === 'participant_handled' ? 'marked this as handled' : e.event_type === 'participant_waiting' ? 'updated this as waiting' : e.event_type === 'participant_acknowledged' ? 'confirmed this' : e.event_type === 'task_message_sent' ? 'was sent a message' : 'accepted or updated this task';
+                var action = e.event_type === 'participant_handled' ? 'marked this as handled' : e.event_type === 'participant_waiting' ? 'updated this as waiting' : e.event_type === 'participant_acknowledged' ? 'confirmed this' : e.event_type === 'participant_blocked' ? 'needs help with this' : e.event_type === 'task_message_sent' ? 'was sent a message' : 'accepted or updated this task';
                 return <div key={e.id} style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, padding: '3px 0' }}><strong style={{ color: INK }}>{actor}</strong> {action}{timeAgo(e.created_at) ? ' ' + timeAgo(e.created_at) : ''}: {e.description || e.title}</div>;
               })}
             </div>

@@ -23,7 +23,7 @@ export default async function handler(req, res) {
   const status = action === 'accept' ? 'acknowledged'
     : ['handled', 'delivered', 'confirmed'].includes(action) ? 'handled'
     : ['waiting', 'needs_details', 'quoted', 'scheduled'].includes(action) ? 'waiting'
-    : action === 'unavailable' ? 'needs_review'
+    : ['help', 'unavailable'].includes(action) ? 'blocked'
     : 'needs_review';
   const stamp = action === 'accept' ? 'accepted_at'
     : status === 'handled' ? 'handled_at'
@@ -58,8 +58,8 @@ export default async function handler(req, res) {
   if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
   await admin.from('estate_events').insert([{
     estate_id: data.workflow_id,
-    event_type: status === 'handled' ? 'participant_handled' : status === 'waiting' ? 'participant_waiting' : status === 'acknowledged' ? 'participant_acknowledged' : 'participant_updated',
-    title: status === 'handled' ? 'Participant handled a task' : status === 'waiting' ? 'Participant update waiting' : status === 'acknowledged' ? 'Participant confirmed a task' : 'Participant updated a task',
+    event_type: status === 'handled' ? 'participant_handled' : status === 'waiting' ? 'participant_waiting' : status === 'acknowledged' ? 'participant_acknowledged' : status === 'blocked' ? 'participant_blocked' : 'participant_updated',
+    title: status === 'handled' ? 'Participant handled a task' : status === 'waiting' ? 'Participant update waiting' : status === 'acknowledged' ? 'Participant confirmed a task' : status === 'blocked' ? 'Participant needs help' : 'Participant updated a task',
     description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
     actor: email,
   }]).catch(() => {});

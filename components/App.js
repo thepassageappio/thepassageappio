@@ -347,10 +347,13 @@ const grantEstateAccess = async (workflowId, person) => {
 
 const humanStatus = (status) => {
   if (status === 'handled' || status === 'completed' || status === 'done') return 'Handled';
-  if (status === 'sent' || status === 'assigned') return 'Assigned';
+  if (status === 'sent' || status === 'assigned' || status === 'waiting') return 'Waiting for confirmation';
+  if (status === 'acknowledged') return 'Confirmed';
+  if (status === 'blocked') return 'Blocked';
   if (status === 'needs_review') return 'Needs review';
-  if (status === 'in_progress' || status === 'pending' || status === 'waiting') return 'Waiting';
-  return status ? status.replace(/_/g, ' ') : 'Waiting';
+  if (status === 'in_progress') return 'In progress';
+  if (status === 'pending') return 'Draft';
+  return status ? status.replace(/_/g, ' ') : 'Draft';
 };
 
 const taskIsHandled = (status) => status === 'handled' || status === 'completed' || status === 'done' || status === 'not_applicable';
@@ -759,9 +762,10 @@ const buildTaskList = (dbTasks) => {
 const taskAwareness = (task) => {
   if (!task || task.completed || task.status === 'not_applicable') return '';
   const when = task.lastActionAt ? new Date(task.lastActionAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
-  if (task.status === 'sent') return `Message sent to ${task.recipient || task.assignedTo || 'recipient'}${when ? ' at ' + when : ''}`;
+  if (task.status === 'sent') return `Message sent to ${task.recipient || task.assignedTo || 'recipient'}${when ? ' at ' + when : ''}. Waiting for confirmation.`;
   if (task.status === 'delivered') return `Delivered to ${task.recipient || task.assignedTo || 'recipient'}${when ? ' at ' + when : ''}`;
   if (task.status === 'acknowledged') return `${task.lastActor || task.recipient || task.assignedTo || 'Someone'} confirmed this${when ? ' at ' + when : ''}`;
+  if (task.status === 'blocked') return `${task.lastActor || task.recipient || task.assignedTo || 'Someone'} needs help with this${when ? ' at ' + when : ''}`;
   if (['assigned', 'waiting', 'in_progress'].includes(task.status) && task.assignedTo) return `${task.assignedTo} is working on this`;
   if (['assigned', 'waiting', 'in_progress'].includes(task.status)) return 'Someone is working on this';
   return '';
@@ -1296,6 +1300,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const [sentAt, setSentAt] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [actionNotice, setActionNotice] = useState('');
+  const [sendError, setSendError] = useState('');
   const [savedPulse, setSavedPulse] = useState(false);
   const markSaved = () => {
     setSavedPulse(true);
@@ -1305,21 +1310,24 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const sendDraft = async () => {
     if (!recipientEmail) return;
     setSending(true);
+    setSendError('');
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
-    const res = await fetch('/api/sendEmail', {
+    const sendUrl = task?.dbId ? `/api/tasks/${task.dbId}/send` : '/api/sendEmail';
+    const res = await fetch(sendUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
-      body: JSON.stringify({ to: recipientEmail, cc: userEmail || undefined, subject: playbook.subject, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'execution', messageText: draft }),
+      body: JSON.stringify({ channel: 'email', to: recipientEmail, cc: userEmail || undefined, subject: playbook.subject, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'execution', messageText: draft }),
     });
+    const data = await res.json().catch(() => ({}));
     setSending(false);
     if (res.ok) {
       const stamp = new Date();
       setSent(true);
       setSentAt(stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
-      setActionNotice(`Message sent to ${recipientEmail} at ${stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+      setActionNotice(`Message sent to ${recipientEmail} at ${stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Waiting for confirmation.`);
     }
-    else alert('Passage could not send that email yet. You can copy the draft and try again.');
+    else setSendError(data.error || 'Failed to send - retry? You can copy the draft while Passage keeps this task open.');
   };
 
   const lowerTitle = String(task?.title || '').toLowerCase();
@@ -1429,7 +1437,12 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         </div>
         {(sent || actionNotice) && (
           <div style={{ marginBottom: 8, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "10px 12px", color: C.sage, fontSize: 12.5, fontWeight: 800, lineHeight: 1.5 }}>
-            {actionNotice || (sentAt ? 'Message sent at ' + sentAt : 'Message sent and copied to the estate record.')} Save the outcome below so the plan knows what happened next.
+            {actionNotice || (sentAt ? 'Message sent at ' + sentAt + '. Waiting for confirmation.' : 'Message sent and copied to the estate record. Waiting for confirmation.')} Save the outcome below so the plan knows what happened next.
+          </div>
+        )}
+        {sendError && (
+          <div style={{ marginBottom: 8, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, padding: "10px 12px", color: C.rose, fontSize: 12.5, fontWeight: 800, lineHeight: 1.5 }}>
+            {sendError}
           </div>
         )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
@@ -1450,7 +1463,10 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
 function ActivatePlanView({ workflowId, deceasedName, actions, tasks, events, onClose, onSent }) {
   const [sending, setSending] = useState(false);
   const pendingActions = (actions || []).filter(a => !['sent', 'handled', 'completed'].includes(a.status));
+  const [selectedIds, setSelectedIds] = useState(() => pendingActions.map(a => a.id).filter(Boolean));
   const assignedTasks = (tasks || []).filter(t => t.assignedTo || t.assignedEmail).slice(0, 12);
+  const selectedActions = pendingActions.filter(a => !a.id || selectedIds.includes(a.id));
+  const invalidSelected = selectedActions.filter(a => (a.action_type === 'sms' || a.recipient_phone) ? !a.recipient_phone : !a.recipient_email);
   const channels = [
     ['Email', pendingActions.filter(a => a.action_type === 'email' || a.recipient_email).length],
     ['Text', pendingActions.filter(a => a.action_type === 'sms' || a.recipient_phone).length],
@@ -1460,7 +1476,7 @@ function ActivatePlanView({ workflowId, deceasedName, actions, tasks, events, on
     setSending(true);
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
-    const res = await fetch('/api/handleEvent', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify({ type: 'death_confirmed', payload: { workflowId } }) });
+    const res = await fetch('/api/handleEvent', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify({ type: 'death_confirmed', payload: { workflowId, actionIds: selectedIds } }) });
     setSending(false);
     if (res.ok) { onSent && onSent(); onClose(); } else alert('Passage could not send these yet. Review contacts and try again.');
   };
@@ -1482,9 +1498,13 @@ function ActivatePlanView({ workflowId, deceasedName, actions, tasks, events, on
         <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.rose, marginBottom: 8 }}>Messages ready for approval</div>
           {pendingActions.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No pending messages are queued yet. Assign people to tasks first.</div> : pendingActions.map((a, i) => (
-            <div key={a.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "8px 0", fontSize: 13, color: C.mid, lineHeight: 1.5 }}><strong style={{ color: C.ink }}>{a.action_type === 'sms' ? 'Notify' : 'Email'}</strong> - {a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'}<br /><span>{a.task_title || a.subject || a.body || 'Estate coordination notice'}</span><br /><span style={{ color: C.soft, fontSize: 12 }}>Action: they receive a secure Passage link for their assigned responsibility.</span></div>
+            <label key={a.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "8px 0", fontSize: 13, color: C.mid, lineHeight: 1.5, display: "grid", gridTemplateColumns: "22px minmax(0, 1fr)", gap: 8, cursor: "pointer" }}>
+              <input type="checkbox" checked={!a.id || selectedIds.includes(a.id)} onChange={e => setSelectedIds(prev => e.target.checked ? Array.from(new Set(prev.concat(a.id).filter(Boolean))) : prev.filter(id => id !== a.id))} />
+              <span><strong style={{ color: C.ink }}>{a.action_type === 'sms' ? 'Notify' : 'Email'}</strong> - {a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'}<br /><span>{a.task_title || a.subject || a.body || 'Estate coordination notice'}</span><br /><span style={{ color: C.soft, fontSize: 12 }}>Action: {a.recipient_email || a.recipient_phone ? 'sends immediately, then waits for confirmation' : 'recipient missing - edit before sending'}.</span></span>
+            </label>
           ))}
         </div>
+        {invalidSelected.length > 0 && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, padding: "10px 12px", color: C.rose, fontSize: 12.5, fontWeight: 800, marginBottom: 14 }}>Some selected messages are missing a recipient. Edit them before activating.</div>}
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: C.sage, marginBottom: 8 }}>Who owns what</div>
           {assignedTasks.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No tasks are assigned yet.</div> : assignedTasks.map((t, i) => <div key={t.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "7px 0", fontSize: 13, color: C.mid }}><strong style={{ color: C.ink }}>{t.title}</strong><br />Owner: {t.assignedTo || t.assignedEmail}</div>)}
@@ -1493,7 +1513,7 @@ function ActivatePlanView({ workflowId, deceasedName, actions, tasks, events, on
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8 }}>
           <button onClick={onClose} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Review</button>
           <button onClick={() => { window.location.href = '/?open=people&backEstate=' + encodeURIComponent(workflowId || ''); }} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Edit</button>
-          <button onClick={sendAll} disabled={sending || pendingActions.length === 0} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.rose, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Activating..." : "Send / Activate"}</button>
+          <button onClick={sendAll} disabled={sending || selectedIds.length === 0 || invalidSelected.length > 0} style={{ padding: "11px", borderRadius: 11, border: "none", background: selectedIds.length === 0 || invalidSelected.length > 0 ? C.border : C.rose, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: selectedIds.length === 0 || invalidSelected.length > 0 ? "default" : "pointer" }}>{sending ? "Activating..." : "Send / Activate"}</button>
         </div>
       </div>
     </div>
@@ -2018,9 +2038,20 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                           </div>
                           {task.desc && !task.completed && <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.5, marginBottom: task.assignedTo ? 5 : 0 }}>{task.desc}</div>}
                           {taskAwareness(task) && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>{taskAwareness(task)}</div>}
+                          {task.lastActionAt && (
+                            <div style={{ fontSize: 10.8, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>
+                              {[
+                                task.lastActor ? `By: ${task.lastActor}` : '',
+                                `At: ${new Date(task.lastActionAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
+                                task.recipient ? `To: ${task.recipient}` : '',
+                                task.channel ? `Channel: ${task.channel === 'sms' ? 'SMS' : task.channel}` : '',
+                                `Status: ${humanStatus(task.status)}`,
+                              ].filter(Boolean).join(' | ')}
+                            </div>
+                          )}
                           {['sent', 'delivered'].includes(task.status) && !task.acknowledgedAt && (
                             <div style={{ marginTop: 5, display: "flex", gap: 7, alignItems: "center", flexWrap: "wrap" }}>
-                              <span style={{ fontSize: 11.5, color: C.soft, fontWeight: 700 }}>Waiting for response</span>
+                              <span style={{ fontSize: 11.5, color: C.soft, fontWeight: 700 }}>Waiting for confirmation</span>
                               <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, borderRadius: 7, padding: "3px 8px", fontSize: 11, fontFamily: "inherit", cursor: "pointer" }}>Send reminder</button>
                             </div>
                           )}

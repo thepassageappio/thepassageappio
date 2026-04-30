@@ -10,7 +10,7 @@ const supabase = createClient(
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
-async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail }) {
+async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail, provider, providerMessageId, providerEventId }) {
   if (!workflowId) return;
   const now = new Date().toISOString();
   const taskUpdates = {
@@ -48,6 +48,9 @@ async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, c
     channel,
     recipient,
     detail,
+    provider: provider || null,
+    provider_message_id: providerMessageId || null,
+    provider_event_id: providerEventId || null,
   }]).catch(() => {});
   await supabase.from('estate_events').insert([{
     estate_id: workflowId,
@@ -151,15 +154,39 @@ export default async function handler(req, res) {
         actor: coordinatorName || cc || 'Passage',
         channel: 'email',
         recipient: toName || to,
+        provider: 'resend',
+        providerMessageId: data.id,
         detail: 'Message sent to ' + (toName || to) + (taskTitle ? ' - ' + taskTitle : ''),
       });
       return res.status(200).json({ success: true, id: data.id, from });
     }
 
     console.error('Resend failed:', JSON.stringify(data));
-    return res.status(500).json({ error: data });
+    await recordTaskStatus({
+      workflowId,
+      taskId,
+      actionId,
+      status: 'failed',
+      actor: coordinatorName || cc || 'Passage',
+      channel: 'email',
+      recipient: toName || to,
+      provider: 'resend',
+      detail: 'Failed to send email to ' + (toName || to) + ': ' + (data?.message || data?.error || JSON.stringify(data)),
+    });
+    return res.status(500).json({ error: data?.message || data?.error || 'Email provider did not accept the message.' });
   } catch (err) {
     console.error('sendEmail error:', err);
+    await recordTaskStatus({
+      workflowId,
+      taskId,
+      actionId,
+      status: 'failed',
+      actor: coordinatorName || cc || 'Passage',
+      channel: 'email',
+      recipient: toName || to,
+      provider: 'resend',
+      detail: 'Failed to send email to ' + (toName || to) + ': ' + err.message,
+    });
     return res.status(500).json({ error: err.message });
   }
 }

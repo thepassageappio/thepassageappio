@@ -80,7 +80,7 @@ async function markEventFailed(id, msg) {
 }
 
 async function handleDeathConfirmed(payload) {
-  const { workflowId } = payload;
+  const { workflowId, actionIds } = payload;
   if (!workflowId) throw new Error('Missing workflowId');
 
   const { data: workflow } = await supabase.from('workflows')
@@ -90,8 +90,10 @@ async function handleDeathConfirmed(payload) {
   const { data: events } = await supabase.from('workflow_events')
     .select('*').eq('workflow_id', workflowId).order('date');
 
-  const { data: actions } = await supabase.from('workflow_actions')
+  let actionQuery = supabase.from('workflow_actions')
     .select('*').eq('workflow_id', workflowId).eq('status', 'pending');
+  if (Array.isArray(actionIds) && actionIds.length > 0) actionQuery = actionQuery.in('id', actionIds);
+  const { data: actions } = await actionQuery;
 
   if (!actions || actions.length === 0) return { sent: 0, message: 'No pending actions' };
 
@@ -114,6 +116,7 @@ async function handleDeathConfirmed(payload) {
             deceasedName,
             coordinatorName,
             workflowId,
+            actionId: action.id,
             actionType: 'trigger',
             events: events || [],
           }),
@@ -132,6 +135,7 @@ async function handleDeathConfirmed(payload) {
             deceasedName,
             coordinatorName,
             workflowId,
+            actionId: action.id,
             actionType: 'trigger',
             events: events || [],
           }),
@@ -144,10 +148,18 @@ async function handleDeathConfirmed(payload) {
         status: 'sent',
         sent_at: new Date().toISOString(),
         delivery_status: 'sent',
+        last_action_at: new Date().toISOString(),
+        last_actor: coordinatorName || 'Passage',
+        channel: action.action_type,
+        recipient: action.recipient_name || action.recipient_email || action.recipient_phone,
       } : {
         status: 'needs_review',
         delivery_status: 'needs_review',
         error_message: 'Delivery was attempted but the provider did not confirm success.',
+        last_action_at: new Date().toISOString(),
+        last_actor: coordinatorName || 'Passage',
+        channel: action.action_type,
+        recipient: action.recipient_name || action.recipient_email || action.recipient_phone,
       }).eq('id', action.id);
     } catch (err) {
       failed++;

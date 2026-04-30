@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
-async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail }) {
+async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail, provider, providerMessageId, providerEventId }) {
   if (!workflowId) return;
   const now = new Date().toISOString();
   const taskUpdates = {
@@ -41,6 +41,9 @@ async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, c
     channel,
     recipient,
     detail,
+    provider: provider || null,
+    provider_message_id: providerMessageId || null,
+    provider_event_id: providerEventId || null,
   }]).catch(() => {});
   await supabase.from('estate_events').insert([{
     estate_id: workflowId,
@@ -117,7 +120,12 @@ export default async function handler(req, res) {
       {
         method: 'POST',
         headers: { 'Authorization': 'Basic ' + credentials, 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ From: TWILIO_FROM, To: phone, Body: message }),
+        body: new URLSearchParams({
+          From: TWILIO_FROM,
+          To: phone,
+          Body: message,
+          StatusCallback: (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '') + '/api/webhooks/twilio',
+        }),
       }
     );
 
@@ -135,6 +143,18 @@ export default async function handler(req, res) {
         error_message: data.message || JSON.stringify(data),
         sent_at: new Date().toISOString(),
       }]);
+      await recordTaskStatus({
+        workflowId,
+        taskId,
+        actionId,
+        status: 'failed',
+        actor: coordinatorName || 'Passage',
+        channel: 'sms',
+        recipient: toName || phone,
+        provider: 'twilio',
+        providerMessageId: data.sid || null,
+        detail: 'Failed to send text to ' + (toName || phone) + ': ' + (data.message || 'Twilio did not accept the message.'),
+      });
       return res.status(500).json({ error: data.message });
     }
 
@@ -163,12 +183,25 @@ export default async function handler(req, res) {
       actor: coordinatorName || 'Passage',
       channel: 'sms',
       recipient: toName || phone,
+      provider: 'twilio',
+      providerMessageId: data.sid,
       detail: 'Text sent to ' + (toName || phone) + (taskTitle ? ' - ' + taskTitle : ''),
     });
 
     return res.status(200).json({ success: true, sid: data.sid });
   } catch (err) {
     console.error('sendSMS error:', err);
+    await recordTaskStatus({
+      workflowId,
+      taskId,
+      actionId,
+      status: 'failed',
+      actor: coordinatorName || 'Passage',
+      channel: 'sms',
+      recipient: toName || to,
+      provider: 'twilio',
+      detail: 'Failed to send text to ' + (toName || to) + ': ' + err.message,
+    });
     return res.status(500).json({ error: err.message });
   }
 }
