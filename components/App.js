@@ -1740,30 +1740,57 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [taskStats, setTaskStats] = useState({});
 
   useEffect(() => {
+    let cancelled = false;
     const load = async () => {
-      if (!user) return;
-      const [{ user: u, profile: p }, wfs] = await Promise.all([
-        loadUserProfile(user.id),
-        loadUserWorkflows(user.id),
-      ]);
-      setUserData(u); setProfile(p); setWorkflows(wfs); setLoading(false);
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const [{ user: u, profile: p }, wfs] = await Promise.all([
+          loadUserProfile(user.id),
+          loadUserWorkflows(user.id),
+        ]);
+        if (cancelled) return;
+        setUserData(u || null);
+        setProfile(p || null);
+        setWorkflows(wfs || []);
 
-      // Load task completion stats for all workflows
-      const { data: stats } = await supabase.from('tasks')
-        .select('workflow_id, status, assigned_to_name')
-        .in('workflow_id', (wfs || []).map(w => w.id));
-      if (stats) {
-        const grouped = {};
-        stats.forEach(t => {
-          if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, completed: 0, assigned: 0 };
-          grouped[t.workflow_id].total++;
-          if (t.status === 'completed') grouped[t.workflow_id].completed++;
-          if (t.assigned_to_name) grouped[t.workflow_id].assigned++;
-        });
-        setTaskStats(grouped);
+        // Load task completion stats for all workflows
+        const workflowIds = (wfs || []).map(w => w.id).filter(Boolean);
+        if (workflowIds.length > 0) {
+          const { data: stats } = await supabase.from('tasks')
+            .select('workflow_id, status, assigned_to_name')
+            .in('workflow_id', workflowIds);
+          if (cancelled) return;
+          if (stats) {
+            const grouped = {};
+            stats.forEach(t => {
+              if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, completed: 0, assigned: 0 };
+              grouped[t.workflow_id].total++;
+              if (t.status === 'completed') grouped[t.workflow_id].completed++;
+              if (t.assigned_to_name) grouped[t.workflow_id].assigned++;
+            });
+            setTaskStats(grouped);
+          }
+        } else {
+          setTaskStats({});
+        }
+      } catch (err) {
+        console.error('Dashboard load failed:', err);
+        if (!cancelled) {
+          setUserData(null);
+          setProfile(null);
+          setWorkflows([]);
+          setTaskStats({});
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
     load();
+    return () => { cancelled = true; };
   }, [user]);
 
   const handleArchive = async (wfId) => {
