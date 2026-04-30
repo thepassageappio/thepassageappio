@@ -37,18 +37,22 @@ export default async function handler(req, res) {
 
     // ASCII only — avoid UCS-2 encoding which halves the character limit
     // Keep under 122 chars — Twilio trial adds 38 char prefix
-    var shortTask = (taskTitle || 'a task').slice(0, 35);
-    var shortName = (toName || 'You').slice(0, 20);
-    var shortDeceased = (deceased || 'estate').slice(0, 20);
+    var clean = function(value, max) {
+      var text = String(value || '').replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim();
+      return text.length > max ? text.slice(0, Math.max(0, max - 3)).trim() + '...' : text;
+    };
+    var shortTask = clean(taskTitle || 'estate task', 28);
+    var shortName = clean(toName || 'You', 16);
+    var shortDeceased = clean(deceased || 'estate', 16);
 
     var message;
     if (actionType === 'trigger') {
-      message = 'Passage: ' + shortDeceased + ' estate plan is now active. Your tasks are ready at thepassageapp.io';
+      message = 'Passage: ' + shortDeceased + ' plan active. Tasks: thepassageapp.io';
     } else {
-      message = 'Passage: ' + shortName + ' - task assigned: ' + shortTask + '. Details at thepassageapp.io';
+      message = 'Passage: ' + shortName + ', ' + shortDeceased + ' task: ' + shortTask + '. thepassageapp.io';
     }
     // Hard cap at 120 chars
-    if (message.length > 120) message = message.slice(0, 117) + '...';
+    message = clean(message, 118);
 
     const credentials = Buffer.from(TWILIO_SID + ':' + TWILIO_TOKEN).toString('base64');
     const response = await fetch(

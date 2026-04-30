@@ -46,6 +46,17 @@ async function updateUserPlan(userId, updates) {
   }).eq('id', userId);
 }
 
+async function updateWorkflowAfterCheckout(metadata) {
+  const workflowId = metadata && metadata.workflowId;
+  if (!workflowId) return;
+  const path = metadata.path === 'red' ? 'red' : 'green';
+  await sb.from('workflows').update({
+    path,
+    status: path === 'red' ? 'active' : 'ready',
+    updated_at: new Date().toISOString(),
+  }).eq('id', workflowId);
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
@@ -71,6 +82,7 @@ export default async function handler(req, res) {
         stripe_customer_id: object.customer || null,
         stripe_subscription_id: object.subscription || null,
       });
+      await updateWorkflowAfterCheckout(object.metadata || {});
     }
 
     if (event.type === 'customer.subscription.deleted') {

@@ -3,7 +3,7 @@ const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io'
 const PLANS = {
   monthly: {
     label: 'Passage Monthly',
-    amount: 1200,
+    amount: 1000,
     mode: 'subscription',
     interval: 'month',
     priceEnv: 'STRIPE_PRICE_MONTHLY',
@@ -17,16 +17,23 @@ const PLANS = {
   },
   lifetime: {
     label: 'Passage Lifetime',
-    amount: 24900,
+    amount: 29999,
     mode: 'payment',
     priceEnv: 'STRIPE_PRICE_LIFETIME',
+  },
+  urgent: {
+    label: 'Passage Urgent Estate Plan',
+    amount: 7900,
+    mode: 'payment',
+    priceEnv: 'STRIPE_PRICE_URGENT',
+    impact: '20_donation_grief_support_or_memorial_trees',
   },
 };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { planId, userId, userEmail } = req.body || {};
+  const { planId, userId, userEmail, workflowId } = req.body || {};
   const plan = PLANS[planId];
 
   if (!plan) return res.status(400).json({ error: 'Unknown plan' });
@@ -43,10 +50,14 @@ export default async function handler(req, res) {
       client_reference_id: userId,
       'metadata[userId]': userId,
       'metadata[planId]': planId,
+      'metadata[path]': planId === 'urgent' ? 'red' : 'green',
+      'metadata[workflowId]': workflowId || '',
       'line_items[0][quantity]': '1',
       allow_promotion_codes: 'true',
       submit_type: plan.mode === 'subscription' ? 'subscribe' : 'pay',
     });
+
+    if (plan.impact) body.set('metadata[impact]', plan.impact);
 
     if (userEmail) body.set('customer_email', userEmail);
 

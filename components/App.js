@@ -27,8 +27,8 @@ const PROJECT_ID = "qsveqfchwylsbncsfgxe";
 
 const PLAN_OPTIONS = [
   { id: "annual", label: "Annual", price: "$79", per: "/year", badge: "Best value - save 45%", popular: true },
-  { id: "monthly", label: "Monthly", price: "$12", per: "/month", badge: "Start anytime, cancel anytime" },
-  { id: "lifetime", label: "Lifetime", price: "$249", per: "one time", badge: "Pay once. Active forever." },
+  { id: "monthly", label: "Monthly", price: "$10", per: "/month", badge: "Start anytime, cancel anytime" },
+  { id: "lifetime", label: "Lifetime", price: "$299.99", per: "one time", badge: "Pay once. Active forever." },
 ];
 const PLAN_BY_ID = PLAN_OPTIONS.reduce((acc, plan) => {
   acc[plan.id] = plan;
@@ -245,10 +245,46 @@ const insertCustomTask = async (workflowId, userId, title, tier) => {
 
 const savePerson = async (userId, person) => {
   const nameParts = (person.name || '').trim().split(' ');
+  const firstName = nameParts[0] || person.name;
+  const lastName = nameParts.slice(1).join(' ') || '';
+  if (userId && person.id) {
+    const { data, error } = await supabase.from('people').update({
+      first_name: firstName,
+      last_name: lastName,
+      email: person.email || null,
+      phone: person.phone || null,
+      relationship: person.role || null,
+      notify_on_trigger: true,
+      updated_at: new Date().toISOString(),
+    }).eq('id', person.id).eq('owner_id', userId).select().single();
+    if (!error) return data;
+  }
+  if (userId) {
+    let existing = null;
+    if (person.email) {
+      const { data } = await supabase.from('people').select('*').eq('owner_id', userId).eq('email', person.email).maybeSingle();
+      existing = data;
+    } else if (person.phone) {
+      const { data } = await supabase.from('people').select('*').eq('owner_id', userId).eq('phone', person.phone).maybeSingle();
+      existing = data;
+    }
+    if (existing) {
+      const { data, error } = await supabase.from('people').update({
+        first_name: firstName,
+        last_name: lastName,
+        email: person.email || existing.email || null,
+        phone: person.phone || existing.phone || null,
+        relationship: person.role || existing.relationship || null,
+        notify_on_trigger: true,
+        updated_at: new Date().toISOString(),
+      }).eq('id', existing.id).select().single();
+      if (!error) return data;
+    }
+  }
   const { data, error } = await supabase.from('people').insert([{
     owner_id: userId || null,
-    first_name: nameParts[0] || person.name,
-    last_name: nameParts.slice(1).join(' ') || '',
+    first_name: firstName,
+    last_name: lastName,
     email: person.email || null,
     phone: person.phone || null,
     relationship: person.role || null,
@@ -267,6 +303,20 @@ const savePerson = async (userId, person) => {
     return null;
   }
   return data;
+};
+
+const loadPeople = async (userId) => {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('people')
+    .select('*')
+    .eq('owner_id', userId)
+    .order('updated_at', { ascending: false });
+  if (error) {
+    console.warn('loadPeople:', error);
+    return [];
+  }
+  return data || [];
 };
 
 const saveWorkflowAction = async (workflowId, personData, taskTitle, actionType) => {
@@ -336,11 +386,11 @@ const updateWorkflowName = async (workflowId, newName) => {
   await supabase.from('workflows').update({ plan_name: newName, name: newName }).eq('id', workflowId);
 };
 
-const handleCheckout = async (planId, userId, userEmail) => {
+const handleCheckout = async (planId, userId, userEmail, workflowId = null) => {
   try {
     const res = await fetch('/api/checkout', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ planId, userId, userEmail }),
+      body: JSON.stringify({ planId, userId, userEmail, workflowId }),
     });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Checkout could not be started');
@@ -349,6 +399,18 @@ const handleCheckout = async (planId, userId, userEmail) => {
     console.error('Checkout error:', err);
     alert(err.message || 'Checkout could not be started. Please try again.');
   }
+};
+
+const shorten = (value, max) => {
+  const text = String(value || '').replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim();
+  return text.length > max ? text.slice(0, Math.max(0, max - 3)).trim() + '...' : text;
+};
+
+const buildAssignmentSms = ({ toName, taskTitle, deceasedName }) => {
+  const name = shorten(toName || 'You', 18);
+  const task = shorten(taskTitle || 'estate task', 30);
+  const deceased = shorten(deceasedName || 'the estate', 18);
+  return shorten(`Passage: ${name}, ${deceased} task: ${task}. Details: thepassageapp.io`, 118);
 };
 
 const handleSignInWithGoogle = async () => {
@@ -463,23 +525,45 @@ const Sub = ({ children }) => (
 );
 
 const CandleLogo = ({ size = 24, nameSize = 16 }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+  <div className="passage-brand" style={{ display: "flex", alignItems: "center", gap: Math.max(8, size * 0.32) }}>
     <style>{`
       @keyframes passageFlame {
-        0%, 100% { transform: translateX(-50%) scaleY(1) rotate(-2deg); opacity: .88; }
-        35% { transform: translateX(-52%) scaleY(1.12) rotate(2deg); opacity: 1; }
-        68% { transform: translateX(-48%) scaleY(.94) rotate(-1deg); opacity: .78; }
+        0%, 100% { transform: translateX(-50%) translateY(0) scaleX(.92) scaleY(1) rotate(-2deg); opacity: .92; filter: drop-shadow(0 0 5px rgba(222,161,70,.34)); }
+        31% { transform: translateX(-52%) translateY(-1px) scaleX(1) scaleY(1.09) rotate(2deg); opacity: 1; filter: drop-shadow(0 0 8px rgba(222,161,70,.46)); }
+        64% { transform: translateX(-49%) translateY(.5px) scaleX(.86) scaleY(.96) rotate(-1deg); opacity: .84; filter: drop-shadow(0 0 4px rgba(222,161,70,.24)); }
       }
       @keyframes passageGlow {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(184,148,90,.18), 0 0 18px rgba(184,148,90,.18); }
-        50% { box-shadow: 0 0 0 5px rgba(184,148,90,.06), 0 0 24px rgba(184,148,90,.26); }
+        0%, 100% { opacity: .28; transform: translate(-50%, -50%) scale(.92); }
+        46% { opacity: .52; transform: translate(-50%, -50%) scale(1.06); }
+      }
+      @keyframes passageWordFlicker {
+        0%, 100% { color: #191815; text-shadow: 0 0 0 rgba(184,148,90,0); }
+        42% { color: #242018; text-shadow: 0 0 10px rgba(184,148,90,.13); }
+        58% { color: #151410; text-shadow: 0 0 3px rgba(184,148,90,.08); }
       }
     `}</style>
     <div style={{ width: size, height: size, position: "relative", flexShrink: 0 }}>
-      <div style={{ position: "absolute", left: "50%", bottom: 1, transform: "translateX(-50%)", width: size * 0.54, height: size * 0.64, borderRadius: "45% 45% 36% 36%", background: "linear-gradient(180deg, #f8f4ea 0%, #d7c8ad 100%)", border: "1px solid rgba(184,148,90,.28)", animation: "passageGlow 3.8s ease-in-out infinite" }} />
-      <div style={{ position: "absolute", left: "50%", top: 1, width: size * 0.28, height: size * 0.46, transformOrigin: "50% 88%", borderRadius: "55% 55% 48% 48%", background: "radial-gradient(circle at 50% 32%, #fff7d8 0%, #d8a747 48%, #b8945a 100%)", animation: "passageFlame 3.8s ease-in-out infinite" }} />
+      <div style={{ position: "absolute", left: "50%", top: "46%", width: size * 1.12, height: size * 1.12, borderRadius: "50%", background: "radial-gradient(circle, rgba(213,165,83,.28) 0%, rgba(213,165,83,.1) 38%, rgba(213,165,83,0) 68%)", animation: "passageGlow 4.8s ease-in-out infinite" }} />
+      <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true" style={{ position: "relative", display: "block" }}>
+        <defs>
+          <linearGradient id="passageWax" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#fbfaf6" />
+            <stop offset="100%" stopColor="#d8d0c2" />
+          </linearGradient>
+          <radialGradient id="passageFlameFill" cx="50%" cy="28%" r="72%">
+            <stop offset="0%" stopColor="#fff7ce" />
+            <stop offset="52%" stopColor="#dfa548" />
+            <stop offset="100%" stopColor="#8b5d24" />
+          </radialGradient>
+        </defs>
+        <path d="M24 5 C30 12 30 20 24 25 C18 20 18 12 24 5Z" fill="url(#passageFlameFill)" style={{ transformOrigin: "24px 25px", animation: "passageFlame 4.2s ease-in-out infinite" }} />
+        <path d="M24 22 C24 22 24 27 24 30" fill="none" stroke="#3b3224" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M16 27 C16 23 32 23 32 27 L30 40 C29.6 42.4 18.4 42.4 18 40Z" fill="url(#passageWax)" stroke="rgba(25,24,21,.22)" strokeWidth="1" />
+        <path d="M18 28 C21 30 27 30 30 28" fill="none" stroke="rgba(255,255,255,.75)" strokeWidth="1.1" strokeLinecap="round" />
+        <path d="M17 41 C20 43 28 43 31 41" fill="none" stroke="rgba(25,24,21,.13)" strokeWidth="1" strokeLinecap="round" />
+      </svg>
     </div>
-    <span style={{ fontFamily: "Georgia, serif", fontSize: nameSize, color: C.ink, letterSpacing: 0 }}>Passage</span>
+    <span style={{ fontFamily: '"SF Pro Display", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: nameSize, color: C.ink, letterSpacing: 0, fontWeight: 520, animation: "passageWordFlicker 5.8s ease-in-out infinite" }}>Passage</span>
   </div>
 );
 
@@ -504,8 +588,8 @@ const TopNav = ({ user, onDashboard, onBack, onSignOut, label, accentColor, onHo
   </div>
 );
 
-const GoogleSignInBtn = ({ label = "Continue with Google" }) => (
-  <button onClick={handleSignInWithGoogle} style={{ width: "100%", padding: "12px 18px", borderRadius: 11, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: C.bgCard, border: `1.5px solid ${C.border}`, color: C.ink, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+const GoogleSignInBtn = ({ label = "Continue with Google", compact = false }) => (
+  <button onClick={handleSignInWithGoogle} style={{ width: compact ? "auto" : "100%", minWidth: compact ? 172 : undefined, padding: compact ? "9px 14px" : "12px 18px", borderRadius: 11, fontSize: compact ? 12.5 : 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: C.bgCard, border: `1.5px solid ${C.border}`, color: C.ink, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, whiteSpace: "nowrap" }}>
     <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
     {label}
   </button>
@@ -795,6 +879,7 @@ You'll receive full details — including service dates, times, and locations �
 With gratitude,
 Passage`);
     setEditedSMS(`Passage: ${coordinatorName || 'A family member'} has asked you to help with: "${taskTitle}" for ${deceasedName || "the estate"}. You'll receive full details when the plan activates. → thepassageapp.io`);
+    setEditedSMS(buildAssignmentSms({ toName: personName, taskTitle, deceasedName }));
   }, [personName, coordinatorName, deceasedName, taskTitle]);
 
   const handleSend = async () => {
@@ -869,19 +954,38 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
   const [notifyChannel, setNotifyChannel] = useState("both");
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [savedPeople, setSavedPeople] = useState([]);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+
+  useEffect(() => {
+    loadPeople(userId).then(setSavedPeople);
+  }, [userId]);
 
   // When a roster role is tapped, pre-fill role and advance to details
   const handleRoleSelect = (r) => {
+    setSelectedPerson(null);
     setSelectedRole(r);
     setRole(r);
     setName(""); // clear name so user fills in the actual person's name
     setStep("details");
   };
 
+  const handleSavedPersonSelect = (person) => {
+    const fullName = [person.first_name, person.last_name].filter(Boolean).join(' ');
+    setSelectedPerson(person);
+    setSelectedRole(person.relationship || person.role || '');
+    setName(fullName || person.email || person.phone || '');
+    setRole(person.relationship || '');
+    setEmail(person.email || '');
+    setPhone(person.phone || '');
+    setNotifyChannel(person.phone && person.email ? 'both' : person.phone ? 'sms' : 'email');
+    setStep("details");
+  };
+
   const handleSendWithPreview = async ({ emailBody, smsBody }) => {
     setSaving(true);
     const personData = { name: name || selectedRole, role: role || selectedRole, email, phone, notifyChannel };
-    const saved = await savePerson(userId, { ...personData, notify_channel: notifyChannel });
+    const saved = await savePerson(userId, { ...personData, id: selectedPerson?.id, notify_channel: notifyChannel });
     if (task.dbId) {
       await updateTask(task.dbId, { assigned_to_name: personData.name, assigned_to_email: personData.email || null, assigned_to_person_id: saved?.id || null });
     }
@@ -921,7 +1025,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
       email, phone, notifyChannel,
     };
 
-    const saved = await savePerson(userId, personData);
+    const saved = await savePerson(userId, { ...personData, id: selectedPerson?.id });
 
     if (task.dbId) {
       await updateTask(task.dbId, {
@@ -976,6 +1080,25 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
 
             {mode === "roster" ? (
               <div>
+                {savedPeople.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: C.soft, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 7 }}>Saved people</div>
+                    <div style={{ display: "grid", gap: 7 }}>
+                      {savedPeople.slice(0, 8).map(person => {
+                        const fullName = [person.first_name, person.last_name].filter(Boolean).join(' ');
+                        return (
+                          <button key={person.id} onClick={() => handleSavedPersonSelect(person)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 11px", borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                            <span style={{ minWidth: 0 }}>
+                              <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: C.ink }}>{fullName || person.email || person.phone}</span>
+                              <span style={{ display: "block", fontSize: 11, color: C.soft, marginTop: 2 }}>{person.relationship || 'Contact'}{person.email ? ` · ${person.email}` : ''}</span>
+                            </span>
+                            <span style={{ color: C.sage, fontSize: 12, fontWeight: 700 }}>Use</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 {PEOPLE_ROLES.map(group => (
                   <div key={group.group} style={{ marginBottom: 14 }}>
                     <div style={{ fontSize: 9, fontWeight: 700, color: C.soft, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 7 }}>{group.group}</div>
@@ -1290,12 +1413,12 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, onBack, o
       </div>
 
       {/* Sticky save bar */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: C.bgCard, borderTop: `1px solid ${C.border}`, padding: "10px 16px", zIndex: 99 }}>
-        <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", gap: 8, alignItems: "center" }}>
+      <div style={{ position: "sticky", bottom: 0, background: "rgba(255,255,255,0.96)", borderTop: `1px solid ${C.border}`, padding: "10px 16px", zIndex: 99, backdropFilter: "blur(10px)" }}>
+        <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           {!userId ? (
             <>
-              <div style={{ flex: 1, fontSize: 12.5, color: C.mid }}>Sign in to save your progress across devices</div>
-              <GoogleSignInBtn label="Save with Google" />
+              <div style={{ flex: "1 1 220px", minWidth: 180, fontSize: 12.5, color: C.mid, lineHeight: 1.35 }}>Sign in to save this plan across devices.</div>
+              <GoogleSignInBtn label="Save with Google" compact />
             </>
           ) : (
             <>
@@ -1365,16 +1488,22 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
   const [workflowId, setWorkflowId] = useState(null);
   const [building, setBuilding] = useState(false);
   const [showTaskList, setShowTaskList] = useState(false);
-  const buildPlan = async () => {
+  const buildPlan = async (purchase = false) => {
     setBuilding(true);
     await saveLead({ flow_type: "immediate", your_name: yourName, your_email: yourEmail, deceased_name: deceasedName, relationship, date_of_death: dateOfDeath, timestamp: new Date().toISOString() });
+    let createdWorkflowId = workflowId;
     const wf = await createWorkflow(user?.id, deceasedName, yourName, yourEmail, dateOfDeath);
     if (wf?.id) {
       const wfId = wf.id;
+      createdWorkflowId = wfId;
       setWorkflowId(wfId);
       await saveAllTasks(wfId, user?.id);
     }
     setBuilding(false);
+    if (purchase) {
+      await handleCheckout('urgent', user && user.id, user && user.email ? user.email : yourEmail, createdWorkflowId);
+      return;
+    }
     setShowTaskList(true);
   };
 
@@ -1421,10 +1550,16 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
 
               <div style={{ display: "flex", gap: 10 }}>
                 <Btn variant="ghost" onClick={() => setStep(0)}>← Back</Btn>
-                <Btn onClick={buildPlan} disabled={!yourName || !yourEmail || building} style={{ flex: 1, background: C.rose }}>
-                  {building ? "Building your plan..." : "Build my plan →"}
+                <Btn onClick={() => buildPlan(true)} disabled={!yourName || !yourEmail || building || !user} style={{ flex: 1, background: C.rose }}>
+                  {building ? "Building your plan..." : "Start urgent plan - $79"}
                 </Btn>
               </div>
+              <div style={{ marginTop: 10, background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.mid, lineHeight: 1.55 }}>
+                Includes the guided estate task plan, coordination tools, and a planned $20 memorial impact donation.
+              </div>
+              <button onClick={() => buildPlan(false)} disabled={!yourName || !yourEmail || building} style={{ width: "100%", marginTop: 10, background: "none", border: "none", fontSize: 12, color: C.soft, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>
+                Preview first steps before checkout
+              </button>
             </Card>
           )}
         </div>
@@ -1447,15 +1582,17 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
 
   const activate = async (mode) => {
     await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, person_name: name, disposition, service_type: serviceType, timestamp: new Date().toISOString() });
+    let createdWorkflowId = null;
     if (user?.id) {
       const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
       const wf = await createWorkflow(user.id, name, user.email, user.email);
       if (wf) {
         const wfId = wf.id;
+        createdWorkflowId = wfId;
         // Mark as green path with trigger token and ready status
         await supabase.from('workflows').update({
           path: 'green',
-          status: mode === 'paid' ? 'ready' : 'draft',
+          status: 'draft',
           trigger_token: token,
           trigger_people: executorEmail ? [executorEmail] : [],
           confirmation_count: 2,
@@ -1472,19 +1609,12 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
           ]);
         }
 
-        // If activating, send executor their "you have been named" email
-        if (mode === 'paid' && executorEmail) {
-          fetch('/api/sendEmail', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: executorEmail, toName: executorName,
-              taskTitle: 'You have been named executor of this estate plan',
-              deceasedName: name, coordinatorName: user.email,
-              workflowId: wfId, actionType: 'assignment',
-            }),
-          }).catch(() => {});
-        }
+        // Paid activation is finalized by Stripe webhook after checkout succeeds.
       }
+    }
+    if (mode === 'paid') {
+      await handleCheckout(selectedPlan, user && user.id, user && user.email, createdWorkflowId);
+      return;
     }
     onComplete(mode);
   };
@@ -2247,7 +2377,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             {/* Start emergency */}
             <div style={{ background: C.roseFaint, borderRadius: 18, padding: "18px", border: `1px solid ${C.rose}22`, marginBottom: 12 }}>
               <div style={{ fontFamily: "Georgia, serif", fontSize: 15.5, color: C.ink, marginBottom: 5 }}>Someone in your family passed away?</div>
-              <Sub>Start an emergency estate plan. We'll build a full task list and help coordinate everything.</Sub>
+              <Sub>Start a $79 urgent estate plan. We plan to reserve $20 from each urgent purchase for memorial impact.</Sub>
               <button onClick={() => window.location.href = '/urgent'} style={{ marginTop: 12, padding: "10px 18px", background: C.rose, border: "none", borderRadius: 11, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
                 Start emergency plan →
               </button>
