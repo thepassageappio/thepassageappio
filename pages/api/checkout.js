@@ -6,20 +6,20 @@ const PLANS = {
     amount: 1000,
     mode: 'subscription',
     interval: 'month',
-    priceEnv: 'STRIPE_PRICE_MONTHLY',
+    priceEnv: ['STRIPE_PRICE_MONTHLY_GREEN', 'STRIPE_PRICE_MONTHLY'],
   },
   annual: {
     label: 'Passage Annual',
     amount: 7900,
     mode: 'subscription',
     interval: 'year',
-    priceEnv: 'STRIPE_PRICE_ANNUAL',
+    priceEnv: ['STRIPE_PRICE_ANNUAL_GREEN', 'STRIPE_PRICE_ANNUAL'],
   },
   lifetime: {
     label: 'Passage Lifetime',
     amount: 29999,
     mode: 'payment',
-    priceEnv: 'STRIPE_PRICE_LIFETIME',
+    priceEnv: ['STRIPE_PRICE_LIFETIME_GREEN', 'STRIPE_PRICE_LIFETIME'],
   },
   urgent: {
     label: 'Passage Urgent Estate Plan',
@@ -29,6 +29,50 @@ const PLANS = {
     impact: '20_donation_grief_support_or_memorial_trees',
   },
 };
+
+function getConfiguredPrice(plan) {
+  const keys = Array.isArray(plan.priceEnv) ? plan.priceEnv : [plan.priceEnv];
+  for (const key of keys) {
+    if (process.env[key]) return process.env[key];
+  }
+  return '';
+}
+
+function dollars(cents) {
+  return '$' + (cents / 100).toFixed(cents % 100 === 0 ? 0 : 2);
+}
+
+async function validateConfiguredPrice(priceId, plan, planId) {
+  if (!priceId) return null;
+
+  const stripeRes = await fetch('https://api.stripe.com/v1/prices/' + encodeURIComponent(priceId), {
+    headers: { Authorization: 'Bearer ' + process.env.STRIPE_SECRET_KEY },
+  });
+  const price = await stripeRes.json();
+
+  if (!stripeRes.ok || price.error) {
+    return price.error?.message || 'Could not verify Stripe price for ' + planId + '.';
+  }
+
+  if (price.currency !== 'usd') {
+    return `${plan.label} is configured with ${price.currency?.toUpperCase() || 'unknown currency'}, expected USD.`;
+  }
+
+  if (price.unit_amount !== plan.amount) {
+    return `${plan.label} is configured as ${dollars(price.unit_amount || 0)}, expected ${dollars(plan.amount)}. Check the Vercel price ID for ${planId}.`;
+  }
+
+  const priceInterval = price.recurring && price.recurring.interval;
+  if (plan.interval && priceInterval !== plan.interval) {
+    return `${plan.label} is configured as ${priceInterval || 'one-time'}, expected ${plan.interval}.`;
+  }
+
+  if (!plan.interval && priceInterval) {
+    return `${plan.label} is configured as a recurring ${priceInterval} price, expected one-time.`;
+  }
+
+  return null;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -61,8 +105,10 @@ export default async function handler(req, res) {
 
     if (userEmail) body.set('customer_email', userEmail);
 
-    const configuredPrice = process.env[plan.priceEnv];
+    const configuredPrice = getConfiguredPrice(plan);
     if (configuredPrice) {
+      const priceError = await validateConfiguredPrice(configuredPrice, plan, planId);
+      if (priceError) return res.status(500).json({ error: priceError });
       body.set('line_items[0][price]', configuredPrice);
     } else {
       body.set('line_items[0][price_data][currency]', 'usd');
