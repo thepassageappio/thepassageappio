@@ -1628,7 +1628,23 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 // ─── OBITUARY MODAL ──────────────────────────────────────────────────────────
-function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose }) {
+const normalizeDisposition = (value) => ({
+  cremation: 'cremation',
+  burial: 'burial',
+  green_burial: 'green',
+  donation: 'donation',
+  undecided: 'unsure',
+})[value] || value || '';
+
+const normalizeServiceType = (value) => ({
+  religious: 'funeral',
+  celebration_of_life: 'celebration',
+  graveside: 'graveside',
+  memorial: 'private',
+  none: 'none',
+})[value] || value || '';
+
+function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose, onSaved }) {
   const [form, setForm] = useState({
     full_name: deceasedName || '',
     date_of_death: dateOfDeath || '',
@@ -1644,6 +1660,14 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose 
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!userId) return;
+    supabase.from('profiles').select('obituary_draft').eq('user_id', userId).maybeSingle().then(({ data }) => {
+      if (data?.obituary_draft) setDraft(data.obituary_draft);
+    });
+  }, [userId]);
 
   const generateDraft = async () => {
     setGenerating(true);
@@ -1662,16 +1686,25 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose 
   };
 
   const saveDraft = async () => {
+    if (!userId) {
+      setError('Please sign in again before saving.');
+      return;
+    }
     setSaving(true);
-    await supabase.from('obituaries').upsert([{
-      workflow_id: workflowId || null,
-      user_id: userId || null,
-      ...form,
-      draft,
+    setError('');
+    const { error } = await supabase.from('profiles').upsert([{
+      user_id: userId,
+      obituary_draft: draft,
       updated_at: new Date().toISOString(),
-    }], { onConflict: 'workflow_id' });
+    }], { onConflict: 'user_id' });
     setSaving(false);
+    if (error) {
+      console.error('saveObituary:', error);
+      setError('Could not save this obituary yet. Please try again.');
+      return;
+    }
     setSaved(true);
+    if (onSaved) onSaved(draft);
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -1716,6 +1749,7 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose 
                 Copy
               </button>
             </div>
+            {error && <div style={{ fontSize: 12, color: C.rose, marginTop: 8 }}>{error}</div>}
           </div>
         )}
 
@@ -1753,6 +1787,138 @@ function PeopleList({ userId }) {
   );
 }
 
+function DocumentsModal({ userId, onClose, onSaved }) {
+  const [docs, setDocs] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ label: '', document_type: 'will', notes: '', unlocks_on_trigger: true });
+
+  const loadDocs = useCallback(() => {
+    if (!userId) return;
+    supabase.from('documents').select('*').eq('user_id', userId).order('created_at', { ascending: false }).then(({ data }) => {
+      setDocs(data || []);
+      setLoaded(true);
+    });
+  }, [userId]);
+
+  useEffect(() => { loadDocs(); }, [loadDocs]);
+
+  const saveDoc = async () => {
+    if (!form.label.trim()) return;
+    setSaving(true);
+    const { error } = await supabase.from('documents').insert([{
+      user_id: userId,
+      label: form.label.trim(),
+      document_type: form.document_type,
+      notes: form.notes || null,
+      unlocks_on_trigger: form.unlocks_on_trigger,
+    }]);
+    if (!error) {
+      await supabase.from('profiles').upsert([{ user_id: userId, documents_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
+      setLoaded(false);
+      setForm({ label: '', document_type: 'will', notes: '', unlocks_on_trigger: true });
+      loadDocs();
+      if (onSaved) onSaved('Document note saved.');
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 5 }}>Documents</div>
+        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6, marginBottom: 18 }}>Tell your family where the important papers live. Uploads come next; this already removes the first layer of panic.</div>
+        <Field label="Document name" placeholder="Will in fire safe, blue folder" value={form.label} onChange={v => setForm(f => ({ ...f, label: v }))} />
+        <Select label="Document type" value={form.document_type} onChange={v => setForm(f => ({ ...f, document_type: v }))} options={[["will","Will"],["trust","Trust"],["advance_directive","Advance directive"],["power_of_attorney","Power of attorney"],["life_insurance","Life insurance"],["funeral_contract","Funeral contract"],["property_deed","Property deed"],["passport","Passport"],["tax_return","Tax return"],["other","Other"]]} />
+        <Field label="Where to find it" placeholder="Home office safe. Code held by executor." value={form.notes} onChange={v => setForm(f => ({ ...f, notes: v }))} />
+        <label style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 13, color: C.ink, marginBottom: 14 }}>
+          <input type="checkbox" checked={form.unlocks_on_trigger} onChange={e => setForm(f => ({ ...f, unlocks_on_trigger: e.target.checked }))} />
+          Share with trusted contacts when the plan activates
+        </label>
+        <button onClick={saveDoc} disabled={saving || !form.label.trim()} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 18 }}>{saving ? "Saving..." : "Save document note"}</button>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Saved</div>
+        {!loaded ? <div style={{ fontSize: 13, color: C.soft }}>Loading...</div> : docs.length === 0 ? <div style={{ fontSize: 13, color: C.soft, marginBottom: 16 }}>No documents saved yet.</div> : docs.map(doc => (
+          <div key={doc.id} style={{ background: C.bgSubtle, borderRadius: 11, padding: "11px 13px", marginBottom: 7 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{doc.label}</div>
+            <div style={{ fontSize: 11.5, color: C.soft, marginTop: 2 }}>{doc.document_type?.replace(/_/g, ' ')}</div>
+            {doc.notes && <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.5, marginTop: 6 }}>{doc.notes}</div>}
+          </div>
+        ))}
+        <button onClick={onClose} style={{ width: "100%", padding: "10px", borderRadius: 11, border: "1.5px solid " + C.border, background: C.bgCard, fontSize: 13, color: C.mid, cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}>Close</button>
+      </div>
+    </div>
+  );
+}
+
+function MemoriesModal({ userId, onClose, onSaved }) {
+  const [items, setItems] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ title: '', to_name: '', to_email: '', content_type: 'letter', delivery_trigger: 'on_death', content_text: '' });
+
+  const loadItems = useCallback(() => {
+    if (!userId) return;
+    supabase.from('scheduled_deliveries').select('*').eq('from_user_id', userId).order('created_at', { ascending: false }).then(({ data }) => {
+      setItems(data || []);
+      setLoaded(true);
+    });
+  }, [userId]);
+
+  useEffect(() => { loadItems(); }, [loadItems]);
+
+  const saveMemory = async () => {
+    if (!form.title.trim() || !form.content_text.trim()) return;
+    setSaving(true);
+    const { error } = await supabase.from('scheduled_deliveries').insert([{
+      from_user_id: userId,
+      title: form.title.trim(),
+      to_name: form.to_name || null,
+      to_email: form.to_email || null,
+      content_type: form.content_type,
+      delivery_trigger: form.delivery_trigger,
+      content_text: form.content_text,
+      status: 'scheduled',
+    }]);
+    if (!error) {
+      await supabase.from('profiles').upsert([{ user_id: userId, vault_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
+      setLoaded(false);
+      setForm({ title: '', to_name: '', to_email: '', content_type: 'letter', delivery_trigger: 'on_death', content_text: '' });
+      loadItems();
+      if (onSaved) onSaved('Memory saved.');
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 5 }}>Memories</div>
+        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6, marginBottom: 18 }}>Write a note for someone to receive later. For now Passage stores the message; delivery rules come after trigger confirmation is hardened.</div>
+        <Field label="Title" placeholder="For Emma on a hard day" value={form.title} onChange={v => setForm(f => ({ ...f, title: v }))} />
+        <div style={{ display: "flex", gap: 10 }}><div style={{ flex: 1 }}><Field label="Recipient name" value={form.to_name} onChange={v => setForm(f => ({ ...f, to_name: v }))} /></div><div style={{ flex: 1 }}><Field label="Recipient email" value={form.to_email} onChange={v => setForm(f => ({ ...f, to_email: v }))} /></div></div>
+        <Select label="Type" value={form.content_type} onChange={v => setForm(f => ({ ...f, content_type: v }))} options={[["letter","Letter"],["voice_note","Voice note transcript"],["photo_album","Photo note"]]} />
+        <Select label="When should this unlock?" value={form.delivery_trigger} onChange={v => setForm(f => ({ ...f, delivery_trigger: v }))} options={[["on_death","When my plan activates"],["on_date","On a future date"],["on_event","On a milestone"]]} />
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Message</div>
+          <textarea value={form.content_text} onChange={e => setForm(f => ({ ...f, content_text: e.target.value }))} placeholder="Say the thing they may need to hear..." style={{ width: "100%", minHeight: 150, padding: 12, borderRadius: 11, border: "1.5px solid " + C.border, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.7, boxSizing: "border-box" }} />
+        </div>
+        <button onClick={saveMemory} disabled={saving || !form.title.trim() || !form.content_text.trim()} style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: C.sage, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginBottom: 18 }}>{saving ? "Saving..." : "Save memory"}</button>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Saved</div>
+        {!loaded ? <div style={{ fontSize: 13, color: C.soft }}>Loading...</div> : items.length === 0 ? <div style={{ fontSize: 13, color: C.soft, marginBottom: 16 }}>No memories saved yet.</div> : items.map(item => (
+          <div key={item.id} style={{ background: C.bgSubtle, borderRadius: 11, padding: "11px 13px", marginBottom: 7 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{item.title}</div>
+            <div style={{ fontSize: 11.5, color: C.soft, marginTop: 2 }}>{item.to_name || 'Recipient not set'} - {item.delivery_trigger?.replace(/_/g, ' ')}</div>
+            <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.5, marginTop: 6 }}>{item.content_text}</div>
+          </div>
+        ))}
+        <button onClick={onClose} style={{ width: "100%", padding: "10px", borderRadius: 11, border: "1.5px solid " + C.border, background: C.bgCard, fontSize: 13, color: C.mid, cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}>Close</button>
+      </div>
+    </div>
+  );
+}
+
 function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [userData, setUserData] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -1762,6 +1928,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const [showWishes, setShowWishes] = useState(false);
   const [showPeople, setShowPeople] = useState(false);
   const [showObituary, setShowObituary] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
+  const [showMemories, setShowMemories] = useState(false);
   const [showDocumentsInfo, setShowDocumentsInfo] = useState(false);
   const [showMemoriesInfo, setShowMemoriesInfo] = useState(false);
   const [wishesData, setWishesData] = useState({});
@@ -1785,6 +1953,16 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
         if (cancelled) return;
         setUserData(u || null);
         setProfile(p || null);
+        if (p) {
+          setWishesData({
+            disposition: p.disposition === 'green' ? 'green_burial' : p.disposition === 'unsure' ? 'undecided' : p.disposition || '',
+            service_type: p.service_type === 'funeral' ? 'religious' : p.service_type === 'celebration' ? 'celebration_of_life' : p.service_type === 'private' ? 'memorial' : p.service_type || '',
+            religious_leader: p.healthcare_proxy_name || '',
+            music_preferences: p.music_notes || '',
+            special_requests: p.special_requests || '',
+            organ_donation: !!p.organ_donor,
+          });
+        }
         setWorkflows(wfs || []);
 
         // Load task completion stats for all workflows
@@ -1844,7 +2022,25 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
 
   const saveWishes = async () => {
     if (!user) return;
-    await supabase.from('wishes').upsert([{ user_id: user.id, disposition: wishesData.disposition || '', service_type: wishesData.service_type || '', religious_leader: wishesData.religious_leader || '', music_preferences: wishesData.music_preferences || '', special_requests: wishesData.special_requests || '', organ_donation: wishesData.organ_donation || false, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
+    const nextProfile = {
+      user_id: user.id,
+      disposition: normalizeDisposition(wishesData.disposition),
+      service_type: normalizeServiceType(wishesData.service_type),
+      healthcare_proxy_name: wishesData.religious_leader || '',
+      music_notes: wishesData.music_preferences || '',
+      special_requests: wishesData.special_requests || '',
+      organ_donor: wishesData.organ_donation || false,
+      wishes_complete: true,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('profiles').upsert([nextProfile], { onConflict: 'user_id' });
+    if (error) {
+      console.error('saveWishes:', error);
+      setWishesToast("Could not save wishes yet.");
+      setTimeout(() => setWishesToast(""), 3000);
+      return;
+    }
+    setProfile(prev => ({ ...(prev || {}), ...nextProfile }));
     setShowWishes(false);
     setWishesToast("Wishes saved.");
     setTimeout(() => setWishesToast(""), 3000);
@@ -2019,7 +2215,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
               <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 14 }}>Your planning file</div>
               {[
                 { label: "Wishes", complete: profile?.wishes_complete, icon: "📝", desc: "Service preferences, burial, religious wishes", action: "wishes" },
-                { label: "Obituary", complete: false, icon: "🕊️", desc: "Draft an obituary — Passage writes it for you", action: "obituary" },
+                { label: "Obituary", complete: !!profile?.obituary_draft, icon: "🕊️", desc: "Draft an obituary - Passage writes it for you", action: "obituary" },
                 { label: "People", complete: profile?.people_complete, icon: "👥", desc: "Designate executor, attorney, contacts", action: "people" },
                 { label: "Documents", complete: profile?.documents_complete, icon: "📄", desc: "Upload will, insurance, advance directive", action: null },
                 { label: "Memories", complete: profile?.vault_complete, icon: "🎙️", desc: "Voice notes and letters, delivered later", action: null },
@@ -2036,8 +2232,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                     if (s.label === "Wishes") setShowWishes(true);
                     else if (s.label === "Obituary") setShowObituary(true);
                     else if (s.label === "People") setShowPeople(true);
-                    else if (s.label === "Documents") setShowDocumentsInfo(true);
-                    else if (s.label === "Memories") setShowMemoriesInfo(true);
+                    else if (s.label === "Documents") setShowDocuments(true);
+                    else if (s.label === "Memories") setShowMemories(true);
                   }} style={{ fontSize: 11, color: C.sage, fontWeight: 700, background: C.sageFaint, border: "none", borderRadius: 7, padding: "4px 11px", cursor: "pointer", fontFamily: "inherit" }}>
                     {s.complete ? "Edit" : "Add"} →
                   </button>
@@ -2085,6 +2281,35 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
           deceasedName={redWorkflows.length > 0 ? redWorkflows[0].deceased_name : null}
           dateOfDeath={redWorkflows.length > 0 ? redWorkflows[0].date_of_death : null}
           onClose={() => setShowObituary(false)}
+          onSaved={(draft) => {
+            setProfile(prev => ({ ...(prev || {}), obituary_draft: draft }));
+            setWishesToast("Obituary saved.");
+            setTimeout(() => setWishesToast(""), 3000);
+          }}
+        />
+      ) : null}
+
+      {showDocuments ? (
+        <DocumentsModal
+          userId={user && user.id}
+          onClose={() => setShowDocuments(false)}
+          onSaved={(msg) => {
+            setProfile(prev => ({ ...(prev || {}), documents_complete: true }));
+            setWishesToast(msg);
+            setTimeout(() => setWishesToast(""), 3000);
+          }}
+        />
+      ) : null}
+
+      {showMemories ? (
+        <MemoriesModal
+          userId={user && user.id}
+          onClose={() => setShowMemories(false)}
+          onSaved={(msg) => {
+            setProfile(prev => ({ ...(prev || {}), vault_complete: true }));
+            setWishesToast(msg);
+            setTimeout(() => setWishesToast(""), 3000);
+          }}
         />
       ) : null}
 
