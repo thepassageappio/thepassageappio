@@ -15,6 +15,7 @@
 // 4. confirmation_count reached → status = 'triggered' → fire all workflow_actions
 
 import { createClient } from '@supabase/supabase-js';
+import { internalHeaders } from '../../lib/deliveryAuth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -97,7 +98,7 @@ async function fireAllActions(workflowId, workflow) {
       if (action.action_type === 'email' && action.recipient_email) {
         await fetch(`${baseUrl}/api/sendEmail`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...internalHeaders() },
           body: JSON.stringify({
             to: action.recipient_email,
             toName: action.recipient_email,
@@ -113,7 +114,7 @@ async function fireAllActions(workflowId, workflow) {
       if (action.action_type === 'sms' && action.recipient_phone) {
         await fetch(`${baseUrl}/api/sendSMS`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...internalHeaders() },
           body: JSON.stringify({
             to: action.recipient_phone,
             deceasedName,

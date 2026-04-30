@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -18,6 +19,7 @@ function statusLabel(value) {
 }
 
 export default function ParticipatingPage() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -116,7 +118,10 @@ export default function ParticipatingPage() {
                   <div style={{ fontSize: 20, marginBottom: 8 }}>No estate roles found for {data.email} yet.</div>
                   <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>If someone invited you with a different email, sign in with that address. When you are assigned a task, it will appear here.</p>
                 </div>
-              ) : data.estates.map(estate => (
+              ) : data.estates
+                .slice()
+                .sort((a, b) => (a.id === router.query.estate ? -1 : b.id === router.query.estate ? 1 : 0))
+                .map(estate => (
                 <div key={estate.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
                     <div>
@@ -140,8 +145,12 @@ export default function ParticipatingPage() {
 
                   <div style={{ marginTop: 16 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 8 }}>Your tasks and notices</div>
-                    {[...estate.tasks.map(t => ({ ...t, _kind: 'task' })), ...estate.actions.map(a => ({ ...a, _kind: 'action' }))].slice(0, 8).map(item => (
-                      <div key={(item.id || item.title) + item.status} style={{ borderTop: `1px solid ${C.border}`, padding: '10px 0', color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
+                    {[...estate.tasks.map(t => ({ ...t, _kind: 'task' })), ...estate.actions.map(a => ({ ...a, _kind: 'action' }))]
+                      .sort((a, b) => (a.id === router.query.task ? -1 : b.id === router.query.task ? 1 : 0))
+                      .slice(0, 8).map(item => {
+                      const isLinkedTask = item.id === router.query.task || (!router.query.task && estate.id === router.query.estate);
+                      return (
+                      <div key={(item.id || item.title) + item.status} style={{ borderTop: `1px solid ${C.border}`, padding: '10px 0', color: C.mid, fontSize: 13, lineHeight: 1.55, background: isLinkedTask ? C.sageFaint : 'transparent', borderRadius: isLinkedTask ? 12 : 0, paddingLeft: isLinkedTask ? 12 : 0, paddingRight: isLinkedTask ? 12 : 0 }}>
                         <strong style={{ color: C.ink }}>{item.title || item.subject || item.action_type || 'Estate coordination'}</strong><br />
                         {item.description && <span>{item.description}<br /></span>}
                         Status: {statusLabel(item.status || item.delivery_status)}
@@ -152,7 +161,7 @@ export default function ParticipatingPage() {
                           <button onClick={() => participantAction(item._kind, item.id, 'help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9, padding: '6px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Ask for help</button>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 </div>
               ))}

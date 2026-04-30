@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { internalHeaders, verifyDeliveryRequest } from '../../lib/deliveryAuth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -12,6 +13,10 @@ export default async function handler(req, res) {
 
   const { type, payload } = req.body;
   if (!type) return res.status(400).json({ error: 'Missing event type' });
+  if (['death_confirmed', 'task_assigned', 'invite_sent'].includes(type)) {
+    const auth = await verifyDeliveryRequest(req);
+    if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+  }
 
   const eventId = await storeEvent(type, payload);
 
@@ -101,7 +106,7 @@ async function handleDeathConfirmed(payload) {
       if (action.action_type === 'email' && action.recipient_email) {
         const emailRes = await fetch(BASE_URL + '/api/sendEmail', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...internalHeaders() },
           body: JSON.stringify({
             to: action.recipient_email,
             toName: action.recipient_name || action.recipient_email,
@@ -119,7 +124,7 @@ async function handleDeathConfirmed(payload) {
       if (action.action_type === 'sms' && action.recipient_phone) {
         const smsRes = await fetch(BASE_URL + '/api/sendSMS', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...internalHeaders() },
           body: JSON.stringify({
             to: action.recipient_phone,
             toName: action.recipient_name || '',
@@ -156,15 +161,15 @@ async function handleDeathConfirmed(payload) {
 }
 
 async function handleTaskAssigned(payload) {
-  const { workflowId, taskTitle, personEmail, personPhone, personName, deceasedName, coordinatorName, notifyChannel, events } = payload;
+  const { workflowId, taskId, taskTitle, personEmail, personPhone, personName, deceasedName, coordinatorName, notifyChannel, events } = payload;
 
   let sent = 0;
 
   if (personEmail && notifyChannel !== 'sms') {
     await fetch(BASE_URL + '/api/sendEmail', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: personEmail, toName: personName, taskTitle, deceasedName, coordinatorName, workflowId, actionType: 'assignment', events: events || [] }),
+      headers: { 'Content-Type': 'application/json', ...internalHeaders() },
+      body: JSON.stringify({ to: personEmail, toName: personName, taskTitle, taskId, deceasedName, coordinatorName, workflowId, actionType: 'assignment', events: events || [] }),
     });
     sent++;
   }
@@ -172,8 +177,8 @@ async function handleTaskAssigned(payload) {
   if (personPhone && notifyChannel !== 'email') {
     await fetch(BASE_URL + '/api/sendSMS', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: personPhone, toName: personName, taskTitle, deceasedName, coordinatorName, workflowId, actionType: 'assignment', events: events || [] }),
+      headers: { 'Content-Type': 'application/json', ...internalHeaders() },
+      body: JSON.stringify({ to: personPhone, toName: personName, taskTitle, taskId, deceasedName, coordinatorName, workflowId, actionType: 'assignment', events: events || [] }),
     });
     sent++;
   }
@@ -208,7 +213,7 @@ async function handleInviteSent(payload) {
 
   await fetch(BASE_URL + '/api/sendEmail', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...internalHeaders() },
     body: JSON.stringify({
       to: inviteeEmail,
       toName: inviteeName || inviteeEmail,

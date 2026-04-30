@@ -1,5 +1,6 @@
 // pages/api/sendEmail.js
 import { createClient } from '@supabase/supabase-js';
+import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -11,8 +12,11 @@ const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
+  const auth = await verifyDeliveryRequest(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   const {
-    to, toName, subject, taskTitle, deceasedName,
+    to, toName, subject, taskTitle, taskId, deceasedName,
     coordinatorName, workflowId, actionType, events, messageText, cc
   } = req.body;
 
@@ -53,7 +57,7 @@ export default async function handler(req, res) {
     } else if (actionType === 'execution') {
       html = executionEmail(name, taskTitle, deceased, coordinator, messageText);
     } else {
-      html = assignmentEmail(name, taskTitle, deceased, coordinator, serviceBlock);
+      html = assignmentEmail(name, taskTitle, deceased, coordinator, serviceBlock, workflowId, taskId);
     }
 
     const emailSubject = subject ||
@@ -105,7 +109,10 @@ function wrap(body) {
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{font-family:Georgia,serif;background:#f6f3ee;margin:0;padding:32px 16px}.card{background:#fff;border-radius:16px;padding:36px 32px;max-width:520px;margin:0 auto;box-shadow:0 2px 16px rgba(0,0,0,0.06)}.logo{font-size:11px;color:#a09890;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:24px}.h1{font-size:22px;color:#1a1916;font-weight:400;line-height:1.35;margin:0 0 14px}.p{color:#6a6560;font-size:14px;line-height:1.75;margin:0 0 12px}.tag{display:inline-block;background:#f0f5f1;border:1px solid #c8deca;border-radius:8px;padding:3px 10px;font-size:11px;color:#6b8f71;font-weight:600;letter-spacing:0.05em;margin-bottom:20px}.task{background:#f6f3ee;border-radius:10px;padding:14px 16px;margin:18px 0}.task-label{font-size:10px;font-weight:700;color:#a09890;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:5px}.task-title{font-size:15px;color:#1a1916;font-weight:600}.btn{display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;padding:13px 26px;border-radius:11px;font-size:15px;font-family:Georgia,serif;font-weight:700;margin:20px 0}.footer{font-size:11px;color:#a09890;margin-top:28px;padding-top:20px;border-top:1px solid #f0ece5;line-height:1.6}</style></head><body><div class="card"><div class="logo">Passage</div>' + body + '<div class="footer">Passage helps families coordinate everything before, during, and after a death.<br><a href="' + SITE_URL + '" style="color:#6b8f71;">thepassageapp.io</a></div></div></body></html>';
 }
 
-function assignmentEmail(name, task, deceased, coordinator, serviceBlock) {
+function assignmentEmail(name, task, deceased, coordinator, serviceBlock, workflowId, taskId) {
+  const estateParam = workflowId ? '?estate=' + encodeURIComponent(workflowId) : '';
+  const taskParam = workflowId && taskId ? '&task=' + encodeURIComponent(taskId) : '';
+  const participantUrl = SITE_URL + '/participating' + estateParam + taskParam;
   return wrap(
     '<div class="tag">Task assignment</div>' +
     '<div class="h1">You have been asked to help.</div>' +
@@ -113,7 +120,7 @@ function assignmentEmail(name, task, deceased, coordinator, serviceBlock) {
     '<div class="task"><div class="task-label">Your task</div><div class="task-title">' + (task || 'Estate coordination') + '</div></div>' +
     serviceBlock +
     '<p class="p">You will receive full details when the plan activates. Nothing is required from you right now.</p>' +
-    '<a href="' + SITE_URL + '/participating" class="btn">View my Passage role</a>' +
+    '<a href="' + participantUrl + '" class="btn">View my Passage task</a>' +
     '<p class="p" style="font-size:12px;color:#a09890;">You can see estates where you have a role, complete assigned tasks, and start your own plan with participant pricing when available.</p>' +
     '<p class="p">Questions? Reach out to ' + coordinator + ' directly.</p>'
   );

@@ -901,8 +901,11 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
       await saveWorkflowAction(workflowId, saved, `${selected.label} role`, "email");
       if (phone) await saveWorkflowAction(workflowId, { ...saved, phone }, `${selected.label} role`, "sms");
       // Route through orchestration layer
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
       fetch("/api/handleEvent", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify({ type: "task_assigned", payload: {
           workflowId, taskTitle: selected.label + " (" + selected.tasks.length + " tasks)",
           deceasedName, coordinatorName,
@@ -1202,9 +1205,11 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const sendDraft = async () => {
     if (!recipientEmail) return;
     setSending(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
     await fetch('/api/sendEmail', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
       body: JSON.stringify({ to: recipientEmail, cc: userEmail || undefined, subject: playbook.subject, taskTitle: task.title, deceasedName, coordinatorName, actionType: 'execution', messageText: draft }),
     });
     setSending(false);
@@ -1278,7 +1283,9 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
   const assignedTasks = (tasks || []).filter(t => t.assignedTo || t.assignedEmail).slice(0, 12);
   const sendAll = async () => {
     setSending(true);
-    const res = await fetch('/api/handleEvent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'death_confirmed', payload: { workflowId } }) });
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const res = await fetch('/api/handleEvent', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify({ type: 'death_confirmed', payload: { workflowId } }) });
     setSending(false);
     if (res.ok) { onSent && onSent(); onClose(); } else alert('Passage could not send these yet. Review contacts and try again.');
   };
@@ -1360,22 +1367,25 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
     if (saved && workflowId) {
       await saveWorkflowAction(workflowId, saved, task.title, 'email');
       if (personData.phone) await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
       // Route through orchestration layer
-      fetch('/api/handleEvent', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      fetch('/api/handleEvent', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ type: 'task_assigned', payload: {
-          workflowId, taskTitle: task.title, deceasedName, coordinatorName,
+          workflowId, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName,
           personEmail: personData.email || null, personPhone: personData.phone || null,
           personName: personData.name, notifyChannel,
           emailBody, smsBody,
         }})}).catch(() => {
           // Fallback: call directly if orchestration fails
           if (personData.email && notifyChannel !== 'sms') {
-            fetch('/api/sendEmail', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ to: personData.email, toName: personData.name, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'assignment' }) }).catch(() => {});
+            fetch('/api/sendEmail', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
+              body: JSON.stringify({ to: personData.email, toName: personData.name, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'assignment' }) }).catch(() => {});
           }
           if (personData.phone && notifyChannel !== 'email') {
-            fetch('/api/sendSMS', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ to: personData.phone, toName: personData.name, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'assignment' }) }).catch(() => {});
+            fetch('/api/sendSMS', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
+              body: JSON.stringify({ to: personData.phone, toName: personData.name, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'assignment' }) }).catch(() => {});
           }
         });
     }
@@ -1409,19 +1419,22 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
       if (personData.phone) {
         await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
       }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
       // Fire immediate assignment notification if contact info provided
       if (personData.email) {
         fetch('/api/sendEmail', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ to: personData.email, toName: personData.name, taskTitle: task.title, workflowId, actionType: 'assignment' }),
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({ to: personData.email, toName: personData.name, taskId: task.dbId || task.id, taskTitle: task.title, workflowId, actionType: 'assignment' }),
         }).catch(e => console.warn('Email send failed:', e));
       }
       if (personData.phone) {
         fetch('/api/sendSMS', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ to: personData.phone, toName: personData.name, taskTitle: task.title, workflowId, actionType: 'assignment' }),
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({ to: personData.phone, toName: personData.name, taskId: task.dbId || task.id, taskTitle: task.title, workflowId, actionType: 'assignment' }),
         }).catch(e => console.warn('SMS send failed:', e));
       }
     }

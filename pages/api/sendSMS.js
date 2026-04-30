@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -8,7 +9,10 @@ const supabase = createClient(
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { to, toName, taskTitle, deceasedName, coordinatorName, workflowId, actionType, events } = req.body;
+  const auth = await verifyDeliveryRequest(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
+  const { to, toName, taskTitle, taskId, deceasedName, coordinatorName, workflowId, actionType, events } = req.body;
   if (!to) return res.status(400).json({ error: 'Missing phone number' });
 
   const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
@@ -45,7 +49,13 @@ export default async function handler(req, res) {
     var shortName = clean(toName || 'You', 16);
     var shortDeceased = clean(deceased || 'estate', 16);
     var siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
-    var detailUrl = workflowId ? siteUrl + '/estate?id=' + encodeURIComponent(workflowId) : siteUrl;
+    var estateId = workflowId ? encodeURIComponent(workflowId) : '';
+    var taskRef = taskId ? '&task=' + encodeURIComponent(taskId) : '';
+    var detailUrl = workflowId
+      ? (actionType === 'trigger'
+        ? siteUrl + '/estate?id=' + estateId
+        : siteUrl + '/participating?estate=' + estateId + taskRef)
+      : siteUrl + '/participating';
 
     var message;
     if (actionType === 'trigger') {
