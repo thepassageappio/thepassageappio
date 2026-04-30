@@ -1191,7 +1191,7 @@ Passage`);
   );
 }
 
-function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, onHandled, onNotApplicable, onAssign, onClose }) {
+function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, workflowId, onHandled, onNotApplicable, onAssign, onOpenObituary, onClose }) {
   const playbook = executionForTask(task, deceasedName, coordinatorName, userEmail);
   const [recipientEmail, setRecipientEmail] = useState(task?.assignedEmail || playbook.recipientEmail || '');
   const [draft, setDraft] = useState(playbook.draft);
@@ -1233,6 +1233,20 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, onH
         </div>
         {playbook.link && (
           <a href={playbook.link} target="_blank" rel="noreferrer" style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>Open the right website</a>
+        )}
+        {(task.isSocial || task.isObituary) && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 14 }}>
+            {task.isSocial && (
+              <button onClick={() => { var p = new URLSearchParams({wid: workflowId || "", dn: deceasedName || "", cn: coordinatorName || ""}); window.open("/share?" + p.toString(), "_blank"); }} style={{ padding: "11px", borderRadius: 11, border: "1px solid #1877F220", background: "#f0f4ff", color: "#1877F2", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>
+                Open announcement draft
+              </button>
+            )}
+            {task.isObituary && (
+              <button onClick={onOpenObituary} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>
+                Draft obituary
+              </button>
+            )}
+          </div>
         )}
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared email</div>
@@ -1568,20 +1582,6 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
 
   useEffect(() => { initTasks(); }, [initTasks]);
 
-  const toggleDone = async (taskId) => {
-    setTasks(prev => prev.map(t => {
-      if (t.id !== taskId) return t;
-      const next = { ...t, completed: !t.completed };
-      if (next.dbId) {
-        updateTask(next.dbId, {
-          status: next.completed ? 'handled' : 'pending',
-          completed_at: next.completed ? new Date().toISOString() : null,
-        });
-      }
-      return next;
-    }));
-  };
-
   const handleAssign = (taskId, name, role) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role } : t));
   };
@@ -1638,6 +1638,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   const done = readiness.handled;
   const assigned = tasks.filter(t => t.assignedTo).length;
   const pct = readinessPercentage(readiness);
+  const requiredRemaining = Math.max(0, readiness.required - done);
 
   const tierMeta = POST_DEATH_TASKS.reduce((a, t) => {
     a[t.tier] = { label: t.tierLabel, color: t.tierColor, bg: t.tierBg, icon: t.icon }; return a;
@@ -1673,15 +1674,15 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
           {/* Progress */}
           <div style={{ background: C.bgCard, borderRadius: 14, padding: "14px 16px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{done} of {tasks.length} tasks handled</span>
-              <span style={{ fontSize: 14, fontWeight: 800, color: pct === 100 ? C.sage : C.ink }}>{pct}%</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{done} of {readiness.required} required tasks handled</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: pct === 100 ? C.sage : C.ink }}>{pct}% ready</span>
             </div>
             <div style={{ height: 8, background: C.border, borderRadius: 4, marginBottom: 8 }}>
               <div style={{ height: "100%", borderRadius: 4, background: pct === 100 ? C.sage : `linear-gradient(90deg, ${C.red}, ${C.orange}, ${C.yellow})`, width: `${pct}%`, transition: "width 0.5s ease" }} />
             </div>
             <div style={{ display: "flex", gap: 16 }}>
               {[
-                { label: "Urgent remaining", value: tasks.filter(t => !t.completed && t.tier === 1).length, color: C.red },
+                { label: "Urgent remaining", value: tasks.filter(t => !t.completed && t.tier === 1 && t.status !== 'not_applicable').length, color: C.red },
                 { label: "Assigned", value: assigned, color: C.sage },
                 { label: "Handled", value: done, color: C.mid },
               ].map(s => (
@@ -1703,7 +1704,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
         {/* Tiers */}
         {[1,2,3,4].map(tier => {
           const meta = tierMeta[tier];
-          const allTier = tasks.filter(t => t.tier === tier);
+          const allTier = tasks.filter(t => t.tier === tier && t.status !== 'not_applicable');
           const filtered = getFiltered(tier);
           const tierDone = allTier.filter(t => t.completed).length;
           const isOpen = expanded[tier];
@@ -1734,15 +1735,19 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                   {filtered.map((task, idx) => (
                     <div key={task.id} style={{ padding: "12px 14px", borderBottom: idx < filtered.length - 1 ? `1px solid ${C.border}` : "none", background: task.completed ? "#fafaf8" : "white" }}>
                       <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
-                        {/* Checkbox */}
-                        <button onClick={() => toggleDone(task.id)} style={{ width: 21, height: 21, borderRadius: 6, flexShrink: 0, marginTop: 2, border: `2px solid ${task.completed ? C.sage : C.border}`, background: task.completed ? C.sage : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, transition: "all 0.15s" }}>
+                        <button
+                          onClick={() => setExecutingTask(task)}
+                          aria-label={task.completed ? "Review handled task" : "Handle this task"}
+                          title={task.completed ? "Review handled task" : "Handle this task"}
+                          style={{ width: 21, height: 21, borderRadius: 6, flexShrink: 0, marginTop: 2, border: `2px solid ${task.completed ? C.sage : C.border}`, background: task.completed ? C.sage : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, transition: "all 0.15s" }}>
                           {task.completed && <svg width="11" height="8" viewBox="0 0 12 9"><path d="M1 4L4.5 7.5L11 1" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                         </button>
 
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: task.completed ? 400 : 600, color: task.completed ? C.muted : C.ink, textDecoration: task.completed ? "line-through" : "none", lineHeight: 1.4, marginBottom: 2 }}>
+                          <div style={{ fontSize: 13, fontWeight: task.completed ? 500 : 600, color: task.completed ? C.mid : C.ink, lineHeight: 1.4, marginBottom: 2 }}>
                             {task.title}
                             {task.isCustom && <span style={{ fontSize: 9, color: C.sage, fontWeight: 700, background: C.sageFaint, padding: "1px 6px", borderRadius: 5, marginLeft: 7, textDecoration: "none" }}>CUSTOM</span>}
+                            {task.status === 'not_applicable' && <span style={{ fontSize: 9, color: C.soft, fontWeight: 700, background: C.bgSubtle, padding: "1px 6px", borderRadius: 5, marginLeft: 7 }}>NOT APPLICABLE</span>}
                           </div>
                           {task.desc && !task.completed && <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.5, marginBottom: task.assignedTo ? 5 : 0 }}>{task.desc}</div>}
                           {task.assignedTo && (
@@ -1754,14 +1759,18 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                           )}
                         </div>
 
-                        {!task.completed && (
+                        {task.completed ? (
+                          <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.mid, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                            Review
+                          </button>
+                        ) : (
                           task.isSocial ? (
-                            <button onClick={() => { var p = new URLSearchParams({wid: workflowId||"", dn: deceasedName||"", cn: coordinatorName||""}); window.open("/share?" + p.toString(), "_blank"); }} style={{ fontSize: 11, fontWeight: 700, color: "#1877F2", background: "#f0f4ff", border: "1px solid #1877F220", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
-                              📣 Share
+                            <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
+                              Handle
                             </button>
                           ) : task.isObituary ? (
-                            <button onClick={() => setShowObituary(true)} style={{ fontSize: 11, fontWeight: 700, color: C.ink, background: C.bgSubtle, border: "none", borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
-                              🕊️ Draft
+                            <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                              Handle
                             </button>
                           ) : (
                             <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
@@ -1809,11 +1818,11 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
           ) : (
             <>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, color: C.mid }}>{done} handled | {assigned} assigned | {tasks.length - done} remaining</div>
+                <div style={{ fontSize: 12, color: C.mid }}>{done} handled | {assigned} assigned | {requiredRemaining} remaining</div>
                 <div style={{ fontSize: 10.5, color: C.soft }}>Changes save automatically as you go</div>
               </div>
               <button onClick={() => { var p = new URLSearchParams({wid: workflowId||"", dn: deceasedName||"", cn: coordinatorName||""}); window.open("/share?" + p.toString(), "_blank"); }} style={{ background: "#f0f4ff", color: "#1877F2", border: "1px solid #1877F220", borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                📣 Share news
+                Handle news
               </button>
               <button onClick={() => setShowEvents(true)} style={{ background: C.goldFaint, color: C.amber, border: `1px solid ${C.gold}30`, borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                 📍 {eventCount > 0 ? `${eventCount} event${eventCount > 1 ? "s" : ""}` : "Add events"}
@@ -1846,9 +1855,11 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
           deceasedName={deceasedName}
           coordinatorName={coordinatorName}
           userEmail={userEmail}
+          workflowId={workflowId}
           onHandled={(notes) => markHandled(executingTask, notes)}
           onNotApplicable={(notes) => markNotApplicable(executingTask, notes)}
           onAssign={() => { setAssigningTask(executingTask); setExecutingTask(null); }}
+          onOpenObituary={() => { setExecutingTask(null); setShowObituary(true); }}
           onClose={() => setExecutingTask(null)}
         />
       )}
@@ -2624,17 +2635,28 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
         const workflowIds = (wfs || []).map(w => w.id).filter(Boolean);
         if (workflowIds.length > 0) {
           const { data: stats } = await supabase.from('tasks')
-            .select('workflow_id, status, assigned_to_name')
+            .select('id, workflow_id, title, status, assigned_to_name, assigned_to_email, due_days_after_trigger, created_at')
             .in('workflow_id', workflowIds);
           if (cancelled) return;
           if (stats) {
             const grouped = {};
             stats.forEach(t => {
-              if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, required: 0, completed: 0, assigned: 0 };
+              if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, required: 0, completed: 0, assigned: 0, openTasks: [] };
               if (t.status !== 'not_applicable') grouped[t.workflow_id].required++;
               grouped[t.workflow_id].total++;
-              if (t.status !== 'not_applicable' && (t.status === 'handled' || t.status === 'completed' || t.status === 'done')) grouped[t.workflow_id].completed++;
-              if (t.assigned_to_name) grouped[t.workflow_id].assigned++;
+              const handled = t.status === 'handled' || t.status === 'completed' || t.status === 'done';
+              if (t.status !== 'not_applicable' && handled) grouped[t.workflow_id].completed++;
+              if (t.status !== 'not_applicable' && t.assigned_to_name) grouped[t.workflow_id].assigned++;
+              if (t.status !== 'not_applicable' && !handled) {
+                grouped[t.workflow_id].openTasks.push({
+                  id: t.id,
+                  title: t.title,
+                  assignedTo: t.assigned_to_name || '',
+                  assignedEmail: t.assigned_to_email || '',
+                  dueDays: t.due_days_after_trigger ?? 0,
+                  createdAt: t.created_at,
+                });
+              }
             });
             setTaskStats(grouped);
           }
@@ -2683,6 +2705,14 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const pd = planMap[plan] || planMap.free;
   const redWorkflows = workflows.filter(w => w.status !== 'archived' && w.path !== 'green');
   const greenWorkflows = workflows.filter(w => w.status !== 'archived' && w.path === 'green');
+  const activeWorkflows = workflows.filter(w => w.status !== 'archived');
+  const attentionItems = activeWorkflows.flatMap(wf => {
+    const openTasks = (taskStats[wf.id]?.openTasks || []).slice(0, 3);
+    return openTasks.map(task => ({ ...task, workflow: wf }));
+  }).sort((a, b) => (a.dueDays ?? 0) - (b.dueDays ?? 0)).slice(0, 5);
+  const totalRequired = Object.values(taskStats).reduce((sum, s) => sum + (s.required || 0), 0);
+  const totalHandled = Object.values(taskStats).reduce((sum, s) => sum + (s.completed || 0), 0);
+  const portfolioReady = totalRequired > 0 ? Math.round((totalHandled / totalRequired) * 100) : 0;
   const estateSeatLimit = getEstateSeatLimit(userData);
   const usedGreenSeats = getUsedGreenSeatCount(workflows);
   const availableGreenSeats = Math.max(0, estateSeatLimit - usedGreenSeats);
@@ -2717,7 +2747,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
-        <div onClick={onSignOut} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }} title="Home">
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }} title="Passage">
           <CandleLogo size={24} nameSize={16} />
         </div>
         <div style={{ fontSize: 11, color: C.soft, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>
@@ -2730,14 +2760,63 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
         ) : (
           <>
             <div style={{ marginBottom: 18 }}>
-              <Heading size={23}>Welcome back{userData?.first_name ? `, ${userData.first_name}` : ""}.</Heading>
+              <Heading size={23}>My File{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
               {redWorkflows.length > 0 ? (
                 <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 13, color: C.sage, fontWeight: 500 }}>
                   ✓ Estate plan active — assign tasks to notify people automatically
                 </div>
               ) : (
-                <Sub>Set up a plan now, or coordinate an estate if someone just passed.</Sub>
+                <Sub>Your planning file, active estates, participants, and documents live here.</Sub>
               )}
+            </div>
+
+            <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+                <div>
+                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.soft, fontWeight: 700, marginBottom: 5 }}>Command center</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, lineHeight: 1.25 }}>What needs attention now</div>
+                </div>
+                {totalRequired > 0 && (
+                  <div style={{ minWidth: 88, textAlign: "right" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: portfolioReady === 100 ? C.sage : C.ink }}>{portfolioReady}%</div>
+                    <div style={{ fontSize: 10.5, color: C.soft }}>ready</div>
+                  </div>
+                )}
+              </div>
+
+              {attentionItems.length === 0 ? (
+                <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "13px 14px", color: C.sage, fontSize: 13, lineHeight: 1.55 }}>
+                  You've handled what's needed right now. You're in a good place.
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 8 }}>
+                  {attentionItems.map(item => (
+                    <button key={`${item.workflow.id}-${item.id}`} onClick={() => onOpenPlan(item.workflow)}
+                      style={{ width: "100%", textAlign: "left", background: item.workflow.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderRadius: 12, padding: "12px 13px", cursor: "pointer", fontFamily: "inherit" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink, lineHeight: 1.35 }}>{item.title}</div>
+                          <div style={{ fontSize: 11.5, color: C.mid, marginTop: 3 }}>
+                            {item.workflow.name || "Estate"}{item.assignedTo ? ` - ${item.assignedTo} is handling this` : " - unassigned"}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: item.assignedTo ? C.sage : C.rose, whiteSpace: "nowrap" }}>
+                          {item.assignedTo ? "Open" : "Assign"}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
+                {[{l:"Active estates",v:activeWorkflows.length},{l:"Tasks handled",v:totalRequired ? `${totalHandled}/${totalRequired}` : "0"},{l:"Participants",v:Object.values(taskStats).reduce((sum, s) => sum + (s.assigned || 0), 0)}].map(i => (
+                  <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 10, padding: "10px 11px" }}>
+                    <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{i.v}</div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Subscription */}
@@ -3450,7 +3529,6 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <CandleLogo size={32} nameSize={21} />
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <a href="/mission" style={navLink}>Mission</a>
-          <a href="/pricing" style={navLink}>Pricing</a>
           <a href="/content" style={navLink}>Resources</a>
           <a href="/contact" style={navLink}>Contact</a>
           <a href="/participating" style={navLink}>Participating</a>

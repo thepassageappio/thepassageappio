@@ -126,7 +126,7 @@ async function fireAllActions(workflowId, workflow) {
     } catch (err) {
       console.error(`Failed to fire action ${action.id}:`, err);
       await supabase.from('workflow_actions')
-        .update({ status: 'failed', error_message: err.message })
+        .update({ status: 'needs_review', error_message: err.message })
         .eq('id', action.id);
     }
   }

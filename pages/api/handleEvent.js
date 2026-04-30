@@ -68,7 +68,7 @@ async function markEventDone(id, result) {
 async function markEventFailed(id, msg) {
   if (!id) return;
   await supabase.from('orchestration_events').update({
-    status: 'failed',
+    status: 'needs_review',
     error_message: msg,
     processed_at: new Date().toISOString(),
   }).eq('id', id);
@@ -141,7 +141,7 @@ async function handleDeathConfirmed(payload) {
     } catch (err) {
       failed++;
       await supabase.from('workflow_actions').update({
-        status: 'failed',
+        status: 'needs_review',
         error_message: err.message,
       }).eq('id', action.id);
     }
