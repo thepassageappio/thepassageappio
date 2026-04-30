@@ -11,6 +11,7 @@ const C = {
   sage: '#5f8065',
   sageDark: '#3f6046',
   sageFaint: '#eef5ef',
+  sageLight: '#c8deca',
   rose: '#b86b6f',
   roseFaint: '#fbf0ef',
   gold: '#b58b48',
@@ -70,7 +71,7 @@ const taskPlaybooks = {
 function CandleLogo({ size = 34 }) {
   return (
     <div className="brand">
-      <style>{`
+      <style suppressHydrationWarning>{`
         @keyframes brandGlow {
           0%,100% { opacity:.22; transform:translate(-50%,-50%) scale(.92); }
           50% { opacity:.48; transform:translate(-50%,-50%) scale(1.08); }
@@ -227,7 +228,7 @@ export default function UrgentPage() {
 
   return (
     <main>
-      <style>{`
+      <style suppressHydrationWarning>{`
         * { box-sizing: border-box; }
         body { margin: 0; background: ${C.bg}; color: ${C.ink}; }
         main { min-height: 100vh; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at 50% 0%, #fffaf1 0%, ${C.bg} 42%, #f4efe7 100%); }

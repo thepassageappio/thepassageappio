@@ -85,6 +85,10 @@ function isHandledStatus(status) {
   return ['handled', 'completed', 'done', 'not_applicable'].includes(status);
 }
 
+function isReadinessHandled(status) {
+  return ['handled', 'completed', 'done'].includes(status);
+}
+
 function ownerForTask(task) {
   return task.assigned_to_name || task.assigned_to_email || task.owner_label || task.owner_kind || 'Needs owner';
 }
@@ -294,6 +298,12 @@ export default function EstatePage() {
   var handledCount = outcomes.filter(function(o) { return o.status === 'handled'; }).length;
   var needsOwnerCount = outcomes.filter(function(o) { return o.status === 'needs_owner'; }).length;
   var allHandled = handledCount === outcomes.length && outcomes.length > 0;
+  var requiredOutcomeCount = outcomes.length;
+  var requiredTaskCount = tasks.filter(function(t) { return t.status !== 'not_applicable'; }).length;
+  var requiredCount = requiredOutcomeCount + requiredTaskCount;
+  var readinessHandledCount = outcomes.filter(function(o) { return isReadinessHandled(o.status); }).length +
+    tasks.filter(function(t) { return t.status !== 'not_applicable' && isReadinessHandled(t.status); }).length;
+  var readinessPct = requiredCount > 0 ? Math.round((readinessHandledCount / requiredCount) * 100) : 0;
 
   var bannerText = allHandled
     ? "You've handled what's needed right now. You're in a good place."
@@ -389,6 +399,7 @@ export default function EstatePage() {
           )}
           {outcomes.length > 0 && (
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 12, color: SAGE }}><span style={{ fontWeight: 700 }}>{readinessPct}%</span> ready</div>
               {handledCount > 0 && <div style={{ fontSize: 12, color: SAGE }}><span style={{ fontWeight: 700 }}>{handledCount}</span> handled</div>}
               {needsOwnerCount > 0 && <div style={{ fontSize: 12, color: AMBER }}><span style={{ fontWeight: 700 }}>{needsOwnerCount}</span> need an owner</div>}
               {outcomes.filter(function(o) { return o.status === 'not_started'; }).length > 0 && (
@@ -401,6 +412,15 @@ export default function EstatePage() {
         {/* Outcomes — generated from /urgent or empty state */}
         <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 10 }}>Orchestration status</div>
+          <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 12, marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 7 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: SAGE }}>{readinessPct}% ready</div>
+              <div style={{ fontSize: 11.5, color: MID }}>{readinessHandledCount} of {requiredCount || 0} required items handled</div>
+            </div>
+            <div style={{ height: 6, background: CARD, borderRadius: 999, overflow: 'hidden' }}>
+              <div style={{ width: readinessPct + '%', height: '100%', background: SAGE, borderRadius: 999 }} />
+            </div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
             <div style={{ background: AMBER_FAINT, borderRadius: 10, padding: 10 }}>
               <div style={{ fontSize: 18, fontWeight: 800, color: AMBER }}>{needsOwnerCount}</div>

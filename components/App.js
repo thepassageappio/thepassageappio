@@ -354,6 +354,16 @@ const humanStatus = (status) => {
 };
 
 const taskIsHandled = (status) => status === 'handled' || status === 'completed' || status === 'done' || status === 'not_applicable';
+const taskCountsForReadiness = (tasks = []) => {
+  return tasks.reduce((acc, task) => {
+    if (task.status === 'not_applicable') return acc;
+    acc.required += 1;
+    if (task.status === 'handled' || task.status === 'completed' || task.status === 'done' || task.completed) acc.handled += 1;
+    if (task.assignedTo || task.assigned_to_name || task.assigned_to_email) acc.assigned += 1;
+    return acc;
+  }, { required: 0, handled: 0, assigned: 0 });
+};
+const readinessPercentage = (counts) => counts.required > 0 ? Math.round((counts.handled / counts.required) * 100) : 0;
 
 const insertCustomTask = async (workflowId, userId, title, tier) => {
   const { data, error } = await supabase.from('tasks').insert([{
@@ -1624,9 +1634,10 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
     setTimeout(() => setSaveStatus("idle"), 2500);
   };
 
-  const done = tasks.filter(t => t.completed).length;
+  const readiness = taskCountsForReadiness(tasks);
+  const done = readiness.handled;
   const assigned = tasks.filter(t => t.assignedTo).length;
-  const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
+  const pct = readinessPercentage(readiness);
 
   const tierMeta = POST_DEATH_TASKS.reduce((a, t) => {
     a[t.tier] = { label: t.tierLabel, color: t.tierColor, bg: t.tierBg, icon: t.icon }; return a;
@@ -2619,9 +2630,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
           if (stats) {
             const grouped = {};
             stats.forEach(t => {
-              if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, completed: 0, assigned: 0 };
+              if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, required: 0, completed: 0, assigned: 0 };
+              if (t.status !== 'not_applicable') grouped[t.workflow_id].required++;
               grouped[t.workflow_id].total++;
-              if (taskIsHandled(t.status)) grouped[t.workflow_id].completed++;
+              if (t.status !== 'not_applicable' && (t.status === 'handled' || t.status === 'completed' || t.status === 'done')) grouped[t.workflow_id].completed++;
               if (t.assigned_to_name) grouped[t.workflow_id].assigned++;
             });
             setTaskStats(grouped);
@@ -2830,12 +2842,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                             </div>
                             {taskStats[wfId] && (() => {
                               const s = taskStats[wfId];
-                              const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
+                              const required = s.required ?? s.total;
+                              const pct = required > 0 ? Math.round((s.completed / required) * 100) : 0;
                               return (
                                 <div style={{ marginTop: 7 }}>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10.5, color: C.mid }}>{s.completed} of {s.total} tasks handled</span>
-                                    <span style={{ fontSize: 10.5, fontWeight: 700, color: pct > 0 ? C.sage : C.soft }}>{pct}%</span>
+                                    <span style={{ fontSize: 10.5, color: C.mid }}>{s.completed} of {required} required tasks handled</span>
+                                    <span style={{ fontSize: 10.5, fontWeight: 700, color: pct > 0 ? C.sage : C.soft }}>{pct}% ready</span>
                                   </div>
                                   <div style={{ height: 4, borderRadius: 2, background: C.border, overflow: 'hidden' }}>
                                     <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? C.sage : C.rose, borderRadius: 2, transition: 'width 0.3s' }} />
