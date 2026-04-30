@@ -222,6 +222,11 @@ function OutcomeCard({ outcome, expanded, showAssign, onToggle, onMarkHandled, o
               <span style={{ fontSize: 12, fontWeight: 600, color: statusColor, background: statusBg, borderRadius: 6, padding: '2px 8px' }}>{statusLabel}</span>
               {outcome.timeframe === 'now' && <span style={{ fontSize: 11, fontWeight: 700, color: ROSE, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Right now</span>}
             </div>
+            {outcome.status === 'in_progress' && (
+              <div style={{ fontSize: 11.5, color: SAGE, fontWeight: 800, marginTop: 6 }}>
+                {outcome.owner_label ? outcome.owner_label + ' started this' : 'Someone is working on this'}
+              </div>
+            )}
           </div>
           <span style={{ fontSize: 14, color: SOFT, flexShrink: 0, paddingTop: 2 }}>{expanded ? '↑' : '↓'}</span>
         </div>
@@ -655,12 +660,13 @@ export default function EstatePage() {
         return false;
       })
       .map(function(o) {
-        return { id: 'outcome_' + o.id, title: o.title, owner: o.owner_label || 'Needs owner', status: o.status || 'not_started', next: o.status === 'needs_owner' ? 'Assign an owner' : 'Open task' };
+        return { id: 'outcome_' + o.id, title: o.title, owner: o.owner_label || 'Needs owner', status: o.status || 'not_started', next: o.status === 'needs_owner' ? 'Assign an owner' : o.status === 'in_progress' ? ((o.owner_label || 'Someone') + ' is working on this') : 'Open task' };
       });
     var taskItems = tasks
       .filter(function(t) { return !isHandledStatus(t.status) && bucketForTask(t) === bucket.key; })
       .map(function(t) {
-        return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this' };
+        var working = ['assigned', 'waiting', 'in_progress'].includes(t.status || '');
+        return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this' };
       });
     return Object.assign({}, bucket, { items: outcomeItems.concat(taskItems) });
   });
@@ -668,6 +674,10 @@ export default function EstatePage() {
   var next72Group = timelineGroups.find(function(g) { return g.key === '72h'; }) || { items: [] };
   var readyFor72 = nowGroup.items.length === 0 && next72Group.items.length > 0 && !allHandled;
   var upNextTasks = tasks.filter(function(t) { return !isHandledStatus(t.status); }).slice(3, 8);
+  var resumeEvent = events.find(function(e) { return e.event_type === 'task_updated' || e.event_type === 'task_completed' || e.event_type === 'owner_assigned' || e.event_type === 'participant_updated' || e.event_type === 'participant_waiting'; });
+  var firstOpenOutcome = outcomes.find(function(o) { return !isHandledStatus(o.status); });
+  var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t.status); });
+  var firstFastTitle = firstOpenOutcome ? firstOpenOutcome.title : firstOpenTask ? firstOpenTask.title : '';
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
   if (loading) return (
@@ -739,6 +749,21 @@ export default function EstatePage() {
         </div>
 
         {/* Outcomes — generated from /urgent or empty state */}
+        {resumeEvent && (
+          <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Last thing you were working on</div>
+            <div style={{ fontSize: 14, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{resumeEvent.description || resumeEvent.title}</div>
+            <div style={{ fontSize: 12, color: SAGE, fontWeight: 800, marginTop: 4 }}>Continue with the next open item below.</div>
+          </div>
+        )}
+
+        {firstFastTitle && (
+          <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Just do this now</div>
+            <div style={{ fontSize: 15, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{firstFastTitle}</div>
+          </div>
+        )}
+
         <ActivatePlanView
           estate={estate}
           actions={actions}

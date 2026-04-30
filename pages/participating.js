@@ -131,6 +131,12 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const handled = isHandled(itemStatus(item));
   const kind = roleKind(estate?.role, item);
   const contract = requestContract(kind, estate, item);
+  const [savedPulse, setSavedPulse] = useState(false);
+  const noteChange = (value) => {
+    onNotes(value);
+    setSavedPulse(true);
+    setTimeout(() => setSavedPulse(false), 1400);
+  };
   return (
     <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, background: linked || primary ? C.sageFaint : C.card, borderRadius: 14, padding: primary ? 15 : 12, marginTop: 10, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 6 }}>
@@ -142,6 +148,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       </div>
       {primary && (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', marginBottom: 8 }}>
+          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800, marginBottom: 4 }}>You're helping coordinate for {(estate?.deceased_name || estate?.name || 'this family')}'s family through Passage.</div>
           <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800 }}>You are being asked to help with this one task.</div>
           <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 4 }}>
             {estate?.coordinator_name || 'The coordinator'} will see your update. You are not responsible for the whole estate.
@@ -161,7 +168,8 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
       {!handled && (
         <>
-          <textarea value={notes} onChange={e => onNotes(e.target.value)} placeholder="Add notes for the coordinator" style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
+          <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder="Add notes for the coordinator" style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
+          {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Saved</div>}
           <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
             {actionSet(kind).map(([action, label]) => (
               <button key={action} onClick={() => onAction(action)} style={{ border: action === 'handled' || action === 'confirmed' || action === 'delivered' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' || action === 'delivered' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' || action === 'delivered' ? '#fff' : C.mid, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>

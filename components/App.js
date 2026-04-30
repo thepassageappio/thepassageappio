@@ -710,6 +710,8 @@ const buildTaskList = (dbTasks) => {
         notes: db?.notes || '',
         outcomeStatus: db?.outcome_status || '',
         followUpAt: db?.follow_up_at || null,
+        updatedAt: db?.updated_at || db?.created_at || null,
+        completedAt: db?.completed_at || null,
         assignedTo: db?.assigned_to_name || null,
         assignedEmail: db?.assigned_to_email || null,
         isCustom: false,
@@ -732,12 +734,31 @@ const buildTaskList = (dbTasks) => {
       notes: d.notes || '',
       outcomeStatus: d.outcome_status || '',
       followUpAt: d.follow_up_at || null,
+      updatedAt: d.updated_at || d.created_at || null,
+      completedAt: d.completed_at || null,
       assignedTo: d.assigned_to_name || null,
       assignedEmail: d.assigned_to_email || null,
       isCustom: true, dbId: d.id,
     });
   });
   return result;
+};
+
+const taskAwareness = (task) => {
+  if (!task || task.completed || task.status === 'not_applicable') return '';
+  if (['assigned', 'waiting', 'in_progress'].includes(task.status) && task.assignedTo) return `${task.assignedTo} is working on this`;
+  if (['assigned', 'waiting', 'in_progress'].includes(task.status)) return 'Someone is working on this';
+  return '';
+};
+
+const fastActionForTask = (task) => {
+  const title = String(task?.title || '').toLowerCase();
+  if (title.includes('funeral')) return 'Call the funeral home';
+  if (title.includes('certificate')) return 'Ask how death certificates are ordered';
+  if (title.includes('notify') || title.includes('announcement')) return 'Notify the first person';
+  if (title.includes('secure') || title.includes('home') || title.includes('pet')) return 'Ask someone to check the home';
+  if (title.includes('document') || title.includes('will')) return 'Find the document';
+  return task?.title || 'Open the first task';
 };
 
 // ─── UI PRIMITIVES ────────────────────────────────────────────────────────────
@@ -1257,6 +1278,11 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [savedPulse, setSavedPulse] = useState(false);
+  const markSaved = () => {
+    setSavedPulse(true);
+    setTimeout(() => setSavedPulse(false), 1400);
+  };
 
   const sendDraft = async () => {
     if (!recipientEmail) return;
@@ -1335,18 +1361,19 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         )}
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared email</div>
-          <input value={recipientEmail} onChange={e => setRecipientEmail(e.target.value)} placeholder={`Email for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
-          <textarea value={draft} onChange={e => setDraft(e.target.value)} style={{ width: "100%", minHeight: 180, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
+          <input value={recipientEmail} onChange={e => { setRecipientEmail(e.target.value); markSaved(); }} placeholder={`Email for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
+          <textarea value={draft} onChange={e => { setDraft(e.target.value); markSaved(); }} style={{ width: "100%", minHeight: 180, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
           {userEmail && <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>You will be copied at {userEmail} when the email is sent.</div>}
         </div>
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared text message</div>
-          <textarea value={smsDraft} onChange={e => setSmsDraft(e.target.value)} style={{ width: "100%", minHeight: 74, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.55 }} />
+          <textarea value={smsDraft} onChange={e => { setSmsDraft(e.target.value); markSaved(); }} style={{ width: "100%", minHeight: 74, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.55 }} />
           <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>Texts should stay short and point people back to Passage when they are assigned a task.</div>
         </div>
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Notes</div>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Save confirmation numbers, names, next appointment times, or anything the family should know." style={{ width: "100%", minHeight: 96, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
+          <textarea value={notes} onChange={e => { setNotes(e.target.value); markSaved(); }} placeholder="Save confirmation numbers, names, next appointment times, or anything the family should know." style={{ width: "100%", minHeight: 96, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
+          {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 5 }}>Saved</div>}
         </div>
         <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 8 }}>Tell Passage what happened</div>
@@ -1487,7 +1514,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
     const saved = await savePerson(userId, { ...personData, id: selectedPerson?.id, notify_channel: notifyChannel });
     await grantEstateAccess(workflowId, personData);
     if (task.dbId) {
-      await updateTask(task.dbId, { assigned_to_name: personData.name, assigned_to_email: personData.email || null, assigned_to_person_id: saved?.id || null });
+      await updateTask(task.dbId, { assigned_to_name: personData.name, assigned_to_email: personData.email || null, assigned_to_person_id: saved?.id || null, status: 'assigned' });
     }
     if (saved && workflowId) {
       await saveWorkflowAction(workflowId, saved, task.title, 'email');
@@ -1514,7 +1541,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
           }
         });
     }
-    onAssign(task.id, personData.name, personData.role);
+    onAssign(task.id, personData.name, personData.role, { email: personData.email, phone: personData.phone });
     setSaving(false);
     setShowPreview(false);
     onClose();
@@ -1536,6 +1563,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
         assigned_to_name: personData.name,
         assigned_to_email: personData.email || null,
         assigned_to_person_id: saved?.id || null,
+        status: 'assigned',
       });
     }
 
@@ -1564,7 +1592,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
       }
     }
 
-    onAssign(task.id, personData.name, personData.role);
+    onAssign(task.id, personData.name, personData.role, { email: personData.email, phone: personData.phone });
     setSaving(false);
     onClose();
   };
@@ -1707,6 +1735,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   const [addingTier, setAddingTier] = useState(null);
   const [customText, setCustomText] = useState("");
   const [saveStatus, setSaveStatus] = useState("idle");
+  const [lastTaskId, setLastTaskId] = useState("");
 
   const initTasks = useCallback(async () => {
     if (workflowId) {
@@ -1716,12 +1745,21 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
       setTasks(buildTaskList([]));
     }
     setLoaded(true);
+    if (workflowId && typeof window !== 'undefined') setLastTaskId(window.localStorage.getItem(`passage:lastTask:${workflowId}`) || "");
   }, [workflowId]);
 
   useEffect(() => { initTasks(); }, [initTasks]);
 
-  const handleAssign = (taskId, name, role) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role } : t));
+  const rememberTask = (task) => {
+    if (!task) return;
+    setLastTaskId(task.id);
+    if (workflowId && typeof window !== 'undefined') window.localStorage.setItem(`passage:lastTask:${workflowId}`, task.id);
+  };
+
+  const handleAssign = (taskId, name, role, contact = {}) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role, status: t.completed ? t.status : 'assigned' } : t));
+    const hasMessage = contact.email || contact.phone;
+    setToast(hasMessage ? `Message sent to ${name}. Waiting for them to confirm.` : `Waiting for ${name} to confirm.`);
   };
 
   const markHandled = async (task, result = '') => {
@@ -1740,7 +1778,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
     if (task.dbId) await updateTask(task.dbId, dbUpdates);
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: finalStatus === 'handled', status: finalStatus, notes: payload.notes || '', outcomeStatus: payload.outcomeStatus || '' } : t));
     setExecutingTask(null);
-    setToast(finalStatus === 'waiting' ? "Saved as waiting. Passage will keep it visible." : "That's handled. We've saved it and updated the plan.");
+    setToast(finalStatus === 'waiting' ? "Saved as waiting. Passage will keep it visible." : "That's handled. Something real was recorded and the plan is updated.");
   };
 
   const markNotApplicable = async (task, notes = '') => {
@@ -1748,7 +1786,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
     if (task.dbId) await updateTask(task.dbId, { status: 'not_applicable', completed_at: new Date().toISOString(), owner_kind: 'self', notes: savedNotes });
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: true, status: 'not_applicable', notes: savedNotes } : t));
     setExecutingTask(null);
-    setToast("Removed from the timeline.");
+    setToast("Got it - we won't include this going forward.");
   };
 
   const openActivationPreview = async () => {
@@ -1792,6 +1830,8 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   const dayOneRequired = tasks.filter(t => t.tier === 1 && t.status !== 'not_applicable');
   const dayOneHandled = dayOneRequired.filter(t => t.completed);
   const dayOneReady = dayOneRequired.length > 0 && dayOneHandled.length === dayOneRequired.length;
+  const firstLiveTask = tasks.find(t => !t.completed && t.status !== 'not_applicable');
+  const resumeTask = tasks.find(t => t.id === lastTaskId && !t.completed && t.status !== 'not_applicable');
 
   const tierMeta = POST_DEATH_TASKS.reduce((a, t) => {
     a[t.tier] = { label: t.tierLabel, color: t.tierColor, bg: t.tierBg, icon: t.icon }; return a;
@@ -1846,12 +1886,28 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
             </div>
           </div>
 
+          {resumeTask && (
+            <button onClick={() => { rememberTask(resumeTask); setExecutingTask(resumeTask); }} style={{ width: "100%", textAlign: "left", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: "12px 14px", marginBottom: 10, fontFamily: "Georgia, serif", cursor: "pointer" }}>
+              <div style={{ fontSize: 11, color: C.soft, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 4 }}>Last thing you were working on</div>
+              <div style={{ fontSize: 14, color: C.ink, fontWeight: 800 }}>{resumeTask.title}</div>
+              <div style={{ fontSize: 12, color: C.sage, fontWeight: 800, marginTop: 4 }}>Continue -&gt;</div>
+            </button>
+          )}
+
+          {firstLiveTask && (
+            <button onClick={() => { rememberTask(firstLiveTask); setExecutingTask(firstLiveTask); }} style={{ width: "100%", textAlign: "left", background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: "12px 14px", marginBottom: 10, fontFamily: "Georgia, serif", cursor: "pointer" }}>
+              <div style={{ fontSize: 11, color: C.rose, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 4 }}>Just do this now</div>
+              <div style={{ fontSize: 15, color: C.ink, fontWeight: 800 }}>{fastActionForTask(firstLiveTask)}</div>
+            </button>
+          )}
+
           {dayOneReady && (
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "13px 15px", marginBottom: 12 }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: C.sage, marginBottom: 4 }}>You've handled what is needed right now.</div>
               <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>
                 You're in a good place. If you have a little room, the next 72 hours are ready below. Take them one at a time.
               </div>
+              <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6, marginTop: 6 }}>Need a moment? We can pick this up later.</div>
             </div>
           )}
 
@@ -1898,7 +1954,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                     <div key={task.id} style={{ padding: "12px 14px", borderBottom: idx < filtered.length - 1 ? `1px solid ${C.border}` : "none", background: task.completed ? "#fafaf8" : "white" }}>
                       <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
                         <button
-                          onClick={() => setExecutingTask(task)}
+                          onClick={() => { rememberTask(task); setExecutingTask(task); }}
                           aria-label={task.completed ? "Review handled task" : "Handle this task"}
                           title={task.completed ? "Review handled task" : "Handle this task"}
                           style={{ width: 21, height: 21, borderRadius: 6, flexShrink: 0, marginTop: 2, border: `2px solid ${task.completed ? C.sage : C.border}`, background: task.completed ? C.sage : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, transition: "all 0.15s" }}>
@@ -1912,6 +1968,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                             {task.status === 'not_applicable' && <span style={{ fontSize: 9, color: C.soft, fontWeight: 700, background: C.bgSubtle, padding: "1px 6px", borderRadius: 5, marginLeft: 7 }}>NOT APPLICABLE</span>}
                           </div>
                           {task.desc && !task.completed && <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.5, marginBottom: task.assignedTo ? 5 : 0 }}>{task.desc}</div>}
+                          {taskAwareness(task) && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>{taskAwareness(task)}</div>}
                           {task.assignedTo && (
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "2px 9px", marginTop: 4 }}>
                               <span style={{ fontSize: 10 }}>👤</span>
@@ -1922,20 +1979,20 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                         </div>
 
                         {task.completed ? (
-                          <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.mid, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                          <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ fontSize: 11, fontWeight: 700, color: C.mid, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
                             Review
                           </button>
                         ) : (
                           task.isSocial ? (
-                            <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
+                            <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
                               Handle
                             </button>
                           ) : task.isObituary ? (
-                            <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                            <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
                               Handle
                             </button>
                           ) : (
-                            <button onClick={() => setExecutingTask(task)} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                            <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
                               Handle
                             </button>
                           )
@@ -1949,7 +2006,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                     <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, background: C.bgSubtle }}>
                       <div style={{ fontSize: 11, color: C.mid, marginBottom: 7 }}>Add to "{meta.label}"</div>
                       <div style={{ display: "flex", gap: 7 }}>
-                        <input value={customText} onChange={e => setCustomText(e.target.value)}
+                        <input value={customText} onChange={e => { setCustomText(e.target.value); setSaveStatus("saved"); setTimeout(() => setSaveStatus("idle"), 1400); }}
                           placeholder="Describe the task..." autoFocus
                           onKeyDown={e => e.key === 'Enter' && addCustom(tier)}
                           style={{ flex: 1, padding: "9px 13px", borderRadius: 9, fontSize: 13, border: `1.5px solid ${C.border}`, background: C.bgCard, fontFamily: "inherit", outline: "none", color: C.ink }} />
