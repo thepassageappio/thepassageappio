@@ -232,25 +232,25 @@ export default function UrgentPage() {
         * { box-sizing: border-box; }
         body { margin: 0; background: ${C.bg}; color: ${C.ink}; }
         main { min-height: 100vh; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at 50% 0%, #fffaf1 0%, ${C.bg} 42%, #f4efe7 100%); }
-        .shell { max-width: 940px; margin: 0 auto; padding: 28px 22px 56px; }
+        .shell { max-width: 1120px; margin: 0 auto; padding: 20px 22px 44px; }
         .brand { display: inline-flex; align-items: center; gap: 10px; }
         .brand-name { font-size: 25px; font-weight: 520; letter-spacing: 0; animation: wordGlow 4.6s ease-in-out infinite; }
         .mark { position: relative; display: inline-flex; align-items: center; justify-content: center; }
         .halo { position: absolute; inset: -8px; border-radius: 50%; background: radial-gradient(circle, rgba(207,149,60,.26), rgba(207,149,60,0) 66%); animation: brandGlow 4.2s ease-in-out infinite; }
         .flame { transform-origin: 24px 25px; animation: flame 2.9s ease-in-out infinite; }
-        nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 52px; }
+        nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
         nav a { color: ${C.mid}; text-decoration: none; font-size: 14px; }
-        .hero { max-width: 690px; margin-bottom: 28px; }
-        .kicker { color: ${C.rose}; font-size: 12px; text-transform: uppercase; letter-spacing: .16em; font-weight: 750; margin-bottom: 14px; }
-        h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(34px, 5vw, 58px); line-height: 1.05; margin: 0 0 16px; }
-        .lede { font-size: 17px; line-height: 1.7; color: ${C.mid}; max-width: 620px; margin: 0; }
+        .hero { max-width: 760px; margin-bottom: 20px; }
+        .kicker { color: ${C.rose}; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 750; margin-bottom: 10px; }
+        h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(34px, 4.5vw, 48px); line-height: 1.04; margin: 0 0 12px; }
+        .lede { font-size: 15.5px; line-height: 1.55; color: ${C.mid}; max-width: 720px; margin: 0; }
         .grid { display: grid; grid-template-columns: 1.5fr .8fr; gap: 18px; align-items: start; }
         .card { background: rgba(255,253,249,.92); border: 1px solid ${C.border}; border-radius: 18px; box-shadow: 0 18px 50px rgba(55,45,35,.08); }
-        .primary-card { padding: 28px; }
-        .phase { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: ${C.rose}; background: ${C.roseFaint}; border: 1px solid rgba(184,107,111,.22); border-radius: 999px; padding: 5px 10px; font-weight: 750; margin-bottom: 18px; }
-        h2 { font-family: Georgia, serif; font-weight: 400; font-size: 31px; line-height: 1.18; margin: 0 0 12px; }
-        .support { color: ${C.mid}; font-size: 15px; line-height: 1.75; margin: 0 0 22px; max-width: 580px; }
-        .owner { background: ${C.subtle}; border-radius: 14px; padding: 15px 16px; color: ${C.mid}; line-height: 1.55; margin-bottom: 18px; }
+        .primary-card { padding: 22px; }
+        .phase { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; color: ${C.rose}; background: ${C.roseFaint}; border: 1px solid rgba(184,107,111,.22); border-radius: 999px; padding: 4px 9px; font-weight: 750; margin-bottom: 12px; }
+        h2 { font-family: Georgia, serif; font-weight: 400; font-size: 27px; line-height: 1.14; margin: 0 0 9px; }
+        .support { color: ${C.mid}; font-size: 14px; line-height: 1.55; margin: 0 0 14px; max-width: 580px; }
+        .owner { background: ${C.subtle}; border-radius: 14px; padding: 13px 14px; color: ${C.mid}; line-height: 1.45; margin-bottom: 14px; }
         .owner strong { color: ${C.ink}; }
         .playbook { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; margin:0 0 18px; }
         .playbook-kicker { font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:${C.soft}; font-weight:800; margin-bottom:6px; }
@@ -268,7 +268,7 @@ export default function UrgentPage() {
         .self-owner { width:100%; border:1px solid ${C.sageLight}; background:${C.sageFaint}; color:${C.sageDark}; border-radius:14px; padding:13px 14px; font-weight:800; cursor:pointer; margin:12px 0 18px; text-align:left; }
         .self-owner:hover { border-color:${C.sage}; }
         .stack { display: flex; gap: 10px; flex-wrap: wrap; }
-        .side { padding: 20px; }
+        .side { padding: 18px; }
         .meter { height: 8px; border-radius: 999px; background: ${C.subtle}; overflow: hidden; margin: 14px 0 16px; }
         .fill { height: 100%; background: linear-gradient(90deg, ${C.rose}, ${C.gold}, ${C.sage}); width: var(--pct); }
         .stat-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -296,8 +296,8 @@ export default function UrgentPage() {
         .actions .ghost { flex: .7; }
         .actions .primary { flex: 1.3; }
         @media (max-width: 760px) {
-          .shell { padding: 22px 14px 48px; }
-          nav { margin-bottom: 34px; }
+          .shell { padding: 18px 14px 42px; }
+          nav { margin-bottom: 24px; }
           .grid { grid-template-columns: 1fr; }
           .primary-card { padding: 22px; }
           .field.two { grid-template-columns: 1fr; }

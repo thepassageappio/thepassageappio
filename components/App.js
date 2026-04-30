@@ -597,7 +597,7 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
     recipientLabel: 'the right contact',
     recipientEmail: '',
     link: '',
-    linkLabel: 'Open the right website',
+    linkLabel: 'Open link',
     subject: `${deceased} - ${title}`,
     draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. I am reaching out about: ${title}.\n\nCan you please let me know what information you need from us next?\n\nThank you,\n${coordinator}`,
     sms: defaultSms,
@@ -1278,6 +1278,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [actionNotice, setActionNotice] = useState('');
   const [savedPulse, setSavedPulse] = useState(false);
   const markSaved = () => {
     setSavedPulse(true);
@@ -1295,11 +1296,13 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
       body: JSON.stringify({ to: recipientEmail, cc: userEmail || undefined, subject: playbook.subject, taskTitle: task.title, deceasedName, coordinatorName, actionType: 'execution', messageText: draft }),
     });
     setSending(false);
-    if (res.ok) setSent(true);
+    if (res.ok) { setSent(true); setActionNotice(`Message sent to ${recipientEmail}`); }
     else alert('Passage could not send that email yet. You can copy the draft and try again.');
   };
 
   const lowerTitle = String(task?.title || '').toLowerCase();
+  const isCallTask = lowerTitle.includes('funeral') || lowerTitle.includes('hospice') || lowerTitle.includes('home care') || lowerTitle.includes('certificate') || lowerTitle.includes('pronouncement') || lowerTitle.includes('social security');
+  const isLinkTask = Boolean(playbook.link);
   const outcomeOptions = lowerTitle.includes('funeral') ? [
     ['spoke_next_step_set', 'I spoke with them and saved the next step', 'handled'],
     ['left_voicemail', 'I left a voicemail', 'waiting'],
@@ -1340,10 +1343,10 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
               <span style={{ color: C.sage, fontWeight: 800 }}>{i + 1}.</span><span>{step}</span>
             </div>
           ))}
-          <div style={{ marginTop: 10, fontSize: 12, color: C.mid }}>Have one? Add them. Need one? Passage can suggest options once a service ZIP code is available.</div>
+          <div style={{ marginTop: 10, fontSize: 12, color: C.mid }}>Use the prepared action below, then save what happened so the estate stays current.</div>
         </div>
         {playbook.link && (
-          <a href={playbook.link} target="_blank" rel="noreferrer" style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>{playbook.linkLabel || 'Open the right website'}</a>
+          <a href={playbook.link} target="_blank" rel="noreferrer" onClick={() => setActionNotice('Link opened. Save the outcome after the form or website step is done.')} style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>Open link</a>
         )}
         {(task.isSocial || task.isObituary) && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 14 }}>
@@ -1392,19 +1395,25 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
           )}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 8 }}>
-          <button onClick={sendDraft} disabled={!recipientEmail || sending} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : sent ? "Sent" : "Send prepared email"}</button>
+          {isCallTask ? (
+            <button onClick={() => setActionNotice('Call started. Save the outcome after the call so the estate knows what happened.')} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>Call now</button>
+          ) : isLinkTask ? (
+            <button onClick={() => { setActionNotice('Link opened. Save the outcome after the form or website step is done.'); window.open(playbook.link, '_blank', 'noopener,noreferrer'); }} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>Open link</button>
+          ) : (
+            <button onClick={sendDraft} disabled={!recipientEmail || sending} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : sent ? "Message sent" : "Send message"}</button>
+          )}
           <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Draft copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy draft</button>
           <button onClick={() => navigator.clipboard.writeText(smsDraft).then(() => alert('Text copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy text</button>
         </div>
-        {sent && (
+        {(sent || actionNotice) && (
           <div style={{ marginBottom: 8, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "10px 12px", color: C.sage, fontSize: 12.5, fontWeight: 800, lineHeight: 1.5 }}>
-            Email sent and copied to the estate record. Save the outcome below so the plan knows what happened next.
+            {actionNotice || 'Message sent and copied to the estate record.'} Save the outcome below so the plan knows what happened next.
           </div>
         )}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
           <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not applicable</button>
           <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Assign instead</button>
-          <button onClick={() => { if (!outcome) return; setConfirmed(true); setTimeout(() => onHandled({ notes, outcomeStatus: outcome, followUpAt: followUp || null, finalStatus: selectedOutcome?.[2] === 'waiting' ? 'waiting' : 'handled' }), 500); }} disabled={!outcome} style={{ padding: "11px", borderRadius: 11, border: "none", background: !outcome ? C.border : confirmed ? C.sage : C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: outcome ? "pointer" : "not-allowed" }}>{confirmed ? "Saved." : "Save outcome"}</button>
+          <button onClick={() => { if (!outcome) return; setConfirmed(true); setTimeout(() => onHandled({ notes, outcomeStatus: outcome, followUpAt: followUp || null, finalStatus: selectedOutcome?.[2] === 'waiting' ? 'waiting' : 'handled' }), 1400); }} disabled={!outcome} style={{ padding: "11px", borderRadius: 11, border: "none", background: !outcome ? C.border : confirmed ? C.sage : C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: outcome ? "pointer" : "not-allowed" }}>{confirmed ? "Handled" : "Save outcome"}</button>
         </div>
         {confirmed && (
           <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "11px 12px", color: C.sage, fontSize: 13, fontWeight: 800, textAlign: "center" }}>
@@ -1416,7 +1425,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   );
 }
 
-function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, onClose, onSent }) {
+function ActivatePlanView({ workflowId, deceasedName, actions, tasks, events, onClose, onSent }) {
   const [sending, setSending] = useState(false);
   const pendingActions = (actions || []).filter(a => !['sent', 'handled', 'completed'].includes(a.status));
   const assignedTasks = (tasks || []).filter(t => t.assignedTo || t.assignedEmail).slice(0, 12);
@@ -1438,7 +1447,7 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
       <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto" }}>
         <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
         <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.rose, fontWeight: 800, marginBottom: 8 }}>Activate plan</div>
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>Approve the plan and Passage begins.</div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>Here's what will happen.</div>
         <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Nothing sends until you press the button below. After that, Passage records what was sent and what needs follow-up for {deceasedName || 'this estate'}.</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginBottom: 14 }}>
           {channels.map(([label, count]) => (
@@ -1449,9 +1458,9 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
           ))}
         </div>
         <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: C.rose, marginBottom: 8 }}>What will be sent</div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.rose, marginBottom: 8 }}>Messages ready for approval</div>
           {pendingActions.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No pending messages are queued yet. Assign people to tasks first.</div> : pendingActions.map((a, i) => (
-            <div key={a.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "8px 0", fontSize: 13, color: C.mid, lineHeight: 1.5 }}><strong style={{ color: C.ink }}>{a.action_type === 'sms' ? 'Text' : 'Email'}</strong> to {a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'}<br /><span>{a.task_title || a.subject || a.body || 'Estate coordination notice'}</span><br /><span style={{ color: C.soft, fontSize: 12 }}>They will land on their assigned task in Passage.</span></div>
+            <div key={a.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "8px 0", fontSize: 13, color: C.mid, lineHeight: 1.5 }}><strong style={{ color: C.ink }}>{a.action_type === 'sms' ? 'Notify' : 'Email'}</strong> - {a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'}<br /><span>{a.task_title || a.subject || a.body || 'Estate coordination notice'}</span><br /><span style={{ color: C.soft, fontSize: 12 }}>Action: they receive a secure Passage link for their assigned responsibility.</span></div>
           ))}
         </div>
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
@@ -1459,9 +1468,10 @@ function PlanActivationView({ workflowId, deceasedName, actions, tasks, events, 
           {assignedTasks.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No tasks are assigned yet.</div> : assignedTasks.map((t, i) => <div key={t.id || i} style={{ borderTop: i ? `1px solid ${C.border}` : 'none', padding: "7px 0", fontSize: 13, color: C.mid }}><strong style={{ color: C.ink }}>{t.title}</strong><br />Owner: {t.assignedTo || t.assignedEmail}</div>)}
         </div>
         {events?.length > 0 && <div style={{ background: C.bgSubtle, borderRadius: 13, padding: 14, marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 800, color: C.soft, marginBottom: 8 }}>Service details included</div>{events.map((e, i) => <div key={e.id || i} style={{ fontSize: 13, color: C.mid, padding: "5px 0" }}>{e.name || e.event_type}{e.date ? ` - ${e.date}` : ''}{e.location_name ? ` at ${e.location_name}` : ''}</div>)}</div>}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
-          <button onClick={onClose} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Review / edit</button>
-          <button onClick={sendAll} disabled={sending || pendingActions.length === 0} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.rose, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Starting..." : "Approve and begin"}</button>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8 }}>
+          <button onClick={onClose} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Review</button>
+          <button onClick={() => { window.location.href = '/?open=people&backEstate=' + encodeURIComponent(workflowId || ''); }} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Edit</button>
+          <button onClick={sendAll} disabled={sending || pendingActions.length === 0} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.rose, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Activating..." : "Send / Activate"}</button>
         </div>
       </div>
     </div>
@@ -2083,7 +2093,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
         />
       )}
       {showActivation && (
-        <PlanActivationView
+        <ActivatePlanView
           workflowId={workflowId}
           deceasedName={deceasedName}
           tasks={tasks}

@@ -148,8 +148,8 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       </div>
       {primary && (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', marginBottom: 8 }}>
-          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800, marginBottom: 4 }}>You're helping coordinate for {(estate?.deceased_name || estate?.name || 'this family')}'s family through Passage.</div>
-          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800 }}>You are being asked to help with this one task.</div>
+          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800, marginBottom: 4 }}>You've been assigned this responsibility for {(estate?.deceased_name || estate?.name || 'this family')}'s estate.</div>
+          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800 }}>Start with this one task. Passage will tell the coordinator what you decide.</div>
           <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 4 }}>
             {estate?.coordinator_name || 'The coordinator'} will see your update. You are not responsible for the whole estate.
           </div>

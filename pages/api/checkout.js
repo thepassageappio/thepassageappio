@@ -225,7 +225,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    let stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer ' + process.env.STRIPE_SECRET_KEY,
@@ -233,7 +233,25 @@ export default async function handler(req, res) {
       },
       body: body.toString(),
     });
-    const session = await stripeRes.json();
+    let session = await stripeRes.json();
+
+    const promoFailed = participantPromo && !stripeRes.ok && /promotion code|coupon/i.test(session.error?.message || '');
+    if (promoFailed) {
+      body.delete('discounts[0][promotion_code]');
+      body.delete('discounts[0][coupon]');
+      body.delete('metadata[participantDiscountApplied]');
+      body.set('metadata[participantDiscountFailed]', participantPromo.key);
+      body.set('allow_promotion_codes', 'true');
+      stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + process.env.STRIPE_SECRET_KEY,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+      });
+      session = await stripeRes.json();
+    }
 
     if (!stripeRes.ok || session.error) {
       return res.status(500).json({ error: session.error?.message || 'Stripe checkout failed' });

@@ -499,7 +499,7 @@ function ProofPanel({ actions, tasks, events }) {
       </div>
       {rows.length === 0 ? (
         <div style={{ background: SUBTLE, borderRadius: 12, padding: '12px 13px', fontSize: 13, color: MID, lineHeight: 1.55 }}>
-          Nothing has been sent or completed yet. Start with one task, then Passage will record the outcome here.
+          Nothing has been sent or handled yet. Start with one task, then Passage will record the outcome here.
         </div>
       ) : rows.map(function(row, i) {
         var color = row.tone === 'good' ? SAGE : row.tone === 'warn' ? ROSE : MID;

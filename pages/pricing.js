@@ -87,7 +87,7 @@ export default function PricingPage() {
 
         {participantDiscount && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 16, padding: 16, marginBottom: 18, color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
-            <strong style={{ color: C.sage }}>Participant pricing:</strong> if a participant discount is configured, Stripe will apply it automatically to eligible planning subscriptions at checkout. Urgent coordination and add-on estates stay separate.
+            <strong style={{ color: C.sage }}>Participant pricing:</strong> choose the planning subscription that fits your family. If a participant discount is active, Stripe will apply it at checkout; if not, checkout still opens normally.
           </div>
         )}
 
