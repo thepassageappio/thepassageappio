@@ -1,33 +1,78 @@
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
 const PLANS = {
-  monthly: {
-    label: 'Passage Monthly',
+  single_monthly: {
+    label: 'Passage Single Estate Monthly',
     amount: 999,
     mode: 'subscription',
     interval: 'month',
-    priceEnv: ['STRIPE_PRICE_MONTHLY_GREEN', 'STRIPE_PRICE_MONTHLY'],
+    estateSeats: 1,
+    priceEnv: ['STRIPE_PRICE_SINGLE_MONTHLY', 'STRIPE_PRICE_PLANNING_SINGLE_MONTHLY', 'STRIPE_PRICE_MONTHLY_GREEN', 'STRIPE_PRICE_MONTHLY'],
   },
-  semiannual: {
-    label: 'Passage Semi-Annual',
-    amount: 4999,
-    mode: 'subscription',
-    interval: 'month',
-    intervalCount: 6,
-    priceEnv: ['STRIPE_PRICE_SEMIANNUAL_GREEN', 'STRIPE_PRICE_SEMI_ANNUAL_GREEN'],
-  },
-  annual: {
-    label: 'Passage Annual',
+  single_annual: {
+    label: 'Passage Single Estate Annual',
     amount: 7999,
     mode: 'subscription',
     interval: 'year',
-    priceEnv: ['STRIPE_PRICE_ANNUAL_GREEN', 'STRIPE_PRICE_ANNUAL'],
+    estateSeats: 1,
+    priceEnv: ['STRIPE_PRICE_SINGLE_ANNUAL', 'STRIPE_PRICE_PLANNING_SINGLE_ANNUAL', 'STRIPE_PRICE_ANNUAL_GREEN', 'STRIPE_PRICE_ANNUAL'],
   },
-  lifetime: {
-    label: 'Passage Lifetime',
+  single_lifetime: {
+    label: 'Passage Single Estate Lifetime',
     amount: 29999,
     mode: 'payment',
-    priceEnv: ['STRIPE_PRICE_LIFETIME_GREEN', 'STRIPE_PRICE_LIFETIME'],
+    estateSeats: 1,
+    priceEnv: ['STRIPE_PRICE_SINGLE_LIFETIME', 'STRIPE_PRICE_PLANNING_SINGLE_LIFETIME', 'STRIPE_PRICE_LIFETIME_GREEN', 'STRIPE_PRICE_LIFETIME'],
+  },
+  couple_monthly: {
+    label: 'Passage Couple Monthly',
+    amount: 1499,
+    mode: 'subscription',
+    interval: 'month',
+    estateSeats: 2,
+    priceEnv: ['STRIPE_PRICE_COUPLE_MONTHLY', 'STRIPE_PRICE_PLANNING_COUPLE_MONTHLY'],
+  },
+  couple_annual: {
+    label: 'Passage Couple Annual',
+    amount: 11999,
+    mode: 'subscription',
+    interval: 'year',
+    estateSeats: 2,
+    priceEnv: ['STRIPE_PRICE_COUPLE_ANNUAL', 'STRIPE_PRICE_PLANNING_COUPLE_ANNUAL'],
+  },
+  family_monthly: {
+    label: 'Passage Family Steward Monthly',
+    amount: 2499,
+    mode: 'subscription',
+    interval: 'month',
+    estateSeats: 5,
+    priceEnv: ['STRIPE_PRICE_FAMILY_MONTHLY', 'STRIPE_PRICE_PLANNING_FAMILY_MONTHLY'],
+  },
+  family_annual: {
+    label: 'Passage Family Steward Annual',
+    amount: 19999,
+    mode: 'subscription',
+    interval: 'year',
+    estateSeats: 5,
+    priceEnv: ['STRIPE_PRICE_FAMILY_ANNUAL', 'STRIPE_PRICE_PLANNING_FAMILY_ANNUAL'],
+  },
+  addon_monthly: {
+    label: 'Passage Additional Estate Monthly',
+    amount: 499,
+    mode: 'subscription',
+    interval: 'month',
+    estateSeats: 1,
+    addOn: true,
+    priceEnv: ['STRIPE_PRICE_ADDON_ESTATE_MONTHLY', 'STRIPE_PRICE_ADDITIONAL_ESTATE_MONTHLY'],
+  },
+  addon_annual: {
+    label: 'Passage Additional Estate Annual',
+    amount: 3999,
+    mode: 'subscription',
+    interval: 'year',
+    estateSeats: 1,
+    addOn: true,
+    priceEnv: ['STRIPE_PRICE_ADDON_ESTATE_ANNUAL', 'STRIPE_PRICE_ADDITIONAL_ESTATE_ANNUAL'],
   },
   urgent: {
     label: 'Passage Urgent Estate Plan',
@@ -36,6 +81,23 @@ const PLANS = {
     priceEnv: 'STRIPE_PRICE_URGENT',
     impact: '20_donation_grief_support_or_memorial_trees',
   },
+  monthly: null,
+  semiannual: null,
+  annual: null,
+  lifetime: null,
+};
+
+PLANS.monthly = PLANS.single_monthly;
+PLANS.annual = PLANS.single_annual;
+PLANS.lifetime = PLANS.single_lifetime;
+PLANS.semiannual = {
+  label: 'Passage Semi-Annual',
+  amount: 4999,
+  mode: 'subscription',
+  interval: 'month',
+  intervalCount: 6,
+  estateSeats: 1,
+  priceEnv: ['STRIPE_PRICE_SEMIANNUAL_GREEN', 'STRIPE_PRICE_SEMI_ANNUAL_GREEN'],
 };
 
 function getConfiguredPrice(plan) {
@@ -112,6 +174,8 @@ export default async function handler(req, res) {
       'metadata[planId]': planId,
       'metadata[path]': planId === 'urgent' ? 'red' : 'green',
       'metadata[workflowId]': workflowId || '',
+      'metadata[estateSeats]': String(plan.estateSeats || 1),
+      'metadata[addOn]': plan.addOn ? 'true' : 'false',
       'line_items[0][quantity]': '1',
       allow_promotion_codes: 'true',
       submit_type: plan.mode === 'subscription' ? 'subscribe' : 'pay',

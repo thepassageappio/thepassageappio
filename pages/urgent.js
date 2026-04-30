@@ -49,47 +49,65 @@ const initialOutcomes = [
   },
 ];
 
+const taskPlaybooks = {
+  funeral: {
+    title: 'Call script prepared',
+    body: 'Hello, my name is [your name]. I am calling because [loved one] has passed away. We need help with transportation and next arrangements. Can you walk me through what you need from us first?',
+    steps: ['Confirm the funeral home name and phone number', 'Ask what documents they need now', 'Write down the next appointment time'],
+  },
+  family: {
+    title: 'Family message prepared',
+    body: 'I am so sorry to share this here. [Loved one] has passed away. We are using Passage to coordinate next steps and will share updates as we know more. Please give us a little room while we handle the first arrangements.',
+    steps: ['Choose the first three people who should know directly', 'Review the wording before sending', 'Track who has been reached'],
+  },
+  home: {
+    title: 'Home check instructions prepared',
+    body: 'Please check the home, pets, vehicle, mail, doors, windows, and any urgent safety concerns. Send a short update when complete, including anything that needs another person.',
+    steps: ['Confirm who has keys or access', 'Ask for a photo/update when complete', 'Mark the task handled only after the check is done'],
+  },
+};
+
 function CandleLogo({ size = 34 }) {
   return (
     <div className="brand">
       <style>{`
-        @keyframes flame {
-          0%,100% { transform: translateX(-50%) scaleX(.86) scaleY(1) rotate(-2deg); opacity:.82; filter: drop-shadow(0 0 4px rgba(210,145,55,.28)); }
-          18% { transform: translateX(-51%) scaleX(.94) scaleY(1.12) rotate(2deg); opacity:1; filter: drop-shadow(0 0 10px rgba(210,145,55,.52)); }
-          41% { transform: translateX(-49%) scaleX(.78) scaleY(.92) rotate(-1deg); opacity:.72; }
-          67% { transform: translateX(-52%) scaleX(1.02) scaleY(1.07) rotate(1deg); opacity:.96; }
-        }
         @keyframes brandGlow {
           0%,100% { opacity:.22; transform:translate(-50%,-50%) scale(.92); }
           50% { opacity:.48; transform:translate(-50%,-50%) scale(1.08); }
         }
+        @keyframes markFlicker {
+          0%,100% { filter: drop-shadow(0 0 0 rgba(184,120,58,0)); opacity:.96; transform:scale(1); }
+          44% { filter: drop-shadow(0 0 9px rgba(184,120,58,.18)); opacity:1; transform:scale(1.01); }
+          59% { filter: drop-shadow(0 0 3px rgba(184,120,58,.11)); opacity:.92; transform:scale(.995); }
+        }
         @keyframes wordGlow {
-          0%,100% { text-shadow: 0 0 0 rgba(190,140,70,0); color:#191815; }
-          45% { text-shadow: 0 0 14px rgba(190,140,70,.20); color:#282217; }
-          51% { text-shadow: 0 0 5px rgba(190,140,70,.12); color:#171510; }
+          0%,100% { text-shadow: 0 0 0 rgba(190,140,70,0); color:#5b7a63; }
+          45% { text-shadow: 0 0 14px rgba(190,140,70,.20); color:#6f7f5c; }
+          51% { text-shadow: 0 0 5px rgba(190,140,70,.12); color:#506d58; }
         }
       `}</style>
       <span className="mark" style={{ width: size, height: size }}>
         <span className="halo" />
-        <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
-          <defs>
-            <linearGradient id="waxUrgent" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#fbfaf7" />
-              <stop offset="100%" stopColor="#d8d0c2" />
-            </linearGradient>
-            <radialGradient id="flameUrgent" cx="50%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#fff3c7" />
-              <stop offset="48%" stopColor="#d7993c" />
-              <stop offset="100%" stopColor="#765022" />
-            </radialGradient>
-          </defs>
-          <path className="flame" d="M24 5 C31 13 30 20 24 26 C18 20 17 13 24 5Z" fill="url(#flameUrgent)" />
-          <path d="M24 22 C24 25 24 27 24 30" fill="none" stroke="#3b3224" strokeWidth="1.7" strokeLinecap="round" />
-          <path d="M16 27 C16 23 32 23 32 27 L30 40 C29.6 42.4 18.4 42.4 18 40Z" fill="url(#waxUrgent)" stroke="rgba(25,24,21,.22)" />
-          <path d="M18 28 C21 30 27 30 30 28" fill="none" stroke="rgba(255,255,255,.75)" strokeLinecap="round" />
-        </svg>
+        <img src="/passage-icon-light-onbg.svg" alt="" width={size} height={size} style={{ display: 'block', borderRadius: Math.max(8, size * 0.24), animation: 'markFlicker 5.2s ease-in-out infinite' }} />
       </span>
-      <span className="brand-name">Passage</span>
+      <span className="brand-name">PASSAGE</span>
+    </div>
+  );
+}
+
+function TaskPlaybook({ task }) {
+  const guide = taskPlaybooks[task.id] || taskPlaybooks.family;
+  return (
+    <div className="playbook">
+      <div className="playbook-kicker">Prepared next step</div>
+      <div className="playbook-title">{guide.title}</div>
+      <div className="draft-box">{guide.body}</div>
+      <div className="playbook-steps">
+        {guide.steps.map((step, i) => <div key={i}><span>{i + 1}</span>{step}</div>)}
+      </div>
+      <button className="ghost" onClick={() => navigator.clipboard.writeText(guide.body)}>
+        Copy draft
+      </button>
     </div>
   );
 }
@@ -233,6 +251,13 @@ export default function UrgentPage() {
         .support { color: ${C.mid}; font-size: 15px; line-height: 1.75; margin: 0 0 22px; max-width: 580px; }
         .owner { background: ${C.subtle}; border-radius: 14px; padding: 15px 16px; color: ${C.mid}; line-height: 1.55; margin-bottom: 18px; }
         .owner strong { color: ${C.ink}; }
+        .playbook { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; margin:0 0 18px; }
+        .playbook-kicker { font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:${C.soft}; font-weight:800; margin-bottom:6px; }
+        .playbook-title { font-family:Georgia,serif; font-size:18px; color:${C.ink}; margin-bottom:10px; }
+        .draft-box { background:${C.subtle}; border:1px solid ${C.border}; border-radius:12px; padding:13px; color:${C.mid}; font-size:13px; line-height:1.65; margin-bottom:12px; }
+        .playbook-steps { display:grid; gap:7px; margin-bottom:12px; }
+        .playbook-steps div { display:flex; gap:8px; color:${C.mid}; font-size:13px; line-height:1.45; }
+        .playbook-steps span { width:20px; height:20px; border-radius:50%; background:${C.sageFaint}; color:${C.sageDark}; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; font-weight:800; }
         button { font: inherit; }
         .primary, .secondary, .ghost { border: none; border-radius: 12px; padding: 12px 16px; font-weight: 750; cursor: pointer; }
         .primary { background: ${C.ink}; color: white; }
@@ -306,6 +331,8 @@ export default function UrgentPage() {
                 <>No one is assigned yet. Choose the person most likely to answer and follow through.</>
               )}
             </div>
+
+            {primary.owner && <TaskPlaybook task={primary} />}
 
             <div className="stack">
               <button className="primary" onClick={() => setAssigning(primary)}>

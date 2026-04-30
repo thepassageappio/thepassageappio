@@ -26,10 +26,13 @@ const TALLY_URL = "https://tally.so/r/q4Ev05";
 const PROJECT_ID = "qsveqfchwylsbncsfgxe";
 
 const PLAN_OPTIONS = [
-  { id: "annual", label: "Annual", price: "$79.99", per: "/year", badge: "Best value for one planning estate", popular: true },
-  { id: "semiannual", label: "Semi-annual", price: "$49.99", per: "every 6 months", badge: "A lighter commitment for one planning estate" },
-  { id: "monthly", label: "Monthly", price: "$9.99", per: "/month", badge: "One active planning estate. Add more later." },
-  { id: "lifetime", label: "Lifetime", price: "$299.99", per: "one time", badge: "One planning estate active forever." },
+  { id: "single_annual", label: "Single Estate", price: "$79.99", per: "/year", badge: "One active planning estate", popular: true, group: "Planning" },
+  { id: "single_monthly", label: "Single Monthly", price: "$9.99", per: "/month", badge: "One estate, flexible monthly access", group: "Planning" },
+  { id: "couple_annual", label: "Couple Plan", price: "$119.99", per: "/year", badge: "Two active planning estates", group: "Planning" },
+  { id: "family_annual", label: "Family Steward", price: "$199.99", per: "/year", badge: "Up to five active planning estates", group: "Planning" },
+  { id: "single_lifetime", label: "Lifetime Estate", price: "$299.99", per: "one time", badge: "One planning estate active forever", group: "Planning" },
+  { id: "couple_monthly", label: "Couple Monthly", price: "$14.99", per: "/month", badge: "Two estates, monthly", group: "Monthly" },
+  { id: "family_monthly", label: "Family Monthly", price: "$24.99", per: "/month", badge: "Up to five estates, monthly", group: "Monthly" },
 ];
 // ─── TASK DATA — 47 research-backed post-death tasks ─────────────────────────
 const POST_DEATH_TASKS = [
@@ -528,43 +531,26 @@ const Sub = ({ children }) => (
 const CandleLogo = ({ size = 24, nameSize = 16 }) => (
   <div className="passage-brand" style={{ display: "flex", alignItems: "center", gap: Math.max(8, size * 0.32) }}>
     <style>{`
-      @keyframes passageFlame {
-        0%, 100% { transform: translateX(-50%) translateY(0) scaleX(.92) scaleY(1) rotate(-2deg); opacity: .92; filter: drop-shadow(0 0 5px rgba(222,161,70,.34)); }
-        31% { transform: translateX(-52%) translateY(-1px) scaleX(1) scaleY(1.09) rotate(2deg); opacity: 1; filter: drop-shadow(0 0 8px rgba(222,161,70,.46)); }
-        64% { transform: translateX(-49%) translateY(.5px) scaleX(.86) scaleY(.96) rotate(-1deg); opacity: .84; filter: drop-shadow(0 0 4px rgba(222,161,70,.24)); }
-      }
       @keyframes passageGlow {
         0%, 100% { opacity: .28; transform: translate(-50%, -50%) scale(.92); }
         46% { opacity: .52; transform: translate(-50%, -50%) scale(1.06); }
       }
+      @keyframes passageMarkFlicker {
+        0%, 100% { filter: drop-shadow(0 0 0 rgba(184,120,58,0)); opacity: .96; transform: scale(1); }
+        38% { filter: drop-shadow(0 0 8px rgba(184,120,58,.18)); opacity: 1; transform: scale(1.01); }
+        52% { filter: drop-shadow(0 0 3px rgba(184,120,58,.12)); opacity: .92; transform: scale(.995); }
+      }
       @keyframes passageWordFlicker {
-        0%, 100% { color: #191815; text-shadow: 0 0 0 rgba(184,148,90,0); }
-        42% { color: #242018; text-shadow: 0 0 10px rgba(184,148,90,.13); }
-        58% { color: #151410; text-shadow: 0 0 3px rgba(184,148,90,.08); }
+        0%, 100% { color: #5b7a63; text-shadow: 0 0 0 rgba(184,148,90,0); }
+        42% { color: #6f7f5c; text-shadow: 0 0 11px rgba(184,148,90,.18); }
+        58% { color: #506d58; text-shadow: 0 0 4px rgba(184,148,90,.10); }
       }
     `}</style>
     <div style={{ width: size, height: size, position: "relative", flexShrink: 0 }}>
       <div style={{ position: "absolute", left: "50%", top: "46%", width: size * 1.12, height: size * 1.12, borderRadius: "50%", background: "radial-gradient(circle, rgba(213,165,83,.28) 0%, rgba(213,165,83,.1) 38%, rgba(213,165,83,0) 68%)", animation: "passageGlow 4.8s ease-in-out infinite" }} />
-      <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true" style={{ position: "relative", display: "block" }}>
-        <defs>
-          <linearGradient id="passageWax" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#fbfaf6" />
-            <stop offset="100%" stopColor="#d8d0c2" />
-          </linearGradient>
-          <radialGradient id="passageFlameFill" cx="50%" cy="28%" r="72%">
-            <stop offset="0%" stopColor="#fff7ce" />
-            <stop offset="52%" stopColor="#dfa548" />
-            <stop offset="100%" stopColor="#8b5d24" />
-          </radialGradient>
-        </defs>
-        <path d="M24 5 C30 12 30 20 24 25 C18 20 18 12 24 5Z" fill="url(#passageFlameFill)" style={{ transformOrigin: "24px 25px", animation: "passageFlame 4.2s ease-in-out infinite" }} />
-        <path d="M24 22 C24 22 24 27 24 30" fill="none" stroke="#3b3224" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M16 27 C16 23 32 23 32 27 L30 40 C29.6 42.4 18.4 42.4 18 40Z" fill="url(#passageWax)" stroke="rgba(25,24,21,.22)" strokeWidth="1" />
-        <path d="M18 28 C21 30 27 30 30 28" fill="none" stroke="rgba(255,255,255,.75)" strokeWidth="1.1" strokeLinecap="round" />
-        <path d="M17 41 C20 43 28 43 31 41" fill="none" stroke="rgba(25,24,21,.13)" strokeWidth="1" strokeLinecap="round" />
-      </svg>
+      <img src="/passage-icon-light-onbg.svg" alt="" style={{ position: "relative", display: "block", width: size, height: size, borderRadius: Math.max(8, size * 0.24), animation: "passageMarkFlicker 5.2s ease-in-out infinite" }} />
     </div>
-    <span style={{ fontFamily: '"SF Pro Display", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: nameSize, color: C.ink, letterSpacing: 0, fontWeight: 520, animation: "passageWordFlicker 5.8s ease-in-out infinite" }}>Passage</span>
+    <span style={{ fontFamily: '"SF Pro Display", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: nameSize, color: "#5b7a63", letterSpacing: "0.02em", fontWeight: 620, animation: "passageWordFlicker 5.8s ease-in-out infinite" }}>PASSAGE</span>
   </div>
 );
 
@@ -1579,7 +1565,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   const [serviceType, setServiceType] = useState("");
   const [executorName, setExecutorName] = useState("");
   const [executorEmail, setExecutorEmail] = useState("");
-  const [selectedPlan, setSelectedPlan] = useState("annual");
+  const [selectedPlan, setSelectedPlan] = useState("single_annual");
 
   const activate = async (mode) => {
     await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, person_name: name, disposition, service_type: serviceType, timestamp: new Date().toISOString() });
@@ -1721,7 +1707,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
         <div style={{ background: C.bgSubtle, borderRadius: 11, padding: "13px 16px", fontSize: 13, color: C.mid, lineHeight: 1.65, marginTop: 10 }}>
           Right now this is a draft. <strong style={{ color: C.ink }}>Without activation, your family won't see any of this.</strong>
         </div>
-        <div style={{ fontSize: 12, color: C.gold, fontWeight: 700, marginTop: 8 }}>Less than the cost of a single hour with an estate attorney.</div>
+        <div style={{ fontSize: 12, color: C.gold, fontWeight: 700, marginTop: 8 }}>Choose one estate now. Add spouse, parent, or family coverage when you need it.</div>
       </div>
       {PLAN_OPTIONS.map(p => (
         <div key={p.id} onClick={() => setSelectedPlan(p.id)} style={{ border: `2px solid ${selectedPlan === p.id ? C.sage : C.border}`, borderRadius: 12, padding: "13px 16px", cursor: "pointer", background: selectedPlan === p.id ? C.sageFaint : C.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7, position: "relative" }}>
@@ -2255,10 +2241,17 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
   const plan = userData?.plan || 'free';
   const planMap = {
     free: { label: "Free Plan", color: C.soft, price: "$0", nextCharge: "None", renewal: "N/A" },
-    monthly: { label: "Monthly", color: C.sage, price: "$9.99/mo", nextCharge: "Next month", renewal: "Monthly" },
-    semiannual: { label: "Semi-annual", color: C.sage, price: "$49.99/6 mo", nextCharge: "In 6 months", renewal: "Every 6 months" },
-    annual: { label: "Annual", color: C.sage, price: "$79.99/yr", nextCharge: "Next year", renewal: "Annual" },
-    lifetime: { label: "Lifetime", color: C.gold, price: "$299.99", nextCharge: "Never", renewal: "Never" },
+    monthly: { label: "Single Estate Monthly", color: C.sage, price: "$9.99/mo", nextCharge: "Next month", renewal: "Monthly" },
+    annual: { label: "Single Estate Annual", color: C.sage, price: "$79.99/yr", nextCharge: "Next year", renewal: "Annual" },
+    lifetime: { label: "Single Estate Lifetime", color: C.gold, price: "$299.99", nextCharge: "Never", renewal: "Never" },
+    semiannual: { label: "Semi-annual Legacy", color: C.sage, price: "$49.99/6 mo", nextCharge: "In 6 months", renewal: "Every 6 months" },
+    single_monthly: { label: "Single Estate Monthly", color: C.sage, price: "$9.99/mo", nextCharge: "Next month", renewal: "Monthly" },
+    single_annual: { label: "Single Estate Annual", color: C.sage, price: "$79.99/yr", nextCharge: "Next year", renewal: "Annual" },
+    single_lifetime: { label: "Single Estate Lifetime", color: C.gold, price: "$299.99", nextCharge: "Never", renewal: "Never" },
+    couple_monthly: { label: "Couple Monthly", color: C.sage, price: "$14.99/mo", nextCharge: "Next month", renewal: "Monthly" },
+    couple_annual: { label: "Couple Annual", color: C.sage, price: "$119.99/yr", nextCharge: "Next year", renewal: "Annual" },
+    family_monthly: { label: "Family Steward Monthly", color: C.sage, price: "$24.99/mo", nextCharge: "Next month", renewal: "Monthly" },
+    family_annual: { label: "Family Steward Annual", color: C.sage, price: "$199.99/yr", nextCharge: "Next year", renewal: "Annual" },
   };
   const pd = planMap[plan] || planMap.free;
   const redWorkflows = workflows.filter(w => w.status !== 'archived' && w.path !== 'green');
@@ -2382,8 +2375,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             {/* Red path active plans */}
             {redWorkflows.length > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-                <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Active estate plans</div>
-                <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>Tap to view and manage tasks</div>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Active estate command centers</div>
+                <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>Each estate has its own tasks, owners, documents, obituary, and activity history. Open the estate you want to manage.</div>
                 {redWorkflows.map((wf) => {
                   const wfId = wf.id;
                   const wfName = wf.name;
@@ -2479,7 +2472,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
 
             {/* Green path file */}
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 14 }}>Your planning file</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Your default planning file</div>
+              <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.5, marginBottom: 13 }}>This is your reusable planning profile. Estate-specific records live inside each estate command center.</div>
               {[
                 { label: "Wishes", complete: profile?.wishes_complete, icon: "📝", desc: "Service preferences, burial, religious wishes", action: "wishes" },
                 { label: "Obituary", complete: !!profile?.obituary_draft, icon: "🕊️", desc: "Draft an obituary - Passage writes it for you", action: "obituary" },
@@ -2828,6 +2822,31 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       </div>
 
       {/* ── TESTIMONIALS ── */}
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '58px 24px 42px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, color: C.ink, lineHeight: 1.25, marginBottom: 10 }}>Plans for one estate, a couple, or a family</div>
+          <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.65 }}>Start with one planning estate. Upgrade when you are also organizing a spouse, parent, or wider family plan.</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+          {[
+            { label: 'Single Estate', price: '$9.99/mo', alt: '$79.99/year or $299.99 lifetime', seats: '1 active planning estate', tone: C.sage },
+            { label: 'Couple Plan', price: '$14.99/mo', alt: '$119.99/year', seats: '2 active planning estates', tone: C.gold },
+            { label: 'Family Steward', price: '$24.99/mo', alt: '$199.99/year', seats: 'Up to 5 active planning estates', tone: C.sageDark },
+            { label: 'Urgent Estate', price: '$79.99', alt: 'one-time per urgent case', seats: 'First 24-hour orchestration', tone: C.rose },
+          ].map((p, i) => (
+            <div key={i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: p.tone, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>{p.label}</div>
+              <div style={{ fontSize: 27, fontWeight: 850, color: C.ink, marginBottom: 3 }}>{p.price}</div>
+              <div style={{ fontSize: 12, color: C.soft, marginBottom: 12 }}>{p.alt}</div>
+              <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>{p.seats}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: 18, fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>
+          Additional estate add-ons are planned at $4.99/month or $39.99/year after a subscription is active.
+        </div>
+      </div>
+
       <div style={{ background: '#1e1e1a', padding: '50px 24px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: C.soft, fontWeight: 600, textAlign: 'center', marginBottom: 32 }}>Why families need this before they need it</div>
@@ -2849,6 +2868,28 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       </div>
 
       {/* ── FINAL CTA ── */}
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '52px 24px 20px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 26 }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: C.ink, marginBottom: 8 }}>Questions families ask first</div>
+          <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.65 }}>The short version: Passage prepares the plan, but your family stays in control.</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12 }}>
+          {[
+            { q: 'Will Passage send messages automatically?', a: 'No. Messages, documents, and announcements are prepared first, then shown for review and approval before anything is sent.' },
+            { q: 'How does pricing work for multiple people?', a: 'A single plan covers one planning estate. Couple plans cover two. Family Steward covers up to five. Urgent coordination is purchased per estate case.' },
+            { q: 'Can I manage a parent and spouse separately?', a: 'Yes. Each estate should have its own command center with separate tasks, people, documents, obituary, memories, and activity history.' },
+            { q: 'What happens when a plan activates?', a: 'Trusted people confirm, Passage opens the estate command center, drafts next steps, and tracks what is waiting, sent, approved, and completed.' },
+            { q: 'Is this legal advice?', a: 'No. Passage organizes wishes, documents, people, and tasks. Legal decisions still belong with attorneys, funeral homes, and appropriate professionals.' },
+            { q: 'What if someone just died?', a: 'Use the urgent path. It starts with the first practical priorities and keeps choices small so the family does not face a giant checklist.' },
+          ].map((item, i) => (
+            <div key={i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: C.ink, lineHeight: 1.35, marginBottom: 8 }}>{item.q}</div>
+              <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.65 }}>{item.a}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '56px 24px', textAlign: 'center' }}>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: C.ink, lineHeight: 1.25, marginBottom: 10 }}>
           Your family shouldn't have to figure it out while they're grieving.
