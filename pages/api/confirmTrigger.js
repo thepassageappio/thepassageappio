@@ -88,7 +88,7 @@ async function fireAllActions(workflowId, workflow) {
 
   if (!actions?.length) return;
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepassageapp.io';
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
   const deceasedName = workflow.deceased_name || 'your loved one';
   const coordinatorName = workflow.coordinator_name || 'the family coordinator';
 

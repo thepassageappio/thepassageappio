@@ -6,6 +6,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thepassageapp.io").replace(/\/$/, "");
+
 // ─── DESIGN TOKENS ────────────────────────────────────────────────────────────
 const C = {
   bg: "#f6f3ee", bgCard: "#ffffff", bgSubtle: "#f0ece5", bgSage: "#e8eeea",
@@ -338,7 +340,7 @@ const handleCheckout = async (planId, userId, userEmail) => {
 const handleSignInWithGoogle = async () => {
   await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://thepassageapp.io' },
+    options: { redirectTo: SITE_URL },
   });
 };
 

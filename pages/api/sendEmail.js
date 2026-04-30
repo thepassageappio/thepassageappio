@@ -6,6 +6,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -57,9 +59,7 @@ export default async function handler(req, res) {
        actionType === 'invite' ? 'You have been designated as a confirmation contact' :
        'You have been asked to help — ' + deceased);
 
-    // Use onboarding@resend.dev — works without domain verification
-    // Switch to notifications@thepassageapp.io once DNS propagates
-    const from = 'Passage <onboarding@resend.dev>';
+    const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
 
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
 }
 
 function wrap(body) {
-  return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{font-family:Georgia,serif;background:#f6f3ee;margin:0;padding:32px 16px}.card{background:#fff;border-radius:16px;padding:36px 32px;max-width:520px;margin:0 auto;box-shadow:0 2px 16px rgba(0,0,0,0.06)}.logo{font-size:11px;color:#a09890;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:24px}.h1{font-size:22px;color:#1a1916;font-weight:400;line-height:1.35;margin:0 0 14px}.p{color:#6a6560;font-size:14px;line-height:1.75;margin:0 0 12px}.tag{display:inline-block;background:#f0f5f1;border:1px solid #c8deca;border-radius:8px;padding:3px 10px;font-size:11px;color:#6b8f71;font-weight:600;letter-spacing:0.05em;margin-bottom:20px}.task{background:#f6f3ee;border-radius:10px;padding:14px 16px;margin:18px 0}.task-label{font-size:10px;font-weight:700;color:#a09890;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:5px}.task-title{font-size:15px;color:#1a1916;font-weight:600}.btn{display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;padding:13px 26px;border-radius:11px;font-size:15px;font-family:Georgia,serif;font-weight:700;margin:20px 0}.footer{font-size:11px;color:#a09890;margin-top:28px;padding-top:20px;border-top:1px solid #f0ece5;line-height:1.6}</style></head><body><div class="card"><div class="logo">Passage</div>' + body + '<div class="footer">Passage helps families coordinate everything before, during, and after a death.<br><a href="https://thepassageapp.io" style="color:#6b8f71;">thepassageapp.io</a></div></div></body></html>';
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{font-family:Georgia,serif;background:#f6f3ee;margin:0;padding:32px 16px}.card{background:#fff;border-radius:16px;padding:36px 32px;max-width:520px;margin:0 auto;box-shadow:0 2px 16px rgba(0,0,0,0.06)}.logo{font-size:11px;color:#a09890;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:24px}.h1{font-size:22px;color:#1a1916;font-weight:400;line-height:1.35;margin:0 0 14px}.p{color:#6a6560;font-size:14px;line-height:1.75;margin:0 0 12px}.tag{display:inline-block;background:#f0f5f1;border:1px solid #c8deca;border-radius:8px;padding:3px 10px;font-size:11px;color:#6b8f71;font-weight:600;letter-spacing:0.05em;margin-bottom:20px}.task{background:#f6f3ee;border-radius:10px;padding:14px 16px;margin:18px 0}.task-label{font-size:10px;font-weight:700;color:#a09890;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:5px}.task-title{font-size:15px;color:#1a1916;font-weight:600}.btn{display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;padding:13px 26px;border-radius:11px;font-size:15px;font-family:Georgia,serif;font-weight:700;margin:20px 0}.footer{font-size:11px;color:#a09890;margin-top:28px;padding-top:20px;border-top:1px solid #f0ece5;line-height:1.6}</style></head><body><div class="card"><div class="logo">Passage</div>' + body + '<div class="footer">Passage helps families coordinate everything before, during, and after a death.<br><a href="' + SITE_URL + '" style="color:#6b8f71;">thepassageapp.io</a></div></div></body></html>';
 }
 
 function assignmentEmail(name, task, deceased, coordinator, serviceBlock) {
@@ -122,7 +122,7 @@ function triggerEmail(name, deceased, coordinator, serviceBlock) {
     '<p class="p">We are so sorry for your loss.</p>' +
     '<p class="p">' + name + ', you have been designated to help coordinate the estate of ' + deceased + '. Your full task list is ready.</p>' +
     serviceBlock +
-    '<a href="https://thepassageapp.io" class="btn">View your task list</a>' +
+    '<a href="' + SITE_URL + '" class="btn">View your task list</a>' +
     '<p class="p" style="margin-top:16px;">Questions? Reach out to ' + coordinator + ' directly.</p>'
   );
 }

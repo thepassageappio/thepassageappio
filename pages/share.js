@@ -199,7 +199,7 @@ export default function SharePage() {
 
   function share(platformId) {
     var txt = texts ? (texts[platformId] || "") : "";
-    var url = typeof window !== "undefined" ? window.location.origin : "https://thepassageapp.io";
+    var url = typeof window !== "undefined" ? window.location.origin : "https://www.thepassageapp.io";
     if (platformId === "facebook") {
       window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url) + "&quote=" + encodeURIComponent(txt.slice(0, 500)), "_blank", "width=600,height=500");
     } else if (platformId === "linkedin") {

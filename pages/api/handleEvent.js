@@ -5,7 +5,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepassageapp.io';
+const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();

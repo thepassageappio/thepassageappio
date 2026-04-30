@@ -1,4 +1,5 @@
-﻿const BASE = process.env.NEXT_PUBLIC_SITE_URL || 'https://thepassageapp.io';
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const { planId, userId, userEmail } = req.body;
