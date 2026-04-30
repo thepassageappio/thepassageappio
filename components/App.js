@@ -25,6 +25,16 @@ const C = {
 const TALLY_URL = "https://tally.so/r/q4Ev05";
 const PROJECT_ID = "qsveqfchwylsbncsfgxe";
 
+const PLAN_OPTIONS = [
+  { id: "annual", label: "Annual", price: "$79", per: "/year", badge: "Best value - save 45%", popular: true },
+  { id: "monthly", label: "Monthly", price: "$12", per: "/month", badge: "Start anytime, cancel anytime" },
+  { id: "lifetime", label: "Lifetime", price: "$249", per: "one time", badge: "Pay once. Active forever." },
+];
+const PLAN_BY_ID = PLAN_OPTIONS.reduce((acc, plan) => {
+  acc[plan.id] = plan;
+  return acc;
+}, {});
+
 // ─── TASK DATA — 47 research-backed post-death tasks ─────────────────────────
 const POST_DEATH_TASKS = [
   {
@@ -333,8 +343,12 @@ const handleCheckout = async (planId, userId, userEmail) => {
       body: JSON.stringify({ planId, userId, userEmail }),
     });
     const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Checkout could not be started');
     if (data.url) window.location.href = data.url;
-  } catch (err) { console.error('Checkout error:', err); }
+  } catch (err) {
+    console.error('Checkout error:', err);
+    alert(err.message || 'Checkout could not be started. Please try again.');
+  }
 };
 
 const handleSignInWithGoogle = async () => {
@@ -448,12 +462,32 @@ const Sub = ({ children }) => (
   <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.65, marginBottom: 0 }}>{children}</div>
 );
 
+const CandleLogo = ({ size = 24, nameSize = 16 }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+    <style>{`
+      @keyframes passageFlame {
+        0%, 100% { transform: translateX(-50%) scaleY(1) rotate(-2deg); opacity: .88; }
+        35% { transform: translateX(-52%) scaleY(1.12) rotate(2deg); opacity: 1; }
+        68% { transform: translateX(-48%) scaleY(.94) rotate(-1deg); opacity: .78; }
+      }
+      @keyframes passageGlow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(184,148,90,.18), 0 0 18px rgba(184,148,90,.18); }
+        50% { box-shadow: 0 0 0 5px rgba(184,148,90,.06), 0 0 24px rgba(184,148,90,.26); }
+      }
+    `}</style>
+    <div style={{ width: size, height: size, position: "relative", flexShrink: 0 }}>
+      <div style={{ position: "absolute", left: "50%", bottom: 1, transform: "translateX(-50%)", width: size * 0.54, height: size * 0.64, borderRadius: "45% 45% 36% 36%", background: "linear-gradient(180deg, #f8f4ea 0%, #d7c8ad 100%)", border: "1px solid rgba(184,148,90,.28)", animation: "passageGlow 3.8s ease-in-out infinite" }} />
+      <div style={{ position: "absolute", left: "50%", top: 1, width: size * 0.28, height: size * 0.46, transformOrigin: "50% 88%", borderRadius: "55% 55% 48% 48%", background: "radial-gradient(circle at 50% 32%, #fff7d8 0%, #d8a747 48%, #b8945a 100%)", animation: "passageFlame 3.8s ease-in-out infinite" }} />
+    </div>
+    <span style={{ fontFamily: "Georgia, serif", fontSize: nameSize, color: C.ink, letterSpacing: 0 }}>Passage</span>
+  </div>
+);
+
 // Top navigation bar used across all inner screens
 const TopNav = ({ user, onDashboard, onBack, onSignOut, label, accentColor, onHome }) => (
   <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
     <div onClick={onHome || onDashboard || onBack} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}>
-      <div style={{ width: 24, height: 24, borderRadius: "50%", background: `radial-gradient(circle, ${C.sageLight}, ${C.sage}70)` }} />
-      <span style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink }}>Passage</span>
+      <CandleLogo size={24} nameSize={16} />
     </div>
     {label && <div style={{ fontSize: 11, color: C.soft, fontWeight: 500 }}>{label}</div>}
     <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
@@ -1558,11 +1592,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
         </div>
         <div style={{ fontSize: 12, color: C.gold, fontWeight: 700, marginTop: 8 }}>Less than the cost of a single hour with an estate attorney.</div>
       </div>
-      {[
-        { id: "annual", label: "Annual", price: "$79", per: "/year", badge: "Best value — save 45%", popular: true },
-        { id: "monthly", label: "Monthly", price: "$12", per: "/month", badge: "Start anytime, cancel anytime" },
-        { id: "lifetime", label: "Lifetime", price: "$249", per: "one time", badge: "Pay once. Active forever." },
-      ].map(p => (
+      {PLAN_OPTIONS.map(p => (
         <div key={p.id} onClick={() => setSelectedPlan(p.id)} style={{ border: `2px solid ${selectedPlan === p.id ? C.sage : C.border}`, borderRadius: 12, padding: "13px 16px", cursor: "pointer", background: selectedPlan === p.id ? C.sageFaint : C.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7, position: "relative" }}>
           {p.popular && <div style={{ position: "absolute", top: -9, left: 14, background: C.sage, color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 9px", borderRadius: 9 }}>RECOMMENDED</div>}
           <div><div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{p.label}</div><div style={{ fontSize: 11, color: C.soft, marginTop: 2 }}>{p.badge}</div></div>
@@ -1824,8 +1854,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
         <div onClick={onSignOut} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }} title="Home">
-          <div style={{ width: 24, height: 24, borderRadius: "50%", background: `radial-gradient(circle, ${C.sageLight}, ${C.sage}70)` }} />
-          <span style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink }}>Passage</span>
+          <CandleLogo size={24} nameSize={16} />
         </div>
         <div style={{ fontSize: 11, color: C.soft, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>
         <button onClick={onSignOut} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Sign out</button>
@@ -1876,7 +1905,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                   </div>
                   <button onClick={() => handleCheckout('annual', user && user.id, user && user.email)}
                     style={{ width: "100%", padding: "10px", background: "#1a1916", border: "none", borderRadius: 11, fontSize: 12.5, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
-                    Upgrade to Passage — $49/yr
+                    Upgrade to Passage - {PLAN_BY_ID.annual.price}/yr
                   </button>
                 </div>
               )}
@@ -2168,21 +2197,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 
       {/* ── NAV ── */}
       <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <style>{`
-            @keyframes candleFlicker {
-              0%   { box-shadow: 0 0 6px 2px #6b8f7130, 0 0 12px 4px #6b8f7115; opacity: 1; transform: scale(1); }
-              15%  { box-shadow: 0 0 9px 3px #6b8f7145, 0 0 18px 6px #6b8f7120; opacity: 0.92; transform: scale(1.03); }
-              30%  { box-shadow: 0 0 5px 2px #6b8f7120, 0 0 10px 3px #6b8f7110; opacity: 0.97; transform: scale(0.99); }
-              50%  { box-shadow: 0 0 11px 4px #6b8f7150, 0 0 22px 7px #6b8f7125; opacity: 0.89; transform: scale(1.04); }
-              65%  { box-shadow: 0 0 7px 2px #6b8f7135, 0 0 14px 4px #6b8f7118; opacity: 0.95; transform: scale(1.01); }
-              80%  { box-shadow: 0 0 4px 1px #6b8f7115, 0 0 8px 2px #6b8f7108; opacity: 0.98; transform: scale(0.98); }
-              100% { box-shadow: 0 0 6px 2px #6b8f7130, 0 0 12px 4px #6b8f7115; opacity: 1; transform: scale(1); }
-            }
-          `}</style>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: `radial-gradient(circle at 40% 40%, ${C.sageLight}, ${C.sage}80)`, animation: 'candleFlicker 3.8s ease-in-out infinite', cursor: 'pointer' }} />
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: 21, color: C.ink }}>Passage</span>
-        </div>
+        <CandleLogo size={32} nameSize={21} />
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>
