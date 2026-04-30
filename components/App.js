@@ -2589,7 +2589,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             {/* Start emergency */}
             <div style={{ background: C.roseFaint, borderRadius: 18, padding: "18px", border: `1px solid ${C.rose}22`, marginBottom: 12 }}>
               <div style={{ fontFamily: "Georgia, serif", fontSize: 15.5, color: C.ink, marginBottom: 5 }}>Someone in your family passed away?</div>
-              <Sub>Start a $79 urgent estate plan. We plan to reserve $20 from each urgent purchase for memorial impact.</Sub>
+              <Sub>Start a $79.99 urgent estate plan. We plan to reserve 15% of each urgent purchase for grief support or memorial impact in their honor.</Sub>
               <button onClick={() => window.location.href = '/urgent'} style={{ marginTop: 12, padding: "10px 18px", background: C.rose, border: "none", borderRadius: 11, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
                 Start emergency plan →
               </button>
@@ -2766,6 +2766,10 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <CandleLogo size={32} nameSize={21} />
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
+          <a href="/mission" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Mission</a>
+          <a href="/content" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Content</a>
+          <a href="/contact" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Contact</a>
+          <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Participating</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>
               My estate
@@ -3011,6 +3015,16 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           Nothing is sent or shared without your family's approval.
         </div>
       </div>
+
+      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '20px 24px 42px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
+        <div>Passage coordinates life-to-death transitions with care.</div>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          <a href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Our Mission</a>
+          <a href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</a>
+          <a href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Content</a>
+          <a href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</a>
+        </div>
+      </footer>
 
     </div>
   );
