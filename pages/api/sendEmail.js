@@ -119,9 +119,9 @@ function assignmentEmail(name, task, deceased, coordinator, serviceBlock, workfl
     '<p class="p">' + coordinator + ' is coordinating the estate of ' + deceased + ' and has designated you for the following task:</p>' +
     '<div class="task"><div class="task-label">Your task</div><div class="task-title">' + (task || 'Estate coordination') + '</div></div>' +
     serviceBlock +
-    '<p class="p">You will receive full details when the plan activates. Nothing is required from you right now.</p>' +
+    '<p class="p">Open Passage to accept the task, add a note, or let the coordinator know if you need more details.</p>' +
     '<a href="' + participantUrl + '" class="btn">View my Passage task</a>' +
-    '<p class="p" style="font-size:12px;color:#a09890;">You can see estates where you have a role, complete assigned tasks, and start your own plan with participant pricing when available.</p>' +
+    '<p class="p" style="font-size:12px;color:#a09890;">You will only see the estate work connected to your email address.</p>' +
     '<p class="p">Questions? Reach out to ' + coordinator + ' directly.</p>'
   );
 }

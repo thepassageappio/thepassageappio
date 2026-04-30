@@ -15,17 +15,31 @@ export default async function handler(req, res) {
   if (userError || !userData?.user?.email) return res.status(401).json({ error: 'Session could not be verified.' });
 
   const email = userData.user.email.toLowerCase();
-  const { kind, id, action, notes } = req.body || {};
-  if (!id || !['task', 'action'].includes(kind) || !['accept', 'handled', 'help'].includes(action)) {
+  const { kind, id, action, notes, outcomeStatus, followUpAt } = req.body || {};
+  if (!id || !['task', 'action'].includes(kind) || !['accept', 'handled', 'help', 'waiting', 'needs_details', 'quoted', 'scheduled', 'delivered', 'confirmed', 'unavailable'].includes(action)) {
     return res.status(400).json({ error: 'Invalid participant action.' });
   }
 
-  const status = action === 'accept' ? 'assigned' : action === 'handled' ? 'handled' : 'needs_review';
-  const stamp = action === 'accept' ? 'accepted_at' : action === 'handled' ? 'handled_at' : 'help_requested_at';
+  const status = action === 'accept' ? 'assigned'
+    : ['handled', 'delivered', 'confirmed'].includes(action) ? 'handled'
+    : ['waiting', 'needs_details', 'quoted', 'scheduled'].includes(action) ? 'waiting'
+    : action === 'unavailable' ? 'needs_review'
+    : 'needs_review';
+  const stamp = action === 'accept' ? 'accepted_at'
+    : status === 'handled' ? 'handled_at'
+    : 'help_requested_at';
   const table = kind === 'task' ? 'tasks' : 'workflow_actions';
   const emailColumn = kind === 'task' ? 'assigned_to_email' : 'recipient_email';
 
-  const updates = { status, [stamp]: new Date().toISOString(), updated_at: new Date().toISOString() };
+  const updates = {
+    status,
+    [stamp]: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    outcome_status: outcomeStatus || action,
+    completed_by_email: email,
+    coordinator_notified_at: new Date().toISOString(),
+  };
+  if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
   if (typeof notes === 'string' && notes.trim()) updates.notes = notes.trim();
   const { data, error } = await admin
     .from(table)

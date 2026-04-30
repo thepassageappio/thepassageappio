@@ -349,7 +349,7 @@ const humanStatus = (status) => {
   if (status === 'handled' || status === 'completed' || status === 'done') return 'Handled';
   if (status === 'sent' || status === 'assigned') return 'Assigned';
   if (status === 'needs_review') return 'Needs review';
-  if (status === 'in_progress' || status === 'pending') return 'Waiting';
+  if (status === 'in_progress' || status === 'pending' || status === 'waiting') return 'Waiting';
   return status ? status.replace(/_/g, ' ') : 'Waiting';
 };
 
@@ -707,6 +707,8 @@ const buildTaskList = (dbTasks) => {
         completed: db ? taskIsHandled(db.status) : false,
         status: db?.status || 'pending',
         notes: db?.notes || '',
+        outcomeStatus: db?.outcome_status || '',
+        followUpAt: db?.follow_up_at || null,
         assignedTo: db?.assigned_to_name || null,
         assignedEmail: db?.assigned_to_email || null,
         isCustom: false,
@@ -727,6 +729,8 @@ const buildTaskList = (dbTasks) => {
       completed: taskIsHandled(d.status),
       status: d.status || 'pending',
       notes: d.notes || '',
+      outcomeStatus: d.outcome_status || '',
+      followUpAt: d.follow_up_at || null,
       assignedTo: d.assigned_to_name || null,
       assignedEmail: d.assigned_to_email || null,
       isCustom: true, dbId: d.id,
@@ -1174,11 +1178,10 @@ ${coordinatorName || 'A family member'} is coordinating the estate of ${deceased
 
 "${taskTitle}"
 
-You'll receive full details — including service dates, times, and locations — when the plan is activated. Nothing is required from you right now.
+Please open Passage to accept the task, add a note, or tell me if you need more details. Passage will show only the estate work connected to you.
 
 With gratitude,
 Passage`);
-    setEditedSMS(`Passage: ${coordinatorName || 'A family member'} has asked you to help with: "${taskTitle}" for ${deceasedName || "the estate"}. You'll receive full details when the plan activates. → thepassageapp.io`);
     setEditedSMS(buildAssignmentSms({ toName: personName, taskTitle, deceasedName }));
   }, [personName, coordinatorName, deceasedName, taskTitle]);
 
@@ -1248,6 +1251,8 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   const [draft, setDraft] = useState(playbook.draft);
   const [smsDraft, setSmsDraft] = useState(playbook.sms || '');
   const [notes, setNotes] = useState(task?.notes || '');
+  const [outcome, setOutcome] = useState(task?.outcomeStatus || '');
+  const [followUp, setFollowUp] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -1265,6 +1270,29 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
     setSending(false);
     setSent(true);
   };
+
+  const lowerTitle = String(task?.title || '').toLowerCase();
+  const outcomeOptions = lowerTitle.includes('funeral') ? [
+    ['spoke_next_step_set', 'I spoke with them and saved the next step', 'handled'],
+    ['left_voicemail', 'I left a voicemail', 'waiting'],
+    ['sent_email', 'I sent the email', 'waiting'],
+    ['appointment_scheduled', 'The next appointment is scheduled', 'handled'],
+  ] : lowerTitle.includes('obituary') || lowerTitle.includes('announcement') || lowerTitle.includes('notify') ? [
+    ['message_sent', 'The message was sent', 'handled'],
+    ['draft_saved', 'Draft saved for review', 'waiting'],
+    ['family_review_needed', 'Family review is needed', 'waiting'],
+  ] : lowerTitle.includes('certificate') || lowerTitle.includes('document') || lowerTitle.includes('probate') || lowerTitle.includes('bank') || lowerTitle.includes('insurance') ? [
+    ['called_waiting', 'I called and am waiting for a reply', 'waiting'],
+    ['documents_needed', 'They need documents from us', 'waiting'],
+    ['submitted', 'Forms or documents were submitted', 'handled'],
+    ['next_deadline_saved', 'Next deadline is saved', 'waiting'],
+  ] : [
+    ['done_confirmed', 'This is done', 'handled'],
+    ['waiting_for_reply', 'Waiting for reply', 'waiting'],
+    ['needs_information', 'Needs more information', 'waiting'],
+    ['someone_else_handling', 'Someone else is handling it', 'waiting'],
+  ];
+  const selectedOutcome = outcomeOptions.find(opt => opt[0] === outcome);
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.58)", zIndex: 240, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
@@ -1318,6 +1346,22 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Notes</div>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Save confirmation numbers, names, next appointment times, or anything the family should know." style={{ width: "100%", minHeight: 96, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
         </div>
+        <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 8 }}>Tell Passage what happened</div>
+          <div style={{ display: "grid", gap: 7 }}>
+            {outcomeOptions.map(opt => (
+              <button key={opt[0]} onClick={() => setOutcome(opt[0])} style={{ textAlign: "left", padding: "10px 11px", borderRadius: 10, border: `1.5px solid ${outcome === opt[0] ? C.sage : C.border}`, background: outcome === opt[0] ? C.sageFaint : C.bgCard, color: outcome === opt[0] ? C.sage : C.ink, fontFamily: "Georgia, serif", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                {opt[1]}
+              </button>
+            ))}
+          </div>
+          {selectedOutcome?.[2] === 'waiting' && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: 11.5, color: C.mid, marginBottom: 5 }}>Optional follow-up date/time</div>
+              <input type="datetime-local" value={followUp} onChange={e => setFollowUp(e.target.value)} style={{ width: "100%", boxSizing: "border-box", padding: "10px 11px", borderRadius: 10, border: `1px solid ${C.border}`, fontFamily: "Georgia, serif" }} />
+            </div>
+          )}
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 8 }}>
           <button onClick={sendDraft} disabled={!recipientEmail || sending} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending..." : sent ? "Sent" : "Send prepared email"}</button>
           <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Draft copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy draft</button>
@@ -1326,11 +1370,11 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
           <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not applicable</button>
           <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Assign instead</button>
-          <button onClick={() => { setConfirmed(true); setTimeout(() => onHandled(notes), 500); }} style={{ padding: "11px", borderRadius: 11, border: "none", background: confirmed ? C.sage : C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{confirmed ? "That's handled." : "Mark this handled"}</button>
+          <button onClick={() => { if (!outcome) return; setConfirmed(true); setTimeout(() => onHandled({ notes, outcomeStatus: outcome, followUpAt: followUp || null, finalStatus: selectedOutcome?.[2] === 'waiting' ? 'waiting' : 'handled' }), 500); }} disabled={!outcome} style={{ padding: "11px", borderRadius: 11, border: "none", background: !outcome ? C.border : confirmed ? C.sage : C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: outcome ? "pointer" : "not-allowed" }}>{confirmed ? "Saved." : "Save outcome"}</button>
         </div>
         {confirmed && (
           <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "11px 12px", color: C.sage, fontSize: 13, fontWeight: 800, textAlign: "center" }}>
-            We've saved this. Passage will use it to guide what comes next.
+            {selectedOutcome?.[2] === 'waiting' ? "We've saved this as waiting and kept it on the plan." : "That's handled. Passage saved what happened and updated the plan."}
           </div>
         )}
       </div>
@@ -1660,11 +1704,23 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role } : t));
   };
 
-  const markHandled = async (task, notes = '') => {
-    if (task.dbId) await updateTask(task.dbId, { status: 'handled', completed_at: new Date().toISOString(), owner_kind: 'self', notes });
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: true, status: 'handled', notes } : t));
+  const markHandled = async (task, result = '') => {
+    const payload = typeof result === 'object' && result !== null ? result : { notes: result, finalStatus: 'handled' };
+    const finalStatus = payload.finalStatus === 'waiting' ? 'waiting' : 'handled';
+    const dbUpdates = {
+      status: finalStatus,
+      completed_at: finalStatus === 'handled' ? new Date().toISOString() : null,
+      owner_kind: 'self',
+      notes: payload.notes || '',
+      outcome_status: payload.outcomeStatus || null,
+      follow_up_at: payload.followUpAt ? new Date(payload.followUpAt).toISOString() : null,
+      completed_by_email: userEmail || null,
+      coordinator_notified_at: new Date().toISOString(),
+    };
+    if (task.dbId) await updateTask(task.dbId, dbUpdates);
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: finalStatus === 'handled', status: finalStatus, notes: payload.notes || '', outcomeStatus: payload.outcomeStatus || '' } : t));
     setExecutingTask(null);
-    setToast("That's handled. We've saved it and updated the plan.");
+    setToast(finalStatus === 'waiting' ? "Saved as waiting. Passage will keep it visible." : "That's handled. We've saved it and updated the plan.");
   };
 
   const markNotApplicable = async (task, notes = '') => {

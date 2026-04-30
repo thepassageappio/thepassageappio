@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     if (actionType === 'trigger') {
       message = 'Passage: ' + shortDeceased + ' plan active. View details: ' + detailUrl;
     } else {
-      message = 'Passage: ' + shortName + ' is handling ' + shortTask + '. View details: ' + detailUrl;
+      message = 'Passage: ' + coordinator + ' asked you to help with ' + shortTask + '. Open: ' + detailUrl;
     }
     // Keep ASCII and compact; links may push this into two SMS segments, which is acceptable for task clarity.
     message = clean(message, 240);

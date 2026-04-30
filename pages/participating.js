@@ -47,8 +47,42 @@ function itemStatus(item) {
   return item.status || item.delivery_status || 'assigned';
 }
 
-function ParticipantItem({ item, notes, onNotes, onAction, linked, primary }) {
+function roleKind(role, item) {
+  const text = [role, itemTitle(item), itemDescription(item)].join(' ').toLowerCase();
+  if (text.includes('florist') || text.includes('flower') || text.includes('vendor') || text.includes('caterer')) return 'vendor';
+  if (text.includes('pastor') || text.includes('officiant') || text.includes('rabbi') || text.includes('priest') || text.includes('imam') || text.includes('clergy')) return 'officiant';
+  if (text.includes('executor') || text.includes('attorney') || text.includes('probate') || text.includes('bank') || text.includes('insurance')) return 'executor';
+  return 'helper';
+}
+
+function actionSet(kind) {
+  if (kind === 'officiant') return [
+    ['confirmed', 'I can officiate'],
+    ['needs_details', 'I need service details'],
+    ['unavailable', 'I cannot help'],
+  ];
+  if (kind === 'vendor') return [
+    ['needs_details', 'Need details'],
+    ['quoted', 'Quote sent'],
+    ['scheduled', 'Scheduled'],
+    ['delivered', 'Delivered'],
+  ];
+  if (kind === 'executor') return [
+    ['accept', 'I own this task'],
+    ['waiting', 'Waiting on reply'],
+    ['needs_details', 'Documents needed'],
+    ['handled', 'This is handled'],
+  ];
+  return [
+    ['accept', 'I can handle this'],
+    ['waiting', 'Waiting on reply'],
+    ['handled', 'This is handled'],
+  ];
+}
+
+function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, estate }) {
   const handled = isHandled(itemStatus(item));
+  const kind = roleKind(estate?.role, item);
   return (
     <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, background: linked || primary ? C.sageFaint : C.card, borderRadius: 14, padding: primary ? 15 : 12, marginTop: 10, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 6 }}>
@@ -58,13 +92,22 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary }) {
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: handled ? C.sage : C.rose, background: handled ? C.card : C.roseFaint, borderRadius: 999, padding: '4px 8px', flexShrink: 0 }}>{statusLabel(itemStatus(item))}</span>
       </div>
+      {primary && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', marginBottom: 8 }}>
+          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800 }}>You are being asked to help with this one task.</div>
+          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 4 }}>
+            {estate?.coordinator_name || 'The coordinator'} will see your update. You are not responsible for the whole estate.
+          </div>
+        </div>
+      )}
       {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
       {!handled && (
         <>
           <textarea value={notes} onChange={e => onNotes(e.target.value)} placeholder="Add notes for the coordinator" style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
           <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-            <button onClick={() => onAction('accept')} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I can handle this</button>
-            <button onClick={() => onAction('handled')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>This is handled</button>
+            {actionSet(kind).map(([action, label]) => (
+              <button key={action} onClick={() => onAction(action)} style={{ border: action === 'handled' || action === 'confirmed' || action === 'delivered' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' || action === 'delivered' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' || action === 'delivered' ? '#fff' : C.mid, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>
+            ))}
             <button onClick={() => onAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Ask for help</button>
           </div>
         </>
@@ -151,8 +194,10 @@ export default function ParticipatingPage() {
 
         {!user && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, maxWidth: 520 }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>Sign in with the email that received the Passage invite.</div>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Passage will look for estate roles and tasks connected to your email address.</p>
+            <div style={{ fontSize: 22, marginBottom: 8 }}>Open the task someone sent you.</div>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
+              Sign in with the email that received the Passage invite. You will only see the estate work connected to you, with the task, notes, and service details the coordinator shared.
+            </p>
             <button onClick={signIn} style={{ border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
             <div style={{ height: 12 }} />
             <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
@@ -165,7 +210,7 @@ export default function ParticipatingPage() {
         {user && error && <div style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16 }}>{error}</div>}
 
         {user && !loading && data && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 360px)', gap: 18, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: (router.query.estate || router.query.task) ? 'minmax(0, 760px)' : 'minmax(0, 1fr) minmax(280px, 360px)', gap: 18, alignItems: 'start' }}>
             <div>
               {(router.query.estate || router.query.task) && (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
@@ -218,6 +263,7 @@ export default function ParticipatingPage() {
                           notes={notesByItem[primaryItem._kind + ':' + primaryItem.id] || primaryItem.notes || ''}
                           onNotes={(value) => setNotesByItem(prev => ({ ...prev, [primaryItem._kind + ':' + primaryItem.id]: value }))}
                           onAction={(action) => participantAction(primaryItem._kind, primaryItem.id, action)}
+                          estate={estate}
                           primary
                         />
                       )}
@@ -245,6 +291,7 @@ export default function ParticipatingPage() {
                               notes={notesByItem[item._kind + ':' + item.id] || item.notes || ''}
                               onNotes={(value) => setNotesByItem(prev => ({ ...prev, [item._kind + ':' + item.id]: value }))}
                               onAction={(action) => participantAction(item._kind, item.id, action)}
+                              estate={estate}
                             />
                           ))}
                           {otherOpen.length > 4 && <div style={{ fontSize: 12, color: C.soft, padding: '8px 0' }}>{otherOpen.length - 4} more open item{otherOpen.length - 4 === 1 ? '' : 's'} hidden to keep this page readable.</div>}
@@ -269,12 +316,14 @@ export default function ParticipatingPage() {
               )})}
             </div>
 
-            <aside style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, alignSelf: 'start' }}>
-              <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>Planning for your own family?</div>
-              <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7 }}>Participants are often the people who understand the value first. When participant pricing is enabled, Passage can offer a quieter discounted path to set up their own family plan.</p>
-              {data.discountEligible && <div style={{ background: C.sageFaint, color: C.sage, borderRadius: 12, padding: 12, fontSize: 13, fontWeight: 800, marginBottom: 12 }}>Participant discount eligible</div>}
-              <Link href="/pricing?participant=1" style={{ display: 'block', textAlign: 'center', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', textDecoration: 'none', fontWeight: 800 }}>See participant pricing</Link>
-            </aside>
+            {!(router.query.estate || router.query.task) && (
+              <aside style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, alignSelf: 'start' }}>
+                <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>Planning for your own family?</div>
+                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7 }}>Participants are often the people who understand the value first. Passage can offer a quieter path to set up their own family plan.</p>
+                {data.discountEligible && <div style={{ background: C.sageFaint, color: C.sage, borderRadius: 12, padding: 12, fontSize: 13, fontWeight: 800, marginBottom: 12 }}>Participant discount eligible</div>}
+                <Link href="/pricing?participant=1" style={{ display: 'block', textAlign: 'center', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', textDecoration: 'none', fontWeight: 800 }}>See participant pricing</Link>
+              </aside>
+            )}
           </div>
         )}
       </section>
