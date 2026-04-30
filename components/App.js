@@ -1746,6 +1746,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   const [customText, setCustomText] = useState("");
   const [saveStatus, setSaveStatus] = useState("idle");
   const [lastTaskId, setLastTaskId] = useState("");
+  const [activationComplete, setActivationComplete] = useState(false);
 
   const initTasks = useCallback(async () => {
     if (workflowId) {
@@ -1911,6 +1912,22 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
             </button>
           )}
 
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "12px 14px", marginBottom: 10 }}>
+            <div style={{ fontSize: 13, color: C.sage, fontWeight: 800, marginBottom: 3 }}>We'll guide and track everything from here.</div>
+            <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55 }}>Passage keeps owners, messages, and handled tasks visible so you are not carrying this alone.</div>
+          </div>
+
+          {activationComplete && (
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "13px 15px", marginBottom: 12 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.sage, marginBottom: 6 }}>Your plan is in motion.</div>
+              <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>We've:</div>
+              <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>- Contacted the funeral home</div>
+              <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>- Notified assigned people</div>
+              <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>- Set tasks in progress</div>
+              <div style={{ fontSize: 12.5, color: C.sage, fontWeight: 800, marginTop: 6 }}>We'll keep you updated.</div>
+            </div>
+          )}
+
           {dayOneReady && (
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "13px 15px", marginBottom: 12 }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: C.sage, marginBottom: 4 }}>You've handled what is needed right now.</div>
@@ -1979,6 +1996,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                           </div>
                           {task.desc && !task.completed && <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.5, marginBottom: task.assignedTo ? 5 : 0 }}>{task.desc}</div>}
                           {taskAwareness(task) && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>{taskAwareness(task)}</div>}
+                          {task.completed && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>That's taken care of. You're all set here.</div>}
                           {task.assignedTo && (
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "2px 9px", marginTop: 4 }}>
                               <span style={{ fontSize: 10 }}>👤</span>
@@ -2100,7 +2118,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
           actions={activationActions}
           events={activationEvents}
           onClose={() => setShowActivation(false)}
-          onSent={() => setToast("Activation messages sent.")}
+          onSent={() => { setActivationComplete(true); setToast("Your plan is in motion. We'll keep you updated."); }}
         />
       )}
       {showEvents && workflowId && (

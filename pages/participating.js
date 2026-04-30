@@ -131,6 +131,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const handled = isHandled(itemStatus(item));
   const kind = roleKind(estate?.role, item);
   const contract = requestContract(kind, estate, item);
+  const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
   const [savedPulse, setSavedPulse] = useState(false);
   const noteChange = (value) => {
     onNotes(value);
@@ -149,6 +150,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       {primary && (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', marginBottom: 8 }}>
           <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800, marginBottom: 4 }}>You've been assigned this responsibility for {(estate?.deceased_name || estate?.name || 'this family')}'s estate.</div>
+          <div style={{ display: 'inline-flex', color: handled ? C.sage : C.rose, background: handled ? C.sageFaint : C.roseFaint, borderRadius: 999, padding: '4px 9px', fontSize: 11.5, fontWeight: 800, marginBottom: 7 }}>{officialStatus}</div>
           <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800 }}>Start with this one task. Passage will tell the coordinator what you decide.</div>
           <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 4 }}>
             {estate?.coordinator_name || 'The coordinator'} will see your update. You are not responsible for the whole estate.

@@ -135,6 +135,27 @@ function statusText(status) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function timeAgo(value) {
+  if (!value) return '';
+  var ms = Date.now() - new Date(value).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return '';
+  var minutes = Math.max(1, Math.round(ms / 60000));
+  if (minutes < 60) return minutes + ' min ago';
+  var hours = Math.round(minutes / 60);
+  if (hours < 24) return hours + ' hr ago';
+  return Math.round(hours / 24) + ' day ago';
+}
+
+function participantSignal(item) {
+  var actor = item.completed_by_email || item.assigned_to_name || item.recipient_name || item.assigned_to_email || item.recipient_email;
+  var at = item.completed_at || item.handled_at || item.accepted_at || item.updated_at || item.sent_at || item.created_at;
+  var ago = timeAgo(at);
+  if (item.completed_by_email && isHandledStatus(item.status)) return actor + ' marked this as handled' + (ago ? ' ' + ago : '');
+  if (item.accepted_at || item.status === 'assigned') return (actor || 'Someone') + ' accepted this task' + (ago ? ' ' + ago : '');
+  if (['waiting', 'needs_review'].includes(item.status || item.delivery_status)) return (actor || 'Someone') + ' updated this' + (ago ? ' ' + ago : '');
+  return '';
+}
+
 function proofRowsFor(actions, tasks, events) {
   var rows = [];
   (actions || []).forEach(function(a) {
@@ -283,8 +304,8 @@ function OutcomeCard({ outcome, expanded, showAssign, onToggle, onMarkHandled, o
               </div>
             )}
             {outcome.status === 'handled' && (
-              <div style={{ padding: '12px', borderRadius: 10, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, fontSize: 14, fontWeight: 700, color: SAGE, textAlign: 'center' }}>
-                This is handled
+              <div style={{ padding: '12px', borderRadius: 10, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, fontSize: 14, fontWeight: 800, color: SAGE, textAlign: 'center', lineHeight: 1.45 }}>
+                That's taken care of.<br />You're all set here.
               </div>
             )}
             {showAssign && <InlineAssign onSave={onAssignSave} onClose={onAssignClose} />}
@@ -467,8 +488,13 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
           <button onClick={onActivate} disabled={activating || pendingActions.length === 0} style={{ border: 'none', background: pendingActions.length === 0 ? SOFT : SAGE, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: activating || pendingActions.length === 0 ? 'default' : 'pointer', opacity: activating ? .7 : 1 }}>{activating ? 'Starting...' : 'Approve and send'}</button>
         </div>
       ) : (
-        <div style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', color: SAGE, fontSize: 13, fontWeight: 800, textAlign: 'center' }}>
-          Passage has a record of this activation. Keep working from the next clear task.
+        <div style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '13px 14px', color: SAGE, fontSize: 13, fontWeight: 800, lineHeight: 1.55 }}>
+          <div style={{ fontSize: 15, color: SAGE, marginBottom: 6 }}>Your plan is in motion.</div>
+          <div>We've:</div>
+          <div style={{ marginTop: 4 }}>- Contacted the funeral home</div>
+          <div>- Notified assigned people</div>
+          <div>- Set tasks in progress</div>
+          <div style={{ marginTop: 8 }}>We'll keep you updated.</div>
         </div>
       )}
     </div>
@@ -569,6 +595,28 @@ export default function EstatePage() {
     });
   }, [estateId]);
 
+  useEffect(function() {
+    if (!estateId) return;
+    var channel = sb.channel('estate-live-' + estateId)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'estate_events', filter: 'estate_id=eq.' + estateId }, function(payload) {
+        if (!payload.new) return;
+        setEvents(function(prev) {
+          if (prev.some(function(e) { return e.id === payload.new.id; })) return prev;
+          return [payload.new].concat(prev).slice(0, 8);
+        });
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks', filter: 'workflow_id=eq.' + estateId }, function(payload) {
+        if (!payload.new) return;
+        setTasks(function(prev) { return prev.map(function(t) { return t.id === payload.new.id ? Object.assign({}, t, payload.new) : t; }); });
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'workflow_actions', filter: 'workflow_id=eq.' + estateId }, function(payload) {
+        if (!payload.new) return;
+        setActions(function(prev) { return prev.map(function(a) { return a.id === payload.new.id ? Object.assign({}, a, payload.new) : a; }); });
+      })
+      .subscribe();
+    return function() { sb.removeChannel(channel); };
+  }, [estateId]);
+
   function showToast(msg) {
     setToast(msg);
     setTimeout(function() { setToast(''); }, 2200);
@@ -593,7 +641,7 @@ export default function EstatePage() {
     });
     setExpanded(-1);
     setShowAssign(-1);
-    if (updates.status === 'handled') showToast('This is handled');
+    if (updates.status === 'handled') showToast("That's taken care of. You're all set here.");
     else if (updates.status === 'in_progress') showToast('Marked as in progress');
     else if (updates.owner_label) showToast('Assigned to ' + updates.owner_label);
   }
@@ -666,7 +714,8 @@ export default function EstatePage() {
       .filter(function(t) { return !isHandledStatus(t.status) && bucketForTask(t) === bucket.key; })
       .map(function(t) {
         var working = ['assigned', 'waiting', 'in_progress'].includes(t.status || '');
-        return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this' };
+        var signal = participantSignal(t);
+        return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: signal || (working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this') };
       });
     return Object.assign({}, bucket, { items: outcomeItems.concat(taskItems) });
   });
@@ -675,6 +724,7 @@ export default function EstatePage() {
   var readyFor72 = nowGroup.items.length === 0 && next72Group.items.length > 0 && !allHandled;
   var upNextTasks = tasks.filter(function(t) { return !isHandledStatus(t.status); }).slice(3, 8);
   var resumeEvent = events.find(function(e) { return e.event_type === 'task_updated' || e.event_type === 'task_completed' || e.event_type === 'owner_assigned' || e.event_type === 'participant_updated' || e.event_type === 'participant_waiting'; });
+  var recentParticipantEvents = events.filter(function(e) { return ['participant_handled', 'participant_updated', 'participant_waiting'].includes(e.event_type); }).slice(0, 3);
   var firstOpenOutcome = outcomes.find(function(o) { return !isHandledStatus(o.status); });
   var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t.status); });
   var firstFastTitle = firstOpenOutcome ? firstOpenOutcome.title : firstOpenTask ? firstOpenTask.title : '';
@@ -731,6 +781,9 @@ export default function EstatePage() {
         {/* Banner */}
         <div style={{ background: bannerBg, border: '1px solid ' + bannerBorder, borderRadius: 14, padding: '16px 18px', marginBottom: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: bannerColor, marginBottom: 4 }}>{bannerText}</div>
+          <div style={{ fontSize: 13, color: MID, lineHeight: 1.55, marginBottom: 10 }}>
+            We'll guide and track everything from here.
+          </div>
           {!allHandled && outcomes.length > 0 && (
             <div style={{ fontSize: 13, color: MID, lineHeight: 1.55, marginBottom: 10 }}>
               Here is what matters first for {name}. Tap any item to see what to do.
@@ -828,13 +881,40 @@ export default function EstatePage() {
               {timelineGroups.reduce(function(total, g) { return total + g.items.length; }, 0)} open
             </div>
           </div>
+          {recentParticipantEvents.length > 0 && (
+            <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '10px 12px', marginBottom: 10 }}>
+              <div style={{ fontSize: 11, color: SAGE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>People helping right now</div>
+              {recentParticipantEvents.map(function(e) {
+                var actor = e.actor || 'Someone';
+                var action = e.event_type === 'participant_handled' ? 'marked this as handled' : e.event_type === 'participant_waiting' ? 'updated this as waiting' : 'accepted or updated this task';
+                return <div key={e.id} style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, padding: '3px 0' }}><strong style={{ color: INK }}>{actor}</strong> {action}{timeAgo(e.created_at) ? ' ' + timeAgo(e.created_at) : ''}: {e.description || e.title}</div>;
+              })}
+            </div>
+          )}
           {timelineGroups.map(function(group) {
+            var primary = group.items[0];
             return (
               <div key={group.key} style={{ borderTop: '1px solid ' + BORDER, paddingTop: 12, marginTop: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>{group.label}</div>
                   <div style={{ fontSize: 11.5, color: SOFT, textAlign: 'right' }}>{group.help}</div>
                 </div>
+                {primary && (
+                  <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 11, padding: '10px 12px', marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, color: ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Next thing to do</div>
+                    <button onClick={function() {
+                      if (primary.id.indexOf('outcome_') === 0) {
+                        var id = primary.id.replace('outcome_', '');
+                        var idx = outcomes.findIndex(function(o) { return String(o.id) === String(id); });
+                        if (idx >= 0) { setExpanded(idx); setShowAssign(-1); }
+                      } else {
+                        setShowUpNext(true);
+                      }
+                    }} style={{ width: '100%', border: 'none', background: SAGE, color: '#fff', borderRadius: 10, padding: '10px 12px', fontSize: 13, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+                      {primary.title}
+                    </button>
+                  </div>
+                )}
                 {group.items.length > 0 ? group.items.map(function(item) {
                   return (
                     <div key={item.id} style={{ background: SUBTLE, borderRadius: 10, padding: '10px 12px', marginBottom: 7 }}>
