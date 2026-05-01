@@ -2630,24 +2630,28 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       </div>
     </Card>,
 
-    <Card key={5} maxWidth={560}>
+    <Card key={5} maxWidth={620}>
       <StepBar current={5} total={5} />
-      <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <div style={{ fontSize: 34, marginBottom: 12 }}>🕊️</div>
-        <Heading>Your plan is built.</Heading>
-        <div style={{ background: C.bgSubtle, borderRadius: 11, padding: "13px 16px", fontSize: 13, color: C.mid, lineHeight: 1.65, marginTop: 10 }}>
-          We will save this as an estate command center. <strong style={{ color: C.ink }}>Nothing sends until you activate it.</strong>
+      <div style={{ textAlign: "center", marginBottom: 18 }}>
+        <div style={{ fontSize: 28, marginBottom: 10 }}>🕊️</div>
+        <Heading>Your plan is ready.</Heading>
+        <div style={{ color: C.mid, fontSize: 14, lineHeight: 1.65, marginTop: 10 }}>
+          If something happens, your family will have one calm place to start.
         </div>
       </div>
-      <div style={{ background: C.bgSubtle, borderRadius: 11, padding: "13px 15px", marginBottom: 18, marginTop: 8 }}>
-        <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 7 }}>Next steps:</div>
-        {["Open the command center", "Review people, wishes, documents, and tasks", "Upgrade from the command center when your family is ready for full orchestration"].map((f,i) => (
-          <div key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: C.mid, padding: "3px 0" }}>
-            <span style={{ color: C.sage, fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
+      <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: "16px 18px", marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 900, color: C.sage, letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 10 }}>What you gave them</div>
+        {["Know what to do first", "Be notified automatically", "See what is already handled", "Have everything in one place"].map((f,i) => (
+          <div key={i} style={{ display: "flex", gap: 10, fontSize: 14, color: C.ink, padding: "5px 0", lineHeight: 1.45 }}>
+            <span style={{ color: C.sage, fontWeight: 900, flexShrink: 0 }}>✓</span>{f}
           </div>
         ))}
       </div>
-      <Btn onClick={() => activate("draft")} style={{ width: "100%", padding: "16px", fontSize: 15.5, marginBottom: 9 }}>Save and open command center →</Btn>
+      <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "12px 14px", fontSize: 13.5, color: C.mid, lineHeight: 1.6, marginBottom: 14, textAlign: "center" }}>
+        You have made this easier for them. Nothing sends until the plan is activated.
+      </div>
+      <Btn onClick={() => activate("draft")} style={{ width: "100%", padding: "16px", fontSize: 15.5, marginBottom: 8 }}>View your plan →</Btn>
+      <button onClick={() => activate("draft")} style={{ width: "100%", border: "none", background: "transparent", color: C.sage, fontFamily: "Georgia,serif", fontWeight: 800, cursor: "pointer", padding: "8px" }}>Add more details later</button>
     </Card>,
   ];
 

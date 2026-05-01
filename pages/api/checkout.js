@@ -208,6 +208,46 @@ async function resolveParticipantDiscount(discount) {
   return { ...discount, value: promoId, resolvedFromCode: true };
 }
 
+function getPartnerPilotDiscount() {
+  const keys = [
+    'STRIPE_COUPON_FUNERAL_HOME_PILOT',
+    'STRIPE_COUPON_PARTNER_PILOT',
+    'STRIPE_FUNERAL_HOME_PILOT_COUPON_ID',
+    'STRIPE_PARTNER_PILOT_COUPON_ID',
+    'STRIPE_PROMOTION_CODE_FUNERAL_HOME_PILOT',
+    'STRIPE_PROMOTION_CODE_PARTNER_PILOT',
+    'STRIPE_FUNERAL_HOME_PILOT_PROMOTION_CODE_ID',
+    'STRIPE_PARTNER_PILOT_PROMOTION_CODE_ID',
+  ];
+
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (!value) continue;
+    const isCoupon = key.includes('COUPON');
+    return {
+      key,
+      type: isCoupon ? 'coupon' : 'promotion_code',
+      param: isCoupon ? 'discounts[0][coupon]' : 'discounts[0][promotion_code]',
+      value,
+    };
+  }
+  return null;
+}
+
+async function resolvePartnerPilotDiscount(discount) {
+  if (!discount) return null;
+  if (discount.value.startsWith('price_')) return null;
+  if (discount.type === 'coupon' || discount.value.startsWith('promo_')) return discount;
+
+  const lookup = await fetch('https://api.stripe.com/v1/promotion_codes?active=true&limit=1&code=' + encodeURIComponent(discount.value), {
+    headers: { Authorization: 'Bearer ' + process.env.STRIPE_SECRET_KEY },
+  });
+  const data = await lookup.json().catch(() => ({}));
+  const promoId = data?.data?.[0]?.id;
+  if (!lookup.ok || !promoId) return discount;
+  return { ...discount, value: promoId, resolvedFromCode: true };
+}
+
 function planIdIsUrgent(plan) {
   return plan.label === PLANS.urgent.label;
 }
@@ -343,7 +383,18 @@ export default async function handler(req, res) {
     const configuredPrice = getConfiguredPrice(plan, participantEligible);
     const usingParticipantPrice = participantEligible && participantPriceEnvKeys(plan).includes(configuredPrice.key);
     const participantPromo = participantEligible && !usingParticipantPrice ? await resolveParticipantDiscount(getParticipantDiscount(plan)) : null;
-    if (participantPromo) {
+    const partnerPilotPromo = planId === 'partner_pilot' ? await resolvePartnerPilotDiscount(getPartnerPilotDiscount()) : null;
+
+    if (planId === 'partner_pilot' && !partnerPilotPromo) {
+      return res.status(500).json({
+        error: 'Funeral home pilot discount is not configured. Add a 100% off 3-month Stripe coupon or promotion code env var before checkout.',
+      });
+    }
+
+    if (partnerPilotPromo) {
+      body.set(partnerPilotPromo.param, partnerPilotPromo.value);
+      body.set('metadata[partnerPilotDiscountApplied]', partnerPilotPromo.key);
+    } else if (participantPromo) {
       body.set(participantPromo.param, participantPromo.value);
       body.set('metadata[participantDiscountApplied]', participantPromo.key);
     } else if (usingParticipantPrice) {
@@ -382,11 +433,17 @@ export default async function handler(req, res) {
     });
     let session = await stripeRes.json();
 
-    const promoFailed = participantPromo && !stripeRes.ok && /promotion code|coupon/i.test(session.error?.message || '');
+    const promoFailed = (participantPromo || partnerPilotPromo) && !stripeRes.ok && /promotion code|coupon/i.test(session.error?.message || '');
     if (promoFailed) {
       body.delete('discounts[0][promotion_code]');
       body.delete('discounts[0][coupon]');
       body.delete('metadata[participantDiscountApplied]');
+      body.delete('metadata[partnerPilotDiscountApplied]');
+      if (partnerPilotPromo) {
+        return res.status(500).json({
+          error: `Funeral home pilot discount failed in Stripe. Check ${partnerPilotPromo.key}.`,
+        });
+      }
       body.set('metadata[participantDiscountFailed]', participantPromo.key);
       body.set('allow_promotion_codes', 'true');
       stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {

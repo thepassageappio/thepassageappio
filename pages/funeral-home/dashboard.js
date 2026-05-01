@@ -211,14 +211,18 @@ export default function FuneralHomeDashboard() {
 
   const org = data?.organizations?.[0]?.organizations;
   const cases = data?.cases || [];
-  const totalPartnerTasks = cases.reduce((sum, item) => sum + (item.partnerTasks?.length || 0), 0);
   const totalBlocked = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
   const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['sent', 'waiting', 'assigned'].includes(t.status || '')).length, 0);
   const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed'].includes(t.status || '')).length, 0);
-  const followUpsNeeded = totalBlocked + cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['failed', 'needs_review'].includes(t.status || '')).length, 0);
-  const activeFamilies = new Set(cases.map(item => item.coordinator_email || item.coordinator_name || item.id).filter(Boolean)).size;
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
-  const callsAvoided = Math.max(totalCommunications, Math.ceil((totalHandled + totalWaiting) * 0.75));
+  const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to || t.owner_name || t.participant_id).length, 0);
+  const callsAvoided = totalCommunications + assignmentsCoordinated;
+  const glanceItems = [
+    ['Active cases', cases.length],
+    ['Tasks handled by Passage', totalHandled],
+    ['Waiting for response', totalWaiting],
+    ['Estimated calls avoided', callsAvoided],
+  ];
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -280,6 +284,26 @@ export default function FuneralHomeDashboard() {
         {user && loading && <div style={{ color: C.soft }}>Loading partner cases...</div>}
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
+
+        {user && !loading && data && (
+          <div style={{ background: C.bgDark, color: '#fff', borderRadius: 18, padding: '14px 16px', marginBottom: 12, boxShadow: '0 18px 42px rgba(0,0,0,.08)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+              <div>
+                <div style={{ color: '#d7ead9', fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today at a glance</div>
+                <div style={{ color: '#f8f5ef', fontSize: 13, marginTop: 3 }}>Based on messages sent and tasks coordinated through Passage.</div>
+              </div>
+              <div style={{ color: '#d7ead9', fontSize: 12, fontWeight: 800 }}>Work your team does not have to chase manually.</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
+              {glanceItems.map(([label, value]) => (
+                <div key={label} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 13, padding: '10px 12px' }} title={label === 'Estimated calls avoided' ? 'Based on messages sent and assignments coordinated through Passage.' : ''}>
+                  <div style={{ color: '#d7d2c8', fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
+                  <div style={{ color: '#fff', fontSize: 22, marginTop: 2 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {user && showNewCase && (
           <form onSubmit={createCase} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
@@ -365,19 +389,6 @@ export default function FuneralHomeDashboard() {
 
         {user && cases.length > 0 && (
           <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 12 }}>
-            {[
-              ['Calls avoided', callsAvoided],
-              ['Active families', activeFamilies || cases.length],
-              ['Tasks handled by Passage', totalHandled],
-              ['Waiting for response', totalWaiting],
-            ].map(([label, value]) => (
-              <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13 }}>
-                <div style={{ color: C.soft, fontSize: 10.5, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase' }}>{label}</div>
-                <div style={{ fontSize: 22, marginTop: 3 }}>{value}</div>
-              </div>
-            ))}
-          </div>
           <div style={{ display: 'grid', gap: 12 }}>
             {cases.map(item => {
               const handledCount = item.tasks.filter(t => ['handled', 'completed'].includes(t.status || '')).length;
