@@ -4095,23 +4095,51 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 
 function Success({ mode, onDashboard }) {
   const isPreview = mode === 'preview';
+  const isGreenPlan = !isPreview;
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ width: '100%', maxWidth: 560, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 20, padding: '28px 24px', textAlign: 'center', boxShadow: '0 18px 50px rgba(55,45,35,.08)' }}>
+      <div style={{ width: '100%', maxWidth: isGreenPlan ? 660 : 560, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 20, padding: '28px 24px', textAlign: 'center', boxShadow: '0 18px 50px rgba(55,45,35,.08)' }}>
         <div style={{ fontSize: 34, marginBottom: 12 }}>✓</div>
-        <div style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 10 }}>{isPreview ? 'Plan preview built' : 'Plan saved'}</div>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: C.ink, lineHeight: 1.2, marginBottom: 10 }}>
-          {isPreview ? 'Your first steps are ready.' : 'Your planning file has a place to keep growing.'}
+        <div style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 10 }}>{isPreview ? 'Plan preview built' : 'Planning complete'}</div>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: isGreenPlan ? 'clamp(30px, 4vw, 42px)' : 26, color: C.ink, lineHeight: 1.08, marginBottom: 10 }}>
+          {isPreview ? 'Your first steps are ready.' : 'Your plan is ready.'}
         </div>
         <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.7, marginBottom: 20 }}>
           {isPreview
             ? 'Open the estate command center to handle tasks, assign owners, and see what comes next.'
-            : 'Continue in My file to add people, documents, wishes, participants, and active estates in one place.'}
+            : 'If something happens, your family will have one calm place to start.'}
         </div>
+        {isGreenPlan && (
+          <>
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 15, padding: '16px 18px', textAlign: 'left', marginBottom: 12 }}>
+              {['Be notified immediately', 'Know what to do first', 'See what is already handled', 'Have everything in one place'].map((item) => (
+                <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, color: C.ink, lineHeight: 1.45, padding: '4px 0' }}>
+                  <span style={{ color: C.sage, fontWeight: 900 }}>✓</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 15, padding: '14px 16px', textAlign: 'left', marginBottom: 14 }}>
+              <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>If something happens</div>
+              <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.65 }}>
+                We will notify your family, assign responsibilities, track what is handled, and guide them step by step.
+              </div>
+            </div>
+            <div style={{ color: C.sage, fontSize: 14, fontWeight: 800, lineHeight: 1.5, marginBottom: 16 }}>You have made this easier for them.</div>
+            <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginBottom: 12 }}>Want to add anything else now, or come back later?</div>
+          </>
+        )}
         {onDashboard ? (
-          <button onClick={onDashboard} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '13px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia, serif', fontWeight: 800, cursor: 'pointer' }}>
-            Continue to My file
-          </button>
+          <>
+            <button onClick={onDashboard} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '13px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia, serif', fontWeight: 800, cursor: 'pointer' }}>
+              {isGreenPlan ? 'View your plan' : 'Continue to My file'}
+            </button>
+            {isGreenPlan && (
+              <button onClick={onDashboard} style={{ width: '100%', border: 'none', background: 'transparent', color: C.sage, fontFamily: 'Georgia, serif', fontWeight: 800, cursor: 'pointer', padding: '11px 18px 0' }}>
+                Add more details later
+              </button>
+            )}
+          </>
         ) : (
           <GoogleSignInBtn label="Sign in to keep building" />
         )}
