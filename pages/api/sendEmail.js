@@ -115,7 +115,7 @@ export default async function handler(req, res) {
     const emailSubject = subject ||
       (actionType === 'trigger' ? deceased + "'s estate plan has been activated" :
        actionType === 'invite' ? 'You have been designated as a confirmation contact' :
-       'You have been asked to help — ' + deceased);
+      'You have been asked to help - ' + deceased);
 
     const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
 

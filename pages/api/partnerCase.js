@@ -11,7 +11,7 @@ const admin = createClient(url, service);
 
 const PARTNER_TASKS = [
   ['Obtain official pronouncement of death', 'Confirm pronouncement source, transportation timing, and who signs the death certificate.'],
-  ['Order death certificates — minimum 15 copies', 'Collect information needed for the certificate order and record order status.'],
+  ['Order death certificates - minimum 15 copies', 'Collect information needed for the certificate order and record order status.'],
   ['Meet with funeral director to finalize arrangements', 'Confirm service type, timing, approvals, pricing, and family decisions.'],
   ['Draft and submit the obituary', 'Collect obituary facts, family review, publication deadline, and submission proof.'],
   ['Contact the cemetery or crematorium', 'Confirm availability, document needs, fees, timing, and next approval.'],

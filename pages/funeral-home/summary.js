@@ -58,7 +58,7 @@ export default function PartnerCaseSummary() {
             <div>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{org.from_name || org.name || 'Funeral home'} family summary</div>
               <h1 style={{ fontSize: 34, lineHeight: 1.05, fontWeight: 400, margin: '8px 0 0' }}>{caseName}</h1>
-              <div style={{ color: C.mid, fontSize: 13, marginTop: 6 }}>{workflow.mode === 'funeral_home_preneed' ? 'Pre-need / prepaid planning' : 'At-need coordination'}{workflow.organization_case_reference ? ` · ${workflow.organization_case_reference}` : ''}</div>
+              <div style={{ color: C.mid, fontSize: 13, marginTop: 6 }}>{workflow.mode === 'funeral_home_preneed' ? 'Pre-need / prepaid planning' : 'At-need coordination'}{workflow.organization_case_reference ? ` - ${workflow.organization_case_reference}` : ''}</div>
             </div>
             <div style={{ textAlign: 'right', color: C.mid, fontSize: 12, lineHeight: 1.55 }}>
               Prepared {new Date().toLocaleDateString()}<br />
@@ -75,7 +75,7 @@ export default function PartnerCaseSummary() {
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14 }}>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Meeting readiness</div>
               <div style={{ fontSize: 18, marginTop: 5 }}>Enough to get started</div>
-              <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5 }}>Bring this summary to the arrangement meeting or send it ahead.</div>
+              <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5 }}>Bring this summary to the arrangement meeting or send it ahead so everyone starts from the same facts.</div>
             </div>
           </div>
 
@@ -94,13 +94,13 @@ export default function PartnerCaseSummary() {
             {(data.communications || []).length === 0 && <div style={{ color: C.mid, fontSize: 13 }}>No messages sent yet.</div>}
             {(data.communications || []).slice(0, 5).map(item => (
               <div key={item.id} style={{ padding: '7px 0', borderTop: `1px solid ${C.border}`, fontSize: 13 }}>
-                {item.subject || 'Family update'} · {item.recipient_name || item.recipient_email || item.recipient_phone || 'recipient'} · {statusLabel(item.status)}
+                {item.subject || 'Family update'} - {item.recipient_name || item.recipient_email || item.recipient_phone || 'recipient'} - {statusLabel(item.status)}
               </div>
             ))}
           </section>
 
           <footer style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12, color: C.soft, fontSize: 11.5, lineHeight: 1.5 }}>
-            This summary is for family coordination and arrangement preparation. Prepared with Passage based on standard funeral home intake and case coordination information.
+            Prepared with Passage. Based on standard funeral home intake information and the family coordination details available at the time this summary was created.
           </footer>
         </section>
       )}

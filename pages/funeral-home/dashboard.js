@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
+const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
 function statusLabel(value) {
   if (value === 'handled' || value === 'completed') return 'Handled';
@@ -105,7 +105,7 @@ export default function FuneralHomeDashboard() {
     const json = await res.json().catch(() => ({}));
     if (!res.ok) setError(json.error || 'Could not handle this for the family.');
     else {
-      setNotice('Handled for the family. Passage recorded the actor, time, and family notification.');
+      setNotice('Handled for the family. The family can see who handled it, when it happened, and what was sent.');
       await load(token);
     }
     setUpdating('');
@@ -232,7 +232,7 @@ export default function FuneralHomeDashboard() {
           <div>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Partner command center</div>
             <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 40px)', lineHeight: 1.05, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
-            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Pilot view for family cases, task status, death-certificate handoffs, and the work your team can complete on behalf of families.</p>
+            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Pilot view for family cases, task status, death-certificate handoffs, and work your team can complete on behalf of families.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {user && <button onClick={() => setShowNewCase(v => !v)} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New family case</button>}
@@ -240,7 +240,7 @@ export default function FuneralHomeDashboard() {
             {user && <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none' }}>Template</a>}
             {user && cases.length > 0 && <button onClick={downloadExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Export CSV</button>}
             {user && cases.length > 0 && <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV'}</button>}
-            {user && <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Partner billing</button>}
+            {user && <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Start pilot billing</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
         </div>
@@ -290,7 +290,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
               <div>
                 <div style={{ color: '#d7ead9', fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today at a glance</div>
-                <div style={{ color: '#f8f5ef', fontSize: 13, marginTop: 3 }}>Based on messages sent and tasks coordinated through Passage.</div>
+                <div style={{ color: '#f8f5ef', fontSize: 13, marginTop: 3 }}>Based on messages sent, assignments made, and tasks handled in Passage.</div>
               </div>
               <div style={{ color: '#d7ead9', fontSize: 12, fontWeight: 800 }}>Work your team does not have to chase manually.</div>
             </div>
@@ -404,7 +404,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.25 }}>{item.deceased_name || item.estate_name || item.name || 'Family case'}</div>
-                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{item.mode === 'funeral_home_preneed' ? 'Pre-need / prepaid case' : 'At-need case'} · Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
+                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{item.mode === 'funeral_home_preneed' ? 'Pre-need / prepaid case' : 'At-need case'} - Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
                     </div>
                     <Link href={`/estate?id=${item.id}`} style={{ color: '#fff', background: C.sage, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Open case</Link>
                     <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Print family summary</Link>
@@ -445,7 +445,7 @@ export default function FuneralHomeDashboard() {
                         </div>
                       ))}
                     </div>
-                    <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>Share this status instead of answering another “where are we?” call.</div>
+                    <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>Share this status instead of answering another "where are we?" call.</div>
                   </div>
                   {item.communications?.length > 0 && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
@@ -453,7 +453,7 @@ export default function FuneralHomeDashboard() {
                       {item.communications.slice(0, 4).map(message => (
                         <div key={message.id} style={{ fontSize: 12.3, color: C.mid, lineHeight: 1.45, padding: '5px 0', borderTop: `1px solid ${C.border}` }}>
                           <strong style={{ color: C.ink }}>{message.subject || 'Family update'}</strong>
-                          <div>{message.channel || 'message'} to {message.recipient_name || message.recipient_email || message.recipient_phone || 'recipient'} · {statusLabel(message.status)}{message.sent_at ? ` · ${new Date(message.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</div>
+                          <div>{message.channel || 'message'} to {message.recipient_name || message.recipient_email || message.recipient_phone || 'recipient'} - {statusLabel(message.status)}{message.sent_at ? ` - ${new Date(message.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</div>
                           {message.error_message && <div style={{ color: C.rose }}>{message.error_message}</div>}
                         </div>
                       ))}

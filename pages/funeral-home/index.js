@@ -157,9 +157,9 @@ export default function FuneralHomePage() {
 
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: 22, lineHeight: 1.18 }}>Separate module. Same proof engine.</div>
+            <div style={{ fontSize: 22, lineHeight: 1.18 }}>Built to fit your current work.</div>
             <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.58, marginTop: 3 }}>
-              The partner workflow does not disturb red path, green path, or participants. It layers funeral-home staff permissions over the same estate, task, status, and audit records.
+              Your staff can create a case, share a family status view, act on behalf of the family, and export the record when the work needs to move.
             </div>
           </div>
           <Link href="/contact" style={{ color: C.sage, border: `1px solid ${C.border}`, background: C.card, borderRadius: 12, padding: '10px 14px', textDecoration: 'none', fontSize: 13, fontWeight: 900 }}>Talk to Passage</Link>
