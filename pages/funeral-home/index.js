@@ -23,8 +23,8 @@ const workflow = [
 
 const tiers = [
   ['Pilot', '$99.99/mo', 'For one location testing Passage with real cases.', '10 active cases, co-branded family view, partner dashboard'],
-  ['Local', '$249/mo', 'For a busy independent home.', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
-  ['Group', '$399/mo', 'For multi-location teams.', 'Locations, reporting, lead capture, priority onboarding'],
+  ['Local', '$249.99/mo', 'For a busy independent home.', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
+  ['Group', '$349.99/mo', 'For multi-location teams.', 'Locations, reporting, lead capture, priority onboarding'],
 ];
 
 export default function FuneralHomePage() {

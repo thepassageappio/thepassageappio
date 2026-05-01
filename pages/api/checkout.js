@@ -91,7 +91,7 @@ const PLANS = {
   },
   partner_local: {
     label: 'Passage Partner Local',
-    amount: 24900,
+    amount: 24999,
     mode: 'subscription',
     interval: 'month',
     partnerPlan: true,
@@ -99,11 +99,11 @@ const PLANS = {
   },
   partner_group: {
     label: 'Passage Partner Group',
-    amount: 39900,
+    amount: 34999,
     mode: 'subscription',
     interval: 'month',
     partnerPlan: true,
-    priceEnv: ['STRIPE_PRICE_PARTNER_GROUP_MONTHLY', 'STRIPE_PRICE_FUNERAL_HOME_GROUP_MONTHLY'],
+    priceEnv: ['Funeral_Home_MULTI_LOCATION_Monthly', 'STRIPE_PRICE_PARTNER_GROUP_MONTHLY', 'STRIPE_PRICE_FUNERAL_HOME_GROUP_MONTHLY'],
   },
   monthly: null,
   semiannual: null,
@@ -244,7 +244,13 @@ async function resolvePartnerPilotDiscount(discount) {
   });
   const data = await lookup.json().catch(() => ({}));
   const promoId = data?.data?.[0]?.id;
-  if (!lookup.ok || !promoId) return discount;
+  if (!lookup.ok || !promoId) {
+    return {
+      ...discount,
+      type: 'coupon',
+      param: 'discounts[0][coupon]',
+    };
+  }
   return { ...discount, value: promoId, resolvedFromCode: true };
 }
 
