@@ -22,7 +22,7 @@ const workflow = [
 ];
 
 const tiers = [
-  ['Pilot', '$99/mo', 'For one location testing Passage with real cases.', '10 active cases, co-branded family view, partner dashboard'],
+  ['Pilot', '$99.99/mo', 'For one location testing Passage with real cases.', '10 active cases, co-branded family view, partner dashboard'],
   ['Local', '$249/mo', 'For a busy independent home.', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
   ['Group', '$399/mo', 'For multi-location teams.', 'Locations, reporting, lead capture, priority onboarding'],
 ];
@@ -31,6 +31,7 @@ export default function FuneralHomePage() {
   const [user, setUser] = useState(null);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [activeNeed, setActiveNeed] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user || null));
@@ -71,43 +72,48 @@ export default function FuneralHomePage() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '16px 22px 38px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(320px, .7fr)', gap: 14, alignItems: 'stretch', marginBottom: 12 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 24, padding: '24px 26px' }}>
+      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '12px 22px 32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .92fr) minmax(320px, .68fr)', gap: 12, alignItems: 'stretch', marginBottom: 10 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: '20px 22px' }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 9 }}>For funeral homes</div>
-            <h1 style={{ fontSize: 'clamp(34px, 4.8vw, 60px)', lineHeight: .96, margin: '0 0 13px', fontWeight: 400 }}>
+            <h1 style={{ fontSize: 'clamp(31px, 4.1vw, 50px)', lineHeight: .98, margin: '0 0 10px', fontWeight: 400 }}>
               A quieter family command center for every case.
             </h1>
-            <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.62, maxWidth: 720, margin: '0 0 18px' }}>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.55, maxWidth: 720, margin: '0 0 14px' }}>
               Passage helps directors reduce phone-tag, collect cleaner family information, and show families what is being handled without adding another complicated system.
             </p>
             <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
               <Link href="/funeral-home/dashboard" style={{ background: C.sage, color: '#fff', borderRadius: 12, padding: '11px 16px', textDecoration: 'none', fontWeight: 900, fontSize: 13 }}>Open partner dashboard</Link>
-              <button onClick={() => startCheckout('partner_pilot')} style={{ background: C.rose, color: '#fff', border: 'none', borderRadius: 12, padding: '11px 16px', fontWeight: 900, fontSize: 13, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{busy === 'partner_pilot' ? 'Opening...' : 'Start pilot -> $99/mo'}</button>
             </div>
             {error && <div style={{ marginTop: 12, background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
           </div>
 
-          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 24, padding: 22, display: 'grid', alignContent: 'center', gap: 11 }}>
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 22, padding: 20, display: 'grid', alignContent: 'center', gap: 9 }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Why this fits the job</div>
-            <div style={{ fontSize: 30, lineHeight: 1.08 }}>Families need care. Staff need fewer loose ends.</div>
-            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.58, margin: 0 }}>
+            <div style={{ fontSize: 25, lineHeight: 1.08 }}>Families need care. Staff need fewer loose ends.</div>
+            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.52, margin: 0 }}>
               Funeral service is communication-heavy, staff-constrained, and full of paperwork handoffs. Passage keeps the family-facing work visible without asking directors to become software administrators.
             </p>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginBottom: 12 }}>
-          {needs.map(([title, body]) => (
-            <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 15 }}>
-              <div style={{ color: C.sage, fontSize: 10.3, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>{title}</div>
-              <div style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.52 }}>{body}</div>
-            </div>
-          ))}
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 12, marginBottom: 10, display: 'grid', gridTemplateColumns: '260px minmax(0,1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {needs.map(([title], index) => (
+              <button key={title} onClick={() => setActiveNeed(index)} style={{ textAlign: 'left', border: `1px solid ${activeNeed === index ? C.sage : C.border}`, background: activeNeed === index ? C.sageFaint : C.bg, borderRadius: 12, padding: '9px 11px', color: activeNeed === index ? C.sage : C.mid, cursor: 'pointer', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900 }}>
+                {title}
+              </button>
+            ))}
+          </div>
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: '14px 16px', display: 'grid', alignContent: 'center' }}>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>{needs[activeNeed][0]}</div>
+            <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.25, marginBottom: 4 }}>Immediate operational relief.</div>
+            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5 }}>{needs[activeNeed][1]}</div>
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .72fr) minmax(340px, .78fr)', gap: 12, marginBottom: 12 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 18 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .72fr) minmax(340px, .78fr)', gap: 12, marginBottom: 10 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16 }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Partner workflow</div>
             <div style={{ display: 'grid', gap: 9 }}>
               {workflow.map(([title, body], i) => (
@@ -122,13 +128,23 @@ export default function FuneralHomePage() {
             </div>
           </div>
 
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 18 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16 }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>How funeral homes pay</div>
             <div style={{ display: 'grid', gap: 8 }}>
               {tiers.map(([name, price, body, detail], i) => (
                 <div key={name} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'center', background: i === 0 ? C.roseFaint : C.sageFaint, border: `1px solid ${i === 0 ? C.rose : C.sage}22`, borderRadius: 14, padding: 12 }}>
                   <div>
-                    <div style={{ fontSize: 17 }}>{name} <span style={{ color: i === 0 ? C.rose : C.sage, fontSize: 13, fontWeight: 900 }}>{price}</span></div>
+                    <div style={{ fontSize: 17 }}>
+                      {name}{' '}
+                      {i === 0 ? (
+                        <>
+                          <span style={{ color: C.soft, fontSize: 13, fontWeight: 900, textDecoration: 'line-through' }}>{price}</span>{' '}
+                          <span style={{ color: C.rose, fontSize: 13, fontWeight: 900 }}>$0 for 3 months</span>
+                        </>
+                      ) : (
+                        <span style={{ color: C.sage, fontSize: 13, fontWeight: 900 }}>{price}</span>
+                      )}
+                    </div>
                     <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginTop: 2 }}>{body}</div>
                     <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{detail}</div>
                   </div>

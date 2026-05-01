@@ -2454,13 +2454,24 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   const [serviceType, setServiceType] = useState("");
   const [executorName, setExecutorName] = useState("");
   const [executorEmail, setExecutorEmail] = useState("");
+  const [executorPhone, setExecutorPhone] = useState("");
   const [secondConfirmerName, setSecondConfirmerName] = useState("");
   const [secondConfirmerEmail, setSecondConfirmerEmail] = useState("");
+  const [secondConfirmerPhone, setSecondConfirmerPhone] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("single_annual");
+  const [planError, setPlanError] = useState("");
 
   const activate = async (mode) => {
-    const triggerPeople = Array.from(new Set([executorEmail, secondConfirmerEmail].filter(Boolean).map(email => email.trim().toLowerCase())));
-    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, person_name: name, disposition, service_type: serviceType, timestamp: new Date().toISOString() });
+    const primaryEmail = executorEmail.trim().toLowerCase();
+    const backupEmail = secondConfirmerEmail.trim().toLowerCase();
+    if (backupEmail && primaryEmail && backupEmail === primaryEmail) {
+      setPlanError("Use two different emails for the executor and second confirmation contact.");
+      setStep(3);
+      return;
+    }
+    setPlanError("");
+    const triggerPeople = Array.from(new Set([primaryEmail, backupEmail].filter(Boolean)));
+    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, timestamp: new Date().toISOString() });
     let createdWorkflowId = null;
     if (user?.id) {
       const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -2484,12 +2495,12 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
         if (executorEmail) {
           await supabase.from('workflow_actions').insert([
             { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
-            { workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
+            { workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_phone: executorPhone || null, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
           ]);
         }
         if (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() !== executorEmail.trim().toLowerCase()) {
           await supabase.from('workflow_actions').insert([
-            { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 },
+            { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_phone: secondConfirmerPhone || null, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 },
           ]);
         }
 
@@ -2558,21 +2569,34 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
         <div style={{ fontSize: 12, color: C.mid, marginBottom: 12, lineHeight: 1.5 }}>Receives the full task list the moment both confirmations arrive.</div>
         <Field label="Full name" placeholder="e.g. Sarah Collins" value={executorName} onChange={setExecutorName} />
         <Field label="Email" type="email" placeholder="sarah@email.com" value={executorEmail} onChange={setExecutorEmail} hint="Used for automatic notification when plan activates." />
+        <Field label="Phone (optional)" placeholder="+12297027753" value={executorPhone} onChange={setExecutorPhone} hint="Used for SMS if you want Passage to text them too." />
       </div>
 
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
         <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 4 }}>👤 Second Confirmer</div>
-        <div style={{ fontSize: 12, color: C.mid, marginBottom: 10, lineHeight: 1.5 }}>The second person who confirms your passing. You can add them now or later, but adding them here helps your family avoid guessing later.</div>
+        <div style={{ fontSize: 12, color: C.mid, marginBottom: 10, lineHeight: 1.5 }}>The second person who confirms your passing. Use a different email than the executor so the confirmation is truly independent.</div>
         <Field label="Full name (optional)" placeholder="e.g. Michael Collins" value={secondConfirmerName} onChange={setSecondConfirmerName} />
         <Field label="Email (optional)" type="email" placeholder="michael@email.com" value={secondConfirmerEmail} onChange={setSecondConfirmerEmail} hint="If you add this now, Passage saves them as the second confirmation contact." />
+        <Field label="Phone (optional)" placeholder="+12297027753" value={secondConfirmerPhone} onChange={setSecondConfirmerPhone} hint="Optional backup for confirmation outreach." />
       </div>
+
+      {secondConfirmerEmail && executorEmail && secondConfirmerEmail.trim().toLowerCase() === executorEmail.trim().toLowerCase() && (
+        <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.rose, marginBottom: 12, lineHeight: 1.5, fontWeight: 700 }}>
+          Use two different emails for these contacts. This keeps activation trustworthy.
+        </div>
+      )}
+      {planError && (
+        <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.rose, marginBottom: 12, lineHeight: 1.5, fontWeight: 700 }}>
+          {planError}
+        </div>
+      )}
 
       <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 9, padding: "10px 14px", fontSize: 12, color: C.amber, marginBottom: 14, lineHeight: 1.5 }}>
         💡 Passage sends each person a unique, secure link. When both tap confirm, your plan activates automatically.
       </div>
       <div style={{ display: "flex", gap: 10 }}>
         <Btn variant="ghost" onClick={() => setStep(2)}>← Back</Btn>
-        <Btn onClick={() => setStep(4)} disabled={!executorName || !executorEmail} style={{ flex: 1 }}>Continue →</Btn>
+        <Btn onClick={() => { setPlanError(""); setStep(4); }} disabled={!executorName || !executorEmail || (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() === executorEmail.trim().toLowerCase())} style={{ flex: 1 }}>Continue →</Btn>
       </div>
     </Card>,
 
@@ -2583,13 +2607,22 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       <Sub>Pre-filled into notification letters so your family never has to hunt.</Sub>
       <div style={{ height: 16 }} />
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
-        {[["🏦","Primary bank account",false],["🏛️","Social Security",false],["🛡️","Life insurance policy",false],["📱","Recurring subscriptions",true],["₿","Digital assets / crypto",true]].map(([icon,label,locked],i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 0", borderBottom: `1px solid ${C.border}` }}>
-            <span style={{ fontSize: 17 }}>{icon}</span>
-            <div style={{ flex: 1, fontSize: 13, color: locked ? C.muted : C.ink }}>{label}</div>
-            {locked ? <span style={{ fontSize: 10, color: C.gold, fontWeight: 700, background: C.goldFaint, padding: "2px 7px", borderRadius: 5 }}>Upgrade</span> : <span style={{ fontSize: 10, color: C.sage, fontWeight: 700 }}>+ Add</span>}
+        {[["bank","🏦","Primary bank account",false,"Bank name or where to find it"],["social_security","🏛️","Social Security",false,"SSN location or note for executor"],["life_insurance","🛡️","Life insurance policy",false,"Company name, policy location, or contact"],["subscriptions","📱","Recurring subscriptions",true,""],["digital_assets","₿","Digital assets / crypto",true,""]].map(([key,icon,label,locked,placeholder],i) => (
+          <div key={key} style={{ padding: "9px 0", borderBottom: `1px solid ${C.border}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+              <span style={{ fontSize: 17 }}>{icon}</span>
+              <div style={{ flex: 1, fontSize: 13, color: locked ? C.muted : C.ink }}>{label}</div>
+              {locked ? (
+                <span style={{ fontSize: 10, color: C.gold, fontWeight: 700, background: C.goldFaint, padding: "2px 7px", borderRadius: 5 }}>Upgrade</span>
+              ) : (
+                <span style={{ fontSize: 10, color: C.sage, fontWeight: 700 }}>Estate task</span>
+              )}
+            </div>
           </div>
         ))}
+        <div style={{ marginTop: 12, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
+          These belong in the estate command center as real task paths, not loose notes here. After setup, Passage keeps account notifications and claims inside the workflow where they can be assigned and tracked.
+        </div>
       </div>
       <div style={{ display: "flex", gap: 10 }}>
         <Btn variant="ghost" onClick={() => setStep(3)}>← Back</Btn>
@@ -2597,37 +2630,24 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       </div>
     </Card>,
 
-    <Card key={5} maxWidth={540}>
+    <Card key={5} maxWidth={560}>
       <StepBar current={5} total={5} />
       <div style={{ textAlign: "center", marginBottom: 24 }}>
         <div style={{ fontSize: 34, marginBottom: 12 }}>🕊️</div>
-        <Heading>Your plan is built. Now make it real.</Heading>
+        <Heading>Your plan is built.</Heading>
         <div style={{ background: C.bgSubtle, borderRadius: 11, padding: "13px 16px", fontSize: 13, color: C.mid, lineHeight: 1.65, marginTop: 10 }}>
-          Right now this is a draft. <strong style={{ color: C.ink }}>Without activation, your family won't see any of this.</strong>
+          We will save this as an estate command center. <strong style={{ color: C.ink }}>Nothing sends until you activate it.</strong>
         </div>
-        <div style={{ fontSize: 12, color: C.gold, fontWeight: 700, marginTop: 8 }}>Choose one estate now. Add spouse, parent, or family coverage when you need it.</div>
       </div>
-      {PLAN_OPTIONS.map(p => (
-        <div key={p.id} onClick={() => setSelectedPlan(p.id)} style={{ border: `2px solid ${selectedPlan === p.id ? C.sage : C.border}`, borderRadius: 12, padding: "13px 16px", cursor: "pointer", background: selectedPlan === p.id ? C.sageFaint : C.bgCard, display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7, position: "relative" }}>
-          {p.popular && <div style={{ position: "absolute", top: -9, left: 14, background: C.sage, color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 9px", borderRadius: 9 }}>RECOMMENDED</div>}
-          <div><div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{p.label}</div><div style={{ fontSize: 11, color: C.soft, marginTop: 2 }}>{p.badge}</div></div>
-          <div><span style={{ fontSize: 20, fontWeight: 800, color: selectedPlan === p.id ? C.sage : C.ink }}>{p.price}</span><span style={{ fontSize: 11.5, color: C.soft }}> {p.per}</span></div>
-        </div>
-      ))}
       <div style={{ background: C.bgSubtle, borderRadius: 11, padding: "13px 15px", marginBottom: 18, marginTop: 8 }}>
-        <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 7 }}>Activates immediately:</div>
-        {[`${executorName || "Your executor"} gets email + SMS with their task list`,"Vendor notifications — funeral home, attorney, florist, caterer, cemetery","Social posts family-approved before sending","Unlimited wishes, accounts, documents","Memory vault — voice notes delivered after death"].map((f,i) => (
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 7 }}>Next steps:</div>
+        {["Open the command center", "Review people, wishes, documents, and tasks", "Upgrade from the command center when your family is ready for full orchestration"].map((f,i) => (
           <div key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: C.mid, padding: "3px 0" }}>
             <span style={{ color: C.sage, fontWeight: 700, flexShrink: 0 }}>✓</span>{f}
           </div>
         ))}
       </div>
-      <Btn onClick={() => activate("paid")} style={{ width: "100%", padding: "16px", fontSize: 15.5, marginBottom: 9 }}>Activate my plan →</Btn>
-      <div style={{ textAlign: "center" }}>
-        <button onClick={() => activate("draft")} style={{ background: "none", border: "none", fontSize: 12, color: C.soft, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>
-          Save as draft — nothing activates until I upgrade
-        </button>
-      </div>
+      <Btn onClick={() => activate("draft")} style={{ width: "100%", padding: "16px", fontSize: 15.5, marginBottom: 9 }}>Save and open command center →</Btn>
     </Card>,
   ];
 
@@ -3340,7 +3360,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
               </div>
               {plan === 'free' && (
                 <div>
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <div style={{ display: 'none', gap: 8, marginBottom: 8 }}>
                     <button onClick={onStartPlan} style={{ flex: 1, padding: "10px", background: C.sage, border: "none", borderRadius: 11, fontSize: 12.5, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
                       🗓️ Plan ahead →
                     </button>
@@ -3350,7 +3370,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                   </div>
                   <div style={{ border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 11, background: C.sageFaint }}>
                     <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 4 }}>Upgrade when ready</div>
-                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.4, marginBottom: 9 }}>Choose estate seats on pricing.</div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.4, marginBottom: 9 }}>Choose estate seats on pricing. Start planning from the estate slot below.</div>
                     <button onClick={() => window.location.href = '/pricing'} style={{ width: "100%", padding: "11px", background: C.sage, color: "#fff", border: "none", borderRadius: 11, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
                       Upgrade now →
                     </button>
