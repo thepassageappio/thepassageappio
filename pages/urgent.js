@@ -71,6 +71,18 @@ const taskPlaybooks = {
   },
 };
 
+const defaultContext = {
+  deathContext: '',
+  pronouncementStatus: '',
+  funeralHomeName: '',
+  cemeteryName: '',
+  faithTradition: '',
+  clergyName: '',
+  authorityName: '',
+  hospitalOrHospiceContact: '',
+  medicalRecordsLocation: '',
+};
+
 function CandleLogo({ size = 34 }) {
   return (
     <div className="brand">
@@ -203,6 +215,7 @@ export default function UrgentPage() {
   const [dateOfDeath, setDateOfDeath] = useState('');
   const [coordinatorName, setCoordinatorName] = useState('');
   const [coordinatorEmail, setCoordinatorEmail] = useState('');
+  const [context, setContext] = useState(defaultContext);
   const [savingEstate, setSavingEstate] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [paidSuccess, setPaidSuccess] = useState(false);
@@ -252,7 +265,7 @@ export default function UrgentPage() {
 
   const signIn = async () => {
     try {
-      localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, outcomes, people }));
+      localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, context, outcomes, people }));
     } catch {}
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/urgent' } });
   };
@@ -267,6 +280,7 @@ export default function UrgentPage() {
       if (saved.dateOfDeath) setDateOfDeath(saved.dateOfDeath);
       if (saved.coordinatorName) setCoordinatorName(saved.coordinatorName);
       if (saved.coordinatorEmail) setCoordinatorEmail(saved.coordinatorEmail);
+      if (saved.context && typeof saved.context === 'object') setContext(prev => ({ ...prev, ...saved.context }));
       if (Array.isArray(saved.outcomes)) setOutcomes(saved.outcomes);
       if (Array.isArray(saved.people)) setPeople(saved.people);
     } catch {}
@@ -297,6 +311,7 @@ export default function UrgentPage() {
         coordinatorName: coordinatorName || user.user_metadata?.full_name || user.email,
         coordinatorEmail: coordinatorEmail || user.email,
         primaryOwner,
+        context,
       }),
     });
     const json = await response.json().catch(() => ({}));
@@ -311,6 +326,8 @@ export default function UrgentPage() {
       window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
     }, 650);
   };
+
+  const updateContext = (key, value) => setContext(prev => ({ ...prev, [key]: value }));
 
   return (
     <main>
@@ -337,6 +354,9 @@ export default function UrgentPage() {
         h2 { font-family: Georgia, serif; font-weight: 400; font-size: 27px; line-height: 1.14; margin: 0 0 9px; }
         .support { color: ${C.mid}; font-size: 14px; line-height: 1.55; margin: 0 0 14px; max-width: 580px; }
         .save-strip { display:grid; grid-template-columns:minmax(0,1fr) 150px auto; gap:10px; align-items:end; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:12px; margin-bottom:16px; }
+        .context-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; background:${C.card}; border:1px solid ${C.border}; border-radius:14px; padding:12px; margin-bottom:16px; }
+        .context-title { grid-column:1 / -1; color:${C.sageDark}; font-size:11px; text-transform:uppercase; letter-spacing:.14em; font-weight:850; }
+        .context-help { grid-column:1 / -1; color:${C.mid}; font-size:12.5px; line-height:1.5; margin-top:-2px; }
         .field.compact { margin:0; }
         .field.compact label { margin-bottom:5px; font-size:10px; }
         .field.compact input { min-height:39px; padding:9px 11px; background:${C.card}; }
@@ -393,6 +413,7 @@ export default function UrgentPage() {
           nav { margin-bottom: 24px; }
           .grid { grid-template-columns: 1fr; }
           .save-strip { grid-template-columns: 1fr; }
+          .context-grid { grid-template-columns:1fr; }
           .save-command { width:100%; }
           .primary-card { padding: 22px; }
           .field.two { grid-template-columns: 1fr; }
@@ -437,6 +458,66 @@ export default function UrgentPage() {
                 {savingEstate ? 'Saving...' : user ? 'Open saved command center' : 'Sign in to save'}
               </button>
               {saveError && <div className="save-error">{saveError}</div>}
+            </div>
+            <div className="context-grid">
+              <div className="context-title">Shape the first steps</div>
+              <div className="context-help">Answer what you know. Passage will use this to prepare the right hospice, hospital, funeral home, cemetery, clergy, and document tasks.</div>
+              <div className="field compact">
+                <label>Where did this happen?</label>
+                <select value={context.deathContext} onChange={e => updateContext('deathContext', e.target.value)}>
+                  <option value="">Not sure yet</option>
+                  <option value="hospice">Under hospice care</option>
+                  <option value="hospital">Hospital</option>
+                  <option value="home_expected">Home, expected</option>
+                  <option value="facility">Nursing home or care facility</option>
+                  <option value="unexpected">Unexpected / emergency</option>
+                </select>
+              </div>
+              <div className="field compact">
+                <label>Official pronouncement</label>
+                <select value={context.pronouncementStatus} onChange={e => updateContext('pronouncementStatus', e.target.value)}>
+                  <option value="">Not sure yet</option>
+                  <option value="confirmed">Pronounced / confirmed</option>
+                  <option value="needed">Need to confirm</option>
+                </select>
+              </div>
+              <div className="field compact">
+                <label>Funeral home</label>
+                <input value={context.funeralHomeName} onChange={e => updateContext('funeralHomeName', e.target.value)} placeholder="Name, if known" />
+              </div>
+              <div className="field compact">
+                <label>Cemetery / burial place</label>
+                <input value={context.cemeteryName} onChange={e => updateContext('cemeteryName', e.target.value)} placeholder="Name, if known" />
+              </div>
+              <div className="field compact">
+                <label>Faith tradition</label>
+                <select value={context.faithTradition} onChange={e => updateContext('faithTradition', e.target.value)}>
+                  <option value="">No specific tradition / not sure</option>
+                  <option value="Jewish">Jewish</option>
+                  <option value="Catholic">Catholic</option>
+                  <option value="Christian / Protestant">Christian / Protestant</option>
+                  <option value="Muslim">Muslim</option>
+                  <option value="Hindu">Hindu</option>
+                  <option value="Buddhist">Buddhist</option>
+                  <option value="Other">Other / custom</option>
+                </select>
+              </div>
+              <div className="field compact">
+                <label>Clergy / officiant</label>
+                <input value={context.clergyName} onChange={e => updateContext('clergyName', e.target.value)} placeholder="Name or community" />
+              </div>
+              <div className="field compact">
+                <label>Healthcare proxy / decision-maker</label>
+                <input value={context.authorityName} onChange={e => updateContext('authorityName', e.target.value)} placeholder="Name, if known" />
+              </div>
+              <div className="field compact">
+                <label>Hospital / hospice / doctor</label>
+                <input value={context.hospitalOrHospiceContact} onChange={e => updateContext('hospitalOrHospiceContact', e.target.value)} placeholder="Contact or facility" />
+              </div>
+              <div className="field compact" style={{ gridColumn: '1 / -1' }}>
+                <label>Medical records / documents location</label>
+                <input value={context.medicalRecordsLocation} onChange={e => updateContext('medicalRecordsLocation', e.target.value)} placeholder="Where records, proxy, advance directive, medication list, insurance cards may be found" />
+              </div>
             </div>
             <div className="phase">{primary.phase}</div>
             <h2>{primary.title}</h2>

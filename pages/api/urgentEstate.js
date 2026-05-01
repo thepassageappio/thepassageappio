@@ -142,6 +142,142 @@ function clean(value) {
   return String(value || '').trim();
 }
 
+function cleanContext(raw) {
+  const input = raw && typeof raw === 'object' ? raw : {};
+  return {
+    deathContext: clean(input.deathContext),
+    pronouncementStatus: clean(input.pronouncementStatus),
+    funeralHomeName: clean(input.funeralHomeName),
+    cemeteryName: clean(input.cemeteryName),
+    faithTradition: clean(input.faithTradition),
+    clergyName: clean(input.clergyName),
+    authorityName: clean(input.authorityName),
+    hospitalOrHospiceContact: clean(input.hospitalOrHospiceContact),
+    medicalRecordsLocation: clean(input.medicalRecordsLocation),
+  };
+}
+
+function task(title, description, category, priority, dueDays, position, playbookKey, extras = {}) {
+  return {
+    title,
+    description,
+    category,
+    priority,
+    due_days_after_trigger: dueDays,
+    position,
+    playbook_key: playbookKey || title,
+    ...extras,
+  };
+}
+
+function conditionalTasksFor(context) {
+  const tasks = [];
+  let position = 7;
+  const add = (...args) => tasks.push(task(...args));
+
+  if (context.pronouncementStatus !== 'confirmed') {
+    add(
+      'Confirm official pronouncement of death',
+      'Confirm who has officially pronounced death before transportation, paperwork, or release steps move forward.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'confirm official pronouncement of death',
+      { automation_level: 'PARTNER_HANDOFF', execution_kind: 'call', waiting_on: 'doctor, hospice, hospital, or medical examiner', funeral_home_eligible: true, proof_required: 'pronouncement source recorded' }
+    );
+  }
+
+  if (context.deathContext === 'hospice') {
+    add(
+      'Call hospice nurse or hospice agency',
+      'Hospice usually guides pronouncement, equipment, medications, and funeral home release steps.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'call hospice nurse or hospice agency',
+      { automation_level: 'SEND_TRACK', execution_kind: 'call', waiting_on: 'hospice nurse or agency', proof_required: 'hospice next step recorded' }
+    );
+  }
+
+  if (['hospital', 'facility'].includes(context.deathContext)) {
+    add(
+      'Confirm hospital or facility release process',
+      'Ask what the funeral home needs for pickup, whether a release is signed, and who the family should speak with.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'confirm hospital or facility release process',
+      { automation_level: 'PARTNER_HANDOFF', execution_kind: 'call', waiting_on: 'hospital or facility staff', funeral_home_eligible: true, proof_required: 'release process recorded' }
+    );
+  }
+
+  if (context.deathContext === 'unexpected') {
+    add(
+      'Confirm emergency or medical examiner next steps',
+      'Unexpected deaths may involve 911, law enforcement, or a medical examiner before funeral arrangements can proceed.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'confirm emergency or medical examiner next steps',
+      { automation_level: 'EXTERNAL', execution_kind: 'call', waiting_on: '911, police, coroner, or medical examiner', proof_required: 'official next step recorded' }
+    );
+  }
+
+  if (context.faithTradition || context.clergyName) {
+    add(
+      'Contact clergy or faith community',
+      'Some traditions have timing, preparation, burial, cremation, or service requirements that should be known early.',
+      'service',
+      'urgent',
+      0,
+      position++,
+      'contact clergy or faith community',
+      { automation_level: 'SEND_TRACK', execution_kind: 'message', waiting_on: 'clergy or faith community', funeral_home_eligible: true, proof_required: 'faith timing or service guidance recorded' }
+    );
+  }
+
+  if (context.cemeteryName) {
+    add(
+      'Confirm cemetery requirements',
+      'Confirm plot, interment timing, paperwork, opening/closing fees, and who coordinates with the funeral home.',
+      'service',
+      'high',
+      1,
+      position++,
+      'confirm cemetery requirements',
+      { automation_level: 'PARTNER_HANDOFF', execution_kind: 'call', waiting_on: 'cemetery', funeral_home_eligible: true, proof_required: 'cemetery requirements recorded' }
+    );
+  }
+
+  add(
+    'Identify healthcare proxy or legal decision-maker',
+    context.authorityName ? `Record ${context.authorityName}'s authority and contact path so medical and release questions go to the right person.` : 'Identify who has authority for medical, release, and family decisions if questions arise.',
+    'legal',
+    'high',
+    1,
+    position++,
+    'identify healthcare proxy or legal decision-maker',
+    { automation_level: 'PACKET', execution_kind: 'record', waiting_on: 'family or proxy', proof_required: 'decision-maker recorded' }
+  );
+
+  add(
+    'Locate medical records and key documents',
+    'Record where the healthcare proxy, advance directive, medication list, insurance cards, recent medical records, and doctor contacts can be found.',
+    'documents',
+    'high',
+    1,
+    position++,
+    'locate medical records and key documents',
+    { automation_level: 'PACKET', execution_kind: 'record', waiting_on: 'family record', proof_required: 'document location saved' }
+  );
+
+  return tasks;
+}
+
 async function getUser(req) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return null;
@@ -163,6 +299,7 @@ export default async function handler(req, res) {
   const coordinatorEmail = clean(req.body?.coordinatorEmail) || user.email;
   const dateOfDeath = clean(req.body?.dateOfDeath) || null;
   const primaryOwner = req.body?.primaryOwner || null;
+  const context = cleanContext(req.body?.context);
 
   let existingQuery = admin
     .from('workflows')
@@ -187,6 +324,18 @@ export default async function handler(req, res) {
     trigger_type: 'death_confirmed',
     path: 'red',
     mode: 'red',
+    orchestration_summary: {
+      ...(existing?.orchestration_summary || {}),
+      chaplain_context: context,
+      trusted_advisors: {
+        funeral_home: context.funeralHomeName || null,
+        cemetery: context.cemeteryName || null,
+        clergy: context.clergyName || null,
+        healthcare_proxy_or_decision_maker: context.authorityName || null,
+        hospital_hospice_or_doctor: context.hospitalOrHospiceContact || null,
+        medical_records_location: context.medicalRecordsLocation || null,
+      },
+    },
     updated_at: new Date().toISOString(),
   };
 
@@ -202,10 +351,12 @@ export default async function handler(req, res) {
   const ownerEmail = clean(primaryOwner?.email);
   const ownerPhone = clean(primaryOwner?.phone);
 
-  const tasks = CORE_TASKS.map(({ position, ...task }, index) => ({
+  const allTasks = CORE_TASKS.concat(conditionalTasksFor(context));
+  const tasks = allTasks.map(({ position, ...task }, index) => ({
     ...task,
     workflow_id: workflow.id,
     user_id: user.id,
+    position,
     status: index === 0 && ownerLabel ? 'assigned' : 'pending',
     assigned_to_name: index === 0 && ownerLabel ? ownerLabel : null,
     assigned_to_email: index === 0 && ownerEmail ? ownerEmail : null,

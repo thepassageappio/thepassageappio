@@ -536,7 +536,19 @@ function roleLooksLikeService(role) {
   });
 }
 
-function EstateOrchestrationMap({ estateId, name, serviceEvents, people, actions, announcements, tasks, outcomes }) {
+function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people, actions, announcements, tasks, outcomes }) {
+  var summary = estate?.orchestration_summary || {};
+  var context = summary.chaplain_context || summary.planning_context || {};
+  var trusted = summary.trusted_advisors || {};
+  var advisorItems = [
+    ['Healthcare proxy', trusted.healthcare_proxy || trusted.healthcare_proxy_or_decision_maker || context.authorityName || context.healthcare_proxy?.name],
+    ['Executor', trusted.executor],
+    ['Funeral home', trusted.funeral_home || context.funeralHomeName],
+    ['Cemetery', trusted.cemetery || context.cemeteryName || context.cemetery_or_burial_place],
+    ['Clergy/officiant', trusted.clergy || context.clergyName || context.clergy_or_officiant],
+    ['Hospital/hospice', trusted.hospital_hospice_or_doctor || context.hospitalOrHospiceContact],
+    ['Medical records', trusted.medical_records_location || context.medicalRecordsLocation || context.medical_records_location],
+  ].filter(function(item) { return item[1]; });
   var sortedEvents = (serviceEvents || []).slice().sort(function(a, b) {
     var da = (a.date || '9999-12-31') + ' ' + (a.time || '');
     var db = (b.date || '9999-12-31') + ' ' + (b.time || '');
@@ -568,6 +580,16 @@ function EstateOrchestrationMap({ estateId, name, serviceEvents, people, actions
         <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 5 }}>Next clear move</div>
         <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.55 }}>{nextMove}</div>
       </div>
+      {advisorItems.length > 0 && (
+        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '12px 13px', marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Trusted advisor map</div>
+          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+            {advisorItems.map(function(item) {
+              return <span key={item[0]} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 999, padding: '6px 9px', fontSize: 11.5, color: MID }}><strong style={{ color: INK }}>{item[0]}:</strong> {item[1]}</span>;
+            })}
+          </div>
+        </div>
+      )}
       <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
         {sortedEvents.length > 0 ? sortedEvents.map(function(ev, idx) {
           var detailsMissing = !ev.date || !ev.time || !ev.location_name;
@@ -630,6 +652,9 @@ function serviceSummary(events) {
 }
 
 function FuneralHomePrepGenerator({ estate, estateId, name, coordinatorName, serviceEvents, people, tasks, onRecord }) {
+  var summary = estate?.orchestration_summary || {};
+  var context = summary.chaplain_context || summary.planning_context || {};
+  var advisors = summary.trusted_advisors || {};
   var primaryFamily = (people || []).find(function(p) { return p.email || p.phone || p.role || p.relationship; }) || {};
   var funeralTask = (tasks || []).find(function(t) { return String(t.title || '').toLowerCase().includes('funeral'); }) || {};
   var initial = {
@@ -642,6 +667,13 @@ function FuneralHomePrepGenerator({ estate, estateId, name, coordinatorName, ser
     familyPhone: estate?.coordinator_phone || primaryFamily.phone || '',
     disposition: estate?.disposition || estate?.service_type || '',
     servicePreferences: serviceSummary(serviceEvents) || funeralTask.notes || '',
+    cemetery: context.cemeteryName || context.cemetery_or_burial_place || advisors.cemetery || '',
+    clergy: context.clergyName || context.clergy_or_officiant || advisors.clergy || '',
+    faithTradition: context.faithTradition || context.faith_tradition || '',
+    healthcareProxy: context.authorityName || context.healthcare_proxy?.name || advisors.healthcare_proxy || advisors.healthcare_proxy_or_decision_maker || '',
+    hospitalContact: context.hospitalOrHospiceContact || advisors.hospital_hospice_or_doctor || '',
+    medicalRecordsLocation: context.medicalRecordsLocation || context.medical_records_location || advisors.medical_records_location || '',
+    documentLocation: context.document_location || advisors.document_location || '',
     documents: 'Photo for obituary\nWill or written wishes, if available\nInsurance or burial policy, if available\nMilitary discharge papers (DD-214), if veteran\nClothing or personal items for viewing, if desired',
     notes: '',
   };
@@ -656,6 +688,8 @@ function FuneralHomePrepGenerator({ estate, estateId, name, coordinatorName, ser
     ['Date of birth', form.dateOfBirth],
     ['Date of death', form.dateOfDeath],
     ['Family phone', form.familyPhone],
+    ['Cemetery or burial place', form.cemetery],
+    ['Healthcare proxy / decision-maker', form.healthcareProxy],
     ['Service preferences', form.servicePreferences],
   ].filter(function(row) { return !String(row[1] || '').trim(); }).map(function(row) { return row[0]; });
 
@@ -738,6 +772,17 @@ function FuneralHomePrepGenerator({ estate, estateId, name, coordinatorName, ser
               <PrepInput label="Phone" value={form.familyPhone} onChange={function(v) { update('familyPhone', v); }} />
             </div>
             <PrepInput label="Email" value={form.familyEmail} onChange={function(v) { update('familyEmail', v); }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <PrepInput label="Cemetery / burial place" value={form.cemetery} onChange={function(v) { update('cemetery', v); }} />
+              <PrepInput label="Clergy / officiant" value={form.clergy} onChange={function(v) { update('clergy', v); }} />
+            </div>
+            <PrepInput label="Faith / cultural wishes" value={form.faithTradition} onChange={function(v) { update('faithTradition', v); }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <PrepInput label="Healthcare proxy / decision-maker" value={form.healthcareProxy} onChange={function(v) { update('healthcareProxy', v); }} />
+              <PrepInput label="Hospital / hospice / doctor" value={form.hospitalContact} onChange={function(v) { update('hospitalContact', v); }} />
+            </div>
+            <PrepInput label="Medical records location" value={form.medicalRecordsLocation} onChange={function(v) { update('medicalRecordsLocation', v); }} />
+            <PrepInput label="Key document location" value={form.documentLocation} onChange={function(v) { update('documentLocation', v); }} />
             <PrepTextarea label="Service preferences" value={form.servicePreferences} onChange={function(v) { update('servicePreferences', v); }} />
             <PrepTextarea label="Documents / items to bring" value={form.documents} onChange={function(v) { update('documents', v); }} />
             <PrepTextarea label="Notes" value={form.notes} onChange={function(v) { update('notes', v); }} />
@@ -817,7 +862,18 @@ function FuneralPrepDocument({ form, missing }) {
       </section>
       <section style={{ marginBottom: 12 }}>
         <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Service Preferences</h3>
+        {row('Disposition', form.disposition)}
+        {row('Cemetery / burial place', form.cemetery)}
+        {row('Clergy / officiant', form.clergy)}
+        {row('Faith / cultural wishes', form.faithTradition)}
         {row('Known preferences', form.servicePreferences)}
+      </section>
+      <section style={{ marginBottom: 12 }}>
+        <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Authority & Medical Contacts</h3>
+        {row('Healthcare proxy / decision-maker', form.healthcareProxy)}
+        {row('Hospital / hospice / doctor', form.hospitalContact)}
+        {row('Medical records location', form.medicalRecordsLocation)}
+        {row('Key document location', form.documentLocation)}
       </section>
       <section style={{ marginBottom: 12 }}>
         <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Documents / Items to Bring</h3>
@@ -1546,6 +1602,7 @@ export default function EstatePage() {
         />
 
         <EstateOrchestrationMap
+          estate={estate}
           estateId={estateId}
           name={name}
           serviceEvents={serviceEvents}

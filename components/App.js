@@ -2464,6 +2464,14 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   const [secondConfirmerName, setSecondConfirmerName] = useState("");
   const [secondConfirmerEmail, setSecondConfirmerEmail] = useState("");
   const [secondConfirmerPhone, setSecondConfirmerPhone] = useState("");
+  const [healthcareProxyName, setHealthcareProxyName] = useState("");
+  const [healthcareProxyEmail, setHealthcareProxyEmail] = useState("");
+  const [healthcareProxyPhone, setHealthcareProxyPhone] = useState("");
+  const [faithTradition, setFaithTradition] = useState("");
+  const [clergyName, setClergyName] = useState("");
+  const [cemeteryName, setCemeteryName] = useState("");
+  const [documentLocation, setDocumentLocation] = useState("");
+  const [medicalRecordsLocation, setMedicalRecordsLocation] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("single_annual");
   const [planError, setPlanError] = useState("");
 
@@ -2472,12 +2480,20 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     const backupEmail = secondConfirmerEmail.trim().toLowerCase();
     if (backupEmail && primaryEmail && backupEmail === primaryEmail) {
       setPlanError("Use two different emails for the executor and second confirmation contact.");
-      setStep(3);
+      setStep(4);
       return;
     }
     setPlanError("");
     const triggerPeople = Array.from(new Set([primaryEmail, backupEmail].filter(Boolean)));
-    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, timestamp: new Date().toISOString() });
+    const planningContext = {
+      healthcare_proxy: { name: healthcareProxyName, email: healthcareProxyEmail, phone: healthcareProxyPhone },
+      faith_tradition: faithTradition,
+      clergy_or_officiant: clergyName,
+      cemetery_or_burial_place: cemeteryName,
+      document_location: documentLocation,
+      medical_records_location: medicalRecordsLocation,
+    };
+    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, healthcare_proxy_name: healthcareProxyName, faith_tradition: faithTradition, clergy_name: clergyName, cemetery_name: cemeteryName, document_location: documentLocation, medical_records_location: medicalRecordsLocation, timestamp: new Date().toISOString() });
     let createdWorkflowId = null;
     if (user?.id) {
       const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -2492,6 +2508,17 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
           trigger_token: token,
           trigger_people: triggerPeople,
           confirmation_count: 2,
+          orchestration_summary: {
+            planning_context: planningContext,
+            trusted_advisors: {
+              healthcare_proxy: healthcareProxyName || null,
+              executor: executorName || null,
+              cemetery: cemeteryName || null,
+              clergy: clergyName || null,
+              medical_records_location: medicalRecordsLocation || null,
+              document_location: documentLocation || null,
+            },
+          },
         }).eq('id', wfId);
 
         // Save all tasks for the green path plan
@@ -2536,7 +2563,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     </Card>,
 
     <Card key={1}>
-      <StepBar current={1} total={5} />
+      <StepBar current={1} total={6} />
       <Eyebrow text={forWhom === "self" ? "About you" : "About them"} />
       <Heading>{forWhom === "self" ? "Let's personalize your plan" : "Tell us about the person this plan protects"}</Heading>
       <Sub>Pre-fills notifications and documents so your family never has to look anything up.</Sub>
@@ -2550,7 +2577,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     </Card>,
 
     <Card key={2}>
-      <StepBar current={2} total={5} />
+      <StepBar current={2} total={6} />
       <Eyebrow text="Final wishes" />
       <Heading>The decisions your family would otherwise have to make without you</Heading>
       <div style={{ height: 14 }} />
@@ -2562,8 +2589,34 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       </div>
     </Card>,
 
+    <Card key="authority" maxWidth={760}>
+      <StepBar current={3} total={6} />
+      <Eyebrow text="Authority and advisors" color={C.sage} />
+      <Heading>Who should your family trust first?</Heading>
+      <Sub>A document helps. A conversation helps more. Add what you know now so your family is not guessing later.</Sub>
+      <div style={{ height: 14 }} />
+      <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "14px 16px", marginBottom: 14, fontSize: 12.5, color: C.mid, lineHeight: 1.65 }}>
+        <strong style={{ color: C.ink }}>Healthcare proxy matters.</strong> If one is not named, hospitals may have to follow surrogate rules. Naming the person and where the document lives prevents conflict.
+      </div>
+      <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 12 }}>
+        <div style={{ fontSize: 11.5, fontWeight: 800, color: C.sage, marginBottom: 8 }}>Healthcare proxy or medical decision-maker</div>
+        <Field label="Name" placeholder="e.g. Sarah Collins" value={healthcareProxyName} onChange={setHealthcareProxyName} />
+        <Field label="Email (optional)" type="email" placeholder="sarah@email.com" value={healthcareProxyEmail} onChange={setHealthcareProxyEmail} />
+        <Field label="Phone (optional)" placeholder="+12297027753" value={healthcareProxyPhone} onChange={setHealthcareProxyPhone} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+        <Select label="Faith tradition, if any" value={faithTradition} onChange={setFaithTradition} options={[["","None / not sure"],["Jewish","Jewish"],["Catholic","Catholic"],["Christian / Protestant","Christian / Protestant"],["Muslim","Muslim"],["Hindu","Hindu"],["Buddhist","Buddhist"],["Other","Other / custom"]]} />
+        <Field label="Clergy / officiant (optional)" placeholder="Name or community" value={clergyName} onChange={setClergyName} />
+      </div>
+      <Field label="Cemetery or burial place (optional)" placeholder="Name, plot, or location if known" value={cemeteryName} onChange={setCemeteryName} />
+      <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+        <Btn variant="ghost" onClick={() => setStep(2)}>â† Back</Btn>
+        <Btn onClick={() => setStep(4)} style={{ flex: 1 }}>Continue â†’</Btn>
+      </div>
+    </Card>,
+
     <Card key={3} maxWidth={760}>
-      <StepBar current={3} total={5} />
+      <StepBar current={4} total={6} />
       <Eyebrow text="The trust mechanism" color={C.sage} />
       <Heading>Who activates your plan?</Heading>
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "14px 16px", marginBottom: 16, fontSize: 12.5, color: C.mid, lineHeight: 1.65 }}>
@@ -2601,43 +2654,31 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
         💡 Passage sends each person a unique, secure link. When both tap confirm, your plan activates automatically.
       </div>
       <div style={{ display: "flex", gap: 10 }}>
-        <Btn variant="ghost" onClick={() => setStep(2)}>← Back</Btn>
-        <Btn onClick={() => { setPlanError(""); setStep(4); }} disabled={!executorName || !executorEmail || (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() === executorEmail.trim().toLowerCase())} style={{ flex: 1 }}>Continue →</Btn>
+        <Btn variant="ghost" onClick={() => setStep(3)}>← Back</Btn>
+        <Btn onClick={() => { setPlanError(""); setStep(5); }} disabled={!executorName || !executorEmail || (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() === executorEmail.trim().toLowerCase())} style={{ flex: 1 }}>Continue →</Btn>
       </div>
     </Card>,
 
     <Card key={4}>
-      <StepBar current={4} total={5} />
-      <Eyebrow text="Account map" />
-      <Heading>Where are the important accounts?</Heading>
-      <Sub>Pre-filled into notification letters so your family never has to hunt.</Sub>
+      <StepBar current={5} total={6} />
+      <Eyebrow text="Document map" />
+      <Heading>Where will your family look first?</Heading>
+      <Sub>Passage does not need every file tonight. It helps your family know where the healthcare proxy, medical records, insurance cards, and key documents live.</Sub>
       <div style={{ height: 16 }} />
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
-        {[["bank","🏦","Primary bank account",false,"Bank name or where to find it"],["social_security","🏛️","Social Security",false,"SSN location or note for executor"],["life_insurance","🛡️","Life insurance policy",false,"Company name, policy location, or contact"],["subscriptions","📱","Recurring subscriptions",true,""],["digital_assets","₿","Digital assets / crypto",true,""]].map(([key,icon,label,locked,placeholder],i) => (
-          <div key={key} style={{ padding: "9px 0", borderBottom: `1px solid ${C.border}` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-              <span style={{ fontSize: 17 }}>{icon}</span>
-              <div style={{ flex: 1, fontSize: 13, color: locked ? C.muted : C.ink }}>{label}</div>
-              {locked ? (
-                <span style={{ fontSize: 10, color: C.gold, fontWeight: 700, background: C.goldFaint, padding: "2px 7px", borderRadius: 5 }}>Upgrade</span>
-              ) : (
-                <span style={{ fontSize: 10, color: C.sage, fontWeight: 700 }}>Estate task</span>
-              )}
-            </div>
-          </div>
-        ))}
-        <div style={{ marginTop: 12, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
-          These belong in the estate command center as real task paths, not loose notes here. After setup, Passage keeps account notifications and claims inside the workflow where they can be assigned and tracked.
+        <Field label="Healthcare proxy / advance directive location" placeholder="e.g. fire safe, attorney, folder name, portal" value={documentLocation} onChange={setDocumentLocation} />
+        <Field label="Medical records / care contacts" placeholder="e.g. hospital portal, primary doctor, hospice binder" value={medicalRecordsLocation} onChange={setMedicalRecordsLocation} />
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
+          Financial accounts, SSA, insurance, DMV, and credit bureaus become real estate tasks later, where they can be assigned, prepared, and tracked with proof.
         </div>
       </div>
       <div style={{ display: "flex", gap: 10 }}>
-        <Btn variant="ghost" onClick={() => setStep(3)}>← Back</Btn>
-        <Btn onClick={() => setStep(5)} style={{ flex: 1 }}>Continue →</Btn>
+        <Btn variant="ghost" onClick={() => setStep(4)}>Back</Btn>
+        <Btn onClick={() => setStep(6)} style={{ flex: 1 }}>Continue</Btn>
       </div>
     </Card>,
-
     <Card key={5} maxWidth={620}>
-      <StepBar current={5} total={5} />
+      <StepBar current={6} total={6} />
       <div style={{ textAlign: "center", marginBottom: 18 }}>
         <div style={{ fontSize: 28, marginBottom: 10 }}>🕊️</div>
         <Heading>Your plan is ready.</Heading>
@@ -4224,3 +4265,4 @@ export default function App() {
     </>
   );
 }
+
