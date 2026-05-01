@@ -1456,13 +1456,13 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 8, marginBottom: 14 }}>
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "10px 12px" }}>
             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.sage, marginBottom: 4 }}>Passage can do</div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{playbook.automationShortLabel || playbook.automationLabel}</div>
-            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{playbook.automationExplanation}</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{playbook.executionModeLabel || playbook.automationLabel}</div>
+            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{playbook.whatPassageDoes || playbook.automationExplanation}</div>
           </div>
           <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px" }}>
-            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.soft, marginBottom: 4 }}>Waiting on</div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{playbook.waitingOn || "recipient"}</div>
-            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>Proof needed: {playbook.proofRequired || "confirmation"}</div>
+            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.soft, marginBottom: 4 }}>Your part</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>Waiting on {playbook.waitingOn || "recipient"}</div>
+            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{playbook.whatUserDoes || ("Proof needed: " + (playbook.proofRequired || "confirmation"))}</div>
           </div>
           {playbook.funeralHomeEligible && (
             <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}40`, borderRadius: 12, padding: "10px 12px" }}>
@@ -1484,6 +1484,12 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
             </div>
           ))}
           <div style={{ marginTop: 10, fontSize: 12, color: C.mid }}>Use the prepared action below, then save what happened so the estate stays current.</div>
+        </div>
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.ink, marginBottom: 8 }}>How Passage knows it happened</div>
+          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55 }}>Proof to capture: <strong style={{ color: C.ink }}>{playbook.proofRequired || "confirmation"}</strong></div>
+          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>{playbook.followUpRule}</div>
+          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>{playbook.failureRule}</div>
         </div>
         {playbook.link && (
           <a href={playbook.link} target="_blank" rel="noreferrer" onClick={() => setActionNotice('Link opened. Save the outcome after the form or website step is done.')} style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>{playbook.linkLabel || 'Open link'}</a>

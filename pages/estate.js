@@ -909,7 +909,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Execution layer</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>Proof, follow-up, and ownership</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Every task is sorted into a tier: fully automated, assisted execution, or guided manual.</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Every task now has an execution mode, an owner, a proof target, and a follow-up rule.</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>{proofTasks.length} proof tasks</span>
       </div>
@@ -934,6 +934,27 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
         </div>
       </div>
 
+      {enriched.length > 0 && (
+        <details style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
+          <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900, fontSize: 12.5 }}>
+            Task execution map - all {enriched.length} tasks categorized
+          </summary>
+          <div style={{ marginTop: 9, maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
+            {enriched.map(function(task) {
+              return (
+                <div key={'map_' + task.id} style={{ borderTop: '1px solid ' + BORDER, padding: '8px 0', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 12.5, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{task.title}</div>
+                    <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.45, marginTop: 2 }}>Owner: {ownerBucket(task)}. Proof: {task.playbook.proofRequired || 'confirmation'}.</div>
+                  </div>
+                  <span style={{ alignSelf: 'start', background: task.playbook.executionModeKey === 'automate' ? SAGE_FAINT : task.playbook.executionModeKey === 'prepare' ? AMBER_FAINT : SUBTLE, color: task.playbook.executionModeKey === 'prepare' ? AMBER : SAGE, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, fontWeight: 900, whiteSpace: 'nowrap' }}>{task.playbook.executionModeShortLabel}</span>
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
+
       {proofTasks.length > 0 && (
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Top proof tasks</div>
@@ -948,12 +969,19 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.35 }}>{task.title}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                       <span style={{ background: SAGE_FAINT, color: SAGE, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{task.playbook.executionTier}</span>
+                      <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{task.playbook.executionModeLabel}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Owner: {ownerBucket(task)}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {proof}</span>
                     </div>
+                    <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 9px', marginTop: 7 }}>
+                      <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Passage handles</div>
+                      <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{task.playbook.whatPassageDoes}</div>
+                      <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 7 }}>Family or partner handles</div>
+                      <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{task.playbook.whatUserDoes}</div>
+                    </div>
                     <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>
                       {task.last_action_at ? 'Last action: ' + statusText(task.status) + ' by ' + (task.last_actor || 'Passage') + ' ' + timeAgo(task.last_action_at) + '. ' : ''}
-                      Next step: {state === 'good' ? 'Nothing else is needed here.' : state === 'bad' ? 'Retry or ask for help.' : 'Wait for confirmation or send a reminder.'}
+                      Next step: {state === 'good' ? 'Nothing else is needed here.' : state === 'bad' ? task.playbook.failureRule : task.playbook.followUpRule}
                     </div>
                   </div>
                   <div style={{ color: color, fontSize: 11.5, fontWeight: 900, whiteSpace: 'nowrap' }}>{statusText(task.status)}</div>

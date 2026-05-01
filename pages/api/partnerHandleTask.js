@@ -102,6 +102,18 @@ export default async function handler(req, res) {
           status: 'sent',
           sent_at: new Date().toISOString(),
         }]).catch(() => {});
+      } else {
+        await admin.from('notification_log').insert([{
+          workflow_id: workflow.id,
+          channel: 'email',
+          recipient_email: workflow.coordinator_email,
+          recipient_name: workflow.coordinator_name || workflow.coordinator_email,
+          subject: `${orgName} handled: ${task.title}`,
+          provider: 'resend',
+          provider_id: null,
+          status: 'failed',
+          error_message: json?.message || json?.error || 'Family notification failed after partner action.',
+        }]).catch(() => {});
       }
     }
 

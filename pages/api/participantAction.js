@@ -35,7 +35,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     </div>
   </body></html>`;
 
-  await fetch('https://api.resend.com/emails', {
+  const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -45,6 +45,19 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
       html,
     }),
   }).catch(() => {});
+  const json = response ? await response.json().catch(() => ({})) : {};
+  await admin.from('notification_log').insert([{
+    workflow_id: workflowId,
+    channel: 'email',
+    recipient_email: to,
+    recipient_name: workflow.coordinator_name || to,
+    subject: `Passage update: ${taskTitle || 'task updated'}`,
+    provider: 'resend',
+    provider_id: response?.ok ? json.id || null : null,
+    status: response?.ok ? 'sent' : 'failed',
+    sent_at: response?.ok ? new Date().toISOString() : null,
+    error_message: response?.ok ? null : (json?.message || json?.error || 'Coordinator notification failed'),
+  }]).catch(() => {});
 }
 
 export default async function handler(req, res) {
