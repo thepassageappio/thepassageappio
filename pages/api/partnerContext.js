@@ -17,6 +17,7 @@ export default async function handler(req, res) {
   if (userError || !userData?.user?.email) return res.status(401).json({ error: 'Session could not be verified.' });
 
   const email = userData.user.email.toLowerCase();
+  const adminMode = isPassageAdmin(email);
   const { data: memberships, error: memberError } = await admin
     .from('organization_members')
     .select('organization_id, role, status, organizations(id,type,name,logo_url,primary_color,white_label_enabled,support_email,from_name)')
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
   if (memberError) return res.status(500).json({ error: memberError.message });
 
   const organizationIds = (memberships || []).map(m => m.organization_id).filter(Boolean);
-  if (organizationIds.length === 0) return res.status(200).json({ organizations: [], cases: [], isPassageAdmin: isPassageAdmin(email) });
+  if (organizationIds.length === 0) return res.status(200).json({ organizations: [], cases: [], isPassageAdmin: adminMode });
 
   const { data: workflows, error: workflowError } = await admin
     .from('workflows')
@@ -36,7 +37,10 @@ export default async function handler(req, res) {
     .limit(100);
   if (workflowError) return res.status(500).json({ error: workflowError.message });
 
-  const workflowIds = (workflows || []).map(w => w.id);
+  const visibleWorkflows = adminMode
+    ? (workflows || [])
+    : (workflows || []).filter(w => !/^DEMO/i.test(w.organization_case_reference || '') && !/^Demo - /i.test(w.name || ''));
+  const workflowIds = visibleWorkflows.map(w => w.id);
   let tasks = [];
   let statusEvents = [];
   let communications = [];
@@ -65,7 +69,7 @@ export default async function handler(req, res) {
     communications = communicationData || [];
   }
 
-  const cases = (workflows || []).map(w => ({
+  const cases = visibleWorkflows.map(w => ({
     ...w,
     tasks: tasks.filter(t => t.workflow_id === w.id),
     activity: statusEvents.filter(e => e.workflow_id === w.id).slice(0, 6),
@@ -78,6 +82,6 @@ export default async function handler(req, res) {
   return res.status(200).json({
     organizations: memberships || [],
     cases,
-    isPassageAdmin: isPassageAdmin(email),
+    isPassageAdmin: adminMode,
   });
 }

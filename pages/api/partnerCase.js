@@ -55,6 +55,9 @@ export default async function handler(req, res) {
     coordinatorPhone,
     caseReference,
     demo,
+    demoType,
+    demoLogoUrl,
+    demoPrimaryColor,
   } = req.body || {};
 
   const normalizedCaseType = ['immediate', 'preneed', 'prepaid'].includes(caseType) ? caseType : 'immediate';
@@ -75,6 +78,7 @@ export default async function handler(req, res) {
       .limit(1)
       .maybeSingle();
 
+    const now = new Date().toISOString();
     let organizationId = membership?.organization_id || null;
     let organizationName = membership?.organizations?.name || String(funeralHomeName || '').trim() || `${coordinatorName || email}'s Funeral Home`;
     if (!organizationId) {
@@ -100,8 +104,18 @@ export default async function handler(req, res) {
       }]);
       if (memberError) throw memberError;
     }
-
-    const now = new Date().toISOString();
+    if (demo && organizationId) {
+      organizationName = String(funeralHomeName || '').trim() || organizationName;
+      await admin.from('organizations').update({
+        name: organizationName,
+        from_name: organizationName,
+        logo_url: String(demoLogoUrl || '').trim() || null,
+        primary_color: String(demoPrimaryColor || '').trim() || '#6b8f71',
+        support_email: email,
+        white_label_enabled: true,
+        updated_at: now,
+      }).eq('id', organizationId);
+    }
     const { data: workflow, error: workflowError } = await admin.from('workflows').insert([{
       user_id: user.id,
       name: `${demo ? 'Demo - ' : ''}${subjectName} - ${normalizedCaseType === 'immediate' ? 'family case' : 'planning case'}`,
@@ -117,7 +131,7 @@ export default async function handler(req, res) {
       setup_stage: `partner_${normalizedCaseType}_created`,
       activation_status: 'draft',
       organization_id: organizationId,
-      organization_case_reference: demo ? (caseReference || `DEMO-${randomUUID().slice(0, 6).toUpperCase()}`) : (caseReference || null),
+      organization_case_reference: demo ? (caseReference || `DEMO-${String(demoType || 'CASE').toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`) : (caseReference || null),
       partner_created_by: user.id,
       created_at: now,
       updated_at: now,

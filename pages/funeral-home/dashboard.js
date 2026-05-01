@@ -34,6 +34,12 @@ export default function FuneralHomeDashboard() {
     coordinatorPhone: '',
     caseReference: '',
   });
+  const [demoForm, setDemoForm] = useState({
+    localName: 'Beacon Family Funeral Home',
+    multiName: 'Hudson Valley Funeral Group',
+    logoUrl: '',
+    primaryColor: '#6b8f71',
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -164,33 +170,67 @@ export default function FuneralHomeDashboard() {
     await load(token);
   }
 
-  async function createDemoCase() {
+  async function createDemoCase(kind = 'local') {
     if (!token) return;
     setCreating(true);
     setError('');
-    const res = await fetch('/api/partnerCase', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({
-        funeralHomeName: org?.name || 'Beacon Family Funeral Home',
+    const localCases = [{
+      funeralHomeName: demoForm.localName,
+      caseType: 'immediate',
+      personName: 'Marian Ellis',
+      dateOfDeath: '2026-04-29',
+      coordinatorName: 'Claire Ellis',
+      coordinatorEmail: user?.email || '',
+      coordinatorPhone: '+1 845 555 0142',
+      caseReference: 'DEMO-LOCAL-001',
+      demoType: 'local',
+    }];
+    const multiCases = [
+      {
+        funeralHomeName: demoForm.multiName,
         caseType: 'immediate',
-        personName: 'Marian Ellis',
-        dateOfDeath: '2026-04-29',
-        coordinatorName: 'Claire Ellis',
+        personName: 'Robert Alvarez',
+        dateOfDeath: '2026-04-30',
+        coordinatorName: 'Dana Alvarez',
         coordinatorEmail: user?.email || '',
-        coordinatorPhone: '+1 845 555 0142',
-        caseReference: 'DEMO-001',
-        demo: true,
-      }),
-    });
-    const json = await res.json().catch(() => ({}));
-    setCreating(false);
-    if (!res.ok) {
-      setError(json.error || 'Could not create demo case.');
-      return;
+        coordinatorPhone: '+1 845 555 0184',
+        caseReference: 'DEMO-MULTI-001',
+        demoType: 'multi',
+      },
+      {
+        funeralHomeName: demoForm.multiName,
+        caseType: 'prepaid',
+        personName: 'Eleanor Price',
+        coordinatorName: 'Michael Price',
+        coordinatorEmail: user?.email || '',
+        coordinatorPhone: '+1 845 555 0192',
+        caseReference: 'DEMO-MULTI-002',
+        demoType: 'multi',
+      },
+    ];
+    const payloads = kind === 'multi' ? multiCases : localCases;
+    for (const payload of payloads) {
+      const res = await fetch('/api/partnerCase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({
+          ...payload,
+          demo: true,
+          demoLogoUrl: demoForm.logoUrl,
+          demoPrimaryColor: demoForm.primaryColor,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCreating(false);
+        setError(json.error || 'Could not create demo case.');
+        return;
+      }
     }
     setShowNewCase(false);
+    setNotice(kind === 'multi' ? 'Multi-location demo is ready with at-need and prepaid cases.' : 'Local one-location demo is ready.');
     await load(token);
+    setCreating(false);
   }
 
   async function startPartnerCheckout(planId = 'partner_pilot') {
@@ -286,6 +326,41 @@ export default function FuneralHomeDashboard() {
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
 
+        {user && !loading && isAdminDemo && (
+          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 10 }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Admin sales demo mode</div>
+                <div style={{ fontSize: 20, marginTop: 3 }}>Build the demo you are walking into.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 4 }}>Visible only to Passage admins. Real partner users never see demo launch controls.</div>
+              </div>
+              {demoForm.logoUrl && <img src={demoForm.logoUrl} alt="" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 14, border: `1px solid ${C.border}`, background: C.bg, padding: 8 }} />}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                Local demo name
+                <input value={demoForm.localName} onChange={e => setDemoForm(prev => ({ ...prev, localName: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+              </label>
+              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                Multi-location demo name
+                <input value={demoForm.multiName} onChange={e => setDemoForm(prev => ({ ...prev, multiName: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+              </label>
+              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                Logo URL
+                <input value={demoForm.logoUrl} onChange={e => setDemoForm(prev => ({ ...prev, logoUrl: e.target.value }))} placeholder="https://..." style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+              </label>
+              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                Brand color
+                <input value={demoForm.primaryColor} onChange={e => setDemoForm(prev => ({ ...prev, primaryColor: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+              </label>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+              <button onClick={() => createDemoCase('local')} disabled={creating} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: creating ? 'default' : 'pointer' }}>{creating ? 'Creating...' : 'Create local one-location demo'}</button>
+              <button onClick={() => createDemoCase('multi')} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: creating ? 'default' : 'pointer' }}>{creating ? 'Creating...' : 'Create multi-location demo'}</button>
+            </div>
+          </div>
+        )}
+
         {user && !loading && data && (
           <div style={{ background: C.bgDark, color: '#fff', borderRadius: 18, padding: '14px 16px', marginBottom: 12, boxShadow: '0 18px 42px rgba(0,0,0,.08)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
@@ -360,7 +435,7 @@ export default function FuneralHomeDashboard() {
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Start a pilot workspace from the first family case. Passage will connect this staff login to the funeral home automatically.</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
-              {isAdminDemo && <button onClick={createDemoCase} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{creating ? 'Creating demo...' : 'Load admin demo case'}</button>}
+              {isAdminDemo && <button onClick={() => createDemoCase('local')} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{creating ? 'Creating demo...' : 'Load local demo'}</button>}
             </div>
           </div>
         )}
@@ -383,7 +458,7 @@ export default function FuneralHomeDashboard() {
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create case</button>
-              {isAdminDemo && <button onClick={createDemoCase} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{creating ? 'Creating demo...' : 'Load admin demo case'}</button>}
+              {isAdminDemo && <button onClick={() => createDemoCase('local')} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{creating ? 'Creating demo...' : 'Load local demo'}</button>}
             </div>
           </div>
         )}
@@ -415,7 +490,7 @@ export default function FuneralHomeDashboard() {
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{item.tasks.length} tasks</span>
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{partnerTasks.length} partner-ready</span>
                     <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{open} open</span>
-                    {isDemoCase && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Demo data</span>}
+                    {isAdminDemo && isDemoCase && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Demo data</span>}
                     {waitingFamily.length > 0 && <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{waitingFamily.length} waiting on family</span>}
                     {blocked > 0 && <span style={{ background: C.roseFaint, color: C.rose, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{blocked} need help</span>}
                   </div>
