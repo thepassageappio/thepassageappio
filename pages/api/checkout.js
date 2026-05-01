@@ -81,6 +81,30 @@ const PLANS = {
     priceEnv: 'STRIPE_PRICE_URGENT',
     impact: '15_percent_pledge_grief_support_or_memorial_impact',
   },
+  partner_pilot: {
+    label: 'Passage Partner Pilot',
+    amount: 9900,
+    mode: 'subscription',
+    interval: 'month',
+    partnerPlan: true,
+    priceEnv: ['STRIPE_PRICE_PARTNER_PILOT_MONTHLY', 'STRIPE_PRICE_FUNERAL_HOME_PILOT_MONTHLY'],
+  },
+  partner_local: {
+    label: 'Passage Partner Local',
+    amount: 24900,
+    mode: 'subscription',
+    interval: 'month',
+    partnerPlan: true,
+    priceEnv: ['STRIPE_PRICE_PARTNER_LOCAL_MONTHLY', 'STRIPE_PRICE_FUNERAL_HOME_LOCAL_MONTHLY'],
+  },
+  partner_group: {
+    label: 'Passage Partner Group',
+    amount: 39900,
+    mode: 'subscription',
+    interval: 'month',
+    partnerPlan: true,
+    priceEnv: ['STRIPE_PRICE_PARTNER_GROUP_MONTHLY', 'STRIPE_PRICE_FUNERAL_HOME_GROUP_MONTHLY'],
+  },
   monthly: null,
   semiannual: null,
   annual: null,
@@ -295,18 +319,23 @@ export default async function handler(req, res) {
 
     const body = new URLSearchParams({
       mode: plan.mode,
-      success_url: planId === 'urgent'
-        ? BASE + '/urgent?checkout=success&session_id={CHECKOUT_SESSION_ID}'
-        : BASE + '/?checkout=success&session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: planId === 'urgent' ? BASE + '/pricing?urgent=cancelled' : BASE + '/?checkout=cancelled',
+      success_url: plan.partnerPlan
+        ? BASE + '/funeral-home/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}'
+        : planId === 'urgent'
+          ? BASE + '/urgent?checkout=success&session_id={CHECKOUT_SESSION_ID}'
+          : BASE + '/?checkout=success&session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: plan.partnerPlan
+        ? BASE + '/funeral-home?checkout=cancelled'
+        : planId === 'urgent' ? BASE + '/pricing?urgent=cancelled' : BASE + '/?checkout=cancelled',
       client_reference_id: userId,
       'metadata[userId]': userId,
       'metadata[planId]': planId,
-      'metadata[path]': planId === 'urgent' ? 'red' : 'green',
+      'metadata[path]': plan.partnerPlan ? 'partner' : planId === 'urgent' ? 'red' : 'green',
       'metadata[workflowId]': workflowId || '',
       'metadata[estateSeats]': String(plan.estateSeats || 1),
       'metadata[addOn]': plan.addOn ? 'true' : 'false',
       'metadata[participantDiscountRequested]': participantDiscount ? 'true' : 'false',
+      'metadata[partnerPlan]': plan.partnerPlan ? 'true' : 'false',
       'line_items[0][quantity]': '1',
       submit_type: plan.mode === 'subscription' ? 'subscribe' : 'pay',
     });

@@ -21,6 +21,17 @@ export default function FuneralHomeDashboard() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState('');
+  const [showNewCase, setShowNewCase] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [caseForm, setCaseForm] = useState({
+    funeralHomeName: '',
+    deceasedName: '',
+    dateOfDeath: '',
+    coordinatorName: '',
+    coordinatorEmail: '',
+    coordinatorPhone: '',
+    caseReference: '',
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -72,6 +83,43 @@ export default function FuneralHomeDashboard() {
     setUpdating('');
   }
 
+  async function createCase(e) {
+    e.preventDefault();
+    if (!token) return;
+    setCreating(true);
+    setError('');
+    const res = await fetch('/api/partnerCase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify(caseForm),
+    });
+    const json = await res.json().catch(() => ({}));
+    setCreating(false);
+    if (!res.ok) {
+      setError(json.error || 'Could not create this family case.');
+      return;
+    }
+    setShowNewCase(false);
+    setCaseForm({ funeralHomeName: '', deceasedName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '' });
+    await load(token);
+  }
+
+  async function startPartnerCheckout(planId = 'partner_pilot') {
+    if (!user || !token) return signIn();
+    setError('');
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ planId, userId: user.id, userEmail: user.email }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(json.error || 'Could not start partner checkout.');
+      return;
+    }
+    window.location.href = json.url;
+  }
+
   const org = data?.organizations?.[0]?.organizations;
   const cases = data?.cases || [];
   const totalPartnerTasks = cases.reduce((sum, item) => sum + (item.partnerTasks?.length || 0), 0);
@@ -88,7 +136,11 @@ export default function FuneralHomeDashboard() {
             <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 40px)', lineHeight: 1.05, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Pilot view for family cases, task status, death-certificate handoffs, and the work your team can complete on behalf of families.</p>
           </div>
-          {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {user && <button onClick={() => setShowNewCase(v => !v)} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New family case</button>}
+            {user && <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Partner billing</button>}
+            {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
+          </div>
         </div>
 
         {!user && (
@@ -102,10 +154,47 @@ export default function FuneralHomeDashboard() {
         {user && loading && <div style={{ color: C.soft }}>Loading partner cases...</div>}
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
 
+        {user && showNewCase && (
+          <form onSubmit={createCase} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Create a family case</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Start with only the details you know. Passage creates the partner-ready task set.</div>
+              </div>
+              <button type="button" onClick={() => setShowNewCase(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+              {[
+                ['deceasedName', 'Deceased name *'],
+                ['dateOfDeath', 'Date of death'],
+                ['caseReference', 'Case reference'],
+                ['coordinatorName', 'Family contact'],
+                ['coordinatorEmail', 'Family email'],
+                ['coordinatorPhone', 'Family phone'],
+              ].map(([key, label]) => (
+                <label key={key} style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                  {label}
+                  <input type={key === 'dateOfDeath' ? 'date' : 'text'} value={caseForm[key]} onChange={e => setCaseForm(prev => ({ ...prev, [key]: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+                </label>
+              ))}
+              {!org?.id && (
+                <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                  Funeral home name
+                  <input value={caseForm.funeralHomeName} onChange={e => setCaseForm(prev => ({ ...prev, funeralHomeName: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+                </label>
+              )}
+            </div>
+            <button disabled={creating || !caseForm.deceasedName.trim()} style={{ marginTop: 10, width: '100%', border: 'none', borderRadius: 12, background: creating || !caseForm.deceasedName.trim() ? C.border : C.sage, color: '#fff', padding: '11px 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: creating ? 'default' : 'pointer' }}>
+              {creating ? 'Creating case...' : 'Create case and task set'}
+            </button>
+          </form>
+        )}
+
         {user && !loading && data && data.organizations.length === 0 && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>No partner organization connected yet.</div>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Add this staff email to an organization before using the funeral home dashboard.</p>
+            <div style={{ fontSize: 22, marginBottom: 8 }}>Create your partner workspace.</div>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Start a pilot workspace from the first family case. Passage will connect this staff login to the funeral home automatically.</p>
+            <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
           </div>
         )}
 
@@ -150,6 +239,17 @@ export default function FuneralHomeDashboard() {
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Next partner work</div>
                     <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>Prioritized for work a funeral home can actually move: certificates, service coordination, cemetery/crematory, obituary, and family approvals.</div>
                   </div>
+                  {item.activity?.length > 0 && (
+                    <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
+                      <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Recent proof</div>
+                      {item.activity.slice(0, 3).map(event => (
+                        <div key={event.id} style={{ fontSize: 12.3, color: C.mid, lineHeight: 1.45, padding: '4px 0', borderTop: `1px solid ${C.border}` }}>
+                          <strong style={{ color: C.ink }}>{statusLabel(event.status)}</strong>{event.recipient ? ` - ${event.recipient}` : ''}{event.last_actor ? ` by ${event.last_actor}` : ''}{event.last_action_at ? ` at ${new Date(event.last_action_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}
+                          {event.detail && <div style={{ color: C.soft }}>{event.detail}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {topTasks.map(task => (
                     <div key={task.id} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 11, marginTop: 11 }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'start' }}>
