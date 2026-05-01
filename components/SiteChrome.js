@@ -14,7 +14,7 @@ export const CHROME_COLORS = {
 
 const LINKS = [
   ['Mission', '/mission'],
-  ['Get help now', '/content'],
+  ['Resources', '/content'],
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
   ['Participating', '/participating'],
@@ -53,12 +53,14 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
       <div style={{ display: 'flex', gap: 6, fontSize: 13, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
         <Link href="/" style={isActivePath(path, '/') ? activeStyle : quietMyEstate}>My estate</Link>
-        {user && onSignOut && (
-          <button onClick={onSignOut} style={{ border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 14px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
-        )}
-        {!user && onSignIn && (
-          <button onClick={onSignIn} style={{ border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 14px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
-        )}
+        <span style={{ width: 92, display: 'inline-flex', justifyContent: 'flex-end' }}>
+          {user && onSignOut && (
+            <button onClick={onSignOut} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
+          )}
+          {!user && onSignIn && (
+            <button onClick={onSignIn} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
+          )}
+        </span>
       </div>
     </nav>
   );
@@ -70,6 +72,7 @@ export function SiteFooter() {
       <div>Passage</div>
       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={navLink}>{label}</Link>)}
+        <Link href="/funeral-home/dashboard" style={navLink}>For funeral homes</Link>
         <Link href="/" style={navLink}>My estate</Link>
       </div>
     </footer>

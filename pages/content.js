@@ -31,28 +31,28 @@ export default function ContentPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '12px 22px 36px' }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '8px 22px 30px' }}>
         <div style={{ maxWidth: 760, marginBottom: 12 }}>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Get help now</div>
-          <h1 style={{ fontSize: 'clamp(28px, 3.3vw, 36px)', lineHeight: 1.04, margin: '0 0 7px', fontWeight: 400 }}>Four guides for the moments families usually have to figure out alone.</h1>
-          <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.5, margin: 0 }}>Choose the situation closest to yours. Passage will send the guide and point you toward the clearest next step.</p>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Resource guides</div>
+          <h1 style={{ fontSize: 'clamp(26px, 2.9vw, 33px)', lineHeight: 1.03, margin: '0 0 7px', fontWeight: 400 }}>Four practical guides for the moments families usually have to figure out alone.</h1>
+          <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.45, margin: 0 }}>Choose a guide. Passage will send the resource and point you toward the clearest next step.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 14, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
             {resources.map(r => (
-              <button key={r.title} onClick={() => setInterest(r.title)} style={{ textAlign: 'left', background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 15, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
-                <div style={{ fontSize: 10, color: C.gold, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>{r.type}</div>
-                <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.24, marginBottom: 8 }}>{r.title}</div>
-                <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginBottom: 8 }}>{r.audience}</div>
-                <div style={{ fontSize: 12.5, color: C.soft, lineHeight: 1.45 }}>{r.body}</div>
+              <button key={r.title} onClick={() => setInterest(r.title)} style={{ textAlign: 'left', background: C.card, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13, fontFamily: 'Georgia,serif', cursor: 'pointer', minHeight: 158 }}>
+                <div style={{ fontSize: 9.5, color: C.gold, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>{r.type}</div>
+                <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.2, marginBottom: 7 }}>{r.title}</div>
+                <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.4, marginBottom: 6 }}>{r.audience}</div>
+                <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.38 }}>{r.body}</div>
               </button>
             ))}
           </div>
 
-          <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, alignSelf: 'start', position: 'sticky', top: 12 }}>
-            <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 7 }}>Send me the guide</div>
-            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.55, marginTop: 0 }}>No drip campaign. Just the guide and the next place to start.</p>
+          <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 15, alignSelf: 'start' }}>
+            <div style={{ fontSize: 19, lineHeight: 1.2, marginBottom: 7 }}>Request a resource guide</div>
+            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 0 }}>No drip campaign. Just the guide and the next place to start.</p>
             <input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" style={inputStyle} />
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={inputStyle} />
             <select value={interest} onChange={e => setInterest(e.target.value)} style={inputStyle}>

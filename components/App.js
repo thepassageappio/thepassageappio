@@ -949,19 +949,19 @@ const CandleLogo = ({ size = 24, nameSize = 16 }) => (
 
 // Top navigation bar used across all inner screens
 const TopNav = ({ user, onDashboard, onBack, onSignOut, label, accentColor, onHome }) => (
-  <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+  <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "12px 18px", display: "grid", gridTemplateColumns: "180px minmax(0,1fr) 180px", alignItems: "center", position: "sticky", top: 0, zIndex: 100 }}>
     <div onClick={onHome || onDashboard || onBack} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}>
       <CandleLogo size={24} nameSize={16} />
     </div>
-    {label && <div style={{ fontSize: 11, color: C.soft, fontWeight: 500 }}>{label}</div>}
-    <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
+    {label && <div style={{ fontSize: 11, color: C.soft, fontWeight: 500, textAlign: "center" }}>{label}</div>}
+    <div style={{ display: "flex", gap: 7, alignItems: "center", justifyContent: "flex-end", minHeight: 30 }}>
       {user && onDashboard && (
         <button onClick={onDashboard} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.sage, cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>My file</button>
       )}
-      {onSignOut && (
+      {user && onSignOut && (
         <button onClick={onSignOut} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Sign out</button>
       )}
-      {onBack && !onSignOut && (
+      {onBack && !user && (
         <button onClick={onBack} style={{ background: "none", border: "none", fontSize: 12.5, color: C.soft, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
       )}
     </div>
@@ -2436,10 +2436,13 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   const [serviceType, setServiceType] = useState("");
   const [executorName, setExecutorName] = useState("");
   const [executorEmail, setExecutorEmail] = useState("");
+  const [secondConfirmerName, setSecondConfirmerName] = useState("");
+  const [secondConfirmerEmail, setSecondConfirmerEmail] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("single_annual");
 
   const activate = async (mode) => {
-    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, person_name: name, disposition, service_type: serviceType, timestamp: new Date().toISOString() });
+    const triggerPeople = Array.from(new Set([executorEmail, secondConfirmerEmail].filter(Boolean).map(email => email.trim().toLowerCase())));
+    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, person_name: name, disposition, service_type: serviceType, timestamp: new Date().toISOString() });
     let createdWorkflowId = null;
     if (user?.id) {
       const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -2452,7 +2455,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
           path: 'green',
           status: 'draft',
           trigger_token: token,
-          trigger_people: executorEmail ? [executorEmail] : [],
+          trigger_people: triggerPeople,
           confirmation_count: 2,
         }).eq('id', wfId);
 
@@ -2464,6 +2467,11 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
           await supabase.from('workflow_actions').insert([
             { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
             { workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
+          ]);
+        }
+        if (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() !== executorEmail.trim().toLowerCase()) {
+          await supabase.from('workflow_actions').insert([
+            { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 },
           ]);
         }
 
@@ -2478,11 +2486,11 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   };
 
   const steps = [
-    <Card key={0}>
-      <Eyebrow text="Let's build your plan" />
-      <Heading>Who are you protecting?</Heading>
-      <Sub>Whether planning for yourself or helping someone you love.</Sub>
-      <div style={{ height: 18 }} />
+    <Card key={0} maxWidth={760}>
+      <Eyebrow text="Plan ahead" />
+      <Heading size={28}>Build one calm file before your family needs it.</Heading>
+      <Sub>Choose who this plan protects. Passage will keep the intake focused and save the details inside an estate command center.</Sub>
+      <div style={{ height: 14 }} />
       {[
         { value: "self", icon: "🙋", title: "Myself", desc: "Set up my own plan so my family has everything they need." },
         { value: "parent", icon: "👴👵", title: "A parent or grandparent", desc: "Help someone I love get organized before it's urgent." },
@@ -2519,7 +2527,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       </div>
     </Card>,
 
-    <Card key={3}>
+    <Card key={3} maxWidth={760}>
       <StepBar current={3} total={5} />
       <Eyebrow text="The trust mechanism" color={C.sage} />
       <Heading>Who activates your plan?</Heading>
@@ -2536,8 +2544,9 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
 
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
         <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 4 }}>👤 Second Confirmer</div>
-        <div style={{ fontSize: 12, color: C.mid, marginBottom: 10, lineHeight: 1.5 }}>The second person who confirms your passing. Can be the same as executor or someone different.</div>
-        <div style={{ fontSize: 12, color: C.soft, fontStyle: "italic" }}>You can add this after setup — they'll receive a unique confirmation link.</div>
+        <div style={{ fontSize: 12, color: C.mid, marginBottom: 10, lineHeight: 1.5 }}>The second person who confirms your passing. Can be the same as executor or someone different. You can add them now or later.</div>
+        <Field label="Full name (optional)" placeholder="e.g. Michael Collins" value={secondConfirmerName} onChange={setSecondConfirmerName} />
+        <Field label="Email (optional)" type="email" placeholder="michael@email.com" value={secondConfirmerEmail} onChange={setSecondConfirmerEmail} hint="If you add this now, Passage saves them as the second confirmation contact." />
       </div>
 
       <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 9, padding: "10px 14px", fontSize: 12, color: C.amber, marginBottom: 14, lineHeight: 1.5 }}>

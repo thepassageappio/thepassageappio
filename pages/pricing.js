@@ -52,6 +52,13 @@ export default function PricingPage() {
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/pricing${participantDiscount ? '?participant=1' : ''}` } });
   }
 
+  async function signOut() {
+    await supabase.auth.signOut();
+    setUser(null);
+    setMessage('');
+    setSelectedPlan('');
+  }
+
   async function checkout(planId) {
     setSelectedPlan(planId);
     if (!user) {
@@ -82,7 +89,7 @@ export default function PricingPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
-      <SiteHeader user={user} onSignIn={!user ? signIn : null} />
+      <SiteHeader user={user} onSignIn={!user ? signIn : null} onSignOut={user ? signOut : null} />
 
       <section style={{ maxWidth: 1060, margin: '0 auto', padding: '12px 22px 36px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 390px)', gap: 14, alignItems: 'end', marginBottom: 12 }}>
@@ -104,6 +111,13 @@ export default function PricingPage() {
         {participantDiscount && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 16, padding: 16, marginBottom: 18, color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
             <strong style={{ color: C.sage }}>Participant pricing:</strong> choose the planning subscription that fits your family. Monthly participant plans use the 20% code and annual participant plans use the 25% code when the matching Stripe promotion is configured. Checkout will also show a promo-code field if you need to enter a code manually.
+          </div>
+        )}
+
+        {!user && (
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: '12px 14px', marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.45, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span><strong style={{ color: C.sage }}>Sign in once to checkout.</strong> Passage attaches the plan to your estate workspace.</span>
+            <button onClick={signIn} style={{ border: 'none', borderRadius: 10, padding: '9px 12px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in to continue</button>
           </div>
         )}
 
