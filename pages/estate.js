@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { getTaskPlaybook } from '../lib/taskPlaybooks';
 
 var sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -829,6 +830,145 @@ function FuneralPrepDocument({ form, missing }) {
   );
 }
 
+function statusBucket(status) {
+  var s = status || 'draft';
+  if (['handled', 'completed', 'acknowledged', 'delivered'].includes(s)) return 'good';
+  if (['failed', 'blocked', 'needs_review'].includes(s)) return 'bad';
+  if (['sent', 'waiting', 'assigned', 'in_progress'].includes(s)) return 'wait';
+  return 'draft';
+}
+
+function ownerBucket(item) {
+  var owner = item.assigned_to_name || item.assigned_to_email || item.owner_label || '';
+  var playbook = item.playbook || getTaskPlaybook(item.title);
+  if (owner) return owner;
+  if (playbook.funeralHomeEligible || playbook.partnerOwnerRole === 'funeral_home_director') return 'Funeral home';
+  if (playbook.waitingOn && /provider|institution|agency|funeral|bank|insurance|ssa|dmv|credit|va/i.test(playbook.waitingOn)) return 'Waiting on provider';
+  return 'Not assigned';
+}
+
+function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRefresh }) {
+  var s0 = useState(''); var updating = s0[0]; var setUpdating = s0[1];
+  var enriched = (tasks || []).map(function(t) { return Object.assign({}, t, { playbook: getTaskPlaybook(t.title) }); });
+  var tierCounts = enriched.reduce(function(acc, t) {
+    var tier = t.playbook.executionTier || 'Assisted execution';
+    acc[tier] = (acc[tier] || 0) + 1;
+    return acc;
+  }, {});
+  var proofTasks = enriched.filter(function(t) { return t.playbook.topProofTask || t.playbook.institutionTemplate; }).slice(0, 10);
+  var owners = {};
+  enriched.forEach(function(t) { var key = ownerBucket(t); owners[key] = (owners[key] || 0) + 1; });
+  (outcomes || []).forEach(function(o) { var key = o.owner_label || 'Not assigned'; owners[key] = (owners[key] || 0) + 1; });
+  var templates = enriched.filter(function(t) { return t.playbook.institutionTemplate; }).slice(0, 7);
+
+  async function updateTask(task, status, detail, notePrompt) {
+    var note = notePrompt ? window.prompt(notePrompt) : '';
+    if (notePrompt && !note) return;
+    var session = await sb.auth.getSession();
+    var token = session?.data?.session?.access_token || '';
+    setUpdating(task.id + status);
+    var res = await fetch('/api/tasks/' + task.id + '/status', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+      body: JSON.stringify({
+        status: status,
+        channel: 'record',
+        actor: coordinatorName || 'Passage',
+        recipient: task.assigned_to_name || task.assigned_to_email || task.playbook.waitingOn || '',
+        notes: note || undefined,
+        detail: note ? detail + ': ' + note : detail,
+      }),
+    }).catch(function() { return null; });
+    setUpdating('');
+    if (res && res.ok && onRefresh) onRefresh();
+  }
+
+  return (
+    <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Execution layer</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>Proof, follow-up, and ownership</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Every task is sorted into a tier: fully automated, assisted execution, or guided manual.</div>
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>{proofTasks.length} proof tasks</span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
+        {['Fully automated', 'Assisted execution', 'Guided manual'].map(function(tier) {
+          return (
+            <div key={tier} style={{ background: tier === 'Fully automated' ? SAGE_FAINT : tier === 'Assisted execution' ? SUBTLE : AMBER_FAINT, borderRadius: 11, padding: 10 }}>
+              <div style={{ fontSize: 18, color: tier === 'Guided manual' ? AMBER : SAGE, fontWeight: 900 }}>{tierCounts[tier] || 0}</div>
+              <div style={{ fontSize: 10.5, color: MID, lineHeight: 1.25 }}>{tier}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Shared responsibility map</div>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {Object.entries(owners).slice(0, 8).map(function(entry) {
+            return <span key={entry[0]} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 999, padding: '5px 9px', fontSize: 11.5, color: entry[0] === 'Not assigned' ? AMBER : SAGE, fontWeight: 800 }}>{entry[0]}: {entry[1]}</span>;
+          })}
+        </div>
+      </div>
+
+      {proofTasks.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Top proof tasks</div>
+          {proofTasks.map(function(task) {
+            var state = statusBucket(task.status);
+            var color = state === 'good' ? SAGE : state === 'bad' ? ROSE : state === 'wait' ? AMBER : MID;
+            var proof = task.playbook.proofRequired || 'confirmation';
+            return (
+              <div key={task.id} style={{ borderTop: '1px solid ' + BORDER, padding: '10px 0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.35 }}>{task.title}</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                      <span style={{ background: SAGE_FAINT, color: SAGE, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{task.playbook.executionTier}</span>
+                      <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Owner: {ownerBucket(task)}</span>
+                      <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {proof}</span>
+                    </div>
+                  </div>
+                  <div style={{ color: color, fontSize: 11.5, fontWeight: 900, whiteSpace: 'nowrap' }}>{statusText(task.status)}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
+                  {state === 'bad' && <button disabled={updating === task.id + 'waiting'} onClick={function() { updateTask(task, 'waiting', 'Owner notified for retry or review'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Retry / review</button>}
+                  {state === 'wait' && <button disabled={updating === task.id + 'waiting'} onClick={function() { updateTask(task, 'waiting', 'Follow-up recorded for ' + task.title); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Log follow-up</button>}
+                  <button disabled={updating === task.id + 'handled'} onClick={function() { updateTask(task, 'handled', 'Proof recorded for ' + task.title, 'Reference number, note, or proof detail'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Record proof</button>
+                  <button disabled={updating === task.id + 'blocked'} onClick={function() { updateTask(task, 'blocked', 'Owner notified: this task needs help', 'What is blocking this?'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {templates.length > 0 && (
+        <div style={{ background: SUBTLE, borderRadius: 12, padding: '11px 12px' }}>
+          <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 7 }}>Institution templates</div>
+          {templates.map(function(task) {
+            var template = task.playbook.institutionTemplate;
+            return (
+              <div key={'template_' + task.id} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', marginBottom: 7 }}>
+                <div style={{ fontSize: 13, color: INK, fontWeight: 800 }}>{template.label}</div>
+                <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginTop: 4 }}>{template.body.replace('[name]', 'your loved one')}</div>
+                <div style={{ fontSize: 11.5, color: SAGE, marginTop: 5, fontWeight: 800 }}>Proof to capture: {template.proof}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function miniBtn(bg, color, border) {
+  return { border: '1px solid ' + border, background: bg, color: color, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' };
+}
+
 function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activating }) {
   var pendingActions = (actions || []).filter(function(a) { return !['sent', 'handled', 'cancelled'].includes(a.status || a.delivery_status || 'draft'); });
   var sentActions = (actions || []).filter(function(a) { return (a.status || a.delivery_status) === 'sent' || a.sent_at; });
@@ -1134,6 +1274,17 @@ export default function EstatePage() {
     showToast('Plan started. Messages and task assignments are being tracked.');
   }
 
+  async function refreshExecutionData() {
+    var results = await Promise.all([
+      sb.from('tasks').select('*').eq('workflow_id', estateId).order('position'),
+      sb.from('estate_events').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(8),
+      sb.from('workflow_actions').select('*').eq('workflow_id', estateId).order('sort_order', { ascending: true }),
+    ]);
+    if (results[0].data) setTasks(results[0].data);
+    if (results[1].data) setEvents(results[1].data);
+    if (results[2].data) setActions(results[2].data);
+  }
+
   function recordPrepEvent(detail) {
     var eventRow = { estate_id: estateId, event_type: 'funeral_home_prep', title: 'Funeral home prep summary', description: detail, actor: coordinatorName };
     sb.from('estate_events').insert([eventRow]).then(function() {
@@ -1299,6 +1450,14 @@ export default function EstatePage() {
           actions={actions}
           tasks={tasks}
           events={events}
+        />
+
+        <ExecutionLayerPanel
+          tasks={tasks}
+          outcomes={outcomes}
+          estateId={estateId}
+          coordinatorName={coordinatorName}
+          onRefresh={refreshExecutionData}
         />
 
         <EstateOrchestrationMap

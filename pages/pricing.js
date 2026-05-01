@@ -6,7 +6,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 
 const groups = [
-  { key: 'individual', label: 'Individual', seats: '1 estate', desc: 'For your own plan or one parent.', options: [
+  { key: 'individual', label: 'Individual', seats: '1 estate', desc: 'For one person or one loved one.', options: [
     ['single_monthly', 'Monthly', '$9.99', '/mo'],
     ['single_annual', 'Annual', '$79.99', '/yr'],
   ] },
@@ -14,7 +14,7 @@ const groups = [
     ['couple_monthly', 'Monthly', '$14.99', '/mo'],
     ['couple_annual', 'Annual', '$119.99', '/yr'],
   ] },
-  { key: 'family', label: 'Family', seats: '5 estates', desc: 'For adult children coordinating a wider family.', options: [
+  { key: 'family', label: 'Family', seats: '5 estates', desc: 'For families coordinating care across several loved ones.', options: [
     ['family_monthly', 'Monthly', '$24.99', '/mo'],
     ['family_annual', 'Annual', '$199.99', '/yr'],
   ] },
@@ -97,9 +97,8 @@ export default function PricingPage() {
         </div>
 
         {!user && (
-          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: '11px 13px', marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.45, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span><strong style={{ color: C.sage }}>Sign in once to checkout.</strong> Passage saves the plan to your estate workspace.</span>
-            <button onClick={signIn} style={smallButton(C.sage)}>Sign in</button>
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: '11px 13px', marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
+            <strong style={{ color: C.sage }}>Sign in once to checkout.</strong> Use the sign-in button above. Passage saves the plan to your estate workspace.
           </div>
         )}
 
