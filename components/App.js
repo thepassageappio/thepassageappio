@@ -3243,23 +3243,23 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
         <button onClick={onSignOut} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Sign out</button>
       </div>
 
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "20px 14px 80px" }}>
+      <div style={{ maxWidth: 760, margin: "0 auto", padding: "18px 14px 70px" }}>
         {loading ? (
           <div style={{ textAlign: "center", padding: 60, color: C.soft }}>Loading your file...</div>
         ) : (
           <>
             <div style={{ marginBottom: 18 }}>
-              <Heading size={23}>My estates{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
+              <Heading size={23}>My estate command center{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
               {redWorkflows.length > 0 ? (
                 <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 13, color: C.sage, fontWeight: 500 }}>
                   ✓ Estate plan active — assign tasks to notify people automatically
                 </div>
               ) : (
-                <Sub>Choose an estate first. Tasks, people, documents, wishes, and memories live inside each estate.</Sub>
+                <Sub>Open an estate first. Tasks, people, documents, wishes, memories, and participant updates live inside that estate.</Sub>
               )}
             </div>
 
-            <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
+            <div style={{ background: C.bgCard, borderRadius: 18, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
                 <div>
                   <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.soft, fontWeight: 700, marginBottom: 5 }}>Command center</div>
@@ -3317,7 +3317,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: pd.color }}>{pd.price}</div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: plan === 'free' ? 12 : 0 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: plan === 'free' ? 10 : 0 }}>
                 {[{l:"Status",v:isPaidPlan ? 'Active' : 'Free'},{l:"Estate Seats",v:`${usedGreenSeats}/${estateSeatLimit} used`},{l:"Renewal",v:pd.renewal}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 9, padding: "9px 11px" }}>
                     <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600, marginBottom: 3 }}>{i.l}</div>
@@ -3335,10 +3335,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                       🚨 Someone just passed
                     </button>
                   </div>
-                  <div style={{ border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: 14, background: C.sageFaint }}>
-                    <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 5 }}>Upgrade when ready</div>
-                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginBottom: 11 }}>
-                      Choose the number of estates your family needs. Pricing details live on the pricing page so this file stays focused on coordination.
+                  <div style={{ border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 11, background: C.sageFaint }}>
+                    <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 4 }}>Upgrade when ready</div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.4, marginBottom: 9 }}>
+                      Choose estate seats on pricing. This page stays focused on coordination.
                     </div>
                     <button onClick={() => window.location.href = '/pricing'} style={{ width: "100%", padding: "11px", background: C.sage, color: "#fff", border: "none", borderRadius: 11, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
                       Upgrade now →
@@ -3519,7 +3519,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             )}
 
             {/* Start emergency */}
-            <div style={{ background: C.roseFaint, borderRadius: 18, padding: "18px", border: `1px solid ${C.rose}22`, marginBottom: 12 }}>
+            <div style={{ display: "none", background: C.roseFaint, borderRadius: 18, padding: "18px", border: `1px solid ${C.rose}22`, marginBottom: 12 }}>
               <div style={{ fontFamily: "Georgia, serif", fontSize: 15.5, color: C.ink, marginBottom: 5 }}>Someone in your family passed away?</div>
               <Sub>Start a $79.99 urgent estate plan. We plan to reserve 15% of each urgent purchase for grief support or memorial impact in their honor.</Sub>
               <button onClick={() => window.location.href = '/urgent'} style={{ marginTop: 12, padding: "10px 18px", background: C.rose, border: "none", borderRadius: 11, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
@@ -3528,7 +3528,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             </div>
 
             {/* Account */}
-            <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
+            <div style={{ display: "none", background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
               <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 12 }}>Account</div>
               {[{l:"Email",v:user?.email},{l:"Member since",v:userData?.created_at ? new Date(userData.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'}) : "—"},{l:"Plan",v:pd.label},{l:"Status",v:userData?.plan_status || "active"}].map(i => (
                 <div key={i.l} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${C.border}` }}>

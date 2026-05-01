@@ -1,5 +1,11 @@
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const chromeSupabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 export const CHROME_COLORS = {
   bg: '#f6f3ee',
@@ -18,6 +24,7 @@ const LINKS = [
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
   ['Participating', '/participating'],
+  ['Funeral homes', '/funeral-home/dashboard'],
 ];
 
 const navLink = { color: CHROME_COLORS.mid, textDecoration: 'none', borderRadius: 10, padding: '7px 10px' };
@@ -31,6 +38,30 @@ function isActivePath(current, href) {
 export function SiteHeader({ user, onSignIn, onSignOut }) {
   const router = useRouter();
   const path = router?.pathname || '';
+  const controlled = typeof user !== 'undefined';
+  const [localUser, setLocalUser] = useState(null);
+  const currentUser = controlled ? user : localUser;
+
+  useEffect(() => {
+    if (controlled || !chromeSupabase) return undefined;
+    chromeSupabase.auth.getSession().then(({ data }) => setLocalUser(data.session?.user || null));
+    const { data } = chromeSupabase.auth.onAuthStateChange((_event, session) => setLocalUser(session?.user || null));
+    return () => data.subscription.unsubscribe();
+  }, [controlled]);
+
+  async function defaultSignIn() {
+    if (!chromeSupabase || typeof window === 'undefined') return;
+    await chromeSupabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+  }
+
+  async function defaultSignOut() {
+    if (!chromeSupabase) return;
+    await chromeSupabase.auth.signOut();
+    setLocalUser(null);
+  }
+
+  const signInHandler = onSignIn || defaultSignIn;
+  const signOutHandler = onSignOut || defaultSignOut;
   const activeStyle = {
     background: CHROME_COLORS.sage,
     color: '#fff',
@@ -54,11 +85,11 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
         <Link href="/" style={isActivePath(path, '/') ? activeStyle : quietMyEstate}>My estate</Link>
         <span style={{ width: 92, display: 'inline-flex', justifyContent: 'flex-end' }}>
-          {user && onSignOut && (
-            <button onClick={onSignOut} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
+          {currentUser && (
+            <button onClick={signOutHandler} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
           )}
-          {!user && onSignIn && (
-            <button onClick={onSignIn} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
+          {!currentUser && (
+            <button onClick={signInHandler} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
           )}
         </span>
       </div>
@@ -72,7 +103,6 @@ export function SiteFooter() {
       <div>Passage</div>
       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={navLink}>{label}</Link>)}
-        <Link href="/funeral-home/dashboard" style={navLink}>For funeral homes</Link>
         <Link href="/" style={navLink}>My estate</Link>
       </div>
     </footer>

@@ -979,7 +979,7 @@ export default function EstatePage() {
                 </div>
                 {primary && (
                   <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 11, padding: '10px 12px', marginBottom: 8 }}>
-                    <div style={{ fontSize: 11, color: ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Next thing to do</div>
+                    <div style={{ fontSize: 11, color: ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Do this next</div>
                     <button onClick={function() {
                       if (primary.id.indexOf('outcome_') === 0) {
                         var id = primary.id.replace('outcome_', '');

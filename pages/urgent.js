@@ -206,6 +206,7 @@ export default function UrgentPage() {
   const [savingEstate, setSavingEstate] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [paidSuccess, setPaidSuccess] = useState(false);
+  const [handoff, setHandoff] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -299,12 +300,16 @@ export default function UrgentPage() {
       }),
     });
     const json = await response.json().catch(() => ({}));
-    setSavingEstate(false);
     if (!response.ok || !json.estateId) {
+      setSavingEstate(false);
       setSaveError(json.error || 'Passage could not save this yet. Please try again.');
       return;
     }
-    window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
+    setSavingEstate(false);
+    setHandoff(true);
+    setTimeout(() => {
+      window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
+    }, 650);
   };
 
   return (
@@ -393,6 +398,16 @@ export default function UrgentPage() {
           .field.two { grid-template-columns: 1fr; }
         }
       `}</style>
+
+      {handoff && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(247,244,239,.94)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ width: '100%', maxWidth: 420, background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 24, textAlign: 'center', boxShadow: '0 22px 70px rgba(55,45,35,.12)' }}>
+            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 12 }}>Passage is saving this</div>
+            <div style={{ fontFamily: 'Georgia,serif', fontSize: 26, lineHeight: 1.15, marginBottom: 10 }}>Setting things up for you...</div>
+            <div style={{ color: C.mid, fontSize: 14, lineHeight: 1.55 }}>Opening the estate command center where tasks, owners, notes, and proof will live.</div>
+          </div>
+        </div>
+      )}
 
       <div className="shell">
         <nav>

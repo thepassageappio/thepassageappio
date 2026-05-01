@@ -92,18 +92,20 @@ export default function PricingPage() {
       <SiteHeader user={user} onSignIn={!user ? signIn : null} onSignOut={user ? signOut : null} />
 
       <section style={{ maxWidth: 1060, margin: '0 auto', padding: '12px 22px 36px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 390px)', gap: 14, alignItems: 'end', marginBottom: 12 }}>
-        <div style={{ maxWidth: 640 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(340px, .8fr)', gap: 14, alignItems: 'stretch', marginBottom: 12 }}>
+        <div style={{ maxWidth: 640, alignSelf: 'center' }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Pricing</div>
           <h1 style={{ fontSize: 'clamp(28px, 3.2vw, 36px)', lineHeight: 1.04, margin: '0 0 8px', fontWeight: 400 }}>Choose the plan that can carry your family.</h1>
           <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.5, margin: 0 }}>Start with one trial estate. When you are ready, choose the number of estates your family needs protected.</p>
         </div>
-        <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}35`, borderRadius: 18, padding: 16, boxShadow: '0 14px 38px rgba(80,45,45,.06)' }}>
-          <div style={{ fontSize: 10.5, color: C.rose, textTransform: 'uppercase', letterSpacing: '.14em', fontWeight: 800, marginBottom: 7 }}>Someone just passed</div>
-          <div style={{ fontSize: 23, lineHeight: 1.12, marginBottom: 7 }}>Get immediate help now - $79</div>
-          <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginBottom: 12 }}>A focused first-24-hours command center for calls, family notifications, owners, and proof.</div>
-          <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 12, padding: '12px 14px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>
-            {busy === 'urgent' ? 'Opening checkout...' : 'Someone just passed - start now'}
+        <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}45`, borderRadius: 20, padding: 18, boxShadow: '0 16px 44px rgba(80,45,45,.08)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 11, color: C.rose, textTransform: 'uppercase', letterSpacing: '.16em', fontWeight: 900, marginBottom: 8 }}>Someone just passed</div>
+            <div style={{ fontSize: 'clamp(27px, 3vw, 35px)', lineHeight: 1.04, marginBottom: 8 }}>Get help now - $79</div>
+            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.45, marginBottom: 14 }}>A focused first-24-hours command center for calls, family notifications, owners, and proof.</div>
+          </div>
+          <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 13, padding: '14px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 16 }}>
+            {busy === 'urgent' ? 'Opening checkout...' : 'Get help now -> $79'}
           </button>
         </div>
         </div>
