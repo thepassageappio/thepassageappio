@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { enrichTaskWithPlaybook, partnerTaskPriority } from '../../lib/taskPlaybooks';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -39,15 +40,18 @@ export default async function handler(req, res) {
   if (workflowIds.length > 0) {
     const { data: taskData } = await admin
       .from('tasks')
-      .select('id,workflow_id,title,status,last_action_at,last_actor,channel,recipient,assigned_to_name,assigned_to_email')
+      .select('id,workflow_id,title,status,last_action_at,last_actor,channel,recipient,assigned_to_name,assigned_to_email,notes,outcome_status')
       .in('workflow_id', workflowIds)
       .order('last_action_at', { ascending: false, nullsFirst: false });
-    tasks = taskData || [];
+    tasks = (taskData || []).map(enrichTaskWithPlaybook).sort((a, b) => partnerTaskPriority(a) - partnerTaskPriority(b));
   }
 
   const cases = (workflows || []).map(w => ({
     ...w,
     tasks: tasks.filter(t => t.workflow_id === w.id),
+    partnerTasks: tasks.filter(t => t.workflow_id === w.id && t.playbook?.funeralHomeEligible),
+    waitingOnFamily: tasks.filter(t => t.workflow_id === w.id && /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
+    blockedTasks: tasks.filter(t => t.workflow_id === w.id && ['blocked', 'failed', 'needs_review'].includes(t.status || '')),
   }));
 
   return res.status(200).json({

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { getTaskPlaybook } from "../lib/taskPlaybooks";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -593,6 +594,7 @@ const shorten = (value, max) => {
 const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   const title = task?.title || 'Estate coordination task';
   const lower = title.toLowerCase();
+  const taskPlaybook = task?.playbook || getTaskPlaybook(title);
   const deceased = deceasedName || 'your loved one';
   const coordinator = coordinatorName || 'the family coordinator';
   const defaultSms = `Passage: ${coordinator} is handling ${shorten(title, 42)} for ${shorten(deceased, 22)}. Please sign in to Passage if you were assigned this task.`;
@@ -608,6 +610,14 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
     draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. I am reaching out about: ${title}.\n\nCan you please let me know what information you need from us next?\n\nThank you,\n${coordinator}`,
     sms: defaultSms,
     steps: ['Review the prepared note.', 'Add any missing details.', 'Send it or copy it into the right portal.', 'Mark handled when you have confirmation.'],
+    playbook: taskPlaybook,
+    automationLabel: taskPlaybook.automationLabel,
+    automationShortLabel: taskPlaybook.automationShortLabel,
+    automationExplanation: taskPlaybook.automationExplanation,
+    waitingOn: taskPlaybook.waitingOn,
+    proofRequired: taskPlaybook.proofRequired,
+    funeralHomeEligible: taskPlaybook.funeralHomeEligible,
+    partnerOwnerRole: taskPlaybook.partnerOwnerRole,
   };
 
   if (lower.includes('document the date') || lower.includes('date, time') || lower.includes('location of death')) {
@@ -722,8 +732,10 @@ const buildTaskList = (dbTasks) => {
   POST_DEATH_TASKS.forEach(tier => {
     tier.tasks.forEach(staticTask => {
       const db = dbTasks.find(d => d.title === staticTask.title);
+      const playbook = getTaskPlaybook(staticTask.title);
       result.push({
         ...staticTask,
+        playbook,
         tier: tier.tier, tierLabel: tier.tierLabel,
         tierColor: tier.tierColor, tierBg: tier.tierBg, tierIcon: tier.icon,
         completed: db ? taskIsHandled(db.status) : false,
@@ -751,9 +763,11 @@ const buildTaskList = (dbTasks) => {
   dbTasks.filter(d => !staticTitles.has(d.title)).forEach(d => {
     const tierNum = d.priority === 'urgent' ? 1 : d.priority === 'high' ? 2 : d.due_days_after_trigger > 7 ? 4 : 3;
     const tierMeta = POST_DEATH_TASKS.find(t => t.tier === tierNum) || POST_DEATH_TASKS[0];
+    const playbook = getTaskPlaybook(d.title);
     result.push({
       id: `custom_${d.id}`, title: d.title, desc: d.description || '',
       category: d.category || 'other',
+      playbook,
       tier: tierNum, tierLabel: tierMeta.tierLabel,
       tierColor: tierMeta.tierColor, tierBg: tierMeta.tierBg, tierIcon: tierMeta.icon,
       completed: taskIsHandled(d.status),
@@ -1433,6 +1447,25 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 8 }}>Handle this task</div>
         <div style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>{task.title}</div>
         <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Passage prepared the next action. You can handle it yourself or assign it to someone else.</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 8, marginBottom: 14 }}>
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "10px 12px" }}>
+            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.sage, marginBottom: 4 }}>Passage can do</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{playbook.automationShortLabel || playbook.automationLabel}</div>
+            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{playbook.automationExplanation}</div>
+          </div>
+          <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px" }}>
+            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.soft, marginBottom: 4 }}>Waiting on</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{playbook.waitingOn || "recipient"}</div>
+            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>Proof needed: {playbook.proofRequired || "confirmation"}</div>
+          </div>
+          {playbook.funeralHomeEligible && (
+            <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}40`, borderRadius: 12, padding: "10px 12px" }}>
+              <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.gold, marginBottom: 4 }}>Partner ready</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>Funeral home can help</div>
+              <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>This is visible in the partner command center when linked.</div>
+            </div>
+          )}
+        </div>
         <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: C.ink, marginBottom: 8 }}>Are you handling this?</div>
           <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55 }}>Choose "I am handling this" to use the script and notes here, or assign it to someone else.</div>
@@ -1447,7 +1480,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
           <div style={{ marginTop: 10, fontSize: 12, color: C.mid }}>Use the prepared action below, then save what happened so the estate stays current.</div>
         </div>
         {playbook.link && (
-          <a href={playbook.link} target="_blank" rel="noreferrer" onClick={() => setActionNotice('Link opened. Save the outcome after the form or website step is done.')} style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>Open link</a>
+          <a href={playbook.link} target="_blank" rel="noreferrer" onClick={() => setActionNotice('Link opened. Save the outcome after the form or website step is done.')} style={{ display: "block", textAlign: "center", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", color: C.ink, fontWeight: 800, textDecoration: "none", marginBottom: 14 }}>{playbook.linkLabel || 'Open link'}</a>
         )}
         {(task.isSocial || task.isObituary) && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 14 }}>
@@ -2121,6 +2154,13 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                             {task.status === 'not_applicable' && <span style={{ fontSize: 9, color: C.soft, fontWeight: 700, background: C.bgSubtle, padding: "1px 6px", borderRadius: 5, marginLeft: 7 }}>NOT APPLICABLE</span>}
                           </div>
                           {task.desc && !task.completed && <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.5, marginBottom: task.assignedTo ? 5 : 0 }}>{task.desc}</div>}
+                          {task.playbook && !task.completed && (
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 5 }}>
+                              <span style={{ fontSize: 10.5, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 999, padding: "2px 8px", fontWeight: 800 }}>{task.playbook.automationShortLabel}</span>
+                              <span style={{ fontSize: 10.5, color: C.mid, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 999, padding: "2px 8px" }}>Waiting on {task.playbook.waitingOn}</span>
+                              {task.playbook.funeralHomeEligible && <span style={{ fontSize: 10.5, color: C.gold, background: C.goldFaint, border: `1px solid ${C.gold}40`, borderRadius: 999, padding: "2px 8px", fontWeight: 800 }}>Funeral home can help</span>}
+                            </div>
+                          )}
                           {taskAwareness(task) && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>{taskAwareness(task)}</div>}
                           {task.lastActionAt && (
                             <div style={{ fontSize: 10.8, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>
