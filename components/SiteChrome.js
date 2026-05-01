@@ -24,7 +24,7 @@ const LINKS = [
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
   ['Participating', '/participating'],
-  ['Funeral homes', '/funeral-home/dashboard'],
+  ['Funeral homes', '/funeral-home'],
 ];
 
 const navLink = { color: CHROME_COLORS.mid, textDecoration: 'none', borderRadius: 10, padding: '7px 10px' };

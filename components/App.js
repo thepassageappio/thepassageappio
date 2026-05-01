@@ -881,8 +881,8 @@ const Select = ({ label, value, onChange, options }) => (
 );
 
 const OptionCard = ({ icon, title, desc, selected, onClick }) => (
-  <div onClick={onClick} style={{ border: `2px solid ${selected ? C.sage : C.border}`, borderRadius: 14, padding: "16px 18px", cursor: "pointer", background: selected ? `${C.sage}08` : C.bgCard, transition: "all 0.15s", marginBottom: 8, display: "flex", alignItems: "flex-start", gap: 14 }}>
-    <span style={{ fontSize: 24, flexShrink: 0 }}>{icon}</span>
+  <div onClick={onClick} style={{ border: `1.5px solid ${selected ? C.sage : C.border}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", background: selected ? C.sageFaint : C.bgCard, transition: "all 0.15s", marginBottom: 8, display: "flex", alignItems: "flex-start", gap: 14 }}>
+    <span aria-hidden="true" style={{ width: 24, height: 24, borderRadius: "50%", background: selected ? C.sage : C.sageFaint, color: selected ? "#fff" : C.sage, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{icon}</span>
     <div style={{ flex: 1 }}>
       <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 3 }}>{title}</div>
       <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5 }}>{desc}</div>
@@ -906,7 +906,7 @@ const StepBar = ({ current, total, color = C.sage }) => (
 );
 
 const Card = ({ children, maxWidth = 520 }) => (
-  <div style={{ background: C.bgCard, borderRadius: 22, padding: "32px 28px", maxWidth, width: "100%", margin: "0 auto", boxShadow: "0 2px 32px rgba(0,0,0,0.06)" }}>{children}</div>
+  <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 22, padding: "26px 24px", maxWidth, width: "100%", margin: "0 auto", boxShadow: "0 18px 48px rgba(55,45,35,.06)" }}>{children}</div>
 );
 
 const Eyebrow = ({ text, color = C.sage }) => (
@@ -2486,18 +2486,18 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   };
 
   const steps = [
-    <Card key={0} maxWidth={760}>
+    <Card key={0} maxWidth={820}>
       <Eyebrow text="Plan ahead" />
-      <Heading size={28}>Build one calm file before your family needs it.</Heading>
-      <Sub>Choose who this plan protects. Passage will keep the intake focused and save the details inside an estate command center.</Sub>
+      <Heading size={28}>Leave your family one calm place to start.</Heading>
+      <Sub>Build the estate command center before it is needed: people, wishes, documents, and the trusted contacts who can activate it later.</Sub>
       <div style={{ height: 14 }} />
       {[
-        { value: "self", icon: "🙋", title: "Myself", desc: "Set up my own plan so my family has everything they need." },
-        { value: "parent", icon: "👴👵", title: "A parent or grandparent", desc: "Help someone I love get organized before it's urgent." },
-        { value: "spouse", icon: "💑", title: "My spouse or partner", desc: "Planning together so neither of us is left guessing." },
+        { value: "self", icon: "1", title: "Myself", desc: "Set up my own plan so my family has what they need." },
+        { value: "parent", icon: "2", title: "A parent or grandparent", desc: "Help someone I love get organized before it is urgent." },
+        { value: "spouse", icon: "3", title: "My spouse or partner", desc: "Plan together so neither of us is left guessing." },
       ].map(o => <OptionCard key={o.value} {...o} selected={forWhom === o.value} onClick={() => setForWhom(o.value)} />)}
       {!user && <div style={{ marginTop: 14 }}><GoogleSignInBtn /><div style={{ fontSize: 11, color: C.muted, textAlign: "center", marginTop: 6 }}>or continue without signing in</div></div>}
-      <Btn onClick={() => setStep(1)} disabled={!forWhom} style={{ width: "100%", marginTop: 12 }}>Let's start →</Btn>
+      <Btn onClick={() => setStep(1)} disabled={!forWhom} style={{ width: "100%", marginTop: 12 }}>Continue</Btn>
     </Card>,
 
     <Card key={1}>
@@ -2616,7 +2616,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <TopNav onBack={onBack} label="Setting up your plan" user={user} onDashboard={user ? onDashboard : null} onSignOut={onSignOut} />
-      <div style={{ padding: "28px 16px 80px", display: "flex", justifyContent: "center" }}>
+      <div style={{ padding: "18px 16px 70px", display: "flex", justifyContent: "center" }}>
         <div style={{ width: "100%" }}>{steps[step]}</div>
       </div>
     </div>

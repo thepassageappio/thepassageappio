@@ -602,6 +602,233 @@ function EstateOrchestrationMap({ estateId, name, serviceEvents, people, actions
   );
 }
 
+function formatPrepDate(value) {
+  if (!value) return '';
+  try {
+    return new Date(value + (String(value).includes('T') ? '' : 'T12:00:00')).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  } catch {
+    return value;
+  }
+}
+
+function serviceSummary(events) {
+  var sorted = (events || []).slice().sort(function(a, b) {
+    return String(a.date || '') + String(a.time || '') > String(b.date || '') + String(b.time || '') ? 1 : -1;
+  });
+  if (!sorted.length) return '';
+  return sorted.map(function(ev) {
+    var label = eventLabel(ev);
+    var date = formatPrepDate(ev.date);
+    var time = ev.time ? ' at ' + ev.time : '';
+    var place = ev.location_name ? ' - ' + ev.location_name : '';
+    var address = ev.location_address ? ', ' + ev.location_address : '';
+    return [label, date + time + place + address].filter(Boolean).join(': ');
+  }).join('\n');
+}
+
+function FuneralHomePrepGenerator({ estate, estateId, name, coordinatorName, serviceEvents, people, tasks, onRecord }) {
+  var primaryFamily = (people || []).find(function(p) { return p.email || p.phone || p.role || p.relationship; }) || {};
+  var funeralTask = (tasks || []).find(function(t) { return String(t.title || '').toLowerCase().includes('funeral'); }) || {};
+  var initial = {
+    deceasedName: estate?.deceased_name || estate?.deceased_first_name || name || '',
+    dateOfDeath: estate?.date_of_death || '',
+    dateOfBirth: estate?.date_of_birth || '',
+    placeOfDeath: estate?.place_of_death || '',
+    familyContact: coordinatorName || estate?.coordinator_name || '',
+    familyEmail: estate?.coordinator_email || '',
+    familyPhone: estate?.coordinator_phone || primaryFamily.phone || '',
+    disposition: estate?.disposition || estate?.service_type || '',
+    servicePreferences: serviceSummary(serviceEvents) || funeralTask.notes || '',
+    documents: 'Photo for obituary\nWill or written wishes, if available\nInsurance or burial policy, if available\nMilitary discharge papers (DD-214), if veteran\nClothing or personal items for viewing, if desired',
+    notes: '',
+  };
+  var s0 = useState(false); var open = s0[0]; var setOpen = s0[1];
+  var s1 = useState(initial); var form = s1[0]; var setForm = s1[1];
+  var s2 = useState(false); var generated = s2[0]; var setGenerated = s2[1];
+  var s3 = useState(''); var emailTo = s3[0]; var setEmailTo = s3[1];
+  var s4 = useState(''); var message = s4[0]; var setMessage = s4[1];
+  var s5 = useState(false); var sending = s5[0]; var setSending = s5[1];
+
+  var missing = [
+    ['Date of birth', form.dateOfBirth],
+    ['Date of death', form.dateOfDeath],
+    ['Family phone', form.familyPhone],
+    ['Service preferences', form.servicePreferences],
+  ].filter(function(row) { return !String(row[1] || '').trim(); }).map(function(row) { return row[0]; });
+
+  function update(key, value) {
+    setForm(function(prev) {
+      var next = Object.assign({}, prev);
+      next[key] = value;
+      return next;
+    });
+  }
+
+  function generate() {
+    setGenerated(true);
+    setOpen(true);
+    setMessage('You have everything most funeral homes need to get started.');
+    if (onRecord) onRecord('Funeral home preparation sheet generated');
+  }
+
+  function printPrep() {
+    setGenerated(true);
+    setTimeout(function() { window.print(); }, 80);
+    if (onRecord) onRecord('Funeral home preparation sheet opened for print or PDF');
+  }
+
+  async function emailPrep() {
+    if (!emailTo) {
+      setMessage('Add an email address first.');
+      return;
+    }
+    setSending(true);
+    setMessage('');
+    var session = await sb.auth.getSession();
+    var token = session?.data?.session?.access_token || '';
+    var res = await fetch('/api/funeralHomePrepEmail', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+      body: JSON.stringify({ estateId: estateId, to: emailTo, form: form, missing: missing }),
+    }).catch(function() { return null; });
+    setSending(false);
+    if (!res || !res.ok) {
+      setMessage('Could not email this yet. You can still print or save as PDF.');
+      return;
+    }
+    setMessage('Preparation sheet emailed. You can still regenerate it any time.');
+    if (onRecord) onRecord('Funeral home preparation sheet emailed to ' + emailTo);
+  }
+
+  return (
+    <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
+      <style>{`
+        @media print {
+          body * { visibility: hidden !important; }
+          #funeral-prep-print, #funeral-prep-print * { visibility: visible !important; }
+          #funeral-prep-print { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; padding: 28px !important; background: white !important; color: #1a1916 !important; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Meeting readiness</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>Prepare for funeral home meeting</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Generate a clean one-pager with what most funeral homes need to get started. You can fill in anything missing later.</div>
+        </div>
+        <button onClick={function() { setOpen(!open); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>{open ? 'Close' : 'Prepare'}</button>
+      </div>
+      <div className="no-print" style={{ background: generated ? SAGE_FAINT : SUBTLE, border: '1px solid ' + (generated ? SAGE_LIGHT : BORDER), borderRadius: 12, padding: '11px 12px', marginBottom: open ? 12 : 0, color: generated ? SAGE : MID, fontSize: 12.5, lineHeight: 1.55, fontWeight: generated ? 800 : 400 }}>
+        {generated ? 'You have everything most funeral homes need to get started.' : 'Partial data is okay. This is meant to help you walk in prepared, not make you hunt for every detail tonight.'}
+      </div>
+      {open && (
+        <div>
+          <div className="no-print" style={{ display: 'grid', gap: 9, marginBottom: 12 }}>
+            <PrepInput label="Deceased full name" value={form.deceasedName} onChange={function(v) { update('deceasedName', v); }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <PrepInput label="Date of birth" value={form.dateOfBirth} onChange={function(v) { update('dateOfBirth', v); }} />
+              <PrepInput label="Date of death" value={form.dateOfDeath} onChange={function(v) { update('dateOfDeath', v); }} />
+            </div>
+            <PrepInput label="Place of death" value={form.placeOfDeath} onChange={function(v) { update('placeOfDeath', v); }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <PrepInput label="Family contact" value={form.familyContact} onChange={function(v) { update('familyContact', v); }} />
+              <PrepInput label="Phone" value={form.familyPhone} onChange={function(v) { update('familyPhone', v); }} />
+            </div>
+            <PrepInput label="Email" value={form.familyEmail} onChange={function(v) { update('familyEmail', v); }} />
+            <PrepTextarea label="Service preferences" value={form.servicePreferences} onChange={function(v) { update('servicePreferences', v); }} />
+            <PrepTextarea label="Documents / items to bring" value={form.documents} onChange={function(v) { update('documents', v); }} />
+            <PrepTextarea label="Notes" value={form.notes} onChange={function(v) { update('notes', v); }} />
+          </div>
+
+          {missing.length > 0 && (
+            <div className="no-print" style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER_BORDER, borderRadius: 11, padding: '10px 12px', marginBottom: 12, color: AMBER, fontSize: 12.5, lineHeight: 1.5 }}>
+              Missing but not blocking: {missing.join(', ')}. You can fill in anything missing later.
+            </div>
+          )}
+
+          <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+            <button onClick={generate} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 11, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Generate one-pager</button>
+            <button onClick={printPrep} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 11, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Download PDF / Print</button>
+          </div>
+          <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8, marginBottom: 12 }}>
+            <input value={emailTo} onChange={function(e) { setEmailTo(e.target.value); }} placeholder="Email this to yourself or the funeral home" style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 11px', fontFamily: 'inherit', fontSize: 12.5 }} />
+            <button onClick={emailPrep} disabled={sending} style={{ border: 'none', background: sending ? SOFT : SAGE, color: '#fff', borderRadius: 10, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: sending ? 'default' : 'pointer' }}>{sending ? 'Sending...' : 'Email copy'}</button>
+          </div>
+          {message && <div className="no-print" style={{ color: message.includes('Could not') ? ROSE : SAGE, fontSize: 12.5, fontWeight: 800, marginBottom: 12 }}>{message}</div>}
+
+          <FuneralPrepDocument form={form} missing={missing} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PrepInput({ label, value, onChange }) {
+  return (
+    <label style={{ display: 'grid', gap: 4 }}>
+      <span style={{ fontSize: 10.5, color: SOFT, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</span>
+      <input value={value || ''} onChange={function(e) { onChange(e.target.value); }} style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5, color: INK }} />
+    </label>
+  );
+}
+
+function PrepTextarea({ label, value, onChange }) {
+  return (
+    <label style={{ display: 'grid', gap: 4 }}>
+      <span style={{ fontSize: 10.5, color: SOFT, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</span>
+      <textarea value={value || ''} onChange={function(e) { onChange(e.target.value); }} rows={3} style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5, color: INK, resize: 'vertical' }} />
+    </label>
+  );
+}
+
+function FuneralPrepDocument({ form, missing }) {
+  function row(label, value) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '150px minmax(0,1fr)', gap: 10, padding: '6px 0', borderBottom: '1px solid #eee8df' }}>
+        <strong style={{ color: INK }}>{label}</strong>
+        <span style={{ color: value ? MID : SOFT, whiteSpace: 'pre-wrap' }}>{value || 'To be added'}</span>
+      </div>
+    );
+  }
+  return (
+    <div id="funeral-prep-print" style={{ background: '#fff', border: '1px solid ' + BORDER, borderRadius: 14, padding: 18, color: INK }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, borderBottom: '2px solid #eee8df', paddingBottom: 12, marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800 }}>Funeral home meeting prep</div>
+          <div style={{ fontSize: 25, lineHeight: 1.15, marginTop: 5 }}>{form.deceasedName || 'Loved one'}</div>
+        </div>
+        <div style={{ fontSize: 11.5, color: MID, textAlign: 'right' }}>Prepared with Passage<br />Based on standard funeral home intake information</div>
+      </div>
+      <section style={{ marginBottom: 12 }}>
+        <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Deceased Information</h3>
+        {row('Full name', form.deceasedName)}
+        {row('Date of birth', form.dateOfBirth)}
+        {row('Date of death', form.dateOfDeath)}
+        {row('Place of death', form.placeOfDeath)}
+      </section>
+      <section style={{ marginBottom: 12 }}>
+        <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Family & Contact</h3>
+        {row('Primary contact', form.familyContact)}
+        {row('Phone', form.familyPhone)}
+        {row('Email', form.familyEmail)}
+      </section>
+      <section style={{ marginBottom: 12 }}>
+        <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Service Preferences</h3>
+        {row('Known preferences', form.servicePreferences)}
+      </section>
+      <section style={{ marginBottom: 12 }}>
+        <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Documents / Items to Bring</h3>
+        {row('Bring if available', form.documents)}
+      </section>
+      <section>
+        <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>Notes</h3>
+        {row('Notes', form.notes)}
+      </section>
+      {missing.length > 0 && <div style={{ marginTop: 12, padding: 10, background: '#fdf8ee', borderRadius: 10, color: AMBER, fontSize: 12 }}>Still okay to bring: missing {missing.join(', ')}. These can be filled in later.</div>}
+    </div>
+  );
+}
+
 function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activating }) {
   var pendingActions = (actions || []).filter(function(a) { return !['sent', 'handled', 'cancelled'].includes(a.status || a.delivery_status || 'draft'); });
   var sentActions = (actions || []).filter(function(a) { return (a.status || a.delivery_status) === 'sent' || a.sent_at; });
@@ -907,6 +1134,13 @@ export default function EstatePage() {
     showToast('Plan started. Messages and task assignments are being tracked.');
   }
 
+  function recordPrepEvent(detail) {
+    var eventRow = { estate_id: estateId, event_type: 'funeral_home_prep', title: 'Funeral home prep summary', description: detail, actor: coordinatorName };
+    sb.from('estate_events').insert([eventRow]).then(function() {
+      setEvents(function(prev) { return [Object.assign({ id: 'local_prep_' + Date.now(), created_at: new Date().toISOString() }, eventRow)].concat(prev).slice(0, 8); });
+    });
+  }
+
   // Banner logic
   var handledCount = outcomes.filter(function(o) { return o.status === 'handled'; }).length;
   var needsOwnerCount = outcomes.filter(function(o) { return o.status === 'needs_owner'; }).length;
@@ -1076,6 +1310,17 @@ export default function EstatePage() {
           announcements={announcements}
           tasks={tasks}
           outcomes={outcomes}
+        />
+
+        <FuneralHomePrepGenerator
+          estate={estate}
+          estateId={estateId}
+          name={name}
+          coordinatorName={coordinatorName}
+          serviceEvents={serviceEvents}
+          people={people}
+          tasks={tasks}
+          onRecord={recordPrepEvent}
         />
 
         <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
 const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#9a9288', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#eef5ef', gold: '#b8945a', rose: '#c47a7a', roseFaint: '#fbf0ef' };
@@ -67,8 +67,19 @@ export default function ContentPage() {
   const [name, setName] = useState('');
   const [interest, setInterest] = useState(guides[0].title);
   const [unlocked, setUnlocked] = useState(false);
+  const [leadUnlocked, setLeadUnlocked] = useState(false);
   const [error, setError] = useState('');
   const selected = useMemo(() => guides.find(g => g.title === interest) || guides[0], [interest]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const saved = window.localStorage.getItem('passage_resource_lead_email');
+    if (saved) {
+      setEmail(saved);
+      setLeadUnlocked(true);
+      setUnlocked(true);
+    }
+  }, []);
 
   async function submit(e) {
     e.preventDefault();
@@ -91,6 +102,8 @@ export default function ContentPage() {
       setError(data.error || 'Please enter a real email address so we can send the guide.');
       return;
     }
+    if (typeof window !== 'undefined') window.localStorage.setItem('passage_resource_lead_email', email.trim().toLowerCase());
+    setLeadUnlocked(true);
     setUnlocked(true);
   }
 
@@ -105,14 +118,14 @@ export default function ContentPage() {
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.5, margin: 0, maxWidth: 720 }}>Choose the situation closest to yours. Passage will unlock the guide here and point you toward the clearest next step.</p>
           </div>
           <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 15, boxShadow: '0 14px 40px rgba(55,45,35,.05)' }}>
-            <div style={{ fontSize: 19, lineHeight: 1.2, marginBottom: 7 }}>Send me the guide</div>
-            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 0 }}>No drip campaign. Just the guide and the next place to start.</p>
-            <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={inputStyle} />
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={inputStyle} />
-            <select value={interest} onChange={e => { setInterest(e.target.value); setUnlocked(false); }} style={inputStyle}>
+            <div style={{ fontSize: 19, lineHeight: 1.2, marginBottom: 7 }}>{leadUnlocked ? 'Guides unlocked' : 'Send me the guide'}</div>
+            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 0 }}>{leadUnlocked ? 'You already unlocked these guides on this browser. Choose any guide below.' : 'No drip campaign. Just the guide and the next place to start.'}</p>
+            {!leadUnlocked && <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={inputStyle} />}
+            {!leadUnlocked && <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={inputStyle} />}
+            <select value={interest} onChange={e => { setInterest(e.target.value); setUnlocked(leadUnlocked); }} style={inputStyle}>
               {guides.map(g => <option key={g.title}>{g.title}</option>)}
             </select>
-            <button style={{ width: '100%', border: 'none', borderRadius: 12, padding: '13px 16px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{unlocked ? 'Guide unlocked' : 'Unlock guide'}</button>
+            {!leadUnlocked && <button style={{ width: '100%', border: 'none', borderRadius: 12, padding: '13px 16px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{unlocked ? 'Guide unlocked' : 'Unlock guide'}</button>}
             {error && <p style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, lineHeight: 1.45, margin: '10px 0 0' }}>{error}</p>}
           </form>
         </div>
@@ -121,7 +134,7 @@ export default function ContentPage() {
           {guides.map(g => {
             const active = selected.title === g.title;
             return (
-              <button key={g.title} onClick={() => { setInterest(g.title); setUnlocked(false); }} style={{ textAlign: 'left', background: active ? C.sageFaint : C.card, border: `1px solid ${active ? C.sage : C.border}`, borderRadius: 15, padding: 13, fontFamily: 'Georgia,serif', cursor: 'pointer', minHeight: 148 }}>
+              <button key={g.title} onClick={() => { setInterest(g.title); setUnlocked(leadUnlocked); }} style={{ textAlign: 'left', background: active ? C.sageFaint : C.card, border: `1px solid ${active ? C.sage : C.border}`, borderRadius: 15, padding: 13, fontFamily: 'Georgia,serif', cursor: 'pointer', minHeight: 148 }}>
                 <div style={{ fontSize: 9.5, color: active ? C.sage : C.gold, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>{g.type}</div>
                 <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.18, marginBottom: 7 }}>{g.title}</div>
                 <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.4, marginBottom: 6 }}>{g.audience}</div>
