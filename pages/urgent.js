@@ -404,16 +404,27 @@ export default function UrgentPage() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  const primary = outcomes.find(o => o.status !== 'handled') || outcomes[0];
-  const nextItems = outcomes.filter(o => o.id !== primary?.id);
+  const selectedSituation = Boolean(context.deathContext);
+  const primary = selectedSituation
+    ? (outcomes.find(o => o.status !== 'handled') || outcomes[0])
+    : {
+      id: 'choose_context',
+      phase: 'Start here',
+      title: 'Choose what happened first',
+      support: 'The right first move depends on the setting. Unexpected at home, hospice, hospital, facility, and already-past-the-first-steps each start differently.',
+      status: 'needs_context',
+      owner: null,
+    };
+  const nextItems = selectedSituation ? outcomes.filter(o => o.id !== primary?.id) : [];
   const handled = outcomes.filter(o => o.status === 'handled').length;
   const assigned = outcomes.filter(o => o.owner).length;
 
   const reassurance = useMemo(() => {
+    if (!selectedSituation) return 'We will start with the right real-world path, then show only the next action.';
     if (!primary) return 'Nothing urgent is missing right now.';
     if (primary.owner) return `${primary.owner.name} is holding the next step. You can breathe for a moment.`;
     return 'One thing at a time. Start by naming who owns the next practical step.';
-  }, [primary]);
+  }, [primary, selectedSituation]);
 
   const saveOwner = (person) => {
     const nextPeople = [person, ...people.filter(p => p.id !== person.id)];
@@ -457,6 +468,10 @@ export default function UrgentPage() {
     }
     if (!deceasedName.trim()) {
       setSaveError('Add their name so Passage can save this as a real estate command center.');
+      return;
+    }
+    if (!selectedSituation) {
+      setSaveError('Choose what happened first so Passage can create the right first steps.');
       return;
     }
     setSavingEstate(true);
@@ -783,22 +798,24 @@ export default function UrgentPage() {
                   {primary.owner.phone || primary.owner.email ? <><br />Contact: {[primary.owner.phone, primary.owner.email].filter(Boolean).join(' / ')}</> : null}
                 </>
               ) : (
-                <>No one is assigned yet. Choose the person most likely to answer and follow through.</>
+                <>{selectedSituation ? 'No one is assigned yet. Choose the person most likely to answer and follow through.' : 'Pick the situation above first. Passage will then show the right immediate action.'}</>
               )}
             </div>
 
-            {primary.owner && <TaskPlaybook task={primary} />}
+            {selectedSituation && primary.owner && <TaskPlaybook task={primary} />}
 
-            <div className="stack">
-              <button className="primary" onClick={() => setAssigning(primary)}>
-                {primary.owner ? 'Change owner' : 'Assign owner'}
-              </button>
-              {primary.owner && (
-                <button className="secondary" onClick={() => markHandled(primary.id)}>
-                  Mark handled
+            {selectedSituation && (
+              <div className="stack">
+                <button className="primary" onClick={() => setAssigning(primary)}>
+                  {primary.owner ? 'Change owner' : 'Assign owner'}
                 </button>
-              )}
-            </div>
+                {primary.owner && (
+                  <button className="secondary" onClick={() => markHandled(primary.id)}>
+                    Mark handled
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <aside className="card side">
