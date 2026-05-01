@@ -20,6 +20,8 @@ export default async function handler(req, res) {
   const category = clean(body.category, 80) || 'General';
   const message = clean(body.message, 3000);
   const urgency = clean(body.urgency, 40) || 'Normal';
+  const source = clean(body.source, 80) || 'contact_page';
+  const flowType = clean(body.flowType, 80) || 'support_inquiry';
 
   if (!email || !message) {
     return res.status(400).json({ error: 'Please include your email and message.' });
@@ -29,8 +31,8 @@ export default async function handler(req, res) {
     await supabase.from('leads').insert([{
       email,
       first_name: name || null,
-      flow_type: 'support_inquiry',
-      source: 'contact_page',
+      flow_type: flowType,
+      source,
       notes: JSON.stringify({ category, urgency, message, site: SITE_URL, created_at: new Date().toISOString() }),
     }]).catch(() => {});
 
@@ -38,7 +40,7 @@ export default async function handler(req, res) {
     if (key) {
       const to = process.env.SUPPORT_EMAIL || process.env.RESEND_SUPPORT_EMAIL || 'thepassageappio@gmail.com';
       const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
-      const subject = `Passage support inquiry: ${category}`;
+      const subject = category === 'Resource guide lead' ? `New Passage resource lead: ${email}` : `Passage support inquiry: ${category}`;
       const html = [
         '<div style="font-family:Georgia,serif;background:#f6f3ee;padding:28px">',
         '<div style="background:#fff;border-radius:16px;padding:28px;max-width:640px;margin:auto">',

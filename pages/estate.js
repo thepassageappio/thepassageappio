@@ -89,6 +89,162 @@ function playbookFor(outcome) {
   return PLAYBOOKS[key] || PLAYBOOKS.default;
 }
 
+function providerKindFor(outcome) {
+  var title = String(outcome.title || '').toLowerCase();
+  var category = String(outcome.category || '').toLowerCase();
+  if (title.includes('funeral') || category === 'service') return 'funeral home';
+  if (title.includes('cemetery') || title.includes('burial')) return 'cemetery';
+  if (title.includes('flower') || title.includes('florist')) return 'florist';
+  if (title.includes('cater') || title.includes('reception')) return 'caterer';
+  if (title.includes('officiant') || title.includes('pastor') || title.includes('rabbi') || title.includes('priest') || title.includes('imam')) return 'officiant';
+  if (title.includes('hospice')) return 'hospice';
+  if (title.includes('bank') || title.includes('credit')) return 'bank';
+  if (title.includes('attorney') || title.includes('probate')) return 'estate attorney';
+  return '';
+}
+
+function actionScripts(outcome, provider) {
+  var p = playbookFor(outcome);
+  var providerName = provider && provider.name ? provider.name : '[provider]';
+  var task = outcome.title || 'this task';
+  var phoneScript = p.draft.replace(/\[name\]/g, '[loved one]').replace(/\[your name\]/g, '[your name]');
+  var textScript = 'Hi, this is [your name]. I am coordinating ' + task.toLowerCase() + ' through Passage. Can you confirm the next step and what you need from us?';
+  var emailSubject = 'Next step for ' + task;
+  var emailBody = 'Hello ' + providerName + ',\n\n' + phoneScript + '\n\nPlease reply with the next step, any required documents, and the best contact number.\n\nThank you.';
+  return { phone: phoneScript, text: textScript, emailSubject: emailSubject, emailBody: emailBody };
+}
+
+function ProviderActionPanel({ outcome, estateId, onStarted }) {
+  var kind = providerKindFor(outcome);
+  var initialQuery = kind || 'provider';
+  var s0 = useState(initialQuery); var query = s0[0]; var setQuery = s0[1];
+  var s1 = useState(''); var near = s1[0]; var setNear = s1[1];
+  var s2 = useState([]); var results = s2[0]; var setResults = s2[1];
+  var s3 = useState(null); var selected = s3[0]; var setSelected = s3[1];
+  var s4 = useState(false); var searching = s4[0]; var setSearching = s4[1];
+  var s5 = useState(''); var message = s5[0]; var setMessage = s5[1];
+  var s6 = useState(false); var mapsConfigured = s6[0]; var setMapsConfigured = s6[1];
+  var s7 = useState(false); var copied = s7[0]; var setCopied = s7[1];
+  var s8 = useState(''); var userPhone = s8[0]; var setUserPhone = s8[1];
+  var s9 = useState(false); var calling = s9[0]; var setCalling = s9[1];
+  var showPanel = kind || String(outcome.title || '').toLowerCase().includes('contact') || String(outcome.recommended_action || '').toLowerCase().includes('call');
+  if (!showPanel) return null;
+
+  async function searchProviders() {
+    setSearching(true);
+    setMessage('');
+    try {
+      var response = await fetch('/api/providerSearch?' + new URLSearchParams({ q: query || kind, kind: kind, near: near }).toString());
+      var data = await response.json();
+      setMapsConfigured(data.configured !== false);
+      if (!response.ok) throw new Error(data.error || 'Search failed.');
+      setResults(data.results || []);
+      setSelected((data.results || [])[0] || null);
+      if (data.configured === false) setMessage('Google Places is not configured yet. Add the provider manually for now.');
+      else if (!(data.results || []).length) setMessage('No matching provider found. Try a business name or city.');
+    } catch (error) {
+      setMessage(error.message || 'Provider search failed.');
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  var scripts = actionScripts(outcome, selected);
+  var phone = selected && selected.phone ? selected.phone : '';
+  var smsHref = 'sms:' + (phone || '') + '?&body=' + encodeURIComponent(scripts.text);
+  var mailHref = 'mailto:' + '?subject=' + encodeURIComponent(scripts.emailSubject) + '&body=' + encodeURIComponent(scripts.emailBody);
+
+  async function startVoiceCall() {
+    if (!selected || !phone) {
+      setMessage('Choose a provider with a phone number first.');
+      return;
+    }
+    if (!userPhone.trim()) {
+      setMessage('Add your phone number so Passage can call you first.');
+      return;
+    }
+    setCalling(true);
+    setMessage('');
+    try {
+      var session = await sb.auth.getSession();
+      var token = session && session.data && session.data.session ? session.data.session.access_token : '';
+      var response = await fetch('/api/callNow', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+        body: JSON.stringify({
+          workflowId: estateId,
+          taskId: null,
+          userPhone: userPhone,
+          recipientPhone: phone,
+          recipientName: selected.name,
+          taskTitle: outcome.title,
+          script: scripts.phone,
+        }),
+      });
+      var data = await response.json().catch(function() { return {}; });
+      if (!response.ok) throw new Error(data.error || 'Call could not be started.');
+      setMessage('Call initiated. Passage will call you first, then connect ' + selected.name + '.');
+      if (onStarted) onStarted();
+    } catch (error) {
+      setMessage(error.message || 'Call could not be started.');
+    } finally {
+      setCalling(false);
+    }
+  }
+
+  return (
+    <div style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '13px 14px', marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 4 }}>Find contact and act</div>
+          <div style={{ fontSize: 13, color: MID, lineHeight: 1.45 }}>Look up the provider, then call, text, or email with Passage's prepared words.</div>
+        </div>
+        {kind && <span style={{ height: 22, fontSize: 10.5, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '4px 8px', whiteSpace: 'nowrap' }}>{kind}</span>}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,.8fr)', gap: 8, marginBottom: 8 }}>
+        <input value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Funeral home, florist, cemetery..." style={{ border: '1.5px solid ' + BORDER, borderRadius: 10, padding: '10px 11px', fontFamily: 'inherit', fontSize: 13, minWidth: 0 }} />
+        <input value={near} onChange={function(e) { setNear(e.target.value); }} placeholder="City or ZIP" style={{ border: '1.5px solid ' + BORDER, borderRadius: 10, padding: '10px 11px', fontFamily: 'inherit', fontSize: 13, minWidth: 0 }} />
+      </div>
+      <button onClick={searchProviders} disabled={searching} style={{ width: '100%', border: 'none', borderRadius: 10, padding: '10px 12px', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', marginBottom: results.length || message ? 10 : 0 }}>
+        {searching ? 'Searching...' : 'Search providers'}
+      </button>
+      {message && <div style={{ background: mapsConfigured ? AMBER_FAINT : SUBTLE, border: '1px solid ' + (mapsConfigured ? AMBER_BORDER : BORDER), borderRadius: 10, padding: '9px 10px', color: mapsConfigured ? AMBER : MID, fontSize: 12.5, lineHeight: 1.45, marginBottom: 10 }}>{message}</div>}
+      {results.length > 0 && (
+        <div style={{ display: 'grid', gap: 7, marginBottom: 10 }}>
+          {results.map(function(r) {
+            var active = selected && selected.placeId === r.placeId;
+            return (
+              <button key={r.placeId || r.name} onClick={function() { setSelected(r); }} style={{ textAlign: 'left', border: '1px solid ' + (active ? SAGE_LIGHT : BORDER), background: active ? SAGE_FAINT : SUBTLE, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', cursor: 'pointer' }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: INK }}>{r.name}</div>
+                <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.4 }}>{r.phone || 'Phone not listed'}{r.address ? ' | ' + r.address : ''}</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {selected && (
+          <div style={{ background: SUBTLE, borderRadius: 11, padding: 11 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 4 }}>{selected.name}</div>
+          <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginBottom: 9 }}>{selected.phone || 'Add phone manually if needed'}{selected.address ? ' | ' + selected.address : ''}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 7, marginBottom: 8 }}>
+            <input value={userPhone} onChange={function(e) { setUserPhone(e.target.value); }} placeholder="Your phone for call connect" style={{ border: '1.5px solid ' + BORDER, borderRadius: 9, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5, minWidth: 0, background: CARD }} />
+            <button onClick={startVoiceCall} disabled={calling || !phone} style={{ border: 'none', background: ROSE, color: '#fff', borderRadius: 9, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap', opacity: phone ? 1 : .55 }}>
+              {calling ? 'Calling...' : "Call now - we'll connect you"}
+            </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 7, marginBottom: 9 }}>
+            <a href={smsHref} onClick={onStarted} style={{ textAlign: 'center', textDecoration: 'none', background: SAGE, color: '#fff', borderRadius: 9, padding: '9px 7px', fontSize: 12, fontWeight: 800 }}>Text</a>
+            <a href={mailHref} onClick={onStarted} style={{ textAlign: 'center', textDecoration: 'none', background: CARD, color: SAGE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 9, padding: '8px 7px', fontSize: 12, fontWeight: 800 }}>Email</a>
+          </div>
+          <div style={{ background: CARD, borderRadius: 9, padding: 10, color: MID, fontSize: 12.5, lineHeight: 1.55, marginBottom: 8 }}>{scripts.phone}</div>
+          <button onClick={function() { navigator.clipboard.writeText(scripts.phone); setCopied(true); setTimeout(function() { setCopied(false); }, 1600); }} style={{ width: '100%', border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 9, padding: '8px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>{copied ? 'Copied' : 'Copy call script'}</button>
+          {selected.mapsUrl && <a href={selected.mapsUrl} target="_blank" rel="noreferrer" style={{ display: 'block', marginTop: 8, color: SAGE, fontSize: 12, fontWeight: 800, textAlign: 'center', textDecoration: 'none' }}>Open in Google Maps</a>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 var TIMELINE_BUCKETS = [
   { key: 'now', label: 'Now', range: [0, 0], help: 'What needs attention first.' },
   { key: '72h', label: 'Next 72 hours', range: [1, 3], help: 'Calls and coordination that should happen soon.' },
@@ -235,7 +391,7 @@ function InlineAssign({ onSave, onClose }) {
 }
 
 // ── OUTCOME CARD ──────────────────────────────────────────────────────────────
-function OutcomeCard({ outcome, expanded, showAssign, onToggle, onMarkHandled, onMarkInProgress, onAssignOpen, onAssignClose, onAssignSave, toast }) {
+function OutcomeCard({ outcome, estateId, expanded, showAssign, onToggle, onMarkHandled, onMarkInProgress, onAssignOpen, onAssignClose, onAssignSave, toast }) {
   var statusColor = outcome.status === 'handled' ? SAGE : outcome.status === 'needs_owner' ? AMBER : outcome.status === 'in_progress' ? '#2563eb' : MID;
   var statusBg = outcome.status === 'handled' ? SAGE_FAINT : outcome.status === 'needs_owner' ? AMBER_FAINT : outcome.status === 'in_progress' ? '#eff6ff' : SUBTLE;
   var statusLabel = { handled: 'Handled', needs_owner: 'Needs owner', in_progress: 'In progress', not_started: 'Not started' }[outcome.status] || 'Not started';
@@ -299,6 +455,7 @@ function OutcomeCard({ outcome, expanded, showAssign, onToggle, onMarkHandled, o
                 );
               })()}
             </div>
+            <ProviderActionPanel outcome={outcome} estateId={estateId} onStarted={onMarkInProgress} />
             {outcome.status !== 'handled' && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {outcome.status === 'not_started' && (
@@ -1031,6 +1188,7 @@ export default function EstatePage() {
                 <OutcomeCard
                   key={outcome.id}
                   outcome={outcome}
+                  estateId={estateId}
                   expanded={expanded === i}
                   showAssign={showAssign === i}
                   onToggle={function() { setExpanded(expanded === i ? -1 : i); setShowAssign(-1); }}
