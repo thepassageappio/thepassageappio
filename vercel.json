@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/processTaskReminders",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 14 * * *"
     }
   ]
 }
