@@ -295,8 +295,10 @@ export default async function handler(req, res) {
 
     const body = new URLSearchParams({
       mode: plan.mode,
-      success_url: BASE + '/?checkout=success&session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: BASE + '/?checkout=cancelled',
+      success_url: planId === 'urgent'
+        ? BASE + '/urgent?checkout=success&session_id={CHECKOUT_SESSION_ID}'
+        : BASE + '/?checkout=success&session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: planId === 'urgent' ? BASE + '/pricing?urgent=cancelled' : BASE + '/?checkout=cancelled',
       client_reference_id: userId,
       'metadata[userId]': userId,
       'metadata[planId]': planId,

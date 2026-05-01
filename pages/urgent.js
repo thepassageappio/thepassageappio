@@ -205,12 +205,12 @@ export default function UrgentPage() {
   const [coordinatorEmail, setCoordinatorEmail] = useState('');
   const [savingEstate, setSavingEstate] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [paidSuccess, setPaidSuccess] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('passage_urgent_people') || '[]');
-      if (Array.isArray(saved)) setPeople(saved);
-    } catch {}
+    if (typeof window !== 'undefined') {
+      setPaidSuccess(new URLSearchParams(window.location.search).get('checkout') === 'success');
+    }
   }, []);
 
   useEffect(() => {
@@ -241,7 +241,6 @@ export default function UrgentPage() {
   const saveOwner = (person) => {
     const nextPeople = [person, ...people.filter(p => p.id !== person.id)];
     setPeople(nextPeople);
-    try { localStorage.setItem('passage_urgent_people', JSON.stringify(nextPeople)); } catch {}
     setOutcomes(prev => prev.map(o => o.id === assigning.id ? { ...o, owner: person, status: 'in_progress' } : o));
     setAssigning(null);
   };
@@ -314,17 +313,17 @@ export default function UrgentPage() {
         * { box-sizing: border-box; }
         body { margin: 0; background: ${C.bg}; color: ${C.ink}; }
         main { min-height: 100vh; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at 50% 0%, #fffaf1 0%, ${C.bg} 42%, #f4efe7 100%); }
-        .shell { max-width: 1120px; margin: 0 auto; padding: 20px 22px 44px; }
+        .shell { max-width: 1120px; margin: 0 auto; padding: 16px 22px 40px; }
         .brand { display: inline-flex; align-items: center; gap: 10px; }
         .brand-name { font-size: 25px; font-weight: 520; letter-spacing: 0; animation: wordGlow 4.6s ease-in-out infinite; }
         .mark { position: relative; display: inline-flex; align-items: center; justify-content: center; }
         .halo { position: absolute; inset: -8px; border-radius: 50%; background: radial-gradient(circle, rgba(207,149,60,.26), rgba(207,149,60,0) 66%); animation: brandGlow 4.2s ease-in-out infinite; }
         .flame { transform-origin: 24px 25px; animation: flame 2.9s ease-in-out infinite; }
-        nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+        nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
         nav a { color: ${C.mid}; text-decoration: none; font-size: 14px; }
-        .hero { max-width: 760px; margin-bottom: 20px; }
+        .hero { max-width: 760px; margin-bottom: 14px; }
         .kicker { color: ${C.rose}; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 750; margin-bottom: 10px; }
-        h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(34px, 4.5vw, 48px); line-height: 1.04; margin: 0 0 12px; }
+        h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(32px, 4vw, 44px); line-height: 1.04; margin: 0 0 10px; }
         .lede { font-size: 15.5px; line-height: 1.55; color: ${C.mid}; max-width: 720px; margin: 0; }
         .grid { display: grid; grid-template-columns: 1.5fr .8fr; gap: 18px; align-items: start; }
         .card { background: rgba(255,253,249,.92); border: 1px solid ${C.border}; border-radius: 18px; box-shadow: 0 18px 50px rgba(55,45,35,.08); }
@@ -338,6 +337,7 @@ export default function UrgentPage() {
         .field.compact input { min-height:39px; padding:9px 11px; background:${C.card}; }
         .save-command { min-height:39px; padding:9px 12px; white-space:nowrap; }
         .save-error { grid-column:1 / -1; color:${C.rose}; background:${C.roseFaint}; border:1px solid rgba(184,107,111,.22); border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.4; }
+        .paid-success { background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; border-radius:14px; padding:10px 12px; margin-bottom:12px; font-weight:750; font-size:13px; line-height:1.45; }
         .owner { background: ${C.subtle}; border-radius: 14px; padding: 13px 14px; color: ${C.mid}; line-height: 1.45; margin-bottom: 14px; }
         .owner strong { color: ${C.ink}; }
         .playbook { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; margin:0 0 18px; }
@@ -408,6 +408,7 @@ export default function UrgentPage() {
 
         <section className="grid">
           <div className="card primary-card">
+            {paidSuccess && <div className="paid-success">You're in the right place. We'll guide you step by step.</div>}
             <div className="save-strip">
               <div className="field compact">
                 <label>Name of the person who passed</label>

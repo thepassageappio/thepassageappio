@@ -26,7 +26,7 @@ function Field({ label, children }) {
   );
 }
 
-const input = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 12, padding: '12px 14px', fontFamily: 'Georgia,serif', fontSize: 14, color: C.ink, outline: 'none', background: '#fff' };
+const input = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', fontFamily: 'Georgia,serif', fontSize: 14, color: C.ink, outline: 'none', background: '#fff' };
 const SUPPORT_USER = 'thepassageappio';
 const SUPPORT_DOMAIN = 'gmail.com';
 
@@ -59,18 +59,18 @@ export default function ContactPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
 
-      <section style={{ maxWidth: 980, margin: '0 auto', padding: '16px 22px 44px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 18 }}>
+      <section style={{ maxWidth: 980, margin: '0 auto', padding: '12px 22px 36px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 18 }}>
         <div>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Contact Passage</div>
-          <h1 style={{ fontSize: 'clamp(28px, 3.5vw, 38px)', lineHeight: 1.06, margin: '0 0 8px', fontWeight: 400 }}>Tell us what is happening. We will route it with care.</h1>
-          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Use this form for support, billing, urgent-flow feedback, partnership inquiries, or content requests. For emergencies, please contact local emergency services or the appropriate funeral, medical, legal, or government office directly.</p>
+          <h1 style={{ fontSize: 'clamp(28px, 3.3vw, 36px)', lineHeight: 1.04, margin: '0 0 8px', fontWeight: 400 }}>How can we help right now?</h1>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Use this form for support, billing, urgent-flow feedback, partnership inquiries, or content requests. For emergencies, contact local emergency services or the appropriate funeral, medical, legal, or government office directly.</p>
           <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
             <strong style={{ color: C.ink }}>Support email:</strong> <SupportEmail /><br />
             <strong style={{ color: C.ink }}>Partnerships:</strong> funeral homes, attorneys, planners, and care teams can use the partner inquiry category.
           </div>
         </div>
 
-        <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 12px 40px rgba(55,45,35,.06)' }}>
+        <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, boxShadow: '0 12px 40px rgba(55,45,35,.06)' }}>
           <Field label="Name">
             <input value={form.name} onChange={e => set('name', e.target.value)} style={input} placeholder="Your name" />
           </Field>
@@ -90,7 +90,7 @@ export default function ContactPage() {
             </select>
           </Field>
           <Field label="How can we help?">
-            <textarea required rows={7} value={form.message} onChange={e => set('message', e.target.value)} style={{ ...input, resize: 'vertical', lineHeight: 1.55 }} placeholder="Share enough detail for us to understand the issue or request." />
+            <textarea required rows={5} value={form.message} onChange={e => set('message', e.target.value)} style={{ ...input, resize: 'vertical', lineHeight: 1.5 }} placeholder="Share enough detail for us to understand the issue or request." />
           </Field>
           <button disabled={state === 'sending'} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>
             {state === 'sending' ? 'Sending...' : 'Submit inquiry'}

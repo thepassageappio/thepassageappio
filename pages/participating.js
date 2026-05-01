@@ -201,6 +201,7 @@ export default function ParticipatingPage() {
   const [notesByItem, setNotesByItem] = useState({});
   const [expandedEstateId, setExpandedEstateId] = useState('');
   const [showHandled, setShowHandled] = useState({});
+  const [showOtherOpen, setShowOtherOpen] = useState({});
   const [actionNotice, setActionNotice] = useState('');
 
   useEffect(() => {
@@ -225,7 +226,7 @@ export default function ParticipatingPage() {
     else setData(json);
     if (json?.estates?.length) {
       const linkedEstate = router.query.estate;
-      setExpandedEstateId(prev => prev || linkedEstate || json.estates[0].id);
+      setExpandedEstateId(prev => prev || linkedEstate || (json.estates.length === 1 ? json.estates[0].id : ''));
     }
     setLoading(false);
   }
@@ -260,10 +261,10 @@ export default function ParticipatingPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 22px 58px' }}>
-        <div style={{ maxWidth: 760, marginBottom: 18 }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '14px 22px 42px' }}>
+        <div style={{ maxWidth: 760, marginBottom: 14 }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Participating in an estate</div>
-          <h1 style={{ fontSize: 'clamp(30px, 4vw, 40px)', lineHeight: 1.06, margin: '0 0 10px', fontWeight: 400 }}>Your Passage assignments, in one calm place.</h1>
+          <h1 style={{ fontSize: 'clamp(29px, 3.5vw, 38px)', lineHeight: 1.04, margin: '0 0 8px', fontWeight: 400 }}>Your Passage assignments, in one calm place.</h1>
           <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>See the estate, the task that needs you now, and the notes the coordinator needs back. No hunting through old texts.</p>
         </div>
 
@@ -305,7 +306,25 @@ export default function ParticipatingPage() {
                   <div style={{ fontSize: 20, marginBottom: 8 }}>No estate roles found for {data.email} yet.</div>
                   <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>If someone invited you with a different email, sign in with that address. When you are assigned a task, it will appear here.</p>
                 </div>
-              ) : data.estates
+              ) : <>
+                {data.estates.length > 1 && !(router.query.estate || router.query.task) && (
+                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 12, marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Estate summary</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {data.estates.map(estate => {
+                        const items = normalizeItems(estate);
+                        const openCount = items.filter(item => !isHandled(itemStatus(item))).length;
+                        const selected = expandedEstateId === estate.id;
+                        return (
+                          <button key={estate.id} onClick={() => setExpandedEstateId(selected ? '' : estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, padding: '7px 10px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.5 }}>
+                            {(estate.deceased_name || estate.name || 'Estate')} ({openCount} task{openCount === 1 ? '' : 's'})
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {data.estates
                 .slice()
                 .filter(estate => !router.query.estate || estate.id === router.query.estate)
                 .sort((a, b) => (a.id === router.query.estate ? -1 : b.id === router.query.estate ? 1 : 0))
@@ -318,6 +337,7 @@ export default function ParticipatingPage() {
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
                   const expanded = expandedEstateId === estate.id;
                   const focusedInvite = Boolean(router.query.estate || router.query.task);
+                  const showOpenList = showOtherOpen[estate.id] || focusedInvite;
                   return (
                 <div key={estate.id} style={{ background: C.card, border: `1px solid ${expanded ? C.sage : C.border}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: expanded ? '0 14px 38px rgba(55,45,35,.05)' : 'none' }}>
                   <button onClick={() => setExpandedEstateId(expanded ? '' : estate.id)} style={{ width: '100%', background: 'none', border: 'none', padding: 20, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
@@ -362,10 +382,12 @@ export default function ParticipatingPage() {
                     </div>
                   )}
 
-                      {otherOpen.length > 0 && !focusedInvite && (
+                      {otherOpen.length > 0 && (
                         <div style={{ marginTop: 14 }}>
-                          <div style={{ fontSize: 12, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 8 }}>Also assigned to you</div>
-                          {otherOpen.slice(0, 4).map(item => (
+                          <button onClick={() => setShowOtherOpen(prev => ({ ...prev, [estate.id]: !prev[estate.id] }))} style={{ width: '100%', border: `1px solid ${C.border}`, background: C.card, borderRadius: 11, padding: '9px 12px', color: C.mid, cursor: 'pointer', fontFamily: 'Georgia,serif', fontSize: 13, fontWeight: 800, textAlign: 'left' }}>
+                            {showOpenList ? 'Hide other assigned tasks' : `Show ${otherOpen.length} more task${otherOpen.length === 1 ? '' : 's'} assigned to you`}
+                          </button>
+                          {showOpenList && otherOpen.slice(0, 4).map(item => (
                             <ParticipantItem
                               key={(item.id || itemTitle(item)) + itemStatus(item)}
                               item={item}
@@ -375,7 +397,7 @@ export default function ParticipatingPage() {
                               estate={estate}
                             />
                           ))}
-                          {otherOpen.length > 4 && <div style={{ fontSize: 12, color: C.soft, padding: '8px 0' }}>{otherOpen.length - 4} more open item{otherOpen.length - 4 === 1 ? '' : 's'} hidden to keep this page readable.</div>}
+                          {showOpenList && otherOpen.length > 4 && <div style={{ fontSize: 12, color: C.soft, padding: '8px 0' }}>{otherOpen.length - 4} more open item{otherOpen.length - 4 === 1 ? '' : 's'} hidden to keep this page readable.</div>}
                         </div>
                       )}
 
@@ -395,6 +417,7 @@ export default function ParticipatingPage() {
                   )}
                 </div>
               )})}
+              </>}
             </div>
 
             {!(router.query.estate || router.query.task) && (
