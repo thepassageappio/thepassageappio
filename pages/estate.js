@@ -913,6 +913,11 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     acc[tier] = (acc[tier] || 0) + 1;
     return acc;
   }, {});
+  var laneCounts = enriched.reduce(function(acc, t) {
+    var key = t.playbook.executionModeShortLabel || 'Guide';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
   var proofTasks = enriched.filter(function(t) { return t.playbook.topProofTask || t.playbook.institutionTemplate; }).slice(0, 10);
   var owners = {};
   enriched.forEach(function(t) { var key = ownerBucket(t); owners[key] = (owners[key] || 0) + 1; });
@@ -979,6 +984,16 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
             </div>
           );
         })}
+      </div>
+
+      <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Action lanes</div>
+        <div style={{ fontSize: 12.2, color: MID, lineHeight: 1.45, marginBottom: 8 }}>Every task is separated into what Passage can send, what Passage can prepare, what requires a call, and what must be completed through an outside party.</div>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+          {['Automate', 'Call', 'Packet', 'Guide', 'Record'].map(function(lane) {
+            return <span key={lane} style={{ background: lane === 'Automate' ? SAGE_FAINT : lane === 'Packet' ? AMBER_FAINT : SUBTLE, color: lane === 'Packet' ? AMBER : SAGE, border: '1px solid ' + (lane === 'Packet' ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 999, padding: '5px 9px', fontSize: 11.5, fontWeight: 900 }}>{lane}: {laneCounts[lane] || 0}</span>;
+          })}
+        </div>
       </div>
 
       <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>

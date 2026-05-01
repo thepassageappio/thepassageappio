@@ -68,8 +68,8 @@ const urgentPlans = {
     {
       id: 'pronouncement',
       phase: 'Minutes',
-      title: 'Wait for official pronouncement or medical examiner direction',
-      support: 'Transportation, paperwork, and funeral home pickup usually depend on an official instruction or pronouncement.',
+      title: 'Wait for official pronouncement',
+      support: 'A death must be officially pronounced by a medical professional before transportation, paperwork, or funeral home pickup can move forward.',
       prompt: 'Who will write down the official instruction?',
       status: 'needs_owner',
       owner: null,
@@ -151,7 +151,7 @@ const urgentPlans = {
       id: 'pronouncement',
       phase: 'Minutes',
       title: 'Confirm official pronouncement',
-      support: 'If death was expected at home, the doctor, hospice, or local authority may still need to pronounce death before transportation.',
+      support: 'A death must be officially pronounced by a medical professional before transportation or paperwork moves forward.',
       prompt: 'Who can confirm the pronouncement path?',
       status: 'needs_owner',
       owner: null,
@@ -174,11 +174,11 @@ function mergeOutcomePlan(nextPlan, previous) {
 }
 
 const nextPreview = {
-  unexpected: ['Emergency services arrive', 'They decide if a medical examiner is needed', 'Only after that can a funeral home usually be contacted'],
-  hospice: ['Hospice confirms what happens next', 'They guide pronouncement and medications/equipment', 'Then the funeral home can coordinate pickup'],
+  unexpected: ['Emergency services or a medical examiner handle the official pronouncement path', 'They tell you what must happen next', 'Only after that can a funeral home usually be contacted'],
+  hospice: ['Your hospice nurse handles or coordinates the official pronouncement path', 'They guide medications, equipment, and next instructions', 'Then the funeral home can coordinate pickup'],
   hospital: ['Hospital staff explain the release process', 'The decision-maker authorizes release', 'The funeral home coordinates pickup'],
   facility: ['Facility staff explain release requirements', 'The decision-maker authorizes pickup', 'The funeral home coordinates transportation'],
-  home_expected: ['A provider confirms pronouncement', 'The family records the official details', 'The funeral home can then coordinate pickup'],
+  home_expected: ['A medical professional confirms the official pronouncement path', 'The family records the official details', 'The funeral home can then coordinate pickup'],
   past: ['We confirm what is already done', 'We organize the next open step', 'Passage tracks owners, notes, and proof from here'],
 };
 
@@ -207,7 +207,7 @@ const taskPlaybooks = {
   },
   pronouncement: {
     title: 'Pronouncement details to record',
-    body: 'Record who officially pronounced death, the time, the location, and any instruction they gave about transportation, release, or medical examiner involvement.',
+    body: 'A death must be officially pronounced by a medical professional before anything else can happen. Record who pronounced death, the time, the location, and any instruction they gave about transportation, release, or medical examiner involvement.',
     steps: ['Confirm who pronounced death', 'Write down time and contact information', 'Ask what must happen before funeral home pickup'],
   },
   authority: {
@@ -515,7 +515,7 @@ export default function UrgentPage() {
   };
 
   const contextVoice = useMemo(() => {
-    if (context.deathContext === 'unexpected') return 'If this was unexpected at home, call 911 now. A doctor or medical examiner must officially pronounce death before anything else can happen.';
+    if (context.deathContext === 'unexpected') return 'If this was unexpected at home, call 911 now. A death must be officially pronounced by a medical professional before anything else can happen.';
     if (context.deathContext === 'hospice') return 'Because they were under hospice care, start with the hospice nurse or on-call hospice line.';
     if (context.deathContext === 'hospital') return 'Because they are at a hospital, start by confirming the release process and who can authorize pickup.';
     if (context.deathContext === 'facility') return 'Because they are at a care facility, start by confirming release and pickup requirements with staff.';
@@ -691,7 +691,7 @@ export default function UrgentPage() {
               )}
               {context.deathContext === 'unexpected' && (
                 <div className="urgent-alert">
-                  <strong>If this was unexpected at home, call 911 now.</strong> A doctor or medical examiner must officially pronounce death before anything else can happen.
+                  <strong>If this was unexpected at home, call 911 now.</strong> A death must be officially pronounced by a medical professional before anything else can happen. Emergency services or a medical examiner will handle this.
                   <div className="stack" style={{ marginTop: 10 }}>
                     <button className="secondary" onClick={() => updateContext('emergencyCalled', 'yes')}>I've called 911</button>
                     <button className="ghost" onClick={() => updateContext('pronouncementStatus', 'needed')}>I'm not sure if I need to</button>

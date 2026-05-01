@@ -180,7 +180,7 @@ function conditionalTasksFor(context) {
   if (context.pronouncementStatus !== 'confirmed') {
     add(
       'Confirm official pronouncement of death',
-      'Confirm who has officially pronounced death before transportation, paperwork, or release steps move forward.',
+      'A death must be officially pronounced by a medical professional before transportation, paperwork, or release steps move forward.',
       'medical',
       'urgent',
       0,
@@ -292,7 +292,7 @@ function firstTasksForContext(context) {
   if (context.deathContext === 'unexpected') {
     add(
       'Call 911 or emergency services',
-      'If this was unexpected at home, call 911 now. A doctor or medical examiner must officially pronounce death before anything else can happen.',
+      'If this was unexpected at home, call 911 now. A death must be officially pronounced by a medical professional before anything else can happen.',
       'medical',
       'urgent',
       0,
@@ -312,7 +312,7 @@ function firstTasksForContext(context) {
     );
     add(
       'Confirm official pronouncement of death',
-      'Record who pronounced death, when, and what they said must happen before transportation.',
+      'Record which medical professional pronounced death, when, and what must happen before transportation.',
       'medical',
       'urgent',
       0,
@@ -377,7 +377,7 @@ function firstTasksForContext(context) {
   } else if (context.deathContext === 'home_expected') {
     add(
       'Confirm official pronouncement of death',
-      'If death was expected at home, confirm the doctor, hospice, or local authority pronouncement path before transportation.',
+      'If death was expected at home, confirm the medical professional or hospice pronouncement path before transportation.',
       'medical',
       'urgent',
       0,
