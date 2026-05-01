@@ -211,6 +211,7 @@ export default function FuneralHomeDashboard() {
 
   const org = data?.organizations?.[0]?.organizations;
   const cases = data?.cases || [];
+  const isAdminDemo = !!data?.isPassageAdmin;
   const totalBlocked = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
   const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['sent', 'waiting', 'assigned'].includes(t.status || '')).length, 0);
   const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed'].includes(t.status || '')).length, 0);
@@ -359,7 +360,7 @@ export default function FuneralHomeDashboard() {
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Start a pilot workspace from the first family case. Passage will connect this staff login to the funeral home automatically.</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
-              <button onClick={createDemoCase} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{creating ? 'Creating demo...' : 'Load demo case'}</button>
+              {isAdminDemo && <button onClick={createDemoCase} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{creating ? 'Creating demo...' : 'Load admin demo case'}</button>}
             </div>
           </div>
         )}
@@ -382,7 +383,7 @@ export default function FuneralHomeDashboard() {
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create case</button>
-              <button onClick={createDemoCase} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{creating ? 'Creating demo...' : 'Load demo case'}</button>
+              {isAdminDemo && <button onClick={createDemoCase} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{creating ? 'Creating demo...' : 'Load admin demo case'}</button>}
             </div>
           </div>
         )}
@@ -399,6 +400,7 @@ export default function FuneralHomeDashboard() {
               const partnerTasks = item.partnerTasks || [];
               const waitingFamily = item.waitingOnFamily || [];
               const topTasks = partnerTasks.length ? partnerTasks.slice(0, 5) : item.tasks.slice(0, 4);
+              const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               return (
                 <div key={item.id} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 18, padding: 18 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
@@ -413,6 +415,7 @@ export default function FuneralHomeDashboard() {
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{item.tasks.length} tasks</span>
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{partnerTasks.length} partner-ready</span>
                     <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{open} open</span>
+                    {isDemoCase && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Demo data</span>}
                     {waitingFamily.length > 0 && <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{waitingFamily.length} waiting on family</span>}
                     {blocked > 0 && <span style={{ background: C.roseFaint, color: C.rose, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{blocked} need help</span>}
                   </div>

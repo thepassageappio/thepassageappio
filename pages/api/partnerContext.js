@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { enrichTaskWithPlaybook, partnerTaskPriority } from '../../lib/taskPlaybooks';
+import { isPassageAdmin } from '../../lib/adminAccess';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -24,7 +25,7 @@ export default async function handler(req, res) {
   if (memberError) return res.status(500).json({ error: memberError.message });
 
   const organizationIds = (memberships || []).map(m => m.organization_id).filter(Boolean);
-  if (organizationIds.length === 0) return res.status(200).json({ organizations: [], cases: [] });
+  if (organizationIds.length === 0) return res.status(200).json({ organizations: [], cases: [], isPassageAdmin: isPassageAdmin(email) });
 
   const { data: workflows, error: workflowError } = await admin
     .from('workflows')
@@ -77,5 +78,6 @@ export default async function handler(req, res) {
   return res.status(200).json({
     organizations: memberships || [],
     cases,
+    isPassageAdmin: isPassageAdmin(email),
   });
 }

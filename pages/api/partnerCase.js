@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { getTaskPlaybook } from '../../lib/taskPlaybooks';
 import { recordStatusEvent } from '../../lib/taskStatus';
+import { isPassageAdmin } from '../../lib/adminAccess';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -62,6 +63,10 @@ export default async function handler(req, res) {
 
   try {
     const email = user.email.toLowerCase();
+    const isAdminDemo = isPassageAdmin(email);
+    if (demo && !isAdminDemo) {
+      return res.status(403).json({ error: 'Demo cases are only available to Passage admins.' });
+    }
     let { data: membership } = await admin
       .from('organization_members')
       .select('organization_id, role, status, organizations(id,name,type)')
@@ -99,7 +104,7 @@ export default async function handler(req, res) {
     const now = new Date().toISOString();
     const { data: workflow, error: workflowError } = await admin.from('workflows').insert([{
       user_id: user.id,
-      name: `${subjectName} - ${normalizedCaseType === 'immediate' ? 'family case' : 'planning case'}`,
+      name: `${demo ? 'Demo - ' : ''}${subjectName} - ${normalizedCaseType === 'immediate' ? 'family case' : 'planning case'}`,
       estate_name: subjectName,
       deceased_name: normalizedCaseType === 'immediate' ? subjectName : null,
       date_of_death: normalizedCaseType === 'immediate' ? (dateOfDeath || null) : null,
@@ -112,7 +117,7 @@ export default async function handler(req, res) {
       setup_stage: `partner_${normalizedCaseType}_created`,
       activation_status: 'draft',
       organization_id: organizationId,
-      organization_case_reference: caseReference || null,
+      organization_case_reference: demo ? (caseReference || `DEMO-${randomUUID().slice(0, 6).toUpperCase()}`) : (caseReference || null),
       partner_created_by: user.id,
       created_at: now,
       updated_at: now,
