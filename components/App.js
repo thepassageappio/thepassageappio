@@ -1540,7 +1540,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
             <button onClick={async () => {
               if (recipientPhone) window.location.href = 'tel:' + recipientPhone.replace(/[^\d+]/g, '');
               await logTaskAction({ status: 'waiting', channel: 'call', recipient: recipientPhone || playbook.recipientLabel, detail: `Call started for ${task.title}. Waiting for confirmation/outcome.`, outcomeStatus: 'call_started' });
-            }} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{recipientPhone ? "Call now" : playbook.primaryLabel || "Log call"}</button>
+            }} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{recipientPhone ? "Call now \u2014 we\u2019ll connect you" : playbook.primaryLabel || "Log call"}</button>
           ) : isLinkTask ? (
             <button onClick={async () => {
               if (playbook.link) window.open(playbook.link, '_blank', 'noopener,noreferrer');
@@ -2096,12 +2096,12 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
 
           {activationComplete && (
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "13px 15px", marginBottom: 12 }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: C.sage, marginBottom: 6 }}>Your plan is in motion.</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.sage, marginBottom: 6 }}>Your plan is in motion. We\u2019ve started this for you.</div>
               <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>We've:</div>
               <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>- Contacted the funeral home</div>
               <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>- Notified assigned people</div>
               <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.6 }}>- Set tasks in progress</div>
-              <div style={{ fontSize: 12.5, color: C.sage, fontWeight: 800, marginTop: 6 }}>We'll keep you updated.</div>
+              <div style={{ fontSize: 12.5, color: C.sage, fontWeight: 800, marginTop: 6 }}>We\u2019re tracking this for you. You don\u2019t need to follow up unless Passage shows something needs attention.</div>
             </div>
           )}
 
@@ -2324,7 +2324,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
           actions={activationActions}
           events={activationEvents}
           onClose={() => setShowActivation(false)}
-          onSent={() => { setActivationComplete(true); setToast("Your plan is in motion. We'll keep you updated."); }}
+          onSent={() => { setActivationComplete(true); setToast("Your plan is in motion. We\u2019ve started this for you."); }}
         />
       )}
       {showEvents && workflowId && (

@@ -185,7 +185,7 @@ function ProviderActionPanel({ outcome, estateId, onStarted }) {
       });
       var data = await response.json().catch(function() { return {}; });
       if (!response.ok) throw new Error(data.error || 'Call could not be started.');
-      setMessage('Call initiated. Passage will call you first, then connect ' + selected.name + '.');
+      setMessage('Call initiated. Passage will call you first, then connect ' + selected.name + '. We\u2019re tracking this for you. You don\u2019t need to follow up.');
       if (onStarted) onStarted();
     } catch (error) {
       setMessage(error.message || 'Call could not be started.');
@@ -231,7 +231,7 @@ function ProviderActionPanel({ outcome, estateId, onStarted }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 7, marginBottom: 8 }}>
             <input value={userPhone} onChange={function(e) { setUserPhone(e.target.value); }} placeholder="Your phone for call connect" style={{ border: '1.5px solid ' + BORDER, borderRadius: 9, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5, minWidth: 0, background: CARD }} />
             <button onClick={startVoiceCall} disabled={calling || !phone} style={{ border: 'none', background: ROSE, color: '#fff', borderRadius: 9, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap', opacity: phone ? 1 : .55 }}>
-              {calling ? 'Calling...' : "Call now - we'll connect you"}
+              {calling ? 'Calling...' : 'Call now \u2014 we\u2019ll connect you'}
             </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 7, marginBottom: 9 }}>
@@ -1068,7 +1068,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
         </div>
       ) : (
         <div style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '13px 14px', color: SAGE, fontSize: 13, fontWeight: 800, lineHeight: 1.55 }}>
-          <div style={{ fontSize: 15, color: SAGE, marginBottom: 6 }}>Your plan is in motion.</div>
+          <div style={{ fontSize: 15, color: SAGE, marginBottom: 6 }}>Your plan is in motion. We\u2019ve started this for you.</div>
           {sentActions.length > 0 && <div style={{ marginTop: 8 }}>
             <div>Sent:</div>
             {sentActions.slice(0, 5).map(function(a) {
@@ -1099,7 +1099,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
               return <div key={'blocked_' + t.id} style={{ fontWeight: 700 }}>- {(t.last_actor || t.assigned_to_name || t.assigned_to_email || 'Someone') + ' needs help with ' + t.title}</div>;
             })}
           </div>}
-          <div style={{ marginTop: 10 }}>We'll keep you updated.</div>
+          <div style={{ marginTop: 10 }}>We\u2019re tracking this for you. You don\u2019t need to follow up unless Passage shows something needs attention.</div>
         </div>
       )}
     </div>

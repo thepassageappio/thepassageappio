@@ -93,12 +93,12 @@ export default function PricingPage() {
             <h1 style={{ fontSize: 'clamp(30px, 3.7vw, 42px)', lineHeight: 1.02, margin: '0 0 8px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.5, margin: 0 }}>Start with one trial estate. Upgrade when you are ready for full orchestration.</p>
           </div>
-          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}45`, borderRadius: 22, padding: 18, boxShadow: '0 18px 48px rgba(80,45,45,.08)' }}>
+          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}45`, borderRadius: 22, padding: 20, boxShadow: '0 18px 48px rgba(80,45,45,.08)' }}>
             <div style={{ fontSize: 12, color: C.rose, textTransform: 'uppercase', letterSpacing: '.18em', fontWeight: 900, marginBottom: 7 }}>Someone just passed</div>
-            <div style={{ fontSize: 'clamp(34px, 4vw, 48px)', lineHeight: 1, marginBottom: 8 }}>Get immediate help now.</div>
+            <div style={{ fontSize: 'clamp(38px, 4.6vw, 54px)', lineHeight: .98, marginBottom: 8 }}>Get help now.</div>
             <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.45, marginBottom: 13 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
-            <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 14, padding: '15px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 17 }}>
-              {busy === 'urgent' ? 'Opening checkout...' : 'Get help now -> $79'}
+            <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 14, padding: '17px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 18 }}>
+              {busy === 'urgent' ? 'Opening checkout...' : 'Get help now \u2192 $79'}
             </button>
           </div>
         </div>
