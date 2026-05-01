@@ -67,11 +67,13 @@ export default function ContentPage() {
   const [name, setName] = useState('');
   const [interest, setInterest] = useState(guides[0].title);
   const [unlocked, setUnlocked] = useState(false);
+  const [error, setError] = useState('');
   const selected = useMemo(() => guides.find(g => g.title === interest) || guides[0], [interest]);
 
   async function submit(e) {
     e.preventDefault();
-    await fetch('/api/supportInquiry', {
+    setError('');
+    const response = await fetch('/api/supportInquiry', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -83,7 +85,12 @@ export default function ContentPage() {
         flowType: 'resource_guide_gate',
         message: `New gated resource lead\n\nGuide: ${selected.fullTitle}\nAudience: ${selected.audience}`,
       }),
-    }).catch(() => {});
+    }).catch(() => null);
+    const data = response ? await response.json().catch(() => ({})) : {};
+    if (!response || !response.ok) {
+      setError(data.error || 'Please enter a real email address so we can send the guide.');
+      return;
+    }
     setUnlocked(true);
   }
 
@@ -100,12 +107,13 @@ export default function ContentPage() {
           <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 15, boxShadow: '0 14px 40px rgba(55,45,35,.05)' }}>
             <div style={{ fontSize: 19, lineHeight: 1.2, marginBottom: 7 }}>Send me the guide</div>
             <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 0 }}>No drip campaign. Just the guide and the next place to start.</p>
-            <input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" style={inputStyle} />
+            <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={inputStyle} />
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={inputStyle} />
             <select value={interest} onChange={e => { setInterest(e.target.value); setUnlocked(false); }} style={inputStyle}>
               {guides.map(g => <option key={g.title}>{g.title}</option>)}
             </select>
             <button style={{ width: '100%', border: 'none', borderRadius: 12, padding: '13px 16px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{unlocked ? 'Guide unlocked' : 'Unlock guide'}</button>
+            {error && <p style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, lineHeight: 1.45, margin: '10px 0 0' }}>{error}</p>}
           </form>
         </div>
 

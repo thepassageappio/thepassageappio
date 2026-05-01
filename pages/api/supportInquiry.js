@@ -11,6 +11,16 @@ function clean(value, max = 4000) {
   return String(value || '').replace(/[<>]/g, '').trim().slice(0, max);
 }
 
+function isRealEmail(value) {
+  const email = String(value || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return false;
+  const domain = email.split('@')[1] || '';
+  if (!domain || domain.includes('..')) return false;
+  if (['example.com', 'test.com', 'fake.com', 'none.com', 'noemail.com'].includes(domain)) return false;
+  if (/^(test|fake|none|asdf|na|noreply|no-reply)@/.test(email)) return false;
+  return true;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -25,6 +35,9 @@ export default async function handler(req, res) {
 
   if (!email || !message) {
     return res.status(400).json({ error: 'Please include your email and message.' });
+  }
+  if (!isRealEmail(email)) {
+    return res.status(400).json({ error: 'Please enter a real email address so we can send the guide.' });
   }
 
   try {
