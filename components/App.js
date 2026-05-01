@@ -58,7 +58,7 @@ const PLAN_GROUPS = [
     key: 'individual',
     label: 'Individual',
     seats: '1 estate',
-    description: 'For your own plan or one parent.',
+    description: 'For one person or one loved one.',
     options: [
       { id: 'single_monthly', label: 'Monthly', price: '$9.99', per: '/mo' },
       { id: 'single_annual', label: 'Annual', price: '$79.99', per: '/yr', note: 'Most chosen' },
@@ -78,7 +78,7 @@ const PLAN_GROUPS = [
     key: 'family',
     label: 'Family',
     seats: '5 estates',
-    description: 'For adult children coordinating a wider family.',
+    description: 'For families coordinating care across several loved ones.',
     options: [
       { id: 'family_monthly', label: 'Monthly', price: '$24.99', per: '/mo' },
       { id: 'family_annual', label: 'Annual', price: '$199.99', per: '/yr' },
@@ -955,14 +955,14 @@ const TopNav = ({ user, onDashboard, onBack, onSignOut, label, accentColor, onHo
     </div>
     {label && <div style={{ fontSize: 11, color: C.soft, fontWeight: 500, textAlign: "center" }}>{label}</div>}
     <div style={{ display: "flex", gap: 7, alignItems: "center", justifyContent: "flex-end", minHeight: 30 }}>
+      {onBack && (
+        <button onClick={onBack} style={{ background: "none", border: "none", fontSize: 12.5, color: C.soft, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>Back</button>
+      )}
       {user && onDashboard && (
         <button onClick={onDashboard} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.sage, cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>My file</button>
       )}
       {user && onSignOut && (
         <button onClick={onSignOut} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Sign out</button>
-      )}
-      {onBack && !user && (
-        <button onClick={onBack} style={{ background: "none", border: "none", fontSize: 12.5, color: C.soft, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
       )}
     </div>
   </div>
@@ -1656,6 +1656,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
   const [showPreview, setShowPreview] = useState(false);
   const [savedPeople, setSavedPeople] = useState([]);
   const [selectedPerson, setSelectedPerson] = useState(null);
+  const [sendError, setSendError] = useState("");
 
   useEffect(() => {
     loadPeople(userId).then(setSavedPeople);
@@ -1682,8 +1683,40 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
     setStep("details");
   };
 
+  const sendAssignmentNotice = async (personData, emailBody, smsBody) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
+    const response = await fetch('/api/handleEvent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
+      body: JSON.stringify({
+        type: 'task_assigned',
+        payload: {
+          workflowId,
+          taskId: task.dbId || task.id,
+          taskTitle: task.title,
+          deceasedName,
+          coordinatorName,
+          personEmail: personData.email || null,
+          personPhone: personData.phone || null,
+          personName: personData.name,
+          notifyChannel: personData.notifyChannel,
+          emailBody,
+          smsBody,
+        },
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || 'Passage could not send the assignment notice.');
+    }
+    return data.result || {};
+  };
+
   const handleSendWithPreview = async ({ emailBody, smsBody }) => {
     setSaving(true);
+    setSendError("");
     const personData = { name: name || selectedRole, role: role || selectedRole, email, phone, notifyChannel };
     const saved = await savePerson(userId, { ...personData, id: selectedPerson?.id, notify_channel: notifyChannel });
     await grantEstateAccess(workflowId, personData);
@@ -1691,29 +1724,15 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
       await updateTask(task.dbId, { assigned_to_name: personData.name, assigned_to_email: personData.email || null, assigned_to_person_id: saved?.id || null, status: 'assigned' });
     }
     if (saved && workflowId) {
-      await saveWorkflowAction(workflowId, saved, task.title, 'email');
-      if (personData.phone) await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      const authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
-      // Route through orchestration layer
-      fetch('/api/handleEvent', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ type: 'task_assigned', payload: {
-          workflowId, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName,
-          personEmail: personData.email || null, personPhone: personData.phone || null,
-          personName: personData.name, notifyChannel,
-          emailBody, smsBody,
-        }})}).catch(() => {
-          // Fallback: call directly if orchestration fails
-          if (personData.email && notifyChannel !== 'sms') {
-            fetch('/api/sendEmail', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
-              body: JSON.stringify({ to: personData.email, toName: personData.name, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'assignment' }) }).catch(() => {});
-          }
-          if (personData.phone && notifyChannel !== 'email') {
-            fetch('/api/sendSMS', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders },
-              body: JSON.stringify({ to: personData.phone, toName: personData.name, taskId: task.dbId || task.id, taskTitle: task.title, deceasedName, coordinatorName, workflowId, actionType: 'assignment' }) }).catch(() => {});
-          }
-        });
+      if (personData.email && notifyChannel !== 'sms') await saveWorkflowAction(workflowId, saved, task.title, 'email');
+      if (personData.phone && notifyChannel !== 'email') await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
+      try {
+        await sendAssignmentNotice(personData, emailBody, smsBody);
+      } catch (err) {
+        setSaving(false);
+        setSendError(err.message || 'Passage could not send that assignment. Please check the contact details and try again.');
+        return;
+      }
     }
     onAssign(task.id, personData.name, personData.role, { email: personData.email, phone: personData.phone });
     setSaving(false);
@@ -1723,6 +1742,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
 
   const handleAssign = async () => {
     setSaving(true);
+    setSendError("");
     const personData = {
       name: name || selectedRole,
       role: role || selectedRole,
@@ -1742,27 +1762,14 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
     }
 
     if (saved && workflowId) {
-      await saveWorkflowAction(workflowId, saved, task.title, 'email');
-      if (personData.phone) {
-        await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
-      }
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      const authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
-      // Fire immediate assignment notification if contact info provided
-      if (personData.email) {
-        fetch('/api/sendEmail', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeaders },
-          body: JSON.stringify({ to: personData.email, toName: personData.name, taskId: task.dbId || task.id, taskTitle: task.title, workflowId, actionType: 'assignment' }),
-        }).catch(e => console.warn('Email send failed:', e));
-      }
-      if (personData.phone) {
-        fetch('/api/sendSMS', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeaders },
-          body: JSON.stringify({ to: personData.phone, toName: personData.name, taskId: task.dbId || task.id, taskTitle: task.title, workflowId, actionType: 'assignment' }),
-        }).catch(e => console.warn('SMS send failed:', e));
+      if (personData.email && notifyChannel !== 'sms') await saveWorkflowAction(workflowId, saved, task.title, 'email');
+      if (personData.phone && notifyChannel !== 'email') await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
+      try {
+        await sendAssignmentNotice(personData);
+      } catch (err) {
+        setSaving(false);
+        setSendError(err.message || 'Passage could not send that assignment. Please check the contact details and try again.');
+        return;
       }
     }
 
@@ -1778,6 +1785,11 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
 
         <Heading size={18}>{step === "pick" ? "Assign this task" : "Add their details"}</Heading>
         <div style={{ fontSize: 12.5, color: C.mid, background: C.bgSubtle, borderRadius: 9, padding: "9px 13px", marginBottom: 18, lineHeight: 1.4 }}>{task.title}</div>
+        {sendError && (
+          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}55`, color: C.rose, borderRadius: 11, padding: "10px 12px", marginBottom: 14, fontSize: 12.5, lineHeight: 1.45, fontWeight: 700 }}>
+            {sendError}
+          </div>
+        )}
 
         {step === "pick" && (
           <>
@@ -1932,8 +1944,8 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   };
 
   const handleAssign = (taskId, name, role, contact = {}) => {
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role, status: t.completed ? t.status : 'assigned' } : t));
     const hasMessage = contact.email || contact.phone;
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role, status: t.completed ? t.status : (hasMessage ? 'sent' : 'assigned') } : t));
     setToast(hasMessage ? `Message sent to ${name}. Waiting for them to confirm.` : `Waiting for ${name} to confirm.`);
   };
 
@@ -2265,6 +2277,11 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
               <button onClick={() => setShowRoleTemplates(true)} style={{ background: C.roseFaint, color: C.rose, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                 ⚡ Quick assign
               </button>
+              {firstLiveTask && (
+                <button onClick={() => { rememberTask(firstLiveTask); setExecutingTask(firstLiveTask); }} style={{ background: C.bgCard, color: C.sage, border: `1px solid ${C.sageLight}`, borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+                  Next task
+                </button>
+              )}
               <button onClick={openActivationPreview} style={{ background: C.ink, color: "#fff", border: "none", borderRadius: 10, padding: "9px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                 Review & activate
               </button>
@@ -3243,23 +3260,24 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
         <button onClick={onSignOut} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Sign out</button>
       </div>
 
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "18px 14px 70px" }}>
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "14px 16px 52px" }}>
         {loading ? (
           <div style={{ textAlign: "center", padding: 60, color: C.soft }}>Loading your file...</div>
         ) : (
           <>
-            <div style={{ marginBottom: 18 }}>
-              <Heading size={23}>My estate command center{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
+            <div style={{ marginBottom: 12 }}>
+              <Heading size={22}>My estate command center{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
               {redWorkflows.length > 0 ? (
                 <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 13, color: C.sage, fontWeight: 500 }}>
                   ✓ Estate plan active — assign tasks to notify people automatically
                 </div>
               ) : (
-                <Sub>Open an estate first. Tasks, people, documents, wishes, memories, and participant updates live inside that estate.</Sub>
+                <Sub>Open an estate first. Everything lives inside that estate: tasks, people, documents, wishes, memories, and updates.</Sub>
               )}
             </div>
 
-            <div style={{ background: C.bgCard, borderRadius: 18, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.05fr) minmax(300px, .95fr)", gap: 12, alignItems: "stretch", marginBottom: 12 }}>
+            <div style={{ background: C.bgCard, borderRadius: 18, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
                 <div>
                   <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.soft, fontWeight: 700, marginBottom: 5 }}>Command center</div>
@@ -3309,7 +3327,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
             </div>
 
             {/* Subscription */}
-            <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
+            <div style={{ background: C.bgCard, borderRadius: 18, padding: "15px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                 <div>
                   <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.soft, fontWeight: 600, marginBottom: 3 }}>Current Plan</div>
@@ -3337,9 +3355,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                   </div>
                   <div style={{ border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 11, background: C.sageFaint }}>
                     <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 4 }}>Upgrade when ready</div>
-                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.4, marginBottom: 9 }}>
-                      Choose estate seats on pricing. This page stays focused on coordination.
-                    </div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.4, marginBottom: 9 }}>Choose estate seats on pricing.</div>
                     <button onClick={() => window.location.href = '/pricing'} style={{ width: "100%", padding: "11px", background: C.sage, color: "#fff", border: "none", borderRadius: 11, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
                       Upgrade now →
                     </button>
@@ -3362,6 +3378,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
                   ))}
                 </div>
               )}
+            </div>
             </div>
 
             {/* Red path active plans */}
@@ -3421,10 +3438,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
 
             {/* Green path estate slots */}
             {estateSeatLimit > 0 && (
-              <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-                <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Your planning estate slots</div>
-                <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>
-                  {usedGreenSeats} of {estateSeatLimit} planning estate slots in use. Each estate is configured independently.
+              <div style={{ background: C.bgCard, borderRadius: 16, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10 }}>
+                  <div>
+                    <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink, marginBottom: 2 }}>Planning estate slots</div>
+                    <div style={{ fontSize: 11.5, color: C.mid }}>{usedGreenSeats} of {estateSeatLimit} slots in use.</div>
+                  </div>
+                  {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: "none", borderRadius: 10, padding: "8px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>Set up</button>}
                 </div>
                 {greenWorkflows.map((wf) => {
                   const wfId = wf.id;
@@ -3538,7 +3558,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
               ))}
             </div>
 
-            <button onClick={onSignOut} style={{ width: "100%", padding: "12px", background: "none", border: `1px solid ${C.border}`, borderRadius: 11, fontSize: 13, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>
+            <button onClick={onSignOut} style={{ display: "none", width: "100%", padding: "12px", background: "none", border: `1px solid ${C.border}`, borderRadius: 11, fontSize: 13, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>
               Sign out of Passage
             </button>
           </>
@@ -3705,13 +3725,13 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <a href="/pricing" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Pricing</a>
           <a href="/contact" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Contact</a>
           <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Participating</a>
+          <a href="/funeral-home" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Funeral homes</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>
               My estate
             </button>
           ) : (
             <>
-              <button onClick={onDashboard} style={{ background: 'none', border: 'none', fontSize: 13, color: C.mid, cursor: 'pointer', fontFamily: 'inherit' }}>Sign up free</button>
               <button onClick={onDashboard} style={{ background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: C.ink, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                 Sign in
@@ -3965,16 +3985,9 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </div>
       </div>
 
-      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '20px 24px 42px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
+      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '18px 24px 34px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
         <div>Passage coordinates life-to-death transitions with care.</div>
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <a href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</a>
-          <a href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</a>
-          <a href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</a>
-          <a href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</a>
-          <a href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</a>
-          <a href="/" style={{ color: C.mid, textDecoration: 'none' }}>My estate</a>
-        </div>
+        <a href="/contact" style={{ color: C.soft, textDecoration: 'none' }}>thepassageappio@gmail.com</a>
       </footer>
 
     </div>
@@ -3997,6 +4010,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <a href="/pricing" style={navLink}>Pricing</a>
           <a href="/contact" style={navLink}>Contact</a>
           <a href="/participating" style={navLink}>Participating</a>
+          <a href="/funeral-home" style={navLink}>Funeral homes</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>My estate</button>
           ) : (
@@ -4052,16 +4066,9 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </div>
       </section>
 
-      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '26px 24px 38px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
+      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '20px 24px 34px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
         <div>Passage coordinates life-to-death transitions with care.</div>
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <a href="/mission" style={{ color: C.mid, textDecoration: 'none' }}>Mission</a>
-          <a href="/content" style={{ color: C.mid, textDecoration: 'none' }}>Resources</a>
-          <a href="/pricing" style={{ color: C.mid, textDecoration: 'none' }}>Pricing</a>
-          <a href="/contact" style={{ color: C.mid, textDecoration: 'none' }}>Contact</a>
-          <a href="/participating" style={{ color: C.mid, textDecoration: 'none' }}>Participating</a>
-          <a href="/" style={{ color: C.mid, textDecoration: 'none' }}>My estate</a>
-        </div>
+        <a href="/contact" style={{ color: C.soft, textDecoration: 'none' }}>thepassageappio@gmail.com</a>
       </footer>
     </div>
   );

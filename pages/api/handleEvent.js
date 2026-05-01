@@ -182,26 +182,55 @@ async function handleTaskAssigned(payload) {
   const { workflowId, taskId, taskTitle, personEmail, personPhone, personName, deceasedName, coordinatorName, notifyChannel, events } = payload;
 
   let sent = 0;
+  let failed = 0;
+  const errors = [];
 
   if (personEmail && notifyChannel !== 'sms') {
-    await fetch(BASE_URL + '/api/sendEmail', {
+    const emailRes = await fetch(BASE_URL + '/api/sendEmail', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...internalHeaders() },
       body: JSON.stringify({ to: personEmail, toName: personName, taskTitle, taskId, deceasedName, coordinatorName, workflowId, actionType: 'assignment', events: events || [] }),
     });
-    sent++;
+    if (emailRes.ok) {
+      sent++;
+    } else {
+      failed++;
+      const detail = await readProviderError(emailRes);
+      errors.push('Email to ' + (personName || personEmail) + ' failed: ' + detail);
+    }
   }
 
   if (personPhone && notifyChannel !== 'email') {
-    await fetch(BASE_URL + '/api/sendSMS', {
+    const smsRes = await fetch(BASE_URL + '/api/sendSMS', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...internalHeaders() },
       body: JSON.stringify({ to: personPhone, toName: personName, taskTitle, taskId, deceasedName, coordinatorName, workflowId, actionType: 'assignment', events: events || [] }),
     });
-    sent++;
+    if (smsRes.ok) {
+      sent++;
+    } else {
+      failed++;
+      const detail = await readProviderError(smsRes);
+      errors.push('Text to ' + (personName || personPhone) + ' failed: ' + detail);
+    }
+  }
+
+  if (failed > 0) {
+    const err = new Error(errors.join(' '));
+    err.result = { sent, failed, errors };
+    throw err;
   }
 
   return { sent };
+}
+
+async function readProviderError(response) {
+  try {
+    const data = await response.json();
+    return data && (data.error || data.message) ? (data.error || data.message) : JSON.stringify(data);
+  } catch (_) {
+    return response.status + ' ' + response.statusText;
+  }
 }
 
 async function handleShareTriggered(payload) {

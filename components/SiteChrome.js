@@ -99,12 +99,9 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
 
 export function SiteFooter() {
   return (
-    <footer style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 22px 32px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: CHROME_COLORS.soft }}>
-      <div>Passage</div>
-      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-        {LINKS.map(([label, href]) => <Link key={href} href={href} style={navLink}>{label}</Link>)}
-        <Link href="/" style={navLink}>My estate</Link>
-      </div>
+    <footer style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 22px 28px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: CHROME_COLORS.soft }}>
+      <div>Passage coordinates life-to-death transitions with care.</div>
+      <Link href="/contact" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>thepassageappio@gmail.com</Link>
     </footer>
   );
 }

@@ -284,7 +284,8 @@ function ownerForTask(task) {
 function statusText(status) {
   var value = String(status || '').replace(/_/g, ' ');
   if (!value || value === 'pending') return 'Draft';
-  if (value === 'sent' || value === 'assigned' || value === 'waiting') return 'Waiting for confirmation';
+  if (value === 'sent') return 'Sent';
+  if (value === 'assigned' || value === 'waiting') return 'Waiting for confirmation';
   if (value === 'delivered') return 'Delivered';
   if (value === 'acknowledged') return 'Confirmed';
   if (value === 'blocked') return 'Blocked';
@@ -883,6 +884,24 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     if (res && res.ok && onRefresh) onRefresh();
   }
 
+  async function sendReminder(task) {
+    var session = await sb.auth.getSession();
+    var token = session?.data?.session?.access_token || '';
+    setUpdating(task.id + 'reminder');
+    var res = await fetch('/api/tasks/' + task.id + '/reminder', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+      body: JSON.stringify({ actor: coordinatorName || 'Passage' }),
+    }).catch(function() { return null; });
+    setUpdating('');
+    if (!res || !res.ok) {
+      var data = res ? await res.json().catch(function() { return {}; }) : {};
+      window.alert(data.error || 'Reminder could not be sent. Check that this task has a participant email.');
+      return;
+    }
+    if (onRefresh) onRefresh();
+  }
+
   return (
     <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
@@ -931,12 +950,16 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Owner: {ownerBucket(task)}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {proof}</span>
                     </div>
+                    <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>
+                      {task.last_action_at ? 'Last action: ' + statusText(task.status) + ' by ' + (task.last_actor || 'Passage') + ' ' + timeAgo(task.last_action_at) + '. ' : ''}
+                      Next step: {state === 'good' ? 'Nothing else is needed here.' : state === 'bad' ? 'Retry or ask for help.' : 'Wait for confirmation or send a reminder.'}
+                    </div>
                   </div>
                   <div style={{ color: color, fontSize: 11.5, fontWeight: 900, whiteSpace: 'nowrap' }}>{statusText(task.status)}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
                   {state === 'bad' && <button disabled={updating === task.id + 'waiting'} onClick={function() { updateTask(task, 'waiting', 'Owner notified for retry or review'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Retry / review</button>}
-                  {state === 'wait' && <button disabled={updating === task.id + 'waiting'} onClick={function() { updateTask(task, 'waiting', 'Follow-up recorded for ' + task.title); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Log follow-up</button>}
+                  {state === 'wait' && <button disabled={updating === task.id + 'reminder'} onClick={function() { sendReminder(task); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>{updating === task.id + 'reminder' ? 'Sending...' : 'Send reminder'}</button>}
                   <button disabled={updating === task.id + 'handled'} onClick={function() { updateTask(task, 'handled', 'Proof recorded for ' + task.title, 'Reference number, note, or proof detail'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Record proof</button>
                   <button disabled={updating === task.id + 'blocked'} onClick={function() { updateTask(task, 'blocked', 'Owner notified: this task needs help', 'What is blocking this?'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
                 </div>
