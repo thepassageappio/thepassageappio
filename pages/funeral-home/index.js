@@ -15,7 +15,7 @@ const needs = [
 ];
 
 const workflow = [
-  ['Create case', 'Add the family, deceased name, date, coordinator, and service reference.'],
+  ['Create case', 'Add an at-need, pre-need, or prepaid case with the family contact and service reference.'],
   ['Guide family', 'Share the family command center or use it during arrangement calls.'],
   ['Move work', 'Handle certificates, service details, obituary review, cemetery, and provider coordination.'],
   ['Show proof', 'Families see sent, waiting, confirmed, handled, and needs-family-info states.'],

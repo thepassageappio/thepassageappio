@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { getTaskPlaybook } from '../../lib/taskPlaybooks';
+import { recordStatusEvent } from '../../lib/taskStatus';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -14,6 +15,13 @@ const PARTNER_TASKS = [
   ['Meet with funeral director to finalize arrangements', 'Confirm service type, timing, approvals, pricing, and family decisions.'],
   ['Draft and submit the obituary', 'Collect obituary facts, family review, publication deadline, and submission proof.'],
   ['Contact the cemetery or crematorium', 'Confirm availability, document needs, fees, timing, and next approval.'],
+  ['Prepare for funeral home meeting', 'Generate the family-ready intake summary so the arrangement meeting starts with the right facts.'],
+];
+
+const PRENEED_TASKS = [
+  ['Record planning preferences', 'Capture burial/cremation wishes, service notes, faith/cultural preferences, and family contacts.'],
+  ['Collect prepayment or pre-need policy details', 'Record funding source, policy number, payment status, and who can authorize changes.'],
+  ['Confirm activation contacts', 'Name the people who should be contacted when the family needs the plan activated.'],
   ['Prepare for funeral home meeting', 'Generate the family-ready intake summary so the arrangement meeting starts with the right facts.'],
 ];
 
@@ -37,15 +45,20 @@ export default async function handler(req, res) {
 
   const {
     funeralHomeName,
+    caseType,
+    personName,
     deceasedName,
     dateOfDeath,
     coordinatorName,
     coordinatorEmail,
     coordinatorPhone,
     caseReference,
+    demo,
   } = req.body || {};
 
-  if (!deceasedName || !String(deceasedName).trim()) return res.status(400).json({ error: 'Add the deceased name to create a case.' });
+  const normalizedCaseType = ['immediate', 'preneed', 'prepaid'].includes(caseType) ? caseType : 'immediate';
+  const subjectName = String(personName || deceasedName || '').trim();
+  if (!subjectName) return res.status(400).json({ error: 'Add the person or family name to create a case.' });
 
   try {
     const email = user.email.toLowerCase();
@@ -58,8 +71,9 @@ export default async function handler(req, res) {
       .maybeSingle();
 
     let organizationId = membership?.organization_id || null;
+    let organizationName = membership?.organizations?.name || String(funeralHomeName || '').trim() || `${coordinatorName || email}'s Funeral Home`;
     if (!organizationId) {
-      const name = String(funeralHomeName || '').trim() || `${coordinatorName || email}'s Funeral Home`;
+      const name = organizationName;
       const slugBase = slugify(name);
       const { data: org, error: orgError } = await admin.from('organizations').insert([{
         type: 'funeral_home',
@@ -85,17 +99,17 @@ export default async function handler(req, res) {
     const now = new Date().toISOString();
     const { data: workflow, error: workflowError } = await admin.from('workflows').insert([{
       user_id: user.id,
-      name: `${deceasedName} - family case`,
-      estate_name: deceasedName,
-      deceased_name: deceasedName,
-      date_of_death: dateOfDeath || null,
+      name: `${subjectName} - ${normalizedCaseType === 'immediate' ? 'family case' : 'planning case'}`,
+      estate_name: subjectName,
+      deceased_name: normalizedCaseType === 'immediate' ? subjectName : null,
+      date_of_death: normalizedCaseType === 'immediate' ? (dateOfDeath || null) : null,
       coordinator_name: coordinatorName || '',
       coordinator_email: coordinatorEmail || email,
       coordinator_phone: coordinatorPhone || null,
       status: 'active',
       path: 'partner',
-      mode: 'funeral_home_case',
-      setup_stage: 'partner_case_created',
+      mode: normalizedCaseType === 'immediate' ? 'funeral_home_case' : 'funeral_home_preneed',
+      setup_stage: `partner_${normalizedCaseType}_created`,
       activation_status: 'draft',
       organization_id: organizationId,
       organization_case_reference: caseReference || null,
@@ -105,7 +119,8 @@ export default async function handler(req, res) {
     }]).select('id').single();
     if (workflowError) throw workflowError;
 
-    const rows = PARTNER_TASKS.map(([title, description], index) => {
+    const sourceTasks = normalizedCaseType === 'immediate' ? PARTNER_TASKS : PRENEED_TASKS;
+    const rows = sourceTasks.map(([title, description], index) => {
       const playbook = getTaskPlaybook(title);
       return {
         workflow_id: workflow.id,
@@ -128,8 +143,53 @@ export default async function handler(req, res) {
         updated_at: now,
       };
     });
-    const { error: tasksError } = await admin.from('tasks').insert(rows);
+    const { data: createdTasks, error: tasksError } = await admin.from('tasks').insert(rows).select('id,title,workflow_id');
     if (tasksError) throw tasksError;
+
+    if (demo && createdTasks?.length) {
+      const first = createdTasks[0];
+      const second = createdTasks[1] || first;
+      const third = createdTasks[2] || first;
+      await recordStatusEvent({
+        workflowId: workflow.id,
+        taskId: first.id,
+        status: 'handled',
+        actor: `${organizationName} demo staff`,
+        channel: 'record',
+        recipient: coordinatorName || 'Family coordinator',
+        detail: `${first.title} handled for the family.`,
+      });
+      await recordStatusEvent({
+        workflowId: workflow.id,
+        taskId: second.id,
+        status: 'waiting',
+        actor: `${organizationName} demo staff`,
+        channel: 'email',
+        recipient: coordinatorEmail || email,
+        detail: `${second.title} sent to the family. Waiting for confirmation.`,
+      });
+      await recordStatusEvent({
+        workflowId: workflow.id,
+        taskId: third.id,
+        status: 'blocked',
+        actor: `${organizationName} demo staff`,
+        channel: 'record',
+        recipient: coordinatorName || 'Family coordinator',
+        detail: `${third.title} needs one missing family detail before staff can finish it.`,
+      });
+      await admin.from('notification_log').insert([{
+        workflow_id: workflow.id,
+        channel: 'email',
+        recipient_email: coordinatorEmail || email,
+        recipient_name: coordinatorName || 'Family coordinator',
+        subject: 'Demo family update from Passage',
+        provider: 'demo',
+        provider_id: `demo-${randomUUID()}`,
+        status: 'waiting',
+        sent_at: now,
+        created_at: now,
+      }]).catch(() => {});
+    }
 
     await admin.from('estate_access').insert([{
       workflow_id: workflow.id,

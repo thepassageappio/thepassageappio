@@ -20,6 +20,13 @@ const groups = [
   ] },
 ];
 
+function discountedPrice(price, planId) {
+  const amount = Number(String(price).replace(/[^0-9.]/g, ''));
+  if (!amount) return price;
+  const discount = planId.includes('annual') ? 0.25 : 0.2;
+  return '$' + (amount * (1 - discount)).toFixed(2);
+}
+
 export default function PricingPage() {
   const [user, setUser] = useState(null);
   const [busy, setBusy] = useState('');
@@ -104,7 +111,7 @@ export default function PricingPage() {
 
         {participantDiscount && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: 13, marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.5 }}>
-            <strong style={{ color: C.sage }}>Participant pricing:</strong> eligible participant plans apply the configured Stripe discount at checkout.
+            <strong style={{ color: C.sage }}>Participant pricing:</strong> 20% off monthly or 25% off annual once you are assigned to an estate.
           </div>
         )}
 
@@ -131,7 +138,17 @@ export default function PricingPage() {
               {group.options.map(([id, label, price, per]) => (
                 <button key={id} disabled={busy === id} onClick={() => checkout(id)} style={{ textAlign: 'left', border: `1px solid ${selectedPlan === id ? C.sage : C.border}`, background: selectedPlan === id ? C.sageFaint : '#fff', borderRadius: 15, padding: 15, cursor: 'pointer', fontFamily: 'Georgia,serif', minHeight: 112 }}>
                   <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 9 }}>{label}</div>
-                  <div style={{ fontSize: 29, color: C.ink, fontWeight: 900, lineHeight: 1 }}>{price}</div>
+                  {participantDiscount ? (
+                    <>
+                      <div style={{ color: C.soft, fontSize: 15, textDecoration: 'line-through', marginBottom: 4 }}>{price}</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 29, color: C.ink, fontWeight: 900, lineHeight: 1 }}>{discountedPrice(price, id)}</span>
+                        <span style={{ color: C.sage, fontSize: 12, fontWeight: 900 }}>{id.includes('annual') ? '25% participant rate' : '20% participant rate'}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ fontSize: 29, color: C.ink, fontWeight: 900, lineHeight: 1 }}>{price}</div>
+                  )}
                   <div style={{ color: C.mid, fontSize: 12, marginTop: 5 }}>{busy === id ? 'Opening checkout...' : per}</div>
                 </button>
               ))}

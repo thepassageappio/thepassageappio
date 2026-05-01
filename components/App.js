@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { getTaskPlaybook } from "../lib/taskPlaybooks";
+import { SiteHeader } from "./SiteChrome";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -3247,18 +3248,12 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
-      <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }} title="Passage">
-          <CandleLogo size={24} nameSize={16} />
+      <SiteHeader user={user} onSignOut={onSignOut} />
+      {backEstateId && (
+        <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 16px 6px", display: "flex", justifyContent: "flex-end" }}>
+          <button onClick={() => { window.location.href = '/estate?id=' + encodeURIComponent(backEstateId); }} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "6px 11px", fontSize: 11.5, color: C.sage, cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>Back to estate</button>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
-          {backEstateId && (
-            <button onClick={() => { window.location.href = '/estate?id=' + encodeURIComponent(backEstateId); }} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "5px 11px", fontSize: 11.5, color: C.sage, cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>Back to estate</button>
-          )}
-          <div style={{ fontSize: 11, color: C.soft, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>
-        </div>
-        <button onClick={onSignOut} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", fontSize: 11.5, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Sign out</button>
-      </div>
+      )}
 
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "14px 16px 52px" }}>
         {loading ? (
@@ -3724,7 +3719,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <a href="/content" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Resources</a>
           <a href="/pricing" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Pricing</a>
           <a href="/contact" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Contact</a>
-          <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Participating</a>
+          <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Participant</a>
           <a href="/funeral-home" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Funeral homes</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>
@@ -4009,7 +4004,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <a href="/content" style={navLink}>Resources</a>
           <a href="/pricing" style={navLink}>Pricing</a>
           <a href="/contact" style={navLink}>Contact</a>
-          <a href="/participating" style={navLink}>Participating</a>
+          <a href="/participating" style={navLink}>Participant</a>
           <a href="/funeral-home" style={navLink}>Funeral homes</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>My estate</button>
@@ -4113,6 +4108,14 @@ export default function App() {
       setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const start = params.get('start');
+    if (start === 'plan' || start === 'green') setView('plan');
+    if (start === 'urgent' || start === 'red') setView('emergency');
   }, []);
 
   useEffect(() => {

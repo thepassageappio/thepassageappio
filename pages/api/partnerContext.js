@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
   const { data: workflows, error: workflowError } = await admin
     .from('workflows')
-    .select('id,name,deceased_name,coordinator_name,coordinator_email,status,activation_status,organization_id,organization_case_reference,created_at,updated_at')
+    .select('id,name,deceased_name,estate_name,coordinator_name,coordinator_email,coordinator_phone,status,activation_status,organization_id,organization_case_reference,mode,setup_stage,created_at,updated_at')
     .in('organization_id', organizationIds)
     .neq('status', 'archived')
     .order('updated_at', { ascending: false })
@@ -38,6 +38,7 @@ export default async function handler(req, res) {
   const workflowIds = (workflows || []).map(w => w.id);
   let tasks = [];
   let statusEvents = [];
+  let communications = [];
   if (workflowIds.length > 0) {
     const { data: taskData } = await admin
       .from('tasks')
@@ -53,12 +54,21 @@ export default async function handler(req, res) {
       .order('last_action_at', { ascending: false, nullsFirst: false })
       .limit(80);
     statusEvents = eventData || [];
+
+    const { data: communicationData } = await admin
+      .from('notification_log')
+      .select('id,workflow_id,channel,recipient_email,recipient_phone,recipient_name,subject,provider,provider_id,status,sent_at,delivered_at,error_message,created_at')
+      .in('workflow_id', workflowIds)
+      .order('created_at', { ascending: false })
+      .limit(120);
+    communications = communicationData || [];
   }
 
   const cases = (workflows || []).map(w => ({
     ...w,
     tasks: tasks.filter(t => t.workflow_id === w.id),
     activity: statusEvents.filter(e => e.workflow_id === w.id).slice(0, 6),
+    communications: communications.filter(c => c.workflow_id === w.id).slice(0, 8),
     partnerTasks: tasks.filter(t => t.workflow_id === w.id && t.playbook?.funeralHomeEligible),
     waitingOnFamily: tasks.filter(t => t.workflow_id === w.id && /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
     blockedTasks: tasks.filter(t => t.workflow_id === w.id && ['blocked', 'failed', 'needs_review'].includes(t.status || '')),

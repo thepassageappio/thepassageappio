@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
+import { SiteHeader } from '../components/SiteChrome';
 
 var sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -1315,6 +1316,33 @@ export default function EstatePage() {
     });
   }
 
+  async function downloadEstateCsv() {
+    var sessionResult = await sb.auth.getSession();
+    var token = sessionResult && sessionResult.data && sessionResult.data.session ? sessionResult.data.session.access_token : '';
+    if (!token) {
+      showToast('Please sign in to export this estate.');
+      return;
+    }
+    var response = await fetch('/api/estateExport?id=' + encodeURIComponent(estateId), {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!response.ok) {
+      var data = await response.json().catch(function() { return {}; });
+      showToast(data.error || 'Could not export this estate.');
+      return;
+    }
+    var blob = await response.blob();
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'passage-estate-export.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast('Estate CSV downloaded.');
+  }
+
   // Banner logic
   var handledCount = outcomes.filter(function(o) { return o.status === 'handled'; }).length;
   var needsOwnerCount = outcomes.filter(function(o) { return o.status === 'needs_owner'; }).length;
@@ -1403,19 +1431,20 @@ export default function EstatePage() {
         </div>
       )}
 
-      {/* Nav */}
-      <div style={{ background: CARD, borderBottom: '1px solid ' + BORDER, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 40 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ background: CARD, borderBottom: '1px solid ' + BORDER, position: 'sticky', top: 0, zIndex: 40 }}>
+        <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
+        <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 22px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <button onClick={function() { window.location.href = '/'; }}
-            style={{ background: 'none', border: 'none', fontSize: 13, color: SOFT, cursor: 'pointer', fontFamily: 'inherit', padding: 0, marginRight: 4 }}>
-            ←
+            style={{ border: 'none', background: 'transparent', color: SOFT, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+            Back to estate
           </button>
-          <span style={{ fontSize: 12, color: SOFT }}>Back to estate</span>
-          <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle, ' + SAGE_LIGHT + ', ' + SAGE + '70)' }} />
-          <span style={{ fontSize: 14, color: INK }}>Passage</span>
-        </div>
-        <div style={{ fontSize: 12, color: SOFT, textAlign: 'right', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {name}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <div style={{ fontSize: 12, color: SOFT, maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
+            <button onClick={downloadEstateCsv}
+              style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '7px 10px', fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Export CSV
+            </button>
+          </div>
         </div>
       </div>
 
