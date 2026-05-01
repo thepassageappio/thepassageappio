@@ -20,7 +20,7 @@ export const CHROME_COLORS = {
 
 const LINKS = [
   ['Mission', '/mission'],
-  ['Resources', '/content'],
+  ['Guides', '/content'],
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
   ['Participant', '/participating'],

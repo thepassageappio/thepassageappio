@@ -114,7 +114,7 @@ const urgentPlans = {
     {
       id: 'release',
       phase: 'Today',
-      title: 'Ask the hospital about the release process',
+      title: 'Ask the hospital about release next steps',
       support: 'A nurse, social worker, or decedent affairs contact can explain who may authorize release and what the funeral home needs.',
       prompt: 'Who can speak with the hospital or facility?',
       status: 'needs_owner',
@@ -176,7 +176,7 @@ function mergeOutcomePlan(nextPlan, previous) {
 const nextPreview = {
   unexpected: ['Emergency services or a medical examiner handle the official pronouncement path', 'They tell you what must happen next', 'Only after that can a funeral home usually be contacted'],
   hospice: ['Your hospice nurse handles or coordinates the official pronouncement path', 'They guide medications, equipment, and next instructions', 'Then the funeral home can coordinate pickup'],
-  hospital: ['Hospital staff explain the release process', 'The decision-maker authorizes release', 'The funeral home coordinates pickup'],
+  hospital: ['Hospital staff explain the release next steps', 'The decision-maker authorizes release', 'The funeral home coordinates pickup'],
   facility: ['Facility staff explain release requirements', 'The decision-maker authorizes pickup', 'The funeral home coordinates transportation'],
   home_expected: ['A medical professional confirms the official pronouncement path', 'The family records the official details', 'The funeral home can then coordinate pickup'],
   past: ['We confirm what is already done', 'We organize the next open step', 'Passage tracks owners, notes, and proof from here'],
@@ -517,7 +517,7 @@ export default function UrgentPage() {
   const contextVoice = useMemo(() => {
     if (context.deathContext === 'unexpected') return 'If this was unexpected at home, call 911 now. A death must be officially pronounced by a medical professional before anything else can happen.';
     if (context.deathContext === 'hospice') return 'Because they were under hospice care, start with the hospice nurse or on-call hospice line.';
-    if (context.deathContext === 'hospital') return 'Because they are at a hospital, start by confirming the release process and who can authorize pickup.';
+    if (context.deathContext === 'hospital') return 'Because they are at a hospital, start by confirming the release next steps and who can authorize pickup.';
     if (context.deathContext === 'facility') return 'Because they are at a care facility, start by confirming release and pickup requirements with staff.';
     if (context.deathContext === 'home_expected') return 'Because this was expected at home, confirm pronouncement before transportation or paperwork moves forward.';
     if (context.deathContext === 'past') return "Understood. Let's get you organized from here and confirm what has already happened.";

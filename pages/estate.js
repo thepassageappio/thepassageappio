@@ -421,6 +421,11 @@ function OutcomeCard({ outcome, estateId, expanded, showAssign, onToggle, onMark
                 {outcome.owner_label ? outcome.owner_label + ' started this' : 'Someone is working on this'}
               </div>
             )}
+            {outcome.status === 'handled' && (
+              <div style={{ fontSize: 11.5, color: SAGE, fontWeight: 800, marginTop: 6 }}>
+                That&apos;s taken care of. You&apos;re all set here.
+              </div>
+            )}
           </div>
           <span style={{ fontSize: 14, color: SOFT, flexShrink: 0, paddingTop: 2 }}>{expanded ? '↑' : '↓'}</span>
         </div>
@@ -968,9 +973,9 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Execution layer</div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>What to do</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>Proof, follow-up, and ownership</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Every task now has an execution mode, an owner, a proof target, and a follow-up rule.</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Every task has a next action, an owner, proof, and a reminder if it stalls.</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>{proofTasks.length} proof tasks</span>
       </div>
@@ -1008,7 +1013,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
       {enriched.length > 0 && (
         <details style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
           <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900, fontSize: 12.5 }}>
-            Task execution map - all {enriched.length} tasks categorized
+            What each task needs - all {enriched.length} tasks
           </summary>
           <div style={{ marginTop: 9, maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
             {enriched.map(function(task) {
@@ -1052,8 +1057,18 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     </div>
                     <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>
                       {task.last_action_at ? 'Last action: ' + statusText(task.status) + ' by ' + (task.last_actor || 'Passage') + ' ' + timeAgo(task.last_action_at) + '. ' : ''}
-                      Next step: {state === 'good' ? 'Nothing else is needed here.' : state === 'bad' ? task.playbook.failureRule : task.playbook.followUpRule}
+                      Next step: {state === 'good' ? "That's taken care of. You're all set here." : state === 'bad' ? task.playbook.failureRule : task.playbook.followUpRule}
                     </div>
+                    {state === 'wait' && (
+                      <div style={{ color: AMBER, fontSize: 11.5, lineHeight: 1.45, marginTop: 5, fontWeight: 800 }}>
+                        If we don't hear back, we'll prompt you.
+                      </div>
+                    )}
+                    {state === 'good' && (
+                      <div style={{ color: SAGE, fontSize: 11.5, lineHeight: 1.45, marginTop: 5, fontWeight: 800 }}>
+                        That's taken care of. You're all set here.
+                      </div>
+                    )}
                   </div>
                   <div style={{ color: color, fontSize: 11.5, fontWeight: 900, whiteSpace: 'nowrap' }}>{statusText(task.status)}</div>
                 </div>
@@ -1116,7 +1131,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: activated ? SAGE : AMBER, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>{activated ? 'Plan active' : 'Activate plan'}</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>{activated ? 'This estate is in motion.' : "Here's what will happen."}</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>{activated ? 'Passage is tracking what was sent, what is waiting, and what needs review.' : 'Review recipients, channels, and assigned work before Passage sends anything.'}</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>{activated ? "We've started this for you. We're tracking the next steps." : 'Review who will receive each message before anything is sent.'}</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: activated ? SAGE : AMBER, background: activated ? CARD : AMBER_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>
           {activated ? 'Approved' : 'Review first'}
@@ -1167,7 +1182,12 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
         </div>
       ) : (
         <div style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '13px 14px', color: SAGE, fontSize: 13, fontWeight: 800, lineHeight: 1.55 }}>
-          <div style={{ fontSize: 15, color: SAGE, marginBottom: 6 }}>Your plan is in motion. We\u2019ve started this for you.</div>
+          <div style={{ fontSize: 15, color: SAGE, marginBottom: 6 }}>Your plan is in motion.</div>
+          <div style={{ color: SAGE, fontWeight: 800, lineHeight: 1.55 }}>
+            We&apos;ve started this for you.<br />
+            We&apos;re tracking the next steps.<br />
+            You don&apos;t have to carry this alone.
+          </div>
           {sentActions.length > 0 && <div style={{ marginTop: 8 }}>
             <div>Sent:</div>
             {sentActions.slice(0, 5).map(function(a) {
@@ -1185,6 +1205,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
             {waitingActions.slice(0, 5).map(function(a) {
               return <div key={'waiting_' + a.id} style={{ color: AMBER, fontWeight: 700 }}>- {(a.recipient_name || a.recipient_email || a.recipient_phone || 'Recipient') + ' confirmation'}</div>;
             })}
+            <div style={{ color: AMBER, fontWeight: 800, marginTop: 6 }}>If we don&apos;t hear back, we&apos;ll prompt you.</div>
           </div>}
           {confirmedActions.length > 0 && <div style={{ marginTop: 8 }}>
             <div>Confirmed:</div>
@@ -1198,7 +1219,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
               return <div key={'blocked_' + t.id} style={{ fontWeight: 700 }}>- {(t.last_actor || t.assigned_to_name || t.assigned_to_email || 'Someone') + ' needs help with ' + t.title}</div>;
             })}
           </div>}
-          <div style={{ marginTop: 10 }}>We\u2019re tracking this for you. You don\u2019t need to follow up unless Passage shows something needs attention.</div>
+          <div style={{ marginTop: 10 }}>We&apos;re tracking this for you. You don&apos;t need to follow up unless Passage shows something needs attention.</div>
         </div>
       )}
     </div>
@@ -1229,7 +1250,7 @@ function ProofPanel({ actions, tasks, events }) {
       </div>
       {(waiting > 0 || review > 0) && (
         <div style={{ background: waiting ? AMBER_FAINT : ROSE_FAINT, border: '1px solid ' + (waiting ? AMBER_BORDER : ROSE + '30'), borderRadius: 12, padding: '10px 12px', fontSize: 12.5, color: waiting ? AMBER : ROSE, lineHeight: 1.5, fontWeight: 700, marginBottom: 10 }}>
-          {review > 0 ? 'Something needs attention. Edit the recipient, retry the message, or mark the task handled only after confirming outside Passage.' : 'Waiting for confirmation. If no one responds, send a reminder or call directly and record the outcome.'}
+          {review > 0 ? 'Something needs attention. Edit the recipient, retry the message, or mark the task handled only after confirming outside Passage.' : "Waiting for confirmation. If we don't hear back, we'll prompt you."}
         </div>
       )}
       {rows.length > 0 && (
@@ -1239,7 +1260,7 @@ function ProofPanel({ actions, tasks, events }) {
       )}
       {rows.length === 0 ? (
         <div style={{ background: SUBTLE, borderRadius: 12, padding: '12px 13px', fontSize: 13, color: MID, lineHeight: 1.55 }}>
-          Nothing has been sent or handled yet. Start with one task, then Passage will record the outcome here.
+          Nothing has been sent or handled yet. Start with one task, then Passage will keep the proof here.
         </div>
       ) : rows.map(function(row, i) {
         var color = row.tone === 'good' ? SAGE : row.tone === 'warn' ? ROSE : MID;
@@ -1250,6 +1271,8 @@ function ProofPanel({ actions, tasks, events }) {
               <div style={{ fontSize: 13.5, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{row.title}</div>
               {row.detail && <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginTop: 2 }}>{row.detail}</div>}
               {row.at && <div style={{ fontSize: 10.5, color: SOFT, marginTop: 3 }}>{new Date(row.at).toLocaleString()}</div>}
+              {row.status === 'Waiting for confirmation' && <div style={{ fontSize: 11.5, color: AMBER, fontWeight: 800, marginTop: 4 }}>If we don&apos;t hear back, we&apos;ll prompt you.</div>}
+              {row.status === 'Handled' && <div style={{ fontSize: 11.5, color: SAGE, fontWeight: 800, marginTop: 4 }}>That&apos;s taken care of. You&apos;re all set here.</div>}
             </div>
             <span style={{ fontSize: 10.5, fontWeight: 800, color: color, background: bg, borderRadius: 999, padding: '4px 8px', whiteSpace: 'nowrap' }}>{row.status}</span>
           </div>
@@ -1370,7 +1393,7 @@ export default function EstatePage() {
     });
     setExpanded(-1);
     setShowAssign(-1);
-    if (updates.status === 'handled') showToast("That's taken care of. Passage is tracking it for you.");
+    if (updates.status === 'handled') showToast("That's taken care of. You're all set here.");
     else if (updates.status === 'in_progress') showToast('Marked as in progress');
     else if (updates.owner_label) showToast('Assigned to ' + updates.owner_label);
   }
@@ -1554,6 +1577,11 @@ export default function EstatePage() {
 
       <div style={{ maxWidth: 540, margin: '0 auto', padding: '20px 16px 80px' }}>
 
+        <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: SAGE, marginBottom: 3 }}>Everything is still on track.</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5 }}>Nothing has been missed.</div>
+        </div>
+
         {/* Banner */}
         <div style={{ background: bannerBg, border: '1px solid ' + bannerBorder, borderRadius: 14, padding: '16px 18px', marginBottom: 20 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: bannerColor, marginBottom: 4 }}>{bannerText}</div>
@@ -1720,6 +1748,11 @@ export default function EstatePage() {
                         <span style={{ width: 3, height: 3, borderRadius: '50%', background: SOFT }} />
                         <span style={{ fontSize: 11.5, color: SOFT }}>{item.next}</span>
                       </div>
+                      {/waiting/i.test(item.next || '') && (
+                        <div style={{ fontSize: 11.5, color: AMBER, fontWeight: 800, marginTop: 5 }}>
+                          If we don&apos;t hear back, we&apos;ll prompt you.
+                        </div>
+                      )}
                     </div>
                   );
                 }) : (
@@ -1861,6 +1894,7 @@ export default function EstatePage() {
         {allHandled && (
           <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '16px', marginBottom: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: SAGE, marginBottom: 4 }}>You've handled what's needed right now. You're in a good place.</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: SAGE, marginBottom: 4 }}>That's taken care of. You're all set here.</div>
             <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>We'll guide you through what comes next when you're ready.</div>
           </div>
         )}

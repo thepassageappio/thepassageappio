@@ -127,7 +127,7 @@ const POST_DEATH_TASKS = [
       { id: "t3_01", title: "Notify Social Security Administration", desc: "Call 1-800-772-1213. Survivor benefits may apply. Required within 10 days.", category: "government" },
       { id: "t3_02", title: "Notify primary bank and all financial institutions", desc: "Bring death certificates. Ask about joint accounts and automatic payments.", category: "financial" },
       { id: "t3_03", title: "Contact all life insurance companies to file claims", desc: "Required: certified death certificate, policy number, beneficiary ID.", category: "financial" },
-      { id: "t3_04", title: "Contact estate attorney to begin probate process", desc: "Probate requirements vary by state. May be required to transfer assets.", category: "legal" },
+      { id: "t3_04", title: "Contact estate attorney to begin probate", desc: "Probate requirements vary by state. May be required to transfer assets.", category: "legal" },
       { id: "t3_05", title: "Notify pension and retirement account administrators", desc: "IRA, 401(k), pension plans. Beneficiaries must file claims — deadlines apply.", category: "financial" },
       { id: "t3_06", title: "Address health insurance for surviving family members", desc: "COBRA available. Must elect within 60 days of coverage loss.", category: "financial" },
       { id: "t3_07", title: "Notify Medicare and Medicaid if applicable", desc: "Required by law. May affect surviving spouse's coverage.", category: "government" },
@@ -149,9 +149,9 @@ const POST_DEATH_TASKS = [
       { id: "t4_03", title: "Update or create a new will for surviving spouse", desc: "Death of spouse often invalidates prior estate plans. Consult attorney.", category: "legal" },
       { id: "t4_04", title: "Update beneficiary designations on all accounts", desc: "Retirement accounts, life insurance, POD accounts. Will does NOT override.", category: "financial" },
       { id: "t4_05", title: "Transfer vehicle titles with the DMV", desc: "Bring death certificate and current title. Requirements vary by state.", category: "property" },
-      { id: "t4_06", title: "Begin real property transfer or sale process", desc: "Contact a real estate attorney or title company.", category: "property" },
+      { id: "t4_06", title: "Begin real property transfer or sale", desc: "Contact a real estate attorney or title company.", category: "property" },
       { id: "t4_07", title: "Cancel all subscriptions and recurring services", desc: "Streaming, magazines, memberships, gym, clubs, professional associations.", category: "digital" },
-      { id: "t4_08", title: "Memorialize or close social media accounts", desc: "Facebook, Instagram, LinkedIn, X each have different processes.", category: "digital" },
+      { id: "t4_08", title: "Memorialize or close social media accounts", desc: "Facebook, Instagram, LinkedIn, X each have different steps.", category: "digital" },
       { id: "t4_09", title: "File the final income tax return", desc: "Required for year of death. Surviving spouse may file jointly.", category: "financial" },
       { id: "t4_10", title: "File estate tax return if applicable", desc: "Federal and some state estate taxes may apply.", category: "financial" },
       { id: "t4_11", title: "Notify the three credit bureaus", desc: "Equifax, Experian, TransUnion. Prevents new credit fraud.", category: "financial" },
@@ -182,7 +182,7 @@ const PEOPLE_ROLES = [
 const ROLE_TEMPLATES = [
   {
     id: "executor", label: "Executor / Estate Attorney", icon: "⚖️",
-    tasks: ["Locate the will and advance directives", "Contact estate attorney to begin probate process", "Notify primary bank and all financial institutions", "Notify all credit card companies", "File final tax return for the deceased"],
+    tasks: ["Locate the will and advance directives", "Contact estate attorney to begin probate", "Notify primary bank and all financial institutions", "Notify all credit card companies", "File final tax return for the deceased"],
     desc: "Handles legal and financial estate matters"
   },
   {
@@ -2637,7 +2637,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       <Eyebrow text="The trust mechanism" color={C.sage} />
       <Heading>Who activates your plan?</Heading>
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "14px 16px", marginBottom: 16, fontSize: 12.5, color: C.mid, lineHeight: 1.65 }}>
-        🔒 <strong style={{ color: C.ink }}>Two people must independently confirm your passing</strong> before anything sends. This prevents accidental activation and gives your family confidence the system is trustworthy.
+        🔒 <strong style={{ color: C.ink }}>Two people must independently confirm your passing</strong> before anything sends. This prevents accidental activation and gives your family confidence the help will start only when it should.
       </div>
 
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
@@ -3804,7 +3804,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <CandleLogo size={32} nameSize={21} />
         <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}>
           <a href="/mission" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Mission</a>
-          <a href="/content" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Resources</a>
+          <a href="/content" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Guides</a>
           <a href="/pricing" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Pricing</a>
           <a href="/contact" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Contact</a>
           <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Participant</a>
@@ -3947,7 +3947,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <div style={{ fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 12 }}>Our mission</div>
           <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: C.ink, lineHeight: 1.22, marginBottom: 14 }}>Passage was created because families deserve more than a folder, a checklist, and a dozen disconnected phone calls.</div>
           <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.85 }}>
-            The idea came from real moments: planning a grandmother's prepaid funeral, trying to understand Medicaid rules, sitting across from funeral homes, and watching friends and family lose loved ones without knowing where to start. Again and again, the burden fell on grieving people while the system around them stayed fragmented.
+            The idea came from real moments: planning a grandmother's prepaid funeral, trying to understand Medicaid rules, sitting across from funeral homes, and watching friends and family lose loved ones without knowing where to start. Again and again, the burden fell on grieving people while the help around them stayed scattered.
           </div>
           <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.85, marginTop: 12 }}>
             Passage exists to take ownership of that transition. We help families prepare before a death, respond when one happens, coordinate the people involved, and keep track of what has been sent, approved, handled, and still needs care. Our mission is simple: no family should have to become an operations manager in the middle of grief.
@@ -4089,7 +4089,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <CandleLogo size={32} nameSize={21} />
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <a href="/mission" style={navLink}>Mission</a>
-          <a href="/content" style={navLink}>Resources</a>
+          <a href="/content" style={navLink}>Guides</a>
           <a href="/pricing" style={navLink}>Pricing</a>
           <a href="/contact" style={navLink}>Contact</a>
           <a href="/participating" style={navLink}>Participant</a>
@@ -4104,7 +4104,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 24px 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 24, alignItems: 'center', opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(14px)', transition: 'all .7s ease' }}>
         <div>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 10 }}>The operating system for transition</div>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 10 }}>One calm place for transition</div>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(34px, 4.6vw, 54px)', lineHeight: 1.03, color: C.ink, margin: '0 0 12px', fontWeight: 400 }}>
             When someone dies, your family needs one clear next step.
           </h1>

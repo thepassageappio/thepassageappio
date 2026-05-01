@@ -42,7 +42,7 @@ export default function MissionPage() {
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.48, margin: 0, maxWidth: 700 }}>
               Passage turns scattered calls, documents, roles, service details, and family updates into one calm place to act.
             </p>
-            <div style={{ marginTop: 12, color: C.ink, fontSize: 17, lineHeight: 1.2 }}>Not a checklist. A system that carries the next step.</div>
+            <div style={{ marginTop: 12, color: C.ink, fontSize: 17, lineHeight: 1.2 }}>Not a checklist. One calm place that carries the next step.</div>
           </div>
 
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 20, padding: '18px 20px', display: 'grid', alignContent: 'center', gap: 8 }}>

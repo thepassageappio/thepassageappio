@@ -27,7 +27,7 @@ const guides = [
     body: 'Simple language for first calls, texts, and emails, plus guidance on what not to broadcast before service details are confirmed.',
     sections: [
       ['Recommended order', ['Immediate inner circle: spouse or partner, children, siblings, and parents. Call or tell in person if possible.', 'Extended family and close friends.', 'Employer, faith community, neighbors, and other important circles.']],
-      ['Suggested scripts', ['Close family: I am so sorry to tell you this over the phone. [Name] passed away earlier today. It was [peaceful / after a long illness / sudden]. We are still processing everything.', 'Friends or wider circle: With heavy hearts, we wanted to let you know that [Full Name] passed away on [date]. Details about the service will follow soon. Thank you for your love and support.']],
+      ['Suggested scripts', ['Close family: I am so sorry to tell you this over the phone. [Name] passed away earlier today. It was [peaceful / after a long illness / sudden]. We are still taking this in.', 'Friends or wider circle: With heavy hearts, we wanted to let you know that [Full Name] passed away on [date]. Details about the service will follow soon. Thank you for your love and support.']],
       ['What to include', ['Basic facts: name, date, and general cause only if the family is comfortable sharing.', 'Whether the family wants privacy or visitors right now.', 'Do not share full service details until confirmed. This prevents confusion and repeated corrections.']],
       ['Next step with Passage', ['Passage can prepare personalized notification messages and help assign who contacts whom so nothing falls through the cracks.']],
     ],
@@ -90,11 +90,11 @@ export default function ContentPage() {
       body: JSON.stringify({
         email,
         name,
-        category: 'Resource guide lead',
+        category: 'Guide lead',
         urgency: selected.type === 'First 24 Hours Guide' ? 'Urgent family support' : 'Normal',
-        source: 'resource_guides',
-        flowType: 'resource_guide_gate',
-        message: `New gated resource lead\n\nGuide: ${selected.fullTitle}\nAudience: ${selected.audience}`,
+        source: 'help_guides',
+        flowType: 'help_guide_gate',
+        message: `New guide lead\n\nGuide: ${selected.fullTitle}\nAudience: ${selected.audience}`,
       }),
     }).catch(() => null);
     const data = response ? await response.json().catch(() => ({})) : {};
@@ -113,7 +113,7 @@ export default function ContentPage() {
       <section style={{ maxWidth: 1060, margin: '0 auto', padding: '8px 22px 18px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .92fr) minmax(300px, .58fr)', gap: 14, alignItems: 'start', marginBottom: 10 }}>
           <div>
-            <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Resource guides</div>
+            <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Help guides</div>
             <h1 style={{ fontSize: 'clamp(28px, 3.1vw, 39px)', lineHeight: .98, margin: '0 0 8px', fontWeight: 400 }}>Four guides for the moments families should not have to figure out alone.</h1>
             <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.42, margin: 0, maxWidth: 720 }}>Choose the situation closest to yours. Passage unlocks the guide here and points you toward the clearest next step.</p>
           </div>
