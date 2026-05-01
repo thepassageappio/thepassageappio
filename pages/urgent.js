@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = {
   bg: '#f7f4ef',
   card: '#fffdf9',
@@ -192,15 +195,36 @@ function AssignModal({ task, savedPeople, onClose, onSave }) {
 }
 
 export default function UrgentPage() {
+  const [user, setUser] = useState(null);
   const [outcomes, setOutcomes] = useState(initialOutcomes);
   const [people, setPeople] = useState([]);
   const [assigning, setAssigning] = useState(null);
+  const [deceasedName, setDeceasedName] = useState('');
+  const [dateOfDeath, setDateOfDeath] = useState('');
+  const [coordinatorName, setCoordinatorName] = useState('');
+  const [coordinatorEmail, setCoordinatorEmail] = useState('');
+  const [savingEstate, setSavingEstate] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('passage_urgent_people') || '[]');
       if (Array.isArray(saved)) setPeople(saved);
     } catch {}
+  }, []);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+      if (session?.user?.email) setCoordinatorEmail(prev => prev || session.user.email);
+      if (session?.user?.user_metadata?.full_name) setCoordinatorName(prev => prev || session.user.user_metadata.full_name);
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (session?.user?.email) setCoordinatorEmail(prev => prev || session.user.email);
+      if (session?.user?.user_metadata?.full_name) setCoordinatorName(prev => prev || session.user.user_metadata.full_name);
+    });
+    return () => data.subscription.unsubscribe();
   }, []);
 
   const primary = outcomes.find(o => o.status !== 'handled') || outcomes[0];
@@ -224,6 +248,64 @@ export default function UrgentPage() {
 
   const markHandled = (id) => {
     setOutcomes(prev => prev.map(o => o.id === id ? { ...o, status: 'handled' } : o));
+  };
+
+  const signIn = async () => {
+    try {
+      localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, outcomes, people }));
+    } catch {}
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/urgent' } });
+  };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('passage_urgent_draft');
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      localStorage.removeItem('passage_urgent_draft');
+      if (saved.deceasedName) setDeceasedName(saved.deceasedName);
+      if (saved.dateOfDeath) setDateOfDeath(saved.dateOfDeath);
+      if (saved.coordinatorName) setCoordinatorName(saved.coordinatorName);
+      if (saved.coordinatorEmail) setCoordinatorEmail(saved.coordinatorEmail);
+      if (Array.isArray(saved.outcomes)) setOutcomes(saved.outcomes);
+      if (Array.isArray(saved.people)) setPeople(saved.people);
+    } catch {}
+  }, []);
+
+  const openCommandCenter = async () => {
+    setSaveError('');
+    if (!user) {
+      await signIn();
+      return;
+    }
+    if (!deceasedName.trim()) {
+      setSaveError('Add their name so Passage can save this as a real estate command center.');
+      return;
+    }
+    setSavingEstate(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const primaryOwner = outcomes.find(o => o.id === 'funeral')?.owner || null;
+    const response = await fetch('/api/urgentEstate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + (sessionData?.session?.access_token || ''),
+      },
+      body: JSON.stringify({
+        deceasedName,
+        dateOfDeath,
+        coordinatorName: coordinatorName || user.user_metadata?.full_name || user.email,
+        coordinatorEmail: coordinatorEmail || user.email,
+        primaryOwner,
+      }),
+    });
+    const json = await response.json().catch(() => ({}));
+    setSavingEstate(false);
+    if (!response.ok || !json.estateId) {
+      setSaveError(json.error || 'Passage could not save this yet. Please try again.');
+      return;
+    }
+    window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
   };
 
   return (
@@ -250,6 +332,12 @@ export default function UrgentPage() {
         .phase { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; color: ${C.rose}; background: ${C.roseFaint}; border: 1px solid rgba(184,107,111,.22); border-radius: 999px; padding: 4px 9px; font-weight: 750; margin-bottom: 12px; }
         h2 { font-family: Georgia, serif; font-weight: 400; font-size: 27px; line-height: 1.14; margin: 0 0 9px; }
         .support { color: ${C.mid}; font-size: 14px; line-height: 1.55; margin: 0 0 14px; max-width: 580px; }
+        .save-strip { display:grid; grid-template-columns:minmax(0,1fr) 150px auto; gap:10px; align-items:end; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:12px; margin-bottom:16px; }
+        .field.compact { margin:0; }
+        .field.compact label { margin-bottom:5px; font-size:10px; }
+        .field.compact input { min-height:39px; padding:9px 11px; background:${C.card}; }
+        .save-command { min-height:39px; padding:9px 12px; white-space:nowrap; }
+        .save-error { grid-column:1 / -1; color:${C.rose}; background:${C.roseFaint}; border:1px solid rgba(184,107,111,.22); border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.4; }
         .owner { background: ${C.subtle}; border-radius: 14px; padding: 13px 14px; color: ${C.mid}; line-height: 1.45; margin-bottom: 14px; }
         .owner strong { color: ${C.ink}; }
         .playbook { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; margin:0 0 18px; }
@@ -299,6 +387,8 @@ export default function UrgentPage() {
           .shell { padding: 18px 14px 42px; }
           nav { margin-bottom: 24px; }
           .grid { grid-template-columns: 1fr; }
+          .save-strip { grid-template-columns: 1fr; }
+          .save-command { width:100%; }
           .primary-card { padding: 22px; }
           .field.two { grid-template-columns: 1fr; }
         }
@@ -318,6 +408,20 @@ export default function UrgentPage() {
 
         <section className="grid">
           <div className="card primary-card">
+            <div className="save-strip">
+              <div className="field compact">
+                <label>Name of the person who passed</label>
+                <input value={deceasedName} onChange={e => setDeceasedName(e.target.value)} placeholder="Their name" />
+              </div>
+              <div className="field compact">
+                <label>Date</label>
+                <input value={dateOfDeath} onChange={e => setDateOfDeath(e.target.value)} type="date" />
+              </div>
+              <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
+                {savingEstate ? 'Saving...' : user ? 'Open saved command center' : 'Sign in to save'}
+              </button>
+              {saveError && <div className="save-error">{saveError}</div>}
+            </div>
             <div className="phase">{primary.phase}</div>
             <h2>{primary.title}</h2>
             <p className="support">{primary.support}</p>

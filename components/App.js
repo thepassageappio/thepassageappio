@@ -561,8 +561,13 @@ const handleCheckout = async (planId, userId, userEmail, workflowId = null) => {
       });
       return;
     }
+    const { data: sessionData } = await supabase.auth.getSession();
     const res = await fetch('/api/checkout', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + (sessionData?.session?.access_token || ''),
+      },
       body: JSON.stringify({ planId, userId: checkoutUserId, userEmail: checkoutUserEmail, workflowId }),
     });
     const data = await res.json();

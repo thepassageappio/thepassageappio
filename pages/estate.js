@@ -477,6 +477,20 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
       </div>
 
       <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {[
+            ['Message sent', sentActions.length],
+            ['Delivered', (actions || []).filter(function(a) { return a.delivery_status === 'delivered'; }).length],
+            ['Confirmed', confirmedActions.length],
+          ].map(function(step) {
+            return (
+              <div key={step[0]} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 11, padding: '9px 10px' }}>
+                <div style={{ fontSize: 10.5, color: SOFT, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em' }}>{step[0]}</div>
+                <div style={{ fontSize: 18, color: step[1] ? SAGE : SOFT, fontWeight: 900, marginTop: 2 }}>{step[1]}</div>
+              </div>
+            );
+          })}
+        </div>
         {rows.map(function(row) {
           return (
             <div key={row[0]} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, background: SUBTLE, borderRadius: 11, padding: '10px 12px' }}>
@@ -495,7 +509,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
 
       {needsReview.length > 0 && (
         <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, color: ROSE, lineHeight: 1.55, fontWeight: 700, marginBottom: 12 }}>
-          {needsReview.length} message{needsReview.length === 1 ? '' : 's'} need review before they are considered handled.
+          {needsReview.length} message{needsReview.length === 1 ? '' : 's'} need review before they are considered handled. Failed or blocked messages stay here until someone retries, edits, or marks the task handled manually.
         </div>
       )}
 
@@ -548,7 +562,7 @@ function ProofPanel({ actions, tasks, events }) {
   var rows = proofRowsFor(actions, tasks, events);
   var sent = rows.filter(function(r) { return r.status === 'Sent' || r.status === 'Handled' || r.status === 'Recorded'; }).length;
   var waiting = rows.filter(function(r) { return r.status === 'Waiting for confirmation' || r.status === 'Draft'; }).length;
-  var review = rows.filter(function(r) { return r.status === 'Needs review'; }).length;
+  var review = rows.filter(function(r) { return r.status === 'Needs review' || r.status === 'Failed' || r.status === 'Blocked'; }).length;
   return (
     <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
@@ -566,6 +580,11 @@ function ProofPanel({ actions, tasks, events }) {
         <div style={{ background: SUBTLE, borderRadius: 11, padding: 10 }}><div style={{ fontSize: 16, color: MID, fontWeight: 800 }}>{waiting}</div><div style={{ fontSize: 10.5, color: MID }}>waiting</div></div>
         <div style={{ background: review ? ROSE_FAINT : SAGE_FAINT, borderRadius: 11, padding: 10 }}><div style={{ fontSize: 16, color: review ? ROSE : SAGE, fontWeight: 800 }}>{review}</div><div style={{ fontSize: 10.5, color: MID }}>needs review</div></div>
       </div>
+      {(waiting > 0 || review > 0) && (
+        <div style={{ background: waiting ? AMBER_FAINT : ROSE_FAINT, border: '1px solid ' + (waiting ? AMBER_BORDER : ROSE + '30'), borderRadius: 12, padding: '10px 12px', fontSize: 12.5, color: waiting ? AMBER : ROSE, lineHeight: 1.5, fontWeight: 700, marginBottom: 10 }}>
+          {review > 0 ? 'Something needs attention. Edit the recipient, retry the message, or mark the task handled only after confirming outside Passage.' : 'Waiting for confirmation. If no one responds, send a reminder or call directly and record the outcome.'}
+        </div>
+      )}
       {rows.length === 0 ? (
         <div style={{ background: SUBTLE, borderRadius: 12, padding: '12px 13px', fontSize: 13, color: MID, lineHeight: 1.55 }}>
           Nothing has been sent or handled yet. Start with one task, then Passage will record the outcome here.

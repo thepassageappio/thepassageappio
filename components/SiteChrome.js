@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export const CHROME_COLORS = {
   bg: '#f6f3ee',
@@ -19,15 +20,39 @@ const LINKS = [
   ['Participating', '/participating'],
 ];
 
-const navLink = { color: CHROME_COLORS.mid, textDecoration: 'none' };
+const navLink = { color: CHROME_COLORS.mid, textDecoration: 'none', borderRadius: 10, padding: '7px 10px' };
+
+function isActivePath(current, href) {
+  if (!current) return false;
+  if (href === '/') return current === '/';
+  return current === href || current.startsWith(href + '/');
+}
 
 export function SiteHeader({ user, onSignIn, onSignOut }) {
+  const router = useRouter();
+  const path = router?.pathname || '';
+  const activeStyle = {
+    background: CHROME_COLORS.sage,
+    color: '#fff',
+    textDecoration: 'none',
+    borderRadius: 10,
+    padding: '7px 11px',
+    fontWeight: 800,
+  };
+  const quietMyEstate = {
+    color: CHROME_COLORS.mid,
+    background: CHROME_COLORS.sageFaint,
+    textDecoration: 'none',
+    borderRadius: 10,
+    padding: '8px 14px',
+    fontWeight: 800,
+  };
   return (
-    <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
+    <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '10px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
       <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 22, fontWeight: 700 }}>Passage</Link>
-      <div style={{ display: 'flex', gap: 14, fontSize: 13, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {LINKS.map(([label, href]) => <Link key={href} href={href} style={navLink}>{label}</Link>)}
-        <Link href="/" style={{ background: CHROME_COLORS.sage, color: '#fff', textDecoration: 'none', borderRadius: 10, padding: '8px 14px', fontWeight: 800 }}>My estate</Link>
+      <div style={{ display: 'flex', gap: 6, fontSize: 13, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
+        <Link href="/" style={isActivePath(path, '/') ? activeStyle : quietMyEstate}>My estate</Link>
         {user && onSignOut && (
           <button onClick={onSignOut} style={{ border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 14px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
         )}

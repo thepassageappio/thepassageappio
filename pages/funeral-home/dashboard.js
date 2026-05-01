@@ -81,11 +81,11 @@ export default function FuneralHomeDashboard() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '28px 22px 60px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'flex-start', marginBottom: 20 }}>
+      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '16px 22px 44px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Partner command center</div>
-            <h1 style={{ fontSize: 'clamp(30px, 4vw, 44px)', lineHeight: 1.05, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
+            <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 40px)', lineHeight: 1.05, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Pilot view for family cases, task status, death-certificate handoffs, and the work your team can complete on behalf of families.</p>
           </div>
           {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
@@ -111,7 +111,7 @@ export default function FuneralHomeDashboard() {
 
         {user && cases.length > 0 && (
           <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 12 }}>
             {[
               ['Partner-ready tasks', totalPartnerTasks],
               ['Waiting confirmations', totalWaiting],
@@ -119,7 +119,7 @@ export default function FuneralHomeDashboard() {
             ].map(([label, value]) => (
               <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13 }}>
                 <div style={{ color: C.soft, fontSize: 10.5, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase' }}>{label}</div>
-                <div style={{ fontSize: 24, marginTop: 4 }}>{value}</div>
+                <div style={{ fontSize: 22, marginTop: 3 }}>{value}</div>
               </div>
             ))}
           </div>

@@ -24,18 +24,18 @@ export default function MissionPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
 
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '22px 22px 16px' }}>
+      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 22px 12px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 20, alignItems: 'center' }}>
           <div style={{ maxWidth: 610 }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Our mission</div>
-            <h1 style={{ fontSize: 'clamp(32px, 4.4vw, 46px)', lineHeight: 1.04, margin: '0 0 10px', fontWeight: 400, letterSpacing: 0 }}>
+            <h1 style={{ fontSize: 'clamp(30px, 3.7vw, 42px)', lineHeight: 1.04, margin: '0 0 8px', fontWeight: 400, letterSpacing: 0 }}>
               Families need one calm next step.
             </h1>
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 560, margin: 0 }}>
               Passage turns the blur after a death, and the planning before one, into one place to know what matters, who owns it, and what happens next.
             </p>
           </div>
-          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16, boxShadow: '0 14px 42px rgba(55,45,35,.06)' }}>
+          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 14, boxShadow: '0 14px 42px rgba(55,45,35,.06)' }}>
             <div style={{ fontSize: 11, color: C.soft, textTransform: 'uppercase', letterSpacing: '.14em', fontWeight: 800, marginBottom: 10 }}>We believe</div>
             {['No one should become an operations manager in grief.', 'Every task should answer: what do I do right now?', 'Planning ahead should feel loving, not morbid.'].map((line) => (
               <div key={line} style={{ display: 'flex', gap: 10, padding: '8px 0', borderTop: '1px solid ' + C.border }}>
@@ -47,14 +47,14 @@ export default function MissionPage() {
         </div>
       </section>
 
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '12px 22px 18px' }}>
+      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '8px 22px 14px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 14 }}>
           {[
             ['When someone just passed', 'Passage narrows the first hours into a guided command center: calls, documents, family updates, owners, and timing.'],
             ['When you plan ahead', 'Passage gathers wishes, people, documents, and roles so your family is not guessing later.'],
             ['When others need to help', 'Participants and partners get only their assigned work, with context, notes, and a clear way to mark progress.'],
           ].map(([title, body]) => (
-            <div key={title} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 20 }}>
+            <div key={title} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>
               <div style={{ fontSize: 18, color: C.ink, marginBottom: 8 }}>{title}</div>
               <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.7 }}>{body}</div>
             </div>
@@ -62,8 +62,8 @@ export default function MissionPage() {
         </div>
       </section>
 
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '16px 22px 58px' }}>
-        <div style={{ background: C.ink, color: '#fff', borderRadius: 20, padding: '30px 26px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 18, alignItems: 'center' }}>
+      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '12px 22px 44px' }}>
+        <div style={{ background: C.ink, color: '#fff', borderRadius: 20, padding: '24px 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16, alignItems: 'center' }}>
           <div>
             <div style={{ color: C.sageLight, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 10 }}>The product promise</div>
             <div style={{ fontSize: 28, lineHeight: 1.18, marginBottom: 10 }}>Less hunting. Fewer decisions. One next step.</div>

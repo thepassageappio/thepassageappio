@@ -5,6 +5,47 @@ const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const authClient = createClient(url, anon);
 const admin = createClient(url, service);
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+
+async function notifyCoordinator({ workflowId, actorEmail, status, action, taskTitle, notes }) {
+  if (!workflowId || !process.env.RESEND_API_KEY) return;
+  const { data: workflow } = await admin
+    .from('workflows')
+    .select('id,deceased_name,name,coordinator_name,coordinator_email,user_id')
+    .eq('id', workflowId)
+    .maybeSingle();
+  const to = workflow?.coordinator_email;
+  if (!to || String(to).toLowerCase() === String(actorEmail).toLowerCase()) return;
+
+  const deceased = workflow.deceased_name || workflow.name || 'this estate';
+  const statusLine = status === 'handled' ? 'marked this as handled'
+    : status === 'waiting' ? 'updated this as waiting'
+    : status === 'acknowledged' ? 'accepted this task'
+    : status === 'blocked' ? 'needs help with this task'
+    : 'updated this task';
+  const safeNotes = notes ? `<p style="color:#6a6560;font-size:14px;line-height:1.7;margin:10px 0 0;"><strong>Note:</strong> ${String(notes).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : '';
+  const html = `<!doctype html><html><body style="font-family:Georgia,serif;background:#f6f3ee;margin:0;padding:28px 16px;">
+    <div style="max-width:540px;margin:0 auto;background:#fff;border-radius:16px;padding:28px;border:1px solid #e4ddd4;">
+      <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800;margin-bottom:14px;">Passage update</div>
+      <div style="font-size:22px;line-height:1.3;color:#1a1916;margin-bottom:10px;">${actorEmail} ${statusLine}.</div>
+      <p style="color:#6a6560;font-size:14px;line-height:1.7;margin:0;">Estate: ${deceased}</p>
+      <p style="color:#1a1916;font-size:15px;line-height:1.6;margin:10px 0 0;"><strong>Task:</strong> ${taskTitle || 'Assigned task'}</p>
+      ${safeNotes}
+      <a href="${SITE_URL}/estate?id=${workflowId}" style="display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;padding:12px 18px;border-radius:11px;font-size:14px;font-weight:800;margin-top:18px;">Open estate</a>
+    </div>
+  </body></html>`;
+
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
+      to: [to],
+      subject: `Passage update: ${taskTitle || 'task updated'}`,
+      html,
+    }),
+  }).catch(() => {});
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -74,5 +115,13 @@ export default async function handler(req, res) {
     recipient: email,
     detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
   }]).catch(() => {});
+  await notifyCoordinator({
+    workflowId: data.workflow_id,
+    actorEmail: email,
+    status,
+    action,
+    taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
+    notes: typeof notes === 'string' ? notes.trim() : '',
+  });
   return res.status(200).json({ success: true, item: data });
 }

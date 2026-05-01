@@ -48,7 +48,7 @@ export default function PricingPage() {
   }, []);
 
   async function signIn() {
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/pricing` } });
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/pricing${participantDiscount ? '?participant=1' : ''}` } });
   }
 
   async function checkout(planId) {
@@ -59,9 +59,13 @@ export default function PricingPage() {
     setBusy(planId);
     setMessage('');
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
       const res = await fetch('/api/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + (sessionData?.session?.access_token || ''),
+        },
         body: JSON.stringify({ planId, userId: user.id, userEmail: user.email, participantDiscount }),
       });
       const data = await res.json();
@@ -78,26 +82,26 @@ export default function PricingPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignIn={!user ? signIn : null} />
 
-      <section style={{ maxWidth: 1060, margin: '0 auto', padding: '26px 22px 58px' }}>
-        <div style={{ maxWidth: 820, marginBottom: 18 }}>
+      <section style={{ maxWidth: 1060, margin: '0 auto', padding: '16px 22px 44px' }}>
+        <div style={{ maxWidth: 820, marginBottom: 12 }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Pricing</div>
-          <h1 style={{ fontSize: 'clamp(32px, 4vw, 40px)', lineHeight: 1.05, margin: '0 0 10px', fontWeight: 400 }}>Choose the plan that can carry your family.</h1>
+          <h1 style={{ fontSize: 'clamp(30px, 3.4vw, 38px)', lineHeight: 1.05, margin: '0 0 8px', fontWeight: 400 }}>Choose the plan that can carry your family.</h1>
           <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Start with one trial estate to see how Passage feels. When you are ready, choose the number of estates your family needs protected. Urgent coordination stays separate at $79.99 per case.</p>
         </div>
 
         {participantDiscount && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 16, padding: 16, marginBottom: 18, color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
-            <strong style={{ color: C.sage }}>Participant pricing:</strong> choose the planning subscription that fits your family. If a participant discount is active, Stripe will apply it at checkout; if not, checkout still opens normally.
+            <strong style={{ color: C.sage }}>Participant pricing:</strong> choose the planning subscription that fits your family. Monthly participant plans use the 20% code and annual participant plans use the 25% code when the matching Stripe promotion is configured. Checkout will also show a promo-code field if you need to enter a code manually.
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(310px, 100%), 1fr))', gap: 12, marginBottom: 16 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(310px, 100%), 1fr))', gap: 10, marginBottom: 12 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 15 }}>
             <div style={{ fontSize: 12, color: C.sage, textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 800, marginBottom: 8 }}>Planning ahead</div>
             <div style={{ fontSize: 22, lineHeight: 1.2, marginBottom: 8 }}>Start with one trial estate. Pick a plan when your family is ready.</div>
             <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.7 }}>Good for proactive planning, spouses, parents, and multi-estate families who want the system set before it is needed.</div>
           </div>
-          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 16, padding: 18 }}>
+          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 16, padding: 15 }}>
             <div style={{ fontSize: 12, color: C.rose, textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 800, marginBottom: 8 }}>Someone just passed</div>
             <div style={{ fontSize: 22, lineHeight: 1.2, marginBottom: 8 }}>$79.99 urgent estate coordination</div>
             <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.7 }}>A focused first-24-hours command center. Passage will match 15% toward a grief-support or memorial-impact donation.</div>
@@ -106,7 +110,7 @@ export default function PricingPage() {
 
         <div style={{ display: 'grid', gap: 16 }}>
           {groups.map(group => (
-            <section key={group.key} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18 }}>
+            <section key={group.key} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 15 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 14, alignItems: 'start' }}>
                 <div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: C.ink }}>{group.label}</div>

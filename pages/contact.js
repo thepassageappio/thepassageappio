@@ -59,18 +59,18 @@ export default function ContactPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
 
-      <section style={{ maxWidth: 980, margin: '0 auto', padding: '26px 22px 58px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 20 }}>
+      <section style={{ maxWidth: 980, margin: '0 auto', padding: '16px 22px 44px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 18 }}>
         <div>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Contact Passage</div>
-          <h1 style={{ fontSize: 'clamp(30px, 4vw, 40px)', lineHeight: 1.06, margin: '0 0 10px', fontWeight: 400 }}>Tell us what is happening. We will route it with care.</h1>
+          <h1 style={{ fontSize: 'clamp(28px, 3.5vw, 38px)', lineHeight: 1.06, margin: '0 0 8px', fontWeight: 400 }}>Tell us what is happening. We will route it with care.</h1>
           <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Use this form for support, billing, urgent-flow feedback, partnership inquiries, or content requests. For emergencies, please contact local emergency services or the appropriate funeral, medical, legal, or government office directly.</p>
-          <div style={{ marginTop: 16, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
+          <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
             <strong style={{ color: C.ink }}>Support email:</strong> <SupportEmail /><br />
             <strong style={{ color: C.ink }}>Partnerships:</strong> funeral homes, attorneys, planners, and care teams can use the partner inquiry category.
           </div>
         </div>
 
-        <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, boxShadow: '0 12px 40px rgba(55,45,35,.06)' }}>
+        <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 12px 40px rgba(55,45,35,.06)' }}>
           <Field label="Name">
             <input value={form.name} onChange={e => set('name', e.target.value)} style={input} placeholder="Your name" />
           </Field>

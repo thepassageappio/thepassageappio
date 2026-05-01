@@ -33,17 +33,17 @@ export default function ContentPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 22px 58px' }}>
-        <div style={{ maxWidth: 760, marginBottom: 18 }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '16px 22px 44px' }}>
+        <div style={{ maxWidth: 760, marginBottom: 12 }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Resources</div>
-          <h1 style={{ fontSize: 'clamp(30px, 4vw, 40px)', lineHeight: 1.06, margin: '0 0 10px', fontWeight: 400 }}>Practical guidance for families, planners, and the people asked to help.</h1>
+          <h1 style={{ fontSize: 'clamp(28px, 3.5vw, 38px)', lineHeight: 1.06, margin: '0 0 8px', fontWeight: 400 }}>Practical guidance for families, planners, and the people asked to help.</h1>
           <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Guides and partner briefs for families, participants, and care providers. Request the resource you need and Passage will follow up directly.</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
             {resources.map(r => (
-              <button key={r.title} onClick={() => setInterest(r.title)} style={{ textAlign: 'left', background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+              <button key={r.title} onClick={() => setInterest(r.title)} style={{ textAlign: 'left', background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 15, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
                 <div style={{ fontSize: 10, color: r.gated ? C.gold : C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 10 }}>{r.type}{r.gated ? ' / gated' : ''}</div>
                 <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.3, marginBottom: 12 }}>{r.title}</div>
                 <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55 }}>{r.audience}</div>
@@ -51,7 +51,7 @@ export default function ContentPage() {
             ))}
           </div>
 
-          <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 22, alignSelf: 'start', position: 'sticky', top: 18 }}>
+          <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, alignSelf: 'start', position: 'sticky', top: 14 }}>
             <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>Request a resource</div>
             <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.65, marginTop: 0 }}>Tell us what you need and we will send the right resource or point you to the clearest next step.</p>
             <input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" style={inputStyle} />

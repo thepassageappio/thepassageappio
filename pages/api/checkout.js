@@ -1,4 +1,11 @@
+import { createClient } from '@supabase/supabase-js';
+
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseService = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const authClient = createClient(supabaseUrl, supabaseAnon);
+const admin = createClient(supabaseUrl, supabaseService);
 
 const PLANS = {
   single_monthly: {
@@ -91,8 +98,30 @@ PLANS.semiannual = {
   priceEnv: ['STRIPE_PRICE_SEMIANNUAL_GREEN', 'STRIPE_PRICE_SEMI_ANNUAL_GREEN'],
 };
 
-function getConfiguredPrice(plan) {
-  const keys = Array.isArray(plan.priceEnv) ? plan.priceEnv : [plan.priceEnv];
+function participantPriceEnvKeys(plan) {
+  if (plan.mode !== 'subscription' || plan.addOn || planIdIsUrgent(plan)) return [];
+  return plan.interval === 'year'
+    ? [
+        'STRIPE_PRICE_PARTICIPANT_ANNUAL',
+        'STRIPE_PRICE_PARTICIPANT_ANNUAL_25',
+        'STRIPE_PRICE_PARTICIPANT_25_ANNUAL',
+        'STRIPE_PRICE_PARTICIPANT_SINGLE_ANNUAL',
+        'STRIPE_PRICE_SINGLE_ANNUAL_PARTICIPANT',
+      ]
+    : [
+        'STRIPE_PRICE_PARTICIPANT_MONTHLY',
+        'STRIPE_PRICE_PARTICIPANT_MONTHLY_20',
+        'STRIPE_PRICE_PARTICIPANT_20_MONTHLY',
+        'STRIPE_PRICE_PARTICIPANT_SINGLE_MONTHLY',
+        'STRIPE_PRICE_SINGLE_MONTHLY_PARTICIPANT',
+      ];
+}
+
+function getConfiguredPrice(plan, participantDiscount = false) {
+  const keys = [
+    ...(participantDiscount ? participantPriceEnvKeys(plan) : []),
+    ...(Array.isArray(plan.priceEnv) ? plan.priceEnv : [plan.priceEnv]),
+  ];
   for (const key of keys) {
     if (process.env[key]) return { key, value: process.env[key].trim() };
   }
@@ -103,20 +132,56 @@ function getParticipantDiscount(plan) {
   if (plan.mode !== 'subscription' || plan.addOn || planIdIsUrgent(plan)) return null;
 
   const keys = plan.interval === 'year'
-    ? ['STRIPE_PROMOTION_CODE_PARTICIPANT_ANNUAL', 'STRIPE_PROMO_PARTICIPANT_ANNUAL', 'STRIPE_COUPON_PARTICIPANT_ANNUAL']
-    : ['STRIPE_PROMOTION_CODE_PARTICIPANT_MONTHLY', 'STRIPE_PROMO_PARTICIPANT_MONTHLY', 'STRIPE_COUPON_PARTICIPANT_MONTHLY'];
+    ? [
+        'STRIPE_PROMOTION_CODE_PARTICIPANT_ANNUAL',
+        'STRIPE_PROMOTION_CODE_PARTICIPANT_ANNUAL_25',
+        'STRIPE_PROMOTION_CODE_PARTICIPANT_25_ANNUAL',
+        'STRIPE_PROMO_PARTICIPANT_ANNUAL',
+        'STRIPE_PROMO_PARTICIPANT_ANNUAL_25',
+        'STRIPE_PARTICIPANT_ANNUAL_PROMO_CODE',
+        'STRIPE_PARTICIPANT_ANNUAL_DISCOUNT',
+        'STRIPE_COUPON_PARTICIPANT_ANNUAL',
+        'STRIPE_COUPON_PARTICIPANT_ANNUAL_25',
+      ]
+    : [
+        'STRIPE_PROMOTION_CODE_PARTICIPANT_MONTHLY',
+        'STRIPE_PROMOTION_CODE_PARTICIPANT_MONTHLY_20',
+        'STRIPE_PROMOTION_CODE_PARTICIPANT_20_MONTHLY',
+        'STRIPE_PROMO_PARTICIPANT_MONTHLY',
+        'STRIPE_PROMO_PARTICIPANT_MONTHLY_20',
+        'STRIPE_PARTICIPANT_MONTHLY_PROMO_CODE',
+        'STRIPE_PARTICIPANT_MONTHLY_DISCOUNT',
+        'STRIPE_COUPON_PARTICIPANT_MONTHLY',
+        'STRIPE_COUPON_PARTICIPANT_MONTHLY_20',
+      ];
 
   for (const key of keys) {
     const value = process.env[key]?.trim();
     if (value) {
       return {
         key,
+        type: key.includes('COUPON') ? 'coupon' : 'promotion_code',
         param: key.includes('COUPON') ? 'discounts[0][coupon]' : 'discounts[0][promotion_code]',
         value,
       };
     }
   }
   return null;
+}
+
+async function resolveParticipantDiscount(discount) {
+  if (!discount) return null;
+  if (discount.value.startsWith('price_')) return null;
+  if (discount.type === 'coupon') return discount;
+  if (discount.value.startsWith('promo_')) return discount;
+
+  const lookup = await fetch('https://api.stripe.com/v1/promotion_codes?active=true&limit=1&code=' + encodeURIComponent(discount.value), {
+    headers: { Authorization: 'Bearer ' + process.env.STRIPE_SECRET_KEY },
+  });
+  const data = await lookup.json().catch(() => ({}));
+  const promoId = data?.data?.[0]?.id;
+  if (!lookup.ok || !promoId) return discount;
+  return { ...discount, value: promoId, resolvedFromCode: true };
 }
 
 function planIdIsUrgent(plan) {
@@ -127,7 +192,7 @@ function dollars(cents) {
   return '$' + (cents / 100).toFixed(cents % 100 === 0 ? 0 : 2);
 }
 
-async function validateConfiguredPrice(priceId, plan, planId, envKey) {
+async function validateConfiguredPrice(priceId, plan, planId, envKey, options = {}) {
   if (!priceId) return null;
   if (!priceId.startsWith('price_')) {
     return `${envKey} must be a Stripe Price ID that starts with price_, not a product ID or payment link.`;
@@ -146,7 +211,7 @@ async function validateConfiguredPrice(priceId, plan, planId, envKey) {
     return `${plan.label} is configured with ${price.currency?.toUpperCase() || 'unknown currency'}, expected USD.`;
   }
 
-  if (price.unit_amount !== plan.amount) {
+  if (!options.allowDiscountAmount && price.unit_amount !== plan.amount) {
       return `${plan.label} is configured as ${dollars(price.unit_amount || 0)}, expected ${dollars(plan.amount)}. Check ${envKey}.`;
   }
 
@@ -180,6 +245,54 @@ export default async function handler(req, res) {
   }
 
   try {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const { data: authData, error: authError } = token
+      ? await authClient.auth.getUser(token)
+      : { data: null, error: new Error('Missing session') };
+    if (authError || !authData?.user?.id || authData.user.id !== userId) {
+      return res.status(401).json({ error: 'Please sign in before upgrading.' });
+    }
+
+    let participantEligible = false;
+    if (participantDiscount) {
+      const email = String(authData.user.email || userEmail || '').toLowerCase();
+      const [{ data: accessByUser }, { data: accessByEmail }, { data: participantRows }, { data: peopleRows }] = await Promise.all([
+        admin.from('estate_access')
+          .select('id,role,status')
+          .eq('user_id', userId)
+          .neq('status', 'revoked')
+          .eq('role', 'participant')
+          .limit(1),
+        admin.from('estate_access')
+          .select('id,role,status')
+          .ilike('email', email)
+          .neq('status', 'revoked')
+          .eq('role', 'participant')
+          .limit(1),
+        admin.from('estate_participants')
+          .select('id,role,linked_user_id,invite_status')
+          .eq('linked_user_id', userId)
+          .eq('role', 'participant')
+          .limit(1),
+        admin.from('people')
+          .select('id,email,estate_role_label,participant_discount_offered')
+          .ilike('email', email)
+          .limit(5),
+      ]);
+      participantEligible = Boolean(
+        (accessByUser || []).length ||
+        (accessByEmail || []).length ||
+        (participantRows || []).length ||
+        (peopleRows || []).some(p =>
+          p.participant_discount_offered ||
+          String(p.estate_role_label || '').toLowerCase() === 'participant'
+        )
+      );
+      if (!participantEligible) {
+        return res.status(403).json({ error: 'Participant pricing is only available after you are assigned as a participant on an estate.' });
+      }
+    }
+
     const body = new URLSearchParams({
       mode: plan.mode,
       success_url: BASE + '/?checkout=success&session_id={CHECKOUT_SESSION_ID}',
@@ -196,10 +309,14 @@ export default async function handler(req, res) {
       submit_type: plan.mode === 'subscription' ? 'subscribe' : 'pay',
     });
 
-    const participantPromo = participantDiscount ? getParticipantDiscount(plan) : null;
+    const configuredPrice = getConfiguredPrice(plan, participantEligible);
+    const usingParticipantPrice = participantEligible && participantPriceEnvKeys(plan).includes(configuredPrice.key);
+    const participantPromo = participantEligible && !usingParticipantPrice ? await resolveParticipantDiscount(getParticipantDiscount(plan)) : null;
     if (participantPromo) {
       body.set(participantPromo.param, participantPromo.value);
       body.set('metadata[participantDiscountApplied]', participantPromo.key);
+    } else if (usingParticipantPrice) {
+      body.set('metadata[participantDiscountApplied]', configuredPrice.key);
     } else {
       body.set('allow_promotion_codes', 'true');
     }
@@ -208,9 +325,8 @@ export default async function handler(req, res) {
 
     if (userEmail) body.set('customer_email', userEmail);
 
-    const configuredPrice = getConfiguredPrice(plan);
     if (configuredPrice.value) {
-      const priceError = await validateConfiguredPrice(configuredPrice.value, plan, planId, configuredPrice.key);
+      const priceError = await validateConfiguredPrice(configuredPrice.value, plan, planId, configuredPrice.key, { allowDiscountAmount: usingParticipantPrice });
       if (priceError) return res.status(500).json({ error: priceError });
       body.set('line_items[0][price]', configuredPrice.value);
     } else {
