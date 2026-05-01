@@ -147,6 +147,8 @@ function cleanContext(raw) {
   return {
     deathContext: clean(input.deathContext),
     pronouncementStatus: clean(input.pronouncementStatus),
+    authorityStatus: clean(input.authorityStatus),
+    emergencyCalled: clean(input.emergencyCalled),
     funeralHomeName: clean(input.funeralHomeName),
     cemeteryName: clean(input.cemeteryName),
     faithTradition: clean(input.faithTradition),
@@ -278,6 +280,150 @@ function conditionalTasksFor(context) {
   return tasks;
 }
 
+function taskKey(title) {
+  return clean(title).toLowerCase();
+}
+
+function firstTasksForContext(context) {
+  const tasks = [];
+  let position = 1;
+  const add = (...args) => tasks.push(task(...args));
+
+  if (context.deathContext === 'unexpected') {
+    add(
+      'Call 911 or emergency services',
+      'If this was unexpected at home, call 911 now. A doctor or medical examiner must officially pronounce death before anything else can happen.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'call 911 or emergency services',
+      { automation_level: 'EXTERNAL', execution_kind: 'call', waiting_on: '911, police, coroner, or medical examiner', proof_required: 'emergency response or official instruction recorded' }
+    );
+    add(
+      'Confirm emergency or medical examiner next steps',
+      'Emergency services will determine whether a medical examiner, police report, or official release step is required.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'confirm emergency or medical examiner next steps',
+      { automation_level: 'EXTERNAL', execution_kind: 'call', waiting_on: '911, police, coroner, or medical examiner', proof_required: 'official next step recorded' }
+    );
+    add(
+      'Confirm official pronouncement of death',
+      'Record who pronounced death, when, and what they said must happen before transportation.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'confirm official pronouncement of death',
+      { automation_level: 'PARTNER_HANDOFF', execution_kind: 'call', waiting_on: 'doctor, hospice, hospital, or medical examiner', funeral_home_eligible: true, proof_required: 'pronouncement source recorded' }
+    );
+    add(
+      'Identify healthcare proxy or legal decision-maker',
+      context.authorityName ? `Record ${context.authorityName}'s authority and contact path so release and funeral questions go to the right person.` : 'Identify who has authority for medical, release, and funeral decisions before anything important is sent.',
+      'legal',
+      'urgent',
+      0,
+      position++,
+      'identify healthcare proxy or legal decision-maker',
+      { automation_level: 'PACKET', execution_kind: 'record', waiting_on: 'family or proxy', proof_required: 'decision-maker recorded' }
+    );
+  } else if (context.deathContext === 'hospice') {
+    add(
+      'Call hospice nurse or hospice agency',
+      'Hospice usually guides pronouncement, equipment, medications, and funeral home release steps.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'call hospice nurse or hospice agency',
+      { automation_level: 'SEND_TRACK', execution_kind: 'call', waiting_on: 'hospice nurse or agency', proof_required: 'hospice next step recorded' }
+    );
+    add(
+      'Confirm official pronouncement of death',
+      'Confirm who pronounced death, when, and what hospice says should happen next.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'confirm official pronouncement of death',
+      { automation_level: 'PARTNER_HANDOFF', execution_kind: 'call', waiting_on: 'hospice nurse, doctor, or hospice medical director', funeral_home_eligible: true, proof_required: 'pronouncement source recorded' }
+    );
+  } else if (['hospital', 'facility'].includes(context.deathContext)) {
+    add(
+      'Confirm hospital or facility release process',
+      context.deathContext === 'hospital'
+        ? 'Ask the nurse, social worker, or decedent affairs contact who can authorize release and what the funeral home needs.'
+        : 'Ask the facility who can authorize release and what the funeral home needs for pickup.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'confirm hospital or facility release process',
+      { automation_level: 'PARTNER_HANDOFF', execution_kind: 'call', waiting_on: 'hospital or facility staff', funeral_home_eligible: true, proof_required: 'release process recorded' }
+    );
+    add(
+      'Identify healthcare proxy or legal decision-maker',
+      context.authorityName ? `Record ${context.authorityName}'s authority and contact path so release questions go to the right person.` : 'Confirm who can authorize release and funeral arrangements.',
+      'legal',
+      'urgent',
+      0,
+      position++,
+      'identify healthcare proxy or legal decision-maker',
+      { automation_level: 'PACKET', execution_kind: 'record', waiting_on: 'family or proxy', proof_required: 'decision-maker recorded' }
+    );
+  } else if (context.deathContext === 'home_expected') {
+    add(
+      'Confirm official pronouncement of death',
+      'If death was expected at home, confirm the doctor, hospice, or local authority pronouncement path before transportation.',
+      'medical',
+      'urgent',
+      0,
+      position++,
+      'confirm official pronouncement of death',
+      { automation_level: 'PARTNER_HANDOFF', execution_kind: 'call', waiting_on: 'doctor, hospice, or local authority', funeral_home_eligible: true, proof_required: 'pronouncement source recorded' }
+    );
+  }
+
+  return tasks;
+}
+
+function buildTasksForContext(context) {
+  const leading = firstTasksForContext(context);
+  const seen = new Set(leading.map(item => taskKey(item.title)));
+  const core = CORE_TASKS.filter(item => !seen.has(taskKey(item.title)));
+  const conditional = conditionalTasksFor(context).filter(item => !seen.has(taskKey(item.title)));
+  return leading.concat(core, conditional).map((item, index) => ({ ...item, position: index + 1 }));
+}
+
+function timeframeForTask(task) {
+  if (task.due_days_after_trigger === 0 && task.category === 'medical') return ['now', 'Minutes'];
+  if (task.due_days_after_trigger === 0) return ['now', 'Today'];
+  if (task.due_days_after_trigger <= 3) return ['next_72_hours', 'Next 72 hours'];
+  if (task.due_days_after_trigger <= 7) return ['first_week', 'First week'];
+  return ['first_month', 'First month'];
+}
+
+function outcomeFromTask(task, index, ownerLabel) {
+  const [timeframe, timeframeLabel] = timeframeForTask(task);
+  return {
+    title: task.title,
+    description: task.description,
+    why_it_matters: task.proof_required ? `Proof needed: ${task.proof_required}.` : 'This keeps the next step visible and owned.',
+    recommended_action: task.execution_kind === 'call' ? 'Make the call, record what they say, and mark the next step.' : 'Assign an owner and record the result.',
+    reassurance: task.waiting_on ? `Waiting on: ${task.waiting_on}.` : 'Passage will keep this visible until it is handled.',
+    status: index === 0 && ownerLabel ? 'in_progress' : 'needs_owner',
+    priority: task.priority === 'urgent' ? 'critical' : task.priority || 'normal',
+    timeframe,
+    timeframe_label: timeframeLabel,
+    next_action_cta: task.execution_kind === 'call' ? 'Call or assign owner' : 'Assign owner',
+    category: task.category,
+    position: index + 1,
+  };
+}
+
 async function getUser(req) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return null;
@@ -299,6 +445,7 @@ export default async function handler(req, res) {
   const coordinatorEmail = clean(req.body?.coordinatorEmail) || user.email;
   const dateOfDeath = clean(req.body?.dateOfDeath) || null;
   const primaryOwner = req.body?.primaryOwner || null;
+  const firstOwner = req.body?.firstOwner || primaryOwner || null;
   const context = cleanContext(req.body?.context);
 
   let existingQuery = admin
@@ -347,11 +494,11 @@ export default async function handler(req, res) {
   }
 
   const workflow = workflowResult.data;
-  const ownerLabel = clean(primaryOwner?.name);
-  const ownerEmail = clean(primaryOwner?.email);
-  const ownerPhone = clean(primaryOwner?.phone);
+  const ownerLabel = clean(firstOwner?.name);
+  const ownerEmail = clean(firstOwner?.email);
+  const ownerPhone = clean(firstOwner?.phone);
 
-  const allTasks = CORE_TASKS.concat(conditionalTasksFor(context));
+  const allTasks = buildTasksForContext(context);
   const tasks = allTasks.map(({ position, ...task }, index) => ({
     ...task,
     workflow_id: workflow.id,
@@ -367,11 +514,10 @@ export default async function handler(req, res) {
   }));
   await admin.from('tasks').upsert(tasks, { onConflict: 'workflow_id,title', ignoreDuplicates: false });
 
-  const outcomes = CORE_OUTCOMES.map((outcome, index) => ({
-    ...outcome,
+  const outcomes = allTasks.slice(0, 5).map((taskItem, index) => ({
+    ...outcomeFromTask(taskItem, index, ownerLabel),
     estate_id: workflow.id,
     owner_label: index === 0 && ownerLabel ? ownerLabel : null,
-    status: index === 0 && ownerLabel ? 'in_progress' : outcome.status,
   }));
   for (const outcome of outcomes) {
     const { data: existingOutcome } = await admin

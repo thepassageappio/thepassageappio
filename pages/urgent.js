@@ -53,7 +53,168 @@ const initialOutcomes = [
   },
 ];
 
+const urgentPlans = {
+  unexpected: [
+    {
+      id: 'emergency',
+      phase: 'Minutes',
+      title: 'Call 911 now',
+      support: 'Because this happened unexpectedly at home, emergency services or the medical examiner usually need to guide the first step before a funeral home can take over.',
+      prompt: 'Who is with them right now and can make this call?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    {
+      id: 'pronouncement',
+      phase: 'Minutes',
+      title: 'Wait for official pronouncement or medical examiner direction',
+      support: 'Transportation, paperwork, and funeral home pickup usually depend on an official instruction or pronouncement.',
+      prompt: 'Who will write down the official instruction?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    {
+      id: 'authority',
+      phase: 'Today',
+      title: 'Identify who can make decisions right now',
+      support: 'Release, medical, and funeral decisions need a clear decision-maker so the family is not guessing.',
+      prompt: 'Who is the next of kin, healthcare proxy, or decision-maker?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    ...initialOutcomes,
+  ],
+  hospice: [
+    {
+      id: 'hospice',
+      phase: 'Minutes',
+      title: 'Call the hospice nurse or on-call hospice line',
+      support: 'Hospice usually guides pronouncement, medications, equipment, and funeral home release steps.',
+      prompt: 'Who can call hospice or answer their call?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    {
+      id: 'pronouncement',
+      phase: 'Minutes',
+      title: 'Confirm official pronouncement',
+      support: 'The hospice nurse or physician will tell you what needs to happen before transportation.',
+      prompt: 'Who will record the pronouncement details?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    ...initialOutcomes,
+  ],
+  hospital: [
+    {
+      id: 'release',
+      phase: 'Today',
+      title: 'Ask the hospital about the release process',
+      support: 'A nurse, social worker, or decedent affairs contact can explain who may authorize release and what the funeral home needs.',
+      prompt: 'Who can speak with the hospital or facility?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    {
+      id: 'authority',
+      phase: 'Today',
+      title: 'Confirm who can authorize release',
+      support: 'The facility may need the next of kin, healthcare proxy, or legal decision-maker before pickup can move forward.',
+      prompt: 'Who has authority for release and arrangements?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    ...initialOutcomes,
+  ],
+  facility: [
+    {
+      id: 'release',
+      phase: 'Today',
+      title: 'Ask the facility about release and pickup',
+      support: 'The care facility can tell you who signs release paperwork and what the funeral home needs for pickup.',
+      prompt: 'Who can speak with the facility?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    ...initialOutcomes,
+  ],
+  home_expected: [
+    {
+      id: 'pronouncement',
+      phase: 'Minutes',
+      title: 'Confirm official pronouncement',
+      support: 'If death was expected at home, the doctor, hospice, or local authority may still need to pronounce death before transportation.',
+      prompt: 'Who can confirm the pronouncement path?',
+      status: 'needs_owner',
+      owner: null,
+      priority: 'critical',
+    },
+    ...initialOutcomes,
+  ],
+  past: initialOutcomes,
+};
+
+function planForContext(value) {
+  return (urgentPlans[value] || initialOutcomes).map(item => ({ ...item, owner: item.owner || null }));
+}
+
+function mergeOutcomePlan(nextPlan, previous) {
+  return nextPlan.map(item => {
+    const existing = previous.find(prev => prev.id === item.id);
+    return existing ? { ...item, owner: existing.owner || null, status: existing.status || item.status } : item;
+  });
+}
+
+const nextPreview = {
+  unexpected: ['Emergency services arrive', 'They decide if a medical examiner is needed', 'Only after that can a funeral home usually be contacted'],
+  hospice: ['Hospice confirms what happens next', 'They guide pronouncement and medications/equipment', 'Then the funeral home can coordinate pickup'],
+  hospital: ['Hospital staff explain the release process', 'The decision-maker authorizes release', 'The funeral home coordinates pickup'],
+  facility: ['Facility staff explain release requirements', 'The decision-maker authorizes pickup', 'The funeral home coordinates transportation'],
+  home_expected: ['A provider confirms pronouncement', 'The family records the official details', 'The funeral home can then coordinate pickup'],
+  past: ['We confirm what is already done', 'We organize the next open step', 'Passage tracks owners, notes, and proof from here'],
+};
+
+function authorityMessage(status) {
+  if (status === 'self') return 'Okay. You will be the person providers and funeral homes look to for decisions.';
+  if (status === 'someone_else') return 'Okay. Passage will guide what you can do now and when to involve them.';
+  if (status === 'unsure') return "That's okay. Passage will help you figure this out before anything important is decided.";
+  return 'If you are not sure, start there. Authority affects release, medical, and funeral decisions.';
+}
+
 const taskPlaybooks = {
+  emergency: {
+    title: 'Emergency call path',
+    body: 'If this was unexpected and 911 has not been called, call 911 now. Say: "A person has died at home unexpectedly. We need emergency services and instructions for what happens next."',
+    steps: ['Call 911 if not already done', 'Do not move the person unless emergency services instruct you to', 'Write down the responding agency or case number if one is provided'],
+  },
+  hospice: {
+    title: 'Hospice call script',
+    body: 'Hello, this is [your name]. [Loved one] has passed away. They were under hospice care. Can you tell us what happens now, who pronounces death, and what we should do about medications, equipment, and funeral home pickup?',
+    steps: ['Call the hospice nurse or on-call number', 'Ask who pronounces death', 'Write down what hospice says to do next'],
+  },
+  release: {
+    title: 'Hospital or facility release script',
+    body: 'Hello, my name is [your name]. I am calling about [loved one]. Can you tell me who can authorize release, what paperwork is needed, and what the funeral home should do for pickup?',
+    steps: ['Ask for the nurse, social worker, or release contact', 'Confirm who can authorize release', 'Write down what the funeral home needs'],
+  },
+  pronouncement: {
+    title: 'Pronouncement details to record',
+    body: 'Record who officially pronounced death, the time, the location, and any instruction they gave about transportation, release, or medical examiner involvement.',
+    steps: ['Confirm who pronounced death', 'Write down time and contact information', 'Ask what must happen before funeral home pickup'],
+  },
+  authority: {
+    title: 'Decision-maker check',
+    body: 'Identify who can make medical, release, and funeral decisions right now. This may be the healthcare proxy, next of kin, executor, or another legally recognized decision-maker.',
+    steps: ['Name the person with authority', 'Record phone and email if known', 'If unsure, ask the hospital, hospice, or funeral director before anything is sent'],
+  },
   funeral: {
     title: 'Call script prepared',
     body: 'Hello, my name is [your name]. I am calling because [loved one] has passed away. We need help with transportation and next arrangements. Can you walk me through what you need from us first?',
@@ -74,6 +235,8 @@ const taskPlaybooks = {
 const defaultContext = {
   deathContext: '',
   pronouncementStatus: '',
+  authorityStatus: '',
+  emergencyCalled: '',
   funeralHomeName: '',
   cemeteryName: '',
   faithTradition: '',
@@ -299,6 +462,7 @@ export default function UrgentPage() {
     setSavingEstate(true);
     const { data: sessionData } = await supabase.auth.getSession();
     const primaryOwner = outcomes.find(o => o.id === 'funeral')?.owner || null;
+    const firstOwner = primary?.owner || outcomes.find(o => o.owner)?.owner || primaryOwner || null;
     const response = await fetch('/api/urgentEstate', {
       method: 'POST',
       headers: {
@@ -311,6 +475,7 @@ export default function UrgentPage() {
         coordinatorName: coordinatorName || user.user_metadata?.full_name || user.email,
         coordinatorEmail: coordinatorEmail || user.email,
         primaryOwner,
+        firstOwner,
         context,
       }),
     });
@@ -327,7 +492,22 @@ export default function UrgentPage() {
     }, 650);
   };
 
-  const updateContext = (key, value) => setContext(prev => ({ ...prev, [key]: value }));
+  const updateContext = (key, value) => {
+    setContext(prev => ({ ...prev, [key]: value }));
+    if (key === 'deathContext') {
+      setOutcomes(prev => mergeOutcomePlan(planForContext(value), prev));
+    }
+  };
+
+  const contextVoice = useMemo(() => {
+    if (context.deathContext === 'unexpected') return 'If this was unexpected at home, call 911 now. A doctor or medical examiner must officially pronounce death before anything else can happen.';
+    if (context.deathContext === 'hospice') return 'Because they were under hospice care, start with the hospice nurse or on-call hospice line.';
+    if (context.deathContext === 'hospital') return 'Because they are at a hospital, start by confirming the release process and who can authorize pickup.';
+    if (context.deathContext === 'facility') return 'Because they are at a care facility, start by confirming release and pickup requirements with staff.';
+    if (context.deathContext === 'home_expected') return 'Because this was expected at home, confirm pronouncement before transportation or paperwork moves forward.';
+    if (context.deathContext === 'past') return "Understood. Let's get you organized from here and confirm what has already happened.";
+    return 'First, tell Passage what kind of situation this is. The next steps will change based on that answer.';
+  }, [context.deathContext]);
 
   return (
     <main>
@@ -363,6 +543,23 @@ export default function UrgentPage() {
         .save-command { min-height:39px; padding:9px 12px; white-space:nowrap; }
         .save-error { grid-column:1 / -1; color:${C.rose}; background:${C.roseFaint}; border:1px solid rgba(184,107,111,.22); border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.4; }
         .paid-success { background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; border-radius:14px; padding:10px 12px; margin-bottom:12px; font-weight:750; font-size:13px; line-height:1.45; }
+        .triage { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:14px; margin-bottom:14px; }
+        .triage-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+        .triage-title { font-family:Georgia,serif; font-size:22px; line-height:1.15; }
+        .triage-note { color:${C.mid}; font-size:13px; line-height:1.5; margin-top:5px; }
+        .triage-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+        .triage-choice { border:1px solid ${C.border}; background:${C.bg}; color:${C.ink}; border-radius:12px; padding:11px 12px; text-align:left; cursor:pointer; font-weight:800; }
+        .triage-choice.active { background:${C.sageFaint}; border-color:${C.sage}; color:${C.sageDark}; }
+        .next-preview { display:grid; gap:7px; margin-top:10px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:11px 12px; }
+        .next-preview-title { color:${C.sageDark}; font-size:11px; letter-spacing:.13em; text-transform:uppercase; font-weight:900; }
+        .next-preview div:not(.next-preview-title) { color:${C.mid}; font-size:13px; line-height:1.4; }
+        .urgent-alert { background:${C.roseFaint}; border:1px solid rgba(184,107,111,.28); color:${C.ink}; border-radius:14px; padding:12px 13px; margin:10px 0 0; font-size:13px; line-height:1.55; }
+        .authority-strip { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:12px; margin-bottom:14px; }
+        .authority-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:9px; }
+        .authority-options button { border:1px solid ${C.sageLight}; background:${C.card}; color:${C.sageDark}; border-radius:999px; padding:8px 10px; cursor:pointer; font-weight:800; font-size:12px; }
+        .authority-options button.active { background:${C.sage}; color:white; border-color:${C.sage}; }
+        details.later-details { grid-column:1 / -1; border-top:1px solid ${C.border}; padding-top:8px; }
+        details.later-details summary { cursor:pointer; color:${C.sageDark}; font-size:12px; font-weight:850; }
         .owner { background: ${C.subtle}; border-radius: 14px; padding: 13px 14px; color: ${C.mid}; line-height: 1.45; margin-bottom: 14px; }
         .owner strong { color: ${C.ink}; }
         .playbook { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; margin:0 0 18px; }
@@ -414,6 +611,7 @@ export default function UrgentPage() {
           .grid { grid-template-columns: 1fr; }
           .save-strip { grid-template-columns: 1fr; }
           .context-grid { grid-template-columns:1fr; }
+          .triage-grid, .authority-options { grid-template-columns:1fr; }
           .save-command { width:100%; }
           .primary-card { padding: 22px; }
           .field.two { grid-template-columns: 1fr; }
@@ -445,6 +643,67 @@ export default function UrgentPage() {
         <section className="grid">
           <div className="card primary-card">
             {paidSuccess && <div className="paid-success">You're in the right place. We'll guide you step by step.</div>}
+            <div className="triage">
+              <div className="triage-head">
+                <div>
+                  <div className="kicker" style={{ marginBottom: 5 }}>First 10 seconds</div>
+                  <div className="triage-title">Did this just happen?</div>
+                  <div className="triage-note">{contextVoice}</div>
+                </div>
+              </div>
+              <div className="triage-grid">
+                {[
+                  ['unexpected', 'Yes, at home and unexpected'],
+                  ['hospice', 'Yes, under hospice care'],
+                  ['hospital', 'Yes, in a hospital'],
+                  ['facility', 'Yes, in a care facility'],
+                  ['home_expected', 'Yes, expected at home'],
+                  ['past', 'No, we are past the first official steps'],
+                ].map(([value, label]) => (
+                  <button key={value} className={`triage-choice ${context.deathContext === value ? 'active' : ''}`} onClick={() => updateContext('deathContext', value)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {context.deathContext && (
+                <div className="next-preview">
+                  <div className="next-preview-title">What usually happens next</div>
+                  {(nextPreview[context.deathContext] || []).map((item, index) => (
+                    <div key={item}>{index + 1}. {item}</div>
+                  ))}
+                  <div>Passage will guide one step at a time.</div>
+                </div>
+              )}
+              {context.deathContext === 'unexpected' && (
+                <div className="urgent-alert">
+                  <strong>If this was unexpected at home, call 911 now.</strong> A doctor or medical examiner must officially pronounce death before anything else can happen.
+                  <div className="stack" style={{ marginTop: 10 }}>
+                    <button className="secondary" onClick={() => updateContext('emergencyCalled', 'yes')}>I've called 911</button>
+                    <button className="ghost" onClick={() => updateContext('pronouncementStatus', 'needed')}>I'm not sure if I need to</button>
+                  </div>
+                </div>
+              )}
+              {context.deathContext === 'past' && (
+                <div className="urgent-alert" style={{ background: C.sageFaint, borderColor: C.sageLight }}>
+                  <strong>Understood. Let's get you organized from here.</strong> Confirm what has already happened, then Passage will focus on the next open step.
+                </div>
+              )}
+            </div>
+
+            <div className="authority-strip">
+              <div className="context-title">Who can make decisions right now?</div>
+              <div className="context-help">Release, medical, and funeral decisions need a clear person. If you are not sure, Passage will keep that visible before anything is sent.</div>
+              <div className="authority-options">
+                {[
+                  ['self', 'I can decide'],
+                  ['someone_else', 'Someone else can'],
+                  ['unsure', "I'm not sure"],
+                ].map(([value, label]) => (
+                  <button key={value} className={context.authorityStatus === value ? 'active' : ''} onClick={() => updateContext('authorityStatus', value)}>{label}</button>
+                ))}
+              </div>
+              <div className="context-help" style={{ marginTop: 8 }}>{authorityMessage(context.authorityStatus)}</div>
+            </div>
             <div className="save-strip">
               <div className="field compact">
                 <label>Name of the person who passed</label>
@@ -461,18 +720,7 @@ export default function UrgentPage() {
             </div>
             <div className="context-grid">
               <div className="context-title">Shape the first steps</div>
-              <div className="context-help">Answer what you know. Passage will use this to prepare the right hospice, hospital, funeral home, cemetery, clergy, and document tasks.</div>
-              <div className="field compact">
-                <label>Where did this happen?</label>
-                <select value={context.deathContext} onChange={e => updateContext('deathContext', e.target.value)}>
-                  <option value="">Not sure yet</option>
-                  <option value="hospice">Under hospice care</option>
-                  <option value="hospital">Hospital</option>
-                  <option value="home_expected">Home, expected</option>
-                  <option value="facility">Nursing home or care facility</option>
-                  <option value="unexpected">Unexpected / emergency</option>
-                </select>
-              </div>
+              <div className="context-help">Only answer what helps the current step. Later details can wait.</div>
               <div className="field compact">
                 <label>Official pronouncement</label>
                 <select value={context.pronouncementStatus} onChange={e => updateContext('pronouncementStatus', e.target.value)}>
@@ -486,27 +734,6 @@ export default function UrgentPage() {
                 <input value={context.funeralHomeName} onChange={e => updateContext('funeralHomeName', e.target.value)} placeholder="Name, if known" />
               </div>
               <div className="field compact">
-                <label>Cemetery / burial place</label>
-                <input value={context.cemeteryName} onChange={e => updateContext('cemeteryName', e.target.value)} placeholder="Name, if known" />
-              </div>
-              <div className="field compact">
-                <label>Faith tradition</label>
-                <select value={context.faithTradition} onChange={e => updateContext('faithTradition', e.target.value)}>
-                  <option value="">No specific tradition / not sure</option>
-                  <option value="Jewish">Jewish</option>
-                  <option value="Catholic">Catholic</option>
-                  <option value="Christian / Protestant">Christian / Protestant</option>
-                  <option value="Muslim">Muslim</option>
-                  <option value="Hindu">Hindu</option>
-                  <option value="Buddhist">Buddhist</option>
-                  <option value="Other">Other / custom</option>
-                </select>
-              </div>
-              <div className="field compact">
-                <label>Clergy / officiant</label>
-                <input value={context.clergyName} onChange={e => updateContext('clergyName', e.target.value)} placeholder="Name or community" />
-              </div>
-              <div className="field compact">
                 <label>Healthcare proxy / decision-maker</label>
                 <input value={context.authorityName} onChange={e => updateContext('authorityName', e.target.value)} placeholder="Name, if known" />
               </div>
@@ -514,10 +741,36 @@ export default function UrgentPage() {
                 <label>Hospital / hospice / doctor</label>
                 <input value={context.hospitalOrHospiceContact} onChange={e => updateContext('hospitalOrHospiceContact', e.target.value)} placeholder="Contact or facility" />
               </div>
-              <div className="field compact" style={{ gridColumn: '1 / -1' }}>
-                <label>Medical records / documents location</label>
-                <input value={context.medicalRecordsLocation} onChange={e => updateContext('medicalRecordsLocation', e.target.value)} placeholder="Where records, proxy, advance directive, medication list, insurance cards may be found" />
-              </div>
+              <details className="later-details">
+                <summary>Details for later if you already know them</summary>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 10, marginTop: 10 }}>
+                  <div className="field compact">
+                    <label>Cemetery / burial place</label>
+                    <input value={context.cemeteryName} onChange={e => updateContext('cemeteryName', e.target.value)} placeholder="Name, if known" />
+                  </div>
+                  <div className="field compact">
+                    <label>Faith tradition</label>
+                    <select value={context.faithTradition} onChange={e => updateContext('faithTradition', e.target.value)}>
+                      <option value="">No specific tradition / not sure</option>
+                      <option value="Jewish">Jewish</option>
+                      <option value="Catholic">Catholic</option>
+                      <option value="Christian / Protestant">Christian / Protestant</option>
+                      <option value="Muslim">Muslim</option>
+                      <option value="Hindu">Hindu</option>
+                      <option value="Buddhist">Buddhist</option>
+                      <option value="Other">Other / custom</option>
+                    </select>
+                  </div>
+                  <div className="field compact">
+                    <label>Clergy / officiant</label>
+                    <input value={context.clergyName} onChange={e => updateContext('clergyName', e.target.value)} placeholder="Name or community" />
+                  </div>
+                  <div className="field compact">
+                    <label>Medical records / documents location</label>
+                    <input value={context.medicalRecordsLocation} onChange={e => updateContext('medicalRecordsLocation', e.target.value)} placeholder="Records, proxy, medication list, insurance cards" />
+                  </div>
+                </div>
+              </details>
             </div>
             <div className="phase">{primary.phase}</div>
             <h2>{primary.title}</h2>
@@ -560,7 +813,7 @@ export default function UrgentPage() {
             </div>
             <div className="next">
               <h3>This can wait</h3>
-              {nextItems.map((item, index) => (
+              {nextItems.slice(0, 1).map((item, index) => (
                 <div className="next-item" key={item.id}>
                   <div className="dot">{index + 1}</div>
                   <div>

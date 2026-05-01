@@ -2467,6 +2467,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   const [healthcareProxyName, setHealthcareProxyName] = useState("");
   const [healthcareProxyEmail, setHealthcareProxyEmail] = useState("");
   const [healthcareProxyPhone, setHealthcareProxyPhone] = useState("");
+  const [proxyConversationStatus, setProxyConversationStatus] = useState("");
   const [faithTradition, setFaithTradition] = useState("");
   const [clergyName, setClergyName] = useState("");
   const [cemeteryName, setCemeteryName] = useState("");
@@ -2487,13 +2488,14 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     const triggerPeople = Array.from(new Set([primaryEmail, backupEmail].filter(Boolean)));
     const planningContext = {
       healthcare_proxy: { name: healthcareProxyName, email: healthcareProxyEmail, phone: healthcareProxyPhone },
+      proxy_conversation_status: proxyConversationStatus,
       faith_tradition: faithTradition,
       clergy_or_officiant: clergyName,
       cemetery_or_burial_place: cemeteryName,
       document_location: documentLocation,
       medical_records_location: medicalRecordsLocation,
     };
-    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, healthcare_proxy_name: healthcareProxyName, faith_tradition: faithTradition, clergy_name: clergyName, cemetery_name: cemeteryName, document_location: documentLocation, medical_records_location: medicalRecordsLocation, timestamp: new Date().toISOString() });
+    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, healthcare_proxy_name: healthcareProxyName, proxy_conversation_status: proxyConversationStatus, faith_tradition: faithTradition, clergy_name: clergyName, cemetery_name: cemeteryName, document_location: documentLocation, medical_records_location: medicalRecordsLocation, timestamp: new Date().toISOString() });
     let createdWorkflowId = null;
     if (user?.id) {
       const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -2596,13 +2598,28 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       <Sub>A document helps. A conversation helps more. Add what you know now so your family is not guessing later.</Sub>
       <div style={{ height: 14 }} />
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "14px 16px", marginBottom: 14, fontSize: 12.5, color: C.mid, lineHeight: 1.65 }}>
-        <strong style={{ color: C.ink }}>Healthcare proxy matters.</strong> If one is not named, hospitals may have to follow surrogate rules. Naming the person and where the document lives prevents conflict.
+        <strong style={{ color: C.ink }}>This may be the most important part of planning ahead.</strong> If you cannot speak for yourself, this is the person doctors and your family look to first. Without this, your family may have to guess or disagree during a crisis.
       </div>
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 12 }}>
         <div style={{ fontSize: 11.5, fontWeight: 800, color: C.sage, marginBottom: 8 }}>Healthcare proxy or medical decision-maker</div>
         <Field label="Name" placeholder="e.g. Sarah Collins" value={healthcareProxyName} onChange={setHealthcareProxyName} />
         <Field label="Email (optional)" type="email" placeholder="sarah@email.com" value={healthcareProxyEmail} onChange={setHealthcareProxyEmail} />
         <Field label="Phone (optional)" placeholder="+12297027753" value={healthcareProxyPhone} onChange={setHealthcareProxyPhone} />
+        <div style={{ fontSize: 11.5, fontWeight: 800, color: C.sage, margin: "8px 0" }}>Have you told this person what you want?</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 8 }}>
+          {[
+            ["yes", "Yes"],
+            ["not_yet", "Not yet"],
+            ["need_help", "I need help doing that"],
+          ].map(([value, label]) => (
+            <button key={value} type="button" onClick={() => setProxyConversationStatus(value)} style={{ border: `1px solid ${proxyConversationStatus === value ? C.sage : C.border}`, background: proxyConversationStatus === value ? C.sageFaint : C.bgCard, color: proxyConversationStatus === value ? C.sage : C.mid, borderRadius: 999, padding: "9px 10px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>{label}</button>
+          ))}
+        </div>
+        {proxyConversationStatus && proxyConversationStatus !== "yes" && (
+          <div style={{ marginTop: 10, color: C.mid, fontSize: 12.5, lineHeight: 1.5 }}>
+            Passage will keep this visible. The goal is not to finish everything now; it is to make the hardest conversation easier to start.
+          </div>
+        )}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
         <Select label="Faith tradition, if any" value={faithTradition} onChange={setFaithTradition} options={[["","None / not sure"],["Jewish","Jewish"],["Catholic","Catholic"],["Christian / Protestant","Christian / Protestant"],["Muslim","Muslim"],["Hindu","Hindu"],["Buddhist","Buddhist"],["Other","Other / custom"]]} />

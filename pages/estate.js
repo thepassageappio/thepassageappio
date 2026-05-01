@@ -751,12 +751,12 @@ function FuneralHomePrepGenerator({ estate, estateId, name, coordinatorName, ser
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Meeting readiness</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>Prepare for funeral home meeting</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Generate a clean one-pager with what most funeral homes need to get started. You can fill in anything missing later.</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Bring this with you or send it ahead. It includes the details most funeral homes ask for first, and you can fill in anything missing later.</div>
         </div>
         <button onClick={function() { setOpen(!open); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>{open ? 'Close' : 'Prepare'}</button>
       </div>
       <div className="no-print" style={{ background: generated ? SAGE_FAINT : SUBTLE, border: '1px solid ' + (generated ? SAGE_LIGHT : BORDER), borderRadius: 12, padding: '11px 12px', marginBottom: open ? 12 : 0, color: generated ? SAGE : MID, fontSize: 12.5, lineHeight: 1.55, fontWeight: generated ? 800 : 400 }}>
-        {generated ? 'You have everything most funeral homes need to get started.' : 'Partial data is okay. This is meant to help you walk in prepared, not make you hunt for every detail tonight.'}
+        {generated ? 'You have everything most funeral homes need to get started.' : "When you are about to speak with a funeral home, this helps you feel prepared instead of hunting for details under pressure."}
       </div>
       {open && (
         <div>
