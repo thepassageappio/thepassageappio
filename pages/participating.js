@@ -180,7 +180,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
             {actionSet(kind).map(([action, label]) => (
               <button key={action} onClick={() => onAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>
             ))}
-            <button onClick={() => onAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Ask for help</button>
+            <button onClick={() => onAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I need help</button>
             <button onClick={() => onAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I can't handle this</button>
           </div>
         </>
@@ -240,7 +240,7 @@ export default function ParticipatingPage() {
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify({ kind, id, action, notes: notesByItem[kind + ':' + id] || '' }),
     });
-    setActionNotice(r.ok ? actionConfirmation(action) : 'Passage could not save that update. Please try again.');
+    setActionNotice(r.ok ? actionConfirmation(action) + ' Passage is tracking this for the coordinator.' : 'Passage could not save that update. Please try again.');
     await load(token);
   }
 

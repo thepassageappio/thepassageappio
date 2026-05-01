@@ -2507,7 +2507,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     <Card key={0} maxWidth={820}>
       <Eyebrow text="Plan ahead" />
       <Heading size={28}>Leave your family one calm place to start.</Heading>
-      <Sub>Build the estate command center before it is needed: people, wishes, documents, and the trusted contacts who can activate it later.</Sub>
+      <Sub>This will make things easier for your family later. Build the estate command center before it is needed: people, wishes, documents, and the trusted contacts who can activate it later.</Sub>
       <div style={{ height: 14 }} />
       {[
         { value: "self", icon: "1", title: "Myself", desc: "Set up my own plan so my family has what they need." },
@@ -2562,7 +2562,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
 
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
         <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 4 }}>👤 Second Confirmer</div>
-        <div style={{ fontSize: 12, color: C.mid, marginBottom: 10, lineHeight: 1.5 }}>The second person who confirms your passing. Can be the same as executor or someone different. You can add them now or later.</div>
+        <div style={{ fontSize: 12, color: C.mid, marginBottom: 10, lineHeight: 1.5 }}>The second person who confirms your passing. You can add them now or later, but adding them here helps your family avoid guessing later.</div>
         <Field label="Full name (optional)" placeholder="e.g. Michael Collins" value={secondConfirmerName} onChange={setSecondConfirmerName} />
         <Field label="Email (optional)" type="email" placeholder="michael@email.com" value={secondConfirmerEmail} onChange={setSecondConfirmerEmail} hint="If you add this now, Passage saves them as the second confirmation contact." />
       </div>

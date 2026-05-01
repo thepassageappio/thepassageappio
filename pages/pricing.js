@@ -94,8 +94,8 @@ export default function PricingPage() {
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.5, margin: 0 }}>Start with one trial estate. Upgrade when you are ready for full orchestration.</p>
           </div>
           <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}45`, borderRadius: 22, padding: 18, boxShadow: '0 18px 48px rgba(80,45,45,.08)' }}>
-            <div style={{ fontSize: 11, color: C.rose, textTransform: 'uppercase', letterSpacing: '.16em', fontWeight: 900, marginBottom: 7 }}>Someone just passed</div>
-            <div style={{ fontSize: 'clamp(30px, 3.6vw, 42px)', lineHeight: 1.02, marginBottom: 8 }}>Get help now.</div>
+            <div style={{ fontSize: 12, color: C.rose, textTransform: 'uppercase', letterSpacing: '.18em', fontWeight: 900, marginBottom: 7 }}>Someone just passed</div>
+            <div style={{ fontSize: 'clamp(34px, 4vw, 48px)', lineHeight: 1, marginBottom: 8 }}>Get immediate help now.</div>
             <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.45, marginBottom: 13 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
             <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 14, padding: '15px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 17 }}>
               {busy === 'urgent' ? 'Opening checkout...' : 'Get help now -> $79'}

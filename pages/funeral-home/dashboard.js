@@ -81,7 +81,12 @@ export default function FuneralHomeDashboard() {
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) setError(json.error || 'Could not update this task.');
-    else await load(token);
+    else {
+      setNotice(status === 'blocked'
+        ? 'Family information requested. This stays visible until it is resolved.'
+        : 'Started on behalf of the family. Passage is tracking this so your staff does not have to chase it manually.');
+      await load(token);
+    }
     setUpdating('');
   }
 
@@ -99,7 +104,10 @@ export default function FuneralHomeDashboard() {
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) setError(json.error || 'Could not handle this for the family.');
-    else await load(token);
+    else {
+      setNotice('Handled for the family. Passage recorded the actor, time, and family notification.');
+      await load(token);
+    }
     setUpdating('');
   }
 
@@ -457,7 +465,7 @@ export default function FuneralHomeDashboard() {
                       </div>
                       {task.playbook?.funeralHomeEligible && !['handled', 'completed'].includes(task.status || '') && (
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
-                          <button disabled={updating === task.id + 'waiting'} onClick={() => updateTask(task, 'waiting', `${org?.name || 'Funeral home'} is working on ${task.title}. Waiting for confirmation.`)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Send on behalf of family</button>
+                          <button disabled={updating === task.id + 'waiting'} onClick={() => updateTask(task, 'waiting', `${org?.name || 'Funeral home'} is working on ${task.title}. Waiting for confirmation.`)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start on behalf of family</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => updateTask(task, 'blocked', `${org?.name || 'Funeral home'} needs family information for ${task.title}.`)} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Need family info</button>
                           <button disabled={updating === task.id + 'handle_for_family'} onClick={() => handleForFamily(task, item)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Handle this for family'}</button>
                         </div>

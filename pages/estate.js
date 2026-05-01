@@ -479,7 +479,7 @@ function OutcomeCard({ outcome, estateId, expanded, showAssign, onToggle, onMark
             )}
             {outcome.status === 'handled' && (
               <div style={{ padding: '12px', borderRadius: 10, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, fontSize: 14, fontWeight: 800, color: SAGE, textAlign: 'center', lineHeight: 1.45 }}>
-                That's taken care of.<br />You're all set here.
+                That's taken care of.<br />You're all set here.<br /><span style={{ fontSize: 12.5, fontWeight: 700 }}>We're tracking this for you. You don't need to follow up.</span>
               </div>
             )}
             {showAssign && <InlineAssign onSave={onAssignSave} onClose={onAssignClose} />}
@@ -1133,6 +1133,11 @@ function ProofPanel({ actions, tasks, events }) {
           {review > 0 ? 'Something needs attention. Edit the recipient, retry the message, or mark the task handled only after confirming outside Passage.' : 'Waiting for confirmation. If no one responds, send a reminder or call directly and record the outcome.'}
         </div>
       )}
+      {rows.length > 0 && (
+        <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '10px 12px', fontSize: 12.5, color: SAGE, lineHeight: 1.5, fontWeight: 800, marginBottom: 10 }}>
+          We're tracking this for you. You don't need to follow up unless Passage shows something needs attention.
+        </div>
+      )}
       {rows.length === 0 ? (
         <div style={{ background: SUBTLE, borderRadius: 12, padding: '12px 13px', fontSize: 13, color: MID, lineHeight: 1.55 }}>
           Nothing has been sent or handled yet. Start with one task, then Passage will record the outcome here.
@@ -1266,7 +1271,7 @@ export default function EstatePage() {
     });
     setExpanded(-1);
     setShowAssign(-1);
-    if (updates.status === 'handled') showToast("That's taken care of. You're all set here.");
+    if (updates.status === 'handled') showToast("That's taken care of. Passage is tracking it for you.");
     else if (updates.status === 'in_progress') showToast('Marked as in progress');
     else if (updates.owner_label) showToast('Assigned to ' + updates.owner_label);
   }
