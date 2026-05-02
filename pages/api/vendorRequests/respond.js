@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { recordStatusEvent } from '../../../lib/taskStatus';
 import { vendorCategoryLabel } from '../../../lib/vendors';
+import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -34,28 +35,44 @@ export default async function handler(req, res) {
   const token = String(req.query.token || req.body?.token || '');
   const status = String(req.query.status || req.body?.status || '').toLowerCase();
   if (!token) return res.status(400).send('Missing request token.');
-  if (!['accepted', 'declined', 'completed'].includes(status)) return res.status(400).send('Invalid request status.');
+  if (!['accepted', 'in_progress', 'declined', 'completed'].includes(status)) return res.status(400).send('Invalid request status.');
 
   const { data: request, error } = await admin
     .from('vendor_requests')
-    .select('id,workflow_id,task_id,task_title,status,responded_at,vendor_id,vendors(business_name,category)')
+    .select('id,workflow_id,task_id,task_title,status,responded_at,in_progress_at,vendor_id,organization_id,marketplace_fee_percent,funeral_home_rev_share_percent,vendors(business_name,category)')
     .eq('response_token', token)
     .maybeSingle();
   if (error) return res.status(500).send(error.message);
   if (!request) return res.status(404).send('Request not found.');
 
   const now = new Date().toISOString();
-  await admin.from('vendor_requests').update({
+  const finalValue = Number(req.query.finalValue || req.body?.finalValue || 0);
+  const economics = calculateVendorEconomics({
+    value: finalValue,
+    marketplaceFeePercent: request.marketplace_fee_percent,
+    funeralHomeSharePercent: request.funeral_home_rev_share_percent || 6,
+    hasFuneralHome: !!request.organization_id,
+  });
+  const update = {
     status,
     responded_at: status === 'accepted' || status === 'declined' ? now : request.responded_at || now,
+    in_progress_at: status === 'in_progress' ? now : request.in_progress_at,
     completed_at: status === 'completed' ? now : null,
+    final_value: finalValue > 0 ? finalValue : null,
+    platform_fee_amount: economics.platformFeeAmount,
+    funeral_home_share_amount: economics.funeralHomeShareAmount,
+    passage_share_amount: economics.passageShareAmount,
+    payment_collection_status: status === 'completed' && finalValue > 0 ? 'passage_collects' : 'tracking_only',
     updated_at: now,
-  }).eq('id', request.id);
+  };
+  await admin.from('vendor_requests').update(update).eq('id', request.id);
 
   const vendorName = request.vendors?.business_name || 'Vendor';
   const category = vendorCategoryLabel(request.vendors?.category);
   const title = status === 'accepted'
     ? `${vendorName} accepted`
+    : status === 'in_progress'
+      ? `${vendorName} started work`
     : status === 'completed'
       ? `${vendorName} completed request`
       : `${vendorName} declined`;
@@ -70,7 +87,7 @@ export default async function handler(req, res) {
   await recordStatusEvent({
     workflowId: request.workflow_id,
     taskId: request.task_id,
-    status: status === 'completed' ? 'handled' : status === 'accepted' ? 'acknowledged' : 'blocked',
+    status: status === 'completed' ? 'handled' : status === 'accepted' || status === 'in_progress' ? 'acknowledged' : 'blocked',
     actor: vendorName,
     channel: 'vendor',
     recipient: vendorName,

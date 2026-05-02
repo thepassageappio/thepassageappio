@@ -59,10 +59,10 @@ export default async function handler(req, res) {
     admin.from('tasks').select('title,status,assigned_to_name,assigned_to_email,last_action_at,last_actor,channel,recipient,notes,proof_required,waiting_on').eq('workflow_id', estateId).order('created_at', { ascending: true }),
     admin.from('people').select('name,email,phone,role,relationship,status').eq('estate_id', estateId).order('created_at', { ascending: true }),
     admin.from('notification_log').select('channel,recipient_name,recipient_email,recipient_phone,subject,status,sent_at,delivered_at,error_message').eq('workflow_id', estateId).order('created_at', { ascending: false }),
-    admin.from('vendor_requests').select('task_title,status,urgency,requested_at,responded_at,completed_at,estimated_value,final_value,vendors(business_name,contact_email,contact_phone,category)').eq('workflow_id', estateId).order('requested_at', { ascending: false }),
+    admin.from('vendor_requests').select('task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,platform_fee_amount,funeral_home_share_amount,passage_share_amount,payment_collection_status,vendors(business_name,contact_email,contact_phone,category)').eq('workflow_id', estateId).order('requested_at', { ascending: false }),
   ]);
 
-  const headers = ['Estate', 'Record type', 'Family contact', 'Family email', 'Family phone', 'Task', 'Assigned participant', 'Participant email', 'Status', 'Waiting on', 'Proof needed', 'Last action at', 'Last actor', 'Channel', 'Recipient', 'Message subject', 'Message sent at', 'Message delivered at', 'Message error', 'Estimated value', 'Final value', 'Notes'];
+  const headers = ['Estate', 'Record type', 'Family contact', 'Family email', 'Family phone', 'Task', 'Assigned participant', 'Participant email', 'Status', 'Waiting on', 'Proof needed', 'Last action at', 'Last actor', 'Channel', 'Recipient', 'Message subject', 'Message sent at', 'Vendor viewed at', 'Message delivered at', 'Vendor in progress at', 'Vendor completed at', 'Message error', 'Estimated value', 'Final value', 'Platform fee', 'Funeral home share', 'Passage share', 'Payment status', 'Notes'];
   const lines = [headers.map(csvCell).join(',')];
 
   for (const task of tasks || []) {
@@ -82,6 +82,13 @@ export default async function handler(req, res) {
       task.last_actor,
       task.channel,
       task.recipient,
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
       '',
       '',
       '',
@@ -115,6 +122,13 @@ export default async function handler(req, res) {
       '',
       '',
       '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
       `${person.role || ''} ${person.relationship || ''}`.trim(),
     ].map(csvCell).join(','));
   }
@@ -138,8 +152,16 @@ export default async function handler(req, res) {
       message.recipient_name || message.recipient_email || message.recipient_phone,
       message.subject,
       message.sent_at,
+      '',
       message.delivered_at,
+      '',
+      '',
       message.error_message,
+      '',
+      '',
+      '',
+      '',
+      '',
       '',
       '',
       '',
@@ -165,10 +187,17 @@ export default async function handler(req, res) {
       request.vendors?.business_name || request.vendors?.contact_email || request.vendors?.contact_phone,
       request.urgency === 'rush' ? 'Rush local support request' : 'Planned local support request',
       request.requested_at,
+      request.viewed_at,
       request.responded_at || request.completed_at,
+      request.in_progress_at,
+      request.completed_at,
       '',
       request.estimated_value,
       request.final_value,
+      request.platform_fee_amount,
+      request.funeral_home_share_amount,
+      request.passage_share_amount,
+      request.payment_collection_status,
       request.vendors?.category,
     ].map(csvCell).join(','));
   }

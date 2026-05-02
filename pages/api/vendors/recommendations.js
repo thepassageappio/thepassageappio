@@ -47,7 +47,7 @@ export default async function handler(req, res) {
 
   const { data: preferredRows } = workflow.organization_id ? await admin
     .from('funeral_home_preferred_vendors')
-    .select('vendor_id, vendors(id,business_name,category,short_description,zip_codes_served,rush_supported,rush_window_hours,planned_supported,contact_email,contact_phone,website,status,marketplace_fee_percent,passage_rev_share_percent,funeral_home_rev_share_percent,estimated_value,estimated_transaction_value)')
+      .select('vendor_id, vendors(id,business_name,category,short_description,zip_codes_served,rush_supported,rush_window_hours,planned_supported,contact_email,contact_phone,website,status,marketplace_fee_percent,passage_rev_share_percent,funeral_home_rev_share_percent,estimated_value,estimated_transaction_value,family_review_snippet,review_count,average_rating,recently_helped_count)')
     .eq('organization_id', workflow.organization_id)
     .eq('category', category)
     .eq('active', true)
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
   if (vendors.length < 2) {
     const exclude = vendors.map((v) => v.id);
     let query = admin.from('vendors')
-      .select('id,business_name,category,short_description,zip_codes_served,rush_supported,rush_window_hours,planned_supported,contact_email,contact_phone,website,status,marketplace_fee_percent,passage_rev_share_percent,funeral_home_rev_share_percent,estimated_value,estimated_transaction_value')
+      .select('id,business_name,category,short_description,zip_codes_served,rush_supported,rush_window_hours,planned_supported,contact_email,contact_phone,website,status,marketplace_fee_percent,passage_rev_share_percent,funeral_home_rev_share_percent,estimated_value,estimated_transaction_value,family_review_snippet,review_count,average_rating,recently_helped_count')
       .eq('category', category)
       .eq('status', 'active')
       .order('rush_supported', { ascending: false })
@@ -72,5 +72,21 @@ export default async function handler(req, res) {
     vendors = vendors.concat((data || []).map((vendor) => ({ ...vendor, preferred_by_funeral_home: false }))).slice(0, 2);
   }
 
-  return res.status(200).json({ vendors, category });
+  const { data: requestRows } = await admin
+    .from('vendor_requests')
+    .select('id,vendor_id,task_id,task_title,status,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,payment_collection_status,vendors(business_name,category)')
+    .eq('workflow_id', workflowId)
+    .order('requested_at', { ascending: false })
+    .limit(12);
+  const requests = (requestRows || [])
+    .filter((request) => {
+      const requestCategory = request.vendors?.category;
+      if (requestCategory && requestCategory !== category) return false;
+      if (task?.id && request.task_id) return request.task_id === task.id;
+      if (taskTitleParam && request.task_title) return request.task_title.toLowerCase() === taskTitleParam.toLowerCase();
+      return true;
+    })
+    .slice(0, 3);
+
+  return res.status(200).json({ vendors, category, requests });
 }

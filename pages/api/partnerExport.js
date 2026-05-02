@@ -49,7 +49,7 @@ async function getPartnerData(token) {
         .order('created_at', { ascending: false }),
       admin
         .from('vendor_requests')
-        .select('workflow_id,task_title,status,urgency,requested_at,responded_at,completed_at,estimated_value,final_value,vendors(business_name,contact_email,contact_phone,category)')
+        .select('workflow_id,task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,platform_fee_amount,funeral_home_share_amount,passage_share_amount,payment_collection_status,vendors(business_name,contact_email,contact_phone,category)')
         .in('workflow_id', workflowIds)
         .order('requested_at', { ascending: false }),
     ])
@@ -96,10 +96,17 @@ function buildCsv(rows) {
     'Recipient',
     'Message subject',
     'Message sent at',
+    'Vendor viewed at',
     'Message delivered at',
+    'Vendor in progress at',
+    'Vendor completed at',
     'Message error',
     'Estimated value',
     'Final value',
+    'Platform fee',
+    'Funeral home share',
+    'Passage share',
+    'Payment status',
   ];
   const lines = [header.map(csvCell).join(',')];
   for (const { workflow, task, communication, vendorRequest } of rows) {
@@ -122,10 +129,17 @@ function buildCsv(rows) {
       vendorRequest?.vendors?.business_name || vendorRequest?.vendors?.contact_email || vendorRequest?.vendors?.contact_phone || communication?.recipient_name || communication?.recipient_email || communication?.recipient_phone || task?.recipient || task?.assigned_to_name || task?.assigned_to_email,
       vendorRequest ? vendorRequest.task_title : communication?.subject,
       vendorRequest?.requested_at || communication?.sent_at,
+      vendorRequest?.viewed_at,
       vendorRequest?.responded_at || vendorRequest?.completed_at || communication?.delivered_at,
+      vendorRequest?.in_progress_at,
+      vendorRequest?.completed_at,
       communication?.error_message,
       vendorRequest?.estimated_value,
       vendorRequest?.final_value,
+      vendorRequest?.platform_fee_amount,
+      vendorRequest?.funeral_home_share_amount,
+      vendorRequest?.passage_share_amount,
+      vendorRequest?.payment_collection_status,
     ].map(csvCell).join(','));
   }
   return lines.join('\n');

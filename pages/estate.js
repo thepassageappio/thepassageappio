@@ -1309,17 +1309,17 @@ export default function EstatePage() {
     if (!estateId) { setLoading(false); return; }
     sb.auth.getSession().then(function(r) {
       if (r.data && r.data.session) setUser(r.data.session.user);
-    });
-    Promise.all([
-      sb.from('workflows').select('*').eq('id', estateId).single(),
-      sb.from('outcomes').select('*').eq('estate_id', estateId).order('position'),
-      sb.from('tasks').select('*').eq('workflow_id', estateId).order('position'),
-      sb.from('estate_events').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(8),
-      sb.from('workflow_events').select('*').eq('workflow_id', estateId).order('date', { ascending: true }),
-      sb.from('people').select('*').eq('estate_id', estateId).order('created_at', { ascending: true }),
-      sb.from('workflow_actions').select('*').eq('workflow_id', estateId).order('sort_order', { ascending: true }),
-      sb.from('announcements').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(10),
-    ]).then(function(results) {
+      return Promise.all([
+        sb.from('workflows').select('*').eq('id', estateId).single(),
+        sb.from('outcomes').select('*').eq('estate_id', estateId).order('position'),
+        sb.from('tasks').select('*').eq('workflow_id', estateId).order('position'),
+        sb.from('estate_events').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(8),
+        sb.from('workflow_events').select('*').eq('workflow_id', estateId).order('date', { ascending: true }),
+        sb.from('people').select('*').eq('estate_id', estateId).order('created_at', { ascending: true }),
+        sb.from('workflow_actions').select('*').eq('workflow_id', estateId).order('sort_order', { ascending: true }),
+        sb.from('announcements').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(10),
+      ]);
+    }).then(function(results) {
       if (results[0].data) setEstate(results[0].data);
       if (results[1].data) setOutcomes(results[1].data);
       if (results[2].data) setTasks(results[2].data);
@@ -1331,6 +1331,8 @@ export default function EstatePage() {
       setLoading(false);
       // Update last viewed
       sb.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', estateId).then(function() {});
+    }).catch(function() {
+      setLoading(false);
     });
   }, [estateId]);
 

@@ -45,7 +45,7 @@ export default function VendorOnboard() {
             <h1 style={{ fontSize: 'clamp(36px, 6vw, 72px)', lineHeight: 1.03, margin: 0, fontWeight: 400 }}>Help families at the moment your work matters most.</h1>
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.7, marginTop: 16 }}>Passage only suggests partners inside the task where they can help. No directory, no bidding wall, no hard sell.</p>
             <div style={{ display: 'grid', gap: 9, marginTop: 20 }}>
-              {['Families see your help only when it fits the next step.', 'Rush and planned availability are shown clearly.', 'Funeral homes can choose preferred local partners.'].map((item) => (
+              {['Families see your help only when it fits the next step.', 'You receive a request by email and update it from a private Passage link.', 'Passage tracks the booking value so future payments and funeral-home partner share can stay inside the system.', 'Funeral homes can choose preferred local partners.'].map((item) => (
                 <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', color: C.mid, lineHeight: 1.5 }}>{item}</div>
               ))}
             </div>

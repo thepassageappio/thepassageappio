@@ -24,18 +24,22 @@ async function userCanAccessWorkflow(user, workflow) {
 async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
   if (!process.env.RESEND_API_KEY || !vendor.contact_email) return false;
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
+  const portalUrl = `${BASE_URL}/vendors/request?token=${request.response_token}`;
   const acceptUrl = `${BASE_URL}/api/vendorRequests/respond?token=${request.response_token}&status=accepted`;
   const declineUrl = `${BASE_URL}/api/vendorRequests/respond?token=${request.response_token}&status=declined`;
+  const completeUrl = `${BASE_URL}/api/vendorRequests/respond?token=${request.response_token}&status=completed`;
   const html = `
     <div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px">
       <div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e4ddd4;border-radius:16px;padding:24px">
         <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800">Passage request</div>
         <h1 style="font-weight:400;color:#1a1916;font-size:25px;line-height:1.25">A family asked for help with ${taskTitle || vendorCategoryLabel(vendor.category)}.</h1>
-        <p style="color:#6a6560;line-height:1.6">This request came through Passage so the family and any connected funeral home can see what is waiting and what is handled.</p>
+        <p style="color:#6a6560;line-height:1.6">This request came through Passage so the family and any connected funeral home can see what is waiting, what you accepted, and what is handled. Open the request to share a quote or mark progress.</p>
         <p style="color:#1a1916;line-height:1.6"><strong>Family case:</strong> ${workflow.deceased_name || workflow.estate_name || workflow.name || 'Family case'}<br/><strong>Task:</strong> ${taskTitle || vendorCategoryLabel(vendor.category)}<br/><strong>Urgency:</strong> ${request.urgency === 'rush' ? 'Rush' : 'Planned'}</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
-          <a href="${acceptUrl}" style="background:#6b8f71;color:white;text-decoration:none;border-radius:10px;padding:11px 14px;font-weight:800">Accept request</a>
+          <a href="${portalUrl}" style="background:#6b8f71;color:white;text-decoration:none;border-radius:10px;padding:11px 14px;font-weight:800">Open request</a>
+          <a href="${acceptUrl}" style="background:#f0f5f1;color:#6b8f71;text-decoration:none;border:1px solid #c8deca;border-radius:10px;padding:10px 14px;font-weight:800">Accept</a>
           <a href="${declineUrl}" style="background:#fff;color:#6a6560;text-decoration:none;border:1px solid #e4ddd4;border-radius:10px;padding:10px 14px;font-weight:800">Decline</a>
+          <a href="${completeUrl}" style="background:#fff;color:#6a6560;text-decoration:none;border:1px solid #e4ddd4;border-radius:10px;padding:10px 14px;font-weight:800">Mark completed</a>
         </div>
       </div>
     </div>`;
@@ -74,6 +78,9 @@ export default async function handler(req, res) {
   const resolvedTaskTitle = task?.title || String(taskTitle || vendorCategoryLabel(vendor.category));
   const category = categoryForTask(task || resolvedTaskTitle);
   if (category && category !== vendor.category) return res.status(400).json({ error: 'This vendor does not match this task.' });
+  const marketplaceFeePercent = Number(vendor.marketplace_fee_percent ?? 18);
+  const funeralHomeSharePercent = workflow.organization_id ? Number(vendor.funeral_home_rev_share_percent || 6) : 0;
+  const passageSharePercent = Math.max(marketplaceFeePercent - funeralHomeSharePercent, 0);
 
   const { data: request, error } = await admin.from('vendor_requests').insert([{
     vendor_id: vendor.id,
@@ -87,11 +94,12 @@ export default async function handler(req, res) {
     status: 'requested',
     urgency: urgency === 'rush' ? 'rush' : 'planned',
     referral_source: workflow.organization_id ? 'funeral_home' : 'passage',
-    marketplace_fee_percent: vendor.marketplace_fee_percent,
-    passage_rev_share_percent: vendor.passage_rev_share_percent,
-    funeral_home_rev_share_percent: vendor.funeral_home_rev_share_percent,
+    marketplace_fee_percent: marketplaceFeePercent,
+    passage_rev_share_percent: passageSharePercent,
+    funeral_home_rev_share_percent: funeralHomeSharePercent,
     estimated_value: vendor.estimated_value || vendor.estimated_transaction_value || null,
     estimated_transaction_value: vendor.estimated_transaction_value,
+    payment_collection_status: 'quote_needed',
   }]).select('*').single();
   if (error) return res.status(500).json({ error: error.message });
 
@@ -113,5 +121,5 @@ export default async function handler(req, res) {
     recipient: vendor.business_name,
     detail,
   });
-  return res.status(200).json({ success: true, request });
+  return res.status(200).json({ success: true, request: { ...request, vendors: { business_name: vendor.business_name, category: vendor.category } } });
 }

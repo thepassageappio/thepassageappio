@@ -71,7 +71,7 @@ export default async function handler(req, res) {
 
     const { data: vendorRequestData } = await admin
       .from('vendor_requests')
-      .select('id,workflow_id,task_id,task_title,status,urgency,requested_at,responded_at,completed_at,vendors(business_name,category,contact_email,contact_phone)')
+      .select('id,workflow_id,task_id,task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,platform_fee_amount,funeral_home_share_amount,passage_share_amount,payment_collection_status,vendors(business_name,category,contact_email,contact_phone)')
       .in('workflow_id', workflowIds)
       .order('requested_at', { ascending: false })
       .limit(120);

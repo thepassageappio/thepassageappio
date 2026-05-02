@@ -14,6 +14,16 @@ function statusLabel(value) {
   return 'Draft';
 }
 
+function vendorRequestLabel(value) {
+  if (value === 'completed') return 'Completed';
+  if (value === 'in_progress') return 'In progress';
+  if (value === 'accepted') return 'Accepted';
+  if (value === 'declined') return 'Declined';
+  return 'Waiting for response';
+}
+
+const miniPill = { background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 };
+
 export default function FuneralHomeDashboard() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState('');
@@ -299,14 +309,19 @@ export default function FuneralHomeDashboard() {
   const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed'].includes(t.status || '')).length, 0);
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
   const totalVendorRequests = cases.reduce((sum, item) => sum + (item.vendorRequests?.length || 0), 0);
+  const totalVendorValue = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.final_value || request.estimated_value || 0), 0), 0);
+  const funeralHomeShare = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.funeral_home_share_amount || 0), 0), 0);
   const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to || t.owner_name || t.participant_id).length, 0);
   const callsAvoided = totalCommunications + assignmentsCoordinated + totalVendorRequests;
+  const timeSavedMinutes = callsAvoided * 8;
   const glanceItems = [
     ['Active cases', cases.length],
-    ['Tasks handled by Passage', totalHandled],
+    ['Calls potentially avoided', callsAvoided],
+    ['Tasks handled', totalHandled],
     ['Waiting for response', totalWaiting],
-    ['Local help requests', totalVendorRequests],
-    ['Estimated calls avoided', callsAvoided],
+    ['Coordination time saved', `${Math.max(0, Math.round(timeSavedMinutes / 60 * 10) / 10)}h`],
+    ['Local requests coordinated', totalVendorRequests],
+    ['Tracked referral value', totalVendorValue ? `$${Math.round(totalVendorValue)}` : '$0'],
   ];
 
   return (
@@ -323,8 +338,8 @@ export default function FuneralHomeDashboard() {
             {user && <button onClick={() => setShowNewCase(v => !v)} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New family case</button>}
             {user && <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Import CSV</button>}
             {user && <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none' }}>Template</a>}
-            {user && cases.length > 0 && <button onClick={downloadExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Export my data</button>}
-            {user && cases.length > 0 && <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email data'}</button>}
+            {user && cases.length > 0 && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Download for your system</button>}
+            {user && cases.length > 0 && <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV'}</button>}
             {user && <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Start pilot billing</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
@@ -410,7 +425,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today at a glance</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Based on messages sent, assignments made, and tasks handled in Passage.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Based on messages sent, assignments made, local help coordinated, and tasks handled in Passage.</div>
               </div>
               <div style={{ color: C.sage, fontSize: 12, fontWeight: 800 }}>Work your team does not have to chase manually.</div>
             </div>
@@ -421,6 +436,10 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.ink, fontSize: 22, marginTop: 2 }}>{value}</div>
                 </div>
               ))}
+            </div>
+            <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 9 }}>
+              CSV export is always available. Passage can sit on top of your existing system without trapping case data here.
+              {funeralHomeShare > 0 && <strong style={{ color: C.sage }}> Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</strong>}
             </div>
           </div>
         )}
@@ -436,7 +455,7 @@ export default function FuneralHomeDashboard() {
                 {vendorPrefs.marketplaceEnabled === false ? 'Local support hidden' : 'Local support visible'}
               </button>
             </div>
-            <div style={{ color: C.mid, fontSize: 12.5, marginTop: 8 }}>Families stay in Passage. Requests, responses, and status are tracked in the case.</div>
+            <div style={{ color: C.mid, fontSize: 12.5, marginTop: 8 }}>Families stay in Passage. Requests, responses, booking value, and future rev-share are tracked in the case.</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10, opacity: vendorPrefs.marketplaceEnabled === false ? 0.55 : 1 }}>
               {vendorPrefs.vendors.slice(0, 6).map(vendor => {
                 const isPreferred = (vendorPrefs.preferred || []).some(p => p.vendor_id === vendor.id && p.category === vendor.category && p.active !== false);
@@ -614,7 +633,14 @@ export default function FuneralHomeDashboard() {
                       {vendorRequests.slice(0, 3).map(request => (
                         <div key={request.id} style={{ fontSize: 12.3, color: C.mid, lineHeight: 1.45, padding: '5px 0', borderTop: `1px solid ${C.border}` }}>
                           <strong style={{ color: C.ink }}>{request.task_title || 'Local help'}</strong>
-                          <div>{request.vendors?.business_name || 'Vendor'} - {statusLabel(request.status)}{request.requested_at ? ` - ${new Date(request.requested_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</div>
+                          <div>{request.vendors?.business_name || 'Vendor'} - {vendorRequestLabel(request.status)}{request.requested_at ? ` - ${new Date(request.requested_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</div>
+                          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 4 }}>
+                            {request.viewed_at && <span style={miniPill}>Viewed</span>}
+                            {request.responded_at && <span style={miniPill}>Accepted</span>}
+                            {request.in_progress_at && <span style={miniPill}>In progress</span>}
+                            {request.completed_at && <span style={miniPill}>Completed</span>}
+                            {(request.final_value || request.estimated_value) && <span style={miniPill}>Value ${Math.round(Number(request.final_value || request.estimated_value || 0))}</span>}
+                          </div>
                         </div>
                       ))}
                     </div>

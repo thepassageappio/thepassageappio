@@ -22,6 +22,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 export default function VendorSupport({ workflowId, taskId, taskTitle, authToken, onRequested }) {
   const [loading, setLoading] = useState(false);
   const [vendors, setVendors] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [category, setCategory] = useState('');
   const [message, setMessage] = useState('');
   const [requesting, setRequesting] = useState('');
@@ -57,6 +58,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
         if (!response.ok) throw new Error(data.error || 'Could not load local support.');
         if (!cancelled) {
           setVendors(data.vendors || []);
+          setRequests(data.requests || []);
           setCategory(data.category || '');
         }
       } catch (error) {
@@ -89,6 +91,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Could not request help.');
       setMessage('Request sent - waiting for response. We will coordinate this for you here.');
+      setRequests((prev) => [data.request, ...prev].filter(Boolean).slice(0, 3));
       if (onRequested) onRequested(data);
     } catch (error) {
       setMessage(error.message || 'Could not request help.');
@@ -125,10 +128,18 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
               </div>
               <div style={{ fontSize: 11.5, color: C.amber, fontWeight: 800, marginTop: 7 }}>{vendorAvailabilityLabel(vendor)}</div>
               {vendor.preferred_by_funeral_home && (
-                <div style={{ fontSize: 11.5, color: C.sage, lineHeight: 1.45, marginTop: 5 }}>Recommended through your funeral home's preferred network.</div>
+                <div style={{ fontSize: 11.5, color: C.sage, lineHeight: 1.45, marginTop: 5 }}>Preferred by your funeral home for this kind of help.</div>
               )}
               {!vendor.preferred_by_funeral_home && (
-                <div style={{ fontSize: 11.5, color: C.sage, lineHeight: 1.45, marginTop: 5 }}>Used by families like yours recently.</div>
+                <div style={{ fontSize: 11.5, color: C.sage, lineHeight: 1.45, marginTop: 5 }}>
+                  {vendor.recently_helped_count > 0 ? `Recently helped ${vendor.recently_helped_count} Passage families.` : 'Used by families like yours recently.'}
+                </div>
+              )}
+              {(vendor.average_rating || vendor.review_count || vendor.family_review_snippet) && (
+                <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 9, padding: '7px 8px', marginTop: 7, fontSize: 11.5, color: C.mid, lineHeight: 1.4 }}>
+                  {(vendor.average_rating || vendor.review_count) && <strong style={{ color: C.ink }}>{vendor.average_rating ? `${Number(vendor.average_rating).toFixed(1)} / 5` : 'Trusted'}{vendor.review_count ? ` from ${vendor.review_count} families` : ''}</strong>}
+                  {vendor.family_review_snippet && <div style={{ marginTop: 3 }}>&ldquo;{vendor.family_review_snippet}&rdquo;</div>}
+                </div>
               )}
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 9 }}>
                 <button onClick={() => requestHelp(vendor)} disabled={requesting === vendor.id} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: requesting === vendor.id ? 'default' : 'pointer' }}>
@@ -140,8 +151,44 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
           ))}
         </div>
       )}
+      {requests.length > 0 && (
+        <div style={{ background: C.sageFaint, border: '1px solid ' + C.sageLight, borderRadius: 11, padding: 10, marginTop: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 900, color: C.sage, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>Request proof</div>
+          {requests.map((request) => (
+            <div key={request.id} style={{ display: 'grid', gap: 5, padding: '6px 0', borderTop: '1px solid ' + C.sageLight }}>
+              <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 900 }}>{request.vendors?.business_name || 'Local support'} - {vendorRequestLabel(request.status)}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {request.requested_at && <ProofPill label="Sent" time={request.requested_at} active />}
+                {request.viewed_at && <ProofPill label="Viewed" time={request.viewed_at} active />}
+                {(request.responded_at || ['accepted', 'in_progress', 'completed'].includes(request.status)) && <ProofPill label="Accepted" time={request.responded_at} active />}
+                {(request.in_progress_at || request.status === 'in_progress' || request.status === 'completed') && <ProofPill label="In progress" time={request.in_progress_at || request.responded_at} active />}
+                {request.completed_at && <ProofPill label="Completed" time={request.completed_at} active />}
+              </div>
+              {['requested', 'accepted', 'in_progress'].includes(request.status) && (
+                <div style={{ fontSize: 11.5, color: C.mid }}>Waiting for response. If we do not hear back, Passage will prompt you.</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       {message && <div style={{ marginTop: 9, background: message.includes('sent') ? C.sageFaint : C.roseFaint, border: '1px solid ' + (message.includes('sent') ? C.sageLight : C.rose + '33'), color: message.includes('sent') ? C.sage : C.rose, borderRadius: 10, padding: '8px 10px', fontSize: 12.5, fontWeight: 800 }}>{message}</div>}
       <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.45, marginTop: 9 }}>Vendor help is optional. You can use anyone you choose.</div>
     </div>
   );
+}
+
+function ProofPill({ label, time }) {
+  return (
+    <span style={{ background: '#fff', border: '1px solid #c8deca', color: '#6b8f71', borderRadius: 999, padding: '3px 7px', fontSize: 10.5, fontWeight: 900 }}>
+      {label}{time ? ` - ${new Date(time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}
+    </span>
+  );
+}
+
+function vendorRequestLabel(status) {
+  if (status === 'completed') return 'Completed';
+  if (status === 'in_progress') return 'In progress';
+  if (status === 'accepted') return 'Accepted';
+  if (status === 'declined') return 'Needs another option';
+  return 'Waiting for response';
 }
