@@ -42,6 +42,8 @@ export default function FuneralHomeDashboard() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState('');
   const [showNewCase, setShowNewCase] = useState(false);
+  const [showTools, setShowTools] = useState(false);
+  const [showDemoTools, setShowDemoTools] = useState(false);
   const [creating, setCreating] = useState(false);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
@@ -368,15 +370,13 @@ export default function FuneralHomeDashboard() {
           <div>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Partner command center</div>
             <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 40px)', lineHeight: 1.05, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
-            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Pilot view for family cases, task status, death-certificate handoffs, and work your team can complete on behalf of families.</p>
+            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Create a case, move the next partner-ready task, keep the family informed, and export the record whenever you need it.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {user && <button onClick={() => setShowNewCase(v => !v)} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New family case</button>}
-            {user && <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Import CSV</button>}
-            {user && <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none' }}>Template</a>}
             {user && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Download for your system</button>}
-            {user && <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV'}</button>}
-            {user && <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Start pilot billing</button>}
+            {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'More tools'}</button>}
+            {user && isAdminDemo && <button onClick={() => setShowDemoTools(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showDemoTools ? 'Hide demo setup' : 'Demo setup'}</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
         </div>
@@ -421,7 +421,25 @@ export default function FuneralHomeDashboard() {
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
 
-        {user && !loading && isAdminDemo && (
+        {user && !loading && showTools && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner tools</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Bring cases in, send the case file out, or start billing when the pilot is ready.</div>
+              </div>
+              <button onClick={() => setShowTools(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 12 }}>
+              <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Upload CSV</button>
+              <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center' }}>Download template</a>
+              <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV to me'}</button>
+              <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Start pilot billing</button>
+            </div>
+          </div>
+        )}
+
+        {user && !loading && isAdminDemo && showDemoTools && (
           <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 10 }}>
               <div>
@@ -476,6 +494,25 @@ export default function FuneralHomeDashboard() {
             <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 9 }}>
               CSV export is always available. Passage can sit on top of your existing system without trapping case data here.
               {funeralHomeShare > 0 && <strong style={{ color: C.sage }}> Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</strong>}
+            </div>
+          </div>
+        )}
+
+        {user && !loading && data && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>How to use this today</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8, marginTop: 10 }}>
+              {[
+                ['1', 'Create or import a case', 'Start with the family contact and any service details you already know.'],
+                ['2', 'Move the next task', 'Handle it, request family info, or mark it waiting with proof.'],
+                ['3', 'Share status or export', 'Use the family view to reduce calls, then export when data needs to move.'],
+              ].map(([n, title, body]) => (
+                <div key={n} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
+                  <div style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</div>
+                  <div style={{ fontSize: 15, marginTop: 2 }}>{title}</div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>{body}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -567,7 +604,7 @@ export default function FuneralHomeDashboard() {
 
         {user && !loading && data && data.organizations.length > 0 && cases.length === 0 && !showNewCase && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>Create your first case.</div>
+            <div style={{ fontSize: 22, marginBottom: 8 }}>Start with one family case.</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, margin: '12px 0' }}>
               {[
                 ['1', 'Create case', 'At-need, pre-need, or prepaid.'],
@@ -582,7 +619,7 @@ export default function FuneralHomeDashboard() {
               ))}
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create case</button>
+              <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
             </div>
           </div>
         )}
@@ -599,7 +636,7 @@ export default function FuneralHomeDashboard() {
               const partnerTasks = item.partnerTasks || [];
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
-              const topTasks = partnerTasks.length ? partnerTasks.slice(0, 5) : item.tasks.slice(0, 4);
+              const topTasks = partnerTasks.length ? partnerTasks.slice(0, 3) : item.tasks.slice(0, 3);
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               return (
                 <div key={item.id} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 18, padding: 18 }}>
