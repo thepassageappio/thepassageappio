@@ -117,6 +117,7 @@ export default async function handler(req, res) {
       coordinator_email: contactEmail,
       coordinator_phone: row[index.phone] || null,
       status: 'active',
+      trigger_type: 'death_confirmed',
       path: 'partner',
       mode: 'funeral_home_case',
       setup_stage: 'partner_csv_imported',

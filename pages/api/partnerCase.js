@@ -61,6 +61,7 @@ export default async function handler(req, res) {
   } = req.body || {};
 
   const normalizedCaseType = ['immediate', 'preneed', 'prepaid'].includes(caseType) ? caseType : 'immediate';
+  const triggerType = normalizedCaseType === 'immediate' ? 'death_confirmed' : 'planning_started';
   const subjectName = String(personName || deceasedName || '').trim();
   if (!subjectName) return res.status(400).json({ error: 'Add the person or family name to create a case.' });
 
@@ -126,6 +127,7 @@ export default async function handler(req, res) {
       coordinator_email: coordinatorEmail || email,
       coordinator_phone: coordinatorPhone || null,
       status: 'active',
+      trigger_type: triggerType,
       path: 'partner',
       mode: normalizedCaseType === 'immediate' ? 'funeral_home_case' : 'funeral_home_preneed',
       setup_stage: `partner_${normalizedCaseType}_created`,
