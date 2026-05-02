@@ -21,10 +21,19 @@ const groups = [
 ];
 
 function discountedPrice(price, planId) {
-  const amount = Number(String(price).replace(/[^0-9.]/g, ''));
-  if (!amount) return price;
-  const discount = planId.includes('annual') ? 0.25 : 0.2;
-  return '$' + (amount * (1 - discount)).toFixed(2);
+  const participantRates = {
+    single_monthly: '$7.49',
+    single_annual: '$63.99',
+    couple_monthly: '$11.24',
+    couple_annual: '$95.99',
+    family_monthly: '$18.74',
+    family_annual: '$159.99',
+  };
+  return participantRates[planId] || price;
+}
+
+function participantRateLabel(planId) {
+  return planId.includes('annual') ? '20% participant rate' : '25% participant rate';
 }
 
 export default function PricingPage() {
@@ -111,7 +120,7 @@ export default function PricingPage() {
 
         {participantDiscount && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: 13, marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.5 }}>
-            <strong style={{ color: C.sage }}>Participant pricing:</strong> 20% off monthly or 25% off annual once you are assigned to an estate.
+            <strong style={{ color: C.sage }}>Participant pricing:</strong> monthly plans show the 25% participant rate; annual plans show the 20% participant rate.
           </div>
         )}
 
@@ -143,7 +152,7 @@ export default function PricingPage() {
                       <div style={{ color: C.soft, fontSize: 15, textDecoration: 'line-through', marginBottom: 4 }}>{price}</div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 29, color: C.ink, fontWeight: 900, lineHeight: 1 }}>{discountedPrice(price, id)}</span>
-                        <span style={{ color: C.sage, fontSize: 12, fontWeight: 900 }}>{id.includes('annual') ? '25% participant rate' : '20% participant rate'}</span>
+                        <span style={{ color: C.sage, fontSize: 12, fontWeight: 900 }}>{participantRateLabel(id)}</span>
                       </div>
                     </>
                   ) : (

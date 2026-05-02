@@ -33,8 +33,8 @@ export default async function handler(req, res) {
   const auth = await verifyDeliveryRequest(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
-  const taskId = req.query.id;
-  if (!isUuid(taskId)) return res.status(400).json({ error: 'Invalid task id.' });
+  const taskId = String(req.query.id || '').trim();
+  if (!taskId) return res.status(400).json({ error: 'Invalid task id.' });
 
   const { data: task, error } = await serviceSupabase
     .from('tasks')
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
   } catch (err) {
     await recordStatusEvent({
       workflowId: task.workflow_id,
-      taskId,
+      taskId: isUuid(taskId) ? taskId : null,
       actionId: req.body?.actionId,
       status: 'failed',
       actor: req.body?.coordinatorName || auth.user?.email || 'Passage',

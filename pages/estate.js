@@ -395,14 +395,14 @@ function InlineAssign({ onSave, onClose }) {
 }
 
 // ── OUTCOME CARD ──────────────────────────────────────────────────────────────
-function OutcomeCard({ outcome, estateId, expanded, showAssign, onToggle, onMarkHandled, onMarkInProgress, onAssignOpen, onAssignClose, onAssignSave, toast }) {
+function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, onMarkHandled, onMarkInProgress, onAssignOpen, onAssignClose, onAssignSave, toast }) {
   var statusColor = outcome.status === 'handled' ? SAGE : outcome.status === 'needs_owner' ? AMBER : outcome.status === 'in_progress' ? '#2563eb' : MID;
   var statusBg = outcome.status === 'handled' ? SAGE_FAINT : outcome.status === 'needs_owner' ? AMBER_FAINT : outcome.status === 'in_progress' ? '#eff6ff' : SUBTLE;
   var statusLabel = { handled: 'Handled', needs_owner: 'Needs owner', in_progress: 'In progress', not_started: 'Not started' }[outcome.status] || 'Not started';
   var borderColor = outcome.status === 'handled' ? SAGE_LIGHT : outcome.status === 'needs_owner' ? AMBER_BORDER : BORDER;
 
   return (
-    <div style={{ background: CARD, border: '1.5px solid ' + borderColor, borderRadius: 14, marginBottom: 10, overflow: 'hidden', transition: 'border-color 0.2s' }}>
+    <div id={id} style={{ background: CARD, border: '1.5px solid ' + borderColor, borderRadius: 14, marginBottom: 10, overflow: 'hidden', transition: 'border-color 0.2s' }}>
       <button onClick={onToggle}
         style={{ width: '100%', padding: '16px 18px', cursor: 'pointer', textAlign: 'left', background: 'none', border: 'none', fontFamily: 'inherit', minHeight: 76 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -981,7 +981,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
   }
 
   return (
-    <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
+    <div id="execution-layer" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>What to do</div>
@@ -1603,8 +1603,30 @@ export default function EstatePage() {
   var resumeEvent = events.find(function(e) { return e.event_type === 'task_updated' || e.event_type === 'task_completed' || e.event_type === 'owner_assigned' || e.event_type === 'participant_updated' || e.event_type === 'participant_waiting' || e.event_type === 'participant_acknowledged' || e.event_type === 'participant_blocked'; });
   var recentParticipantEvents = events.filter(function(e) { return ['participant_handled', 'participant_updated', 'participant_waiting', 'participant_acknowledged', 'participant_blocked', 'task_message_sent'].includes(e.event_type); }).slice(0, 4);
   var firstOpenOutcome = outcomes.find(function(o) { return !isHandledStatus(o.status); });
+  var firstOpenOutcomeIndex = outcomes.findIndex(function(o) { return !isHandledStatus(o.status); });
   var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t.status); });
   var firstFastTitle = firstOpenOutcome ? firstOpenOutcome.title : firstOpenTask ? firstOpenTask.title : '';
+  var estateMode = String(estate?.mode || estate?.path || estate?.workflow_type || '').toLowerCase();
+  var isPlanningEstate = estateMode === 'green' || estateMode === 'planning' || estateMode.indexOf('green') >= 0;
+
+  function openTimelineItem(item) {
+    if (!item) return;
+    if (String(item.id || '').indexOf('outcome_') === 0) {
+      var id = String(item.id).replace('outcome_', '');
+      var idx = outcomes.findIndex(function(o) { return String(o.id) === String(id); });
+      if (idx >= 0) {
+        setExpanded(idx);
+        setShowAssign(-1);
+        setTimeout(function() {
+          var el = document.getElementById('outcome_' + id);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 50);
+      }
+      return;
+    }
+    var layer = document.getElementById('execution-layer');
+    if (layer) layer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
   if (loading) return (
@@ -1694,10 +1716,39 @@ export default function EstatePage() {
         )}
 
         {firstFastTitle && (
-          <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
-            <div style={{ fontSize: 11, color: ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Just do this now</div>
+          <div style={{ background: isPlanningEstate ? SAGE_FAINT : ROSE_FAINT, border: '1px solid ' + (isPlanningEstate ? SAGE_LIGHT : ROSE + '30'), borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: isPlanningEstate ? SAGE : ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>{isPlanningEstate ? 'Next planning step' : 'Just do this now'}</div>
             <div style={{ fontSize: 15, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{firstFastTitle}</div>
-            {firstOpenTask && (
+            {isPlanningEstate && firstOpenOutcome && (
+              <>
+                <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginTop: 7 }}>
+                  Open this step to assign an owner, save details, or mark it handled. Nothing is sent from this planning view.
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                  <button onClick={function() {
+                    if (firstOpenOutcomeIndex >= 0) {
+                      setExpanded(firstOpenOutcomeIndex);
+                      setShowAssign(-1);
+                      setTimeout(function() {
+                        var el = document.getElementById('outcome_' + firstOpenOutcome.id);
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 50);
+                    }
+                  }} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Open this step</button>
+                  <button onClick={function() {
+                    if (firstOpenOutcomeIndex >= 0) {
+                      setExpanded(firstOpenOutcomeIndex);
+                      setShowAssign(firstOpenOutcomeIndex);
+                      setTimeout(function() {
+                        var el = document.getElementById('outcome_' + firstOpenOutcome.id);
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 50);
+                    }
+                  }} style={{ border: '1px solid ' + SAGE_LIGHT, background: CARD, color: SAGE, borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Assign owner</button>
+                </div>
+              </>
+            )}
+            {!isPlanningEstate && firstOpenTask && (
               <>
                 <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginTop: 7 }}>
                   Record what happened, mark it waiting, or flag that you need help. Passage will keep tracking this here.
@@ -1815,24 +1866,16 @@ export default function EstatePage() {
                   <div style={{ fontSize: 11.5, color: SOFT, textAlign: 'right' }}>{group.help}</div>
                 </div>
                 {primary && (
-                  <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 11, padding: '10px 12px', marginBottom: 8 }}>
-                    <div style={{ fontSize: 11, color: ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Do this next</div>
-                    <button onClick={function() {
-                      if (primary.id.indexOf('outcome_') === 0) {
-                        var id = primary.id.replace('outcome_', '');
-                        var idx = outcomes.findIndex(function(o) { return String(o.id) === String(id); });
-                        if (idx >= 0) { setExpanded(idx); setShowAssign(-1); }
-                      } else {
-                        setShowUpNext(true);
-                      }
-                    }} style={{ width: '100%', border: 'none', background: SAGE, color: '#fff', borderRadius: 10, padding: '10px 12px', fontSize: 13, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+                  <div style={{ background: isPlanningEstate ? SAGE_FAINT : ROSE_FAINT, border: '1px solid ' + (isPlanningEstate ? SAGE_LIGHT : ROSE + '30'), borderRadius: 11, padding: '10px 12px', marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, color: isPlanningEstate ? SAGE : ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{isPlanningEstate ? 'Open this next' : 'Do this next'}</div>
+                    <button onClick={function() { openTimelineItem(primary); }} style={{ width: '100%', border: isPlanningEstate ? '1px solid ' + SAGE_LIGHT : 'none', background: isPlanningEstate ? CARD : SAGE, color: isPlanningEstate ? INK : '#fff', borderRadius: 10, padding: '10px 12px', fontSize: 13, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
                       {primary.title}
                     </button>
                   </div>
                 )}
                 {group.items.length > 0 ? group.items.map(function(item) {
                   return (
-                    <div key={item.id} style={{ background: SUBTLE, borderRadius: 10, padding: '10px 12px', marginBottom: 7 }}>
+                    <button key={item.id} onClick={function() { openTimelineItem(item); }} style={{ width: '100%', background: SUBTLE, borderRadius: 10, padding: '10px 12px', marginBottom: 7, border: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
                       <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.35, marginBottom: 6 }}>{item.title}</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                         <span style={{ fontSize: 11.5, color: item.owner === 'Needs owner' ? AMBER : SAGE, fontWeight: 700 }}>{item.owner}</span>
@@ -1844,7 +1887,7 @@ export default function EstatePage() {
                           If we don&apos;t hear back, we&apos;ll prompt you.
                         </div>
                       )}
-                    </div>
+                    </button>
                   );
                 }) : (
                   <div style={{ background: SAGE_FAINT, borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: SAGE, fontWeight: 700 }}>
@@ -1872,6 +1915,7 @@ export default function EstatePage() {
               return (
                 <OutcomeCard
                   key={outcome.id}
+                  id={'outcome_' + outcome.id}
                   outcome={outcome}
                   estateId={estateId}
                   expanded={expanded === i}

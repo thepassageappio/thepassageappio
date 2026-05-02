@@ -50,8 +50,8 @@ export default async function handler(req, res) {
   const auth = await verifyDeliveryRequest(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
-  const taskId = req.query.id;
-  if (!isUuid(taskId)) return res.status(400).json({ error: 'Invalid task id.' });
+  const taskId = String(req.query.id || '').trim();
+  if (!taskId) return res.status(400).json({ error: 'Invalid task id.' });
 
   const { status, channel, recipient, detail, notes, outcomeStatus, followUpAt, actor } = req.body || {};
   if (!allowedStatuses.has(status)) return res.status(400).json({ error: 'Invalid task status.' });
@@ -67,18 +67,31 @@ export default async function handler(req, res) {
   const allowed = await userCanUpdateTask(auth, task);
   if (!allowed) return res.status(403).json({ error: 'You do not have access to update this task.' });
 
-  const updates = {};
+  const now = new Date().toISOString();
+  const updates = {
+    status,
+    last_action_at: now,
+    last_actor: actor || auth.user?.email || 'Passage',
+    channel: channel || 'record',
+    recipient: recipient || task.assigned_to_name || task.assigned_to_email || null,
+  };
+  if (status === 'handled') updates.completed_at = now;
+  if (status === 'acknowledged') updates.acknowledged_at = now;
   if (typeof notes === 'string') updates.notes = notes.trim();
   if (outcomeStatus) updates.outcome_status = outcomeStatus;
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
-  if (Object.keys(updates).length > 0) {
-    updates.updated_at = new Date().toISOString();
-    await serviceSupabase.from('tasks').update(updates).eq('id', taskId).eq('workflow_id', task.workflow_id).then(() => {}, () => {});
-  }
+  updates.updated_at = now;
+
+  const { error: updateError } = await serviceSupabase
+    .from('tasks')
+    .update(updates)
+    .eq('id', taskId)
+    .eq('workflow_id', task.workflow_id);
+  if (updateError) return res.status(500).json({ error: updateError.message });
 
   const result = await recordStatusEvent({
     workflowId: task.workflow_id,
-    taskId,
+    taskId: isUuid(taskId) ? taskId : null,
     status,
     actor: actor || auth.user?.email || 'Passage',
     channel: channel || 'record',

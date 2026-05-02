@@ -57,8 +57,8 @@ var TONES = [
 ];
 
 var CHANNELS = [
-  { id: 'sms', label: 'Text message', sub: 'Send directly via SMS' },
-  { id: 'email', label: 'Email', sub: 'Send via email' },
+  { id: 'sms', label: 'Text message draft', sub: 'Prepare a text you can send to the selected audience' },
+  { id: 'email', label: 'Email draft', sub: 'Prepare an email you can send to the selected audience' },
   { id: 'copy', label: 'Copy to share', sub: 'Copy the message and share it yourself' },
 ];
 
@@ -271,6 +271,8 @@ export default function AnnouncePage() {
 
   var selectedAudience = AUDIENCES.find(function(a) { return a.id === audience; });
   var selectedChannel = CHANNELS.find(function(c) { return c.id === channel; });
+  var audienceLabel = selectedAudience ? selectedAudience.label : audience;
+  var channelLabel = selectedChannel ? selectedChannel.label : channel;
 
   // Done screen
   if (done) return (
@@ -278,12 +280,12 @@ export default function AnnouncePage() {
       <div style={{ textAlign: 'center', paddingTop: 52 }}>
         <div style={{ fontSize: 52, marginBottom: 24 }}>🕊️</div>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: INK, lineHeight: 1.3, marginBottom: 16 }}>
-          {channel === 'copy' ? 'Copied to clipboard.' : 'Message prepared.'}
+          {channel === 'copy' ? 'Copied to clipboard.' : 'Message saved.'}
         </div>
         <div style={{ fontSize: 15, color: MID, lineHeight: 1.75, maxWidth: 380, margin: '0 auto 36px' }}>
           {channel === 'copy'
             ? 'Paste and send it however you would like. You can come back to prepare another version for a different audience.'
-            : 'Your message is saved. Nothing has been sent automatically. You are in control of when and how this reaches people.'}
+            : 'Your message is saved to the estate. Nothing was sent automatically. You are in control of when and how this reaches people.'}
         </div>
         <div style={{ maxWidth: 380, margin: '0 auto' }}>
           <PrimaryBtn onClick={returnToEstate}>
@@ -382,6 +384,9 @@ export default function AnnouncePage() {
         <div style={{ background: SUBTLE, borderRadius: 10, padding: '11px 14px', fontSize: 14, color: INK, fontWeight: 500 }}>
           {selectedAudience ? selectedAudience.label : audience}
         </div>
+        <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '11px 14px', fontSize: 13, color: SAGE, fontWeight: 700, lineHeight: 1.55, marginTop: 8 }}>
+          This is for: {audienceLabel || 'the audience you choose'}. No individual recipients are selected on this screen. Passage saves the draft to the estate so you can copy it, send it yourself, or attach recipients later.
+        </div>
       </div>
 
       <div style={{ marginBottom: 20, background: SUBTLE, borderRadius: 13, padding: '16px' }}>
@@ -409,10 +414,15 @@ export default function AnnouncePage() {
       </div>
 
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>How would you like to send this?</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>How would you like to use this?</div>
         {CHANNELS.map(function(c) {
           return <Option key={c.id} label={c.label} sub={c.sub} selected={channel === c.id} disabled={c.disabled} onClick={function() { setChannel(c.id); }} />;
         })}
+        {channel && channel !== 'copy' && (
+          <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER + '35', borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: AMBER, fontWeight: 700, lineHeight: 1.5, marginTop: 8 }}>
+            Selected: {channelLabel}. This saves a {channel === 'sms' ? 'text' : 'email'} draft for {audienceLabel}. It does not send to a hidden list.
+          </div>
+        )}
       </div>
 
       {feedback ? (
@@ -422,7 +432,7 @@ export default function AnnouncePage() {
       ) : null}
 
       <PrimaryBtn onClick={send} disabled={!channel || channel === 'social_pending' || sending}>
-        {sending ? 'Sending...' : channel === 'copy' ? 'Copy message' : 'Send message'}
+        {sending ? 'Saving...' : channel === 'copy' ? 'Copy message' : 'Save draft to estate'}
       </PrimaryBtn>
       <GhostBtn onClick={saveDraft}>Save as draft</GhostBtn>
       <GhostBtn onClick={returnToEstate}>Back to estate</GhostBtn>

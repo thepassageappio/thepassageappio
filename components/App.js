@@ -225,7 +225,7 @@ const saveLead = async (data) => {
 const createWorkflow = async (userId, deceasedName, coordinatorName, coordinatorEmail, dateOfDeath, options = {}) => {
   try {
     const path = options.path || options.mode || null;
-    const setupStage = path === 'green' ? 'ready' : path === 'red' ? 'active' : undefined;
+    const setupStage = options.setupStage || options.setup_stage || (path === 'green' ? 'ready' : path === 'red' ? 'active' : undefined);
     const baseRow = {
       user_id: userId || null,
       name: `Estate of ${deceasedName || "Loved One"}`,
@@ -233,8 +233,8 @@ const createWorkflow = async (userId, deceasedName, coordinatorName, coordinator
       coordinator_name: coordinatorName || null,
       coordinator_email: coordinatorEmail || null,
       date_of_death: dateOfDeath || null,
-      status: 'active',
-      trigger_type: 'death_confirmed',
+      status: options.status || (path === 'green' ? 'draft' : 'active'),
+      trigger_type: options.triggerType || options.trigger_type || 'death_confirmed',
       is_custom: false,
       updated_at: new Date().toISOString(),
     };
@@ -2546,7 +2546,13 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, healthcare_proxy_name: healthcareProxyName, proxy_conversation_status: proxyConversationStatus, faith_tradition: faithTradition, clergy_name: clergyName, cemetery_name: cemeteryName, document_location: documentLocation, medical_records_location: medicalRecordsLocation, timestamp: new Date().toISOString() });
       let createdWorkflowId = null;
       const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      const wf = await createWorkflow(user.id, name, user.email, user.email, null, { path: 'green' });
+      const wf = await createWorkflow(user.id, name, user.email, user.email, null, {
+        path: 'green',
+        mode: 'green',
+        status: 'draft',
+        setupStage: 'ready',
+        triggerType: 'death_confirmed',
+      });
       if (!wf?.id) throw new Error("Passage could not save this planning estate yet.");
       const wfId = wf.id;
       createdWorkflowId = wfId;
@@ -2576,16 +2582,23 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       await saveAllTasks(wfId, user.id);
 
       if (executorEmail) {
-        const { error: executorActionError } = await supabase.from('workflow_actions').insert([
+        const executorRows = [
           { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
-          { workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_phone: executorPhone || null, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
-        ]);
+        ];
+        if (executorPhone) {
+          executorRows.push({ workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_phone: executorPhone, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 });
+        }
+        const { error: executorActionError } = await supabase.from('workflow_actions').insert(executorRows);
         if (executorActionError) console.warn('executor notification queue:', executorActionError);
       }
       if (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() !== executorEmail.trim().toLowerCase()) {
-        const { error: confirmerActionError } = await supabase.from('workflow_actions').insert([
+        const confirmerRows = [
           { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_phone: secondConfirmerPhone || null, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 },
-        ]);
+        ];
+        if (secondConfirmerPhone) {
+          confirmerRows.push({ workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_phone: secondConfirmerPhone, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 });
+        }
+        const { error: confirmerActionError } = await supabase.from('workflow_actions').insert(confirmerRows);
         if (confirmerActionError) console.warn('second confirmer queue:', confirmerActionError);
       }
 

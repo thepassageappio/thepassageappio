@@ -557,6 +557,7 @@ export default function UrgentPage() {
         .field.compact label { margin-bottom:5px; font-size:10px; }
         .field.compact input { min-height:39px; padding:9px 11px; background:${C.card}; }
         .save-command { min-height:39px; padding:9px 12px; white-space:nowrap; }
+        .save-helper { grid-column:1 / -1; color:${C.sageDark}; font-size:11.5px; line-height:1.4; margin-top:-2px; }
         .save-error { grid-column:1 / -1; color:${C.rose}; background:${C.roseFaint}; border:1px solid rgba(184,107,111,.22); border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.4; }
         .paid-success { background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; border-radius:14px; padding:10px 12px; margin-bottom:12px; font-weight:750; font-size:13px; line-height:1.45; }
         .triage { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:14px; margin-bottom:14px; }
@@ -744,8 +745,9 @@ export default function UrgentPage() {
                 <input value={dateOfDeath} onChange={e => setDateOfDeath(e.target.value)} type="date" />
               </div>
               <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
-                {savingEstate ? 'Saving...' : user ? 'Open saved command center' : 'Sign in to save'}
+                {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Sign in to save'}
               </button>
+              <div className="save-helper">The details below are saved into the command center before it opens.</div>
               {saveError && <div className="save-error">{saveError}</div>}
             </div>
             <div className="context-grid">

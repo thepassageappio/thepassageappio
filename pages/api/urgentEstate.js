@@ -420,9 +420,10 @@ function buildTasksForContext(context) {
 function timeframeForTask(task) {
   if (task.due_days_after_trigger === 0 && task.category === 'medical') return ['now', 'Minutes'];
   if (task.due_days_after_trigger === 0) return ['now', 'Today'];
-  if (task.due_days_after_trigger <= 3) return ['next_72_hours', 'Next 72 hours'];
-  if (task.due_days_after_trigger <= 7) return ['first_week', 'First week'];
-  return ['first_month', 'First month'];
+  if (task.due_days_after_trigger <= 3) return ['72h', 'Next 72 hours'];
+  if (task.due_days_after_trigger <= 7) return ['week', 'First week'];
+  if (task.due_days_after_trigger <= 31) return ['month', 'First month'];
+  return ['year', 'First year'];
 }
 
 function outcomeFromTask(task, index, ownerLabel) {

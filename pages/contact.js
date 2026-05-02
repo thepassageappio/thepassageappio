@@ -52,7 +52,12 @@ export default function ContactPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
-    setState(r.ok ? 'sent' : 'error');
+    if (r.ok) {
+      setForm({ name: '', email: '', category: categories[0], urgency: 'Normal', message: '' });
+      setState('sent');
+    } else {
+      setState('error');
+    }
   }
 
   return (
