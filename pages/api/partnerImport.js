@@ -120,11 +120,13 @@ export default async function handler(req, res) {
       trigger_type: 'death_confirmed',
       path: 'red',
       mode: 'red',
-      setup_stage: 'partner_csv_imported',
-      activation_status: 'draft',
       organization_id: organizationId,
       organization_case_reference: row[index.case_reference] || null,
       partner_created_by: user.id,
+      orchestration_summary: {
+        partner_case_type: 'immediate',
+        partner_setup_stage: 'partner_csv_imported',
+      },
       created_at: now,
       updated_at: now,
     }]).select('id').single();

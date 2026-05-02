@@ -179,8 +179,6 @@ async function updateWorkflowAfterCheckout(metadata) {
     path,
     status: path === 'red' ? 'active' : 'ready',
     seat_status: 'active',
-    setup_stage: path === 'red' ? 'active' : 'ready',
-    activation_status: path === 'red' ? 'activated' : 'ready',
     entitlement_source: metadata.planId || null,
     updated_at: new Date().toISOString(),
   }).eq('id', workflowId);
