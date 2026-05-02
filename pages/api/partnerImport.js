@@ -150,7 +150,7 @@ export default async function handler(req, res) {
         user_id: user.id,
         title,
         description,
-        category: taskIndex < 3 ? 'service' : 'coordination',
+        category: 'service',
         priority: taskIndex < 3 ? 'urgent' : 'high',
         status: 'draft',
         playbook,
@@ -164,7 +164,8 @@ export default async function handler(req, res) {
         updated_at: now,
       };
     });
-    await admin.from('tasks').insert(tasks);
+    const { error: tasksError } = await admin.from('tasks').insert(tasks);
+    if (tasksError) return res.status(500).json({ error: tasksError.message });
     created.push(workflow.id);
   }
 

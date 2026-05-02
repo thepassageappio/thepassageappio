@@ -502,6 +502,7 @@ export default function UrgentPage() {
     }
     setSavingEstate(false);
     setHandoff(true);
+    try { window.sessionStorage.setItem('passage_last_estate_id', json.estateId); } catch {}
     setTimeout(() => {
       window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
     }, 650);
@@ -590,6 +591,7 @@ export default function UrgentPage() {
         .primary:disabled { opacity: .45; cursor: not-allowed; }
         .secondary { background: ${C.sage}; color: white; }
         .ghost { background: ${C.subtle}; color: ${C.mid}; border: 1px solid ${C.border}; }
+        .active-action { box-shadow: 0 0 0 3px ${C.sageLight}; transform: translateY(-1px); }
         .self-owner { width:100%; border:1px solid ${C.sageLight}; background:${C.sageFaint}; color:${C.sageDark}; border-radius:14px; padding:13px 14px; font-weight:800; cursor:pointer; margin:12px 0 18px; text-align:left; }
         .self-owner:hover { border-color:${C.sage}; }
         .stack { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -693,9 +695,22 @@ export default function UrgentPage() {
                 <div className="urgent-alert">
                   <strong>If this was unexpected at home, call 911 now.</strong> A death must be officially pronounced by a medical professional before anything else can happen. Emergency services or a medical examiner will handle this.
                   <div className="stack" style={{ marginTop: 10 }}>
-                    <button className="secondary" onClick={() => updateContext('emergencyCalled', 'yes')}>I've called 911</button>
-                    <button className="ghost" onClick={() => updateContext('pronouncementStatus', 'needed')}>I'm not sure if I need to</button>
+                    <button className={context.emergencyCalled === 'yes' ? 'secondary active-action' : 'secondary'} onClick={() => {
+                      updateContext('emergencyCalled', 'yes');
+                      updateContext('pronouncementStatus', 'needed');
+                    }}>I've called 911</button>
+                    <button className={context.emergencyCalled === 'unsure' ? 'ghost active-action' : 'ghost'} onClick={() => {
+                      updateContext('emergencyCalled', 'unsure');
+                      updateContext('pronouncementStatus', 'needed');
+                    }}>I'm not sure if I need to</button>
                   </div>
+                  {context.emergencyCalled && (
+                    <div style={{ marginTop: 10, fontSize: 13, color: context.emergencyCalled === 'yes' ? C.sageDark : C.rose, fontWeight: 700 }}>
+                      {context.emergencyCalled === 'yes'
+                        ? "Okay. We'll keep the official pronouncement step visible until it is handled."
+                        : 'If you are unsure, call 911 or your local emergency number now and ask for instructions.'}
+                    </div>
+                  )}
                 </div>
               )}
               {context.deathContext === 'past' && (

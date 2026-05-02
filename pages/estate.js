@@ -1286,7 +1286,7 @@ function ProofPanel({ actions, tasks, events }) {
 
 export default function EstatePage() {
   var params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-  var estateId = params.get('id');
+  var estateId = params.get('id') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('passage_last_estate_id') : null);
 
   var s0 = useState(null); var estate = s0[0]; var setEstate = s0[1];
   var s1 = useState([]); var outcomes = s1[0]; var setOutcomes = s1[1];
@@ -1309,6 +1309,7 @@ export default function EstatePage() {
     if (!estateId) { setLoading(false); return; }
     sb.auth.getSession().then(function(r) {
       if (r.data && r.data.session) setUser(r.data.session.user);
+      var token = r.data && r.data.session ? r.data.session.access_token : '';
       return Promise.all([
         sb.from('workflows').select('*').eq('id', estateId).single(),
         sb.from('outcomes').select('*').eq('estate_id', estateId).order('position'),
@@ -1318,7 +1319,27 @@ export default function EstatePage() {
         sb.from('people').select('*').eq('estate_id', estateId).order('created_at', { ascending: true }),
         sb.from('workflow_actions').select('*').eq('workflow_id', estateId).order('sort_order', { ascending: true }),
         sb.from('announcements').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(10),
-      ]);
+      ]).then(function(results) {
+        if (results[0].data) return results;
+        if (!token) return results;
+        return fetch('/api/estateContext?id=' + encodeURIComponent(estateId), {
+          headers: { Authorization: 'Bearer ' + token }
+        }).then(function(response) {
+          if (!response.ok) return results;
+          return response.json().then(function(data) {
+            return [
+              { data: data.estate },
+              { data: data.outcomes || [] },
+              { data: data.tasks || [] },
+              { data: data.events || [] },
+              { data: data.serviceEvents || [] },
+              { data: data.people || [] },
+              { data: data.actions || [] },
+              { data: data.announcements || [] },
+            ];
+          });
+        }).catch(function() { return results; });
+      });
     }).then(function(results) {
       if (results[0].data) setEstate(results[0].data);
       if (results[1].data) setOutcomes(results[1].data);

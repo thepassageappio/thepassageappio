@@ -159,11 +159,20 @@ function cleanContext(raw) {
   };
 }
 
+function safeTaskCategory(category) {
+  const value = clean(category).toLowerCase();
+  const allowed = new Set(['service', 'notifications', 'property', 'legal', 'government', 'financial', 'personal', 'memorial', 'digital', 'other']);
+  if (allowed.has(value)) return value;
+  if (value === 'medical' || value === 'documents') return 'legal';
+  if (value === 'logistics') return 'service';
+  return 'other';
+}
+
 function task(title, description, category, priority, dueDays, position, playbookKey, extras = {}) {
   return {
     title,
     description,
-    category,
+    category: safeTaskCategory(category),
     priority,
     due_days_after_trigger: dueDays,
     position,
@@ -512,7 +521,10 @@ export default async function handler(req, res) {
     last_action_at: index === 0 && ownerLabel ? new Date().toISOString() : null,
     last_actor: index === 0 && ownerLabel ? coordinatorName : null,
   }));
-  await admin.from('tasks').upsert(tasks, { onConflict: 'workflow_id,title', ignoreDuplicates: false });
+  const { error: tasksError } = await admin.from('tasks').upsert(tasks, { onConflict: 'workflow_id,title', ignoreDuplicates: false });
+  if (tasksError) {
+    return res.status(500).json({ error: tasksError.message || 'Could not create urgent tasks.' });
+  }
 
   const outcomes = allTasks.slice(0, 5).map((taskItem, index) => ({
     ...outcomeFromTask(taskItem, index, ownerLabel),
@@ -527,9 +539,11 @@ export default async function handler(req, res) {
       .eq('title', outcome.title)
       .maybeSingle();
     if (existingOutcome?.id) {
-      await admin.from('outcomes').update({ ...outcome, updated_at: new Date().toISOString() }).eq('id', existingOutcome.id);
+      const { error: outcomeUpdateError } = await admin.from('outcomes').update({ ...outcome, updated_at: new Date().toISOString() }).eq('id', existingOutcome.id);
+      if (outcomeUpdateError) return res.status(500).json({ error: outcomeUpdateError.message || 'Could not update urgent outcomes.' });
     } else {
-      await admin.from('outcomes').insert([outcome]);
+      const { error: outcomeInsertError } = await admin.from('outcomes').insert([outcome]);
+      if (outcomeInsertError) return res.status(500).json({ error: outcomeInsertError.message || 'Could not create urgent outcomes.' });
     }
   }
 
