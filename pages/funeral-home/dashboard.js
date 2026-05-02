@@ -18,6 +18,7 @@ export default function FuneralHomeDashboard() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState('');
   const [data, setData] = useState(null);
+  const [vendorPrefs, setVendorPrefs] = useState({ vendors: [], preferred: [] });
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,10 @@ export default function FuneralHomeDashboard() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       setToken(session?.access_token || '');
-      if (session?.access_token) load(session.access_token);
+      if (session?.access_token) {
+        load(session.access_token);
+        loadPreferredVendors(session.access_token);
+      }
       else setLoading(false);
     });
   }, []);
@@ -59,6 +63,13 @@ export default function FuneralHomeDashboard() {
     setLoading(false);
   }
 
+  async function loadPreferredVendors(accessToken = token) {
+    if (!accessToken) return;
+    const res = await fetch('/api/vendors/preferred', { headers: { Authorization: 'Bearer ' + accessToken } });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok) setVendorPrefs({ vendors: json.vendors || [], preferred: json.preferred || [] });
+  }
+
   async function signIn() {
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/funeral-home/dashboard' } });
   }
@@ -68,6 +79,22 @@ export default function FuneralHomeDashboard() {
     setUser(null);
     setToken('');
     setData(null);
+    setVendorPrefs({ vendors: [], preferred: [] });
+  }
+
+  async function togglePreferredVendor(vendor) {
+    if (!token || !vendor?.id) return;
+    const isPreferred = (vendorPrefs.preferred || []).some(p => p.vendor_id === vendor.id && p.category === vendor.category && p.active !== false);
+    setUpdating('vendor_' + vendor.id);
+    const res = await fetch('/api/vendors/preferred', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ vendorId: vendor.id, category: vendor.category, active: !isPreferred }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) setError(json.error || 'Could not update preferred local support.');
+    else await loadPreferredVendors(token);
+    setUpdating('');
   }
 
   async function updateTask(task, status, detail) {
@@ -256,12 +283,14 @@ export default function FuneralHomeDashboard() {
   const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['sent', 'waiting', 'assigned'].includes(t.status || '')).length, 0);
   const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed'].includes(t.status || '')).length, 0);
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
+  const totalVendorRequests = cases.reduce((sum, item) => sum + (item.vendorRequests?.length || 0), 0);
   const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to || t.owner_name || t.participant_id).length, 0);
-  const callsAvoided = totalCommunications + assignmentsCoordinated;
+  const callsAvoided = totalCommunications + assignmentsCoordinated + totalVendorRequests;
   const glanceItems = [
     ['Active cases', cases.length],
     ['Tasks handled by Passage', totalHandled],
     ['Waiting for response', totalWaiting],
+    ['Local help requests', totalVendorRequests],
     ['Estimated calls avoided', callsAvoided],
   ];
 
@@ -381,6 +410,29 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
+        {user && !loading && data?.organizations?.length > 0 && vendorPrefs.vendors.length > 0 && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Preferred local support</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Choose the vendors families see first inside relevant tasks. This never becomes a public directory.</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
+              {vendorPrefs.vendors.slice(0, 6).map(vendor => {
+                const isPreferred = (vendorPrefs.preferred || []).some(p => p.vendor_id === vendor.id && p.category === vendor.category && p.active !== false);
+                return (
+                  <button key={vendor.id} onClick={() => togglePreferredVendor(vendor)} disabled={updating === 'vendor_' + vendor.id} style={{ textAlign: 'left', border: `1px solid ${isPreferred ? C.sage : C.border}`, background: isPreferred ? C.sageFaint : C.bg, borderRadius: 13, padding: 11, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
+                    <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900 }}>{vendor.business_name}</div>
+                    <div style={{ color: C.mid, fontSize: 11.5, marginTop: 3 }}>{vendor.category?.replace(/_/g, ' ')}</div>
+                    <div style={{ color: isPreferred ? C.sage : C.soft, fontSize: 11, fontWeight: 900, marginTop: 6 }}>{isPreferred ? 'Preferred in tasks' : 'Click to prefer'}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {user && showNewCase && (
           <form onSubmit={createCase} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
@@ -472,6 +524,7 @@ export default function FuneralHomeDashboard() {
               const blocked = item.tasks.filter(t => ['blocked', 'needs_review', 'failed'].includes(t.status || '')).length;
               const partnerTasks = item.partnerTasks || [];
               const waitingFamily = item.waitingOnFamily || [];
+              const vendorRequests = item.vendorRequests || [];
               const topTasks = partnerTasks.length ? partnerTasks.slice(0, 5) : item.tasks.slice(0, 4);
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               return (
@@ -491,6 +544,7 @@ export default function FuneralHomeDashboard() {
                     {isAdminDemo && isDemoCase && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Demo data</span>}
                     {waitingFamily.length > 0 && <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{waitingFamily.length} waiting on family</span>}
                     {blocked > 0 && <span style={{ background: C.roseFaint, color: C.rose, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{blocked} need help</span>}
+                    {vendorRequests.length > 0 && <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{vendorRequests.length} local help requests</span>}
                   </div>
                   <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12, marginTop: 12 }}>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Next partner work</div>
@@ -531,6 +585,17 @@ export default function FuneralHomeDashboard() {
                           <strong style={{ color: C.ink }}>{message.subject || 'Family update'}</strong>
                           <div>{message.channel || 'message'} to {message.recipient_name || message.recipient_email || message.recipient_phone || 'recipient'} - {statusLabel(message.status)}{message.sent_at ? ` - ${new Date(message.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</div>
                           {message.error_message && <div style={{ color: C.rose }}>{message.error_message}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {vendorRequests.length > 0 && (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
+                      <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Local support requests</div>
+                      {vendorRequests.slice(0, 3).map(request => (
+                        <div key={request.id} style={{ fontSize: 12.3, color: C.mid, lineHeight: 1.45, padding: '5px 0', borderTop: `1px solid ${C.border}` }}>
+                          <strong style={{ color: C.ink }}>{request.task_title || 'Local help'}</strong>
+                          <div>{request.vendors?.business_name || 'Vendor'} - {statusLabel(request.status)}{request.requested_at ? ` - ${new Date(request.requested_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</div>
                         </div>
                       ))}
                     </div>

@@ -35,7 +35,7 @@ async function getPartnerData(token) {
   if (workflowError) throw workflowError;
 
   const workflowIds = (workflows || []).map(w => w.id);
-  const [{ data: tasks }, { data: communications }] = workflowIds.length
+  const [{ data: tasks }, { data: communications }, { data: vendorRequests }] = workflowIds.length
     ? await Promise.all([
       admin
         .from('tasks')
@@ -47,8 +47,13 @@ async function getPartnerData(token) {
         .select('workflow_id,channel,recipient_name,recipient_email,recipient_phone,subject,status,sent_at,delivered_at,error_message')
         .in('workflow_id', workflowIds)
         .order('created_at', { ascending: false }),
+      admin
+        .from('vendor_requests')
+        .select('workflow_id,task_title,status,urgency,requested_at,responded_at,completed_at,vendors(business_name,contact_email,contact_phone,category)')
+        .in('workflow_id', workflowIds)
+        .order('requested_at', { ascending: false }),
     ])
-    : [{ data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: [] }];
 
   const taskRows = [];
   for (const workflow of workflows || []) {
@@ -60,6 +65,8 @@ async function getPartnerData(token) {
     }
     const caseMessages = (communications || []).filter(c => c.workflow_id === workflow.id);
     for (const communication of caseMessages) taskRows.push({ workflow, communication });
+    const caseVendorRequests = (vendorRequests || []).filter(v => v.workflow_id === workflow.id);
+    for (const vendorRequest of caseVendorRequests) taskRows.push({ workflow, vendorRequest });
   }
 
   return {
@@ -93,10 +100,10 @@ function buildCsv(rows) {
     'Message error',
   ];
   const lines = [header.map(csvCell).join(',')];
-  for (const { workflow, task, communication } of rows) {
+  for (const { workflow, task, communication, vendorRequest } of rows) {
     lines.push([
       workflow.estate_name || workflow.deceased_name || workflow.name,
-      communication ? 'communication' : 'task',
+      vendorRequest ? 'vendor_request' : communication ? 'communication' : 'task',
       workflow.mode === 'funeral_home_preneed' ? 'Pre-need / prepaid' : 'At-need',
       workflow.organization_case_reference,
       workflow.coordinator_name,
@@ -104,16 +111,16 @@ function buildCsv(rows) {
       workflow.coordinator_phone,
       task?.title,
       task?.assigned_to_name || task?.assigned_to_email,
-      communication?.status || task?.status || workflow.status,
+      vendorRequest?.status || communication?.status || task?.status || workflow.status,
       task?.waiting_on,
       task?.proof_required,
       task?.last_action_at,
       task?.last_actor,
-      communication?.channel || task?.channel,
-      communication?.recipient_name || communication?.recipient_email || communication?.recipient_phone || task?.recipient || task?.assigned_to_name || task?.assigned_to_email,
-      communication?.subject,
-      communication?.sent_at,
-      communication?.delivered_at,
+      vendorRequest ? 'vendor' : communication?.channel || task?.channel,
+      vendorRequest?.vendors?.business_name || vendorRequest?.vendors?.contact_email || vendorRequest?.vendors?.contact_phone || communication?.recipient_name || communication?.recipient_email || communication?.recipient_phone || task?.recipient || task?.assigned_to_name || task?.assigned_to_email,
+      vendorRequest ? vendorRequest.task_title : communication?.subject,
+      vendorRequest?.requested_at || communication?.sent_at,
+      vendorRequest?.responded_at || vendorRequest?.completed_at || communication?.delivered_at,
       communication?.error_message,
     ].map(csvCell).join(','));
   }

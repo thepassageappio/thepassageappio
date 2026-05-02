@@ -44,6 +44,7 @@ export default async function handler(req, res) {
   let tasks = [];
   let statusEvents = [];
   let communications = [];
+  let vendorRequests = [];
   if (workflowIds.length > 0) {
     const { data: taskData } = await admin
       .from('tasks')
@@ -67,6 +68,14 @@ export default async function handler(req, res) {
       .order('created_at', { ascending: false })
       .limit(120);
     communications = communicationData || [];
+
+    const { data: vendorRequestData } = await admin
+      .from('vendor_requests')
+      .select('id,workflow_id,task_id,task_title,status,urgency,requested_at,responded_at,completed_at,vendors(business_name,category,contact_email,contact_phone)')
+      .in('workflow_id', workflowIds)
+      .order('requested_at', { ascending: false })
+      .limit(120);
+    vendorRequests = vendorRequestData || [];
   }
 
   const cases = visibleWorkflows.map(w => ({
@@ -74,6 +83,7 @@ export default async function handler(req, res) {
     tasks: tasks.filter(t => t.workflow_id === w.id),
     activity: statusEvents.filter(e => e.workflow_id === w.id).slice(0, 6),
     communications: communications.filter(c => c.workflow_id === w.id).slice(0, 8),
+    vendorRequests: vendorRequests.filter(v => v.workflow_id === w.id).slice(0, 8),
     partnerTasks: tasks.filter(t => t.workflow_id === w.id && t.playbook?.funeralHomeEligible),
     waitingOnFamily: tasks.filter(t => t.workflow_id === w.id && /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
     blockedTasks: tasks.filter(t => t.workflow_id === w.id && ['blocked', 'failed', 'needs_review'].includes(t.status || '')),

@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
 import { SiteHeader } from '../components/SiteChrome';
+import VendorSupport from '../components/VendorSupport';
 
 var sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -464,6 +465,7 @@ function OutcomeCard({ outcome, estateId, expanded, showAssign, onToggle, onMark
               })()}
             </div>
             <ProviderActionPanel outcome={outcome} estateId={estateId} onStarted={onMarkInProgress} />
+            <VendorSupport workflowId={estateId} taskTitle={outcome.title} onRequested={onMarkInProgress} />
             {outcome.status !== 'handled' && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {outcome.status === 'not_started' && (
