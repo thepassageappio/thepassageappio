@@ -225,6 +225,7 @@ const saveLead = async (data) => {
 const createWorkflow = async (userId, deceasedName, coordinatorName, coordinatorEmail, dateOfDeath, options = {}) => {
   try {
     const path = options.path || options.mode || null;
+    const setupStage = path === 'green' ? 'ready' : path === 'red' ? 'active' : undefined;
     const baseRow = {
       user_id: userId || null,
       name: `Estate of ${deceasedName || "Loved One"}`,
@@ -240,6 +241,7 @@ const createWorkflow = async (userId, deceasedName, coordinatorName, coordinator
     if (path) {
       baseRow.path = path;
       baseRow.mode = path;
+      baseRow.setup_stage = setupStage;
     }
 
     if (options.workflowId) {
@@ -284,11 +286,11 @@ const createWorkflow = async (userId, deceasedName, coordinatorName, coordinator
 
 const safeTaskCategory = (category) => {
   const value = String(category || '').toLowerCase().trim();
-  const allowed = new Set(['notifications', 'property', 'legal', 'government', 'financial', 'personal', 'memorial', 'digital', 'other']);
+  const allowed = new Set(['notifications', 'property', 'legal', 'government', 'financial', 'personal', 'memorial', 'digital', 'service', 'logistics', 'medical']);
   if (allowed.has(value)) return value;
-  if (value === 'medical' || value === 'documents') return 'legal';
-  if (value === 'service' || value === 'logistics') return 'other';
-  return 'other';
+  if (value === 'documents') return 'legal';
+  if (value === 'other') return 'personal';
+  return 'personal';
 };
 
 const taskInsertDefaults = (task = {}, actor = "Passage") => {
@@ -399,7 +401,7 @@ const taskCountsForReadiness = (tasks = []) => {
 const readinessPercentage = (counts) => counts.required > 0 ? Math.round((counts.handled / counts.required) * 100) : 0;
 
 const insertCustomTask = async (workflowId, userId, title, tier) => {
-  const defaults = taskInsertDefaults({ title, category: 'other' }, userId ? "family_owner" : "Passage");
+  const defaults = taskInsertDefaults({ title, category: 'personal' }, userId ? "family_owner" : "Passage");
   const { data, error } = await supabase.from('tasks').insert([{
     workflow_id: workflowId,
     user_id: userId || null,
@@ -2029,7 +2031,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
     const dbTask = workflowId ? await insertCustomTask(workflowId, userId, customText.trim(), tier) : null;
     setTasks(prev => [...prev, {
       id: dbTask?.id || `custom_${Date.now()}`,
-      title: customText.trim(), desc: '', category: 'other',
+      title: customText.trim(), desc: '', category: 'personal',
       tier, tierLabel: tierMeta.tierLabel, tierColor: tierMeta.tierColor,
       tierBg: tierMeta.tierBg, tierIcon: tierMeta.icon,
       completed: false, assignedTo: null, isCustom: true, dbId: dbTask?.id || null,
@@ -2551,6 +2553,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       const { error: workflowUpdateError } = await supabase.from('workflows').update({
         path: 'green',
         mode: 'green',
+        setup_stage: 'ready',
         status: 'draft',
         trigger_token: token,
         trigger_people: triggerPeople,

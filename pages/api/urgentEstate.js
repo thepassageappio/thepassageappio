@@ -161,11 +161,11 @@ function cleanContext(raw) {
 
 function safeTaskCategory(category) {
   const value = clean(category).toLowerCase();
-  const allowed = new Set(['notifications', 'property', 'legal', 'government', 'financial', 'personal', 'memorial', 'digital', 'other']);
+  const allowed = new Set(['notifications', 'property', 'legal', 'government', 'financial', 'personal', 'memorial', 'digital', 'service', 'logistics', 'medical']);
   if (allowed.has(value)) return value;
-  if (value === 'medical' || value === 'documents') return 'legal';
-  if (value === 'service' || value === 'logistics') return 'other';
-  return 'other';
+  if (value === 'documents') return 'legal';
+  if (value === 'other') return 'personal';
+  return 'personal';
 }
 
 function task(title, description, category, priority, dueDays, position, playbookKey, extras = {}) {
@@ -490,6 +490,7 @@ export default async function handler(req, res) {
     trigger_type: 'death_confirmed',
     path: 'red',
     mode: 'red',
+    setup_stage: 'active',
     orchestration_summary: {
       ...(existing?.orchestration_summary || {}),
       chaplain_context: context,
