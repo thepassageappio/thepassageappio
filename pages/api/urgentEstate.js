@@ -512,7 +512,6 @@ export default async function handler(req, res) {
     ...task,
     workflow_id: workflow.id,
     user_id: user.id,
-    position,
     status: index === 0 && ownerLabel ? 'assigned' : 'pending',
     assigned_to_name: index === 0 && ownerLabel ? ownerLabel : null,
     assigned_to_email: index === 0 && ownerEmail ? ownerEmail : null,

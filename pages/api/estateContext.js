@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     { data: announcements },
   ] = await Promise.all([
     admin.from('outcomes').select('*').eq('estate_id', id).order('position'),
-    admin.from('tasks').select('*').eq('workflow_id', id).order('position'),
+    admin.from('tasks').select('*').eq('workflow_id', id).order('created_at', { ascending: true }),
     admin.from('estate_events').select('*').eq('estate_id', id).order('created_at', { ascending: false }).limit(8),
     admin.from('workflow_events').select('*').eq('workflow_id', id).order('date', { ascending: true }),
     admin.from('people').select('*').eq('estate_id', id).order('created_at', { ascending: true }),

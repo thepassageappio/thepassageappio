@@ -1313,7 +1313,7 @@ export default function EstatePage() {
       return Promise.all([
         sb.from('workflows').select('*').eq('id', estateId).single(),
         sb.from('outcomes').select('*').eq('estate_id', estateId).order('position'),
-        sb.from('tasks').select('*').eq('workflow_id', estateId).order('position'),
+        sb.from('tasks').select('*').eq('workflow_id', estateId).order('created_at', { ascending: true }),
         sb.from('estate_events').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(8),
         sb.from('workflow_events').select('*').eq('workflow_id', estateId).order('date', { ascending: true }),
         sb.from('people').select('*').eq('estate_id', estateId).order('created_at', { ascending: true }),
@@ -1452,7 +1452,7 @@ export default function EstatePage() {
 
   async function refreshExecutionData() {
     var results = await Promise.all([
-      sb.from('tasks').select('*').eq('workflow_id', estateId).order('position'),
+      sb.from('tasks').select('*').eq('workflow_id', estateId).order('created_at', { ascending: true }),
       sb.from('estate_events').select('*').eq('estate_id', estateId).order('created_at', { ascending: false }).limit(8),
       sb.from('workflow_actions').select('*').eq('workflow_id', estateId).order('sort_order', { ascending: true }),
     ]);
