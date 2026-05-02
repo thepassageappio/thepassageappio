@@ -142,6 +142,14 @@ export default function AnnouncePage() {
   var s10 = useState('draft'); var savedStatus = s10[0]; var setSavedStatus = s10[1];
   var s11 = useState([]); var serviceEvents = s11[0]; var setServiceEvents = s11[1];
 
+  function estateHref() {
+    return estateId ? '/estate?id=' + encodeURIComponent(estateId) : '/';
+  }
+
+  function returnToEstate() {
+    window.location.href = estateHref();
+  }
+
   useEffect(function() {
     if (!estateId) return;
     sb.from('workflow_events').select('*').eq('workflow_id', estateId).order('date', { ascending: true }).then(function(r) {
@@ -180,8 +188,7 @@ export default function AnnouncePage() {
       reviewed_by: reviewerName || null,
       channel: channel,
     }]);
-    setFeedback('Draft saved.');
-    setTimeout(function() { setFeedback(''); }, 2000);
+    setFeedback('Draft saved. You can return to the estate now.');
     setSavedStatus('draft');
   }
 
@@ -279,7 +286,7 @@ export default function AnnouncePage() {
             : 'Your message is saved. Nothing has been sent automatically. You are in control of when and how this reaches people.'}
         </div>
         <div style={{ maxWidth: 380, margin: '0 auto' }}>
-          <PrimaryBtn onClick={function() { window.location.href = estateId ? '/?estate=' + estateId : '/'; }}>
+          <PrimaryBtn onClick={returnToEstate}>
             Return to estate
           </PrimaryBtn>
           <GhostBtn onClick={function() { setDone(false); setStep(1); setAudience(null); setTone(null); setMessage(''); setChannel(null); }}>
@@ -418,6 +425,7 @@ export default function AnnouncePage() {
         {sending ? 'Sending...' : channel === 'copy' ? 'Copy message' : 'Send message'}
       </PrimaryBtn>
       <GhostBtn onClick={saveDraft}>Save as draft</GhostBtn>
+      <GhostBtn onClick={returnToEstate}>Back to estate</GhostBtn>
       <GhostBtn onClick={function() { setStep(2); }}>Edit message</GhostBtn>
     </Shell>
   );

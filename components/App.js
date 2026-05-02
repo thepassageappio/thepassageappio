@@ -282,29 +282,57 @@ const createWorkflow = async (userId, deceasedName, coordinatorName, coordinator
   } catch (e) { console.error('createWorkflow:', e); return null; }
 };
 
+const safeTaskCategory = (category) => {
+  const value = String(category || '').toLowerCase().trim();
+  const allowed = new Set(['notifications', 'property', 'legal', 'government', 'financial', 'personal', 'memorial', 'digital', 'other']);
+  if (allowed.has(value)) return value;
+  if (value === 'medical' || value === 'documents') return 'legal';
+  if (value === 'service' || value === 'logistics') return 'other';
+  return 'other';
+};
+
+const taskInsertDefaults = (task = {}, actor = "Passage") => {
+  const playbook = getTaskPlaybook(task.title);
+  return {
+    category: safeTaskCategory(task.category),
+    playbook_key: playbook.key || task.playbook_key || null,
+    automation_level: playbook.automationLevel || task.automation_level || "MANUAL",
+    execution_kind: playbook.executionKind || playbook.executionModeKey || task.execution_kind || "record",
+    waiting_on: playbook.waitingOn || task.waiting_on || null,
+    partner_owner_role: playbook.partnerOwnerRole || task.partner_owner_role || null,
+    funeral_home_eligible: Boolean(playbook.funeralHomeEligible || task.funeral_home_eligible),
+    proof_required: playbook.proofRequired || task.proof_required || "confirmation",
+    last_action_at: task.last_action_at || new Date().toISOString(),
+    last_actor: task.last_actor || actor,
+  };
+};
+
 const saveAllTasks = async (workflowId, userId) => {
   if (!workflowId) return [];
   try {
     const rows = POST_DEATH_TASKS.flatMap(tier =>
-      tier.tasks.map(t => ({
-        workflow_id: workflowId,
-        user_id: userId || null,
-        title: t.title,
-        isSocial: t.isSocial || false,
-        isObituary: t.isObituary || false,
-        description: t.desc,
-        category: t.category,
-        priority: tier.tier === 1 ? 'urgent' : tier.tier === 2 ? 'high' : 'normal',
-        due_days_after_trigger: tier.tier === 1 ? 1 : tier.tier === 2 ? 3 : tier.tier === 3 ? 7 : 45,
-        status: 'pending',
-      }))
+      tier.tasks.map(t => {
+        const defaults = taskInsertDefaults(t, userId ? "family_owner" : "Passage");
+        return {
+          workflow_id: workflowId,
+          user_id: userId || null,
+          title: t.title,
+          isSocial: t.isSocial || false,
+          isObituary: t.isObituary || false,
+          description: t.desc,
+          ...defaults,
+          priority: tier.tier === 1 ? 'urgent' : tier.tier === 2 ? 'high' : 'normal',
+          due_days_after_trigger: tier.tier === 1 ? 1 : tier.tier === 2 ? 3 : tier.tier === 3 ? 7 : 45,
+          status: 'pending',
+        };
+      })
     );
     const { data, error } = await supabase.from('tasks')
       .upsert(rows, { onConflict: 'workflow_id,title', ignoreDuplicates: true })
       .select();
-    if (error) { console.error('saveAllTasks:', error); return []; }
+    if (error) { console.error('saveAllTasks:', error); throw error; }
     return data || [];
-  } catch (e) { console.error('saveAllTasks:', e); return []; }
+  } catch (e) { console.error('saveAllTasks:', e); throw e; }
 };
 
 const loadTasks = async (workflowId) => {
@@ -371,12 +399,13 @@ const taskCountsForReadiness = (tasks = []) => {
 const readinessPercentage = (counts) => counts.required > 0 ? Math.round((counts.handled / counts.required) * 100) : 0;
 
 const insertCustomTask = async (workflowId, userId, title, tier) => {
+  const defaults = taskInsertDefaults({ title, category: 'other' }, userId ? "family_owner" : "Passage");
   const { data, error } = await supabase.from('tasks').insert([{
     workflow_id: workflowId,
     user_id: userId || null,
     title,
     description: 'Custom task',
-    category: 'other',
+    ...defaults,
     priority: tier === 1 ? 'urgent' : tier === 2 ? 'high' : 'normal',
     due_days_after_trigger: tier === 1 ? 1 : tier === 2 ? 3 : tier === 3 ? 7 : 45,
     status: 'pending',
@@ -493,7 +522,7 @@ const loadUserWorkflows = async (userId) => {
   if (!userId) return [];
   const { data } = await supabase
     .from('workflows')
-    .select('id, name, deceased_name, coordinator_name, status, trigger_type, created_at')
+    .select('id, name, deceased_name, coordinator_name, coordinator_email, date_of_death, status, activation_status, trigger_type, path, mode, seat_status, estate_name, created_at, updated_at')
     .eq('user_id', userId)
     .neq('status', 'archived')
     .order('created_at', { ascending: false });
@@ -2369,24 +2398,31 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
   const [yourEmail, setYourEmail] = useState(() => user?.email || "");
   const [workflowId, setWorkflowId] = useState(null);
   const [building, setBuilding] = useState(false);
+  const [buildError, setBuildError] = useState("");
   const [showTaskList, setShowTaskList] = useState(false);
   const buildPlan = async (purchase = false) => {
+    setBuildError("");
     setBuilding(true);
-    await saveLead({ flow_type: "immediate", your_name: yourName, your_email: yourEmail, deceased_name: deceasedName, relationship, date_of_death: dateOfDeath, timestamp: new Date().toISOString() });
-    let createdWorkflowId = workflowId;
-    const wf = await createWorkflow(user?.id, deceasedName, yourName, yourEmail, dateOfDeath, { workflowId, path: 'red' });
-    if (wf?.id) {
+    try {
+      await saveLead({ flow_type: "immediate", your_name: yourName, your_email: yourEmail, deceased_name: deceasedName, relationship, date_of_death: dateOfDeath, timestamp: new Date().toISOString() });
+      let createdWorkflowId = workflowId;
+      const wf = await createWorkflow(user?.id, deceasedName, yourName, yourEmail, dateOfDeath, { workflowId, path: 'red' });
+      if (!wf?.id) throw new Error("Passage could not save this estate yet.");
       const wfId = wf.id;
       createdWorkflowId = wfId;
       setWorkflowId(wfId);
       await saveAllTasks(wfId, user?.id);
+      if (purchase) {
+        await handleCheckout('urgent', user && user.id, user && user.email ? user.email : yourEmail, createdWorkflowId);
+        return;
+      }
+      setShowTaskList(true);
+    } catch (err) {
+      console.error('urgent plan save:', err);
+      setBuildError(err?.message || "Passage could not save this urgent plan yet. Please try again.");
+    } finally {
+      setBuilding(false);
     }
-    setBuilding(false);
-    if (purchase) {
-      await handleCheckout('urgent', user && user.id, user && user.email ? user.email : yourEmail, createdWorkflowId);
-      return;
-    }
-    setShowTaskList(true);
   };
 
   if (showTaskList) {
@@ -2442,6 +2478,7 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
               <button onClick={() => buildPlan(false)} disabled={!yourName || !yourEmail || building} style={{ width: "100%", marginTop: 10, background: "none", border: "none", fontSize: 12, color: C.soft, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>
                 Preview first steps before checkout
               </button>
+              {buildError && <div style={{ marginTop: 12, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.rose, lineHeight: 1.5, fontWeight: 700 }}>{buildError}</div>}
             </Card>
           )}
         </div>
@@ -2475,8 +2512,10 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
   const [medicalRecordsLocation, setMedicalRecordsLocation] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("single_annual");
   const [planError, setPlanError] = useState("");
+  const [savingPlan, setSavingPlan] = useState(false);
 
   const activate = async (mode) => {
+    if (savingPlan) return;
     const primaryEmail = executorEmail.trim().toLowerCase();
     const backupEmail = secondConfirmerEmail.trim().toLowerCase();
     if (backupEmail && primaryEmail && backupEmail === primaryEmail) {
@@ -2484,83 +2523,105 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       setStep(4);
       return;
     }
-    setPlanError("");
-    const triggerPeople = Array.from(new Set([primaryEmail, backupEmail].filter(Boolean)));
-    const planningContext = {
-      healthcare_proxy: { name: healthcareProxyName, email: healthcareProxyEmail, phone: healthcareProxyPhone },
-      proxy_conversation_status: proxyConversationStatus,
-      faith_tradition: faithTradition,
-      clergy_or_officiant: clergyName,
-      cemetery_or_burial_place: cemeteryName,
-      document_location: documentLocation,
-      medical_records_location: medicalRecordsLocation,
-    };
-    await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, healthcare_proxy_name: healthcareProxyName, proxy_conversation_status: proxyConversationStatus, faith_tradition: faithTradition, clergy_name: clergyName, cemetery_name: cemeteryName, document_location: documentLocation, medical_records_location: medicalRecordsLocation, timestamp: new Date().toISOString() });
-    let createdWorkflowId = null;
-    if (user?.id) {
-      const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      const wf = await createWorkflow(user.id, name, user.email, user.email, null, { path: 'green' });
-      if (wf) {
-        const wfId = wf.id;
-        createdWorkflowId = wfId;
-        // Mark as green path with trigger token and ready status
-        await supabase.from('workflows').update({
-          path: 'green',
-          status: 'draft',
-          trigger_token: token,
-          trigger_people: triggerPeople,
-          confirmation_count: 2,
-          orchestration_summary: {
-            planning_context: planningContext,
-            trusted_advisors: {
-              healthcare_proxy: healthcareProxyName || null,
-              executor: executorName || null,
-              cemetery: cemeteryName || null,
-              clergy: clergyName || null,
-              medical_records_location: medicalRecordsLocation || null,
-              document_location: documentLocation || null,
-            },
-          },
-        }).eq('id', wfId);
-
-        // Save all tasks for the green path plan
-        await saveAllTasks(wfId, user.id);
-
-        // Queue notification actions for executor
-        if (executorEmail) {
-          await supabase.from('workflow_actions').insert([
-            { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
-            { workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_phone: executorPhone || null, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
-          ]);
-        }
-        if (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() !== executorEmail.trim().toLowerCase()) {
-          await supabase.from('workflow_actions').insert([
-            { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_phone: secondConfirmerPhone || null, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 },
-          ]);
-        }
-
-        // Paid activation is finalized by Stripe webhook after checkout succeeds.
-      }
-    }
-    if (mode === 'paid') {
-      await handleCheckout(selectedPlan, user && user.id, user && user.email, createdWorkflowId);
+    if (!user?.id) {
+      setPlanError("Sign in once so Passage can save this plan to your estate command center.");
+      setStep(0);
       return;
     }
-    onComplete(mode);
+    setPlanError("");
+    setSavingPlan(true);
+    try {
+      const triggerPeople = Array.from(new Set([primaryEmail, backupEmail].filter(Boolean)));
+      const planningContext = {
+        healthcare_proxy: { name: healthcareProxyName, email: healthcareProxyEmail, phone: healthcareProxyPhone },
+        proxy_conversation_status: proxyConversationStatus,
+        faith_tradition: faithTradition,
+        clergy_or_officiant: clergyName,
+        cemetery_or_burial_place: cemeteryName,
+        document_location: documentLocation,
+        medical_records_location: medicalRecordsLocation,
+      };
+      await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, healthcare_proxy_name: healthcareProxyName, proxy_conversation_status: proxyConversationStatus, faith_tradition: faithTradition, clergy_name: clergyName, cemetery_name: cemeteryName, document_location: documentLocation, medical_records_location: medicalRecordsLocation, timestamp: new Date().toISOString() });
+      let createdWorkflowId = null;
+      const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const wf = await createWorkflow(user.id, name, user.email, user.email, null, { path: 'green' });
+      if (!wf?.id) throw new Error("Passage could not save this planning estate yet.");
+      const wfId = wf.id;
+      createdWorkflowId = wfId;
+      const { error: workflowUpdateError } = await supabase.from('workflows').update({
+        path: 'green',
+        mode: 'green',
+        status: 'draft',
+        trigger_token: token,
+        trigger_people: triggerPeople,
+        confirmation_count: 2,
+        orchestration_summary: {
+          planning_context: planningContext,
+          trusted_advisors: {
+            healthcare_proxy: healthcareProxyName || null,
+            executor: executorName || null,
+            cemetery: cemeteryName || null,
+            clergy: clergyName || null,
+            medical_records_location: medicalRecordsLocation || null,
+            document_location: documentLocation || null,
+          },
+        },
+        updated_at: new Date().toISOString(),
+      }).eq('id', wfId);
+      if (workflowUpdateError) throw workflowUpdateError;
+
+      await saveAllTasks(wfId, user.id);
+
+      if (executorEmail) {
+        const { error: executorActionError } = await supabase.from('workflow_actions').insert([
+          { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
+          { workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_phone: executorPhone || null, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
+        ]);
+        if (executorActionError) console.warn('executor notification queue:', executorActionError);
+      }
+      if (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() !== executorEmail.trim().toLowerCase()) {
+        const { error: confirmerActionError } = await supabase.from('workflow_actions').insert([
+          { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_phone: secondConfirmerPhone || null, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 },
+        ]);
+        if (confirmerActionError) console.warn('second confirmer queue:', confirmerActionError);
+      }
+
+      if (mode === 'paid') {
+        await handleCheckout(selectedPlan, user.id, user.email, createdWorkflowId);
+        return;
+      }
+      onComplete(mode, createdWorkflowId);
+    } catch (err) {
+      console.error('planning save:', err);
+      setPlanError(err?.message || "Passage could not save this plan yet. Please try again.");
+      setStep(6);
+    } finally {
+      setSavingPlan(false);
+    }
   };
 
   const steps = [
-    <Card key={0} maxWidth={820}>
-      <Eyebrow text="Plan ahead" />
-      <Heading size={28}>Leave your family one calm place to start.</Heading>
-      <Sub>This will make things easier for your family later. Build the estate command center before it is needed: people, wishes, documents, and the trusted contacts who can activate it later.</Sub>
-      <div style={{ height: 14 }} />
+    <Card key={0} maxWidth={920}>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.35fr) minmax(260px,.65fr)", gap: 16, alignItems: "start", marginBottom: 16 }}>
+        <div>
+          <Eyebrow text="Plan ahead" />
+          <Heading size={30}>Leave your family one calm place to start.</Heading>
+          <Sub>This will make things easier for your family later. Build the estate command center before it is needed: people, wishes, documents, and trusted contacts.</Sub>
+        </div>
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 16, padding: "16px 18px" }}>
+          <div style={{ fontSize: 11.5, fontWeight: 900, color: C.sage, letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 8 }}>What this gives them</div>
+          {["Who to contact first", "What is already handled", "Who can activate the plan"].map((line) => (
+            <div key={line} style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.45, padding: "5px 0", fontWeight: 700 }}>{line}</div>
+          ))}
+        </div>
+      </div>
       {[
         { value: "self", icon: "1", title: "Myself", desc: "Set up my own plan so my family has what they need." },
-        { value: "parent", icon: "2", title: "A parent or grandparent", desc: "Help someone I love get organized before it is urgent." },
+        { value: "parent", icon: "2", title: "A loved one", desc: "Help someone I love get organized before it is urgent." },
         { value: "spouse", icon: "3", title: "My spouse or partner", desc: "Plan together so neither of us is left guessing." },
       ].map(o => <OptionCard key={o.value} {...o} selected={forWhom === o.value} onClick={() => setForWhom(o.value)} />)}
-      {!user && <div style={{ marginTop: 14 }}><GoogleSignInBtn /><div style={{ fontSize: 11, color: C.muted, textAlign: "center", marginTop: 6 }}>or continue without signing in</div></div>}
+      {!user && <div style={{ marginTop: 14, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14 }}><div style={{ fontSize: 12.5, color: C.mid, marginBottom: 10, lineHeight: 1.45 }}>Sign in once so Passage can save this plan to your estate command center.</div><GoogleSignInBtn /></div>}
+      {planError && <div style={{ marginTop: 12, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.rose, lineHeight: 1.5, fontWeight: 700 }}>{planError}</div>}
       <Btn onClick={() => setStep(1)} disabled={!forWhom} style={{ width: "100%", marginTop: 12 }}>Continue</Btn>
     </Card>,
 
@@ -2714,8 +2775,9 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "12px 14px", fontSize: 13.5, color: C.mid, lineHeight: 1.6, marginBottom: 14, textAlign: "center" }}>
         You have made this easier for them. Nothing sends until the plan is activated.
       </div>
-      <Btn onClick={() => activate("draft")} style={{ width: "100%", padding: "16px", fontSize: 15.5, marginBottom: 8 }}>View your plan →</Btn>
-      <button onClick={() => activate("draft")} style={{ width: "100%", border: "none", background: "transparent", color: C.sage, fontFamily: "Georgia,serif", fontWeight: 800, cursor: "pointer", padding: "8px" }}>Add more details later</button>
+      {planError && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.rose, marginBottom: 12, lineHeight: 1.5, fontWeight: 700 }}>{planError}</div>}
+      <Btn onClick={() => activate("draft")} disabled={savingPlan} style={{ width: "100%", padding: "16px", fontSize: 15.5, marginBottom: 8 }}>{savingPlan ? "Saving your plan..." : "Save and view your plan →"}</Btn>
+      <button onClick={() => activate("draft")} disabled={savingPlan} style={{ width: "100%", border: "none", background: "transparent", color: savingPlan ? C.soft : C.sage, fontFamily: "Georgia,serif", fontWeight: 800, cursor: savingPlan ? "default" : "pointer", padding: "8px" }}>Add more details later</button>
     </Card>,
   ];
 

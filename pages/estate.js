@@ -627,7 +627,7 @@ function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people,
       </div>
       {servicePeople.length > 0 && <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 12 }}>{servicePeople.map(function(p) { return <span key={p.id} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 999, padding: '5px 9px', fontSize: 11.5, color: MID }}>{p.first_name}{p.last_name ? ' ' + p.last_name : ''} - {p.estate_role_label || p.role || p.relationship || 'contact'}</span>; })}</div>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <button onClick={function() { window.location.href = '/?open=people&backEstate=' + encodeURIComponent(estateId); }} style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 11, padding: '10px 12px', fontSize: 12.5, color: MID, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Review people</button>
+        <button onClick={function() { var el = document.getElementById('people-coordination'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 11, padding: '10px 12px', fontSize: 12.5, color: MID, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Review people</button>
         <button onClick={function() { window.location.href = '/announce?estate=' + encodeURIComponent(estateId) + '&name=' + encodeURIComponent(name); }} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 11, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Prepare announcement</button>
       </div>
     </div>
@@ -914,6 +914,7 @@ function ownerBucket(item) {
 
 function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRefresh }) {
   var s0 = useState(''); var updating = s0[0]; var setUpdating = s0[1];
+  var s1 = useState(''); var actionFeedback = s1[0]; var setActionFeedback = s1[1];
   var enriched = (tasks || []).map(function(t) { return Object.assign({}, t, { playbook: getTaskPlaybook(t.title) }); });
   var tierCounts = enriched.reduce(function(acc, t) {
     var tier = t.playbook.executionTier || 'Assisted execution';
@@ -950,7 +951,15 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
       }),
     }).catch(function() { return null; });
     setUpdating('');
-    if (res && res.ok && onRefresh) onRefresh();
+    if (!res || !res.ok) {
+      var data = res ? await res.json().catch(function() { return {}; }) : {};
+      setActionFeedback(data.error || 'This update could not be saved. Please try again.');
+      return;
+    }
+    setActionFeedback(status === 'handled'
+      ? "That proof is saved. That's taken care of."
+      : "Needs help is saved. We'll keep this visible.");
+    if (onRefresh) onRefresh();
   }
 
   async function sendReminder(task) {
@@ -1012,6 +1021,12 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
         </div>
       </div>
 
+      {actionFeedback && (
+        <div style={{ background: actionFeedback.includes('could not') ? ROSE_FAINT : SAGE_FAINT, border: '1px solid ' + (actionFeedback.includes('could not') ? ROSE + '35' : SAGE_LIGHT), borderRadius: 12, padding: '10px 12px', marginBottom: 12, color: actionFeedback.includes('could not') ? ROSE : SAGE, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45 }}>
+          {actionFeedback}
+        </div>
+      )}
+
       {enriched.length > 0 && (
         <details style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
           <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900, fontSize: 12.5 }}>
@@ -1069,6 +1084,11 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     {state === 'good' && (
                       <div style={{ color: SAGE, fontSize: 11.5, lineHeight: 1.45, marginTop: 5, fontWeight: 800 }}>
                         That's taken care of. You're all set here.
+                      </div>
+                    )}
+                    {task.notes && (
+                      <div style={{ background: SUBTLE, borderRadius: 9, padding: '7px 9px', color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>
+                        Saved note: {task.notes}
                       </div>
                     )}
                   </div>
@@ -1179,7 +1199,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
 
       {!activated ? (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <button onClick={function() { window.location.href = '/?open=people&backEstate=' + encodeURIComponent(estate.id); }} style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, color: MID, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Review</button>
+          <button onClick={function() { var el = document.getElementById('people-coordination'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, color: MID, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' }}>Review</button>
           <button onClick={onActivate} disabled={activating || pendingActions.length === 0} style={{ border: 'none', background: pendingActions.length === 0 ? SOFT : SAGE, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: activating || pendingActions.length === 0 ? 'default' : 'pointer', opacity: activating ? .7 : 1 }}>{activating ? 'Starting...' : 'Approve and send'}</button>
         </div>
       ) : (
@@ -1692,7 +1712,7 @@ export default function EstatePage() {
           onRecord={recordPrepEvent}
         />
 
-        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
+        <div id="people-coordination" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 10 }}>Orchestration status</div>
           <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 12, marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 7 }}>
@@ -1878,7 +1898,7 @@ export default function EstatePage() {
             title="People and coordination"
             meta={outcomes.filter(function(o) { return !o.owner_label; }).length + ' items need an owner'}
             cta="Review"
-            onClick={function() { window.location.href = homeLink('people'); }}
+            onClick={function() { var el = document.getElementById('people-coordination'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
           />
           <SecondaryCard
             title="Planning file"

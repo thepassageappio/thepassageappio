@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { isPassageAdmin } from '../../lib/adminAccess';
 
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -323,9 +324,11 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Please sign in before upgrading.' });
     }
 
+    const signedInEmail = String(authData.user.email || userEmail || '').toLowerCase();
+    const adminBypass = isPassageAdmin(signedInEmail);
     let participantEligible = false;
     if (participantDiscount) {
-      const email = String(authData.user.email || userEmail || '').toLowerCase();
+      const email = signedInEmail;
       const [{ data: accessByUser }, { data: accessByEmail }, { data: participantRows }, { data: peopleRows }] = await Promise.all([
         admin.from('estate_access')
           .select('id,role,status')
@@ -350,6 +353,7 @@ export default async function handler(req, res) {
           .limit(5),
       ]);
       participantEligible = Boolean(
+        adminBypass ||
         (accessByUser || []).length ||
         (accessByEmail || []).length ||
         (participantRows || []).length ||

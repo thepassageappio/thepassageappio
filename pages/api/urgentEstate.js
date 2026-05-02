@@ -161,15 +161,15 @@ function cleanContext(raw) {
 
 function safeTaskCategory(category) {
   const value = clean(category).toLowerCase();
-  const allowed = new Set(['service', 'notifications', 'property', 'legal', 'government', 'financial', 'personal', 'memorial', 'digital', 'other']);
+  const allowed = new Set(['notifications', 'property', 'legal', 'government', 'financial', 'personal', 'memorial', 'digital', 'other']);
   if (allowed.has(value)) return value;
   if (value === 'medical' || value === 'documents') return 'legal';
-  if (value === 'logistics') return 'service';
+  if (value === 'service' || value === 'logistics') return 'other';
   return 'other';
 }
 
 function task(title, description, category, priority, dueDays, position, playbookKey, extras = {}) {
-  return {
+  const merged = {
     title,
     description,
     category: safeTaskCategory(category),
@@ -178,6 +178,16 @@ function task(title, description, category, priority, dueDays, position, playboo
     position,
     playbook_key: playbookKey || title,
     ...extras,
+  };
+  return {
+    ...merged,
+    category: safeTaskCategory(merged.category),
+    automation_level: merged.automation_level || 'MANUAL',
+    execution_kind: merged.execution_kind || 'record',
+    waiting_on: merged.waiting_on || null,
+    partner_owner_role: merged.partner_owner_role || null,
+    funeral_home_eligible: Boolean(merged.funeral_home_eligible),
+    proof_required: merged.proof_required || 'confirmation',
   };
 }
 
@@ -512,6 +522,13 @@ export default async function handler(req, res) {
     ...task,
     workflow_id: workflow.id,
     user_id: user.id,
+    category: safeTaskCategory(task.category),
+    automation_level: task.automation_level || 'MANUAL',
+    execution_kind: task.execution_kind || 'record',
+    waiting_on: task.waiting_on || null,
+    partner_owner_role: task.partner_owner_role || null,
+    funeral_home_eligible: Boolean(task.funeral_home_eligible),
+    proof_required: task.proof_required || 'confirmation',
     status: index === 0 && ownerLabel ? 'assigned' : 'pending',
     assigned_to_name: index === 0 && ownerLabel ? ownerLabel : null,
     assigned_to_email: index === 0 && ownerEmail ? ownerEmail : null,

@@ -150,7 +150,7 @@ export default async function handler(req, res) {
         user_id: user.id,
         title,
         description,
-        category: 'service',
+        category: 'other',
         priority: taskIndex < 3 ? 'urgent' : 'high',
         status: 'draft',
         playbook,
