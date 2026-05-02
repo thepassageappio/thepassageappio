@@ -211,7 +211,7 @@ export default async function handler(req, res) {
         status: 'waiting',
         sent_at: now,
         created_at: now,
-      }]).catch(() => {});
+      }]).then(() => {}, () => {});
     }
 
     await admin.from('estate_access').insert([{
@@ -222,7 +222,7 @@ export default async function handler(req, res) {
       status: 'active',
       created_at: now,
       updated_at: now,
-    }]).catch(() => {});
+    }]).then(() => {}, () => {});
 
     return res.status(200).json({ success: true, workflowId: workflow.id, organizationId });
   } catch (err) {

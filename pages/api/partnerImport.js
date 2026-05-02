@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     }]).select('id').single();
     if (orgError) return res.status(500).json({ error: orgError.message });
     organizationId = org.id;
-    await admin.from('organization_members').insert([{ organization_id: organizationId, user_id: user.id, email, role: 'owner', status: 'active' }]).catch(() => {});
+    await admin.from('organization_members').insert([{ organization_id: organizationId, user_id: user.id, email, role: 'owner', status: 'active' }]).then(() => {}, () => {});
   }
 
   const index = Object.fromEntries(headers.map((h, i) => [h, i]));
@@ -140,7 +140,7 @@ export default async function handler(req, res) {
         description: row[index.notes],
         actor: organizationName,
         created_at: now,
-      }]).catch(() => {});
+      }]).then(() => {}, () => {});
     }
 
     const tasks = DEFAULT_TASKS.map(([title, description], taskIndex) => {

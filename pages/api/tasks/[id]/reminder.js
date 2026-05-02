@@ -76,7 +76,7 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: 'Reminder could not be sent.' });
   }
 
-  await supabase.from('tasks').update({ follow_up_at: new Date().toISOString() }).eq('id', task.id).catch(() => {});
+  await supabase.from('tasks').update({ follow_up_at: new Date().toISOString() }).eq('id', task.id).then(() => {}, () => {});
   await recordStatusEvent({
     workflowId: task.workflow_id,
     taskId: task.id,

@@ -71,7 +71,7 @@ export default async function handler(req, res) {
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
   if (Object.keys(updates).length > 0) {
     updates.updated_at = new Date().toISOString();
-    await serviceSupabase.from('tasks').update(updates).eq('id', taskId).eq('workflow_id', task.workflow_id).catch(() => {});
+    await serviceSupabase.from('tasks').update(updates).eq('id', taskId).eq('workflow_id', task.workflow_id).then(() => {}, () => {});
   }
 
   const result = await recordStatusEvent({

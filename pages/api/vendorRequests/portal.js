@@ -30,7 +30,7 @@ async function notifyOwner(request, title, detail) {
       subject: title,
       html: `<div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e4ddd4;border-radius:16px;padding:24px"><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800">Passage local support</div><h1 style="font-weight:400;color:#1a1916;font-size:24px;line-height:1.25">${title}</h1><p style="color:#6a6560;line-height:1.7">${detail}</p><p style="color:#6b8f71;font-weight:800">We are tracking this in Passage.</p></div></div>`,
     }),
-  }).catch(() => {});
+  }).catch(() => null);
 }
 
 export default async function handler(req, res) {
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
         title: `${request.vendors?.business_name || 'Vendor'} viewed request`,
         description: `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this task'} was viewed.`,
         actor: request.vendors?.business_name || 'Vendor',
-      }]).catch(() => {});
+      }]).then(() => {}, () => {});
       await recordStatusEvent({
         workflowId: request.workflow_id,
         taskId: request.task_id,
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
     title,
     description: detail,
     actor: vendorName,
-  }]).catch(() => {});
+  }]).then(() => {}, () => {});
   await recordStatusEvent({
     workflowId: request.workflow_id,
     taskId: request.task_id,

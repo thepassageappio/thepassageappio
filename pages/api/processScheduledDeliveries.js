@@ -176,11 +176,11 @@ export default async function handler(req, res) {
         provider_id: delivery.id,
         status: 'sent',
         sent_at: new Date().toISOString(),
-      }))).catch(() => {});
+      }))).then(() => {}, () => {});
 
       results.push({ id: item.id, ok: failures.length === 0, sent, failures });
     } catch (err) {
-      await supabase.from('scheduled_deliveries').update({ status: 'scheduled', updated_at: new Date().toISOString() }).eq('id', item.id).catch(() => {});
+      await supabase.from('scheduled_deliveries').update({ status: 'scheduled', updated_at: new Date().toISOString() }).eq('id', item.id).then(() => {}, () => {});
       results.push({ id: item.id, ok: false, error: err.message });
     }
   }

@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     admin.from('announcements').select('*').eq('estate_id', id).order('created_at', { ascending: false }).limit(10),
   ]);
 
-  await admin.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', id).catch(() => {});
+  await admin.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', id).then(() => {}, () => {});
 
   return res.status(200).json({
     estate,

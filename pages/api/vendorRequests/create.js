@@ -111,7 +111,7 @@ export default async function handler(req, res) {
     title: `${vendorCategoryLabel(vendor.category)} help requested`,
     description: detail,
     actor: auth.user.email || 'Passage',
-  }]).catch(() => {});
+  }]).then(() => {}, () => {});
   await recordStatusEvent({
     workflowId: workflow.id,
     taskId: task?.id || null,

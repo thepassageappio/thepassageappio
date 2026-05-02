@@ -44,7 +44,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
       subject: `Passage update: ${taskTitle || 'task updated'}`,
       html,
     }),
-  }).catch(() => {});
+  }).catch(() => null);
   const json = response ? await response.json().catch(() => ({})) : {};
   await admin.from('notification_log').insert([{
     workflow_id: workflowId,
@@ -57,7 +57,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     status: response?.ok ? 'sent' : 'failed',
     sent_at: response?.ok ? new Date().toISOString() : null,
     error_message: response?.ok ? null : (json?.message || json?.error || 'Coordinator notification failed'),
-  }]).catch(() => {});
+  }]).then(() => {}, () => {});
 }
 
 export default async function handler(req, res) {
@@ -116,7 +116,7 @@ export default async function handler(req, res) {
     title: status === 'handled' ? 'Participant handled a task' : status === 'waiting' ? 'Participant update waiting' : status === 'acknowledged' ? 'Participant confirmed a task' : status === 'blocked' ? 'Participant needs help' : 'Participant updated a task',
     description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
     actor: email,
-  }]).catch(() => {});
+  }]).then(() => {}, () => {});
   await admin.from('task_status_events').insert([{
     workflow_id: data.workflow_id,
     task_id: kind === 'task' ? data.id : null,
@@ -127,7 +127,7 @@ export default async function handler(req, res) {
     channel: 'participant',
     recipient: email,
     detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
-  }]).catch(() => {});
+  }]).then(() => {}, () => {});
   await notifyCoordinator({
     workflowId: data.workflow_id,
     actorEmail: email,

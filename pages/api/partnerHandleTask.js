@@ -101,7 +101,7 @@ export default async function handler(req, res) {
           provider_id: json.id,
           status: 'sent',
           sent_at: new Date().toISOString(),
-        }]).catch(() => {});
+        }]).then(() => {}, () => {});
       } else {
         await admin.from('notification_log').insert([{
           workflow_id: workflow.id,
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
           provider_id: null,
           status: 'failed',
           error_message: json?.message || json?.error || 'Family notification failed after partner action.',
-        }]).catch(() => {});
+        }]).then(() => {}, () => {});
       }
     }
 

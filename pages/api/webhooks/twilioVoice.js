@@ -66,7 +66,7 @@ export default async function handler(req, res) {
       payload: Object.fromEntries(params.entries()),
       status: 'processed',
       processed_at: new Date().toISOString(),
-    }]).catch(() => {});
+    }]).then(() => {}, () => {});
 
     await recordStatusEvent({
       workflowId,

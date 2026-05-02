@@ -83,7 +83,7 @@ export default async function handler(req, res) {
       detail: r.ok ? 'Funeral home preparation summary emailed to ' + to : 'Failed to email funeral home preparation summary to ' + to,
       provider: 'resend',
       provider_message_id: data.id || null,
-    }]).catch(() => {});
+    }]).then(() => {}, () => {});
 
     await supabase.from('estate_events').insert([{
       estate_id: estateId,
@@ -91,7 +91,7 @@ export default async function handler(req, res) {
       title: r.ok ? 'Preparation summary emailed' : 'Preparation summary email failed',
       description: r.ok ? 'Funeral home preparation summary emailed to ' + to : 'Could not email preparation summary to ' + to,
       actor: auth.user?.email || 'Passage',
-    }]).catch(() => {});
+    }]).then(() => {}, () => {});
 
     if (!r.ok) return res.status(500).json({ error: data.message || data.error || 'Email provider did not accept the message.' });
     return res.status(200).json({ success: true, id: data.id });

@@ -47,7 +47,7 @@ export default async function handler(req, res) {
       flow_type: flowType,
       source,
       notes: JSON.stringify({ category, urgency, message, site: SITE_URL, created_at: new Date().toISOString() }),
-    }]).catch(() => {});
+    }]).then(() => {}, () => {});
 
     const key = process.env.RESEND_API_KEY;
     if (key) {

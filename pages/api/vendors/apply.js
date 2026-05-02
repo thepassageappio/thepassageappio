@@ -20,7 +20,7 @@ async function notifyPassage(vendor) {
       subject: 'New Passage vendor application',
       html: `<p><strong>${vendor.business_name}</strong> applied as ${vendorCategoryLabel(vendor.category)}.</p><p>Email: ${vendor.contact_email || 'n/a'}<br/>Phone: ${vendor.contact_phone || 'n/a'}<br/>ZIPs: ${(vendor.zip_codes_served || []).join(', ') || 'n/a'}</p><p>${vendor.short_description || ''}</p>`,
     }),
-  }).catch(() => {});
+  }).catch(() => null);
 }
 
 export default async function handler(req, res) {

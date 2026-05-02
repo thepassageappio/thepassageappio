@@ -21,7 +21,7 @@ async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, c
   if (status === 'sent') taskUpdates.notified_at = now;
   if (status === 'delivered') taskUpdates.delivered_at = now;
   if (status === 'acknowledged') taskUpdates.acknowledged_at = now;
-  if (isUuid(taskId)) await supabase.from('tasks').update(taskUpdates).eq('id', taskId).eq('workflow_id', workflowId).catch(() => {});
+  if (isUuid(taskId)) await supabase.from('tasks').update(taskUpdates).eq('id', taskId).eq('workflow_id', workflowId).then(() => {}, () => {});
   if (isUuid(actionId)) await supabase.from('workflow_actions').update({
     status,
     delivery_status: status,
@@ -30,7 +30,7 @@ async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, c
     channel,
     recipient,
     updated_at: now,
-  }).eq('id', actionId).eq('workflow_id', workflowId).catch(() => {});
+  }).eq('id', actionId).eq('workflow_id', workflowId).then(() => {}, () => {});
   await supabase.from('task_status_events').insert([{
     workflow_id: workflowId,
     task_id: isUuid(taskId) ? taskId : null,
@@ -44,14 +44,14 @@ async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, c
     provider: provider || null,
     provider_message_id: providerMessageId || null,
     provider_event_id: providerEventId || null,
-  }]).catch(() => {});
+  }]).then(() => {}, () => {});
   await supabase.from('estate_events').insert([{
     estate_id: workflowId,
     event_type: status === 'sent' ? 'task_message_sent' : 'task_status_updated',
     title: status === 'sent' ? 'Message sent' : 'Task status updated',
     description: detail || ((recipient || 'Recipient') + ' - ' + status),
     actor: actor || 'Passage',
-  }]).catch(() => {});
+  }]).then(() => {}, () => {});
 }
 
 export default async function handler(req, res) {
