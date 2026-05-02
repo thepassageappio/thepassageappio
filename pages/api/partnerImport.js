@@ -156,7 +156,7 @@ export default async function handler(req, res) {
         due_days_after_trigger: taskIndex < 3 ? 1 : 3,
         status: 'draft',
         playbook,
-        playbook_key: playbook.key || null,
+        playbook_key: playbook.playbookKey || null,
         automation_level: playbook.automationLevel || 'MANUAL',
         execution_kind: playbook.executionKind || 'record',
         waiting_on: playbook.waitingOn || null,

@@ -297,7 +297,7 @@ const taskInsertDefaults = (task = {}, actor = "Passage") => {
   const playbook = getTaskPlaybook(task.title);
   return {
     category: safeTaskCategory(task.category),
-    playbook_key: playbook.key || task.playbook_key || null,
+    playbook_key: playbook.playbookKey || task.playbook_key || null,
     automation_level: playbook.automationLevel || task.automation_level || "MANUAL",
     execution_kind: playbook.executionKind || playbook.executionModeKey || task.execution_kind || "record",
     waiting_on: playbook.waitingOn || task.waiting_on || null,
