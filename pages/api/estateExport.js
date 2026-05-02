@@ -24,7 +24,7 @@ export default async function handler(req, res) {
 
   const { data: workflow, error: workflowError } = await admin
     .from('workflows')
-    .select('id,user_id,name,estate_name,deceased_name,coordinator_name,coordinator_email,coordinator_phone,status,path,mode,organization_case_reference')
+    .select('id,user_id,name,estate_name,deceased_name,coordinator_name,coordinator_email,coordinator_phone,status,path,mode,organization_id,organization_case_reference')
     .eq('id', estateId)
     .maybeSingle();
   if (workflowError) return res.status(500).json({ error: workflowError.message });
@@ -33,24 +33,36 @@ export default async function handler(req, res) {
   const email = user.email.toLowerCase();
   let allowed = workflow.user_id === user.id || String(workflow.coordinator_email || '').toLowerCase() === email;
   if (!allowed) {
-    const { data: access } = await admin
-      .from('estate_access')
-      .select('id')
-      .eq('workflow_id', estateId)
-      .ilike('email', email)
-      .neq('status', 'revoked')
-      .limit(1);
-    allowed = !!access?.length;
+    const [{ data: access }, { data: member }] = await Promise.all([
+      admin
+        .from('estate_access')
+        .select('id')
+        .eq('workflow_id', estateId)
+        .ilike('email', email)
+        .neq('status', 'revoked')
+        .limit(1),
+      workflow.organization_id
+        ? admin
+          .from('organization_members')
+          .select('id')
+          .eq('organization_id', workflow.organization_id)
+          .ilike('email', email)
+          .eq('status', 'active')
+          .limit(1)
+        : Promise.resolve({ data: [] }),
+    ]);
+    allowed = !!access?.length || !!member?.length;
   }
   if (!allowed) return res.status(403).json({ error: 'You do not have access to export this estate.' });
 
-  const [{ data: tasks }, { data: people }, { data: communications }] = await Promise.all([
+  const [{ data: tasks }, { data: people }, { data: communications }, { data: vendorRequests }] = await Promise.all([
     admin.from('tasks').select('title,status,assigned_to_name,assigned_to_email,last_action_at,last_actor,channel,recipient,notes,proof_required,waiting_on').eq('workflow_id', estateId).order('created_at', { ascending: true }),
     admin.from('people').select('name,email,phone,role,relationship,status').eq('estate_id', estateId).order('created_at', { ascending: true }),
     admin.from('notification_log').select('channel,recipient_name,recipient_email,recipient_phone,subject,status,sent_at,delivered_at,error_message').eq('workflow_id', estateId).order('created_at', { ascending: false }),
+    admin.from('vendor_requests').select('task_title,status,urgency,requested_at,responded_at,completed_at,estimated_value,final_value,vendors(business_name,contact_email,contact_phone,category)').eq('workflow_id', estateId).order('requested_at', { ascending: false }),
   ]);
 
-  const headers = ['Estate', 'Record type', 'Family contact', 'Family email', 'Family phone', 'Task', 'Assigned participant', 'Participant email', 'Status', 'Waiting on', 'Proof needed', 'Last action at', 'Last actor', 'Channel', 'Recipient', 'Message subject', 'Message sent at', 'Message delivered at', 'Message error', 'Notes'];
+  const headers = ['Estate', 'Record type', 'Family contact', 'Family email', 'Family phone', 'Task', 'Assigned participant', 'Participant email', 'Status', 'Waiting on', 'Proof needed', 'Last action at', 'Last actor', 'Channel', 'Recipient', 'Message subject', 'Message sent at', 'Message delivered at', 'Message error', 'Estimated value', 'Final value', 'Notes'];
   const lines = [headers.map(csvCell).join(',')];
 
   for (const task of tasks || []) {
@@ -70,6 +82,8 @@ export default async function handler(req, res) {
       task.last_actor,
       task.channel,
       task.recipient,
+      '',
+      '',
       '',
       '',
       '',
@@ -95,6 +109,8 @@ export default async function handler(req, res) {
       '',
       '',
       person.phone,
+      '',
+      '',
       '',
       '',
       '',
@@ -125,6 +141,35 @@ export default async function handler(req, res) {
       message.delivered_at,
       message.error_message,
       '',
+      '',
+      '',
+    ].map(csvCell).join(','));
+  }
+
+  for (const request of vendorRequests || []) {
+    lines.push([
+      workflow.estate_name || workflow.deceased_name || workflow.name,
+      'vendor_request',
+      workflow.coordinator_name,
+      workflow.coordinator_email,
+      workflow.coordinator_phone,
+      request.task_title,
+      '',
+      '',
+      request.status,
+      request.status === 'requested' ? 'vendor response' : '',
+      'vendor confirmation',
+      request.responded_at || request.completed_at || request.requested_at,
+      request.vendors?.business_name,
+      'vendor',
+      request.vendors?.business_name || request.vendors?.contact_email || request.vendors?.contact_phone,
+      request.urgency === 'rush' ? 'Rush local support request' : 'Planned local support request',
+      request.requested_at,
+      request.responded_at || request.completed_at,
+      '',
+      request.estimated_value,
+      request.final_value,
+      request.vendors?.category,
     ].map(csvCell).join(','));
   }
 

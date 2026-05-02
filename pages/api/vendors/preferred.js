@@ -29,15 +29,21 @@ export default async function handler(req, res) {
   if (!membership?.organization_id) return res.status(403).json({ error: 'Funeral home admin access required.' });
 
   if (req.method === 'GET') {
-    const [{ data: vendors }, { data: preferred }] = await Promise.all([
+    const [{ data: vendors }, { data: preferred }, { data: membershipOrg }] = await Promise.all([
       admin.from('vendors').select('id,business_name,category,short_description,status').eq('status', 'active').order('business_name'),
       admin.from('funeral_home_preferred_vendors').select('vendor_id,category,active').eq('organization_id', membership.organization_id),
+      admin.from('organizations').select('id,marketplace_enabled').eq('id', membership.organization_id).maybeSingle(),
     ]);
-    return res.status(200).json({ vendors: vendors || [], preferred: preferred || [] });
+    return res.status(200).json({ vendors: vendors || [], preferred: preferred || [], marketplaceEnabled: membershipOrg?.marketplace_enabled !== false });
   }
 
   if (req.method === 'POST') {
-    const { vendorId, category, active } = req.body || {};
+    const { vendorId, category, active, marketplaceEnabled } = req.body || {};
+    if (typeof marketplaceEnabled === 'boolean' && !vendorId) {
+      const { error } = await admin.from('organizations').update({ marketplace_enabled: marketplaceEnabled }).eq('id', membership.organization_id);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true, marketplaceEnabled });
+    }
     if (!vendorId || !category) return res.status(400).json({ error: 'Missing vendor preference.' });
     const { data: vendor } = await admin.from('vendors').select('id,category,status').eq('id', vendorId).eq('status', 'active').maybeSingle();
     if (!vendor) return res.status(404).json({ error: 'Vendor not available.' });

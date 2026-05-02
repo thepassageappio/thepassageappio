@@ -88,7 +88,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Could not request help.');
-      setMessage('Request sent. We are tracking this for you.');
+      setMessage('Request sent - waiting for response. We will coordinate this for you here.');
       if (onRequested) onRequested(data);
     } catch (error) {
       setMessage(error.message || 'Could not request help.');
@@ -102,7 +102,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 9 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 900, color: C.sage, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 4 }}>Need help with this?</div>
-          <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.45 }}>Passage can suggest local support when it helps complete this step.</div>
+          <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.45 }}>Passage can suggest local support when it helps complete this step. We will coordinate this for you here.</div>
         </div>
         {category && <span style={{ fontSize: 10.5, fontWeight: 900, color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 8px', whiteSpace: 'nowrap' }}>{vendorCategoryLabel(category)}</span>}
       </div>
@@ -126,6 +126,9 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
               <div style={{ fontSize: 11.5, color: C.amber, fontWeight: 800, marginTop: 7 }}>{vendorAvailabilityLabel(vendor)}</div>
               {vendor.preferred_by_funeral_home && (
                 <div style={{ fontSize: 11.5, color: C.sage, lineHeight: 1.45, marginTop: 5 }}>Recommended through your funeral home's preferred network.</div>
+              )}
+              {!vendor.preferred_by_funeral_home && (
+                <div style={{ fontSize: 11.5, color: C.sage, lineHeight: 1.45, marginTop: 5 }}>Used by families like yours recently.</div>
               )}
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 9 }}>
                 <button onClick={() => requestHelp(vendor)} disabled={requesting === vendor.id} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: requesting === vendor.id ? 'default' : 'pointer' }}>

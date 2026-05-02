@@ -90,12 +90,13 @@ export default async function handler(req, res) {
     marketplace_fee_percent: vendor.marketplace_fee_percent,
     passage_rev_share_percent: vendor.passage_rev_share_percent,
     funeral_home_rev_share_percent: vendor.funeral_home_rev_share_percent,
+    estimated_value: vendor.estimated_value || vendor.estimated_transaction_value || null,
     estimated_transaction_value: vendor.estimated_transaction_value,
   }]).select('*').single();
   if (error) return res.status(500).json({ error: error.message });
 
   const emailSent = await sendVendorEmail({ vendor, workflow, request, taskTitle: resolvedTaskTitle });
-  const detail = `${vendorCategoryLabel(vendor.category)} help requested from ${vendor.business_name}. ${emailSent ? 'Vendor notified.' : 'Vendor request recorded.'}`;
+  const detail = `${vendorCategoryLabel(vendor.category)} help requested from ${vendor.business_name}. ${emailSent ? 'Vendor notified.' : 'Vendor request recorded.'} We'll coordinate this here.`;
   await admin.from('estate_events').insert([{
     estate_id: workflow.id,
     event_type: 'vendor_help_requested',

@@ -52,6 +52,7 @@ export default async function handler(req, res) {
     marketplace_fee_percent: 18,
     passage_rev_share_percent: 18,
     funeral_home_rev_share_percent: 0,
+    estimated_value: null,
   };
 
   const { data, error } = await supabase.from('vendors').insert([vendorRow]).select('id,business_name,category,contact_email,zip_codes_served').single();

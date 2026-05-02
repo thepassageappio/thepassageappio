@@ -33,18 +33,21 @@ export default async function handler(req, res) {
   if (!isUuid(workflowId)) return res.status(400).json({ error: 'Missing estate.' });
 
   const [{ data: workflow }, { data: task }] = await Promise.all([
-    admin.from('workflows').select('id,user_id,coordinator_email,organization_id,coordinator_phone').eq('id', workflowId).maybeSingle(),
+    admin.from('workflows').select('id,user_id,coordinator_email,organization_id,coordinator_phone,organizations(marketplace_enabled)').eq('id', workflowId).maybeSingle(),
     isUuid(taskId) ? admin.from('tasks').select('id,title,description,workflow_id').eq('id', taskId).eq('workflow_id', workflowId).maybeSingle() : Promise.resolve({ data: null }),
   ]);
   const allowed = await userCanViewWorkflow(userData.user, workflow);
   if (!allowed) return res.status(403).json({ error: 'You do not have access to this estate.' });
+  if (workflow.organization_id && workflow.organizations?.marketplace_enabled === false) {
+    return res.status(200).json({ vendors: [], category: '' });
+  }
 
   const category = categoryForTask(task || taskTitleParam);
   if (!category) return res.status(200).json({ vendors: [], category: '' });
 
   const { data: preferredRows } = workflow.organization_id ? await admin
     .from('funeral_home_preferred_vendors')
-    .select('vendor_id, vendors(id,business_name,category,short_description,zip_codes_served,rush_supported,rush_window_hours,planned_supported,contact_email,contact_phone,website,status,marketplace_fee_percent,passage_rev_share_percent,funeral_home_rev_share_percent)')
+    .select('vendor_id, vendors(id,business_name,category,short_description,zip_codes_served,rush_supported,rush_window_hours,planned_supported,contact_email,contact_phone,website,status,marketplace_fee_percent,passage_rev_share_percent,funeral_home_rev_share_percent,estimated_value,estimated_transaction_value)')
     .eq('organization_id', workflow.organization_id)
     .eq('category', category)
     .eq('active', true)
@@ -59,7 +62,7 @@ export default async function handler(req, res) {
   if (vendors.length < 2) {
     const exclude = vendors.map((v) => v.id);
     let query = admin.from('vendors')
-      .select('id,business_name,category,short_description,zip_codes_served,rush_supported,rush_window_hours,planned_supported,contact_email,contact_phone,website,status,marketplace_fee_percent,passage_rev_share_percent,funeral_home_rev_share_percent')
+      .select('id,business_name,category,short_description,zip_codes_served,rush_supported,rush_window_hours,planned_supported,contact_email,contact_phone,website,status,marketplace_fee_percent,passage_rev_share_percent,funeral_home_rev_share_percent,estimated_value,estimated_transaction_value')
       .eq('category', category)
       .eq('status', 'active')
       .order('rush_supported', { ascending: false })

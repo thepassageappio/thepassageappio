@@ -49,7 +49,7 @@ async function getPartnerData(token) {
         .order('created_at', { ascending: false }),
       admin
         .from('vendor_requests')
-        .select('workflow_id,task_title,status,urgency,requested_at,responded_at,completed_at,vendors(business_name,contact_email,contact_phone,category)')
+        .select('workflow_id,task_title,status,urgency,requested_at,responded_at,completed_at,estimated_value,final_value,vendors(business_name,contact_email,contact_phone,category)')
         .in('workflow_id', workflowIds)
         .order('requested_at', { ascending: false }),
     ])
@@ -98,6 +98,8 @@ function buildCsv(rows) {
     'Message sent at',
     'Message delivered at',
     'Message error',
+    'Estimated value',
+    'Final value',
   ];
   const lines = [header.map(csvCell).join(',')];
   for (const { workflow, task, communication, vendorRequest } of rows) {
@@ -122,6 +124,8 @@ function buildCsv(rows) {
       vendorRequest?.requested_at || communication?.sent_at,
       vendorRequest?.responded_at || vendorRequest?.completed_at || communication?.delivered_at,
       communication?.error_message,
+      vendorRequest?.estimated_value,
+      vendorRequest?.final_value,
     ].map(csvCell).join(','));
   }
   return lines.join('\n');

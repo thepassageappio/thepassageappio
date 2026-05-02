@@ -18,7 +18,7 @@ export default function FuneralHomeDashboard() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState('');
   const [data, setData] = useState(null);
-  const [vendorPrefs, setVendorPrefs] = useState({ vendors: [], preferred: [] });
+  const [vendorPrefs, setVendorPrefs] = useState({ vendors: [], preferred: [], marketplaceEnabled: true });
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
@@ -67,7 +67,7 @@ export default function FuneralHomeDashboard() {
     if (!accessToken) return;
     const res = await fetch('/api/vendors/preferred', { headers: { Authorization: 'Bearer ' + accessToken } });
     const json = await res.json().catch(() => ({}));
-    if (res.ok) setVendorPrefs({ vendors: json.vendors || [], preferred: json.preferred || [] });
+    if (res.ok) setVendorPrefs({ vendors: json.vendors || [], preferred: json.preferred || [], marketplaceEnabled: json.marketplaceEnabled !== false });
   }
 
   async function signIn() {
@@ -79,7 +79,22 @@ export default function FuneralHomeDashboard() {
     setUser(null);
     setToken('');
     setData(null);
-    setVendorPrefs({ vendors: [], preferred: [] });
+    setVendorPrefs({ vendors: [], preferred: [], marketplaceEnabled: true });
+  }
+
+  async function toggleMarketplaceEnabled() {
+    if (!token) return;
+    const next = vendorPrefs.marketplaceEnabled === false;
+    setUpdating('marketplace_enabled');
+    const res = await fetch('/api/vendors/preferred', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ marketplaceEnabled: next }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) setError(json.error || 'Could not update local support visibility.');
+    else setVendorPrefs(prev => ({ ...prev, marketplaceEnabled: next }));
+    setUpdating('');
   }
 
   async function togglePreferredVendor(vendor) {
@@ -417,8 +432,12 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Preferred local support</div>
                 <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Choose the vendors families see first inside relevant tasks. This never becomes a public directory.</div>
               </div>
+              <button onClick={toggleMarketplaceEnabled} disabled={updating === 'marketplace_enabled'} style={{ border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 10px', background: vendorPrefs.marketplaceEnabled === false ? C.roseFaint : C.sageFaint, color: vendorPrefs.marketplaceEnabled === false ? C.rose : C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
+                {vendorPrefs.marketplaceEnabled === false ? 'Local support hidden' : 'Local support visible'}
+              </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
+            <div style={{ color: C.mid, fontSize: 12.5, marginTop: 8 }}>Families stay in Passage. Requests, responses, and status are tracked in the case.</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10, opacity: vendorPrefs.marketplaceEnabled === false ? 0.55 : 1 }}>
               {vendorPrefs.vendors.slice(0, 6).map(vendor => {
                 const isPreferred = (vendorPrefs.preferred || []).some(p => p.vendor_id === vendor.id && p.category === vendor.category && p.active !== false);
                 return (
