@@ -119,7 +119,7 @@ export default async function handler(req, res) {
       status: 'active',
       trigger_type: 'death_confirmed',
       path: 'partner',
-      mode: 'funeral_home_case',
+      mode: 'red',
       setup_stage: 'partner_csv_imported',
       activation_status: 'draft',
       organization_id: organizationId,

@@ -129,7 +129,7 @@ export default async function handler(req, res) {
       status: 'active',
       trigger_type: triggerType,
       path: 'partner',
-      mode: normalizedCaseType === 'immediate' ? 'funeral_home_case' : 'funeral_home_preneed',
+      mode: normalizedCaseType === 'immediate' ? 'red' : 'green',
       setup_stage: `partner_${normalizedCaseType}_created`,
       activation_status: 'draft',
       organization_id: organizationId,

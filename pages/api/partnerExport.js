@@ -28,7 +28,7 @@ async function getPartnerData(token) {
 
   const { data: workflows, error: workflowError } = await admin
     .from('workflows')
-    .select('id,name,estate_name,deceased_name,coordinator_name,coordinator_email,coordinator_phone,organization_case_reference,mode,status,updated_at')
+    .select('id,name,estate_name,deceased_name,coordinator_name,coordinator_email,coordinator_phone,organization_case_reference,mode,setup_stage,status,updated_at')
     .in('organization_id', organizationIds)
     .neq('status', 'archived')
     .order('updated_at', { ascending: false });
@@ -76,6 +76,14 @@ async function getPartnerData(token) {
   };
 }
 
+function workflowCaseType(workflow) {
+  const stage = String(workflow?.setup_stage || '');
+  const mode = String(workflow?.mode || '');
+  return stage.includes('preneed') || stage.includes('prepaid') || mode === 'green'
+    ? 'Pre-need / prepaid'
+    : 'At-need';
+}
+
 function buildCsv(rows) {
   const header = [
     'Case',
@@ -113,7 +121,7 @@ function buildCsv(rows) {
     lines.push([
       workflow.estate_name || workflow.deceased_name || workflow.name,
       vendorRequest ? 'vendor_request' : communication ? 'communication' : 'task',
-      workflow.mode === 'funeral_home_preneed' ? 'Pre-need / prepaid' : 'At-need',
+      workflowCaseType(workflow),
       workflow.organization_case_reference,
       workflow.coordinator_name,
       workflow.coordinator_email,

@@ -36,6 +36,10 @@ export default function PartnerCaseSummary() {
   const workflow = data?.workflow;
   const org = workflow?.organizations || {};
   const caseName = workflow?.deceased_name || workflow?.estate_name || workflow?.name || 'Family case';
+  const stage = String(workflow?.setup_stage || '');
+  const caseType = stage.includes('preneed') || stage.includes('prepaid') || workflow?.mode === 'green'
+    ? 'Pre-need / prepaid planning'
+    : 'At-need coordination';
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink, padding: 22 }}>
@@ -58,7 +62,7 @@ export default function PartnerCaseSummary() {
             <div>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{org.from_name || org.name || 'Funeral home'} family summary</div>
               <h1 style={{ fontSize: 34, lineHeight: 1.05, fontWeight: 400, margin: '8px 0 0' }}>{caseName}</h1>
-              <div style={{ color: C.mid, fontSize: 13, marginTop: 6 }}>{workflow.mode === 'funeral_home_preneed' ? 'Pre-need / prepaid planning' : 'At-need coordination'}{workflow.organization_case_reference ? ` - ${workflow.organization_case_reference}` : ''}</div>
+              <div style={{ color: C.mid, fontSize: 13, marginTop: 6 }}>{caseType}{workflow.organization_case_reference ? ` - ${workflow.organization_case_reference}` : ''}</div>
             </div>
             <div style={{ textAlign: 'right', color: C.mid, fontSize: 12, lineHeight: 1.55 }}>
               Prepared {new Date().toLocaleDateString()}<br />

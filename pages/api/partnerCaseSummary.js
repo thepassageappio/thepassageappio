@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   const { data: workflow, error: workflowError } = await admin
     .from('workflows')
-    .select('id,name,estate_name,deceased_name,date_of_death,coordinator_name,coordinator_email,coordinator_phone,organization_id,organization_case_reference,mode')
+    .select('id,name,estate_name,deceased_name,date_of_death,coordinator_name,coordinator_email,coordinator_phone,organization_id,organization_case_reference,mode,setup_stage')
     .eq('id', id)
     .maybeSingle();
   if (workflowError) return res.status(500).json({ error: workflowError.message });

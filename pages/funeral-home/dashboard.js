@@ -22,6 +22,14 @@ function vendorRequestLabel(value) {
   return 'Waiting for response';
 }
 
+function partnerCaseTypeLabel(item) {
+  const stage = String(item?.setup_stage || '');
+  const mode = String(item?.mode || '');
+  return stage.includes('preneed') || stage.includes('prepaid') || mode === 'green'
+    ? 'Pre-need / prepaid case'
+    : 'At-need case';
+}
+
 const miniPill = { background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 };
 
 export default function FuneralHomeDashboard() {
@@ -338,8 +346,8 @@ export default function FuneralHomeDashboard() {
             {user && <button onClick={() => setShowNewCase(v => !v)} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New family case</button>}
             {user && <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Import CSV</button>}
             {user && <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none' }}>Template</a>}
-            {user && cases.length > 0 && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Download for your system</button>}
-            {user && cases.length > 0 && <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV'}</button>}
+            {user && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Download for your system</button>}
+            {user && <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV'}</button>}
             {user && <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Start pilot billing</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
@@ -570,7 +578,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.25 }}>{item.deceased_name || item.estate_name || item.name || 'Family case'}</div>
-                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{item.mode === 'funeral_home_preneed' ? 'Pre-need / prepaid case' : 'At-need case'} - Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
+                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{partnerCaseTypeLabel(item)} - Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
                     </div>
                     <Link href={`/estate?id=${item.id}`} style={{ color: '#fff', background: C.sage, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Open case</Link>
                     <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Print family summary</Link>
