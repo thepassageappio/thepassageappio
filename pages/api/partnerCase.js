@@ -128,7 +128,7 @@ export default async function handler(req, res) {
       coordinator_phone: coordinatorPhone || null,
       status: 'active',
       trigger_type: triggerType,
-      path: 'partner',
+      path: normalizedCaseType === 'immediate' ? 'red' : 'green',
       mode: normalizedCaseType === 'immediate' ? 'red' : 'green',
       setup_stage: `partner_${normalizedCaseType}_created`,
       activation_status: 'draft',

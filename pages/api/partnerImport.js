@@ -118,7 +118,7 @@ export default async function handler(req, res) {
       coordinator_phone: row[index.phone] || null,
       status: 'active',
       trigger_type: 'death_confirmed',
-      path: 'partner',
+      path: 'red',
       mode: 'red',
       setup_stage: 'partner_csv_imported',
       activation_status: 'draft',
