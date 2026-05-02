@@ -1,5 +1,6 @@
 import { verifyDeliveryRequest } from '../../../../lib/deliveryAuth';
 import { serviceSupabase, isUuid, recordStatusEvent } from '../../../../lib/taskStatus';
+import { isPassageAdmin } from '../../../../lib/adminAccess';
 
 const allowedStatuses = new Set(['waiting', 'acknowledged', 'handled', 'blocked', 'not_applicable']);
 const allowedChannels = new Set(['email', 'sms', 'call', 'website', 'record', 'participant']);
@@ -18,6 +19,7 @@ async function userCanUpdateTask(auth, task) {
   if (!workflow) return false;
   if (workflow.user_id && workflow.user_id === userId) return true;
   if (workflow.coordinator_email && email && workflow.coordinator_email.toLowerCase() === email) return true;
+  if (email && isPassageAdmin(email)) return true;
 
   const { data: access } = await serviceSupabase
     .from('estate_access')

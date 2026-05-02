@@ -1481,6 +1481,40 @@ export default function EstatePage() {
     if (results[2].data) setActions(results[2].data);
   }
 
+  async function updateTaskFromCommand(task, status, detail, notePrompt) {
+    if (!task?.id) return;
+    var note = notePrompt ? window.prompt(notePrompt) : '';
+    if (notePrompt && note === null) return;
+    var session = await sb.auth.getSession();
+    var token = session && session.data && session.data.session ? session.data.session.access_token : '';
+    if (!token) {
+      showToast('Please sign in to update this task.');
+      return;
+    }
+    var response = await fetch('/api/tasks/' + task.id + '/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        status,
+        channel: 'record',
+        recipient: task.assigned_to_name || task.assigned_to_email || coordinatorName || 'Family coordinator',
+        detail: note ? detail + ': ' + note : detail,
+        notes: note || task.notes || '',
+        outcomeStatus: status === 'blocked' ? 'help' : status === 'handled' ? 'completed' : 'waiting',
+        actor: user?.email || coordinatorName || 'Passage',
+      })
+    });
+    if (!response.ok) {
+      var data = await response.json().catch(function() { return {}; });
+      showToast(data.error || 'This update could not be saved.');
+      return;
+    }
+    await refreshExecutionData();
+    if (status === 'handled') showToast("That's taken care of. You're all set here.");
+    else if (status === 'blocked') showToast("Needs help is saved. We'll keep it visible.");
+    else showToast("Waiting state saved. We'll keep this visible.");
+  }
+
   function recordPrepEvent(detail) {
     var eventRow = { estate_id: estateId, event_type: 'funeral_home_prep', title: 'Funeral home prep summary', description: detail, actor: coordinatorName };
     sb.from('estate_events').insert([eventRow]).then(function() {
@@ -1663,6 +1697,18 @@ export default function EstatePage() {
           <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
             <div style={{ fontSize: 11, color: ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Just do this now</div>
             <div style={{ fontSize: 15, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{firstFastTitle}</div>
+            {firstOpenTask && (
+              <>
+                <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginTop: 7 }}>
+                  Record what happened, mark it waiting, or flag that you need help. Passage will keep tracking this here.
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'handled', 'Proof recorded for ' + firstOpenTask.title, 'Reference number, provider name, or short confirmation note'); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Confirm / record proof</button>
+                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'waiting', 'Waiting for response on ' + firstOpenTask.title); }} style={{ border: '1px solid ' + AMBER_BORDER, background: AMBER_FAINT, color: AMBER, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Still waiting</button>
+                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'blocked', 'Help needed for ' + firstOpenTask.title, 'What is blocking this?'); }} style={{ border: '1px solid ' + ROSE + '35', background: CARD, color: ROSE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Needs help</button>
+                </div>
+              </>
+            )}
           </div>
         )}
 

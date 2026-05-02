@@ -134,47 +134,74 @@ export default function FuneralHomeDashboard() {
     if (!token || !task?.id) return;
     setUpdating(task.id + status);
     setError('');
-    const res = await fetch(`/api/tasks/${task.id}/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({
-        status,
-        channel: 'record',
-        recipient: task.playbook?.partnerOwnerRole || 'funeral home',
-        detail,
-        actor: user?.email || 'Funeral home staff',
-      }),
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) setError(json.error || 'Could not update this task.');
-    else {
-      setNotice(status === 'blocked'
-        ? 'Family information requested. This stays visible until it is resolved.'
-        : 'Started on behalf of the family. Passage is tracking this so your staff does not have to chase it manually.');
-      await load(token);
+    setNotice('');
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({
+          status,
+          channel: 'record',
+          recipient: task.playbook?.partnerOwnerRole || 'funeral home',
+          detail,
+          outcomeStatus: status === 'blocked' ? 'help' : status === 'handled' ? 'completed' : 'waiting',
+          actor: user?.email || 'Funeral home staff',
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not update this task.');
+      } else {
+        setData(prev => prev ? {
+          ...prev,
+          cases: (prev.cases || []).map(item => ({
+            ...item,
+            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, status, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+          })),
+        } : prev);
+        setNotice(status === 'blocked'
+          ? 'Family information requested. This stays visible until it is resolved.'
+          : 'Started on behalf of the family. Passage is tracking this so your staff does not have to chase it manually.');
+        await load(token);
+      }
+    } finally {
+      setUpdating('');
     }
-    setUpdating('');
   }
 
   async function handleForFamily(task, caseItem) {
     if (!token || !task?.id) return;
     setUpdating(task.id + 'handle_for_family');
     setError('');
-    const res = await fetch('/api/partnerHandleTask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({
-        taskId: task.id,
-        note: `${org?.name || 'Funeral home'} handled ${task.title} for ${caseItem?.coordinator_name || 'the family'}.`,
-      }),
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) setError(json.error || 'Could not handle this for the family.');
-    else {
-      setNotice('Handled for the family. The family can see who handled it, when it happened, and what was sent.');
-      await load(token);
+    setNotice('');
+    try {
+      const res = await fetch('/api/partnerHandleTask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({
+          taskId: task.id,
+          note: `${org?.name || 'Funeral home'} handled ${task.title} for ${caseItem?.coordinator_name || 'the family'}.`,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not handle this for the family.');
+      } else {
+        setData(prev => prev ? {
+          ...prev,
+          cases: (prev.cases || []).map(item => ({
+            ...item,
+            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, status: 'handled', last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status: 'handled', last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+          })),
+        } : prev);
+        setNotice('Handled for the family. The family can see who handled it, when it happened, and what was sent.');
+        await load(token);
+      }
+    } finally {
+      setUpdating('');
     }
-    setUpdating('');
   }
 
   async function downloadExport() {
@@ -322,12 +349,13 @@ export default function FuneralHomeDashboard() {
   const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to || t.owner_name || t.participant_id).length, 0);
   const callsAvoided = totalCommunications + assignmentsCoordinated + totalVendorRequests;
   const timeSavedMinutes = callsAvoided * 8;
+  const timeSavedLabel = callsAvoided > 0 ? `${Math.max(1, Math.round(timeSavedMinutes / 60))} hr est.` : '0 hours';
   const glanceItems = [
     ['Active cases', cases.length],
     ['Calls potentially avoided', callsAvoided],
     ['Tasks handled', totalHandled],
     ['Waiting for response', totalWaiting],
-    ['Coordination time saved', `${Math.max(0, Math.round(timeSavedMinutes / 60 * 10) / 10)}h`],
+    ['Coordination time saved', timeSavedLabel],
     ['Local requests coordinated', totalVendorRequests],
     ['Tracked referral value', totalVendorValue ? `$${Math.round(totalVendorValue)}` : '$0'],
   ];

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { recordStatusEvent } from '../../lib/taskStatus';
+import { isPassageAdmin } from '../../lib/adminAccess';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -43,7 +44,7 @@ export default async function handler(req, res) {
       .ilike('email', user.email)
       .eq('status', 'active')
       .limit(1);
-    if (!member?.length) return res.status(403).json({ error: 'You do not have access to this partner case.' });
+    if (!member?.length && !isPassageAdmin(user.email)) return res.status(403).json({ error: 'You do not have access to this partner case.' });
 
     const { data: organization } = await admin
       .from('organizations')

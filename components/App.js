@@ -3221,7 +3221,7 @@ function MemoriesModal({ userId, workflowId, onClose, onSaved }) {
   );
 }
 
-function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
+function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refreshKey }) {
   const [userData, setUserData] = useState(null);
   const [profile, setProfile] = useState(null);
   const [workflows, setWorkflows] = useState([]);
@@ -3331,7 +3331,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan }) {
     };
     load();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, refreshKey]);
 
   const handleArchive = async (wfId) => {
     if (!confirm("Archive this estate plan? You can still view it later, but it will leave your active estate list.")) return;
@@ -4222,7 +4222,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   );
 }
 
-function Success({ mode, onDashboard }) {
+function Success({ mode, onDashboard, workflowId }) {
   const isPreview = mode === 'preview';
   const isGreenPlan = !isPreview;
   return (
@@ -4260,7 +4260,13 @@ function Success({ mode, onDashboard }) {
         )}
         {onDashboard ? (
           <>
-            <button onClick={onDashboard} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '13px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia, serif', fontWeight: 800, cursor: 'pointer' }}>
+            <button onClick={() => {
+              if (workflowId && typeof window !== 'undefined') {
+                window.location.href = '/estate?id=' + encodeURIComponent(workflowId);
+                return;
+              }
+              onDashboard();
+            }} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '13px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia, serif', fontWeight: 800, cursor: 'pointer' }}>
               {isGreenPlan ? 'View your plan' : 'Continue to My file'}
             </button>
             {isGreenPlan && (
@@ -4280,6 +4286,8 @@ function Success({ mode, onDashboard }) {
 export default function App() {
   const [view, setView] = useState("landing");
   const [successMode, setSuccessMode] = useState("paid");
+  const [successWorkflowId, setSuccessWorkflowId] = useState(null);
+  const [dashboardRefreshKey, setDashboardRefreshKey] = useState(0);
   const [user, setUser] = useState(null);
   const [activePlan, setActivePlan] = useState(null); // workflow object for tasklist view
 
@@ -4323,15 +4331,25 @@ export default function App() {
     setView("tasklist");
   };
 
-  const commonProps = { user, onSignOut: handleSignOut, onDashboard: () => setView("dashboard") };
+  const openDashboard = () => {
+    setDashboardRefreshKey(k => k + 1);
+    setView("dashboard");
+  };
+
+  const commonProps = { user, onSignOut: handleSignOut, onDashboard: openDashboard };
 
   return (
     <>
       {view === "landing" && <CompactLanding {...commonProps} onPlan={() => setView("plan")} onEmergency={() => setView("emergency")} />}
-      {view === "plan" && <PlanFlow {...commonProps} onComplete={(mode) => { setSuccessMode(mode); setView("success"); }} onBack={() => setView("landing")} />}
+      {view === "plan" && <PlanFlow {...commonProps} onComplete={(mode, workflowId) => {
+        setSuccessMode(mode);
+        setSuccessWorkflowId(workflowId || null);
+        setDashboardRefreshKey(k => k + 1);
+        setView("success");
+      }} onBack={() => setView("landing")} />}
       {view === "emergency" && <EmergencyFlow {...commonProps} onBack={() => setView("landing")} />}
-      {view === "success" && <Success mode={successMode} onDashboard={user ? () => setView("dashboard") : null} />}
-      {view === "dashboard" && <Dashboard {...commonProps} onStartPlan={() => setView("plan")} onEmergency={() => setView("emergency")} onOpenPlan={handleOpenPlan} />}
+      {view === "success" && <Success mode={successMode} workflowId={successWorkflowId} onDashboard={user ? openDashboard : null} />}
+      {view === "dashboard" && <Dashboard {...commonProps} refreshKey={dashboardRefreshKey} onStartPlan={() => setView("plan")} onEmergency={() => setView("emergency")} onOpenPlan={handleOpenPlan} />}
       {view === "tasklist" && activePlan && (
         <TaskList
           deceasedName={activePlan.deceased_name || activePlan.name?.replace("Estate of ", "") || ""}
