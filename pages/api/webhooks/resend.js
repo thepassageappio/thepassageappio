@@ -18,11 +18,15 @@ function safeEqual(a, b) {
 
 function verifyResendSignature(raw, req) {
   const secret = process.env.RESEND_WEBHOOK_SECRET;
-  if (!secret) return true;
+  if (!secret) return process.env.NODE_ENV !== 'production';
   const id = req.headers['svix-id'];
   const timestamp = req.headers['svix-timestamp'];
   const signature = String(req.headers['svix-signature'] || '');
   if (!id || !timestamp || !signature) return false;
+  const numericTimestamp = Number(timestamp);
+  if (!Number.isFinite(numericTimestamp)) return false;
+  const ageMs = Math.abs(Date.now() - numericTimestamp * 1000);
+  if (ageMs > 10 * 60 * 1000) return false;
   const signed = `${id}.${timestamp}.${raw.toString('utf8')}`;
   const key = secret.startsWith('whsec_') ? Buffer.from(secret.slice(6), 'base64') : secret;
   const expected = crypto.createHmac('sha256', key).update(signed).digest('base64');
@@ -36,6 +40,9 @@ function extractEmailId(event) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const raw = await readRaw(req);
+  if (!process.env.RESEND_WEBHOOK_SECRET && process.env.NODE_ENV === 'production') {
+    return res.status(500).json({ error: 'RESEND_WEBHOOK_SECRET is not configured.' });
+  }
   if (!verifyResendSignature(raw, req)) return res.status(401).json({ error: 'Invalid Resend signature.' });
 
   let event;

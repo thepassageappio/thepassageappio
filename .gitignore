@@ -1,0 +1,6 @@
+.codex-bin/
+.codex-tools/
+.git-codex/
+node_modules/
+.next/
+.env*

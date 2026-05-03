@@ -110,65 +110,65 @@ export default function ContentPage() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
-      <section style={{ maxWidth: 1060, margin: '0 auto', padding: '8px 22px 18px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .92fr) minmax(300px, .58fr)', gap: 14, alignItems: 'start', marginBottom: 10 }}>
+      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '6px 22px 16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(300px, .48fr)', gap: 12, alignItems: 'start', marginBottom: 10 }}>
           <div>
             <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Help guides</div>
-            <h1 style={{ fontSize: 'clamp(28px, 3.1vw, 39px)', lineHeight: .98, margin: '0 0 8px', fontWeight: 400 }}>Four guides for the moments families should not have to figure out alone.</h1>
-            <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.42, margin: 0, maxWidth: 720 }}>Choose the situation closest to yours. Passage unlocks the guide here and points you toward the clearest next step.</p>
+            <h1 style={{ fontSize: 'clamp(28px, 2.8vw, 36px)', lineHeight: 1.02, margin: '0 0 7px', fontWeight: 400 }}>Pick the guide you need right now.</h1>
+            <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.42, margin: 0, maxWidth: 660 }}>Unlock once, then read all four guides here. No searching. No drip campaign.</p>
           </div>
-          <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 13, boxShadow: '0 14px 40px rgba(55,45,35,.05)' }}>
+          <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, boxShadow: '0 12px 34px rgba(55,45,35,.05)' }}>
             <div style={{ fontSize: 17, lineHeight: 1.2, marginBottom: 5 }}>{leadUnlocked ? 'Guides unlocked' : 'Send me the guide'}</div>
-            <p style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.36, marginTop: 0 }}>{leadUnlocked ? 'Choose any guide. It opens in the reader below.' : 'No drip campaign. Just the guide and next place to start.'}</p>
+            <p style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.34, margin: '0 0 8px' }}>{leadUnlocked ? 'Choose any guide. It opens below.' : 'Just the guide and next place to start.'}</p>
             {!leadUnlocked && <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={inputStyle} />}
             {!leadUnlocked && <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={inputStyle} />}
             <select value={interest} onChange={e => { setInterest(e.target.value); setUnlocked(leadUnlocked); }} style={inputStyle}>
               {guides.map(g => <option key={g.title}>{g.title}</option>)}
             </select>
-            {!leadUnlocked && <button style={{ width: '100%', border: 'none', borderRadius: 12, padding: '13px 16px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{unlocked ? 'Guide unlocked' : 'Unlock guide'}</button>}
+            {!leadUnlocked && <button style={{ width: '100%', border: 'none', borderRadius: 11, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{unlocked ? 'Guide unlocked' : 'Unlock guide'}</button>}
             {error && <p style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, lineHeight: 1.45, margin: '10px 0 0' }}>{error}</p>}
           </form>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, .38fr) minmax(0, .62fr)', gap: 12, alignItems: 'stretch' }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 10, display: 'grid', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, .34fr) minmax(0, .66fr)', gap: 10, alignItems: 'stretch' }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 8, display: 'grid', gap: 7, alignContent: 'start', maxHeight: 'calc(100vh - 226px)', overflowY: 'auto' }}>
             {guides.map(g => {
               const active = selected.title === g.title;
               return (
-                <button key={g.title} onClick={() => { setInterest(g.title); setUnlocked(leadUnlocked); }} style={{ textAlign: 'left', background: active ? C.sageFaint : '#fff', border: `1px solid ${active ? C.sage : C.border}`, borderRadius: 13, padding: 11, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
-                  <div style={{ fontSize: 9.2, color: active ? C.sage : C.gold, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 4 }}>{g.type}</div>
-                  <div style={{ fontSize: 15.5, color: C.ink, lineHeight: 1.12 }}>{g.title}</div>
-                  <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.32, marginTop: 4 }}>{g.audience}</div>
+                <button key={g.title} onClick={() => { setInterest(g.title); setUnlocked(leadUnlocked); }} style={{ textAlign: 'left', background: active ? C.sageFaint : '#fff', border: `1px solid ${active ? C.sage : C.border}`, borderRadius: 12, padding: '9px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+                  <div style={{ fontSize: 8.8, color: active ? C.sage : C.gold, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 3 }}>{g.type}</div>
+                  <div style={{ fontSize: 14.2, color: C.ink, lineHeight: 1.12 }}>{g.title}</div>
+                  <div style={{ fontSize: 11, color: C.mid, lineHeight: 1.28, marginTop: 3 }}>{g.audience}</div>
                 </button>
               );
             })}
           </div>
 
-          <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 15, boxShadow: '0 14px 40px rgba(55,45,35,.05)', maxHeight: 'calc(100vh - 245px)', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', borderBottom: `1px solid ${C.border}`, paddingBottom: 11, marginBottom: 12 }}>
+          <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 13, boxShadow: '0 12px 34px rgba(55,45,35,.05)', maxHeight: 'calc(100vh - 226px)', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', borderBottom: `1px solid ${C.border}`, paddingBottom: 10, marginBottom: 10 }}>
               <div>
                 <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 5 }}>{selected.type}</div>
-                <h2 style={{ fontSize: 'clamp(21px, 2.3vw, 28px)', lineHeight: 1.03, margin: '0 0 6px', fontWeight: 400 }}>{selected.fullTitle}</h2>
-                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.42, margin: 0 }}>{selected.subtitle}</p>
+                <h2 style={{ fontSize: 'clamp(20px, 2vw, 25px)', lineHeight: 1.05, margin: '0 0 5px', fontWeight: 400 }}>{selected.fullTitle}</h2>
+                <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.36, margin: 0 }}>{selected.subtitle}</p>
               </div>
               {!unlocked && <span style={{ color: C.rose, background: C.roseFaint, borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 800, whiteSpace: 'nowrap' }}>Locked</span>}
             </div>
 
             {!unlocked ? (
-              <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 14, padding: 15, color: C.mid, fontSize: 13.5, lineHeight: 1.55 }}>
+              <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 13, padding: 13, color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
                 Enter your email above to unlock the full guide immediately. You will stay on this page.
               </div>
             ) : (
               <div>
-                <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.52, marginTop: 0 }}>You do not have to figure this out alone. Start with the next section that matches where you are right now.</p>
-                <div style={{ display: 'grid', gap: 10 }}>
+                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.42, marginTop: 0 }}>Start with the next section that matches where you are right now.</p>
+                <div style={{ display: 'grid', gap: 8 }}>
                   {selected.sections.map(([title, items]) => (
-                    <section key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13 }}>
-                      <h3 style={{ fontSize: 16, lineHeight: 1.15, margin: '0 0 8px', fontWeight: 800 }}>{title}</h3>
-                      <div style={{ display: 'grid', gap: 7 }}>
+                    <section key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 11 }}>
+                      <h3 style={{ fontSize: 15, lineHeight: 1.15, margin: '0 0 7px', fontWeight: 800 }}>{title}</h3>
+                      <div style={{ display: 'grid', gap: 6 }}>
                         {items.map((item, index) => (
-                          <div key={index} style={{ display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'start', color: C.mid, fontSize: 12.8, lineHeight: 1.45 }}>
-                            <span style={{ width: 22, height: 22, borderRadius: '50%', background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 900 }}>{index + 1}</span>
+                          <div key={index} style={{ display: 'grid', gridTemplateColumns: '20px minmax(0,1fr)', gap: 8, alignItems: 'start', color: C.mid, fontSize: 12.4, lineHeight: 1.38 }}>
+                            <span style={{ width: 20, height: 20, borderRadius: '50%', background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900 }}>{index + 1}</span>
                             <span>{item}</span>
                           </div>
                         ))}
@@ -186,4 +186,4 @@ export default function ContentPage() {
   );
 }
 
-const inputStyle = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 12, padding: '12px 13px', fontFamily: 'Georgia,serif', fontSize: 14, color: C.ink, outline: 'none', background: '#fff', marginBottom: 10 };
+const inputStyle = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontSize: 13.5, color: C.ink, outline: 'none', background: '#fff', marginBottom: 8 };

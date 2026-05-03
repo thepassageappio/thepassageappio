@@ -2533,74 +2533,42 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     setPlanError("");
     setSavingPlan(true);
     try {
-      const triggerPeople = Array.from(new Set([primaryEmail, backupEmail].filter(Boolean)));
-      const planningContext = {
-        healthcare_proxy: { name: healthcareProxyName, email: healthcareProxyEmail, phone: healthcareProxyPhone },
-        proxy_conversation_status: proxyConversationStatus,
-        faith_tradition: faithTradition,
-        clergy_or_officiant: clergyName,
-        cemetery_or_burial_place: cemeteryName,
-        document_location: documentLocation,
-        medical_records_location: medicalRecordsLocation,
-      };
       await saveLead({ flow_type: "planning", mode, executor_name: executorName, executor_email: executorEmail, executor_phone: executorPhone, second_confirmer_name: secondConfirmerName, second_confirmer_email: secondConfirmerEmail, second_confirmer_phone: secondConfirmerPhone, person_name: name, disposition, service_type: serviceType, healthcare_proxy_name: healthcareProxyName, proxy_conversation_status: proxyConversationStatus, faith_tradition: faithTradition, clergy_name: clergyName, cemetery_name: cemeteryName, document_location: documentLocation, medical_records_location: medicalRecordsLocation, timestamp: new Date().toISOString() });
-      let createdWorkflowId = null;
-      const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      const wf = await createWorkflow(user.id, name, user.email, user.email, null, {
-        path: 'green',
-        mode: 'green',
-        status: 'draft',
-        setupStage: 'ready',
-        triggerType: 'death_confirmed',
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error("Sign in once so Passage can save this plan to your estate command center.");
+      const response = await fetch('/api/planningEstate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({
+          mode,
+          forWhom,
+          personName: name,
+          dateOfBirth: dob,
+          disposition,
+          serviceType,
+          executorName,
+          executorEmail,
+          executorPhone,
+          secondConfirmerName,
+          secondConfirmerEmail,
+          secondConfirmerPhone,
+          healthcareProxyName,
+          healthcareProxyEmail,
+          healthcareProxyPhone,
+          proxyConversationStatus,
+          faithTradition,
+          clergyName,
+          cemeteryName,
+          documentLocation,
+          medicalRecordsLocation,
+        }),
       });
-      if (!wf?.id) throw new Error("Passage could not save this planning estate yet.");
-      const wfId = wf.id;
-      createdWorkflowId = wfId;
-      const { error: workflowUpdateError } = await supabase.from('workflows').update({
-        path: 'green',
-        mode: 'green',
-        setup_stage: 'ready',
-        status: 'draft',
-        trigger_token: token,
-        trigger_people: triggerPeople,
-        confirmation_count: 2,
-        orchestration_summary: {
-          planning_context: planningContext,
-          trusted_advisors: {
-            healthcare_proxy: healthcareProxyName || null,
-            executor: executorName || null,
-            cemetery: cemeteryName || null,
-            clergy: clergyName || null,
-            medical_records_location: medicalRecordsLocation || null,
-            document_location: documentLocation || null,
-          },
-        },
-        updated_at: new Date().toISOString(),
-      }).eq('id', wfId);
-      if (workflowUpdateError) throw workflowUpdateError;
-
-      await saveAllTasks(wfId, user.id);
-
-      if (executorEmail) {
-        const executorRows = [
-          { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: executorEmail, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 },
-        ];
-        if (executorPhone) {
-          executorRows.push({ workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: executorEmail, recipient_phone: executorPhone, recipient_name: executorName, task_title: 'Estate executor notification', status: 'pending', delay_hours: 0 });
-        }
-        const { error: executorActionError } = await supabase.from('workflow_actions').insert(executorRows);
-        if (executorActionError) console.warn('executor notification queue:', executorActionError);
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result?.workflowId) {
+        throw new Error(result?.error || "Passage could not save this planning estate yet.");
       }
-      if (secondConfirmerEmail && secondConfirmerEmail.trim().toLowerCase() !== executorEmail.trim().toLowerCase()) {
-        const confirmerRows = [
-          { workflow_id: wfId, action_type: 'email', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_phone: secondConfirmerPhone || null, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 },
-        ];
-        if (secondConfirmerPhone) {
-          confirmerRows.push({ workflow_id: wfId, action_type: 'sms', recipient_type: 'person', recipient_email: secondConfirmerEmail, recipient_phone: secondConfirmerPhone, recipient_name: secondConfirmerName || 'Second confirmer', task_title: 'Second confirmation contact', status: 'pending', delay_hours: 0 });
-        }
-        const { error: confirmerActionError } = await supabase.from('workflow_actions').insert(confirmerRows);
-        if (confirmerActionError) console.warn('second confirmer queue:', confirmerActionError);
-      }
+      const createdWorkflowId = result.workflowId;
 
       if (mode === 'paid') {
         await handleCheckout(selectedPlan, user.id, user.email, createdWorkflowId);
@@ -2775,9 +2743,9 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       <StepBar current={6} total={6} />
       <div style={{ textAlign: "center", marginBottom: 18 }}>
         <div style={{ fontSize: 28, marginBottom: 10 }}>🕊️</div>
-        <Heading>Your plan is ready.</Heading>
+        <Heading>Ready to save your plan.</Heading>
         <div style={{ color: C.mid, fontSize: 14, lineHeight: 1.65, marginTop: 10 }}>
-          If something happens, your family will have one calm place to start.
+          Save it now so your family has one calm place to start.
         </div>
       </div>
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: "16px 18px", marginBottom: 16 }}>
@@ -2789,7 +2757,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
         ))}
       </div>
       <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "12px 14px", fontSize: 13.5, color: C.mid, lineHeight: 1.6, marginBottom: 14, textAlign: "center" }}>
-        You have made this easier for them. Nothing sends until the plan is activated.
+        You have made this easier for them. Confirmation contacts are notified now; nothing activates until the plan is confirmed.
       </div>
       {planError && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.rose, marginBottom: 12, lineHeight: 1.5, fontWeight: 700 }}>{planError}</div>}
       <Btn onClick={() => activate("draft")} disabled={savingPlan} style={{ width: "100%", padding: "16px", fontSize: 15.5, marginBottom: 8 }}>{savingPlan ? "Saving your plan..." : "Save and view your plan →"}</Btn>

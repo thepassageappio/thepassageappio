@@ -240,8 +240,8 @@ function inviteEmail(name, deceased, coordinator, confirmUrl) {
     '<div class="tag">Confirmation request</div>' +
     '<div class="h1">You have been designated as a confirmation contact.</div>' +
     '<p class="p">' + coordinator + ' has set up an advance estate plan through Passage for ' + deceased + '.</p>' +
-    '<p class="p">When the time comes, you will receive a secure link to confirm. Once two people confirm, the plan activates and all assigned contacts are notified automatically.</p>' +
-    (confirmUrl ? '<a href="' + confirmUrl + '" class="btn">View confirmation page</a>' : '') +
+    '<p class="p">Keep this secure link. When confirmation is needed, it lets you confirm without searching for instructions. Once the required contacts confirm, the plan activates and assigned contacts are notified automatically.</p>' +
+    (confirmUrl ? '<a href="' + confirmUrl + '" class="btn">Open confirmation page</a>' : '') +
     '<p class="p">You can also create your own Passage account to see estate roles assigned to you and start a plan for your own family.</p>' +
     '<a href="' + SITE_URL + '/participating" class="btn">Create my Passage account</a>' +
     '<p class="p" style="color:#a09890;font-size:12px;margin-top:16px;">You do not need to do anything right now.</p>'
