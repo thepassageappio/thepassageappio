@@ -44,6 +44,8 @@ export default function FuneralHomeDashboard() {
   const [showNewCase, setShowNewCase] = useState(false);
   const [showTools, setShowTools] = useState(false);
   const [showDemoTools, setShowDemoTools] = useState(false);
+  const [expandedCaseId, setExpandedCaseId] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('all');
   const [creating, setCreating] = useState(false);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
@@ -351,16 +353,28 @@ export default function FuneralHomeDashboard() {
   const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to || t.owner_name || t.participant_id).length, 0);
   const callsAvoided = totalCommunications + assignmentsCoordinated + totalVendorRequests;
   const timeSavedMinutes = callsAvoided * 8;
-  const timeSavedLabel = callsAvoided > 0 ? `${Math.max(1, Math.round(timeSavedMinutes / 60))} hr est.` : '0 hours';
+  const timeSavedLabel = callsAvoided > 0 ? `${Math.max(1, Math.round(timeSavedMinutes / 60))} hr est.` : 'None yet';
   const glanceItems = [
     ['Active cases', cases.length],
-    ['Calls potentially avoided', callsAvoided],
-    ['Tasks handled', totalHandled],
+    ['Tasks handled by Passage', totalHandled],
     ['Waiting for response', totalWaiting],
+    ['Blocked items', totalBlocked],
+    ['Estimated calls avoided', callsAvoided],
+  ];
+  const detailGlanceItems = [
     ['Coordination time saved', timeSavedLabel],
     ['Local requests coordinated', totalVendorRequests],
     ['Tracked referral value', totalVendorValue ? `$${Math.round(totalVendorValue)}` : '$0'],
   ];
+  function locationNameFor(item) {
+    const ref = String(item.organization_case_reference || item.case_reference || '');
+    if (/MULTI-002/i.test(ref)) return 'Poughkeepsie';
+    if (/MULTI/i.test(ref)) return 'Beacon';
+    return item.location_name || item.branch_name || item.funeral_home_location || 'Main location';
+  }
+  const locations = Array.from(new Set(cases.map(locationNameFor).filter(Boolean)));
+  const isMultiLocation = locations.length > 1 || /group|multi/i.test(String(org?.name || '') + ' ' + String(org?.plan || ''));
+  const displayCases = isMultiLocation && selectedLocation !== 'all' ? cases.filter(item => locationNameFor(item) === selectedLocation) : cases;
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -491,6 +505,16 @@ export default function FuneralHomeDashboard() {
                 </div>
               ))}
             </div>
+            {showTools && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 8 }}>
+                {detailGlanceItems.map(([label, value]) => (
+                  <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '8px 10px' }}>
+                    <div style={{ color: C.soft, fontSize: 9.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
+                    <div style={{ color: C.ink, fontSize: 17, marginTop: 2 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
             <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 9 }}>
               CSV export is always available. Passage can sit on top of your existing system without trapping case data here.
               {funeralHomeShare > 0 && <strong style={{ color: C.sage }}> Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</strong>}
@@ -626,8 +650,20 @@ export default function FuneralHomeDashboard() {
 
         {user && cases.length > 0 && (
           <>
+          {isMultiLocation && (
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 12 }}>
+              <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Location view</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {['all', ...locations].map(location => (
+                  <button key={location} onClick={() => setSelectedLocation(location)} style={{ border: `1px solid ${selectedLocation === location ? C.sage : C.border}`, background: selectedLocation === location ? C.sage : C.card, color: selectedLocation === location ? '#fff' : C.mid, borderRadius: 999, padding: '8px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
+                    {location === 'all' ? 'All locations' : location} {location !== 'all' ? `(${cases.filter(item => locationNameFor(item) === location).length})` : `(${cases.length})`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={{ display: 'grid', gap: 12 }}>
-            {cases.map(item => {
+            {displayCases.map(item => {
               const handledCount = item.tasks.filter(t => ['handled', 'completed'].includes(t.status || '')).length;
               const waitingCount = item.tasks.filter(t => ['sent', 'waiting', 'assigned'].includes(t.status || '')).length;
               const progressCount = item.tasks.filter(t => ['draft', 'acknowledged'].includes(t.status || '')).length;
@@ -638,6 +674,7 @@ export default function FuneralHomeDashboard() {
               const vendorRequests = item.vendorRequests || [];
               const topTasks = partnerTasks.length ? partnerTasks.slice(0, 3) : item.tasks.slice(0, 3);
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
+              const isExpanded = expandedCaseId === item.id;
               return (
                 <div key={item.id} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 18, padding: 18 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
@@ -645,8 +682,11 @@ export default function FuneralHomeDashboard() {
                       <div style={{ fontSize: 22, lineHeight: 1.25 }}>{item.deceased_name || item.estate_name || item.name || 'Family case'}</div>
                       <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{partnerCaseTypeLabel(item)} - Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
                     </div>
-                    <Link href={`/estate?id=${item.id}`} style={{ color: '#fff', background: C.sage, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Open case</Link>
-                    <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Print family summary</Link>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Hide work' : 'Show work'}</button>
+                      <Link href={`/estate?id=${item.id}`} style={{ color: '#fff', background: C.sage, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Open case</Link>
+                      <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Print family summary</Link>
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{item.tasks.length} tasks</span>
@@ -659,9 +699,9 @@ export default function FuneralHomeDashboard() {
                   </div>
                   <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12, marginTop: 12 }}>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Next partner work</div>
-                    <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>Prioritized for work a funeral home can actually move: certificates, service coordination, cemetery/crematory, obituary, and family approvals.</div>
+                    <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>Next work your team can move: certificates, service coordination, cemetery/crematory, obituary, and family approvals. <strong style={{ color: C.sage }}>That is one less call your team has to take.</strong></div>
                   </div>
-                  {item.activity?.length > 0 && (
+                  {isExpanded && item.activity?.length > 0 && (
                     <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Recent proof</div>
                       {item.activity.slice(0, 3).map(event => (
@@ -688,7 +728,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                     <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>Share this status instead of answering another "where are we?" call.</div>
                   </div>
-                  {item.communications?.length > 0 && (
+                  {isExpanded && item.communications?.length > 0 && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Communication log</div>
                       {item.communications.slice(0, 4).map(message => (
@@ -700,7 +740,7 @@ export default function FuneralHomeDashboard() {
                       ))}
                     </div>
                   )}
-                  {vendorRequests.length > 0 && (
+                  {isExpanded && vendorRequests.length > 0 && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Local support requests</div>
                       {vendorRequests.slice(0, 3).map(request => (
@@ -718,7 +758,7 @@ export default function FuneralHomeDashboard() {
                       ))}
                     </div>
                   )}
-                  {topTasks.map(task => (
+                  {isExpanded && topTasks.map(task => (
                     <div key={task.id} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 11, marginTop: 11 }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'start' }}>
                         <div>

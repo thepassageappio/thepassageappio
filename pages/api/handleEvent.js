@@ -132,6 +132,7 @@ async function handleDeathConfirmed(payload) {
           body: JSON.stringify({
             to: action.recipient_phone,
             toName: action.recipient_name || '',
+            toEmail: action.recipient_email || null,
             deceasedName,
             coordinatorName,
             workflowId,
@@ -200,11 +201,11 @@ async function handleTaskAssigned(payload) {
     }
   }
 
-  if (personPhone && notifyChannel !== 'email') {
+  if (personPhone && notifyChannel !== 'email' && shouldUseSmsForTask(taskTitle, notifyChannel)) {
     const smsRes = await fetch(BASE_URL + '/api/sendSMS', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...internalHeaders() },
-      body: JSON.stringify({ to: personPhone, toName: personName, taskTitle, taskId, deceasedName, coordinatorName, workflowId, actionType: 'assignment', events: events || [] }),
+      body: JSON.stringify({ to: personPhone, toName: personName, toEmail: personEmail, taskTitle, taskId, deceasedName, coordinatorName, workflowId, actionType: 'assignment', events: events || [] }),
     });
     if (smsRes.ok) {
       sent++;
@@ -222,6 +223,28 @@ async function handleTaskAssigned(payload) {
   }
 
   return { sent };
+}
+
+function shouldUseSmsForTask(taskTitle, notifyChannel) {
+  if (notifyChannel === 'sms') return true;
+  const title = String(taskTitle || '').toLowerCase();
+  return [
+    'urgent',
+    'confirm',
+    'confirmation',
+    'decision',
+    'release',
+    'call',
+    'funeral home',
+    'hospital',
+    'hospice',
+    'medical',
+    'participant',
+    'accept',
+    'handled',
+  ].some(function(keyword) {
+    return title.includes(keyword);
+  });
 }
 
 async function readProviderError(response) {

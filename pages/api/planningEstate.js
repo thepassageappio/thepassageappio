@@ -174,7 +174,7 @@ async function sendInvite({ token, workflowId, action, personName, coordinatorNa
       const response = await fetch(`${SITE_URL}/api/sendSMS`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ ...body, to: action.recipient_phone }),
+        body: JSON.stringify({ ...body, to: action.recipient_phone, toEmail: action.recipient_email || null }),
       });
       return { ok: response.ok, channel: 'sms' };
     }
