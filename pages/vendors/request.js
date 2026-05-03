@@ -83,7 +83,12 @@ export default function VendorRequestPage() {
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <Pill label="Sent" time={request.requested_at} />
                 {request.viewed_at && <Pill label="Viewed" time={request.viewed_at} />}
-                {request.responded_at && <Pill label="Accepted" time={request.responded_at} />}
+                {request.responded_at && (
+                  <Pill
+                    label={request.status === 'declined' ? 'Declined' : 'Accepted'}
+                    time={request.responded_at}
+                  />
+                )}
                 {request.in_progress_at && <Pill label="In progress" time={request.in_progress_at} />}
                 {request.completed_at && <Pill label="Completed" time={request.completed_at} />}
               </div>

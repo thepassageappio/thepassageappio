@@ -7,7 +7,9 @@ const authClient = createClient(url, anon);
 const admin = createClient(url, service);
 
 function csvCell(value) {
-  const text = value == null ? '' : String(value);
+  let text = value == null ? '' : String(value);
+  const trimmed = text.replace(/^\s+/, '');
+  if (/^[=+\-@]/.test(trimmed)) text = "'" + text;
   return `"${text.replace(/"/g, '""')}"`;
 }
 

@@ -24,10 +24,11 @@ async function userCanAccessWorkflow(user, workflow) {
 async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
   if (!process.env.RESEND_API_KEY || !vendor.contact_email) return false;
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
-  const portalUrl = `${BASE_URL}/vendors/request?token=${request.response_token}`;
-  const acceptUrl = `${BASE_URL}/api/vendorRequests/respond?token=${request.response_token}&status=accepted`;
-  const declineUrl = `${BASE_URL}/api/vendorRequests/respond?token=${request.response_token}&status=declined`;
-  const completeUrl = `${BASE_URL}/api/vendorRequests/respond?token=${request.response_token}&status=completed`;
+  const encodedToken = encodeURIComponent(request.response_token || '');
+  const portalUrl = `${BASE_URL}/vendors/request?token=${encodedToken}`;
+  const acceptUrl = `${BASE_URL}/api/vendorRequests/respond?token=${encodedToken}&status=accepted`;
+  const declineUrl = `${BASE_URL}/api/vendorRequests/respond?token=${encodedToken}&status=declined`;
+  const completeUrl = `${BASE_URL}/api/vendorRequests/respond?token=${encodedToken}&status=completed`;
   const html = `
     <div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px">
       <div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e4ddd4;border-radius:16px;padding:24px">

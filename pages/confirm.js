@@ -63,7 +63,7 @@ export default function ConfirmPage() {
     fetch("/api/confirmTrigger", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workflowId: workflow.id, confirmerName: cName, confirmerEmail: cEmail, confirmerRelationship: cRel }),
+      body: JSON.stringify({ workflowId: workflow.id, triggerToken: token, confirmerName: cName, confirmerEmail: cEmail, confirmerRelationship: cRel }),
     }).then(function(r) { return r.json(); }).then(function(d) {
       setResult(d); setStep("done"); setBusy(false);
     }).catch(function() { setBusy(false); });

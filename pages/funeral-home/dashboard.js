@@ -44,6 +44,7 @@ export default function FuneralHomeDashboard() {
   const [showNewCase, setShowNewCase] = useState(false);
   const [showTools, setShowTools] = useState(false);
   const [showDemoTools, setShowDemoTools] = useState(false);
+  const [showGuidedDemo, setShowGuidedDemo] = useState(false);
   const [expandedCaseId, setExpandedCaseId] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [creating, setCreating] = useState(false);
@@ -387,9 +388,11 @@ export default function FuneralHomeDashboard() {
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Create a case, move the next partner-ready task, keep the family informed, and export the record whenever you need it.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {user && <button onClick={() => setShowNewCase(v => !v)} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New family case</button>}
-            {user && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Download for your system</button>}
+            {user && <button onClick={() => { setCaseForm(prev => ({ ...prev, caseType: 'immediate' })); setShowNewCase(true); }} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New at-need case</button>}
+            {user && <button onClick={() => { setCaseForm(prev => ({ ...prev, caseType: 'preneed' })); setShowNewCase(true); }} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New pre-need case</button>}
+            {user && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export all active cases</button>}
             {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'More tools'}</button>}
+            {user && isAdminDemo && <button onClick={() => setShowGuidedDemo(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: showGuidedDemo ? C.sage : C.card, color: showGuidedDemo ? '#fff' : C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{showGuidedDemo ? 'Hide guided demo' : 'Start guided demo'}</button>}
             {user && isAdminDemo && <button onClick={() => setShowDemoTools(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showDemoTools ? 'Hide demo setup' : 'Demo setup'}</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
@@ -434,6 +437,34 @@ export default function FuneralHomeDashboard() {
         {user && loading && <div style={{ color: C.soft }}>Loading partner cases...</div>}
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
+
+        {user && isAdminDemo && showGuidedDemo && (
+          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Demo walkthrough</div>
+                <div style={{ fontSize: 21, marginTop: 3 }}>Show value in five moves.</div>
+                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>Use this path for directors: create/import, move work, show proof, export data, then show ROI.</div>
+              </div>
+              <button onClick={() => setShowGuidedDemo(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 12 }}>
+              {[
+                ['1', 'Create or import', 'Start an at-need or pre-need case in under a minute.'],
+                ['2', 'Assign or handle', 'Show work staff can do for the family.'],
+                ['3', 'Family view', 'Show what is done, in progress, and waiting.'],
+                ['4', 'Proof trail', 'Open messages, status, and communication history.'],
+                ['5', 'Export', 'Download for the existing funeral-home system.'],
+              ].map(([n, title, body]) => (
+                <div key={n} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
+                  <div style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</div>
+                  <div style={{ fontSize: 15, marginTop: 2 }}>{title}</div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>{body}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {user && !loading && showTools && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
@@ -660,6 +691,37 @@ export default function FuneralHomeDashboard() {
                   </button>
                 ))}
               </div>
+              {showTools && (
+                <div style={{ marginTop: 12, overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                    <thead>
+                      <tr style={{ color: C.soft, textAlign: 'left' }}>
+                        <th style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>Location</th>
+                        <th style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>Cases</th>
+                        <th style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>Handled</th>
+                        <th style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>Waiting</th>
+                        <th style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>Calls avoided</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {locations.map(location => {
+                        const rows = cases.filter(item => locationNameFor(item) === location);
+                        const handled = rows.reduce((sum, item) => sum + item.tasks.filter(t => ['handled', 'completed'].includes(t.status || '')).length, 0);
+                        const waiting = rows.reduce((sum, item) => sum + item.tasks.filter(t => ['sent', 'waiting', 'assigned', 'blocked'].includes(t.status || '')).length, 0);
+                        return (
+                          <tr key={location}>
+                            <td style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}`, fontWeight: 900 }}>{location}</td>
+                            <td style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>{rows.length}</td>
+                            <td style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>{handled}</td>
+                            <td style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>{waiting}</td>
+                            <td style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}` }}>{rows.reduce((sum, item) => sum + (item.communications?.length || 0) + (item.tasks?.filter(t => t.assigned_to_email || t.assigned_to_name).length || 0), 0)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
           <div style={{ display: 'grid', gap: 12 }}>

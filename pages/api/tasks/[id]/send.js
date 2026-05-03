@@ -61,6 +61,7 @@ export default async function handler(req, res) {
     actionType: req.body?.actionType || 'execution',
     events: req.body?.events || [],
     messageText: req.body?.messageText,
+    toEmail: req.body?.toEmail || task.assigned_to_email || '',
     cc: req.body?.cc,
   };
 

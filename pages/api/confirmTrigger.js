@@ -25,8 +25,9 @@ const supabase = createClient(
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { workflowId, confirmerEmail, confirmerName } = req.body;
+  const { workflowId, triggerToken, confirmerEmail, confirmerName } = req.body;
   if (!workflowId) return res.status(400).json({ error: 'Missing workflowId' });
+  if (!triggerToken) return res.status(400).json({ error: 'Missing triggerToken' });
 
   try {
     // 1. Load the workflow
@@ -34,6 +35,7 @@ export default async function handler(req, res) {
       .from('workflows')
       .select('*')
       .eq('id', workflowId)
+      .eq('trigger_token', triggerToken)
       .single();
 
     if (wfError || !workflow) return res.status(404).json({ error: 'Workflow not found' });
@@ -103,6 +105,8 @@ async function fireAllActions(workflowId, workflow) {
             to: action.recipient_email,
             toName: action.recipient_email,
             subject: `${deceasedName}'s estate plan has been activated`,
+            taskId: action.task_id || null,
+            actionId: action.id,
             deceasedName,
             coordinatorName,
             workflowId,
@@ -117,6 +121,8 @@ async function fireAllActions(workflowId, workflow) {
           headers: { 'Content-Type': 'application/json', ...internalHeaders() },
           body: JSON.stringify({
             to: action.recipient_phone,
+            taskId: action.task_id || null,
+            actionId: action.id,
             deceasedName,
             coordinatorName,
             workflowId,

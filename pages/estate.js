@@ -283,6 +283,32 @@ function ownerForTask(task) {
   return task.assigned_to_name || task.assigned_to_email || task.owner_label || task.owner_kind || 'Needs owner';
 }
 
+function displayTaskTitle(item) {
+  var raw = String(item?.title || item?.name || '').trim();
+  var key = raw.toLowerCase();
+  if (!key) return 'Next step';
+  if (key.indexOf('record planning preferences') >= 0) return 'Add burial, service, and family wishes';
+  if (key.indexOf('collect prepayment') >= 0 || key.indexOf('pre-need policy') >= 0) return 'Add prepayment or policy details';
+  if (key.indexOf('confirm activation contacts') >= 0) return 'Confirm trusted contacts';
+  if (key.indexOf('healthcare proxy') >= 0 || key.indexOf('legal decision-maker') >= 0) return 'Confirm healthcare proxy or decision-maker';
+  if (key.indexOf('prepare for funeral home') >= 0 || key.indexOf('funeral home meeting') >= 0) return 'Prepare the funeral home meeting summary';
+  if (key.indexOf('hospital') >= 0 && key.indexOf('release') >= 0) return 'Confirm hospital or facility release';
+  if (key.indexOf('pronouncement') >= 0) return 'Confirm the official pronouncement';
+  if (key.indexOf('funeral home') >= 0 && key.indexOf('call') >= 0) return 'Call the funeral home';
+  return raw;
+}
+
+function displayTaskNext(item) {
+  var title = displayTaskTitle(item).toLowerCase();
+  if (title.indexOf('trusted contacts') >= 0) return 'Choose who should be notified and keep their links working.';
+  if (title.indexOf('funeral home meeting') >= 0) return 'Open the prep form, save the facts, then export the summary.';
+  if (title.indexOf('release') >= 0) return 'Record who confirmed release, or mark it waiting if the facility has not answered.';
+  if (title.indexOf('pronouncement') >= 0) return 'Record who pronounced death and when, or mark it waiting.';
+  if (title.indexOf('prepayment') >= 0) return 'Add the policy, prepaid funeral, Medicaid, or insurance detail you have.';
+  if (title.indexOf('wishes') >= 0) return 'Add the wishes you know now; blanks are okay.';
+  return 'Open this item to assign, update, or record proof.';
+}
+
 function statusText(status) {
   var value = String(status || '').replace(/_/g, ' ');
   if (!value || value === 'pending') return 'Draft';
@@ -407,8 +433,8 @@ function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, on
         style={{ width: '100%', padding: '16px 18px', cursor: 'pointer', textAlign: 'left', background: 'none', border: 'none', fontFamily: 'inherit', minHeight: 76 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: INK, lineHeight: 1.35, marginBottom: 6 }}>{outcome.title}</div>
-            {outcome.description && <div style={{ fontSize: 13, color: MID, marginBottom: 8, lineHeight: 1.4 }}>{outcome.description}</div>}
+            <div style={{ fontSize: 15, fontWeight: 700, color: INK, lineHeight: 1.35, marginBottom: 6 }}>{displayTaskTitle(outcome)}</div>
+            <div style={{ fontSize: 13, color: MID, marginBottom: 8, lineHeight: 1.4 }}>{displayTaskNext(outcome)}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Owner</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: outcome.owner_label ? INK : AMBER, background: outcome.owner_label ? SUBTLE : AMBER_FAINT, borderRadius: 6, padding: '2px 8px' }}>
@@ -927,6 +953,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     return acc;
   }, {});
   var proofTasks = enriched.filter(function(t) { return t.playbook.topProofTask || t.playbook.institutionTemplate; }).slice(0, 10);
+  var actionTasks = enriched.filter(function(t) { return !isHandledStatus(t.status); }).slice(0, 12);
   var owners = {};
   enriched.forEach(function(t) { var key = ownerBucket(t); owners[key] = (owners[key] || 0) + 1; });
   (outcomes || []).forEach(function(o) { var key = o.owner_label || 'Not assigned'; owners[key] = (owners[key] || 0) + 1; });
@@ -988,7 +1015,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
           <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>Proof, follow-up, and ownership</div>
           <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Every task has a next action, an owner, proof, and a reminder if it stalls.</div>
         </div>
-        <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>{proofTasks.length} proof tasks</span>
+        <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>{actionTasks.length} open</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
@@ -1037,7 +1064,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
               return (
                 <div key={'map_' + task.id} style={{ borderTop: '1px solid ' + BORDER, padding: '8px 0', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8 }}>
                   <div>
-                    <div style={{ fontSize: 12.5, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{task.title}</div>
+                    <div style={{ fontSize: 12.5, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{displayTaskTitle(task)}</div>
                     <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.45, marginTop: 2 }}>Owner: {ownerBucket(task)}. Proof: {task.playbook.proofRequired || 'confirmation'}.</div>
                   </div>
                   <span style={{ alignSelf: 'start', background: task.playbook.executionModeKey === 'automate' ? SAGE_FAINT : task.playbook.executionModeKey === 'prepare' ? AMBER_FAINT : SUBTLE, color: task.playbook.executionModeKey === 'prepare' ? AMBER : SAGE, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, fontWeight: 900, whiteSpace: 'nowrap' }}>{task.playbook.executionModeShortLabel}</span>
@@ -1048,10 +1075,10 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
         </details>
       )}
 
-      {proofTasks.length > 0 && (
+      {actionTasks.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Top proof tasks</div>
-          {proofTasks.map(function(task) {
+          <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Open tasks you can act on</div>
+          {actionTasks.map(function(task) {
             var state = statusBucket(task.status);
             var color = state === 'good' ? SAGE : state === 'bad' ? ROSE : state === 'wait' ? AMBER : MID;
             var proof = task.playbook.proofRequired || 'confirmation';
@@ -1059,7 +1086,8 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
               <div key={task.id} style={{ borderTop: '1px solid ' + BORDER, padding: '10px 0' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10 }}>
                   <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.35 }}>{task.title}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.35 }}>{displayTaskTitle(task)}</div>
+                    <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginTop: 3 }}>{displayTaskNext(task)}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                       <span style={{ background: SAGE_FAINT, color: SAGE, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{task.playbook.executionTier}</span>
                       <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{task.playbook.executionModeLabel}</span>
@@ -1127,6 +1155,130 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
 
 function miniBtn(bg, color, border) {
   return { border: '1px solid ' + border, background: bg, color: color, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' };
+}
+
+function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+  var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
+  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
+  var nextTask = openTasks[0];
+  var nextOutcome = openOutcomes[0];
+  var current = nextTask ? { kind: 'task', item: nextTask } : nextOutcome ? { kind: 'outcome', item: nextOutcome } : null;
+  var waiting = openTasks.filter(function(t) { return ['waiting', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
+  var needsOwner = openOutcomes.filter(function(o) { return !o.owner_label; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
+  var recent = [].concat(events || [], actions || []).slice(0, 8);
+  var tabs = [
+    ['now', 'Do next', current ? '1 item' : 'clear'],
+    ['people', 'People', needsOwner + ' need owner'],
+    ['updates', 'Updates', recent.length + ' recorded'],
+  ];
+  return (
+    <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: 14, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
+        {tabs.map(function(tab) {
+          var selected = activeTab === tab[0];
+          return (
+            <button key={tab[0]} onClick={function() { setActiveTab(tab[0]); }}
+              style={{ border: '1px solid ' + (selected ? SAGE_LIGHT : BORDER), background: selected ? SAGE : CARD, color: selected ? '#fff' : INK, borderRadius: 12, padding: '10px 8px', fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ fontSize: 13, fontWeight: 900, lineHeight: 1.2 }}>{tab[1]}</div>
+              <div style={{ fontSize: 10.5, color: selected ? '#fff' : SOFT, marginTop: 3 }}>{tab[2]}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {activeTab === 'now' && (
+        <div>
+          {current ? (
+            <div style={{ background: current.kind === 'task' ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (current.kind === 'task' ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 14, padding: 13 }}>
+              <div style={{ fontSize: 11, color: current.kind === 'task' ? SAGE : AMBER, fontWeight: 900, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Do this next</div>
+              <div style={{ fontSize: 18, color: INK, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(current.item)}</div>
+              <div style={{ fontSize: 13, color: MID, lineHeight: 1.45, marginTop: 6 }}>{displayTaskNext(current.item)}</div>
+              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 11 }}>
+                {current.kind === 'outcome' ? (
+                  <>
+                    <button onClick={function() { onOpenOutcome(current.item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Open step</button>
+                    <button onClick={function() { onAssignOutcome(current.item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Assign owner</button>
+                    <button onClick={function() { onOutcomeProgress(current.item); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>In progress</button>
+                    <button onClick={function() { onOutcomeHandled(current.item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Mark handled</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={function() { onTaskAction(current.item, 'handled'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Confirm / record proof</button>
+                    <button onClick={function() { onTaskAction(current.item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Still waiting</button>
+                    <button onClick={function() { onTaskAction(current.item, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
+                  </>
+                )}
+              </div>
+              {waiting > 0 && (
+                <div style={{ color: AMBER, fontSize: 12, fontWeight: 800, lineHeight: 1.45, marginTop: 9 }}>If we do not hear back, Passage will prompt you.</div>
+              )}
+            </div>
+          ) : (
+            <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: 14, color: SAGE, fontSize: 14, fontWeight: 900 }}>Nothing urgent is waiting. You are in a good place.</div>
+          )}
+          {openTasks.slice(1, 4).map(function(task) {
+            return (
+              <div key={task.id} style={{ width: '100%', marginTop: 8, border: '1px solid ' + BORDER, background: SUBTLE, borderRadius: 12, padding: '11px 12px', textAlign: 'left', fontFamily: 'inherit' }}>
+                <div style={{ color: INK, fontSize: 13.5, fontWeight: 900 }}>{displayTaskTitle(task)}</div>
+                <div style={{ color: MID, fontSize: 12, marginTop: 3 }}>{displayTaskNext(task)}</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                  <button onClick={function() { onTaskAction(task, 'handled'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Confirm</button>
+                  <button onClick={function() { onTaskAction(task, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Waiting</button>
+                  <button onClick={function() { onTaskAction(task, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Need help</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {activeTab === 'people' && (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {openOutcomes.slice(0, 8).map(function(outcome) {
+            return (
+              <div key={outcome.id} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: 12 }}>
+                <div style={{ fontSize: 14, color: INK, fontWeight: 900 }}>{displayTaskTitle(outcome)}</div>
+                <div style={{ color: outcome.owner_label ? SAGE : AMBER, fontSize: 12, fontWeight: 800, marginTop: 4 }}>{outcome.owner_label ? outcome.owner_label + ' owns this' : 'No owner yet'}</div>
+                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
+                  <button onClick={function() { onAssignOutcome(outcome); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>{outcome.owner_label ? 'Change owner' : 'Assign owner'}</button>
+                  <button onClick={function() { onOpenOutcome(outcome); }} style={miniBtn(CARD, MID, BORDER)}>Open</button>
+                </div>
+              </div>
+            );
+          })}
+          {openOutcomes.length === 0 && (
+            <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 13, color: SAGE, fontWeight: 900 }}>Every visible item has an owner.</div>
+          )}
+          {people && people.length > 0 && (
+            <details style={{ border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 11px', background: CARD }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 900, color: INK }}>People already attached ({people.length})</summary>
+              <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+                {people.slice(0, 8).map(function(person) {
+                  return <div key={person.id || person.email || person.name} style={{ color: MID, fontSize: 12.5 }}>{person.name || person.email || 'Family contact'} {person.email ? '- ' + person.email : ''}</div>;
+                })}
+              </div>
+            </details>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'updates' && (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {recent.length > 0 ? recent.map(function(row) {
+            return (
+              <div key={(row.id || row.created_at || row.sent_at) + '_update'} style={{ borderTop: '1px solid ' + BORDER, paddingTop: 8 }}>
+                <div style={{ color: INK, fontSize: 13, fontWeight: 900 }}>{row.title || row.subject || statusText(row.status || row.delivery_status) || 'Update recorded'}</div>
+                <div style={{ color: MID, fontSize: 12, lineHeight: 1.45 }}>{row.description || row.detail || row.recipient || row.recipient_email || row.recipient_phone || 'Passage recorded this in the estate.'}</div>
+                {(row.created_at || row.sent_at || row.last_action_at) && <div style={{ color: SOFT, fontSize: 10.5, marginTop: 2 }}>{new Date(row.created_at || row.sent_at || row.last_action_at).toLocaleString()}</div>}
+              </div>
+            );
+          }) : (
+            <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 13, color: SAGE, fontWeight: 900 }}>No updates yet. When something happens, it will show here.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activating }) {
@@ -1324,6 +1476,7 @@ export default function EstatePage() {
   var s13 = useState([]); var actions = s13[0]; var setActions = s13[1];
   var s14 = useState([]); var announcements = s14[0]; var setAnnouncements = s14[1];
   var s15 = useState(false); var activating = s15[0]; var setActivating = s15[1];
+  var s16 = useState('now'); var activeCommandTab = s16[0]; var setActiveCommandTab = s16[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -1584,7 +1737,7 @@ export default function EstatePage() {
         return false;
       })
       .map(function(o) {
-        return { id: 'outcome_' + o.id, title: o.title, owner: o.owner_label || 'Needs owner', status: o.status || 'not_started', next: o.status === 'needs_owner' ? 'Assign an owner' : o.status === 'in_progress' ? ((o.owner_label || 'Someone') + ' is working on this') : 'Open task' };
+        return { id: 'outcome_' + o.id, rawTitle: o.title, title: displayTaskTitle(o), owner: o.owner_label || 'Needs owner', status: o.status || 'not_started', next: o.status === 'needs_owner' ? 'Assign an owner' : o.status === 'in_progress' ? ((o.owner_label || 'Someone') + ' is working on this') : displayTaskNext(o) };
       });
     var taskItems = tasks
       .filter(function(t) { return !isHandledStatus(t.status) && bucketForTask(t) === bucket.key; })
@@ -1592,7 +1745,7 @@ export default function EstatePage() {
         var working = ['assigned', 'waiting', 'in_progress'].includes(t.status || '');
         var signal = participantSignal(t);
         var responseWait = ['sent', 'delivered'].includes(t.status || '') && !t.acknowledged_at ? 'Waiting for confirmation' : '';
-        return { id: 'task_' + t.id, title: t.title, owner: ownerForTask(t), status: t.status || 'pending', next: signal || responseWait || (working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : 'Decide who is handling this') };
+        return { id: 'task_' + t.id, rawTitle: t.title, title: displayTaskTitle(t), owner: ownerForTask(t), status: t.status || 'pending', next: signal || responseWait || (working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : displayTaskNext(t)) };
       });
     return Object.assign({}, bucket, { items: outcomeItems.concat(taskItems) });
   });
@@ -1605,7 +1758,7 @@ export default function EstatePage() {
   var firstOpenOutcome = outcomes.find(function(o) { return !isHandledStatus(o.status); });
   var firstOpenOutcomeIndex = outcomes.findIndex(function(o) { return !isHandledStatus(o.status); });
   var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t.status); });
-  var firstFastTitle = firstOpenOutcome ? firstOpenOutcome.title : firstOpenTask ? firstOpenTask.title : '';
+  var firstFastTitle = firstOpenOutcome ? displayTaskTitle(firstOpenOutcome) : firstOpenTask ? displayTaskTitle(firstOpenTask) : '';
   var estateMode = String(estate?.mode || estate?.path || estate?.workflow_type || '').toLowerCase();
   var planningTitleSignals = [
     'record planning preferences',
@@ -1640,8 +1793,78 @@ export default function EstatePage() {
       }
       return;
     }
+    var holder = document.getElementById('all-task-tools');
+    if (holder) holder.open = true;
+    setActiveCommandTab('now');
     var layer = document.getElementById('execution-layer');
     if (layer) layer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function openPeopleCoordination(assignFirst) {
+    var targetIndex = firstIncomplete >= 0 ? firstIncomplete : outcomes.findIndex(function(o) { return !o.owner_label; });
+    if (targetIndex >= 0) {
+      setExpanded(targetIndex);
+      setShowAssign(assignFirst ? targetIndex : -1);
+    }
+    setTimeout(function() {
+      var el = targetIndex >= 0 && outcomes[targetIndex] ? document.getElementById('outcome_' + outcomes[targetIndex].id) : document.getElementById('people-coordination');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
+
+  function indexForOutcome(outcome) {
+    return outcomes.findIndex(function(o) { return String(o.id) === String(outcome && outcome.id); });
+  }
+
+  function openOutcomeFromCommand(outcome) {
+    var idx = indexForOutcome(outcome);
+    if (idx >= 0) {
+      setExpanded(idx);
+      setShowAssign(-1);
+      setTimeout(function() {
+        var el = document.getElementById('outcome_' + outcome.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }
+
+  function assignOutcomeFromCommand(outcome) {
+    var idx = indexForOutcome(outcome);
+    if (idx >= 0) {
+      setExpanded(idx);
+      setShowAssign(idx);
+      setTimeout(function() {
+        var el = document.getElementById('outcome_' + outcome.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }
+
+  function updateOutcomeFromCommand(outcome, updates) {
+    var idx = indexForOutcome(outcome);
+    if (idx >= 0) updateOutcome(idx, updates);
+  }
+
+  function taskActionFromCommand(task, action) {
+    if (!task) return;
+    if (action === 'open') {
+      var holder = document.getElementById('all-task-tools');
+      if (holder) holder.open = true;
+      var layer = document.getElementById('execution-layer');
+      if (layer) layer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (action === 'handled') {
+      updateTaskFromCommand(task, 'handled', 'Proof recorded for ' + displayTaskTitle(task), 'Reference number, provider name, or short confirmation note');
+      return;
+    }
+    if (action === 'waiting') {
+      updateTaskFromCommand(task, 'waiting', 'Waiting for response on ' + displayTaskTitle(task));
+      return;
+    }
+    if (action === 'blocked') {
+      updateTaskFromCommand(task, 'blocked', 'Help needed for ' + displayTaskTitle(task), 'What is blocking this?');
+    }
   }
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
@@ -1723,6 +1946,21 @@ export default function EstatePage() {
         </div>
 
         {/* Outcomes — generated from /urgent or empty state */}
+        <SimpleCommandCenter
+          activeTab={activeCommandTab}
+          setActiveTab={setActiveCommandTab}
+          outcomes={outcomes}
+          tasks={tasks}
+          events={events}
+          actions={actions}
+          people={people}
+          onOpenOutcome={openOutcomeFromCommand}
+          onAssignOutcome={assignOutcomeFromCommand}
+          onOutcomeHandled={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'handled' }); }}
+          onOutcomeProgress={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'in_progress' }); }}
+          onTaskAction={taskActionFromCommand}
+        />
+
         {resumeEvent && (
           <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
             <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Last thing you were working on</div>
@@ -1731,7 +1969,7 @@ export default function EstatePage() {
           </div>
         )}
 
-        {firstFastTitle && (
+        {false && firstFastTitle && (
           <div style={{ background: isPlanningEstate ? SAGE_FAINT : ROSE_FAINT, border: '1px solid ' + (isPlanningEstate ? SAGE_LIGHT : ROSE + '30'), borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
             <div style={{ fontSize: 11, color: isPlanningEstate ? SAGE : ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>{isPlanningEstate ? 'Next planning step' : 'Just do this now'}</div>
             <div style={{ fontSize: 15, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{firstFastTitle}</div>
@@ -1770,63 +2008,79 @@ export default function EstatePage() {
                   Record what happened, mark it waiting, or flag that you need help. Passage will keep tracking this here.
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'handled', 'Proof recorded for ' + firstOpenTask.title, 'Reference number, provider name, or short confirmation note'); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Confirm / record proof</button>
-                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'waiting', 'Waiting for response on ' + firstOpenTask.title); }} style={{ border: '1px solid ' + AMBER_BORDER, background: AMBER_FAINT, color: AMBER, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Still waiting</button>
-                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'blocked', 'Help needed for ' + firstOpenTask.title, 'What is blocking this?'); }} style={{ border: '1px solid ' + ROSE + '35', background: CARD, color: ROSE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Needs help</button>
+                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'handled', 'Proof recorded for ' + displayTaskTitle(firstOpenTask), 'Reference number, provider name, or short confirmation note'); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Confirm / record proof</button>
+                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'waiting', 'Waiting for response on ' + displayTaskTitle(firstOpenTask)); }} style={{ border: '1px solid ' + AMBER_BORDER, background: AMBER_FAINT, color: AMBER, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Still waiting</button>
+                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'blocked', 'Help needed for ' + displayTaskTitle(firstOpenTask), 'What is blocking this?'); }} style={{ border: '1px solid ' + ROSE + '35', background: CARD, color: ROSE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Needs help</button>
                 </div>
               </>
             )}
           </div>
         )}
 
-        <ActivatePlanView
-          estate={estate}
-          actions={actions}
-          tasks={tasks}
-          outcomes={outcomes}
-          activating={activating}
-          onActivate={activatePlan}
-        />
+        <details style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
+          <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Messages, proof, and activation</summary>
+          <div style={{ marginTop: 12 }}>
+            <ActivatePlanView
+              estate={estate}
+              actions={actions}
+              tasks={tasks}
+              outcomes={outcomes}
+              activating={activating}
+              onActivate={activatePlan}
+            />
 
-        <ProofPanel
-          actions={actions}
-          tasks={tasks}
-          events={events}
-        />
+            <ProofPanel
+              actions={actions}
+              tasks={tasks}
+              events={events}
+            />
+          </div>
+        </details>
 
-        <ExecutionLayerPanel
-          tasks={tasks}
-          outcomes={outcomes}
-          estateId={estateId}
-          coordinatorName={coordinatorName}
-          onRefresh={refreshExecutionData}
-        />
+        <details id="all-task-tools" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
+          <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>All task tools</summary>
+          <div style={{ marginTop: 12 }}>
+            <ExecutionLayerPanel
+              tasks={tasks}
+              outcomes={outcomes}
+              estateId={estateId}
+              coordinatorName={coordinatorName}
+              onRefresh={refreshExecutionData}
+            />
+          </div>
+        </details>
 
-        <EstateOrchestrationMap
-          estate={estate}
-          estateId={estateId}
-          name={name}
-          serviceEvents={serviceEvents}
-          people={people}
-          actions={actions}
-          announcements={announcements}
-          tasks={tasks}
-          outcomes={outcomes}
-        />
+        <details style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
+          <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Estate map and funeral home summary</summary>
+          <div style={{ marginTop: 12 }}>
+            <EstateOrchestrationMap
+              estate={estate}
+              estateId={estateId}
+              name={name}
+              serviceEvents={serviceEvents}
+              people={people}
+              actions={actions}
+              announcements={announcements}
+              tasks={tasks}
+              outcomes={outcomes}
+            />
 
-        <FuneralHomePrepGenerator
-          estate={estate}
-          estateId={estateId}
-          name={name}
-          coordinatorName={coordinatorName}
-          serviceEvents={serviceEvents}
-          people={people}
-          tasks={tasks}
-          onRecord={recordPrepEvent}
-        />
+            <FuneralHomePrepGenerator
+              estate={estate}
+              estateId={estateId}
+              name={name}
+              coordinatorName={coordinatorName}
+              serviceEvents={serviceEvents}
+              people={people}
+              tasks={tasks}
+              onRecord={recordPrepEvent}
+            />
+          </div>
+        </details>
 
         <div id="people-coordination" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 10 }}>Orchestration status</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 4 }}>People and ownership</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>Pick one item below, assign who owns it, then record proof or mark it waiting. That is the whole job here.</div>
           <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 12, marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 7 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: SAGE }}>{readinessPct}% ready</div>
@@ -1850,6 +2104,25 @@ export default function EstatePage() {
               <div style={{ fontSize: 10.5, color: MID }}>Handled</div>
             </div>
           </div>
+          {outcomes.length > 0 && (
+            <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+              {outcomes.filter(function(o) { return !isHandledStatus(o.status); }).slice(0, 5).map(function(o) {
+                var idx = outcomes.findIndex(function(item) { return String(item.id) === String(o.id); });
+                return (
+                  <div key={o.id} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 11, padding: '10px 11px', display: 'grid', gap: 8 }}>
+                    <div>
+                      <div style={{ fontSize: 13, color: INK, fontWeight: 800 }}>{displayTaskTitle(o)}</div>
+                      <div style={{ fontSize: 12, color: MID, marginTop: 2 }}>{o.owner_label ? o.owner_label + ' owns this' : 'No owner yet'}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+                      <button onClick={function() { setExpanded(idx); setShowAssign(idx); setTimeout(function() { var el = document.getElementById('outcome_' + o.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 9, padding: '7px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>{o.owner_label ? 'Change owner' : 'Assign owner'}</button>
+                      <button onClick={function() { setExpanded(idx); setShowAssign(-1); setTimeout(function() { var el = document.getElementById('outcome_' + o.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }} style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 9, padding: '7px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>Open step</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div style={{ fontSize: 12, color: SOFT, marginTop: 10, lineHeight: 1.5 }}>Passage keeps this estate separate from every other estate you manage.</div>
         </div>
 
@@ -1958,7 +2231,7 @@ export default function EstatePage() {
                 return (
                   <div key={task.id} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '14px 16px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2px solid ' + BORDER, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: SOFT }}>{i + 1}</div>
-                    <div style={{ flex: 1, fontSize: 14, color: INK, lineHeight: 1.4 }}>{task.title}</div>
+                    <div style={{ flex: 1, fontSize: 14, color: INK, lineHeight: 1.4 }}>{displayTaskTitle(task)}</div>
                   </div>
                 );
               })}
@@ -1985,7 +2258,7 @@ export default function EstatePage() {
             {showUpNext && upNextTasks.map(function(task, i) {
               return (
                 <div key={task.id} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 11, padding: '12px 16px', marginBottom: 6, fontSize: 13.5, color: MID, lineHeight: 1.4 }}>
-                  {task.title}
+                  {displayTaskTitle(task)}
                 </div>
               );
             })}
@@ -2004,7 +2277,7 @@ export default function EstatePage() {
             title="People and coordination"
             meta={outcomes.filter(function(o) { return !o.owner_label; }).length + ' items need an owner'}
             cta="Review"
-            onClick={function() { var el = document.getElementById('people-coordination'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+            onClick={function() { openPeopleCoordination(true); }}
           />
           <SecondaryCard
             title="Planning file"
@@ -2037,7 +2310,7 @@ export default function EstatePage() {
 
         {/* Primary CTA */}
         {!allHandled && firstIncomplete >= 0 && (
-          <button onClick={function() { setExpanded(firstIncomplete); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          <button onClick={function() { openPeopleCoordination(false); }}
             style={{ width: '100%', padding: '16px', borderRadius: 13, border: 'none', background: SAGE, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'Georgia, serif', marginBottom: 10, minHeight: 52 }}>
             Start with the first item
           </button>
