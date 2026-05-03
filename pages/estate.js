@@ -1607,7 +1607,23 @@ export default function EstatePage() {
   var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t.status); });
   var firstFastTitle = firstOpenOutcome ? firstOpenOutcome.title : firstOpenTask ? firstOpenTask.title : '';
   var estateMode = String(estate?.mode || estate?.path || estate?.workflow_type || '').toLowerCase();
-  var isPlanningEstate = estateMode === 'green' || estateMode === 'planning' || estateMode.indexOf('green') >= 0;
+  var planningTitleSignals = [
+    'record planning preferences',
+    'collect prepayment',
+    'pre-need',
+    'confirm activation contacts',
+    'healthcare proxy',
+    'planning estate',
+    'prepare for funeral home meeting',
+    'funeral home meeting',
+    'activation contacts'
+  ];
+  var estateItemsForMode = [].concat(outcomes || [], tasks || []);
+  var hasPlanningItems = estateItemsForMode.some(function(item) {
+    var title = String(item.title || '').toLowerCase();
+    return planningTitleSignals.some(function(signal) { return title.indexOf(signal) >= 0; });
+  });
+  var isPlanningEstate = estateMode === 'green' || estateMode === 'planning' || estateMode.indexOf('green') >= 0 || hasPlanningItems;
 
   function openTimelineItem(item) {
     if (!item) return;
