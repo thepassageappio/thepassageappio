@@ -60,7 +60,7 @@ export default async function handler(req, res) {
   const auth = await verifyDeliveryRequest(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
-  const { to, toName, taskTitle, taskId, actionId, deceasedName, coordinatorName, workflowId, actionType, events, messageText, confirmUrl } = req.body;
+  const { to, toName, taskTitle, taskId, actionId, deceasedName, coordinatorName, workflowId, actionType, events, messageText, confirmUrl, triggerToken } = req.body;
   if (!to) return res.status(400).json({ error: 'Missing phone number' });
 
   const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
@@ -109,8 +109,10 @@ export default async function handler(req, res) {
     if (actionType === 'execution' && messageText) {
       message = clean(messageText, 240);
     } else if (actionType === 'invite') {
-      var inviteUrl = confirmUrl || (siteUrl + '/confirm' + (workflowId ? '?token=' + encodeURIComponent(workflowId) : ''));
-      message = 'Passage: You are a confirmation contact for ' + shortDeceased + "'s plan. Keep this link: " + inviteUrl;
+      var inviteUrl = confirmUrl || (triggerToken ? (siteUrl + '/confirm?token=' + encodeURIComponent(triggerToken)) : '');
+      message = inviteUrl
+        ? ('Passage: You are a confirmation contact for ' + shortDeceased + "'s plan. Keep this link: " + inviteUrl)
+        : ('Passage: You are a confirmation contact for ' + shortDeceased + "'s plan. Please check your email for the secure confirmation link.");
     } else if (actionType === 'trigger') {
       message = 'Passage: ' + shortDeceased + ' plan active. View details: ' + detailUrl;
     } else {

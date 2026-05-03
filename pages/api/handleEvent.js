@@ -256,7 +256,7 @@ async function handleInviteSent(payload) {
   const { workflowId, inviteeEmail, inviteeName, triggerToken } = payload;
   if (!inviteeEmail) return { sent: false };
 
-  const confirmUrl = BASE_URL + '/confirm?token=' + (triggerToken || '');
+  const confirmUrl = BASE_URL + '/confirm?token=' + encodeURIComponent(triggerToken || '') + '&email=' + encodeURIComponent(inviteeEmail || '');
 
   await fetch(BASE_URL + '/api/sendEmail', {
     method: 'POST',

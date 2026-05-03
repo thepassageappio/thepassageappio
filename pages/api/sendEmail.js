@@ -8,7 +8,32 @@ const supabase = createClient(
 );
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+const SITE_ORIGIN = (() => {
+  try { return new URL(SITE_URL).origin; } catch { return SITE_URL; }
+})();
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeSameOriginUrl(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  if (text.startsWith('/')) return SITE_URL + text;
+  try {
+    const parsed = new URL(text);
+    if (parsed.origin !== SITE_ORIGIN) return '';
+    return parsed.toString();
+  } catch {
+    return '';
+  }
+}
 
 async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail, provider, providerMessageId, providerEventId }) {
   if (!workflowId) return;
@@ -236,14 +261,16 @@ function triggerEmail(name, deceased, coordinator, serviceBlock) {
 }
 
 function inviteEmail(name, deceased, coordinator, confirmUrl) {
+  const safeConfirmUrl = safeSameOriginUrl(confirmUrl);
   return wrap(
     '<div class="tag">Confirmation request</div>' +
     '<div class="h1">You have been designated as a confirmation contact.</div>' +
     '<p class="p">' + coordinator + ' has set up an advance estate plan through Passage for ' + deceased + '.</p>' +
     '<p class="p">Keep this secure link. When confirmation is needed, it lets you confirm without searching for instructions. Once the required contacts confirm, the plan activates and assigned contacts are notified automatically.</p>' +
-    (confirmUrl ? '<a href="' + confirmUrl + '" class="btn">Open confirmation page</a>' : '') +
+    (safeConfirmUrl ? '<a href="' + escapeHtml(safeConfirmUrl) + '" class="btn">Open confirmation page</a>' : '') +
+    (safeConfirmUrl ? '<p class="p" style="font-size:12px;color:#a09890;margin-top:4px;">If the button does not work, copy and paste this link:<br><a href="' + escapeHtml(safeConfirmUrl) + '" style="color:#6b8f71;word-break:break-all;">' + escapeHtml(safeConfirmUrl) + '</a></p>' : '') +
     '<p class="p">You can also create your own Passage account to see estate roles assigned to you and start a plan for your own family.</p>' +
     '<a href="' + SITE_URL + '/participating" class="btn">Create my Passage account</a>' +
-    '<p class="p" style="color:#a09890;font-size:12px;margin-top:16px;">You do not need to do anything right now.</p>'
+    '<p class="p" style="color:#a09890;font-size:12px;margin-top:16px;">You do not need to do anything right now. If you were not expecting this, you can ignore this email.</p>'
   );
 }
