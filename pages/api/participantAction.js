@@ -70,8 +70,56 @@ export default async function handler(req, res) {
 
   const email = userData.user.email.toLowerCase();
   const { kind, id, action, notes, outcomeStatus, followUpAt } = req.body || {};
-  if (!id || !['task', 'action'].includes(kind) || !['accept', 'handled', 'help', 'waiting', 'needs_details', 'quoted', 'scheduled', 'delivered', 'confirmed', 'unavailable'].includes(action)) {
+  if (!id || !['task', 'action'].includes(kind) || !['accept', 'handled', 'help', 'waiting', 'needs_details', 'quoted', 'scheduled', 'delivered', 'confirmed', 'unavailable', 'save_note'].includes(action)) {
     return res.status(400).json({ error: 'Invalid participant action.' });
+  }
+
+  const table = kind === 'task' ? 'tasks' : 'workflow_actions';
+  const emailColumn = kind === 'task' ? 'assigned_to_email' : 'recipient_email';
+
+  if (action === 'save_note') {
+    const trimmed = typeof notes === 'string' ? notes.trim() : '';
+    if (!trimmed) return res.status(400).json({ error: 'Add a note to save.' });
+    const { data, error } = await admin
+      .from(table)
+      .update({ notes: trimmed, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .ilike(emailColumn, email)
+      .select(kind === 'task' ? 'id,status,workflow_id,title' : 'id,status,workflow_id,subject,task_title')
+      .maybeSingle();
+    if (error) return res.status(500).json({ error: error.message });
+    if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
+
+    await admin.from('estate_events').insert([{
+      estate_id: data.workflow_id,
+      event_type: 'participant_note',
+      title: 'Participant added a note',
+      description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - note saved',
+      actor: email,
+    }]).then(() => {}, () => {});
+
+    await admin.from('task_status_events').insert([{
+      workflow_id: data.workflow_id,
+      task_id: kind === 'task' ? data.id : null,
+      action_id: kind === 'action' ? data.id : null,
+      status: data.status || 'in_progress',
+      last_action_at: new Date().toISOString(),
+      last_actor: email,
+      channel: 'participant',
+      recipient: email,
+      detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - note saved',
+    }]).then(() => {}, () => {});
+
+    await notifyCoordinator({
+      workflowId: data.workflow_id,
+      actorEmail: email,
+      status: data.status || 'waiting',
+      action,
+      taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
+      notes: trimmed,
+    });
+
+    return res.status(200).json({ success: true, item: data });
   }
 
   const status = action === 'accept' ? 'acknowledged'
@@ -82,8 +130,6 @@ export default async function handler(req, res) {
   const stamp = action === 'accept' ? 'accepted_at'
     : status === 'handled' ? 'handled_at'
     : 'help_requested_at';
-  const table = kind === 'task' ? 'tasks' : 'workflow_actions';
-  const emailColumn = kind === 'task' ? 'assigned_to_email' : 'recipient_email';
 
   const updates = {
     status,

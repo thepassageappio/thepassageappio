@@ -117,6 +117,7 @@ function requestContract(kind, estate, item) {
 }
 
 function actionConfirmation(action) {
+  if (action === 'save_note') return 'Note saved.';
   if (action === 'confirmed') return 'Availability confirmed. The coordinator can see it.';
   if (action === 'delivered') return 'Marked delivered. The coordinator can see it.';
   if (action === 'scheduled') return 'Marked scheduled. The coordinator can see it.';
@@ -137,8 +138,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const [savedPulse, setSavedPulse] = useState(false);
   const noteChange = (value) => {
     onNotes(value);
-    setSavedPulse(true);
-    setTimeout(() => setSavedPulse(false), 1400);
+    setSavedPulse(false);
   };
   return (
     <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, background: linked || primary ? C.sageFaint : C.card, borderRadius: 14, padding: primary ? 15 : 12, marginTop: 10, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
@@ -175,8 +175,9 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       {!handled && (
         <>
           <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder="Add notes for the coordinator" style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
-          {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Saved</div>}
+          {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
           <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+            <button onClick={() => { onAction('save_note'); setSavedPulse(true); setTimeout(() => setSavedPulse(false), 1800); }} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800 }}>Save note</button>
             {actionSet(kind).map(([action, label]) => (
               <button key={action} onClick={() => onAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>
             ))}

@@ -48,6 +48,8 @@ export default function FuneralHomeDashboard() {
   const [expandedCaseId, setExpandedCaseId] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [creating, setCreating] = useState(false);
+  const [taskDraft, setTaskDraft] = useState(null);
+  const [taskDraftNote, setTaskDraftNote] = useState('');
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
     caseType: 'immediate',
@@ -168,6 +170,8 @@ export default function FuneralHomeDashboard() {
         setNotice(status === 'blocked'
           ? 'Family information requested. This stays visible until it is resolved.'
           : 'Started on behalf of the family. Passage is tracking this so your staff does not have to chase it manually.');
+        setTaskDraft(null);
+        setTaskDraftNote('');
         await load(token);
       }
     } finally {
@@ -837,9 +841,31 @@ export default function FuneralHomeDashboard() {
                       </div>
                       {task.playbook?.funeralHomeEligible && !['handled', 'completed'].includes(task.status || '') && (
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
-                          <button disabled={updating === task.id + 'waiting'} onClick={() => updateTask(task, 'waiting', `${org?.name || 'Funeral home'} is working on ${task.title}. Waiting for confirmation.`)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start on behalf of family</button>
-                          <button disabled={updating === task.id + 'blocked'} onClick={() => updateTask(task, 'blocked', `${org?.name || 'Funeral home'} needs family information for ${task.title}.`)} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Need family info</button>
+                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Start on behalf of family', prompt: 'What is your team starting or waiting on?' }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start on behalf of family</button>
+                          <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request family information', prompt: 'What exact detail does the family need to provide?' }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Need family info</button>
                           <button disabled={updating === task.id + 'handle_for_family'} onClick={() => handleForFamily(task, item)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Handle this for family'}</button>
+                        </div>
+                      )}
+                      {taskDraft?.task?.id === task.id && (
+                        <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12 }}>
+                          <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Tell Passage what to track</div>
+                          <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900, marginBottom: 4 }}>{taskDraft.label}</div>
+                          <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginBottom: 8 }}>{taskDraft.prompt}</div>
+                          <textarea
+                            value={taskDraftNote}
+                            onChange={(e) => setTaskDraftNote(e.target.value)}
+                            placeholder={taskDraft.status === 'blocked' ? 'Example: Need family to confirm cemetery name and number of death certificate copies.' : 'Example: Staff called Vassar release desk; waiting for pickup clearance.'}
+                            style={{ width: '100%', boxSizing: 'border-box', minHeight: 70, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink }}
+                          />
+                          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
+                            <button
+                              disabled={!taskDraftNote.trim() || updating === task.id + taskDraft.status}
+                              onClick={() => updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'needs family information' : 'started this on behalf of the family'} for ${task.title}: ${taskDraftNote.trim()}`)}
+                              style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+                              Save request
+                            </button>
+                            <button onClick={() => { setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
+                          </div>
                         </div>
                       )}
                       {['handled', 'completed'].includes(task.status || '') && (

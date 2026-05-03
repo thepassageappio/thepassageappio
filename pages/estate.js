@@ -1477,6 +1477,8 @@ export default function EstatePage() {
   var s14 = useState([]); var announcements = s14[0]; var setAnnouncements = s14[1];
   var s15 = useState(false); var activating = s15[0]; var setActivating = s15[1];
   var s16 = useState('now'); var activeCommandTab = s16[0]; var setActiveCommandTab = s16[1];
+  var s17 = useState(null); var pendingTaskAction = s17[0]; var setPendingTaskAction = s17[1];
+  var s18 = useState(''); var pendingTaskNote = s18[0]; var setPendingTaskNote = s18[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -1634,10 +1636,13 @@ export default function EstatePage() {
     if (results[2].data) setActions(results[2].data);
   }
 
-  async function updateTaskFromCommand(task, status, detail, notePrompt) {
+  async function updateTaskFromCommand(task, status, detail, notePrompt, noteValue) {
     if (!task?.id) return;
-    var note = notePrompt ? window.prompt(notePrompt) : '';
-    if (notePrompt && note === null) return;
+    var note = typeof noteValue === 'string' ? noteValue : '';
+    if (notePrompt && !note.trim()) {
+      showToast('Add a short note so everyone knows what changed.');
+      return;
+    }
     var session = await sb.auth.getSession();
     var token = session && session.data && session.data.session ? session.data.session.access_token : '';
     if (!token) {
@@ -1663,6 +1668,8 @@ export default function EstatePage() {
       return;
     }
     await refreshExecutionData();
+    setPendingTaskAction(null);
+    setPendingTaskNote('');
     if (status === 'handled') showToast("That's taken care of. You're all set here.");
     else if (status === 'blocked') showToast("Needs help is saved. We'll keep it visible.");
     else showToast("Waiting state saved. We'll keep this visible.");
@@ -1845,6 +1852,16 @@ export default function EstatePage() {
     if (idx >= 0) updateOutcome(idx, updates);
   }
 
+  function startTaskUpdate(draft) {
+    setPendingTaskAction(draft);
+    setPendingTaskNote('');
+    setTimeout(function() {
+      if (typeof document !== 'undefined') {
+        document.getElementById('task-update-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 0);
+  }
+
   function taskActionFromCommand(task, action) {
     if (!task) return;
     if (action === 'open') {
@@ -1855,15 +1872,15 @@ export default function EstatePage() {
       return;
     }
     if (action === 'handled') {
-      updateTaskFromCommand(task, 'handled', 'Proof recorded for ' + displayTaskTitle(task), 'Reference number, provider name, or short confirmation note');
+      startTaskUpdate({ task: task, status: 'handled', title: 'Record proof', detail: 'Proof recorded for ' + displayTaskTitle(task), prompt: 'Reference number, provider name, or short confirmation note' });
       return;
     }
     if (action === 'waiting') {
-      updateTaskFromCommand(task, 'waiting', 'Waiting for response on ' + displayTaskTitle(task));
+      startTaskUpdate({ task: task, status: 'waiting', title: 'Mark waiting', detail: 'Waiting for response on ' + displayTaskTitle(task), prompt: 'Who are we waiting on, and what should happen next?' });
       return;
     }
     if (action === 'blocked') {
-      updateTaskFromCommand(task, 'blocked', 'Help needed for ' + displayTaskTitle(task), 'What is blocking this?');
+      startTaskUpdate({ task: task, status: 'blocked', title: 'Ask for help', detail: 'Help needed for ' + displayTaskTitle(task), prompt: 'What is blocking this?' });
     }
   }
 
@@ -1961,6 +1978,32 @@ export default function EstatePage() {
           onTaskAction={taskActionFromCommand}
         />
 
+        {pendingTaskAction && (
+          <div id="task-update-panel" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '14px 16px', marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Save this update</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{pendingTaskAction.title}: {displayTaskTitle(pendingTaskAction.task)}</div>
+            <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{pendingTaskAction.prompt}</div>
+            <textarea
+              value={pendingTaskNote}
+              onChange={function(e) { setPendingTaskNote(e.target.value); }}
+              placeholder={pendingTaskAction.status === 'handled' ? 'Example: Release confirmed by Vassar Hospital, reference #1234.' : pendingTaskAction.status === 'waiting' ? 'Example: Waiting on facility release desk to call back.' : 'Example: Need Ashlee to confirm cemetery name before this can move.'}
+              style={{ width: '100%', boxSizing: 'border-box', minHeight: 82, border: '1.5px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.45, background: CARD, color: INK }}
+            />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+              <button
+                onClick={function() { updateTaskFromCommand(pendingTaskAction.task, pendingTaskAction.status, pendingTaskAction.detail, pendingTaskAction.prompt, pendingTaskNote); }}
+                style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>
+                Save update
+              </button>
+              <button
+                onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); }}
+                style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         {resumeEvent && (
           <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
             <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Last thing you were working on</div>
@@ -2008,9 +2051,9 @@ export default function EstatePage() {
                   Record what happened, mark it waiting, or flag that you need help. Passage will keep tracking this here.
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'handled', 'Proof recorded for ' + displayTaskTitle(firstOpenTask), 'Reference number, provider name, or short confirmation note'); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Confirm / record proof</button>
-                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'waiting', 'Waiting for response on ' + displayTaskTitle(firstOpenTask)); }} style={{ border: '1px solid ' + AMBER_BORDER, background: AMBER_FAINT, color: AMBER, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Still waiting</button>
-                  <button onClick={function() { updateTaskFromCommand(firstOpenTask, 'blocked', 'Help needed for ' + displayTaskTitle(firstOpenTask), 'What is blocking this?'); }} style={{ border: '1px solid ' + ROSE + '35', background: CARD, color: ROSE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Needs help</button>
+                  <button onClick={function() { taskActionFromCommand(firstOpenTask, 'handled'); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Confirm / record proof</button>
+                  <button onClick={function() { taskActionFromCommand(firstOpenTask, 'waiting'); }} style={{ border: '1px solid ' + AMBER_BORDER, background: AMBER_FAINT, color: AMBER, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Still waiting</button>
+                  <button onClick={function() { taskActionFromCommand(firstOpenTask, 'blocked'); }} style={{ border: '1px solid ' + ROSE + '35', background: CARD, color: ROSE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Needs help</button>
                 </div>
               </>
             )}

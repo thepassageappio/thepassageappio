@@ -522,9 +522,21 @@ const saveWorkflowAction = async (workflowId, personData, taskTitle, actionType)
 
 const loadUserWorkflows = async (userId) => {
   if (!userId) return [];
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (token) {
+      const response = await fetch('/api/myEstates', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (response.ok) return await response.json();
+    }
+  } catch (e) {
+    console.warn('loadUserWorkflows api:', e);
+  }
   const { data } = await supabase
     .from('workflows')
-    .select('id, name, deceased_name, coordinator_name, coordinator_email, date_of_death, status, activation_status, trigger_type, path, mode, seat_status, estate_name, created_at, updated_at')
+    .select('id, name, deceased_name, coordinator_name, coordinator_email, date_of_death, status, activation_status, trigger_type, trigger_token, confirmation_count, confirmed_by, path, mode, seat_status, estate_name, created_at, updated_at')
     .eq('user_id', userId)
     .neq('status', 'archived')
     .order('created_at', { ascending: false });
@@ -3247,11 +3259,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
       }
       setLoading(true);
       try {
-        const [{ user: u, profile: p }, wfs] = await Promise.all([
+        const [{ user: u, profile: p }, workflowResult] = await Promise.all([
           loadUserProfile(user.id),
           loadUserWorkflows(user.id),
         ]);
         if (cancelled) return;
+        const wfs = Array.isArray(workflowResult) ? workflowResult : (workflowResult?.workflows || []);
+        const precomputedTaskStats = !Array.isArray(workflowResult) ? (workflowResult?.taskStats || null) : null;
         setUserData(u || null);
         setProfile(p || null);
         if (p) {
@@ -3268,7 +3282,9 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
 
         // Load task completion stats for all workflows
         const workflowIds = (wfs || []).map(w => w.id).filter(Boolean);
-        if (workflowIds.length > 0) {
+        if (precomputedTaskStats) {
+          setTaskStats(precomputedTaskStats);
+        } else if (workflowIds.length > 0) {
           const { data: stats } = await supabase.from('tasks')
             .select('id, workflow_id, title, status, assigned_to_name, assigned_to_email, due_days_after_trigger, created_at')
             .in('workflow_id', workflowIds);
