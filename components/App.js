@@ -1488,6 +1488,13 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
     ['someone_else_handling', 'Someone else is handling it', 'waiting'],
   ];
   const selectedOutcome = outcomeOptions.find(opt => opt[0] === outcome);
+  const selectedFinalStatus = selectedOutcome?.[2] === 'waiting' ? 'waiting' : 'handled';
+  const selectedIsHandled = selectedFinalStatus === 'handled';
+  const saveOutcomeLabel = !outcome
+    ? "Choose what happened"
+    : confirmed
+      ? selectedIsHandled ? "Marked handled" : "Saved as waiting"
+      : selectedIsHandled ? "Mark handled" : "Save waiting update";
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.58)", zIndex: 240, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
@@ -1570,6 +1577,15 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         </div>
         <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 8 }}>Tell Passage what happened</div>
+          <button
+            onClick={() => {
+              const handled = outcomeOptions.find(opt => opt[2] === 'handled') || outcomeOptions[0];
+              setOutcome(handled[0]);
+            }}
+            style={{ width: "100%", textAlign: "center", padding: "12px 13px", borderRadius: 11, border: `1.5px solid ${selectedIsHandled ? C.sage : C.sageLight}`, background: selectedIsHandled ? C.sage : C.sageFaint, color: selectedIsHandled ? "#fff" : C.sage, fontFamily: "Georgia, serif", fontSize: 14, fontWeight: 900, cursor: "pointer", marginBottom: 8 }}
+          >
+            Mark handled when done
+          </button>
           <div style={{ display: "grid", gap: 7 }}>
             {outcomeOptions.map(opt => (
               <button key={opt[0]} onClick={() => setOutcome(opt[0])} style={{ textAlign: "left", padding: "10px 11px", borderRadius: 10, border: `1.5px solid ${outcome === opt[0] ? C.sage : C.border}`, background: outcome === opt[0] ? C.sageFaint : C.bgCard, color: outcome === opt[0] ? C.sage : C.ink, fontFamily: "Georgia, serif", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
@@ -1620,7 +1636,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
           <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not applicable</button>
           <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Assign instead</button>
-          <button onClick={() => { if (!outcome) return; setConfirmed(true); setTimeout(() => onHandled({ notes, outcomeStatus: outcome, followUpAt: followUp || null, finalStatus: selectedOutcome?.[2] === 'waiting' ? 'waiting' : 'handled' }), 1400); }} disabled={!outcome} style={{ padding: "11px", borderRadius: 11, border: "none", background: !outcome ? C.border : confirmed ? C.sage : C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: outcome ? "pointer" : "not-allowed" }}>{confirmed ? "Handled" : "Save outcome"}</button>
+          <button onClick={() => { if (!outcome) return; setConfirmed(true); setTimeout(() => onHandled({ notes, outcomeStatus: outcome, followUpAt: followUp || null, finalStatus: selectedFinalStatus }), 1400); }} disabled={!outcome} style={{ padding: "11px", borderRadius: 11, border: "none", background: !outcome ? C.border : confirmed ? C.sage : selectedIsHandled ? C.sage : C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: outcome ? "pointer" : "not-allowed" }}>{saveOutcomeLabel}</button>
         </div>
         {confirmed && (
           <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "11px 12px", color: C.sage, fontSize: 13, fontWeight: 800, textAlign: "center" }}>
