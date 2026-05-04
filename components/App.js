@@ -3387,26 +3387,29 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
   const backEstateId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('backEstate') : '';
 
   const saveWishes = async () => {
-    if (!user) return;
-    const nextProfile = {
-      user_id: user.id,
-      disposition: normalizeDisposition(wishesData.disposition),
-      service_type: normalizeServiceType(wishesData.service_type),
-      healthcare_proxy_name: wishesData.religious_leader || '',
-      music_notes: wishesData.music_preferences || '',
-      special_requests: wishesData.special_requests || '',
-      organ_donor: wishesData.organ_donation || false,
-      wishes_complete: true,
-      updated_at: new Date().toISOString(),
-    };
-    const { error } = await supabase.from('profiles').upsert([nextProfile], { onConflict: 'user_id' });
-    if (error) {
-      console.error('saveWishes:', error);
-      setWishesToast("Could not save wishes yet.");
+    if (!user) {
+      setWishesToast("Please sign in again before saving.");
       setTimeout(() => setWishesToast(""), 3000);
       return;
     }
-    setProfile(prev => ({ ...(prev || {}), ...nextProfile }));
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const response = await fetch('/api/profileWishes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(wishesData),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      console.error('saveWishes:', result);
+      setWishesToast(result.error || "Could not save wishes yet.");
+      setTimeout(() => setWishesToast(""), 4500);
+      return;
+    }
+    setProfile(prev => ({ ...(prev || {}), ...(result.profile || {}) }));
     setShowWishes(false);
     setWishesToast("Wishes saved.");
     setTimeout(() => setWishesToast(""), 3000);
