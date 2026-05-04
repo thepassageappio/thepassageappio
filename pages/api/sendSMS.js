@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
+import { recordStatusEvent } from '../../lib/taskStatus';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -8,50 +9,20 @@ const supabase = createClient(
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
 async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail, provider, providerMessageId, providerEventId }) {
-  if (!workflowId) return;
-  const now = new Date().toISOString();
-  const taskUpdates = {
+  if (!workflowId) return { recorded: false };
+  return recordStatusEvent({
+    workflowId,
+    taskId,
+    actionId,
     status,
-    last_action_at: now,
-    last_actor: actor || recipient || 'Passage',
-    channel,
-    recipient,
-    updated_at: now,
-  };
-  if (status === 'sent') taskUpdates.notified_at = now;
-  if (status === 'delivered') taskUpdates.delivered_at = now;
-  if (status === 'acknowledged') taskUpdates.acknowledged_at = now;
-  if (isUuid(taskId)) await supabase.from('tasks').update(taskUpdates).eq('id', taskId).eq('workflow_id', workflowId).then(() => {}, () => {});
-  if (isUuid(actionId)) await supabase.from('workflow_actions').update({
-    status,
-    delivery_status: status,
-    last_action_at: now,
-    last_actor: actor || recipient || 'Passage',
-    channel,
-    recipient,
-    updated_at: now,
-  }).eq('id', actionId).eq('workflow_id', workflowId).then(() => {}, () => {});
-  await supabase.from('task_status_events').insert([{
-    workflow_id: workflowId,
-    task_id: isUuid(taskId) ? taskId : null,
-    action_id: isUuid(actionId) ? actionId : null,
-    status,
-    last_action_at: now,
-    last_actor: actor || recipient || 'Passage',
+    actor,
     channel,
     recipient,
     detail,
-    provider: provider || null,
-    provider_message_id: providerMessageId || null,
-    provider_event_id: providerEventId || null,
-  }]).then(() => {}, () => {});
-  await supabase.from('estate_events').insert([{
-    estate_id: workflowId,
-    event_type: status === 'sent' ? 'task_message_sent' : 'task_status_updated',
-    title: status === 'sent' ? 'Message sent' : 'Task status updated',
-    description: detail || ((recipient || 'Recipient') + ' - ' + status),
-    actor: actor || 'Passage',
-  }]).then(() => {}, () => {});
+    provider,
+    providerMessageId,
+    providerEventId,
+  });
 }
 
 async function sendFallbackEmail({ toEmail, toName, taskTitle, workflowId, taskId, actionId, deceasedName, coordinatorName, actionType, messageText, confirmUrl, triggerToken, reason }) {

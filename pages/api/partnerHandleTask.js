@@ -17,8 +17,10 @@ export default async function handler(req, res) {
   const user = userData?.user;
   if (userError || !user?.email) return res.status(401).json({ error: 'Session could not be verified.' });
 
-  const { taskId, note } = req.body || {};
-  if (!taskId) return res.status(400).json({ error: 'Missing task.' });
+    const { taskId, note } = req.body || {};
+    if (!taskId) return res.status(400).json({ error: 'Missing task.' });
+    const cleanNote = String(note || '').trim();
+    if (!cleanNote) return res.status(400).json({ error: 'Add what was handled before notifying the family.' });
 
   try {
     const { data: task, error: taskError } = await admin
@@ -54,7 +56,7 @@ export default async function handler(req, res) {
 
     const orgName = organization?.from_name || organization?.name || 'The funeral home';
     const subjectName = workflow.deceased_name || workflow.estate_name || 'this family case';
-    const detail = note || `${orgName} handled ${task.title} for the family.`;
+    const detail = cleanNote;
 
     const statusResult = await recordStatusEvent({
       workflowId: workflow.id,
@@ -74,8 +76,8 @@ export default async function handler(req, res) {
           <div style="max-width:560px;margin:auto;background:#fffdf9;border:1px solid #e4ddd4;border-radius:16px;padding:26px">
             <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#6b8f71;font-weight:700">Passage update</div>
             <h1 style="font-weight:400;color:#1a1916;font-size:24px;line-height:1.25">Handled for the family</h1>
-            <p style="color:#6a6560;line-height:1.7">${orgName} marked this task as handled for ${subjectName}.</p>
-            <div style="background:#f0f5f1;border:1px solid #c8deca;border-radius:12px;padding:14px;color:#1a1916"><strong>${task.title}</strong><br><span style="color:#6a6560">${detail}</span></div>
+            <p style="color:#6a6560;line-height:1.7">${escapeHtml(orgName)} recorded a completed update for ${escapeHtml(subjectName)}.</p>
+            <div style="background:#f0f5f1;border:1px solid #c8deca;border-radius:12px;padding:14px;color:#1a1916"><strong>${escapeHtml(task.title)}</strong><br><span style="color:#6a6560">${escapeHtml(detail)}</span></div>
             <p style="color:#6a6560;line-height:1.7">This update is saved in the Passage case record.</p>
           </div>
         </div>`;
@@ -122,4 +124,13 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Could not handle this task for the family.' });
   }
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
@@ -50,6 +50,7 @@ export default function FuneralHomeDashboard() {
   const [creating, setCreating] = useState(false);
   const [taskDraft, setTaskDraft] = useState(null);
   const [taskDraftNote, setTaskDraftNote] = useState('');
+  const casePanelRef = useRef(null);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
     caseType: 'immediate',
@@ -179,8 +180,13 @@ export default function FuneralHomeDashboard() {
     }
   }
 
-  async function handleForFamily(task, caseItem) {
+  async function handleForFamily(task, note) {
     if (!token || !task?.id) return;
+    const cleanNote = String(note || '').trim();
+    if (!cleanNote) {
+      setError('Add what your team actually completed before marking this handled.');
+      return;
+    }
     setUpdating(task.id + 'handle_for_family');
     setError('');
     setNotice('');
@@ -190,7 +196,7 @@ export default function FuneralHomeDashboard() {
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({
           taskId: task.id,
-          note: `${org?.name || 'Funeral home'} handled ${task.title} for ${caseItem?.coordinator_name || 'the family'}.`,
+          note: cleanNote,
         }),
       });
       const json = await res.json().catch(() => ({}));
@@ -205,7 +211,9 @@ export default function FuneralHomeDashboard() {
             partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status: 'handled', last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
           })),
         } : prev);
-        setNotice('Handled for the family. The family can see who handled it, when it happened, and what was sent.');
+        setTaskDraft(null);
+        setTaskDraftNote('');
+        setNotice('Handled for the family. The family can see exactly what your team recorded.');
         await load(token);
       }
     } finally {
@@ -377,6 +385,21 @@ export default function FuneralHomeDashboard() {
     if (/MULTI/i.test(ref)) return 'Beacon';
     return item.location_name || item.branch_name || item.funeral_home_location || 'Main location';
   }
+
+  function openCasePanel(caseType = 'immediate') {
+    setCaseForm(prev => ({ ...prev, caseType }));
+    setShowNewCase(true);
+    setShowTools(false);
+    setNotice(caseType === 'immediate'
+      ? 'Create an at-need case. Add only what you know.'
+      : caseType === 'prepaid'
+        ? 'Create a prepaid case. Add the family contact and policy reference if you have it.'
+        : 'Create a pre-need planning case. This can be for a living client or a family preparing ahead.');
+    window.setTimeout(() => {
+      casePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      casePanelRef.current?.querySelector('input')?.focus?.();
+    }, 0);
+  }
   const locations = Array.from(new Set(cases.map(locationNameFor).filter(Boolean)));
   const isMultiLocation = locations.length > 1 || /group|multi/i.test(String(org?.name || '') + ' ' + String(org?.plan || ''));
   const displayCases = isMultiLocation && selectedLocation !== 'all' ? cases.filter(item => locationNameFor(item) === selectedLocation) : cases;
@@ -392,8 +415,8 @@ export default function FuneralHomeDashboard() {
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Create a case, move the next partner-ready task, keep the family informed, and export the record whenever you need it.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {user && <button onClick={() => { setCaseForm(prev => ({ ...prev, caseType: 'immediate' })); setShowNewCase(true); }} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New at-need case</button>}
-            {user && <button onClick={() => { setCaseForm(prev => ({ ...prev, caseType: 'preneed' })); setShowNewCase(true); }} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New pre-need case</button>}
+            {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New at-need case</button>}
+            {user && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New pre-need case</button>}
             {user && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export all active cases</button>}
             {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'More tools'}</button>}
             {user && isAdminDemo && <button onClick={() => setShowGuidedDemo(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: showGuidedDemo ? C.sage : C.card, color: showGuidedDemo ? '#fff' : C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{showGuidedDemo ? 'Hide guided demo' : 'Start guided demo'}</button>}
@@ -604,11 +627,11 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && showNewCase && (
-          <form onSubmit={createCase} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+          <form ref={casePanelRef} onSubmit={createCase} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12, scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Create a family case</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Start with only the details you know. Passage creates the partner-ready task set.</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{caseForm.caseType === 'immediate' ? 'New at-need case' : caseForm.caseType === 'prepaid' ? 'New prepaid case' : 'New pre-need case'}</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{caseForm.caseType === 'immediate' ? 'A death has occurred. Start with the family contact and the next partner-ready work.' : 'This may be a living client or family preparing ahead. Start with a contact and the plan details you already know.'}</div>
               </div>
               <button type="button" onClick={() => setShowNewCase(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
             </div>
@@ -645,8 +668,8 @@ export default function FuneralHomeDashboard() {
                 </label>
               )}
             </div>
-            <button disabled={creating || !caseForm.personName.trim()} style={{ marginTop: 10, width: '100%', border: 'none', borderRadius: 12, background: creating || !caseForm.personName.trim() ? C.border : C.sage, color: '#fff', padding: '11px 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: creating ? 'default' : 'pointer' }}>
-              {creating ? 'Creating case...' : 'Create case and task set'}
+            <button disabled={creating || !caseForm.personName.trim()} style={{ marginTop: 10, width: '100%', border: 'none', borderRadius: 12, background: creating || !caseForm.personName.trim() ? C.border : C.sage, color: '#fff', padding: '11px 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: creating || !caseForm.personName.trim() ? 'not-allowed' : 'pointer' }}>
+              {creating ? 'Creating case...' : caseForm.caseType === 'immediate' ? 'Create at-need case' : 'Create pre-need case'}
             </button>
           </form>
         )}
@@ -656,7 +679,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ fontSize: 22, marginBottom: 8 }}>Create your partner workspace.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Start a pilot workspace from the first family case. Passage will connect this staff login to the funeral home automatically.</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
+              <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
             </div>
           </div>
         )}
@@ -678,7 +701,7 @@ export default function FuneralHomeDashboard() {
               ))}
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button onClick={() => setShowNewCase(true)} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
+              <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
             </div>
           </div>
         )}
@@ -741,12 +764,13 @@ export default function FuneralHomeDashboard() {
               const topTasks = partnerTasks.length ? partnerTasks.slice(0, 3) : item.tasks.slice(0, 3);
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               const isExpanded = expandedCaseId === item.id;
+              const itemLocation = locationNameFor(item);
               return (
                 <div key={item.id} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 18, padding: 18 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.25 }}>{item.deceased_name || item.estate_name || item.name || 'Family case'}</div>
-                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{partnerCaseTypeLabel(item)} - Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
+                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{partnerCaseTypeLabel(item)} - {isMultiLocation ? `${itemLocation} - ` : ''}Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Hide work' : 'Show work'}</button>
@@ -756,6 +780,7 @@ export default function FuneralHomeDashboard() {
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{item.tasks.length} tasks</span>
+                    {isMultiLocation && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Location: {itemLocation}</span>}
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{partnerTasks.length} partner-ready</span>
                     <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{open} open</span>
                     {isAdminDemo && isDemoCase && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Demo data</span>}
@@ -843,7 +868,7 @@ export default function FuneralHomeDashboard() {
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                           <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Start on behalf of family', prompt: 'What is your team starting or waiting on?' }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start on behalf of family</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request family information', prompt: 'What exact detail does the family need to provide?' }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Need family info</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => handleForFamily(task, item)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Handle this for family'}</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Record what was handled', prompt: 'What did your team actually complete? This note will be shown to the family and saved in the case record.' }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Handle this for family'}</button>
                         </div>
                       )}
                       {taskDraft?.task?.id === task.id && (
@@ -854,15 +879,17 @@ export default function FuneralHomeDashboard() {
                           <textarea
                             value={taskDraftNote}
                             onChange={(e) => setTaskDraftNote(e.target.value)}
-                            placeholder={taskDraft.status === 'blocked' ? 'Example: Need family to confirm cemetery name and number of death certificate copies.' : 'Example: Staff called Vassar release desk; waiting for pickup clearance.'}
+                            placeholder={taskDraft.status === 'handled' ? 'Example: Arrangement meeting completed with Claire; next appointment is Tuesday at 10 AM.' : taskDraft.status === 'blocked' ? 'Example: Need family to confirm cemetery name and number of death certificate copies.' : 'Example: Staff called Vassar release desk; waiting for pickup clearance.'}
                             style={{ width: '100%', boxSizing: 'border-box', minHeight: 70, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink }}
                           />
                           <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
                             <button
-                              disabled={!taskDraftNote.trim() || updating === task.id + taskDraft.status}
-                              onClick={() => updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'needs family information' : 'started this on behalf of the family'} for ${task.title}: ${taskDraftNote.trim()}`)}
+                              disabled={!taskDraftNote.trim() || updating === task.id + taskDraft.status || updating === task.id + 'handle_for_family'}
+                              onClick={() => taskDraft.status === 'handled'
+                                ? handleForFamily(task, `${org?.name || 'Funeral home'} completed ${task.title}: ${taskDraftNote.trim()}`)
+                                : updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'needs family information' : 'started this on behalf of the family'} for ${task.title}: ${taskDraftNote.trim()}`)}
                               style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
-                              Save request
+                              {taskDraft.status === 'handled' ? 'Save handled update' : 'Save request'}
                             </button>
                             <button onClick={() => { setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
                           </div>

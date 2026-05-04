@@ -322,6 +322,41 @@ function statusText(status) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function taskActionCopy(status) {
+  if (status === 'handled') return {
+    title: 'Mark handled',
+    save: 'Mark handled',
+    detail: 'Proof recorded',
+    prompt: 'Add a reference number, provider name, or short note if you have one.',
+    placeholder: 'Example: Release confirmed by Vassar Hospital, reference #1234.',
+    confirmation: "That's taken care of. You're all set here."
+  };
+  if (status === 'waiting') return {
+    title: 'Still waiting',
+    save: 'Save waiting update',
+    detail: 'Waiting for response',
+    prompt: 'Who are we waiting on, and what should happen next?',
+    placeholder: 'Example: Waiting on facility release desk to call back.',
+    confirmation: "Waiting state saved. We'll keep this visible."
+  };
+  if (status === 'blocked') return {
+    title: 'Needs help',
+    save: 'Save help request',
+    detail: 'Help needed',
+    prompt: 'What is blocking this?',
+    placeholder: 'Example: Need Ashlee to confirm cemetery name before this can move.',
+    confirmation: "Needs help is saved. We'll keep it visible."
+  };
+  return {
+    title: 'Update task',
+    save: 'Choose an update first',
+    detail: 'Task update',
+    prompt: 'Choose what happened. Passage will save it here and keep the estate current.',
+    placeholder: 'Add a short note if useful.',
+    confirmation: 'Update saved.'
+  };
+}
+
 function timeAgo(value) {
   if (!value) return '';
   var ms = Date.now() - new Date(value).getTime();
@@ -1638,8 +1673,12 @@ export default function EstatePage() {
 
   async function updateTaskFromCommand(task, status, detail, notePrompt, noteValue) {
     if (!task?.id) return;
+    if (!['handled', 'waiting', 'blocked'].includes(status)) {
+      showToast('Choose handled, waiting, or needs help first.');
+      return;
+    }
     var note = typeof noteValue === 'string' ? noteValue : '';
-    if (notePrompt && !note.trim()) {
+    if ((status === 'waiting' || status === 'blocked') && !note.trim()) {
       showToast('Add a short note so everyone knows what changed.');
       return;
     }
@@ -1670,9 +1709,7 @@ export default function EstatePage() {
     await refreshExecutionData();
     setPendingTaskAction(null);
     setPendingTaskNote('');
-    if (status === 'handled') showToast("That's taken care of. You're all set here.");
-    else if (status === 'blocked') showToast("Needs help is saved. We'll keep it visible.");
-    else showToast("Waiting state saved. We'll keep this visible.");
+    showToast(taskActionCopy(status).confirmation);
   }
 
   function recordPrepEvent(detail) {
@@ -1800,6 +1837,12 @@ export default function EstatePage() {
       }
       return;
     }
+    var id = String(item.id || '').replace('task_', '');
+    var task = tasks.find(function(t) { return String(t.id) === String(id); });
+    if (task) {
+      taskActionFromCommand(task, 'open');
+      return;
+    }
     var holder = document.getElementById('all-task-tools');
     if (holder) holder.open = true;
     setActiveCommandTab('now');
@@ -1865,22 +1908,19 @@ export default function EstatePage() {
   function taskActionFromCommand(task, action) {
     if (!task) return;
     if (action === 'open') {
-      var holder = document.getElementById('all-task-tools');
-      if (holder) holder.open = true;
-      var layer = document.getElementById('execution-layer');
-      if (layer) layer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      startTaskUpdate({ task: task, status: 'choose', title: 'Update task', detail: 'Task update for ' + displayTaskTitle(task), prompt: 'Choose what happened. Passage will save it here and keep the estate current.' });
       return;
     }
     if (action === 'handled') {
-      startTaskUpdate({ task: task, status: 'handled', title: 'Record proof', detail: 'Proof recorded for ' + displayTaskTitle(task), prompt: 'Reference number, provider name, or short confirmation note' });
+      startTaskUpdate({ task: task, status: 'handled', title: taskActionCopy('handled').title, detail: 'Proof recorded for ' + displayTaskTitle(task), prompt: taskActionCopy('handled').prompt });
       return;
     }
     if (action === 'waiting') {
-      startTaskUpdate({ task: task, status: 'waiting', title: 'Mark waiting', detail: 'Waiting for response on ' + displayTaskTitle(task), prompt: 'Who are we waiting on, and what should happen next?' });
+      startTaskUpdate({ task: task, status: 'waiting', title: taskActionCopy('waiting').title, detail: 'Waiting for response on ' + displayTaskTitle(task), prompt: taskActionCopy('waiting').prompt });
       return;
     }
     if (action === 'blocked') {
-      startTaskUpdate({ task: task, status: 'blocked', title: 'Ask for help', detail: 'Help needed for ' + displayTaskTitle(task), prompt: 'What is blocking this?' });
+      startTaskUpdate({ task: task, status: 'blocked', title: taskActionCopy('blocked').title, detail: 'Help needed for ' + displayTaskTitle(task), prompt: taskActionCopy('blocked').prompt });
     }
   }
 
@@ -1980,20 +2020,32 @@ export default function EstatePage() {
 
         {pendingTaskAction && (
           <div id="task-update-panel" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '14px 16px', marginBottom: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Save this update</div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{pendingTaskAction.title}: {displayTaskTitle(pendingTaskAction.task)}</div>
-            <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{pendingTaskAction.prompt}</div>
+            {(() => {
+              var copy = taskActionCopy(pendingTaskAction.status);
+              return (
+                <>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Save this update</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{displayTaskTitle(pendingTaskAction.task)}</div>
+                  <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{copy.prompt}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 11 }}>
+                    <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'handled', title: taskActionCopy('handled').title, detail: 'Proof recorded for ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionCopy('handled').prompt })); }} style={miniBtn(pendingTaskAction.status === 'handled' ? SAGE : SAGE_FAINT, pendingTaskAction.status === 'handled' ? '#fff' : SAGE, SAGE_LIGHT)}>Handled</button>
+                    <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'waiting', title: taskActionCopy('waiting').title, detail: 'Waiting for response on ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionCopy('waiting').prompt })); }} style={miniBtn(pendingTaskAction.status === 'waiting' ? AMBER : AMBER_FAINT, pendingTaskAction.status === 'waiting' ? '#fff' : AMBER, AMBER_BORDER)}>Waiting</button>
+                    <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'blocked', title: taskActionCopy('blocked').title, detail: 'Help needed for ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionCopy('blocked').prompt })); }} style={miniBtn(pendingTaskAction.status === 'blocked' ? ROSE : ROSE_FAINT, pendingTaskAction.status === 'blocked' ? '#fff' : ROSE, ROSE + '35')}>Needs help</button>
+                  </div>
+                </>
+              );
+            })()}
             <textarea
               value={pendingTaskNote}
               onChange={function(e) { setPendingTaskNote(e.target.value); }}
-              placeholder={pendingTaskAction.status === 'handled' ? 'Example: Release confirmed by Vassar Hospital, reference #1234.' : pendingTaskAction.status === 'waiting' ? 'Example: Waiting on facility release desk to call back.' : 'Example: Need Ashlee to confirm cemetery name before this can move.'}
+              placeholder={taskActionCopy(pendingTaskAction.status).placeholder}
               style={{ width: '100%', boxSizing: 'border-box', minHeight: 82, border: '1.5px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.45, background: CARD, color: INK }}
             />
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
               <button
                 onClick={function() { updateTaskFromCommand(pendingTaskAction.task, pendingTaskAction.status, pendingTaskAction.detail, pendingTaskAction.prompt, pendingTaskNote); }}
-                style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>
-                Save update
+                style={{ border: 'none', background: pendingTaskAction.status === 'choose' ? BORDER : SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: pendingTaskAction.status === 'choose' ? 'not-allowed' : 'pointer' }}>
+                {taskActionCopy(pendingTaskAction.status).save}
               </button>
               <button
                 onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); }}
