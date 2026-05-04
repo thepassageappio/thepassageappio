@@ -1195,17 +1195,27 @@ function miniBtn(bg, color, border) {
 function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, communicationCenter, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
   var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
-  var nextTask = openTasks[0];
-  var nextOutcome = openOutcomes[0];
-  var current = nextTask ? { kind: 'task', item: nextTask } : nextOutcome ? { kind: 'outcome', item: nextOutcome } : null;
+  var queue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
+  var selectedState = useState(0);
+  var selectedIndex = selectedState[0];
+  var setSelectedIndex = selectedState[1];
+  useEffect(function() {
+    if (queue.length === 0 && selectedIndex !== 0) setSelectedIndex(0);
+    if (queue.length > 0 && selectedIndex > queue.length - 1) setSelectedIndex(queue.length - 1);
+  }, [queue.length, selectedIndex]);
+  var current = queue[selectedIndex] || null;
   var waiting = openTasks.filter(function(t) { return ['waiting', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
   var needsOwner = openOutcomes.filter(function(o) { return !o.owner_label; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
   var recent = (communicationCenter && communicationCenter.length ? communicationCenter : [].concat(events || [], actions || [])).slice(0, 8);
   var tabs = [
-    ['now', 'Do next', current ? '1 item' : 'clear'],
+    ['now', 'Do next', queue.length ? queue.length + ' open' : 'clear'],
     ['people', 'People', needsOwner + ' need owner'],
     ['updates', 'Updates', recent.length + ' recorded'],
   ];
+  function chooseQueueItem(index) {
+    setSelectedIndex(Math.max(0, Math.min(index, Math.max(queue.length - 1, 0))));
+    setActiveTab('now');
+  }
   return (
     <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: 14, marginBottom: 14 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
@@ -1226,6 +1236,15 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
           {current ? (
             <div style={{ background: current.kind === 'task' ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (current.kind === 'task' ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 14, padding: 13 }}>
               <div style={{ fontSize: 11, color: current.kind === 'task' ? SAGE : AMBER, fontWeight: 900, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Do this next</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 6 }}>
+                <div style={{ color: SOFT, fontSize: 11, fontWeight: 900 }}>{selectedIndex + 1} of {queue.length}</div>
+                {queue.length > 1 && (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={function() { chooseQueueItem(selectedIndex - 1); }} disabled={selectedIndex === 0} style={miniBtn(CARD, selectedIndex === 0 ? SOFT : MID, BORDER)}>← Last</button>
+                    <button onClick={function() { chooseQueueItem(selectedIndex + 1); }} disabled={selectedIndex >= queue.length - 1} style={miniBtn(CARD, selectedIndex >= queue.length - 1 ? SOFT : SAGE, BORDER)}>Next →</button>
+                  </div>
+                )}
+              </div>
               <div style={{ fontSize: 18, color: INK, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(current.item)}</div>
               <div style={{ fontSize: 13, color: MID, lineHeight: 1.45, marginTop: 6 }}>{displayTaskNext(current.item)}</div>
               <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 11 }}>
@@ -1251,19 +1270,22 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
           ) : (
             <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: 14, color: SAGE, fontSize: 14, fontWeight: 900 }}>Nothing urgent is waiting. You are in a good place.</div>
           )}
-          {openTasks.slice(1, 4).map(function(task) {
-            return (
-              <div key={task.id} style={{ width: '100%', marginTop: 8, border: '1px solid ' + BORDER, background: SUBTLE, borderRadius: 12, padding: '11px 12px', textAlign: 'left', fontFamily: 'inherit' }}>
-                <div style={{ color: INK, fontSize: 13.5, fontWeight: 900 }}>{displayTaskTitle(task)}</div>
-                <div style={{ color: MID, fontSize: 12, marginTop: 3 }}>{displayTaskNext(task)}</div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-                  <button onClick={function() { onTaskAction(task, 'handled'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Confirm</button>
-                  <button onClick={function() { onTaskAction(task, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Waiting</button>
-                  <button onClick={function() { onTaskAction(task, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Need help</button>
-                </div>
+          {queue.length > 1 && (
+            <details style={{ border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 11px', background: CARD, marginTop: 10 }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 900, color: INK }}>See all open work ({queue.length})</summary>
+              <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+                {queue.map(function(entry, index) {
+                  return (
+                    <button key={(entry.item.id || index) + '_' + entry.kind} onClick={function() { chooseQueueItem(index); }}
+                      style={{ width: '100%', border: '1px solid ' + (selectedIndex === index ? SAGE_LIGHT : BORDER), background: selectedIndex === index ? SAGE_FAINT : SUBTLE, borderRadius: 10, padding: '9px 10px', textAlign: 'left', fontFamily: 'inherit', cursor: 'pointer' }}>
+                      <div style={{ color: INK, fontSize: 13, fontWeight: 900 }}>{index + 1}. {displayTaskTitle(entry.item)}</div>
+                      <div style={{ color: MID, fontSize: 11.5, marginTop: 2 }}>{entry.kind === 'task' ? displayTaskNext(entry.item) : (entry.item.owner_label ? entry.item.owner_label + ' owns this' : 'Needs an owner')}</div>
+                    </button>
+                  );
+                })}
               </div>
-            );
-          })}
+            </details>
+          )}
         </div>
       )}
 

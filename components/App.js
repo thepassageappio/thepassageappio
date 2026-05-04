@@ -4319,8 +4319,10 @@ export default function App() {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const start = params.get('start');
+    const dashboard = params.get('dashboard');
     if (start === 'plan' || start === 'green') setView('plan');
     if (start === 'urgent' || start === 'red') setView('emergency');
+    if (dashboard === '1' || dashboard === 'true') setView('dashboard');
   }, []);
 
   useEffect(() => {

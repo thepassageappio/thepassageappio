@@ -38,6 +38,7 @@ function isActivePath(current, href) {
 export function SiteHeader({ user, onSignIn, onSignOut }) {
   const router = useRouter();
   const path = router?.pathname || '';
+  const dashboardHref = '/?dashboard=1';
   const controlled = typeof user !== 'undefined';
   const [localUser, setLocalUser] = useState(null);
   const currentUser = controlled ? user : localUser;
@@ -83,7 +84,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
       <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 22, fontWeight: 700 }}>Passage</Link>
       <div style={{ display: 'flex', gap: 6, fontSize: 13, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
-        <Link href="/" style={isActivePath(path, '/') ? activeStyle : quietMyEstate}>My estate</Link>
+        <Link href={dashboardHref} style={(isActivePath(path, '/') || isActivePath(path, '/estate')) ? activeStyle : quietMyEstate}>My estate</Link>
         <span style={{ width: 92, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
             <button onClick={signOutHandler} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
