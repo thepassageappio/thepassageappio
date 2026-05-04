@@ -207,6 +207,7 @@ export default function ParticipatingPage() {
   const [actionNotice, setActionNotice] = useState('');
 
   useEffect(() => {
+    if (!router.isReady) return;
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.access_token) load(session.access_token);
@@ -217,12 +218,15 @@ export default function ParticipatingPage() {
       if (session?.access_token) load(session.access_token);
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [router.isReady, router.query.estate, router.query.task]);
 
   async function load(token) {
     setLoading(true);
     setError('');
-    const r = await fetch('/api/participantContext', { headers: { Authorization: 'Bearer ' + token } });
+    const params = new URLSearchParams();
+    if (router.query.estate) params.set('estate', String(router.query.estate));
+    if (router.query.task) params.set('task', String(router.query.task));
+    const r = await fetch('/api/participantContext' + (params.toString() ? '?' + params.toString() : ''), { headers: { Authorization: 'Bearer ' + token } });
     const json = await r.json();
     if (!r.ok) setError(json.error || 'Could not load participating estates.');
     else setData(json);

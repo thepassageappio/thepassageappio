@@ -324,10 +324,10 @@ function statusText(status) {
 
 function taskActionCopy(status) {
   if (status === 'handled') return {
-    title: 'Mark handled',
-    save: 'Mark handled',
+    title: 'Record proof',
+    save: 'Save proof',
     detail: 'Proof recorded',
-    prompt: 'Add a reference number, provider name, or short note if you have one.',
+    prompt: 'Add the proof, reference number, provider name, or short note that shows this happened.',
     placeholder: 'Example: Release confirmed by Vassar Hospital, reference #1234.',
     confirmation: "That's taken care of. You're all set here."
   };
@@ -355,6 +355,62 @@ function taskActionCopy(status) {
     placeholder: 'Add a short note if useful.',
     confirmation: 'Update saved.'
   };
+}
+
+function outcomeVisualState(outcome) {
+  var raw = outcome?.outcome_status || outcome?.status || '';
+  if (outcome?.status === 'handled' || raw === 'completed') return {
+    label: 'Handled',
+    color: SAGE,
+    bg: SAGE_FAINT,
+    eventType: 'task_completed',
+    eventTitle: 'Proof recorded',
+    noteLabel: 'Proof saved'
+  };
+  if (raw === 'help' || raw === 'blocked' || raw === 'unavailable') return {
+    label: 'Needs help',
+    color: ROSE,
+    bg: ROSE_FAINT,
+    eventType: 'task_help_needed',
+    eventTitle: 'Help needed',
+    noteLabel: 'Help note'
+  };
+  if (raw === 'waiting' || outcome?.status === 'waiting') return {
+    label: 'Waiting',
+    color: AMBER,
+    bg: AMBER_FAINT,
+    eventType: 'task_waiting',
+    eventTitle: 'Waiting update',
+    noteLabel: 'Waiting note'
+  };
+  if (outcome?.status === 'needs_owner') return {
+    label: 'Needs owner',
+    color: AMBER,
+    bg: AMBER_FAINT,
+    eventType: 'owner_needed',
+    eventTitle: 'Owner needed',
+    noteLabel: 'Latest note'
+  };
+  if (outcome?.status === 'in_progress' || raw === 'started') return {
+    label: 'In progress',
+    color: '#2563eb',
+    bg: '#eff6ff',
+    eventType: 'task_updated',
+    eventTitle: 'Task updated',
+    noteLabel: 'Latest note'
+  };
+  return {
+    label: 'Not started',
+    color: MID,
+    bg: SUBTLE,
+    eventType: 'task_updated',
+    eventTitle: 'Task updated',
+    noteLabel: 'Latest note'
+  };
+}
+
+function outcomeSavedNote(outcome) {
+  return String(outcome?.notes || outcome?.proof_note || outcome?.help_note || outcome?.reference || '').trim();
 }
 
 function timeAgo(value) {
@@ -456,10 +512,12 @@ function InlineAssign({ onSave, onClose }) {
 }
 
 // ── OUTCOME CARD ──────────────────────────────────────────────────────────────
-function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, onMarkHandled, onMarkInProgress, onAssignOpen, onAssignClose, onAssignSave, toast }) {
-  var statusColor = outcome.status === 'handled' ? SAGE : outcome.status === 'needs_owner' ? AMBER : outcome.status === 'in_progress' ? '#2563eb' : MID;
-  var statusBg = outcome.status === 'handled' ? SAGE_FAINT : outcome.status === 'needs_owner' ? AMBER_FAINT : outcome.status === 'in_progress' ? '#eff6ff' : SUBTLE;
-  var statusLabel = { handled: 'Handled', needs_owner: 'Needs owner', in_progress: 'In progress', not_started: 'Not started' }[outcome.status] || 'Not started';
+function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, onMarkHandled, onMarkInProgress, onNeedsHelp, onAssignOpen, onAssignClose, onAssignSave, toast }) {
+  var visual = outcomeVisualState(outcome);
+  var statusColor = visual.color;
+  var statusBg = visual.bg;
+  var statusLabel = visual.label;
+  var savedNote = outcomeSavedNote(outcome);
   var borderColor = outcome.status === 'handled' ? SAGE_LIGHT : outcome.status === 'needs_owner' ? AMBER_BORDER : BORDER;
 
   return (
@@ -486,6 +544,11 @@ function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, on
             {outcome.status === 'handled' && (
               <div style={{ fontSize: 11.5, color: SAGE, fontWeight: 800, marginTop: 6 }}>
                 That&apos;s taken care of. You&apos;re all set here.
+              </div>
+            )}
+            {savedNote && (
+              <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 9, padding: '7px 9px', color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 7 }}>
+                <strong style={{ color: statusColor }}>{visual.noteLabel}:</strong> {savedNote}
               </div>
             )}
           </div>
@@ -537,7 +600,11 @@ function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, on
                 )}
                 <button onClick={onMarkHandled}
                   style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
-                  Mark as handled
+                  Record proof
+                </button>
+                <button onClick={onNeedsHelp}
+                  style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid ' + (ROSE + '35'), background: ROSE_FAINT, color: ROSE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+                  Needs help
                 </button>
                 <button onClick={onAssignOpen}
                   style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid ' + BORDER, background: CARD, color: MID, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
@@ -1656,19 +1723,38 @@ export default function EstatePage() {
 
   async function updateOutcome(index, updates) {
     var outcome = outcomes[index];
-    await sb.from('outcomes').update(Object.assign({ updated_at: new Date().toISOString() }, updates)).eq('id', outcome.id);
-    var eventTitle = updates.status === 'handled' ? 'Task handled' : updates.owner_label ? 'Owner assigned' : 'Task updated';
-    var eventDescription = updates.owner_label ? outcome.title + ' assigned to ' + updates.owner_label : outcome.title;
-    var eventRow = { estate_id: estateId, event_type: updates.status === 'handled' ? 'task_completed' : updates.owner_label ? 'owner_assigned' : 'task_updated', title: eventTitle, description: eventDescription, actor: updates.owner_label || coordinatorName };
+    if (!outcome?.id) return;
+    var savedNote = typeof updates.notes === 'string' ? updates.notes.trim() : '';
+    var visual = outcomeVisualState(Object.assign({}, outcome, updates));
+    var updateResult = await sb.from('outcomes').update(Object.assign({ updated_at: new Date().toISOString() }, updates)).eq('id', outcome.id);
+    if (updateResult.error) {
+      showToast(updateResult.error.message || 'This update could not be saved.');
+      return;
+    }
+    var eventTitle = updates.owner_label ? 'Owner assigned' : visual.eventTitle;
+    var eventDescription = updates.owner_label
+      ? outcome.title + ' assigned to ' + updates.owner_label
+      : outcome.title + (savedNote ? ': ' + savedNote : '');
+    var eventRow = {
+      estate_id: estateId,
+      event_type: updates.owner_label ? 'owner_assigned' : visual.eventType,
+      title: eventTitle,
+      description: eventDescription,
+      actor: updates.owner_label || coordinatorName
+    };
     sb.from('estate_events').insert([eventRow]).then(function() {
       setEvents(function(prev) { return [Object.assign({ id: 'local_' + Date.now(), created_at: new Date().toISOString() }, eventRow)].concat(prev).slice(0, 8); });
     });
     setOutcomes(function(prev) {
       return prev.map(function(o, i) { return i === index ? Object.assign({}, o, updates) : o; });
     });
-    setExpanded(-1);
-    setShowAssign(-1);
+    if (updates.owner_label) {
+      setExpanded(-1);
+      setShowAssign(-1);
+    }
     if (updates.status === 'handled') showToast("That's taken care of. You're all set here.");
+    else if (updates.outcome_status === 'help') showToast("Needs help is saved. We'll keep it visible.");
+    else if (updates.outcome_status === 'waiting') showToast("Waiting state saved. We'll keep this visible.");
     else if (updates.status === 'in_progress') showToast('Marked as in progress');
     else if (updates.owner_label) showToast('Assigned to ' + updates.owner_label);
   }
@@ -1718,8 +1804,8 @@ export default function EstatePage() {
       return;
     }
     var note = typeof noteValue === 'string' ? noteValue : '';
-    if ((status === 'waiting' || status === 'blocked') && !note.trim()) {
-      showToast('Add a short note so everyone knows what changed.');
+    if (!note.trim()) {
+      showToast(status === 'handled' ? 'Add the proof or reference so everyone can see what happened.' : 'Add a short note so everyone knows what changed.');
       return;
     }
     var session = await sb.auth.getSession();
@@ -1746,6 +1832,16 @@ export default function EstatePage() {
       showToast(data.error || 'This update could not be saved.');
       return;
     }
+    var now = new Date().toISOString();
+    var localUpdate = {
+      id: 'local_status_' + task.id + '_' + Date.now(),
+      title: taskActionCopy(status).detail,
+      detail: displayTaskTitle(task) + ': ' + note,
+      status: statusText(status),
+      at: now,
+      tone: status === 'handled' ? 'good' : status === 'blocked' ? 'warn' : 'soft'
+    };
+    setCommunicationCenter(function(prev) { return [localUpdate].concat(prev || []).slice(0, 10); });
     await refreshExecutionData();
     setPendingTaskAction(null);
     setPendingTaskNote('');
@@ -1935,6 +2031,34 @@ export default function EstatePage() {
     if (idx >= 0) updateOutcome(idx, updates);
   }
 
+  function recordOutcomeHandled(outcome) {
+    var idx = indexForOutcome(outcome);
+    if (idx < 0) return;
+    var note = typeof window !== 'undefined'
+      ? window.prompt('What proof should be saved for this step? Add a reference number, provider name, or short note.')
+      : '';
+    if (note === null) return;
+    if (!String(note || '').trim()) {
+      showToast('Add the proof or reference so everyone can see what happened.');
+      return;
+    }
+    updateOutcome(idx, { status: 'handled', outcome_status: 'completed', notes: String(note).trim() });
+  }
+
+  function recordOutcomeNeedsHelp(outcome) {
+    var idx = indexForOutcome(outcome);
+    if (idx < 0) return;
+    var note = typeof window !== 'undefined'
+      ? window.prompt('What help is needed? Add the missing detail, person, or blocker.')
+      : '';
+    if (note === null) return;
+    if (!String(note || '').trim()) {
+      showToast('Add a short note so everyone knows what help is needed.');
+      return;
+    }
+    updateOutcome(idx, { status: 'in_progress', outcome_status: 'help', notes: String(note).trim() });
+  }
+
   function startTaskUpdate(draft) {
     setPendingTaskAction(draft);
     setPendingTaskNote('');
@@ -2044,7 +2168,7 @@ export default function EstatePage() {
           communicationCenter={communicationCenter}
           onOpenOutcome={openOutcomeFromCommand}
           onAssignOutcome={assignOutcomeFromCommand}
-          onOutcomeHandled={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'handled' }); }}
+          onOutcomeHandled={recordOutcomeHandled}
           onOutcomeProgress={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'in_progress' }); }}
           onTaskAction={taskActionFromCommand}
         />
@@ -2336,8 +2460,9 @@ export default function EstatePage() {
                   expanded={expanded === i}
                   showAssign={showAssign === i}
                   onToggle={function() { setExpanded(expanded === i ? -1 : i); setShowAssign(-1); }}
-                  onMarkHandled={function() { updateOutcome(i, { status: 'handled' }); }}
+                  onMarkHandled={function() { recordOutcomeHandled(outcome); }}
                   onMarkInProgress={function() { updateOutcome(i, { status: 'in_progress' }); }}
+                  onNeedsHelp={function() { recordOutcomeNeedsHelp(outcome); }}
                   onAssignOpen={function() { setShowAssign(i); setExpanded(i); }}
                   onAssignClose={function() { setShowAssign(-1); }}
                   onAssignSave={function(ownerName) {

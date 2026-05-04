@@ -640,6 +640,39 @@ const shorten = (value, max) => {
   return text.length > max ? text.slice(0, Math.max(0, max - 3)).trim() + '...' : text;
 };
 
+const smsSegmentInfo = (value) => {
+  const text = String(value || '');
+  const length = text.length;
+  const perSegment = length <= 160 ? 160 : 153;
+  return { length, segments: Math.max(1, Math.ceil(length / perSegment)), perSegment };
+};
+
+const parseGooglePlaceAddress = (place) => {
+  const parts = {};
+  (place?.address_components || []).forEach((component) => {
+    const types = component.types || [];
+    if (types.includes('street_number')) parts.streetNumber = component.long_name;
+    if (types.includes('route')) parts.route = component.long_name;
+    if (types.includes('locality')) parts.city = component.long_name;
+    if (types.includes('postal_town') && !parts.city) parts.city = component.long_name;
+    if (types.includes('administrative_area_level_1')) {
+      parts.state = component.short_name;
+      parts.stateName = component.long_name;
+    }
+    if (types.includes('postal_code')) parts.postalCode = component.long_name;
+    if (types.includes('country')) parts.country = component.short_name;
+  });
+  return {
+    placeName: place?.name || '',
+    formattedAddress: place?.formatted_address || '',
+    street: [parts.streetNumber, parts.route].filter(Boolean).join(' '),
+    city: parts.city || '',
+    state: parts.state || '',
+    postalCode: parts.postalCode || '',
+    country: parts.country || '',
+  };
+};
+
 const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   const title = task?.title || 'Estate coordination task';
   const lower = title.toLowerCase();
@@ -756,11 +789,11 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   return base;
 };
 
-const buildAssignmentSms = ({ toName, taskTitle, deceasedName }) => {
-  const name = shorten(toName || 'You', 18);
-  const task = shorten(taskTitle || 'estate task', 30);
-  const deceased = shorten(deceasedName || 'the estate', 18);
-  return shorten(`Passage: ${name}, ${deceased} task: ${task}. Details: thepassageapp.io`, 118);
+const buildAssignmentSms = ({ toName, taskTitle, deceasedName, coordinatorName }) => {
+  const task = shorten(taskTitle || 'estate task', 42);
+  const deceased = shorten(deceasedName || 'an estate', 26);
+  const coordinator = shorten(coordinatorName || 'the family coordinator', 24);
+  return `Passage: ${coordinator} asked you to help with "${task}" for ${deceased}. Sign in to accept or update it: thepassageapp.io/participating`;
 };
 
 const safeFileName = (name) => String(name || 'file')
@@ -881,15 +914,16 @@ const Field = ({ label, placeholder, value, onChange, type = "text", hint }) => 
 const AddressField = ({ label, value, onChange, placeholder }) => {
   const inputRef = useCallback((node) => {
     if (!node || typeof window === 'undefined') return;
-    const key = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+    const key = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!key) return;
     const attach = () => {
       if (!window.google?.maps?.places || node.dataset.autocompleteAttached) return;
       node.dataset.autocompleteAttached = 'true';
-      const ac = new window.google.maps.places.Autocomplete(node, { types: ['establishment', 'geocode'], fields: ['formatted_address', 'name'] });
+      const ac = new window.google.maps.places.Autocomplete(node, { types: ['establishment', 'geocode'], fields: ['address_components', 'formatted_address', 'name', 'place_id'] });
       ac.addListener('place_changed', () => {
         const place = ac.getPlace();
-        onChange(place.formatted_address || place.name || node.value);
+        const parsed = parseGooglePlaceAddress(place);
+        onChange(parsed.formattedAddress || parsed.placeName || node.value, parsed);
       });
     };
     if (window.google?.maps?.places) { attach(); return; }
@@ -904,12 +938,13 @@ const AddressField = ({ label, value, onChange, placeholder }) => {
       setTimeout(attach, 600);
     }
   }, [onChange]);
+  const hasPlacesKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
   return (
     <div style={{ marginBottom: 16 }}>
       {label && <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.mid, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{label}</label>}
-      <input ref={inputRef} type="text" value={value || ""} onChange={e => onChange(e.target.value)} placeholder={placeholder || "Start typing an address or place"}
+      <input ref={inputRef} type="text" autoComplete="street-address" value={value || ""} onChange={e => onChange(e.target.value)} placeholder={placeholder || "Start typing an address or place"}
         style={{ width: "100%", padding: "13px 15px", borderRadius: 11, fontSize: 15, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
-      <div style={{ fontSize: 11, color: C.soft, marginTop: 5 }}>{process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY ? "Start typing to choose the right place." : "Address suggestions activate when Google Places is configured."}</div>
+      <div style={{ fontSize: 11, color: C.soft, marginTop: 5 }}>{hasPlacesKey ? "Start typing to choose the right place." : "Address suggestions activate when Google Places is configured."}</div>
     </div>
   );
 };
@@ -1040,24 +1075,53 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [savedPeople, setSavedPeople] = useState([]);
+  const [selectedPerson, setSelectedPerson] = useState(null);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
   const [assigned, setAssigned] = useState([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    loadPeople(userId).then(rows => setSavedPeople(rows || [])).catch(() => setSavedPeople([]));
+  }, [userId]);
+
+  const chooseSavedPerson = (person) => {
+    const fullName = [person.first_name, person.last_name].filter(Boolean).join(' ').trim() || person.name || person.email || '';
+    setSelectedPerson(person);
+    setName(fullName);
+    setEmail(person.email || '');
+    setPhone(person.phone || '');
+  };
 
   const handleAssignTemplate = async () => {
     if (!selected || !name) return;
     setSaving(true);
     const nameParts = name.trim().split(" ");
-    const { data: saved } = await supabase.from("people").insert([{
-      owner_id: userId || null,
-      first_name: nameParts[0],
-      last_name: nameParts.slice(1).join(" ") || "",
-      email: email || null,
-      phone: phone || null,
-      relationship: selected.label,
-      role: "recipient",
-      notify_on_trigger: true,
-    }]).select().single();
+    let saved = selectedPerson;
+    if (saved?.id) {
+      const { data: updated } = await supabase.from("people").update({
+        first_name: nameParts[0],
+        last_name: nameParts.slice(1).join(" ") || "",
+        email: email || saved.email || null,
+        phone: phone || saved.phone || null,
+        relationship: selected.label,
+        notify_on_trigger: true,
+      }).eq("id", saved.id).select().single();
+      saved = updated || saved;
+    } else {
+      const { data: inserted } = await supabase.from("people").insert([{
+        owner_id: userId || null,
+        first_name: nameParts[0],
+        last_name: nameParts.slice(1).join(" ") || "",
+        email: email || null,
+        phone: phone || null,
+        relationship: selected.label,
+        role: "recipient",
+        notify_on_trigger: true,
+      }]).select().single();
+      saved = inserted;
+    }
 
     // Assign all tasks in this template to this person
     for (const taskTitle of selected.tasks) {
@@ -1095,6 +1159,7 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
     setSaving(false);
     setStep("pick");
     setSelected(null);
+    setSelectedPerson(null);
     setName(""); setEmail(""); setPhone("");
   };
 
@@ -1149,6 +1214,23 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
                 <div style={{ fontSize: 11, color: C.mid }}>{selected.tasks.length} tasks will be assigned</div>
               </div>
             </div>
+            {savedPeople.length > 0 && (
+              <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "11px 12px", marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".12em", textTransform: "uppercase", color: C.sage, marginBottom: 8 }}>Use someone already saved</div>
+                <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+                  {savedPeople.slice(0, 8).map(person => {
+                    const fullName = [person.first_name, person.last_name].filter(Boolean).join(' ').trim() || person.name || person.email || 'Saved person';
+                    const selectedSaved = selectedPerson?.id && selectedPerson.id === person.id;
+                    return (
+                      <button key={person.id || person.email || fullName} onClick={() => chooseSavedPerson(person)}
+                        style={{ border: `1px solid ${selectedSaved ? C.sage : C.border}`, background: selectedSaved ? C.sage : C.bgCard, color: selectedSaved ? "#fff" : C.mid, borderRadius: 999, padding: "7px 10px", fontSize: 11.5, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>
+                        {fullName}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <Field label="Their full name *" placeholder="e.g. Rabbi David Cohen" value={name} onChange={setName} />
             <Field label="Email — receives notification immediately" type="email" placeholder="rabbi@temple.org" value={email} onChange={setEmail} />
             <Field label="Phone — receives SMS immediately" placeholder="(845) 000-0000" value={phone} onChange={setPhone} />
@@ -1192,11 +1274,12 @@ function EventsModal({ workflowId, deceasedName, onClose, onSaved }) {
     if (!form.type) return;
     setSaving(true);
     const saved = await saveWorkflowEvent(workflowId, form);
-    if (saved) setEvents(prev => [...prev, saved]);
+    const nextEvents = saved ? [...events, saved] : events;
+    if (saved) setEvents(nextEvents);
     setAdding(null);
     setForm({ type: 'funeral', name: '', date: '', time: '', locationName: '', locationAddress: '', notes: '' });
     setSaving(false);
-    onSaved && onSaved(events.length + 1);
+    onSaved && onSaved(nextEvents.length, nextEvents);
   };
 
   const formatEventDate = (d, t) => {
@@ -1272,7 +1355,16 @@ function EventsModal({ workflowId, deceasedName, onClose, onSaved }) {
               <div style={{ width: 120 }}><Field label="Time" type="time" value={form.time} onChange={v => setForm(f => ({ ...f, time: v }))} /></div>
             </div>
             <Field label="Venue / location name" placeholder="e.g. St. Patrick's Cathedral" value={form.locationName} onChange={v => setForm(f => ({ ...f, locationName: v }))} />
-            <AddressField label="Full address" placeholder="5th Ave & 50th St, New York, NY" value={form.locationAddress} onChange={v => setForm(f => ({ ...f, locationAddress: v }))} />
+            <AddressField
+              label="Full address"
+              placeholder="5th Ave & 50th St, New York, NY"
+              value={form.locationAddress}
+              onChange={(v, parsed) => setForm(f => ({
+                ...f,
+                locationAddress: v,
+                locationName: f.locationName || parsed?.placeName || f.locationName,
+              }))}
+            />
             <Field label="Additional notes (optional)" placeholder="Parking available on West side. Dress: dark colors." value={form.notes} onChange={v => setForm(f => ({ ...f, notes: v }))} />
             <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
               <Btn variant="ghost" onClick={() => setAdding(null)}>Cancel</Btn>
@@ -1305,7 +1397,7 @@ Please open Passage to accept the task, add a note, or tell me if you need more 
 
 With gratitude,
 Passage`);
-    setEditedSMS(buildAssignmentSms({ toName: personName, taskTitle, deceasedName }));
+    setEditedSMS(buildAssignmentSms({ toName: personName, taskTitle, deceasedName, coordinatorName }));
   }, [personName, coordinatorName, deceasedName, taskTitle]);
 
   const handleSend = async () => {
@@ -1349,7 +1441,10 @@ Passage`);
             </div>
             <textarea value={editedSMS} onChange={e => setEditedSMS(e.target.value)}
               style={{ width: '100%', height: 100, padding: '12px', borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: 'inherit', fontSize: 12.5, color: C.ink, lineHeight: 1.65, resize: 'vertical', boxSizing: 'border-box', background: C.bgSubtle }} />
-            <div style={{ fontSize: 11, color: C.soft, marginTop: 4 }}>{editedSMS.length}/160 characters</div>
+            {(() => {
+              const info = smsSegmentInfo(editedSMS);
+              return <div style={{ fontSize: 11, color: C.soft, marginTop: 4 }}>{info.length} characters · {info.segments} SMS segment{info.segments === 1 ? '' : 's'}</div>;
+            })()}
           </div>
         )}
 
@@ -2002,6 +2097,18 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   }, [workflowId]);
 
   useEffect(() => { initTasks(); }, [initTasks]);
+
+  useEffect(() => {
+    if (!workflowId) {
+      setEventCount(0);
+      return;
+    }
+    let active = true;
+    loadWorkflowEvents(workflowId)
+      .then(evts => { if (active) setEventCount((evts || []).length); })
+      .catch(() => { if (active) setEventCount(0); });
+    return () => { active = false; };
+  }, [workflowId]);
 
   const rememberTask = (task) => {
     if (!task) return;
@@ -3462,7 +3569,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               ) : (
                 <div style={{ display: "grid", gap: 8 }}>
                   {attentionItems.map(item => (
-                    <button key={`${item.workflow.id}-${item.id}`} onClick={() => onOpenPlan(item.workflow)}
+                    <button key={`${item.workflow.id}-${item.id}`} onClick={() => onOpenPlan(item.workflow, item.id)}
                       style={{ width: "100%", textAlign: "left", background: item.workflow.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderRadius: 12, padding: "12px 13px", cursor: "pointer", fontFamily: "inherit" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                         <div style={{ minWidth: 0 }}>
@@ -4344,7 +4451,14 @@ export default function App() {
     setView("landing");
   };
 
-  const handleOpenPlan = (workflow) => {
+  const handleOpenPlan = (workflow, focusTaskId = '') => {
+    if (!workflow?.id) return;
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams({ id: workflow.id });
+      if (focusTaskId) params.set('task', focusTaskId);
+      window.location.href = '/estate?' + params.toString();
+      return;
+    }
     setActivePlan(workflow);
     setView("tasklist");
   };

@@ -2,11 +2,11 @@
 
 ## Now (May 4-May 6, 2026)
 
-- Red-path QA (home, hospice, hospital, already past first steps): one clear next action, estate persists, lands in command center, never shows "Confirmed" without proof.
-- Funeral-home demo QA (one-location + multi-location): create/load case, act-on-behalf, family view, CSV export visible + correct, no dead ends.
-- Vendor request proof loop QA (test mode): request "Sent", webhook receipt logged, accept/decline recorded, activity proof visible on the case.
-- Resend + Twilio webhook QA with test payloads: confirm `webhook_events` include timestamp, actor, provider; surface as proof where relevant.
-- Define partner + vendor access policy (minimal): roles + org membership (multi-location admin vs staff vs vendor vs Passage admin).
+- Post-simplification QA sweep (0d2bc3a..11902d0): command center hierarchy + nav, wishes save, comms center parity; no dead ends.
+- Stop-the-line regressions: estate persistence, invite confirmation, partner case creation/load, task action feedback (no "Confirmed" without proof).
+- Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
+- Webhook-as-proof QA: Resend + Twilio `webhook_events` record provider + timestamp + actor and are surfaced as proof; vendor requests show Sent/Received/Accepted/Declined with visible activity.
+- Partner + vendor access policy (minimal): roles + org membership (multi-location admin vs staff vs vendor vs Passage admin) + who can act-on-behalf.
 
 ## Next
 
@@ -15,6 +15,11 @@
 - Map top red-path tasks into automated / assisted / guided-manual tiers; list proof required + follow-up loop for each.
 - Identify owner-facing notification gaps for participant/vendor/funeral-home completion events (inventory only).
 - Define trusted vendor criteria + an approval/override process for funeral homes.
+- Add a demo-visible Release / Certificate Pipeline: pronouncement, ME/coroner involvement, hospital or hospice release, death certificate submitted/certified, permit/authorization collected, each with owner, timestamp, and proof.
+- Create a Funeral-Rule-safe after-hours info pack: GPL link, itemized price guidance, cash-advance clarity, and a phone-safe script that reduces repeat calls without turning Passage into a pricing app.
+- Make hybrid planning the default posture: self-serve intake plus director-assisted handoff that pre-fills known facts, especially for funeral homes where families start online and still need human help.
+- Add a Faith & Care Team cluster: chaplain/officiant, service preferences, livestream owner, clergy contact, and proof fields for outreach/status.
+- Add an after-death admin hub downstream of death certificates: SSA/Medicare, banks, insurance, credit bureaus, scam/debt-collector guardrails, owner, and done-proof.
 
 ## Later
 
