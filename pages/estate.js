@@ -1189,7 +1189,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
 }
 
 function miniBtn(bg, color, border) {
-  return { border: '1px solid ' + border, background: bg, color: color, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' };
+  return { border: '1px solid ' + border, background: bg, color: color, borderRadius: 12, padding: '10px 12px', minHeight: 42, fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' };
 }
 
 function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, communicationCenter, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
@@ -1217,15 +1217,15 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
     setActiveTab('now');
   }
   return (
-    <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: 14, marginBottom: 14 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
+    <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: 20, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 16 }}>
         {tabs.map(function(tab) {
           var selected = activeTab === tab[0];
           return (
             <button key={tab[0]} onClick={function() { setActiveTab(tab[0]); }}
-              style={{ border: '1px solid ' + (selected ? SAGE_LIGHT : BORDER), background: selected ? SAGE : CARD, color: selected ? '#fff' : INK, borderRadius: 12, padding: '10px 8px', fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
-              <div style={{ fontSize: 13, fontWeight: 900, lineHeight: 1.2 }}>{tab[1]}</div>
-              <div style={{ fontSize: 10.5, color: selected ? '#fff' : SOFT, marginTop: 3 }}>{tab[2]}</div>
+              style={{ border: '1px solid ' + (selected ? SAGE_LIGHT : BORDER), background: selected ? SAGE : CARD, color: selected ? '#fff' : INK, borderRadius: 14, padding: '14px 12px', minHeight: 64, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ fontSize: 14, fontWeight: 900, lineHeight: 1.2 }}>{tab[1]}</div>
+              <div style={{ fontSize: 11.5, color: selected ? '#fff' : SOFT, marginTop: 4 }}>{tab[2]}</div>
             </button>
           );
         })}
@@ -1234,20 +1234,20 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
       {activeTab === 'now' && (
         <div>
           {current ? (
-            <div style={{ background: current.kind === 'task' ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (current.kind === 'task' ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 14, padding: 13 }}>
+            <div style={{ background: current.kind === 'task' ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (current.kind === 'task' ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 16, padding: 18 }}>
               <div style={{ fontSize: 11, color: current.kind === 'task' ? SAGE : AMBER, fontWeight: 900, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Do this next</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 6 }}>
                 <div style={{ color: SOFT, fontSize: 11, fontWeight: 900 }}>{selectedIndex + 1} of {queue.length}</div>
                 {queue.length > 1 && (
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={function() { chooseQueueItem(selectedIndex - 1); }} disabled={selectedIndex === 0} style={miniBtn(CARD, selectedIndex === 0 ? SOFT : MID, BORDER)}>← Last</button>
-                    <button onClick={function() { chooseQueueItem(selectedIndex + 1); }} disabled={selectedIndex >= queue.length - 1} style={miniBtn(CARD, selectedIndex >= queue.length - 1 ? SOFT : SAGE, BORDER)}>Next →</button>
+                    <button onClick={function() { chooseQueueItem(selectedIndex - 1); }} disabled={selectedIndex === 0} style={miniBtn(CARD, selectedIndex === 0 ? SOFT : MID, BORDER)}>Last</button>
+                    <button onClick={function() { chooseQueueItem(selectedIndex + 1); }} disabled={selectedIndex >= queue.length - 1} style={miniBtn(CARD, selectedIndex >= queue.length - 1 ? SOFT : SAGE, BORDER)}>Next</button>
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: 18, color: INK, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(current.item)}</div>
-              <div style={{ fontSize: 13, color: MID, lineHeight: 1.45, marginTop: 6 }}>{displayTaskNext(current.item)}</div>
-              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 11 }}>
+              <div style={{ fontSize: 22, color: INK, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(current.item)}</div>
+              <div style={{ fontSize: 15, color: MID, lineHeight: 1.5, marginTop: 8 }}>{displayTaskNext(current.item)}</div>
+              <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 16 }}>
                 {current.kind === 'outcome' ? (
                   <>
                     <button onClick={function() { onOpenOutcome(current.item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Open step</button>
@@ -1938,11 +1938,6 @@ export default function EstatePage() {
   function startTaskUpdate(draft) {
     setPendingTaskAction(draft);
     setPendingTaskNote('');
-    setTimeout(function() {
-      if (typeof document !== 'undefined') {
-        document.getElementById('task-update-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 0);
   }
 
   function taskActionFromCommand(task, action) {
@@ -2012,24 +2007,19 @@ export default function EstatePage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 540, margin: '0 auto', padding: '20px 16px 80px' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 22px 88px' }}>
 
-        <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
+        <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '16px 18px', marginBottom: 24 }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: SAGE, marginBottom: 3 }}>Everything is still on track.</div>
           <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5 }}>Nothing has been missed.</div>
         </div>
 
         {/* Banner */}
-        <div style={{ background: bannerBg, border: '1px solid ' + bannerBorder, borderRadius: 14, padding: '16px 18px', marginBottom: 20 }}>
+        <div style={{ background: bannerBg, border: '1px solid ' + bannerBorder, borderRadius: 16, padding: '18px 20px', marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: bannerColor, marginBottom: 4 }}>{bannerText}</div>
           <div style={{ fontSize: 13, color: MID, lineHeight: 1.55, marginBottom: 10 }}>
             We'll guide and track everything from here.
           </div>
-          {!allHandled && outcomes.length > 0 && (
-            <div style={{ fontSize: 13, color: MID, lineHeight: 1.55, marginBottom: 10 }}>
-              Here is what matters first for {name}. Tap any item to see what to do.
-            </div>
-          )}
           {outcomes.length > 0 && (
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <div style={{ fontSize: 12, color: SAGE }}><span style={{ fontWeight: 700 }}>{readinessPct}%</span> ready</div>
@@ -2060,7 +2050,7 @@ export default function EstatePage() {
         />
 
         {pendingTaskAction && (
-          <div id="task-update-panel" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '14px 16px', marginBottom: 14 }}>
+          <div id="task-update-panel" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '20px 22px', marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
             {(() => {
               var copy = taskActionCopy(pendingTaskAction.status);
               return (

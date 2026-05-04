@@ -142,10 +142,10 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     setSavedPulse(false);
   };
   return (
-    <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, background: linked || primary ? C.sageFaint : C.card, borderRadius: 14, padding: primary ? 15 : 12, marginTop: 10, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
+    <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, background: linked || primary ? C.sageFaint : C.card, borderRadius: 16, padding: primary ? 20 : 16, marginTop: 14, color: C.mid, fontSize: 15, lineHeight: 1.55, boxShadow: primary ? '0 4px 20px rgba(0,0,0,.05)' : 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 6 }}>
         <div>
-          <div style={{ fontSize: primary ? 17 : 14, color: C.ink, fontWeight: 800, lineHeight: 1.3 }}>{itemTitle(item)}</div>
+          <div style={{ fontSize: primary ? 22 : 17, color: C.ink, fontWeight: 800, lineHeight: 1.3 }}>{itemTitle(item)}</div>
           {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Start here</div>}
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: handled ? C.sage : C.rose, background: handled ? C.card : C.roseFaint, borderRadius: 999, padding: '4px 8px', flexShrink: 0 }}>{statusLabel(itemStatus(item))}</span>
@@ -178,12 +178,12 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder="Add notes for the coordinator" style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
           {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
           <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-            <button onClick={() => { onAction('save_note'); setSavedPulse(true); setTimeout(() => setSavedPulse(false), 1800); }} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800 }}>Save note</button>
+            <button onClick={() => { onAction('save_note'); setSavedPulse(true); setTimeout(() => setSavedPulse(false), 1800); }} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800 }}>Save note</button>
             {actionSet(kind).map(([action, label]) => (
-              <button key={action} onClick={() => onAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>
+              <button key={action} onClick={() => onAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>
             ))}
-            <button onClick={() => onAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I need help</button>
-            <button onClick={() => onAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 9, padding: '7px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I can't handle this</button>
+            <button onClick={() => onAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I need help</button>
+            <button onClick={() => onAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I can't handle this</button>
           </div>
         </>
       )}
@@ -263,11 +263,11 @@ export default function ParticipatingPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '14px 22px 42px' }}>
-        <div style={{ maxWidth: 760, marginBottom: 14 }}>
+      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 28px 56px' }}>
+        <div style={{ maxWidth: 760, marginBottom: 24 }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Participating in an estate</div>
-          <h1 style={{ fontSize: 'clamp(29px, 3.5vw, 38px)', lineHeight: 1.04, margin: '0 0 8px', fontWeight: 400 }}>Your Passage assignments, in one calm place.</h1>
-          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>See the estate, the task that needs you now, and the notes the coordinator needs back. No hunting through old texts.</p>
+          <h1 style={{ fontSize: 32, lineHeight: 1.1, margin: '0 0 8px', fontWeight: 400 }}>Your Passage assignments.</h1>
+          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, margin: 0 }}>Open the estate, handle one task, and the coordinator sees your update.</p>
         </div>
 
         {!user && (
@@ -318,7 +318,7 @@ export default function ParticipatingPage() {
                         const openCount = items.filter(item => !isHandled(itemStatus(item))).length;
                         const selected = expandedEstateId === estate.id;
                         return (
-                          <button key={estate.id} onClick={() => setExpandedEstateId(selected ? '' : estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, padding: '7px 10px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.5 }}>
+                          <button key={estate.id} onClick={() => setExpandedEstateId(selected ? '' : estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 13 }}>
                             {(estate.deceased_name || estate.name || 'Estate')} ({openCount} task{openCount === 1 ? '' : 's'})
                           </button>
                         );

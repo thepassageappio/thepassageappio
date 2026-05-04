@@ -27,7 +27,15 @@ const LINKS = [
   ['Funeral homes', '/funeral-home'],
 ];
 
-const navLink = { color: CHROME_COLORS.mid, textDecoration: 'none', borderRadius: 10, padding: '7px 10px' };
+const navLink = {
+  color: CHROME_COLORS.mid,
+  textDecoration: 'none',
+  borderRadius: 12,
+  padding: '10px 12px',
+  minHeight: 44,
+  display: 'inline-flex',
+  alignItems: 'center',
+};
 
 function isActivePath(current, href) {
   if (!current) return false;
@@ -67,30 +75,36 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
     background: CHROME_COLORS.sage,
     color: '#fff',
     textDecoration: 'none',
-    borderRadius: 10,
-    padding: '7px 11px',
+    borderRadius: 12,
+    padding: '10px 13px',
+    minHeight: 44,
+    display: 'inline-flex',
+    alignItems: 'center',
     fontWeight: 800,
   };
   const quietMyEstate = {
     color: CHROME_COLORS.mid,
     background: CHROME_COLORS.sageFaint,
     textDecoration: 'none',
-    borderRadius: 10,
-    padding: '8px 14px',
+    borderRadius: 12,
+    padding: '10px 14px',
+    minHeight: 44,
+    display: 'inline-flex',
+    alignItems: 'center',
     fontWeight: 800,
   };
   return (
-    <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '9px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
-      <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 22, fontWeight: 700 }}>Passage</Link>
-      <div style={{ display: 'flex', gap: 6, fontSize: 13, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+    <nav style={{ maxWidth: 1180, margin: '0 auto', padding: '14px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 18 }}>
+      <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 26, fontWeight: 700 }}>Passage</Link>
+      <div style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
         <Link href={dashboardHref} style={(isActivePath(path, '/') || isActivePath(path, '/estate')) ? activeStyle : quietMyEstate}>My estate</Link>
-        <span style={{ width: 92, display: 'inline-flex', justifyContent: 'flex-end' }}>
+        <span style={{ width: 104, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
-            <button onClick={signOutHandler} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
+            <button onClick={signOutHandler} style={{ width: 100, minHeight: 44, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 12, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
           )}
           {!currentUser && (
-            <button onClick={signInHandler} style={{ width: 88, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 10, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
+            <button onClick={signInHandler} style={{ width: 100, minHeight: 44, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 12, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
           )}
         </span>
       </div>
@@ -100,7 +114,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
 
 export function SiteFooter() {
   return (
-    <footer style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 22px 28px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: CHROME_COLORS.soft }}>
+    <footer style={{ maxWidth: 1180, margin: '0 auto', padding: '22px 28px 36px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap', fontSize: 13, color: CHROME_COLORS.soft }}>
       <div>Passage coordinates life-to-death transitions with care.</div>
       <Link href="/contact" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>thepassageappio@gmail.com</Link>
     </footer>

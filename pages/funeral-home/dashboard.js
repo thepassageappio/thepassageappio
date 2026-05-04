@@ -412,20 +412,18 @@ export default function FuneralHomeDashboard() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '16px 22px 44px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 14 }}>
+      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '32px 28px 56px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 24, alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Partner command center</div>
-            <h1 style={{ fontSize: 'clamp(28px, 3.6vw, 40px)', lineHeight: 1.05, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
-            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720 }}>Create a case, move the next partner-ready task, keep the family informed, and export the record whenever you need it.</p>
+            <h1 style={{ fontSize: 32, lineHeight: 1.1, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
+            <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, maxWidth: 620 }}>Create a case, move the next task, and keep the family informed.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>New at-need case</button>}
-            {user && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New pre-need case</button>}
-            {user && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export all active cases</button>}
-            {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'More tools'}</button>}
-            {user && isAdminDemo && <button onClick={() => setShowGuidedDemo(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: showGuidedDemo ? C.sage : C.card, color: showGuidedDemo ? '#fff' : C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{showGuidedDemo ? 'Hide guided demo' : 'Start guided demo'}</button>}
-            {user && isAdminDemo && <button onClick={() => setShowDemoTools(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showDemoTools ? 'Hide demo setup' : 'Demo setup'}</button>}
+            {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New at-need case</button>}
+            {user && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New pre-need case</button>}
+            {user && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export cases</button>}
+            {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'More tools'}</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
         </div>
@@ -499,19 +497,21 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && showTools && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner tools</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Bring cases in, send the case file out, or start billing when the pilot is ready.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Import, export, billing, and admin demo tools live here.</div>
               </div>
               <button onClick={() => setShowTools(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 12 }}>
-              <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Upload CSV</button>
-              <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center' }}>Download template</a>
-              <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV to me'}</button>
-              <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 13px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Start pilot billing</button>
+              <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Upload CSV</button>
+              <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Download template</a>
+              <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV to me'}</button>
+              <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Start pilot billing</button>
+              {isAdminDemo && <button onClick={() => setShowGuidedDemo(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: showGuidedDemo ? C.sage : C.card, color: showGuidedDemo ? '#fff' : C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{showGuidedDemo ? 'Hide guided demo' : 'Start guided demo'}</button>}
+              {isAdminDemo && <button onClick={() => setShowDemoTools(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showDemoTools ? 'Hide demo setup' : 'Demo setup'}</button>}
             </div>
           </div>
         )}
@@ -552,17 +552,17 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && (
-          <div style={{ background: C.card, color: C.ink, border: `1px solid ${C.border}`, borderRadius: 18, padding: '14px 16px', marginBottom: 12, boxShadow: '0 18px 42px rgba(0,0,0,.05)' }}>
+          <div style={{ background: C.card, color: C.ink, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today at a glance</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Based on messages sent, assignments made, local help coordinated, and tasks handled in Passage.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Cases, waiting items, and calls your team does not need to chase.</div>
               </div>
-              <div style={{ color: C.sage, fontSize: 12, fontWeight: 800 }}>Work your team does not have to chase manually.</div>
+              <div style={{ color: C.sage, fontSize: 12, fontWeight: 800 }}>That is time back for staff.</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
               {glanceItems.map(([label, value]) => (
-                <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: '10px 12px' }} title={label === 'Estimated calls avoided' ? 'Based on messages sent and assignments coordinated through Passage.' : ''}>
+                <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: '14px 16px', minHeight: 82 }} title={label === 'Estimated calls avoided' ? 'Based on messages sent and assignments coordinated through Passage.' : ''}>
                   <div style={{ color: C.sage, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
                   <div style={{ color: C.ink, fontSize: 22, marginTop: 2 }}>{value}</div>
                 </div>
@@ -612,8 +612,8 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
-            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>How to use this today</div>
+          <details style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 24 }}>
+            <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>How to use this today</summary>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8, marginTop: 10 }}>
               {[
                 ['1', 'Create or import a case', 'Start with the family contact and any service details you already know.'],
@@ -627,7 +627,7 @@ export default function FuneralHomeDashboard() {
                 </div>
               ))}
             </div>
-          </div>
+          </details>
         )}
 
         {user && !loading && data?.organizations?.length > 0 && vendorPrefs.vendors.length > 0 && (
