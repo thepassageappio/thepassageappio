@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { enrichTaskWithPlaybook, partnerTaskPriority } from '../../lib/taskPlaybooks';
 import { isPassageAdmin } from '../../lib/adminAccess';
+import { buildCommunicationCenter, selectNextTask } from '../../lib/communicationCenter';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -78,16 +79,31 @@ export default async function handler(req, res) {
     vendorRequests = vendorRequestData || [];
   }
 
-  const cases = visibleWorkflows.map(w => ({
-    ...w,
-    tasks: tasks.filter(t => t.workflow_id === w.id),
-    activity: statusEvents.filter(e => e.workflow_id === w.id).slice(0, 6),
-    communications: communications.filter(c => c.workflow_id === w.id).slice(0, 8),
-    vendorRequests: vendorRequests.filter(v => v.workflow_id === w.id).slice(0, 8),
-    partnerTasks: tasks.filter(t => t.workflow_id === w.id && t.playbook?.funeralHomeEligible),
-    waitingOnFamily: tasks.filter(t => t.workflow_id === w.id && /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
-    blockedTasks: tasks.filter(t => t.workflow_id === w.id && ['blocked', 'failed', 'needs_review'].includes(t.status || '')),
-  }));
+  const cases = visibleWorkflows.map(w => {
+    const caseTasks = tasks.filter(t => t.workflow_id === w.id);
+    const caseStatusEvents = statusEvents.filter(e => e.workflow_id === w.id);
+    const caseCommunications = communications.filter(c => c.workflow_id === w.id);
+    const caseVendorRequests = vendorRequests.filter(v => v.workflow_id === w.id);
+    const partnerTasks = caseTasks.filter(t => t.playbook?.funeralHomeEligible);
+    return {
+      ...w,
+      tasks: caseTasks,
+      activity: caseStatusEvents.slice(0, 6),
+      communications: caseCommunications.slice(0, 8),
+      vendorRequests: caseVendorRequests.slice(0, 8),
+      partnerTasks,
+      nextPartnerTask: selectNextTask(partnerTasks.length ? partnerTasks : caseTasks, 'funeral_home'),
+      communicationCenter: buildCommunicationCenter({
+        tasks: caseTasks,
+        statusEvents: caseStatusEvents,
+        communications: caseCommunications,
+        vendorRequests: caseVendorRequests,
+        limit: 10,
+      }),
+      waitingOnFamily: caseTasks.filter(t => /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
+      blockedTasks: caseTasks.filter(t => ['blocked', 'failed', 'needs_review'].includes(t.status || '')),
+    };
+  });
 
   return res.status(200).json({
     organizations: memberships || [],

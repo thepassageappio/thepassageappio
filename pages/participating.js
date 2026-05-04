@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
+import { taskDisplayTitle as sharedTaskTitle } from '../lib/communicationCenter';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -38,7 +39,7 @@ function normalizeItems(estate) {
 }
 
 function itemTitle(item) {
-  return item.title || item.subject || item.action_type || 'Estate coordination';
+  return sharedTaskTitle(item);
 }
 
 function itemDescription(item) {
@@ -76,9 +77,9 @@ function actionSet(kind) {
     ['handled', 'This is handled'],
   ];
   return [
-    ['accept', 'I can handle this'],
+    ['accept', 'Accept responsibility'],
     ['waiting', 'Waiting on reply'],
-    ['handled', 'This is handled'],
+    ['handled', 'Mark done'],
   ];
 }
 
@@ -358,6 +359,18 @@ export default function ParticipatingPage() {
 
                   {expanded && (
                     <div style={{ padding: '0 20px 20px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                        {[
+                          ['Your next task', primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
+                          ['Open for you', openItems.length],
+                          ['Updates', estate.communicationCenter?.length || 0],
+                        ].map(([label, value]) => (
+                          <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                            <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                            <div style={{ fontSize: label === 'Your next task' ? 12.5 : 18, color: C.ink, marginTop: 3, lineHeight: 1.25, fontWeight: 800 }}>{value}</div>
+                          </div>
+                        ))}
+                      </div>
                       {primaryItem && (
                         <ParticipantItem
                           item={primaryItem}
@@ -368,6 +381,21 @@ export default function ParticipatingPage() {
                           estate={estate}
                           primary
                         />
+                      )}
+
+                      {estate.communicationCenter?.length > 0 && (
+                        <details style={{ marginTop: 12, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 12px', background: C.card }}>
+                          <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 13, fontWeight: 900 }}>Recent updates the coordinator can see</summary>
+                          <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+                            {estate.communicationCenter.slice(0, 5).map(row => (
+                              <div key={row.id || row.at || row.title} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 7, color: C.mid, fontSize: 12.3, lineHeight: 1.45 }}>
+                                <strong style={{ color: C.ink }}>{row.title || 'Update recorded'}</strong>
+                                <div>{row.detail || row.statusLabel || 'Saved in Passage.'}</div>
+                                {row.at && <div style={{ color: C.soft, fontSize: 11 }}>{new Date(row.at).toLocaleString()}</div>}
+                              </div>
+                            ))}
+                          </div>
+                        </details>
                       )}
 
                   {estate.events.length > 0 && (

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
+import { taskDisplayTitle as sharedTaskTitle, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
@@ -403,6 +404,10 @@ export default function FuneralHomeDashboard() {
   const locations = Array.from(new Set(cases.map(locationNameFor).filter(Boolean)));
   const isMultiLocation = locations.length > 1 || /group|multi/i.test(String(org?.name || '') + ' ' + String(org?.plan || ''));
   const displayCases = isMultiLocation && selectedLocation !== 'all' ? cases.filter(item => locationNameFor(item) === selectedLocation) : cases;
+  const caseInbox = displayCases
+    .map(item => ({ caseItem: item, task: item.nextPartnerTask || (item.partnerTasks || []).find(t => !['handled', 'completed'].includes(t.status || '')) || (item.tasks || []).find(t => !['handled', 'completed'].includes(t.status || '')) }))
+    .filter(row => row.task)
+    .slice(0, 4);
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -576,6 +581,32 @@ export default function FuneralHomeDashboard() {
             <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 9 }}>
               CSV export is always available. Passage can sit on top of your existing system without trapping case data here.
               {funeralHomeShare > 0 && <strong style={{ color: C.sage }}> Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</strong>}
+            </div>
+          </div>
+        )}
+
+        {user && !loading && data && caseInbox.length > 0 && (
+          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Case inbox</div>
+                <div style={{ fontSize: 22, marginTop: 3 }}>Move the next item first.</div>
+              </div>
+              <div style={{ color: C.mid, fontSize: 12.5 }}>Each card is one place your team can reduce a follow-up call.</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 12 }}>
+              {caseInbox.map(({ caseItem, task }) => (
+                <div key={`${caseItem.id}_${task.id}`} style={{ border: `1px solid ${C.border}`, borderRadius: 14, padding: 13, background: C.sageFaint }}>
+                  <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{isMultiLocation ? locationNameFor(caseItem) : 'Next case'}</div>
+                  <div style={{ color: C.ink, fontSize: 16, fontWeight: 900, lineHeight: 1.25, marginTop: 4 }}>{caseItem.deceased_name || caseItem.estate_name || caseItem.name || 'Family case'}</div>
+                  <div style={{ color: C.sage, fontSize: 13, fontWeight: 900, lineHeight: 1.3, marginTop: 8 }}>{sharedTaskTitle(task)}</div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>{sharedTaskNext(task, 'funeral_home')}</div>
+                  <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 10 }}>
+                    <button onClick={() => setExpandedCaseId(caseItem.id)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Open work</button>
+                    <Link href={`/estate?id=${caseItem.id}`} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, textDecoration: 'none' }}>Family view</Link>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -762,6 +793,7 @@ export default function FuneralHomeDashboard() {
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
               const topTasks = partnerTasks.length ? partnerTasks.slice(0, 3) : item.tasks.slice(0, 3);
+              const nextPartnerTask = item.nextPartnerTask || topTasks.find(task => !['handled', 'completed'].includes(task.status || ''));
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               const isExpanded = expandedCaseId === item.id;
               const itemLocation = locationNameFor(item);
@@ -790,7 +822,13 @@ export default function FuneralHomeDashboard() {
                   </div>
                   <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12, marginTop: 12 }}>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Next partner work</div>
-                    <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>Next work your team can move: certificates, service coordination, cemetery/crematory, obituary, and family approvals. <strong style={{ color: C.sage }}>That is one less call your team has to take.</strong></div>
+                    <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>
+                      {nextPartnerTask ? (
+                        <>Move this now: <strong style={{ color: C.ink }}>{sharedTaskTitle(nextPartnerTask)}</strong>. {sharedTaskNext(nextPartnerTask, 'funeral_home')} <strong style={{ color: C.sage }}>That is one less call your team has to take.</strong></>
+                      ) : (
+                        <>No partner-ready work is open for this case right now. <strong style={{ color: C.sage }}>The family status is still visible.</strong></>
+                      )}
+                    </div>
                   </div>
                   {isExpanded && item.activity?.length > 0 && (
                     <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
@@ -819,13 +857,14 @@ export default function FuneralHomeDashboard() {
                     </div>
                     <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>Share this status instead of answering another "where are we?" call.</div>
                   </div>
-                  {isExpanded && item.communications?.length > 0 && (
+                  {isExpanded && (item.communicationCenter?.length > 0 || item.communications?.length > 0) && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
-                      <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Communication log</div>
-                      {item.communications.slice(0, 4).map(message => (
+                      <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Communication and proof log</div>
+                      {(item.communicationCenter?.length ? item.communicationCenter : item.communications).slice(0, 5).map(message => (
                         <div key={message.id} style={{ fontSize: 12.3, color: C.mid, lineHeight: 1.45, padding: '5px 0', borderTop: `1px solid ${C.border}` }}>
-                          <strong style={{ color: C.ink }}>{message.subject || 'Family update'}</strong>
-                          <div>{message.channel || 'message'} to {message.recipient_name || message.recipient_email || message.recipient_phone || 'recipient'} - {statusLabel(message.status)}{message.sent_at ? ` - ${new Date(message.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</div>
+                          <strong style={{ color: C.ink }}>{message.title || message.subject || 'Family update'}</strong>
+                          <div>{message.detail || `${message.channel || 'message'} to ${message.recipient_name || message.recipient_email || message.recipient_phone || message.recipient || 'recipient'} - ${message.statusLabel || statusLabel(message.status)}`}</div>
+                          {(message.at || message.sent_at) && <div style={{ color: C.soft }}>{new Date(message.at || message.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</div>}
                           {message.error_message && <div style={{ color: C.rose }}>{message.error_message}</div>}
                         </div>
                       ))}
@@ -853,7 +892,7 @@ export default function FuneralHomeDashboard() {
                     <div key={task.id} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 11, marginTop: 11 }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'start' }}>
                         <div>
-                          <div style={{ fontSize: 13.5, color: C.ink, fontWeight: 800 }}>{task.title}</div>
+                          <div style={{ fontSize: 13.5, color: C.ink, fontWeight: 800 }}>{sharedTaskTitle(task)}</div>
                           <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}><strong style={{ color: C.ink }}>Passage handles:</strong> {task.playbook?.automationLabel || 'status, notes, proof, and family visibility'}</div>
                           <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.45, marginTop: 2 }}><strong style={{ color: C.ink }}>Staff must do:</strong> {task.playbook?.waitingOn ? `confirm details with ${task.playbook.waitingOn}` : 'decide whether to handle, request family info, or mark done'}</div>
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
@@ -886,8 +925,8 @@ export default function FuneralHomeDashboard() {
                             <button
                               disabled={!taskDraftNote.trim() || updating === task.id + taskDraft.status || updating === task.id + 'handle_for_family'}
                               onClick={() => taskDraft.status === 'handled'
-                                ? handleForFamily(task, `${org?.name || 'Funeral home'} completed ${task.title}: ${taskDraftNote.trim()}`)
-                                : updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'needs family information' : 'started this on behalf of the family'} for ${task.title}: ${taskDraftNote.trim()}`)}
+                                ? handleForFamily(task, `${org?.name || 'Funeral home'} completed ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}`)
+                                : updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'needs family information' : 'started this on behalf of the family'} for ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}`)}
                               style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
                               {taskDraft.status === 'handled' ? 'Save handled update' : 'Save request'}
                             </button>

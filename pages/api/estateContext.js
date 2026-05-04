@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { buildCommunicationCenter, selectNextTask } from '../../lib/communicationCenter';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -72,6 +73,9 @@ export default async function handler(req, res) {
     { data: people },
     { data: actions },
     { data: announcements },
+    { data: statusEvents },
+    { data: communications },
+    { data: vendorRequests },
   ] = await Promise.all([
     admin.from('outcomes').select('*').eq('estate_id', id).order('position'),
     admin.from('tasks').select('*').eq('workflow_id', id).order('created_at', { ascending: true }),
@@ -80,6 +84,9 @@ export default async function handler(req, res) {
     admin.from('people').select('*').eq('estate_id', id).order('created_at', { ascending: true }),
     admin.from('workflow_actions').select('*').eq('workflow_id', id).order('sort_order', { ascending: true }),
     admin.from('announcements').select('*').eq('estate_id', id).order('created_at', { ascending: false }).limit(10),
+    admin.from('task_status_events').select('*').eq('workflow_id', id).order('last_action_at', { ascending: false, nullsFirst: false }).limit(80),
+    admin.from('notification_log').select('*').eq('workflow_id', id).order('created_at', { ascending: false }).limit(80),
+    admin.from('vendor_requests').select('*, vendors(business_name,category,contact_email,contact_phone)').eq('workflow_id', id).order('requested_at', { ascending: false }).limit(40),
   ]);
 
   await admin.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', id).then(() => {}, () => {});
@@ -93,5 +100,17 @@ export default async function handler(req, res) {
     people: people || [],
     actions: actions || [],
     announcements: announcements || [],
+    statusEvents: statusEvents || [],
+    communications: communications || [],
+    vendorRequests: vendorRequests || [],
+    communicationCenter: buildCommunicationCenter({
+      tasks: tasks || [],
+      statusEvents: statusEvents || [],
+      communications: communications || [],
+      vendorRequests: vendorRequests || [],
+      estateEvents: events || [],
+      limit: 16,
+    }),
+    nextTask: selectNextTask(tasks || [], 'family'),
   });
 }

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { buildCommunicationCenter, selectNextTask } from '../../lib/communicationCenter';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -52,8 +53,11 @@ export default async function handler(req, res) {
 
     let workflows = [];
     let events = [];
+    let statusEvents = [];
+    let communications = [];
+    let vendorRequests = [];
     if (workflowIds.length > 0) {
-      const [{ data: wfData }, { data: eventData }] = await Promise.all([
+      const [{ data: wfData }, { data: eventData }, { data: statusEventData }, { data: communicationData }, { data: vendorRequestData }] = await Promise.all([
         admin.from('workflows')
           .select('id, name, deceased_name, coordinator_name, coordinator_email, status, path, activation_status, created_at, updated_at')
           .in('id', workflowIds),
@@ -61,21 +65,57 @@ export default async function handler(req, res) {
           .select('id, workflow_id, event_type, name, date, time, location_name, location_address, notes')
           .in('workflow_id', workflowIds)
           .order('date', { ascending: true }),
+        admin.from('task_status_events')
+          .select('id,workflow_id,task_id,status,last_action_at,last_actor,channel,recipient,detail')
+          .in('workflow_id', workflowIds)
+          .order('last_action_at', { ascending: false, nullsFirst: false })
+          .limit(80),
+        admin.from('notification_log')
+          .select('id,workflow_id,channel,recipient_email,recipient_phone,recipient_name,subject,provider,status,sent_at,delivered_at,error_message,created_at')
+          .in('workflow_id', workflowIds)
+          .order('created_at', { ascending: false })
+          .limit(80),
+        admin.from('vendor_requests')
+          .select('id,workflow_id,task_id,task_title,status,urgency,requested_at,responded_at,completed_at,vendors(business_name,category)')
+          .in('workflow_id', workflowIds)
+          .order('requested_at', { ascending: false })
+          .limit(40),
       ]);
       workflows = (wfData || []).filter(w => w.status !== 'archived');
       events = eventData || [];
+      statusEvents = statusEventData || [];
+      communications = communicationData || [];
+      vendorRequests = vendorRequestData || [];
     }
 
-    const estates = workflows.map(w => ({
-      ...w,
-      role: (access || []).find(a => a.workflow_id === w.id)?.role ||
-        (people || []).find(p => p.email && p.email.toLowerCase() === email)?.estate_role_label ||
-        (people || []).find(p => p.email && p.email.toLowerCase() === email)?.relationship ||
-        'Participant',
-      actions: (actions || []).filter(a => a.workflow_id === w.id),
-      tasks: (tasks || []).filter(t => t.workflow_id === w.id),
-      events: events.filter(e => e.workflow_id === w.id),
-    }));
+    const estates = workflows.map(w => {
+      const estateTasks = (tasks || []).filter(t => t.workflow_id === w.id);
+      const estateActions = (actions || []).filter(a => a.workflow_id === w.id);
+      const estateStatusEvents = statusEvents.filter(e => e.workflow_id === w.id);
+      const estateCommunications = communications.filter(c => c.workflow_id === w.id);
+      const estateVendorRequests = vendorRequests.filter(v => v.workflow_id === w.id);
+      return {
+        ...w,
+        role: (access || []).find(a => a.workflow_id === w.id)?.role ||
+          (people || []).find(p => p.email && p.email.toLowerCase() === email)?.estate_role_label ||
+          (people || []).find(p => p.email && p.email.toLowerCase() === email)?.relationship ||
+          'Participant',
+        actions: estateActions,
+        tasks: estateTasks,
+        events: events.filter(e => e.workflow_id === w.id),
+        statusEvents: estateStatusEvents,
+        communications: estateCommunications,
+        vendorRequests: estateVendorRequests,
+        communicationCenter: buildCommunicationCenter({
+          tasks: estateTasks.concat(estateActions),
+          statusEvents: estateStatusEvents,
+          communications: estateCommunications,
+          vendorRequests: estateVendorRequests,
+          limit: 10,
+        }),
+        nextTask: selectNextTask(estateTasks.concat(estateActions), 'participant'),
+      };
+    });
 
     return res.status(200).json({
       email,

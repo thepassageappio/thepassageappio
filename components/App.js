@@ -3826,7 +3826,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                 </button>
               ))}
             </div>
-            <Field label="Religious leader (name + contact)" placeholder="Rabbi David Cohen, rabbi@temple.org" value={wishesData.religious_leader || ""} onChange={v => setWishesData(w => ({ ...w, religious_leader: v }))} />
+            <Field label="Religious leader or officiant" placeholder="Name, phone, or email if known" value={wishesData.religious_leader || ""} onChange={v => setWishesData(w => ({ ...w, religious_leader: v }))} />
             <Field label="Music preferences" placeholder="e.g. Bach Cello Suite No. 1, Amazing Grace" value={wishesData.music_preferences || ""} onChange={v => setWishesData(w => ({ ...w, music_preferences: v }))} />
             <Field label="Special requests" placeholder="Anything else your family should know" value={wishesData.special_requests || ""} onChange={v => setWishesData(w => ({ ...w, special_requests: v }))} />
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>

@@ -1192,7 +1192,7 @@ function miniBtn(bg, color, border) {
   return { border: '1px solid ' + border, background: bg, color: color, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' };
 }
 
-function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, communicationCenter, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
   var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
   var nextTask = openTasks[0];
@@ -1200,7 +1200,7 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
   var current = nextTask ? { kind: 'task', item: nextTask } : nextOutcome ? { kind: 'outcome', item: nextOutcome } : null;
   var waiting = openTasks.filter(function(t) { return ['waiting', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
   var needsOwner = openOutcomes.filter(function(o) { return !o.owner_label; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
-  var recent = [].concat(events || [], actions || []).slice(0, 8);
+  var recent = (communicationCenter && communicationCenter.length ? communicationCenter : [].concat(events || [], actions || [])).slice(0, 8);
   var tabs = [
     ['now', 'Do next', current ? '1 item' : 'clear'],
     ['people', 'People', needsOwner + ' need owner'],
@@ -1303,8 +1303,9 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
             return (
               <div key={(row.id || row.created_at || row.sent_at) + '_update'} style={{ borderTop: '1px solid ' + BORDER, paddingTop: 8 }}>
                 <div style={{ color: INK, fontSize: 13, fontWeight: 900 }}>{row.title || row.subject || statusText(row.status || row.delivery_status) || 'Update recorded'}</div>
-                <div style={{ color: MID, fontSize: 12, lineHeight: 1.45 }}>{row.description || row.detail || row.recipient || row.recipient_email || row.recipient_phone || 'Passage recorded this in the estate.'}</div>
-                {(row.created_at || row.sent_at || row.last_action_at) && <div style={{ color: SOFT, fontSize: 10.5, marginTop: 2 }}>{new Date(row.created_at || row.sent_at || row.last_action_at).toLocaleString()}</div>}
+                <div style={{ color: MID, fontSize: 12, lineHeight: 1.45 }}>{row.detail || row.description || row.recipient || row.recipient_email || row.recipient_phone || 'Passage recorded this in the estate.'}</div>
+                {row.recipient && <div style={{ color: SOFT, fontSize: 11, marginTop: 2 }}>Recipient: {row.recipient}</div>}
+                {(row.at || row.created_at || row.sent_at || row.last_action_at) && <div style={{ color: SOFT, fontSize: 10.5, marginTop: 2 }}>{new Date(row.at || row.created_at || row.sent_at || row.last_action_at).toLocaleString()}</div>}
               </div>
             );
           }) : (
@@ -1514,6 +1515,7 @@ export default function EstatePage() {
   var s16 = useState('now'); var activeCommandTab = s16[0]; var setActiveCommandTab = s16[1];
   var s17 = useState(null); var pendingTaskAction = s17[0]; var setPendingTaskAction = s17[1];
   var s18 = useState(''); var pendingTaskNote = s18[0]; var setPendingTaskNote = s18[1];
+  var s19 = useState([]); var communicationCenter = s19[0]; var setCommunicationCenter = s19[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -1546,6 +1548,7 @@ export default function EstatePage() {
               { data: data.people || [] },
               { data: data.actions || [] },
               { data: data.announcements || [] },
+              { data: data.communicationCenter || [] },
             ];
           });
         }).catch(function() { return results; });
@@ -1559,6 +1562,7 @@ export default function EstatePage() {
       if (results[5].data) setPeople(results[5].data);
       if (results[6].data) setActions(results[6].data);
       if (results[7].data) setAnnouncements(results[7].data);
+      if (results[8] && results[8].data) setCommunicationCenter(results[8].data);
       setLoading(false);
       // Update last viewed
       sb.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', estateId).then(function() {});
@@ -1598,6 +1602,20 @@ export default function EstatePage() {
             created_at: payload.new.last_action_at || new Date().toISOString()
           };
           return [row].concat(prev).slice(0, 8);
+        });
+        setCommunicationCenter(function(prev) {
+          var row = {
+            id: 'status:' + payload.new.id,
+            kind: 'task',
+            title: 'Task status updated',
+            status: payload.new.status,
+            statusLabel: statusText(payload.new.status),
+            actor: payload.new.last_actor || 'Passage',
+            recipient: payload.new.recipient || '',
+            detail: payload.new.detail || 'Passage recorded this update.',
+            at: payload.new.last_action_at || new Date().toISOString()
+          };
+          return [row].concat(prev || []).slice(0, 16);
         });
       })
       .subscribe();
@@ -2011,6 +2029,7 @@ export default function EstatePage() {
           events={events}
           actions={actions}
           people={people}
+          communicationCenter={communicationCenter}
           onOpenOutcome={openOutcomeFromCommand}
           onAssignOutcome={assignOutcomeFromCommand}
           onOutcomeHandled={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'handled' }); }}
