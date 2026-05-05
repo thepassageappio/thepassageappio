@@ -131,6 +131,14 @@ function actionConfirmation(action) {
   return 'Accepted. The coordinator can see that you own this task.';
 }
 
+function statusForParticipantAction(action) {
+  if (action === 'accept') return 'acknowledged';
+  if (['handled', 'delivered', 'confirmed'].includes(action)) return 'handled';
+  if (['waiting', 'needs_details', 'quoted', 'scheduled'].includes(action)) return 'waiting';
+  if (['help', 'unavailable'].includes(action)) return 'blocked';
+  return 'needs_review';
+}
+
 function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, estate }) {
   const handled = isHandled(itemStatus(item));
   const kind = roleKind(estate?.role, item);
@@ -241,12 +249,53 @@ export default function ParticipatingPage() {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     if (!token) return;
+    const note = notesByItem[kind + ':' + id] || '';
     const r = await fetch('/api/participantAction', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({ kind, id, action, notes: notesByItem[kind + ':' + id] || '' }),
+      body: JSON.stringify({ kind, id, action, notes: note }),
     });
-    setActionNotice(r.ok ? actionConfirmation(action) + ' Passage is tracking this for the coordinator.' : 'Passage could not save that update. Please try again.');
+    const json = await r.json().catch(() => ({}));
+    if (r.ok) {
+      const nextStatus = action === 'save_note' ? null : statusForParticipantAction(action);
+      setData(prev => {
+        if (!prev?.estates) return prev;
+        return {
+          ...prev,
+          estates: prev.estates.map(estate => {
+            const hasItem = kind === 'task'
+              ? (estate.tasks || []).some(item => item.id === id)
+              : (estate.actions || []).some(item => item.id === id);
+            if (!hasItem) return estate;
+            const updateItem = item => {
+              if (item.id !== id) return item;
+              return {
+                ...item,
+                status: nextStatus || item.status,
+                notes: note || item.notes,
+                last_action_at: new Date().toISOString(),
+              };
+            };
+            return {
+              ...estate,
+              tasks: kind === 'task' ? (estate.tasks || []).map(updateItem) : estate.tasks,
+              actions: kind === 'action' ? (estate.actions || []).map(updateItem) : estate.actions,
+              communicationCenter: [
+                {
+                  id: 'local-' + kind + '-' + id + '-' + Date.now(),
+                  title: action === 'save_note' ? 'Note saved' : actionConfirmation(action).replace(/\.$/, ''),
+                  detail: note || 'Saved in Passage.',
+                  at: new Date().toISOString(),
+                  statusLabel: nextStatus || 'saved',
+                },
+                ...(estate.communicationCenter || []),
+              ],
+            };
+          }),
+        };
+      });
+    }
+    setActionNotice(r.ok ? actionConfirmation(action) + ' Passage is tracking this for the coordinator.' : (json.error || 'Passage could not save that update. Please try again.'));
     await load(token);
   }
 
@@ -309,8 +358,19 @@ export default function ParticipatingPage() {
               )}
               {data.estates.length === 0 ? (
                 <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
-                  <div style={{ fontSize: 20, marginBottom: 8 }}>No estate roles found for {data.email} yet.</div>
-                  <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>If someone invited you with a different email, sign in with that address. When you are assigned a task, it will appear here.</p>
+                  <div style={{ fontSize: 20, marginBottom: 8 }}>
+                    {(router.query.estate || router.query.task) ? 'We could not match this invite to your signed-in email.' : `No estate roles found for ${data.email} yet.`}
+                  </div>
+                  <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
+                    {(router.query.estate || router.query.task)
+                      ? `You are signed in as ${data.email}. If the invite was sent to another address, sign out and use that email. If this is the right email, ask the coordinator to resend the assignment.`
+                      : 'If someone invited you with a different email, sign in with that address. When you are assigned a task, it will appear here.'}
+                  </p>
+                  <button onClick={async () => {
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    if (sessionData?.session?.access_token) await load(sessionData.session.access_token);
+                  }} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', marginRight: 8 }}>Check again</button>
+                  <button onClick={signOut} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in with another email</button>
                 </div>
               ) : <>
                 {data.estates.length > 1 && !(router.query.estate || router.query.task) && (

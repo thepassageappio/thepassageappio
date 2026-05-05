@@ -60,6 +60,55 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
   }]).then(() => {}, () => {});
 }
 
+function schemaColumnError(error) {
+  const message = String(error?.message || error || '');
+  return /schema cache|column .* does not exist|Could not find the .* column/i.test(message);
+}
+
+function itemSelect(kind) {
+  return kind === 'task'
+    ? 'id,status,workflow_id,title'
+    : 'id,status,workflow_id,subject,task_title';
+}
+
+async function updateParticipantRecord({ table, kind, emailColumn, id, email, updates }) {
+  const baseQuery = () => admin
+    .from(table)
+    .update(updates)
+    .eq('id', id)
+    .ilike(emailColumn, email)
+    .select(itemSelect(kind))
+    .maybeSingle();
+
+  let result = await baseQuery();
+  if (!result.error || !schemaColumnError(result.error)) return result;
+
+  const saferUpdates = {};
+  ['status', 'notes', 'updated_at', 'outcome_status', 'follow_up_at'].forEach(key => {
+    if (updates[key] !== undefined) saferUpdates[key] = updates[key];
+  });
+  result = await admin
+    .from(table)
+    .update(saferUpdates)
+    .eq('id', id)
+    .ilike(emailColumn, email)
+    .select(itemSelect(kind))
+    .maybeSingle();
+  if (!result.error || !schemaColumnError(result.error)) return result;
+
+  const safestUpdates = {};
+  ['status', 'notes'].forEach(key => {
+    if (updates[key] !== undefined) safestUpdates[key] = updates[key];
+  });
+  return admin
+    .from(table)
+    .update(safestUpdates)
+    .eq('id', id)
+    .ilike(emailColumn, email)
+    .select(itemSelect(kind))
+    .maybeSingle();
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -80,13 +129,14 @@ export default async function handler(req, res) {
   if (action === 'save_note') {
     const trimmed = typeof notes === 'string' ? notes.trim() : '';
     if (!trimmed) return res.status(400).json({ error: 'Add a note to save.' });
-    const { data, error } = await admin
-      .from(table)
-      .update({ notes: trimmed, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .ilike(emailColumn, email)
-      .select(kind === 'task' ? 'id,status,workflow_id,title' : 'id,status,workflow_id,subject,task_title')
-      .maybeSingle();
+    const { data, error } = await updateParticipantRecord({
+      table,
+      kind,
+      emailColumn,
+      id,
+      email,
+      updates: { notes: trimmed, updated_at: new Date().toISOString() },
+    });
     if (error) return res.status(500).json({ error: error.message });
     if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
 
@@ -146,13 +196,14 @@ export default async function handler(req, res) {
   if (status === 'acknowledged') updates.acknowledged_at = new Date().toISOString();
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
   if (typeof notes === 'string' && notes.trim()) updates.notes = notes.trim();
-  const { data, error } = await admin
-    .from(table)
-    .update(updates)
-    .eq('id', id)
-    .ilike(emailColumn, email)
-    .select(kind === 'task' ? 'id,status,workflow_id,title' : 'id,status,workflow_id,subject,task_title')
-    .maybeSingle();
+  const { data, error } = await updateParticipantRecord({
+    table,
+    kind,
+    emailColumn,
+    id,
+    email,
+    updates,
+  });
 
   if (error) return res.status(500).json({ error: error.message });
   if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
