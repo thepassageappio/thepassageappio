@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
+import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
@@ -153,7 +154,7 @@ export default function FuneralHomeDashboard() {
           channel: 'record',
           recipient: task.playbook?.partnerOwnerRole || 'funeral home',
           detail,
-          outcomeStatus: status === 'blocked' ? 'help' : status === 'handled' ? 'completed' : 'waiting',
+          outcomeStatus: taskActionOutcomeStatus(status),
           actor: user?.email || 'Funeral home staff',
         }),
       });
@@ -169,9 +170,7 @@ export default function FuneralHomeDashboard() {
             partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
           })),
         } : prev);
-        setNotice(status === 'blocked'
-          ? 'Family information requested. This stays visible until it is resolved.'
-          : 'Started on behalf of the family. Passage is tracking this so your staff does not have to chase it manually.');
+        setNotice(taskActionConfirmation(status, task, 'funeral_home'));
         setTaskDraft(null);
         setTaskDraftNote('');
         await load(token);
@@ -905,9 +904,9 @@ export default function FuneralHomeDashboard() {
                       </div>
                       {task.playbook?.funeralHomeEligible && !['handled', 'completed'].includes(task.status || '') && (
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
-                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Start on behalf of family', prompt: 'What is your team starting or waiting on?' }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start on behalf of family</button>
-                          <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request family information', prompt: 'What exact detail does the family need to provide?' }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Need family info</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Record what was handled', prompt: 'What did your team actually complete? This note will be shown to the family and saved in the case record.' }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Handle this for family'}</button>
+                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Start on behalf of family', prompt: taskActionPrompt('waiting', task, 'funeral_home') }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start on behalf of family</button>
+                          <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request family information', prompt: taskActionPrompt('blocked', task, 'funeral_home') }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Need family info</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Record what was handled', prompt: taskActionPrompt('handled', task, 'funeral_home') }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Handle this for family'}</button>
                         </div>
                       )}
                       {taskDraft?.task?.id === task.id && (
@@ -918,7 +917,7 @@ export default function FuneralHomeDashboard() {
                           <textarea
                             value={taskDraftNote}
                             onChange={(e) => setTaskDraftNote(e.target.value)}
-                            placeholder={taskDraft.status === 'handled' ? 'Example: Arrangement meeting completed with Claire; next appointment is Tuesday at 10 AM.' : taskDraft.status === 'blocked' ? 'Example: Need family to confirm cemetery name and number of death certificate copies.' : 'Example: Staff called Vassar release desk; waiting for pickup clearance.'}
+                            placeholder={taskActionPlaceholder(taskDraft.status, task, 'funeral_home')}
                             style={{ width: '100%', boxSizing: 'border-box', minHeight: 70, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink }}
                           />
                           <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>

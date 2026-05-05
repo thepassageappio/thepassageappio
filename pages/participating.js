@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle } from '../lib/communicationCenter';
+import { taskActionConfirmation, taskActionPrompt, taskActionStatus } from '../lib/taskActions';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -118,25 +119,11 @@ function requestContract(kind, estate, item) {
 }
 
 function actionConfirmation(action) {
-  if (action === 'save_note') return 'Note saved.';
-  if (action === 'confirmed') return 'Availability confirmed. The coordinator can see it.';
-  if (action === 'delivered') return 'Marked delivered. The coordinator can see it.';
-  if (action === 'scheduled') return 'Marked scheduled. The coordinator can see it.';
-  if (action === 'quoted') return 'Quote status saved. The coordinator can see it.';
-  if (action === 'needs_details') return 'Saved as needing details. The coordinator can see what is missing.';
-  if (action === 'waiting') return 'Saved as waiting. This stays visible.';
-  if (action === 'unavailable') return 'Saved as unavailable. The coordinator can reassign it.';
-  if (action === 'help') return 'Help request saved. The coordinator can see it.';
-  if (action === 'handled') return 'This is handled. The coordinator can see your update.';
-  return 'Accepted. The coordinator can see that you own this task.';
+  return taskActionConfirmation(action, null, 'participant');
 }
 
 function statusForParticipantAction(action) {
-  if (action === 'accept') return 'acknowledged';
-  if (['handled', 'delivered', 'confirmed'].includes(action)) return 'handled';
-  if (['waiting', 'needs_details', 'quoted', 'scheduled'].includes(action)) return 'waiting';
-  if (['help', 'unavailable'].includes(action)) return 'blocked';
-  return 'needs_review';
+  return taskActionStatus(action) || 'needs_review';
 }
 
 function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, estate }) {
@@ -176,6 +163,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <div style={{ fontSize: 11, color: C.mid, fontWeight: 800 }}>{statusLabel(itemStatus(item))}</div>
         </div>
         <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.5, fontWeight: 800 }}>{contract.action}</div>
+        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 5 }}>{taskActionPrompt('handled', item, 'participant')}</div>
         <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 5 }}>{contract.serviceLine}</div>
         <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.45, marginTop: 5 }}>{contract.authority}</div>
         <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>{contract.payer}</div>

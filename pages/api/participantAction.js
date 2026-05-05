@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { normalizeTaskAction, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionStatus } from '../../lib/taskActions';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -119,6 +120,7 @@ export default async function handler(req, res) {
 
   const email = userData.user.email.toLowerCase();
   const { kind, id, action, notes, outcomeStatus, followUpAt } = req.body || {};
+  const normalizedAction = normalizeTaskAction(action);
   if (!id || !['task', 'action'].includes(kind) || !['accept', 'handled', 'help', 'waiting', 'needs_details', 'quoted', 'scheduled', 'delivered', 'confirmed', 'unavailable', 'save_note'].includes(action)) {
     return res.status(400).json({ error: 'Invalid participant action.' });
   }
@@ -172,12 +174,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, item: data });
   }
 
-  const status = action === 'accept' ? 'acknowledged'
-    : ['handled', 'delivered', 'confirmed'].includes(action) ? 'handled'
-    : ['waiting', 'needs_details', 'quoted', 'scheduled'].includes(action) ? 'waiting'
-    : ['help', 'unavailable'].includes(action) ? 'blocked'
-    : 'needs_review';
-  const stamp = action === 'accept' ? 'accepted_at'
+  const status = taskActionStatus(action) || 'needs_review';
+  const stamp = normalizedAction === 'accept' ? 'accepted_at'
     : status === 'handled' ? 'handled_at'
     : 'help_requested_at';
 
@@ -185,7 +183,7 @@ export default async function handler(req, res) {
     status,
     [stamp]: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    outcome_status: outcomeStatus || action,
+    outcome_status: outcomeStatus || taskActionOutcomeStatus(action),
     completed_by_email: email,
     coordinator_notified_at: new Date().toISOString(),
     last_action_at: new Date().toISOString(),
@@ -209,9 +207,9 @@ export default async function handler(req, res) {
   if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
   await admin.from('estate_events').insert([{
     estate_id: data.workflow_id,
-    event_type: status === 'handled' ? 'participant_handled' : status === 'waiting' ? 'participant_waiting' : status === 'acknowledged' ? 'participant_acknowledged' : status === 'blocked' ? 'participant_blocked' : 'participant_updated',
-    title: status === 'handled' ? 'Participant handled a task' : status === 'waiting' ? 'Participant update waiting' : status === 'acknowledged' ? 'Participant confirmed a task' : status === 'blocked' ? 'Participant needs help' : 'Participant updated a task',
-    description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
+    event_type: taskActionEventType(action, 'participant'),
+    title: taskActionEventTitle(action, 'Participant'),
+    description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + normalizedAction.replace(/_/g, ' '),
     actor: email,
   }]).then(() => {}, () => {});
   await admin.from('task_status_events').insert([{
@@ -223,7 +221,7 @@ export default async function handler(req, res) {
     last_actor: email,
     channel: 'participant',
     recipient: email,
-    detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + action.replace(/_/g, ' '),
+    detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + normalizedAction.replace(/_/g, ' '),
   }]).then(() => {}, () => {});
   await notifyCoordinator({
     workflowId: data.workflow_id,
