@@ -49,7 +49,7 @@ export default function FuneralHomePage() {
   async function startCheckout(planId) {
     setError('');
     if (!user) {
-      await signIn();
+      window.location.href = '/contact?category=Funeral%20home%20pilot&plan=' + encodeURIComponent(planId);
       return;
     }
     setBusy(planId);

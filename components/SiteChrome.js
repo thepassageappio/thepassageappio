@@ -23,7 +23,7 @@ const LINKS = [
   ['Guides', '/content'],
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
-  ['Participant', '/participating'],
+  ['My tasks', '/participating'],
   ['Funeral homes', '/funeral-home'],
 ];
 

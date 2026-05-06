@@ -544,6 +544,7 @@ export default function UrgentPage() {
         h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(32px, 4vw, 44px); line-height: 1.04; margin: 0 0 10px; }
         .lede { font-size: 15.5px; line-height: 1.55; color: ${C.mid}; max-width: 720px; margin: 0; }
         .grid { display: grid; grid-template-columns: 1.5fr .8fr; gap: 18px; align-items: start; }
+        .grid.grid-single { grid-template-columns: minmax(0, 760px); justify-content: center; }
         .card { background: rgba(255,253,249,.92); border: 1px solid ${C.border}; border-radius: 18px; box-shadow: 0 18px 50px rgba(55,45,35,.08); }
         .primary-card { padding: 22px; }
         .phase { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; color: ${C.rose}; background: ${C.roseFaint}; border: 1px solid rgba(184,107,111,.22); border-radius: 999px; padding: 4px 9px; font-weight: 750; margin-bottom: 12px; }
@@ -658,7 +659,7 @@ export default function UrgentPage() {
           <p className="lede">{reassurance} Passage will keep this focused: who owns the next action, what can wait, and what is already handled.</p>
         </section>
 
-        <section className="grid">
+        <section className={selectedSituation ? "grid" : "grid grid-single"}>
           <div className="card primary-card">
             {paidSuccess && <div className="paid-success">You're in the right place. We'll guide you step by step.</div>}
             <div className="triage">
@@ -721,6 +722,8 @@ export default function UrgentPage() {
               )}
             </div>
 
+            {selectedSituation ? (
+              <>
             <div className="authority-strip">
               <div className="context-title">Who can make decisions right now?</div>
               <div className="context-help">Release, medical, and funeral decisions need a clear person. If you are not sure, Passage will keep that visible before anything is sent.</div>
@@ -833,8 +836,15 @@ export default function UrgentPage() {
                 )}
               </div>
             )}
+              </>
+            ) : (
+              <div className="urgent-alert" style={{ background: C.sageFaint, borderColor: C.sageLight }}>
+                <strong>Choose what happened first above.</strong> Passage will then show the next real step, who owns it, and what can wait.
+              </div>
+            )}
           </div>
 
+          {selectedSituation && (
           <aside className="card side">
             <div className="kicker">Progress</div>
             <h2 style={{ fontSize: 23 }}>Still steady.</h2>
@@ -858,6 +868,7 @@ export default function UrgentPage() {
               ))}
             </div>
           </aside>
+          )}
         </section>
       </div>
 

@@ -3,10 +3,14 @@
 ## Now (May 4-May 6, 2026)
 
 - Round 14 ironclad spine pass: treat `docs/ironclad-operating-spine-roadmap.md` as the readiness contract for families, participants, funeral homes, funeral-home staff, vendors, Passage system admins, messaging, permissions, demo, and task orchestration.
+- Hold every sprint to the scorecard loops: red path closes, funeral-home partner activates, payment entitlement works, and vendor marketplace connects. Schema presence alone is not success.
 - Sprint 2 entry point: build the shared task action spine so assigned/unassigned tasks route through the same assign, send, proof, waiting, help, output, and audit behavior across every persona.
 - Public trust/demo blockers from external QA: SSR-visible landing hero, simpler mobile nav, clearer `Participant` label, privacy/terms destinations after owner-approved legal copy, funeral-home tier CTAs with visible fallback, feature tab smoke tests, and urgent flow reduced back to one action at a time.
 - Post-simplification QA sweep (0d2bc3a..11902d0): command center hierarchy + nav, wishes save, comms center parity; no dead ends.
 - Stop-the-line regressions: estate persistence, invite confirmation, partner case creation/load, task action feedback (no "Confirmed" without proof).
+- B2B activation gap: create/verify the test funeral-home `organization` + `funeral_home_partner` path, the family/estate participation join path, and terminal task status persistence before calling any funeral-home demo ready.
+- Terminal task status QA: marking handled must update the task row used by dashboards/reports, not only write `task_status_events`.
+- Repo hygiene: clear phantom dirty files such as `components/App.js` when Git reports modified metadata/line-ending drift with no content diff; add or verify `.gitattributes` line-ending rules so cleanup does not pollute product commits.
 - Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
 - Webhook-as-proof QA: Resend + Twilio `webhook_events` record provider + timestamp + actor and are surfaced as proof; vendor requests show Sent/Received/Accepted/Declined with visible activity.
 - Partner + vendor access policy (minimal): roles + org membership (multi-location admin vs staff vs vendor vs Passage admin) + who can act-on-behalf.
@@ -20,6 +24,8 @@
 - Add communication command center: task messages, family/funeral-home updates, vendor/cemetery/clergy threads, and internal funeral-home staff notes must all write to one visible event/message spine.
 - Restore urgent path crisis posture: triage first, authority second, only minimum save fields third, no empty progress dashboard as first impression, and no sign-in wall before a useful first-step plan.
 - Add B2B closed-loop pilot gate: funeral home creates case -> family command center opens -> funeral home acts on behalf -> family sees proof -> export/report works.
+- Add schema activation smoke: `funeral_home_partners`, `estate_participants`, `vendor_requests`, `marketplace_interactions`, `subscriptions`, `accounts`, and `account_entitlements` either receive test/demo rows from live flows or are explicitly omitted from demo claims.
+- Wire or visibly defer the payment loop: Pilot/Local/Group pricing CTAs must either reach checkout/test checkout and write entitlement state, or route to a contact/pilot fallback with no dead end.
 - Turn system-admin demo into a one-step-at-a-time guided sales studio with dummy-only data and a stronger prospect narrative.
 - Clean up the public guide unlock page: move the email/name/guide selector into the locked article module so the page reads as one contained "pick guide -> unlock article" action instead of a floating form plus disconnected locked preview.
 - Fix vendor admin/provisioning loop: submitted applications load, system admin approves/declines, approved vendors get profile setup and vendor-owned dashboard access.

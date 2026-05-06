@@ -92,6 +92,55 @@ These are not failures to hide. They are the work queue until fixed and QA-passe
 - Guide unlock UI is awkward and belongs in the locked guide card/module.
 - Reporting is useful but still derived from imperfect existing fields; case value and marketplace share need durable fields before pilot-grade ROI.
 - The funeral-home marketing page is strong, but demo trust depends on all tier CTAs having a visible fallback, dashboard access being smoke-tested, feature tabs visibly changing, and the closed loop being demonstrable.
+- Schema has moved ahead of product activation. `organizations`, `funeral_home_partners`, `estate_participants`, `subscriptions`, `account_entitlements`, `marketplace_interactions`, and `vendor_requests` must have real demo/test activation paths before they are used in demos as proof.
+- Status events are not enough. A task loop is not healthy until the task row reaches the expected terminal state and the event/audit trail agrees with it.
+
+## Schema Activation Gate
+
+The schema can tell a sophisticated product story, but the demo is not credible until the tables are exercised by real product flows. Passage must treat the following as activation gates, not optional seed data:
+
+- Partner identity: at least one test funeral-home `organization` and `funeral_home_partner` must exist before partner dashboard QA.
+- Family handoff: partner case creation must write the `estate_participants` or equivalent participation link that lets a family open the correct command center.
+- Terminal task state: marking handled must update both the audit/status event and the task row's terminal status used by dashboards and reports.
+- Vendor loop: seeded `marketplace_providers` must connect to at least one task-native `vendor_request` or explicitly remain hidden from demo claims.
+- Entitlement loop: pricing CTAs must either complete a test Stripe entitlement path or route to a visible contact/pilot fallback. They may not pretend payment is live if `subscriptions`, `accounts`, and `account_entitlements` are empty.
+- Analytics truth: dashboards can show demo values, but must label them as demo/estimated until the underlying tables have nonzero pilot activity.
+
+Minimum B2B activation proof before a serious funeral-home meeting:
+
+1. A test funeral-home partner exists and can sign in or reach the gated dashboard path gracefully.
+2. The partner creates a case and the family/estate participation link is written.
+3. The family opens the linked command center.
+4. The partner marks one task handled and the family sees the update.
+5. At least one verified notification channel records delivery or a clear fallback.
+
+## Success Scorecard
+
+This roadmap is complete only when the experienced product, not just the schema, reaches these thresholds:
+
+| Dimension | Current bar | Target after roadmap |
+| --- | ---: | ---: |
+| Base UI / visual design | 7.5 | 8.5 |
+| UX / overall experience | 6.5 | 8.5 |
+| Funeral-home landing page | 7.0 | 8.5 |
+| Funeral-home demo readiness | 3.5 | 8.0 |
+| Participant experience | 5.0 | 8.0 |
+| Green-path planning experience | 5.5 | 8.0 |
+| Red-path urgent experience | 6.5 | 8.5 |
+| Vendor experience | 2.0 | 7.0 |
+| Funeral-home employee/staff experience | 3.0 | 7.5 |
+| Roles and permissions | 4.0 | 7.5 |
+| Reporting and metrics | 5.5 | 8.5 |
+| Overall platform | 5.1 | 8.1+ |
+
+The fastest path to these scores is not more feature surface. It is closing four loops:
+
+1. Red path closes: task marked handled in UI -> task row reaches terminal state -> proof/audit appears -> participant/family notification fires -> participant sees the right task/update.
+2. Funeral-home partner activates: organization exists -> staff signs in -> case is created -> family is linked -> family sees coordinated view -> act-on-behalf is visible to both sides.
+3. Payment gate works: pricing CTA -> checkout/test checkout -> subscription/account row -> entitlement -> unlocked planning experience and nonzero analytics.
+4. Vendor marketplace connects: request from task -> vendor notified -> vendor status changes -> family/funeral-home see the status -> interaction/revenue reporting has a real event.
+
+No sprint should be called successful if it improves copy or UI while leaving the relevant loop unclosed.
 
 ## Sprint 1: Funeral Home Operating Spine Visibility
 
@@ -171,6 +220,7 @@ Closed-loop requirements:
 - Family creates/activates estate -> participant receives invite -> participant lands on task -> participant acts -> family sees update.
 - Funeral home creates case -> family receives link -> family sees command center -> funeral home handles work -> family sees proof/update.
 - Funeral home assigns employee -> employee lands in staff work -> employee acts -> director sees update.
+- B2B case creation writes the linking record needed for funeral-home/family coordination, such as `estate_participants` or the approved successor model.
 
 ## Sprint 4: Tier 1 Output Generation
 
@@ -215,6 +265,7 @@ Acceptance:
 - A vendor application can move from submitted to approved/declined to profile setup without blank admin pages.
 - Approved vendors land in a vendor-owned setup/dashboard path, not a family participant path.
 - Vendor admin is system-admin only, loads a meaningful empty state, and explains the provisioned-user path.
+- Seeded providers are not enough: at least one vendor request and one marketplace interaction must be created in a non-production-safe demo/test path and visible in the task/audit spine.
 
 ## Sprint 6: Linear Sales Demo Studio
 
@@ -329,6 +380,27 @@ Acceptance:
 - Staff permissions are enforced by data, not only UI.
 - Reporting by location, employee, and case value is reliable enough for pilots.
 - Upload/proof artifacts are attached to tasks and visible in the estate document/support area.
+- Account/subscription/entitlement writes are verified from checkout or a controlled admin grant path.
+- Analytics views have a demo/test data path so they do not show misleading all-zero dashboards during a sales demo.
+
+## Sprint 7A: Schema Activation and Loop Reconciliation
+
+Goal: Prove existing schema primitives are alive before adding more schema.
+
+Must ship:
+
+- At least one controlled funeral-home partner/org setup path for demos and pilots.
+- At least one case creation flow that links organization, estate/workflow, family contact, and staff owner.
+- Task status reconciliation: status events and task terminal status must agree for handled/completed/not-applicable flows.
+- Controlled entitlement grant path for pilot/demo accounts if Stripe checkout is not yet the source of truth.
+- Marketplace request smoke path that writes provider/request/interaction records and shows status in the task spine.
+- Analytics QA seed or demo mode that explains when metrics are real, demo, or empty.
+
+Acceptance:
+
+- A B2B demo cannot rely on a table that has zero rows unless the demo explicitly shows setup from zero.
+- A task marked handled updates both the task row and the audit/event trail.
+- Dashboard metrics label whether they are real, demo, or unavailable.
 
 ## Sprint 8: Communication Command Center
 
@@ -387,10 +459,15 @@ Must ship:
 - Public funeral-home pricing CTAs route to a visible next step for unauthenticated prospects and do not feel dead.
 - Feature tabs are browser-tested and each tab changes visible content.
 - Partner dashboard loads behind auth and has a graceful signed-out path.
+- A test `organization` + `funeral_home_partner` activation path exists for the pilot/demo funeral home.
 - Case creation saves a real partner case in non-demo mode.
+- Case creation writes the necessary family/funeral-home participation link, with `estate_participants` or the current canonical join table populated.
 - Family link opens the correct family command center.
 - Act-on-behalf updates are visible to the family and written to audit.
+- Act-on-behalf reaches the dashboard/report terminal state, not only a status-event row.
 - Email delivery is verified as the default channel; SMS is shown as approved/pending/fallback honestly.
+- The demo/pilot org has at least one funeral-home partner, at least one staff member, and at least one linked family case before prospect QA starts.
+- Vendor cards only appear in the demo if at least one `vendor_request` path can be created, viewed, and audited or the card is clearly marked as illustrative.
 
 Acceptance:
 
