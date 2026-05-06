@@ -1107,9 +1107,13 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     setUpdating('');
     if (!res || !res.ok) {
       var data = res ? await res.json().catch(function() { return {}; }) : {};
-      window.alert(data.error || 'Reminder could not be sent. Check that this task has a participant email.');
+      var missingRecipient = data.error && /participant email/i.test(data.error);
+      setActionFeedback(missingRecipient
+        ? 'Assign this task to someone with an email before sending a reminder. Passage saved that this needs follow-up.'
+        : (data.error || 'Reminder could not be sent. Check that this task has a participant email.'));
       return;
     }
+    setActionFeedback('Reminder sent and saved in the estate record.');
     if (onRefresh) onRefresh();
   }
 
@@ -1263,7 +1267,7 @@ function miniBtn(bg, color, border) {
   return { border: '1px solid ' + border, background: bg, color: color, borderRadius: 12, padding: '10px 12px', minHeight: 42, fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' };
 }
 
-function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, communicationCenter, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, communicationCenter, initialTaskId, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
   var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
   var queue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
@@ -1274,6 +1278,17 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
     if (queue.length === 0 && selectedIndex !== 0) setSelectedIndex(0);
     if (queue.length > 0 && selectedIndex > queue.length - 1) setSelectedIndex(queue.length - 1);
   }, [queue.length, selectedIndex]);
+  var queueKey = queue.map(function(entry) { return entry.kind + ':' + (entry.item && entry.item.id ? entry.item.id : ''); }).join('|');
+  useEffect(function() {
+    if (!initialTaskId || !queueKey) return;
+    var targetIndex = queue.findIndex(function(entry) {
+      return String(entry.item && entry.item.id ? entry.item.id : '') === String(initialTaskId);
+    });
+    if (targetIndex >= 0 && targetIndex !== selectedIndex) {
+      setSelectedIndex(targetIndex);
+      setActiveTab('now');
+    }
+  }, [initialTaskId, queueKey]);
   var current = queue[selectedIndex] || null;
   var waiting = openTasks.filter(function(t) { return ['waiting', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
   var needsOwner = openOutcomes.filter(function(o) { return !o.owner_label; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
@@ -1588,6 +1603,7 @@ function ProofPanel({ actions, tasks, events }) {
 export default function EstatePage() {
   var params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   var estateId = params.get('id') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('passage_last_estate_id') : null);
+  var initialTaskId = params.get('task') || '';
 
   var s0 = useState(null); var estate = s0[0]; var setEstate = s0[1];
   var s1 = useState([]); var outcomes = s1[0]; var setOutcomes = s1[1];
@@ -2170,6 +2186,7 @@ export default function EstatePage() {
           actions={actions}
           people={people}
           communicationCenter={communicationCenter}
+          initialTaskId={initialTaskId}
           onOpenOutcome={openOutcomeFromCommand}
           onAssignOutcome={assignOutcomeFromCommand}
           onOutcomeHandled={recordOutcomeHandled}
