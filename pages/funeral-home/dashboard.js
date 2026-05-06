@@ -50,6 +50,7 @@ export default function FuneralHomeDashboard() {
   const [creating, setCreating] = useState(false);
   const [taskDraft, setTaskDraft] = useState(null);
   const [taskDraftNote, setTaskDraftNote] = useState('');
+  const [activePartnerView, setActivePartnerView] = useState('work');
   const casePanelRef = useRef(null);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
@@ -302,10 +303,12 @@ export default function FuneralHomeDashboard() {
   const totalVendorRequests = cases.reduce((sum, item) => sum + (item.vendorRequests?.length || 0), 0);
   const totalVendorValue = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.final_value || request.estimated_value || 0), 0), 0);
   const funeralHomeShare = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.funeral_home_share_amount || 0), 0), 0);
-  const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to || t.owner_name || t.participant_id).length, 0);
+  const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to_email || t.assigned_to_name || t.owner_name || t.participant_id).length, 0);
   const callsAvoided = totalCommunications + assignmentsCoordinated + totalVendorRequests;
   const timeSavedMinutes = callsAvoided * 8;
   const timeSavedLabel = callsAvoided > 0 ? `${Math.max(1, Math.round(timeSavedMinutes / 60))} hr est.` : 'None yet';
+  const reports = data?.reports || {};
+  const partnerStaff = data?.staff || [];
   const glanceItems = [
     ['Active cases', cases.length],
     ['Tasks handled by Passage', totalHandled],
@@ -346,6 +349,15 @@ export default function FuneralHomeDashboard() {
     .map(item => ({ caseItem: item, task: item.nextPartnerTask || (item.partnerTasks || []).find(t => !['handled', 'completed'].includes(t.status || '')) || (item.tasks || []).find(t => !['handled', 'completed'].includes(t.status || '')) }))
     .filter(row => row.task)
     .slice(0, 4);
+
+  function money(value) {
+    return `$${Math.round(Number(value || 0)).toLocaleString()}`;
+  }
+
+  function roleLabel(role) {
+    const clean = String(role || 'staff').replace(/_/g, ' ');
+    return clean.charAt(0).toUpperCase() + clean.slice(1);
+  }
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -458,7 +470,22 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data && caseInbox.length > 0 && (
+        {user && !loading && data && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 12, marginBottom: 18, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            {[
+              ['work', 'Case work', 'Move next tasks'],
+              ['staff', 'Staff work', 'Roles and assigned work'],
+              ['reports', 'Reports', 'ROI by location and employee'],
+            ].map(([key, title, body]) => (
+              <button key={key} onClick={() => setActivePartnerView(key)} style={{ flex: '1 1 190px', textAlign: 'left', border: `1px solid ${activePartnerView === key ? C.sage : C.border}`, background: activePartnerView === key ? C.sage : C.bg, color: activePartnerView === key ? '#fff' : C.ink, borderRadius: 14, padding: '12px 14px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
+                <div style={{ fontSize: 15, fontWeight: 900 }}>{title}</div>
+                <div style={{ fontSize: 11.5, opacity: .78, marginTop: 2 }}>{body}</div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {user && !loading && data && activePartnerView === 'work' && caseInbox.length > 0 && (
           <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
               <div>
@@ -480,6 +507,79 @@ export default function FuneralHomeDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {user && !loading && data && activePartnerView === 'staff' && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Staff operating spine</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>Directors manage the whole floor. Employees work their queue.</div>
+              </div>
+              <div style={{ color: C.mid, fontSize: 12.5 }}>Role scoping uses the same task proof and communication spine.</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+              {(partnerStaff.length ? partnerStaff : [{ email: user?.email, role: 'director', scope: 'all_cases', assignedOpen: 0, handled: totalHandled, waiting: totalWaiting, blocked: totalBlocked }]).map(member => (
+                <div key={`${member.organization_id || 'org'}_${member.email || member.role}`} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 13 }}>
+                  <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{member.email || 'Invited staff member'}</div>
+                  <div style={{ color: C.sage, fontSize: 11.5, fontWeight: 900, marginTop: 3 }}>{roleLabel(member.role)} - {member.scope === 'all_cases' ? 'Can see cases and reports' : 'Assigned work first'}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 10 }}>
+                    {[
+                      ['Open', member.assignedOpen || 0],
+                      ['Handled', member.handled || 0],
+                      ['Waiting', member.waiting || 0],
+                    ].map(([label, value]) => (
+                      <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '7px 8px' }}>
+                        <div style={{ color: C.soft, fontSize: 9, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 900 }}>{label}</div>
+                        <div style={{ fontSize: 17 }}>{value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {member.blocked > 0 && <div style={{ color: C.rose, fontSize: 12, fontWeight: 900, marginTop: 8 }}>{member.blocked} blocked item{member.blocked === 1 ? '' : 's'}</div>}
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.5 }}>
+              Next schema hardening: add explicit employee permissions for <strong>all cases</strong>, <strong>location cases</strong>, or <strong>assigned tasks only</strong>. The UI is ready to express that model without making funeral-home staff use the family participant page.
+            </div>
+          </div>
+        )}
+
+        {user && !loading && data && activePartnerView === 'reports' && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>ROI and operations</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>Show where Passage is saving work.</div>
+              </div>
+              <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '9px 12px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export report CSV</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8, marginBottom: 12 }}>
+              {[
+                ['Calls avoided', reports.callsAvoided ?? callsAvoided],
+                ['Avg tasks / estate', reports.avgTasksPerEstate ?? (cases.length ? Math.round((cases.reduce((sum, item) => sum + item.tasks.length, 0) / cases.length) * 10) / 10 : 0)],
+                ['Marketplace value', money(reports.marketplace?.estimatedValue ?? totalVendorValue)],
+                ['Partner share', money(reports.marketplace?.funeralHomeShare ?? funeralHomeShare)],
+              ].map(([label, value]) => (
+                <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
+                  <div style={{ color: C.sage, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
+                  <div style={{ color: C.ink, fontSize: 20, marginTop: 3 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+              <ReportTable
+                title="By location"
+                columns={['Location', 'Cases', 'Handled', 'Waiting', 'Calls']}
+                rows={(reports.byLocation || []).map(row => [row.location, row.cases, row.handledTasks, row.waitingTasks + row.blockedTasks, row.callsAvoided])}
+              />
+              <ReportTable
+                title="By employee"
+                columns={['Employee', 'Role', 'Open', 'Handled', 'Waiting']}
+                rows={(reports.byEmployee || []).map(row => [row.email || 'Unassigned', roleLabel(row.role), row.openTasks, row.handledTasks, row.waitingTasks])}
+              />
             </div>
           </div>
         )}
@@ -610,7 +710,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && cases.length > 0 && (
+        {user && activePartnerView === 'work' && cases.length > 0 && (
           <>
           {isMultiLocation && (
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 12 }}>
@@ -824,5 +924,35 @@ export default function FuneralHomeDashboard() {
       </section>
       <SiteFooter />
     </main>
+  );
+}
+
+function ReportTable({ title, columns, rows }) {
+  return (
+    <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, overflowX: 'auto' }}>
+      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>{title}</div>
+      {rows.length === 0 ? (
+        <div style={{ color: C.mid, fontSize: 12.5 }}>No report rows yet. Data appears here as tasks are assigned, handled, and logged.</div>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <thead>
+            <tr>
+              {columns.map(column => (
+                <th key={column} style={{ textAlign: 'left', color: C.soft, padding: '6px 7px', borderBottom: `1px solid ${C.border}`, fontWeight: 900 }}>{column}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => (
+              <tr key={index}>
+                {row.map((cell, cellIndex) => (
+                  <td key={`${index}_${cellIndex}`} style={{ color: cellIndex === 0 ? C.ink : C.mid, padding: '7px', borderBottom: `1px solid ${C.border}`, fontWeight: cellIndex === 0 ? 900 : 400 }}>{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   );
 }

@@ -2,6 +2,7 @@
 
 ## Now (May 4-May 6, 2026)
 
+- Round 14 ironclad spine pass: make funeral-home work, staff roles, and reporting visible from the same task/audit data; see `docs/ironclad-operating-spine-roadmap.md`.
 - Post-simplification QA sweep (0d2bc3a..11902d0): command center hierarchy + nav, wishes save, comms center parity; no dead ends.
 - Stop-the-line regressions: estate persistence, invite confirmation, partner case creation/load, task action feedback (no "Confirmed" without proof).
 - Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
@@ -10,6 +11,10 @@
 
 ## Next
 
+- Build shared `TaskActionModal` so family, participant, funeral-home staff, and vendor-adjacent task surfaces use the same assign/send/proof/waiting/help/handled interaction.
+- Add participant and funeral-home employee onboarding reliability: assignment notifications land on a role-appropriate work page with one clear action.
+- Productize Tier 1 outputs: obituary draft, funeral-home packet, family notification set, clergy outreach, bank/government packets, executor summary, and home/assets checklist.
+- Turn system-admin demo into a one-step-at-a-time guided sales studio with dummy-only data and a stronger prospect narrative.
 - Tighten and freeze the 15-minute funeral home demo script + objection answers (doc-only until owner approves outreach).
 - Produce a one-page pilot handout (offer terms placeholders; no pricing changes).
 - Map top red-path tasks into automated / assisted / guided-manual tiers; list proof required + follow-up loop for each.
