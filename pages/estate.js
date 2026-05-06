@@ -1138,9 +1138,12 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
       setActionFeedback(data.error || 'This update could not be saved. Please try again.');
       return;
     }
-    setActionFeedback(status === 'handled'
+    var saved = await res.json().catch(function() { return {}; });
+    setActionFeedback(saved.confirmation || (status === 'handled'
       ? "That proof is saved. That's taken care of."
-      : "Needs help is saved. We'll keep this visible.");
+      : status === 'waiting'
+        ? 'Waiting update saved. Passage will keep this visible.'
+        : "Needs help is saved. We'll keep this visible."));
     if (onRefresh) onRefresh();
   }
 
@@ -1319,7 +1322,18 @@ function miniBtn(bg, color, border) {
 function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, communicationCenter, initialTaskId, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
   var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
-  var queue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
+  var openQueue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
+  var allQueue = (tasks || []).map(function(task) { return { kind: 'task', item: task }; }).concat((outcomes || []).map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
+  var focusedEntry = initialTaskId ? (openQueue.find(function(entry) {
+    return String(entry.item && entry.item.id ? entry.item.id : '') === String(initialTaskId);
+  }) || allQueue.find(function(entry) {
+    return String(entry.item && entry.item.id ? entry.item.id : '') === String(initialTaskId);
+  })) : null;
+  var queue = focusedEntry
+    ? [focusedEntry].concat(openQueue.filter(function(entry) {
+      return !(entry.kind === focusedEntry.kind && String(entry.item && entry.item.id ? entry.item.id : '') === String(focusedEntry.item && focusedEntry.item.id ? focusedEntry.item.id : ''));
+    }))
+    : openQueue;
   var selectedState = useState(0);
   var selectedIndex = selectedState[0];
   var setSelectedIndex = selectedState[1];
@@ -1339,6 +1353,7 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
     }
   }, [initialTaskId, queueKey]);
   var current = queue[selectedIndex] || null;
+  var openedFromTaskLink = Boolean(initialTaskId && current && String(current.item && current.item.id ? current.item.id : '') === String(initialTaskId));
   var waiting = openTasks.filter(function(t) { return ['waiting', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
   var needsOwner = openOutcomes.filter(function(o) { return !o.owner_label; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
   var recent = (communicationCenter && communicationCenter.length ? communicationCenter : [].concat(events || [], actions || [])).slice(0, 8);
@@ -1382,6 +1397,11 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
               </div>
               <div style={{ fontSize: 22, color: INK, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(current.item)}</div>
               <div style={{ fontSize: 15, color: MID, lineHeight: 1.5, marginTop: 8 }}>{displayTaskNext(current.item)}</div>
+              {openedFromTaskLink && (
+                <div style={{ display: 'inline-flex', marginTop: 10, color: SAGE, background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>
+                  Opened from My estate
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 16 }}>
                 {current.kind === 'outcome' ? (
                   <>
@@ -1902,11 +1922,12 @@ export default function EstatePage() {
       showToast(data.error || 'This update could not be saved.');
       return;
     }
+    var saved = await response.json().catch(function() { return {}; });
     var now = new Date().toISOString();
     var localUpdate = {
       id: 'local_status_' + task.id + '_' + Date.now(),
       title: taskActionCopy(status).detail,
-      detail: displayTaskTitle(task) + ': ' + note,
+      detail: saved.eventDetail || (displayTaskTitle(task) + ': ' + note),
       status: statusText(status),
       at: now,
       tone: status === 'handled' ? 'good' : status === 'blocked' ? 'warn' : 'soft'
@@ -1916,7 +1937,7 @@ export default function EstatePage() {
     setPendingTaskAction(null);
     setPendingTaskNote('');
     setPendingTaskDraftText('');
-    showToast(taskActionConfirmation(status, task, 'family'));
+    showToast(saved.confirmation || taskActionConfirmation(status, task, 'family'));
   }
 
   function recordPrepEvent(detail) {

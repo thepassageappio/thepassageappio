@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { recordStatusEvent } from '../../lib/taskStatus';
 import { isPassageAdmin } from '../../lib/adminAccess';
+import { taskActionConfirmation } from '../../lib/taskActions';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -120,7 +121,14 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ success: true, emailSent, statusResult });
+    return res.status(200).json({
+      success: true,
+      emailSent,
+      statusResult,
+      status: 'handled',
+      confirmation: taskActionConfirmation('handled', task, 'funeral_home'),
+      eventDetail: detail,
+    });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Could not handle this task for the family.' });
   }

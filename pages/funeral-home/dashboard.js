@@ -162,7 +162,7 @@ export default function FuneralHomeDashboard() {
             partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
           })),
         } : prev);
-        setNotice(taskActionConfirmation(status, task, 'funeral_home'));
+        setNotice(json.confirmation || taskActionConfirmation(status, task, 'funeral_home'));
         setTaskDraft(null);
         setTaskDraftNote('');
         await load(token);
@@ -205,7 +205,7 @@ export default function FuneralHomeDashboard() {
         } : prev);
         setTaskDraft(null);
         setTaskDraftNote('');
-        setNotice('Handled for the family. The family can see exactly what your team recorded.');
+        setNotice(json.confirmation || 'Handled for the family. The family can see exactly what your team recorded.');
         await load(token);
       }
     } finally {

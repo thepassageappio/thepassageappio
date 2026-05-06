@@ -1,6 +1,7 @@
 import { verifyDeliveryRequest } from '../../../../lib/deliveryAuth';
 import { serviceSupabase, isUuid, recordStatusEvent } from '../../../../lib/taskStatus';
 import { isPassageAdmin } from '../../../../lib/adminAccess';
+import { taskActionConfirmation, taskActionOutcomeStatus } from '../../../../lib/taskActions';
 
 const allowedStatuses = new Set(['waiting', 'acknowledged', 'handled', 'blocked', 'not_applicable']);
 const allowedChannels = new Set(['email', 'sms', 'call', 'website', 'record', 'participant']);
@@ -78,7 +79,8 @@ export default async function handler(req, res) {
   if (status === 'handled') updates.completed_at = now;
   if (status === 'acknowledged') updates.acknowledged_at = now;
   if (typeof notes === 'string') updates.notes = notes.trim();
-  if (outcomeStatus) updates.outcome_status = outcomeStatus;
+  const resolvedOutcomeStatus = outcomeStatus || taskActionOutcomeStatus(status);
+  if (resolvedOutcomeStatus) updates.outcome_status = resolvedOutcomeStatus;
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
   updates.updated_at = now;
 
@@ -89,6 +91,7 @@ export default async function handler(req, res) {
     .eq('workflow_id', task.workflow_id);
   if (updateError) return res.status(500).json({ error: updateError.message });
 
+  const detailText = detail || `${task.title} - ${status.replace(/_/g, ' ')}`;
   const result = await recordStatusEvent({
     workflowId: task.workflow_id,
     taskId: isUuid(taskId) ? taskId : null,
@@ -96,8 +99,20 @@ export default async function handler(req, res) {
     actor: actor || auth.user?.email || 'Passage',
     channel: channel || 'record',
     recipient: recipient || task.assigned_to_name || task.assigned_to_email || null,
-    detail: detail || `${task.title} - ${status.replace(/_/g, ' ')}`,
+    detail: detailText,
   });
 
-  return res.status(200).json({ success: true, result });
+  return res.status(200).json({
+    success: true,
+    result,
+    task: {
+      id: task.id,
+      workflowId: task.workflow_id,
+      title: task.title,
+      status,
+      outcomeStatus: resolvedOutcomeStatus,
+    },
+    confirmation: taskActionConfirmation(status, task, auth.source === 'internal' ? 'system' : 'family'),
+    eventDetail: detailText,
+  });
 }

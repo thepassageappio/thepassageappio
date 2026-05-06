@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { normalizeTaskAction, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionStatus } from '../../lib/taskActions';
+import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionStatus } from '../../lib/taskActions';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -171,7 +171,14 @@ export default async function handler(req, res) {
       notes: trimmed,
     });
 
-    return res.status(200).json({ success: true, item: data });
+    return res.status(200).json({
+      success: true,
+      item: data,
+      action: normalizedAction,
+      status: data.status || 'in_progress',
+      confirmation: taskActionConfirmation('save_note', data, 'participant'),
+      eventDetail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - note saved',
+    });
   }
 
   const status = taskActionStatus(action) || 'needs_review';
@@ -231,5 +238,12 @@ export default async function handler(req, res) {
     taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
     notes: typeof notes === 'string' ? notes.trim() : '',
   });
-  return res.status(200).json({ success: true, item: data });
+  return res.status(200).json({
+    success: true,
+    item: data,
+    action: normalizedAction,
+    status,
+    confirmation: taskActionConfirmation(action, data, 'participant'),
+    eventDetail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + normalizedAction.replace(/_/g, ' '),
+  });
 }

@@ -271,8 +271,8 @@ export default function ParticipatingPage() {
               communicationCenter: [
                 {
                   id: 'local-' + kind + '-' + id + '-' + Date.now(),
-                  title: action === 'save_note' ? 'Note saved' : actionConfirmation(action).replace(/\.$/, ''),
-                  detail: note || 'Saved in Passage.',
+                  title: action === 'save_note' ? 'Note saved' : (json.confirmation || actionConfirmation(action)).replace(/\.$/, ''),
+                  detail: json.eventDetail || note || 'Saved in Passage.',
                   at: new Date().toISOString(),
                   statusLabel: nextStatus || 'saved',
                 },
@@ -283,7 +283,7 @@ export default function ParticipatingPage() {
         };
       });
     }
-    setActionNotice(r.ok ? actionConfirmation(action) + ' Passage is tracking this for the coordinator.' : (json.error || 'Passage could not save that update. Please try again.'));
+    setActionNotice(r.ok ? (json.confirmation || actionConfirmation(action)) + ' Passage is tracking this for the coordinator.' : (json.error || 'Passage could not save that update. Please try again.'));
     await load(token);
   }
 
