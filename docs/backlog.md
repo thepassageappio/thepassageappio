@@ -2,7 +2,9 @@
 
 ## Now (May 4-May 6, 2026)
 
-- Round 14 ironclad spine pass: make funeral-home work, staff roles, and reporting visible from the same task/audit data; see `docs/ironclad-operating-spine-roadmap.md`.
+- Round 14 ironclad spine pass: treat `docs/ironclad-operating-spine-roadmap.md` as the readiness contract for families, participants, funeral homes, funeral-home staff, vendors, Passage system admins, messaging, permissions, demo, and task orchestration.
+- Sprint 2 entry point: build the shared task action spine so assigned/unassigned tasks route through the same assign, send, proof, waiting, help, output, and audit behavior across every persona.
+- Public trust/demo blockers from external QA: SSR-visible landing hero, simpler mobile nav, clearer `Participant` label, privacy/terms destinations after owner-approved legal copy, funeral-home tier CTAs with visible fallback, feature tab smoke tests, and urgent flow reduced back to one action at a time.
 - Post-simplification QA sweep (0d2bc3a..11902d0): command center hierarchy + nav, wishes save, comms center parity; no dead ends.
 - Stop-the-line regressions: estate persistence, invite confirmation, partner case creation/load, task action feedback (no "Confirmed" without proof).
 - Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
@@ -13,9 +15,16 @@
 
 - Build shared `TaskActionModal` so family, participant, funeral-home staff, and vendor-adjacent task surfaces use the same assign/send/proof/waiting/help/handled interaction.
 - Add participant and funeral-home employee onboarding reliability: assignment notifications land on a role-appropriate work page with one clear action.
+- Rebuild `My estate` as an estate index plus per-estate command center tabs: Today, Tasks, People, Events, Documents and outputs, Obituary and wishes, Messages, Audit.
 - Productize Tier 1 outputs: obituary draft, funeral-home packet, family notification set, clergy outreach, bank/government packets, executor summary, and home/assets checklist.
+- Add communication command center: task messages, family/funeral-home updates, vendor/cemetery/clergy threads, and internal funeral-home staff notes must all write to one visible event/message spine.
+- Restore urgent path crisis posture: triage first, authority second, only minimum save fields third, no empty progress dashboard as first impression, and no sign-in wall before a useful first-step plan.
+- Add B2B closed-loop pilot gate: funeral home creates case -> family command center opens -> funeral home acts on behalf -> family sees proof -> export/report works.
 - Turn system-admin demo into a one-step-at-a-time guided sales studio with dummy-only data and a stronger prospect narrative.
 - Clean up the public guide unlock page: move the email/name/guide selector into the locked article module so the page reads as one contained "pick guide -> unlock article" action instead of a floating form plus disconnected locked preview.
+- Fix vendor admin/provisioning loop: submitted applications load, system admin approves/declines, approved vendors get profile setup and vendor-owned dashboard access.
+- Define funeral-home staff role UX: director/admin, location manager, and employee dashboards with location/assigned-work scope and reporting.
+- Add ROI/reporting fields plan: case value, location, employee, tasks completed, time saved, marketplace revenue share, and CSV exports.
 - Tighten and freeze the 15-minute funeral home demo script + objection answers (doc-only until owner approves outreach).
 - Produce a one-page pilot handout (offer terms placeholders; no pricing changes).
 - Map top red-path tasks into automated / assisted / guided-manual tiers; list proof required + follow-up loop for each.

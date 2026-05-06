@@ -11,6 +11,88 @@ Round 14 QA showed that Passage is functional but still asks users and prospects
 
 This roadmap is sequenced so each sprint makes the current product more trustworthy without pretending deeper schema or compliance work is already complete.
 
+## Readiness Contract
+
+Passage is not customer-ready until every actor below has a clear home, a clear next action, role-appropriate visibility, and a reliable way to record proof.
+
+Actors that must be covered:
+
+- Direct family coordinator: creates or activates an estate, sees one next task, invites helpers, records proof, and sees progress.
+- Family using Passage through a funeral home: lands in a calm co-branded command center, sees what the funeral home is handling, and can answer family-needed requests without feeling abandoned.
+- Participant/helper: receives a direct invite, understands why they were asked, acts on one responsibility, and sees their own completed/pending task history.
+- Funeral home director/admin: sees all cases, staff, locations, reports, family communications, and vendor loops.
+- Funeral home location manager: sees location-scoped cases, staff work, reports, and escalations.
+- Funeral home staff/employee: sees assigned work only by default, can communicate, record proof, request family info, and mark work with audit.
+- Vendor admin/user: sees approved profile setup, incoming task-native requests, quote/status workflow, and family/funeral-home-visible updates.
+- Passage system admin: sees demo studio, vendor approval, system QA surfaces, and no real-family demo leakage.
+
+Every actor path must answer:
+
+- What do I do now?
+- Who owns this?
+- What happens when I click the button?
+- Who gets notified?
+- Where does the proof or output appear?
+- How can the next person see the same truth?
+
+## Unified Spine Contract
+
+Every workflow feature must reuse this spine instead of creating persona-specific one-offs.
+
+- Estate/case: the container for people, tasks, events, documents, messages, vendors, value, and audit.
+- Task: the atomic unit of responsibility. It has an owner, status, execution mode, proof requirement, optional output, and next action.
+- Assignment: who owns the task, whether they are family, participant, funeral-home staff, vendor, or system.
+- Communication: email, SMS, copied message, in-app message, or future chat. It must have recipient, actor, channel, timestamp, status, and fallback.
+- Proof: note, confirmation number, uploaded document placeholder, message receipt, task output, vendor status, or system event.
+- Output: generated packet, template, script, message set, checklist, or export. If a task says automated or assisted, it must produce one.
+- Event: funeral/memorial/shiva/service/meeting item visible inside the estate, not stranded in a task footer.
+- Vendor request: task-native request with sent, viewed, quoted, accepted, in-progress, completed, or declined state.
+- Report: derived from the above, never invented by dashboard copy.
+
+If a feature cannot use this spine, it should be treated as a design smell and reviewed before implementation.
+
+## Role and Permission Contract
+
+Near-term UI may derive permissions from existing data, but the roadmap must converge on these durable rules.
+
+| Role | Can see | Can assign | Can send | Can complete | Can report |
+| --- | --- | --- | --- | --- | --- |
+| Passage system admin | Demo, vendor admin, all QA/admin surfaces | Demo/system only unless explicitly acting in test | Demo/system only unless approved | Demo/system QA | All system/admin reports |
+| Funeral home director/admin | All org locations, cases, staff, reports | Any org case/staff/vendor request | Family/staff/vendor communications | Any org task with audit | Org/location/employee/revenue reports |
+| Location manager | Assigned location cases and staff | Location staff/cases | Location communications | Location tasks | Location reports |
+| Funeral home staff | Assigned cases/tasks by default | Only if granted | Task-related communications | Assigned tasks | Own work summary |
+| Family coordinator | Own estate/case | Family participants/vendors where allowed | Family/participant/vendor messages | Family-owned tasks | Estate progress summary |
+| Participant/helper | Assigned responsibilities | No, unless promoted | Reply/update assigned task | Assigned task only | Own task history |
+| Vendor admin/user | Own vendor profile and requests | Internal vendor staff later | Request updates/quotes | Vendor request status | Vendor request/revenue summary |
+
+Permission failures should route to the right next action, not a blank page or browser alert.
+
+## Automation Honesty Contract
+
+Task labels must be earned:
+
+- Fully automated: Passage can create/send/log/follow up with minimal user intervention, and the user sees proof.
+- Assisted execution: Passage creates the packet, message, script, or vendor request, and the user approves or completes the final external step.
+- Guided manual: Passage explains what to do and captures proof, but does not produce an output or send anything.
+
+No task may be labeled automated unless it produces a visible artifact, sent communication, tracked request, or follow-up event.
+
+## Current Known Gaps
+
+These are not failures to hide. They are the work queue until fixed and QA-passed:
+
+- Public landing/nav/footer still need demo-grade trust polish: no SSR blank hero fallback, fewer mobile nav decisions, clearer label than `Participant`, and visible privacy/terms links before B2B demos.
+- Urgent flow has drifted away from the one-action crisis spec. The triage logic is good, but too many controls are visible at once and the progress sidebar reads empty before the user has context.
+- The task action UI is still not fully shared everywhere.
+- Proof attachments are placeholder-level, not storage-backed.
+- Funeral-home employee permissions are visible but not yet fully schema-enforced.
+- Vendor approval/profile/request status exists in pieces and needs a stronger provisioning loop.
+- Demo studio is separate, but the guided story needs to expose only the active step and stay dummy-only.
+- Estate-level public planning slots and estate-file modules still need to move into a cleaner per-estate tab model.
+- Guide unlock UI is awkward and belongs in the locked guide card/module.
+- Reporting is useful but still derived from imperfect existing fields; case value and marketplace share need durable fields before pilot-grade ROI.
+- The funeral-home marketing page is strong, but demo trust depends on all tier CTAs having a visible fallback, dashboard access being smoke-tested, feature tabs visibly changing, and the closed loop being demonstrable.
+
 ## Sprint 1: Funeral Home Operating Spine Visibility
 
 Goal: Make the current B2B operating model visible immediately.
@@ -28,7 +110,7 @@ Acceptance:
 - Employee work is no longer implied by the family participant page.
 - Reporting is clearly derived from real logged tasks, communications, assignments, and vendor requests.
 
-Status: in progress.
+Status: shipped as a first visibility slice. Needs QA against director, location manager, staff, and multi-location expectations before being called pilot-ready.
 
 ## Sprint 2: Shared Task Action Modal
 
@@ -54,6 +136,16 @@ Acceptance:
 - A user does not need to learn a different task UI by persona.
 - A task marked handled shows what happened, who recorded it, and when.
 - A waiting task shows who/what it is waiting on.
+- If a recipient is missing, the user is prompted to assign or add one before sending.
+- If a recipient exists, the user can send through Passage, CC the coordinator where appropriate, and see the message in the estate communication/audit center.
+- Generated task outputs are saved or visibly attached to the task/estate support area.
+
+Demo blockers included in this sprint:
+
+- `Send reminder` can never show a browser alert dead-end. Missing recipient must open the assignment step.
+- `Send through Passage` must be visible when a task has an assigned recipient and must create an estate communication/audit event.
+- Assigned clergy, funeral-home, family, and participant tasks use the same send/proof/waiting/help workflow.
+- Task output workspaces, such as obituary or packets, must make clear whether the user is drafting, sending, downloading, or marking done.
 
 ## Sprint 3: Participant and Staff Onboarding Reliability
 
@@ -71,6 +163,14 @@ Acceptance:
 - Invited participant can explain their responsibility in 30 seconds.
 - Invited funeral-home employee can see assigned work without seeing unrelated family/private areas.
 - All notification sends and failures are logged.
+- Participant and staff completed/pending history is visible without hunting through unrelated pages.
+- Confirmation-contact tasks explain what confirming death means and what orchestration it triggers before a user can mark handled.
+
+Closed-loop requirements:
+
+- Family creates/activates estate -> participant receives invite -> participant lands on task -> participant acts -> family sees update.
+- Funeral home creates case -> family receives link -> family sees command center -> funeral home handles work -> family sees proof/update.
+- Funeral home assigns employee -> employee lands in staff work -> employee acts -> director sees update.
 
 ## Sprint 4: Tier 1 Output Generation
 
@@ -92,6 +192,8 @@ Acceptance:
 - Every task labeled automated or assisted produces a visible artifact, message, packet, script, or tracked request.
 - Tasks that cannot produce an artifact are labeled guided manual.
 - The task list never overstates automation.
+- Obituary, clergy outreach, family notification, funeral-home prep, bank/government/executor packets, event notices, and home/assets actions use the same task workspace pattern.
+- Outputs can be copied, downloaded, sent, or saved as draft where appropriate.
 
 ## Sprint 5: Vendor and Marketplace Response Loop
 
@@ -110,6 +212,9 @@ Acceptance:
 - Vendors never appear as a generic directory.
 - Family and funeral home can see status without calling around.
 - Admin can explain how vendor access is provisioned.
+- A vendor application can move from submitted to approved/declined to profile setup without blank admin pages.
+- Approved vendors land in a vendor-owned setup/dashboard path, not a family participant path.
+- Vendor admin is system-admin only, loads a meaningful empty state, and explains the provisioned-user path.
 
 ## Sprint 6: Linear Sales Demo Studio
 
@@ -139,6 +244,20 @@ Acceptance:
 - A serious prospect can follow the story in 10-12 minutes.
 - The demo never touches real estates.
 - The demo makes workload reduction obvious.
+- Only the current demo step is visually dominant; inactive steps are collapsed or hidden.
+- The coach overlay tells the Passage seller what to say, what to click, and what pain the screen proves.
+- Demo employees, demo families, demo vendors, demo messages, and demo reports are all dummy data.
+
+The demo must explicitly prove:
+
+- Funeral home creates a case.
+- Family receives or opens their command center.
+- Funeral-home staff is assigned a task.
+- Staff/funeral home sends a message or request through Passage.
+- Family/participant/vendor sees the right role-specific view.
+- A task output is produced.
+- A report/ROI metric changes.
+- CSV/export proves Passage does not trap data.
 
 ## Sprint 6A: Public Content and Guide Unlock Polish
 
@@ -158,6 +277,29 @@ Acceptance:
 - The unlock module does not feel like a separate lead form pasted onto the page.
 - Public content pages match the calmer command-center polish.
 
+## Sprint 6B: Public Trust and Urgent Flow Regression Fix
+
+Goal: Restore first-impression trust before any B2B or family demo.
+
+Must ship:
+
+- Landing hero has an SSR-safe visible fallback; no slow-connection blank hero.
+- Mobile nav is simplified. `Participant` becomes a clearer label such as `My tasks` or is moved behind authenticated context.
+- Footer includes visible privacy and terms destinations after owner-approved legal copy exists.
+- Urgent path returns to one primary action at a time:
+  - first ask what happened
+  - then authority
+  - then minimum details needed for the command center
+  - then save/open without making sign-in feel like a wall
+- Empty dashboard metrics are hidden from the urgent first impression until they carry meaning.
+- `Choose what happened first` appears before the triage choices, not after the form.
+
+Acceptance:
+
+- A crisis user sees exactly one obvious first action within 3 seconds.
+- No urgent screen shows empty progress as the first impression.
+- A funeral-home prospect sees public trust signals before being asked to sign in or pay.
+
 ## Sprint 7: Role and Data Hardening
 
 Goal: Convert derived UI concepts into durable permission and reporting primitives.
@@ -175,12 +317,86 @@ Likely schema work, requiring owner approval:
   - `actual_case_value`
   - `payment_status`
   - `marketplace_revenue_share`
+- Communication/event/thread hardening:
+  - `message_threads`
+  - `message_thread_participants`
+  - `message_events`
+  - `estate_events`
+  - `task_outputs`
 
 Acceptance:
 
 - Staff permissions are enforced by data, not only UI.
 - Reporting by location, employee, and case value is reliable enough for pilots.
 - Upload/proof artifacts are attached to tasks and visible in the estate document/support area.
+
+## Sprint 8: Communication Command Center
+
+Goal: Make family, funeral home, participant, and vendor communication feel like one coordinated truth instead of scattered task notes.
+
+Must ship:
+
+- Estate communication center with filtered threads:
+  - family and funeral home
+  - family and cemetery/vendor
+  - family, religious leader, and funeral home
+  - internal funeral-home staff
+- Task messages create communication events automatically.
+- Every sent message links back to task, actor, recipients, and status.
+- Family/funeral-home views show the same thread state with role-appropriate detail.
+
+Acceptance:
+
+- A funeral-home director can send or review a task message and see it in the estate communication center.
+- A family can understand who was contacted and what is waiting.
+- No message is trapped only inside a task modal.
+- Coordinator/family CC rules are explicit: when a funeral home or staff member sends a family-facing task message, the coordinator can see the sent copy and audit trail.
+
+## Sprint 9: Estate Command Center Rebuild
+
+Goal: Make `My estate` and each individual estate feel like a true command center, not a long task page.
+
+Must ship:
+
+- Estate index shows each estate with status: planning, active after-death orchestration, completed/archived, percent ready/handled, and next action.
+- Clicking an estate opens the estate, not a random unrelated task.
+- Estate detail has clear tabs:
+  - Today
+  - Tasks
+  - People
+  - Events
+  - Documents and outputs
+  - Obituary and wishes
+  - Messages
+  - Audit
+- Main pane shows one current task with next/previous controls.
+- Side pane groups tasks by time horizon: first 24 hours, next 72 hours, first week, first month, later.
+
+Acceptance:
+
+- The page does not become an endless scroll.
+- Wishes, obituary, events, proof, documents, and communications live in predictable tabs.
+- A user can move from estate index to exact task context without losing orientation.
+
+## Sprint 10: B2B Closed-Loop Pilot Gate
+
+Goal: Prove the funeral-home loop end to end before serious prospect demos.
+
+Must ship:
+
+- Public funeral-home pricing CTAs route to a visible next step for unauthenticated prospects and do not feel dead.
+- Feature tabs are browser-tested and each tab changes visible content.
+- Partner dashboard loads behind auth and has a graceful signed-out path.
+- Case creation saves a real partner case in non-demo mode.
+- Family link opens the correct family command center.
+- Act-on-behalf updates are visible to the family and written to audit.
+- Email delivery is verified as the default channel; SMS is shown as approved/pending/fallback honestly.
+
+Acceptance:
+
+- A 12-minute funeral-home demo can show the loop without hand-waving.
+- If SMS is not fully approved, the product says email fallback is the verified channel instead of implying SMS certainty.
+- No demo CTA hits a dead end.
 
 ## Confidence Rule
 
@@ -203,3 +419,16 @@ Each pass must verify:
 - State changes visibly.
 - Audit/proof appears.
 - The user knows what to do next.
+
+## QA Gate After Every Sprint
+
+Before moving to the next sprint:
+
+- Local build must pass.
+- No new TypeScript/ESLint-blocking errors.
+- Production green deployment must be identified before live QA.
+- At least one smoke path per actor must be checked.
+- Any dead button, blank page, browser alert dead-end, or silent action becomes P0 for the next patch.
+- If a path is not fully verified, report it as unverified instead of calling it fixed.
+- Public route smoke list must include `/`, `/urgent`, `/content`, `/funeral-home`, `/funeral-home/dashboard`, `/participating`, `/estate`, `/system/demo`, `/vendors/request`, `/vendors/admin`, `/contact`, and `/pricing`.
+- B2B loop smoke must include: pricing CTA, dashboard gated path, feature tabs, case create, family link, act-on-behalf, family-visible update, export.
