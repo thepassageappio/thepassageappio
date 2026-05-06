@@ -15,6 +15,7 @@
 - Add participant and funeral-home employee onboarding reliability: assignment notifications land on a role-appropriate work page with one clear action.
 - Productize Tier 1 outputs: obituary draft, funeral-home packet, family notification set, clergy outreach, bank/government packets, executor summary, and home/assets checklist.
 - Turn system-admin demo into a one-step-at-a-time guided sales studio with dummy-only data and a stronger prospect narrative.
+- Clean up the public guide unlock page: move the email/name/guide selector into the locked article module so the page reads as one contained "pick guide -> unlock article" action instead of a floating form plus disconnected locked preview.
 - Tighten and freeze the 15-minute funeral home demo script + objection answers (doc-only until owner approves outreach).
 - Produce a one-page pilot handout (offer terms placeholders; no pricing changes).
 - Map top red-path tasks into automated / assisted / guided-manual tiers; list proof required + follow-up loop for each.

@@ -140,6 +140,24 @@ Acceptance:
 - The demo never touches real estates.
 - The demo makes workload reduction obvious.
 
+## Sprint 6A: Public Content and Guide Unlock Polish
+
+Goal: Remove awkward public-site friction that makes Passage feel less polished before a user ever reaches the command center.
+
+Must ship:
+
+- Guide/article pages use one clear unlock pattern: the email/name/form block should live inside or immediately beside the locked guide card, not floating disconnected above it.
+- Locked guide copy should say exactly what happens after unlock and should not point users to “above” or another part of the page.
+- The selected guide, email input, name input, and unlock CTA should feel like one contained action module.
+- At 100% Chrome view, the guide page should fit cleanly without a large disconnected empty zone between hero, form, guide selector, and article preview.
+- Success state should keep the user on the same guide, reveal the content, and clear any uncertainty about whether a drip campaign starts.
+
+Acceptance:
+
+- A visitor understands in 3 seconds: pick guide, enter email, unlock article.
+- The unlock module does not feel like a separate lead form pasted onto the page.
+- Public content pages match the calmer command-center polish.
+
 ## Sprint 7: Role and Data Hardening
 
 Goal: Convert derived UI concepts into durable permission and reporting primitives.
