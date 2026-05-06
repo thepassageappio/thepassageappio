@@ -304,6 +304,50 @@ function isObituaryTask(item) {
   return title.indexOf('obituary') >= 0;
 }
 
+function taskWorkspaceMode(item) {
+  var title = String(item?.title || item?.name || '').toLowerCase();
+  if (!title) return '';
+  if (isObituaryTask(item)) return 'obituary';
+  if (title.indexOf('share the news') >= 0 || title.indexOf('notify close friends') >= 0 || title.indexOf('immediate family') >= 0 || title.indexOf('faith community') >= 0 || title.indexOf('clergy') >= 0 || title.indexOf('photos') >= 0 || title.indexOf('memories') >= 0 || title.indexOf('travel') >= 0 || title.indexOf('reception') >= 0 || title.indexOf('thank you') >= 0) return 'message';
+  var playbook = getTaskPlaybook(title);
+  if (playbook.executionModeKey === 'call') return 'call';
+  if (playbook.executionModeKey === 'prepare') return 'packet';
+  if (playbook.executionModeKey === 'guide') return 'official';
+  if (playbook.executionModeKey === 'record') return 'record';
+  if (playbook.executionModeKey === 'automate') return 'message';
+  return '';
+}
+
+function taskWorkspaceTitle(mode) {
+  if (mode === 'obituary') return 'Obituary draft workspace';
+  if (mode === 'message') return 'Message draft workspace';
+  if (mode === 'packet') return 'Packet / request workspace';
+  if (mode === 'call') return 'Call script workspace';
+  if (mode === 'official') return 'Official step workspace';
+  if (mode === 'record') return 'Estate record workspace';
+  return 'Task workspace';
+}
+
+function taskWorkspaceSaveLabel(mode) {
+  if (mode === 'obituary') return 'Save obituary draft';
+  if (mode === 'message') return 'Save message draft';
+  if (mode === 'packet') return 'Save packet proof';
+  if (mode === 'call') return 'Save call outcome';
+  if (mode === 'official') return 'Save official step';
+  if (mode === 'record') return 'Save estate detail';
+  return 'Save task update';
+}
+
+function taskWorkspaceProofLabel(mode) {
+  if (mode === 'obituary') return 'Obituary draft';
+  if (mode === 'message') return 'Message draft';
+  if (mode === 'packet') return 'Packet / request draft';
+  if (mode === 'call') return 'Call script and outcome';
+  if (mode === 'official') return 'Official step notes';
+  if (mode === 'record') return 'Estate record';
+  return 'Task workspace';
+}
+
 function displayTaskNext(item) {
   var title = displayTaskTitle(item).toLowerCase();
   if (title.indexOf('trusted contacts') >= 0) return 'Choose who should be notified and keep their links working.';
@@ -1951,6 +1995,74 @@ export default function EstatePage() {
     ].join('\n');
   }
 
+  function taskWorkspaceDraft(task, mode) {
+    var title = displayTaskTitle(task);
+    var lovedOne = name || 'your loved one';
+    var playbook = getTaskPlaybook(task?.title || title);
+    if (mode === 'obituary') return obituaryDraftForTask(task);
+    if (mode === 'call') {
+      return [
+        'Hello, my name is ' + (coordinatorName || '[your name]') + '. I am calling about ' + lovedOne + '.',
+        '',
+        'I am trying to complete this Passage task: ' + title + '.',
+        '',
+        'Can you confirm:',
+        '1. What is needed next?',
+        '2. Who should we speak with?',
+        '3. What confirmation number, timestamp, or document should we save?',
+        '',
+        'Proof to save: ' + (playbook.proofRequired || 'confirmation or reference number') + '.'
+      ].join('\n');
+    }
+    if (mode === 'packet') {
+      var template = playbook.institutionTemplate;
+      return [
+        'Subject: ' + ((template && template.subject) || (title + ' - next steps')),
+        '',
+        template ? template.body.replace('[name]', lovedOne) : 'I am helping coordinate next steps for ' + lovedOne + '. Please confirm what you need, where this should be sent, and what reference number or proof we should save.',
+        '',
+        'Known details to include:',
+        '- Loved one: ' + lovedOne,
+        '- Coordinator: ' + (coordinatorName || '[coordinator]'),
+        '- Task: ' + title,
+        '',
+        'Proof to save: ' + (playbook.proofRequired || 'submission confirmation, reference number, or instructions') + '.'
+      ].join('\n');
+    }
+    if (mode === 'official') {
+      return [
+        'Official step: ' + title,
+        '',
+        'Use the official agency or institution process. Passage should record what happened here after you complete it.',
+        '',
+        'Information likely needed:',
+        (playbook.requiredInfo || []).length ? playbook.requiredInfo.map(function(info) { return '- ' + info; }).join('\n') : '- Name, date, relationship, and reference details',
+        '',
+        'Proof to save: ' + (playbook.proofRequired || 'official confirmation or next instruction') + '.'
+      ].join('\n');
+    }
+    if (mode === 'record') {
+      return [
+        'Record for the estate:',
+        '',
+        title,
+        '',
+        'Add what is known now. If something is unknown, leave it waiting and Passage will keep it visible.',
+        '',
+        'Proof to save: ' + (playbook.proofRequired || 'saved detail or document location') + '.'
+      ].join('\n');
+    }
+    return [
+      'Passage message for ' + title + ':',
+      '',
+      'Hi, this is ' + (coordinatorName || '[coordinator]') + '. We are coordinating next steps for ' + lovedOne + ' in Passage.',
+      '',
+      'Can you please help with: ' + title + '?',
+      '',
+      'Please reply with what happened, what is still waiting, or what you need from us.'
+    ].join('\n');
+  }
+
   function copyTextToClipboard(text, label) {
     var value = String(text || '').trim();
     if (!value) {
@@ -2125,7 +2237,7 @@ export default function EstatePage() {
   function startTaskUpdate(draft) {
     setPendingTaskAction(draft);
     setPendingTaskNote('');
-    setPendingTaskDraftText(draft && draft.mode === 'obituary' ? obituaryDraftForTask(draft.task) : '');
+    setPendingTaskDraftText(draft && draft.mode ? taskWorkspaceDraft(draft.task, draft.mode) : '');
     showToast('Opening task update panel...');
     setTimeout(function() {
       var panel = document.getElementById('task-update-panel');
@@ -2135,14 +2247,18 @@ export default function EstatePage() {
 
   function taskActionFromCommand(task, action) {
     if (!task) return;
-    if (isObituaryTask(task) && (action === 'open' || action === 'handled')) {
+    var mode = taskWorkspaceMode(task);
+    if (mode && (action === 'open' || action === 'handled')) {
+      var status = action === 'handled' ? 'handled' : 'waiting';
       startTaskUpdate({
         task: task,
-        status: 'handled',
-        mode: 'obituary',
-        title: 'Draft obituary',
-        detail: 'Obituary draft prepared for ' + displayTaskTitle(task),
-        prompt: 'Draft the obituary here, copy it for the funeral home, newspaper, or social post, then save where it was submitted or who is reviewing it.'
+        status: status,
+        mode: mode,
+        title: taskWorkspaceTitle(mode),
+        detail: taskWorkspaceTitle(mode) + ' saved for ' + displayTaskTitle(task),
+        prompt: mode === 'obituary'
+          ? 'Draft the obituary here, copy it for the funeral home, newspaper, or social post, then save where it was submitted or who is reviewing it.'
+          : 'Use the prepared workspace below, copy or send what you need, then save proof, waiting status, or a help request.'
       });
       return;
     }
@@ -2271,11 +2387,21 @@ export default function EstatePage() {
                 </>
               );
             })()}
-            {pendingTaskAction.mode === 'obituary' && (
+            {pendingTaskAction.mode && (
               <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px', marginTop: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Obituary draft workspace</div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{taskWorkspaceTitle(pendingTaskAction.mode)}</div>
                 <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginBottom: 9 }}>
-                  Draft here first. Copy it for the funeral home, newspaper, social post, or a future Passage memorial page. Saving below records the draft and where it went.
+                  {pendingTaskAction.mode === 'obituary'
+                    ? 'Draft here first. Copy it for the funeral home, newspaper, social post, or a future Passage memorial page. Saving below records the draft and where it went.'
+                    : pendingTaskAction.mode === 'message'
+                      ? 'Use this as the message body. Copy it, send it through Passage when a recipient is assigned, then save what happened.'
+                      : pendingTaskAction.mode === 'packet'
+                        ? 'Use this as the request packet. Copy it into email, a form, or the provider portal, then record the reference or response.'
+                        : pendingTaskAction.mode === 'call'
+                          ? 'Use this as the call script. After the call, save who you spoke with, what they said, and any reference number.'
+                          : pendingTaskAction.mode === 'official'
+                            ? 'Use this to complete the outside official step, then save the confirmation or blocker here.'
+                            : 'Save the estate detail here so Passage can reuse it in messages, summaries, and follow-up.'}
                 </div>
                 <textarea
                   value={pendingTaskDraftText}
@@ -2283,18 +2409,33 @@ export default function EstatePage() {
                   style={{ width: '100%', boxSizing: 'border-box', minHeight: 170, border: '1.5px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55, background: CARD, color: INK }}
                 />
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
-                  <button onClick={function() { copyTextToClipboard(pendingTaskDraftText, 'Obituary draft'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy obituary</button>
-                  <button onClick={function() {
-                    copyTextToClipboard('We are remembering ' + name + '. Service details will be shared when confirmed. ' + String(pendingTaskDraftText || '').split('\n').filter(Boolean).slice(0, 2).join(' '), 'Social post');
-                  }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy social post</button>
-                  <button onClick={function() { window.location.href = '/announce?estate=' + encodeURIComponent(estateId) + '&name=' + encodeURIComponent(name); }} style={miniBtn(CARD, MID, BORDER)}>Open announcement draft</button>
+                  <button onClick={function() { copyTextToClipboard(pendingTaskDraftText, pendingTaskAction.mode === 'call' ? 'Call script' : pendingTaskAction.mode === 'packet' ? 'Packet draft' : pendingTaskAction.mode === 'message' ? 'Message draft' : pendingTaskAction.mode === 'obituary' ? 'Obituary draft' : 'Task draft'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>
+                    {pendingTaskAction.mode === 'call' ? 'Copy call script' : pendingTaskAction.mode === 'packet' ? 'Copy packet' : pendingTaskAction.mode === 'message' ? 'Copy message' : pendingTaskAction.mode === 'obituary' ? 'Copy obituary' : 'Copy draft'}
+                  </button>
+                  {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'obituary') && (
+                    <button onClick={function() {
+                      copyTextToClipboard('Passage: ' + name + ' - ' + displayTaskTitle(pendingTaskAction.task) + '. Open Passage for details: www.thepassageapp.io', 'Short message');
+                    }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy short text</button>
+                  )}
+                  {pendingTaskAction.mode === 'obituary' && (
+                    <button onClick={function() {
+                      copyTextToClipboard('We are remembering ' + name + '. Service details will be shared when confirmed. ' + String(pendingTaskDraftText || '').split('\n').filter(Boolean).slice(0, 2).join(' '), 'Social post');
+                    }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy social post</button>
+                  )}
+                  {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'obituary') && (
+                    <button onClick={function() { window.location.href = '/announce?estate=' + encodeURIComponent(estateId) + '&name=' + encodeURIComponent(name); }} style={miniBtn(CARD, MID, BORDER)}>Open announcement draft</button>
+                  )}
+                  {(() => {
+                    var playbook = getTaskPlaybook(pendingTaskAction.task?.title || displayTaskTitle(pendingTaskAction.task));
+                    return playbook.officialLink ? <a href={playbook.officialLink} target="_blank" rel="noreferrer" style={Object.assign({}, miniBtn(CARD, MID, BORDER), { textDecoration: 'none', display: 'inline-flex', alignItems: 'center' })}>{playbook.officialLinkLabel || 'Open official site'}</a> : null;
+                  })()}
                 </div>
               </div>
             )}
             <textarea
               value={pendingTaskNote}
               onChange={function(e) { setPendingTaskNote(e.target.value); }}
-              placeholder={pendingTaskAction.mode === 'obituary' ? 'Where did this go? Example: Copied to funeral home portal; waiting on Claire to approve wording.' : taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
+              placeholder={pendingTaskAction.mode ? 'What happened with this? Example: copied packet to provider portal, called and left voicemail, reference #1234, or waiting on Claire to approve.' : taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
               style={{ width: '100%', boxSizing: 'border-box', minHeight: 82, border: '1.5px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.45, background: CARD, color: INK }}
             />
             <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10 }}>
@@ -2313,18 +2454,19 @@ export default function EstatePage() {
                 onClick={function() {
                   var noteForSave = pendingTaskNote;
                   var detailForSave = pendingTaskAction.detail;
-                  if (pendingTaskAction.mode === 'obituary') {
+                  if (pendingTaskAction.mode) {
+                    var proofLabel = taskWorkspaceProofLabel(pendingTaskAction.mode);
                     noteForSave = [
-                      'Obituary draft:',
+                      proofLabel + ':',
                       pendingTaskDraftText,
-                      pendingTaskNote ? '\nSubmission / review note: ' + pendingTaskNote : ''
+                      pendingTaskNote ? '\nSubmission / follow-up note: ' + pendingTaskNote : ''
                     ].filter(Boolean).join('\n');
-                    detailForSave = 'Obituary draft saved';
+                    detailForSave = proofLabel + ' saved';
                   }
                   updateTaskFromCommand(pendingTaskAction.task, pendingTaskAction.status, detailForSave, pendingTaskAction.prompt, noteForSave);
                 }}
                 style={{ border: 'none', background: pendingTaskAction.status === 'choose' ? BORDER : SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: pendingTaskAction.status === 'choose' ? 'not-allowed' : 'pointer' }}>
-                {pendingTaskAction.mode === 'obituary' ? 'Save obituary draft' : taskActionCopy(pendingTaskAction.status).save}
+                {pendingTaskAction.mode ? taskWorkspaceSaveLabel(pendingTaskAction.mode) : taskActionCopy(pendingTaskAction.status).save}
               </button>
               <button
                 onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); setPendingTaskDraftText(''); }}

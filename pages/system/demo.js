@@ -215,6 +215,7 @@ export default function SystemDemo() {
 
   const activeStep = useMemo(() => demoSteps.find(step => step.id === selectedStep) || demoSteps[0], [selectedStep]);
   const currentIndex = demoSteps.findIndex(step => step.id === activeStep.id);
+  const previousStep = demoSteps[Math.max(currentIndex - 1, 0)];
   const nextStep = demoSteps[Math.min(currentIndex + 1, demoSteps.length - 1)];
   const admin = isSystemAdmin(user);
 
@@ -268,20 +269,26 @@ export default function SystemDemo() {
 
         {user && admin && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 22, alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(280px, .85fr)', gap: 22, alignItems: 'start' }}>
               <Panel>
                 <div style={eyebrow}>System admin sales demo</div>
                 <h1 style={{ ...h1, maxWidth: 720 }}>A guided walkthrough for funeral-home directors.</h1>
-                <p style={{ ...lead, maxWidth: 760 }}>Use this as the clean demo environment. It uses dummy staff, dummy families, dummy messages, dummy vendor requests, and dummy export moments only.</p>
+                <p style={{ ...lead, maxWidth: 760 }}>A clean, dummy-only walkthrough. Each step shows one screen and one sales point so the director is not overwhelmed.</p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-                  <Link href="/system/demo?demoTour=funeral-home&demoStep=overview" style={primaryLink}>Start guided overlay</Link>
+                  <button onClick={() => { setSelectedStep('overview'); demoAction('Guided demo started. Use Next demo moment to move through one screen at a time.'); }} style={primaryButton}>Start guided demo</button>
                   <button onClick={() => demoAction('Demo reset: use the dummy cases, staff, messages, vendor loop, and export close below. No real estate data is touched.')} style={secondaryButton}>Reset dummy demo</button>
                 </div>
               </Panel>
 
               <Panel>
                 <div style={eyebrow}>Demo order</div>
-                <div style={{ display: 'grid', gap: 8 }}>
+                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 14, marginBottom: 10 }}>
+                  <div style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>STEP {currentIndex + 1} OF {demoSteps.length}</div>
+                  <div style={{ fontSize: 19, fontWeight: 900, marginTop: 4 }}>{activeStep.title}</div>
+                </div>
+                <details>
+                  <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>Show full order</summary>
+                  <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
                   {demoSteps.map((step, index) => (
                     <button
                       key={step.id}
@@ -292,7 +299,8 @@ export default function SystemDemo() {
                       <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3 }}>{step.title}</div>
                     </button>
                   ))}
-                </div>
+                  </div>
+                </details>
               </Panel>
             </div>
 
@@ -308,12 +316,13 @@ export default function SystemDemo() {
                   <div style={{ fontSize: 17, lineHeight: 1.45, marginTop: 6 }}>{activeStep.action}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 16 }}>
-                  <button onClick={() => setSelectedStep(nextStep.id)} style={primaryButton}>Next demo moment</button>
-                  <Link href={`/system/demo?demoTour=funeral-home&demoStep=${activeStep.id}`} style={secondaryLink}>Show coach overlay</Link>
+                  <button onClick={() => setSelectedStep(previousStep.id)} style={secondaryButton} disabled={currentIndex === 0}>Back</button>
+                  <button onClick={() => setSelectedStep(nextStep.id)} style={primaryButton} disabled={currentIndex === demoSteps.length - 1}>Next demo moment</button>
                 </div>
               </Panel>
 
               <DemoStage
+                activeStepId={activeStep.id}
                 selectedChat={selectedChat}
                 setSelectedChat={setSelectedChat}
                 demoAction={demoAction}
@@ -324,66 +333,38 @@ export default function SystemDemo() {
               />
             </section>
 
-            <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(280px, .75fr)', gap: 22, marginTop: 22, alignItems: 'start' }}>
-              <Panel>
-                <div style={eyebrow}>Connected product map</div>
-                <h2 style={h2}>Every demo stop points to the same task spine.</h2>
-                <p style={{ ...lead, marginBottom: 14 }}>This is dummy demo data only. It explains how the real family, participant, funeral-home, and vendor surfaces fit together without opening real estates or touching production records.</p>
-                <div style={{ display: 'grid', gap: 10 }}>
-                  {ecosystemPaths.map((path) => (
-                    <div key={path.title} style={{ ...smallCard, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: 18, fontWeight: 900 }}>{path.title}</div>
-                        <div style={smallText}>{path.body}</div>
+            <details style={{ marginTop: 22 }}>
+              <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>Demo appendix: product map, readiness checks, and close</summary>
+              <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(280px, .75fr)', gap: 22, marginTop: 16, alignItems: 'start' }}>
+                <Panel>
+                  <div style={eyebrow}>Connected product map</div>
+                  <h2 style={h2}>Every demo stop points to the same task spine.</h2>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {ecosystemPaths.map((path) => (
+                      <div key={path.title} style={{ ...smallCard, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: 18, fontWeight: 900 }}>{path.title}</div>
+                          <div style={smallText}>{path.body}</div>
+                        </div>
+                        <span style={tinyPill}>{path.label}</span>
                       </div>
-                      <span style={tinyPill}>{path.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-
-              <Panel>
-                <div style={eyebrow}>Readiness checks</div>
-                <h2 style={h2}>Demo-safe boundaries.</h2>
-                <div style={{ display: 'grid', gap: 9 }}>
-                  {readinessChecks.map((check) => (
-                    <div key={check} style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr)', gap: 9, alignItems: 'start', color: C.mid, lineHeight: 1.45 }}>
-                      <span style={{ color: C.sage, fontWeight: 900 }}>OK</span>
-                      <span>{check}</span>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            </section>
-
-            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 22, marginTop: 22, alignItems: 'start' }}>
-              <Panel>
-                <div style={eyebrow}>Close the demo</div>
-                <h2 style={h2}>What the director should understand.</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10 }}>
-                  {valueStory.map((item) => (
-                    <div key={item.title} style={smallCard}>
-                      <span style={tinyPill}>{item.metric}</span>
-                      <div style={{ fontSize: 18, fontWeight: 900, marginTop: 10 }}>{item.title}</div>
-                      <div style={smallText}>{item.body}</div>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-
-              <Panel>
-                <div style={eyebrow}>How they use it tomorrow</div>
-                <h2 style={h2}>The daily operating loop.</h2>
-                <div style={{ display: 'grid', gap: 10 }}>
-                  {tomorrowWorkflow.map((item, index) => (
-                    <div key={item} style={{ display: 'grid', gridTemplateColumns: '30px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
-                      <span style={{ width: 30, height: 30, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{index + 1}</span>
-                      <span style={{ color: C.mid, lineHeight: 1.5 }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            </section>
+                    ))}
+                  </div>
+                </Panel>
+                <Panel>
+                  <div style={eyebrow}>Readiness checks</div>
+                  <h2 style={h2}>Demo-safe boundaries.</h2>
+                  <div style={{ display: 'grid', gap: 9 }}>
+                    {readinessChecks.map((check) => (
+                      <div key={check} style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr)', gap: 9, alignItems: 'start', color: C.mid, lineHeight: 1.45 }}>
+                        <span style={{ color: C.sage, fontWeight: 900 }}>OK</span>
+                        <span>{check}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+              </section>
+            </details>
           </>
         )}
       </section>
@@ -392,11 +373,31 @@ export default function SystemDemo() {
   );
 }
 
-function DemoStage({ selectedChat, setSelectedChat, demoAction, staffRows, caseRows, addDemoEmployee, addDemoFamily }) {
-  return (
-    <div style={{ display: 'grid', gap: 16 }}>
+function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, staffRows, caseRows, addDemoEmployee, addDemoFamily }) {
+  if (activeStepId === 'overview') {
+    return (
       <Panel>
-        <div style={eyebrow}>1. Staff and locations</div>
+        <div style={eyebrow}>Demo screen</div>
+        <h2 style={h2}>The one-sentence value story.</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
+          {valueStory.map((item) => (
+            <div key={item.title} style={smallCard}>
+              <span style={tinyPill}>{item.metric}</span>
+              <div style={{ fontSize: 18, fontWeight: 900, marginTop: 10 }}>{item.title}</div>
+              <div style={smallText}>{item.body}</div>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    );
+  }
+
+  if (activeStepId === 'team') {
+    return (
+      <Panel>
+        <div style={eyebrow}>Demo screen</div>
+        <h2 style={h2}>Locations and employees.</h2>
+        <p style={{ ...lead, marginBottom: 14 }}>Show that directors, coordinators, and aftercare staff can receive different work without creating separate family-helper experiences.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
           {staffRows.map(([role, body], index) => (
             <div key={role + index} style={smallCard}>
@@ -407,9 +408,15 @@ function DemoStage({ selectedChat, setSelectedChat, demoAction, staffRows, caseR
         </div>
         <button onClick={addDemoEmployee} style={{ ...tinyButton, marginTop: 12 }}>Add dummy employee</button>
       </Panel>
+    );
+  }
 
+  if (activeStepId === 'case') {
+    return (
       <Panel>
-        <div style={eyebrow}>2. Case setup</div>
+        <div style={eyebrow}>Demo screen</div>
+        <h2 style={h2}>Dummy case inbox.</h2>
+        <p style={{ ...lead, marginBottom: 14 }}>Only dummy families appear here. This is where you show a case can be opened quickly without touching real estate data.</p>
         <div style={{ display: 'grid', gap: 9 }}>
           {caseRows.map(([name, type, status, location], index) => (
             <div key={name + index} style={{ ...smallCard, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'center' }}>
@@ -423,9 +430,14 @@ function DemoStage({ selectedChat, setSelectedChat, demoAction, staffRows, caseR
         </div>
         <button onClick={addDemoFamily} style={{ ...tinyButton, marginTop: 12 }}>Add dummy family</button>
       </Panel>
+    );
+  }
 
+  if (activeStepId === 'tasks') {
+    return (
       <Panel>
-        <div style={eyebrow}>3. Task and delegation</div>
+        <div style={eyebrow}>Demo screen</div>
+        <h2 style={h2}>One task, one outcome.</h2>
         <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 16 }}>
           <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Do this next</div>
           <h3 style={{ margin: '7px 0 5px', fontSize: 24 }}>Confirm hospital release process</h3>
@@ -437,9 +449,36 @@ function DemoStage({ selectedChat, setSelectedChat, demoAction, staffRows, caseR
           </div>
         </div>
       </Panel>
+    );
+  }
 
+  if (activeStepId === 'delegation') {
+    return (
       <Panel>
-        <div style={eyebrow}>4. Communication command center</div>
+        <div style={eyebrow}>Demo screen</div>
+        <h2 style={h2}>Delegation without confusion.</h2>
+        <p style={{ ...lead, marginBottom: 14 }}>Employees, family helpers, vendors, clergy, cemetery, and funeral-home staff are not the same actor. The task spine keeps the action the same while the view changes by role.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
+          {[
+            ['Employee task', 'Appears in the funeral-home work queue.'],
+            ['Family helper task', 'Appears in the participant view with accept, waiting, handled, and help.'],
+            ['Vendor task', 'Appears in the vendor request loop only when the task needs local support.'],
+          ].map(([title, body]) => (
+            <div key={title} style={smallCard}>
+              <div style={{ fontSize: 17, fontWeight: 900 }}>{title}</div>
+              <div style={smallText}>{body}</div>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    );
+  }
+
+  if (activeStepId === 'chat') {
+    return (
+      <Panel>
+        <div style={eyebrow}>Demo screen</div>
+        <h2 style={h2}>Communication command center.</h2>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
           {mockChats.map((chat, index) => (
             <button key={chat.title} onClick={() => setSelectedChat(index)} style={{ ...tinyButton, background: selectedChat === index ? C.sage : C.sageFaint, color: selectedChat === index ? '#fff' : C.sage }}>{chat.title}</button>
@@ -454,14 +493,19 @@ function DemoStage({ selectedChat, setSelectedChat, demoAction, staffRows, caseR
           ))}
         </div>
       </Panel>
+    );
+  }
 
+  if (activeStepId === 'vendor') {
+    return (
       <Panel>
-        <div style={eyebrow}>5. Vendor and close</div>
+        <div style={eyebrow}>Demo screen</div>
+        <h2 style={h2}>Vendor support stays inside the task.</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
           {[
             ['Preferred local support', 'Vendor appears inside the task only.'],
             ['Viewed -> Quoted -> Accepted', 'Response loop stays visible to family and home.'],
-            ['CSV export', 'Data portability closes the adoption objection.'],
+            ['Passage stays central', 'The family does not get pushed into a vendor directory.'],
           ].map(([title, body]) => (
             <div key={title} style={smallCard}>
               <div style={{ fontSize: 17, fontWeight: 900 }}>{title}</div>
@@ -470,7 +514,23 @@ function DemoStage({ selectedChat, setSelectedChat, demoAction, staffRows, caseR
           ))}
         </div>
       </Panel>
-    </div>
+    );
+  }
+
+  return (
+    <Panel>
+      <div style={eyebrow}>Demo screen</div>
+      <h2 style={h2}>ROI, portability, and daily use.</h2>
+      <div style={{ display: 'grid', gap: 10 }}>
+        {tomorrowWorkflow.map((item, index) => (
+          <div key={item} style={{ display: 'grid', gridTemplateColumns: '30px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
+            <span style={{ width: 30, height: 30, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{index + 1}</span>
+            <span style={{ color: C.mid, lineHeight: 1.5 }}>{item}</span>
+          </div>
+        ))}
+      </div>
+      <button onClick={() => demoAction('Demo: CSV export shows Passage can sit on top of the funeral home system without locking data in.')} style={{ ...tinyButton, marginTop: 14 }}>Show export close</button>
+    </Panel>
   );
 }
 
