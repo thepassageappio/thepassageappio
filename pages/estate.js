@@ -1148,6 +1148,11 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
   }
 
   async function sendReminder(task) {
+    var reminderRecipient = task.assigned_to_email || (String(task.recipient || '').includes('@') ? task.recipient : '');
+    if (!reminderRecipient) {
+      setActionFeedback('Assign this task to someone with an email before sending a reminder. Open the task workspace, choose an owner, then return here.');
+      return;
+    }
     var session = await sb.auth.getSession();
     var token = session?.data?.session?.access_token || '';
     setUpdating(task.id + 'reminder');
@@ -1159,7 +1164,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     setUpdating('');
     if (!res || !res.ok) {
       var data = res ? await res.json().catch(function() { return {}; }) : {};
-      var missingRecipient = data.error && /participant email/i.test(data.error);
+      var missingRecipient = data.needsAssignment || (data.error && /assign this task|participant email/i.test(data.error));
       setActionFeedback(missingRecipient
         ? 'Assign this task to someone with an email before sending a reminder. Passage saved that this needs follow-up.'
         : (data.error || 'Reminder could not be sent. Check that this task has a participant email.'));
@@ -1244,6 +1249,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
             var state = statusBucket(task.status);
             var color = state === 'good' ? SAGE : state === 'bad' ? ROSE : state === 'wait' ? AMBER : MID;
             var proof = task.playbook.proofRequired || 'confirmation';
+            var hasReminderRecipient = Boolean(task.assigned_to_email || (String(task.recipient || '').includes('@')));
             return (
               <div key={task.id} style={{ borderTop: '1px solid ' + BORDER, padding: '10px 0' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10 }}>
@@ -1291,7 +1297,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                 </div>
                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
                   {state === 'bad' && <button disabled={updating === task.id + 'waiting'} onClick={function() { updateTask(task, 'waiting', 'Owner notified for retry or review'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Retry / review</button>}
-                  {state === 'wait' && <button disabled={updating === task.id + 'reminder'} onClick={function() { sendReminder(task); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>{updating === task.id + 'reminder' ? 'Sending...' : 'Send reminder'}</button>}
+                  {state === 'wait' && <button disabled={updating === task.id + 'reminder'} onClick={function() { sendReminder(task); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>{updating === task.id + 'reminder' ? 'Sending...' : hasReminderRecipient ? 'Send reminder' : 'Assign before reminder'}</button>}
                   <button disabled={updating === task.id + 'handled'} onClick={function() { updateTask(task, 'handled', 'Proof recorded for ' + task.title, 'Reference number, note, or proof detail'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Record proof</button>
                   <button disabled={updating === task.id + 'blocked'} onClick={function() { updateTask(task, 'blocked', 'Owner notified: this task needs help', 'What is blocking this?'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
                 </div>
@@ -1945,6 +1951,77 @@ export default function EstatePage() {
     showToast(saved.confirmation || taskActionConfirmation(status, task, 'family'));
   }
 
+  function taskAssignedEmail(task) {
+    if (!task) return '';
+    if (task.assigned_to_email) return task.assigned_to_email;
+    if (String(task.recipient || '').includes('@')) return task.recipient;
+    return '';
+  }
+
+  function taskAssignedName(task) {
+    if (!task) return '';
+    return task.assigned_to_name || task.assigned_to || task.owner_label || task.recipient_name || task.recipient || '';
+  }
+
+  async function sendTaskDraftFromCommand(task, messageText) {
+    if (!task?.id) return;
+    var recipientEmail = taskAssignedEmail(task);
+    var recipientName = taskAssignedName(task) || recipientEmail || 'recipient';
+    if (!recipientEmail) {
+      showToast('Assign this task to someone with an email before sending through Passage.');
+      return;
+    }
+    var body = String(messageText || '').trim();
+    if (!body) {
+      showToast('Write the message before sending it through Passage.');
+      return;
+    }
+    var session = await sb.auth.getSession();
+    var token = session && session.data && session.data.session ? session.data.session.access_token : '';
+    if (!token) {
+      showToast('Please sign in to send this message.');
+      return;
+    }
+    var updateKey = 'send_task_' + task.id;
+    setPendingTaskAction(function(prev) { return prev ? Object.assign({}, prev, { sending: true }) : prev; });
+    var response = await fetch('/api/sendEmail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        to: recipientEmail,
+        toName: recipientName,
+        cc: user?.email || '',
+        subject: 'Passage task: ' + displayTaskTitle(task),
+        taskTitle: displayTaskTitle(task),
+        taskId: task.id,
+        workflowId: estateId,
+        actionType: 'execution',
+        deceasedName: name,
+        coordinatorName: coordinatorName || user?.email || 'Passage',
+        messageText: body,
+      }),
+    }).catch(function() { return null; });
+    setPendingTaskAction(function(prev) { return prev ? Object.assign({}, prev, { sending: false }) : prev; });
+    if (!response || !response.ok) {
+      var data = response ? await response.json().catch(function() { return {}; }) : {};
+      showToast(data.error || 'Passage could not send this message.');
+      return;
+    }
+    var sent = await response.json().catch(function() { return {}; });
+    var now = new Date().toISOString();
+    var sentUpdate = {
+      id: updateKey + '_' + Date.now(),
+      title: sent.skipped ? 'Message saved' : 'Message sent',
+      detail: (sent.skipped ? 'Prepared message saved for ' : 'Email sent to ') + recipientName + ' - ' + displayTaskTitle(task),
+      status: sent.skipped ? 'prepared' : 'sent',
+      at: now,
+      tone: 'good',
+    };
+    setCommunicationCenter(function(prev) { return [sentUpdate].concat(prev || []).slice(0, 10); });
+    await refreshExecutionData();
+    showToast(sent.skipped ? 'Message saved in the estate record. Email is not configured in this environment.' : 'Message sent, copied to you, and saved in the estate message center.');
+  }
+
   function recordPrepEvent(detail) {
     var eventRow = { estate_id: estateId, event_type: 'funeral_home_prep', title: 'Funeral home prep summary', description: detail, actor: coordinatorName };
     sb.from('estate_events').insert([eventRow]).then(function() {
@@ -2415,47 +2492,76 @@ export default function EstatePage() {
             })()}
             {pendingTaskAction.mode && (
               <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px', marginTop: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{taskWorkspaceTitle(pendingTaskAction.mode)}</div>
-                <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginBottom: 9 }}>
-                  {pendingTaskAction.mode === 'obituary'
-                    ? 'Draft here first. Copy it for the funeral home, newspaper, social post, or a future Passage memorial page. Saving below records the draft and where it went.'
-                    : pendingTaskAction.mode === 'message'
-                      ? 'Use this as the message body. Copy it, send it through Passage when a recipient is assigned, then save what happened.'
-                      : pendingTaskAction.mode === 'packet'
-                        ? 'Use this as the request packet. Copy it into email, a form, or the provider portal, then record the reference or response.'
-                        : pendingTaskAction.mode === 'call'
-                          ? 'Use this as the call script. After the call, save who you spoke with, what they said, and any reference number.'
-                          : pendingTaskAction.mode === 'official'
-                            ? 'Use this to complete the outside official step, then save the confirmation or blocker here.'
-                            : 'Save the estate detail here so Passage can reuse it in messages, summaries, and follow-up.'}
-                </div>
-                <textarea
-                  value={pendingTaskDraftText}
-                  onChange={function(e) { setPendingTaskDraftText(e.target.value); }}
-                  style={{ width: '100%', boxSizing: 'border-box', minHeight: 170, border: '1.5px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55, background: CARD, color: INK }}
-                />
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
-                  <button onClick={function() { copyTextToClipboard(pendingTaskDraftText, pendingTaskAction.mode === 'call' ? 'Call script' : pendingTaskAction.mode === 'packet' ? 'Packet draft' : pendingTaskAction.mode === 'message' ? 'Message draft' : pendingTaskAction.mode === 'obituary' ? 'Obituary draft' : 'Task draft'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>
-                    {pendingTaskAction.mode === 'call' ? 'Copy call script' : pendingTaskAction.mode === 'packet' ? 'Copy packet' : pendingTaskAction.mode === 'message' ? 'Copy message' : pendingTaskAction.mode === 'obituary' ? 'Copy obituary' : 'Copy draft'}
-                  </button>
-                  {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'obituary') && (
-                    <button onClick={function() {
-                      copyTextToClipboard('Passage: ' + name + ' - ' + displayTaskTitle(pendingTaskAction.task) + '. Open Passage for details: www.thepassageapp.io', 'Short message');
-                    }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy short text</button>
-                  )}
-                  {pendingTaskAction.mode === 'obituary' && (
-                    <button onClick={function() {
-                      copyTextToClipboard('We are remembering ' + name + '. Service details will be shared when confirmed. ' + String(pendingTaskDraftText || '').split('\n').filter(Boolean).slice(0, 2).join(' '), 'Social post');
-                    }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy social post</button>
-                  )}
-                  {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'obituary') && (
-                    <button onClick={function() { window.location.href = '/announce?estate=' + encodeURIComponent(estateId) + '&name=' + encodeURIComponent(name); }} style={miniBtn(CARD, MID, BORDER)}>Open announcement draft</button>
-                  )}
-                  {(() => {
-                    var playbook = getTaskPlaybook(pendingTaskAction.task?.title || displayTaskTitle(pendingTaskAction.task));
-                    return playbook.officialLink ? <a href={playbook.officialLink} target="_blank" rel="noreferrer" style={Object.assign({}, miniBtn(CARD, MID, BORDER), { textDecoration: 'none', display: 'inline-flex', alignItems: 'center' })}>{playbook.officialLinkLabel || 'Open official site'}</a> : null;
-                  })()}
-                </div>
+                {(() => {
+                  var messageRecipientEmail = taskAssignedEmail(pendingTaskAction.task);
+                  var messageRecipientName = taskAssignedName(pendingTaskAction.task) || messageRecipientEmail;
+                  return (
+                    <>
+                      <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{taskWorkspaceTitle(pendingTaskAction.mode)}</div>
+                      <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginBottom: 9 }}>
+                        {pendingTaskAction.mode === 'obituary'
+                          ? 'Draft here first. Copy it for the funeral home, newspaper, social post, or a future Passage memorial page. Saving below records the draft and where it went.'
+                          : pendingTaskAction.mode === 'message'
+                            ? (messageRecipientEmail ? 'Send this through Passage to ' + messageRecipientName + '. Passage will copy you, log the audit trail, and keep the task waiting until someone confirms.' : 'Assign this task to someone with an email first. Then Passage can send this message, copy you, and log the audit trail here.')
+                            : pendingTaskAction.mode === 'packet'
+                              ? 'Use this as the request packet. Copy it into email, a form, or the provider portal, then record the reference or response.'
+                              : pendingTaskAction.mode === 'call'
+                                ? 'Use this as the call script. After the call, save who you spoke with, what they said, and any reference number.'
+                                : pendingTaskAction.mode === 'official'
+                                  ? 'Use this to complete the outside official step, then save the confirmation or blocker here.'
+                                  : 'Save the estate detail here so Passage can reuse it in messages, summaries, and follow-up.'}
+                      </div>
+                      <textarea
+                        value={pendingTaskDraftText}
+                        onChange={function(e) { setPendingTaskDraftText(e.target.value); }}
+                        style={{ width: '100%', boxSizing: 'border-box', minHeight: 170, border: '1.5px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55, background: CARD, color: INK }}
+                      />
+                      {pendingTaskAction.mode === 'message' && (
+                        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginTop: 8, color: messageRecipientEmail ? SAGE : AMBER, fontSize: 12.5, fontWeight: 800, lineHeight: 1.35 }}>
+                          {messageRecipientEmail
+                            ? 'Ready to send to ' + messageRecipientName + ' at ' + messageRecipientEmail + '.'
+                            : 'No recipient is assigned yet. Assign an owner/contact before sending.'}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
+                        {pendingTaskAction.mode === 'message' && (
+                          <button
+                            onClick={function() {
+                              if (!messageRecipientEmail) {
+                                showToast('Assign this task to someone with an email before sending through Passage.');
+                                return;
+                              }
+                              sendTaskDraftFromCommand(pendingTaskAction.task, pendingTaskDraftText);
+                            }}
+                            disabled={pendingTaskAction.sending}
+                            style={miniBtn(messageRecipientEmail ? SAGE : SUBTLE, messageRecipientEmail ? '#fff' : MID, messageRecipientEmail ? SAGE : BORDER)}>
+                            {pendingTaskAction.sending ? 'Sending...' : messageRecipientEmail ? 'Send through Passage' : 'Assign recipient to send'}
+                          </button>
+                        )}
+                        <button onClick={function() { copyTextToClipboard(pendingTaskDraftText, pendingTaskAction.mode === 'call' ? 'Call script' : pendingTaskAction.mode === 'packet' ? 'Packet draft' : pendingTaskAction.mode === 'message' ? 'Message draft' : pendingTaskAction.mode === 'obituary' ? 'Obituary draft' : 'Task draft'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>
+                          {pendingTaskAction.mode === 'call' ? 'Copy call script' : pendingTaskAction.mode === 'packet' ? 'Copy packet' : pendingTaskAction.mode === 'message' ? 'Copy message' : pendingTaskAction.mode === 'obituary' ? 'Copy obituary' : 'Copy draft'}
+                        </button>
+                        {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'obituary') && (
+                          <button onClick={function() {
+                            copyTextToClipboard('Passage: ' + name + ' - ' + displayTaskTitle(pendingTaskAction.task) + '. Open Passage for details: www.thepassageapp.io', 'Short message');
+                          }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy short text</button>
+                        )}
+                        {pendingTaskAction.mode === 'obituary' && (
+                          <button onClick={function() {
+                            copyTextToClipboard('We are remembering ' + name + '. Service details will be shared when confirmed. ' + String(pendingTaskDraftText || '').split('\n').filter(Boolean).slice(0, 2).join(' '), 'Social post');
+                          }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy social post</button>
+                        )}
+                        {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'obituary') && (
+                          <button onClick={function() { window.location.href = '/announce?estate=' + encodeURIComponent(estateId) + '&name=' + encodeURIComponent(name); }} style={miniBtn(CARD, MID, BORDER)}>Open announcement draft</button>
+                        )}
+                        {(() => {
+                          var playbook = getTaskPlaybook(pendingTaskAction.task?.title || displayTaskTitle(pendingTaskAction.task));
+                          return playbook.officialLink ? <a href={playbook.officialLink} target="_blank" rel="noreferrer" style={Object.assign({}, miniBtn(CARD, MID, BORDER), { textDecoration: 'none', display: 'inline-flex', alignItems: 'center' })}>{playbook.officialLinkLabel || 'Open official site'}</a> : null;
+                        })()}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             )}
             <textarea

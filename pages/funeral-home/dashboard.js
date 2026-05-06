@@ -213,6 +213,16 @@ export default function FuneralHomeDashboard() {
     }
   }
 
+  function openPartnerWork(caseId) {
+    if (!caseId) return;
+    setExpandedCaseId(caseId);
+    setNotice('Opening the case work queue.');
+    window.setTimeout(() => {
+      const panel = document.getElementById('partner-case-' + caseId);
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  }
+
   async function downloadExport() {
     if (!token) return;
     setError('');
@@ -465,7 +475,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.sage, fontSize: 13, fontWeight: 900, lineHeight: 1.3, marginTop: 8 }}>{sharedTaskTitle(task)}</div>
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>{sharedTaskNext(task, 'funeral_home')}</div>
                   <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 10 }}>
-                    <button onClick={() => setExpandedCaseId(caseItem.id)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Open work</button>
+                    <button onClick={() => openPartnerWork(caseItem.id)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Open work</button>
                     <Link href={`/estate?id=${caseItem.id}`} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, textDecoration: 'none' }}>Family view</Link>
                   </div>
                 </div>
@@ -661,7 +671,7 @@ export default function FuneralHomeDashboard() {
               const isExpanded = expandedCaseId === item.id;
               const itemLocation = locationNameFor(item);
               return (
-                <div key={item.id} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 18, padding: 18 }}>
+                <div id={'partner-case-' + item.id} key={item.id} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 18, padding: 18, scrollMarginTop: 92 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.25 }}>{item.deceased_name || item.estate_name || item.name || 'Family case'}</div>

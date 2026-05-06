@@ -25,12 +25,23 @@ export default function VendorAdmin() {
       setError('Vendor admin needs Supabase public environment variables before it can load applications.');
       return undefined;
     }
+    let alive = true;
+    const slowTimer = setTimeout(() => {
+      if (alive) setMessage('Still checking your system-admin session. If this stays here, refresh or sign in again.');
+    }, 5000);
     supabase.auth.getSession().then(({ data }) => {
+      if (!alive) return;
+      clearTimeout(slowTimer);
       setUser(data?.session?.user || null);
       const accessToken = data?.session?.access_token || '';
       setToken(accessToken);
       if (accessToken) load(accessToken);
       else setLoading(false);
+    }).catch((err) => {
+      if (!alive) return;
+      clearTimeout(slowTimer);
+      setLoading(false);
+      setError(err?.message || 'Could not check your admin session.');
     });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const accessToken = session?.access_token || '';
@@ -42,7 +53,11 @@ export default function VendorAdmin() {
         setLoading(false);
       }
     });
-    return () => data.subscription.unsubscribe();
+    return () => {
+      alive = false;
+      clearTimeout(slowTimer);
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   async function load(accessToken = token) {
@@ -116,6 +131,15 @@ export default function VendorAdmin() {
         <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage admin</div>
         <h1 style={{ fontSize: 44, lineHeight: 1.05, margin: '8px 0 16px', fontWeight: 400 }}>Vendor applications</h1>
         <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.6, maxWidth: 720, marginTop: -4 }}>Review trusted local support partners before they appear inside family tasks. Approval makes the vendor active; the vendor signs in with the application email to manage requests from the vendor page.</p>
+
+        <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, margin: '18px 0', display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Admin status</div>
+            <div style={{ fontSize: 18, fontWeight: 900, marginTop: 4 }}>{loading ? 'Checking access...' : user ? 'Signed in as system admin' : 'System admin sign-in required'}</div>
+            <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 3 }}>{user ? user.email : 'Only Passage system admins can approve vendors before they appear in task recommendations.'}</div>
+          </div>
+          <button onClick={() => token ? load(token) : signIn()} style={primaryButton}>{token ? 'Refresh applications' : 'Sign in to review'}</button>
+        </div>
 
         <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, margin: '18px 0', display: 'grid', gap: 12 }}>
           <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Approval path</div>

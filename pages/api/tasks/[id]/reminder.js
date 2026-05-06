@@ -37,9 +37,14 @@ export default async function handler(req, res) {
       actor: actor || 'Passage',
       channel: 'record',
       recipient: task.assigned_to_name || task.recipient || '',
-      detail: 'Reminder needed, but no participant email is saved for this task.',
+      detail: 'Reminder blocked because this task has no assigned email. Assign an owner before sending a reminder.',
     });
-    return res.status(400).json({ error: 'No participant email is saved for this task.' });
+    return res.status(400).json({
+      error: 'Assign this task to someone with an email before sending a reminder.',
+      needsAssignment: true,
+      taskId: task.id,
+      taskTitle: task.title,
+    });
   }
 
   const base = siteUrl(req);
