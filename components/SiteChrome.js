@@ -37,6 +37,25 @@ const navLink = {
   alignItems: 'center',
 };
 
+const DEFAULT_SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function systemAdminEmails() {
+  const configured = String(process.env.NEXT_PUBLIC_PASSAGE_ADMIN_EMAILS || '')
+    .split(',')
+    .map(normalizeEmail)
+    .filter(Boolean);
+  return Array.from(new Set([...DEFAULT_SYSTEM_ADMIN_EMAILS, ...configured]));
+}
+
+function isSystemAdminUser(user) {
+  const email = normalizeEmail(user?.email);
+  return !!email && systemAdminEmails().includes(email);
+}
+
 function isActivePath(current, href) {
   if (!current) return false;
   if (href === '/') return current === '/';
@@ -71,6 +90,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
 
   const signInHandler = onSignIn || defaultSignIn;
   const signOutHandler = onSignOut || defaultSignOut;
+  const showSystemAdminLinks = isSystemAdminUser(currentUser);
   const activeStyle = {
     background: CHROME_COLORS.sage,
     color: '#fff',
@@ -98,6 +118,9 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
       <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 26, fontWeight: 700 }}>Passage</Link>
       <div style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
+        {showSystemAdminLinks && (
+          <Link href="/vendors/admin" style={isActivePath(path, '/vendors/admin') ? activeStyle : navLink}>Vendor admin</Link>
+        )}
         <Link href={dashboardHref} style={(isActivePath(path, '/') || isActivePath(path, '/estate')) ? activeStyle : quietMyEstate}>My estate</Link>
         <span style={{ width: 104, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
