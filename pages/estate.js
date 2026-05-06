@@ -299,6 +299,11 @@ function displayTaskTitle(item) {
   return raw;
 }
 
+function isObituaryTask(item) {
+  var title = String(item?.title || item?.name || '').toLowerCase();
+  return title.indexOf('obituary') >= 0;
+}
+
 function displayTaskNext(item) {
   var title = displayTaskTitle(item).toLowerCase();
   if (title.indexOf('trusted contacts') >= 0) return 'Choose who should be notified and keep their links working.';
@@ -1625,6 +1630,7 @@ export default function EstatePage() {
   var s17 = useState(null); var pendingTaskAction = s17[0]; var setPendingTaskAction = s17[1];
   var s18 = useState(''); var pendingTaskNote = s18[0]; var setPendingTaskNote = s18[1];
   var s19 = useState([]); var communicationCenter = s19[0]; var setCommunicationCenter = s19[1];
+  var s20 = useState(''); var pendingTaskDraftText = s20[0]; var setPendingTaskDraftText = s20[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -1865,6 +1871,7 @@ export default function EstatePage() {
     await refreshExecutionData();
     setPendingTaskAction(null);
     setPendingTaskNote('');
+    setPendingTaskDraftText('');
     showToast(taskActionConfirmation(status, task, 'family'));
   }
 
@@ -1925,6 +1932,42 @@ export default function EstatePage() {
   var firstIncomplete = outcomes.findIndex(function(o) { return o.status !== 'handled'; });
   var name = estate ? (estate.deceased_first_name || estate.deceased_name || 'your loved one') : 'your loved one';
   var coordinatorName = estate ? (estate.coordinator_name || 'You') : 'You';
+  function obituaryDraftForTask(task) {
+    var lovedOne = name || 'your loved one';
+    var familyName = estate?.family_name || estate?.coordinator_name || 'the family';
+    var serviceLine = serviceEvents && serviceEvents.length > 0
+      ? 'Service details: ' + serviceEvents.map(function(ev) {
+        return [eventLabel(ev), ev.date, ev.time, ev.location_name].filter(Boolean).join(' - ');
+      }).join('; ') + '.'
+      : 'Service details will be shared when they are available.';
+    return [
+      lovedOne + ' passed away.',
+      '',
+      'Family and friends are invited to remember ' + lovedOne + ' with care, stories, and support for ' + familyName + '.',
+      '',
+      serviceLine,
+      '',
+      'The family will share additional details as they are confirmed.'
+    ].join('\n');
+  }
+
+  function copyTextToClipboard(text, label) {
+    var value = String(text || '').trim();
+    if (!value) {
+      showToast('Nothing to copy yet.');
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(function() {
+        showToast((label || 'Text') + ' copied.');
+      }).catch(function() {
+        showToast('Could not copy automatically. Select the text and copy it.');
+      });
+      return;
+    }
+    showToast('Select the text and copy it.');
+  }
+
   var timelineGroups = TIMELINE_BUCKETS.map(function(bucket) {
     var outcomeItems = outcomes
       .filter(function(o) {
@@ -2082,10 +2125,27 @@ export default function EstatePage() {
   function startTaskUpdate(draft) {
     setPendingTaskAction(draft);
     setPendingTaskNote('');
+    setPendingTaskDraftText(draft && draft.mode === 'obituary' ? obituaryDraftForTask(draft.task) : '');
+    showToast('Opening task update panel...');
+    setTimeout(function() {
+      var panel = document.getElementById('task-update-panel');
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
   }
 
   function taskActionFromCommand(task, action) {
     if (!task) return;
+    if (isObituaryTask(task) && (action === 'open' || action === 'handled')) {
+      startTaskUpdate({
+        task: task,
+        status: 'handled',
+        mode: 'obituary',
+        title: 'Draft obituary',
+        detail: 'Obituary draft prepared for ' + displayTaskTitle(task),
+        prompt: 'Draft the obituary here, copy it for the funeral home, newspaper, or social post, then save where it was submitted or who is reviewing it.'
+      });
+      return;
+    }
     if (action === 'open') {
       startTaskUpdate({ task: task, status: 'choose', title: 'Update task', detail: 'Task update for ' + displayTaskTitle(task), prompt: 'Choose what happened. Passage will save it here and keep the estate current.' });
       return;
@@ -2211,20 +2271,63 @@ export default function EstatePage() {
                 </>
               );
             })()}
+            {pendingTaskAction.mode === 'obituary' && (
+              <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px', marginTop: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Obituary draft workspace</div>
+                <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginBottom: 9 }}>
+                  Draft here first. Copy it for the funeral home, newspaper, social post, or a future Passage memorial page. Saving below records the draft and where it went.
+                </div>
+                <textarea
+                  value={pendingTaskDraftText}
+                  onChange={function(e) { setPendingTaskDraftText(e.target.value); }}
+                  style={{ width: '100%', boxSizing: 'border-box', minHeight: 170, border: '1.5px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55, background: CARD, color: INK }}
+                />
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
+                  <button onClick={function() { copyTextToClipboard(pendingTaskDraftText, 'Obituary draft'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy obituary</button>
+                  <button onClick={function() {
+                    copyTextToClipboard('We are remembering ' + name + '. Service details will be shared when confirmed. ' + String(pendingTaskDraftText || '').split('\n').filter(Boolean).slice(0, 2).join(' '), 'Social post');
+                  }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy social post</button>
+                  <button onClick={function() { window.location.href = '/announce?estate=' + encodeURIComponent(estateId) + '&name=' + encodeURIComponent(name); }} style={miniBtn(CARD, MID, BORDER)}>Open announcement draft</button>
+                </div>
+              </div>
+            )}
             <textarea
               value={pendingTaskNote}
               onChange={function(e) { setPendingTaskNote(e.target.value); }}
-              placeholder={taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
+              placeholder={pendingTaskAction.mode === 'obituary' ? 'Where did this go? Example: Copied to funeral home portal; waiting on Claire to approve wording.' : taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
               style={{ width: '100%', boxSizing: 'border-box', minHeight: 82, border: '1.5px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.45, background: CARD, color: INK }}
             />
+            <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Attachments</div>
+              <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45 }}>
+                For now, save the confirmation number, screenshot filename, or document location in the note above. File upload should be added next as Documents / Task support so screenshots, PDFs, and permits are stored against this task.
+              </div>
+              <button
+                onClick={function() { showToast('Attachment storage is not enabled yet. Add the file name or reference in the proof note for now.'); }}
+                style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 10, padding: '8px 10px', marginTop: 8, fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
+                Attach file soon
+              </button>
+            </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
               <button
-                onClick={function() { updateTaskFromCommand(pendingTaskAction.task, pendingTaskAction.status, pendingTaskAction.detail, pendingTaskAction.prompt, pendingTaskNote); }}
+                onClick={function() {
+                  var noteForSave = pendingTaskNote;
+                  var detailForSave = pendingTaskAction.detail;
+                  if (pendingTaskAction.mode === 'obituary') {
+                    noteForSave = [
+                      'Obituary draft:',
+                      pendingTaskDraftText,
+                      pendingTaskNote ? '\nSubmission / review note: ' + pendingTaskNote : ''
+                    ].filter(Boolean).join('\n');
+                    detailForSave = 'Obituary draft saved';
+                  }
+                  updateTaskFromCommand(pendingTaskAction.task, pendingTaskAction.status, detailForSave, pendingTaskAction.prompt, noteForSave);
+                }}
                 style={{ border: 'none', background: pendingTaskAction.status === 'choose' ? BORDER : SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: pendingTaskAction.status === 'choose' ? 'not-allowed' : 'pointer' }}>
-                {taskActionCopy(pendingTaskAction.status).save}
+                {pendingTaskAction.mode === 'obituary' ? 'Save obituary draft' : taskActionCopy(pendingTaskAction.status).save}
               </button>
               <button
-                onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); }}
+                onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); setPendingTaskDraftText(''); }}
                 style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
                 Cancel
               </button>

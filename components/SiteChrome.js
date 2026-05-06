@@ -75,21 +75,21 @@ const DEMO_TOUR_STEPS = [
     id: 'case',
     title: 'Create the family case',
     body: 'Walk through at-need versus pre-need. Keep it simple: add the family contact, then Passage creates the command center.',
-    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
-    cta: 'Open partner dashboard',
+    href: '/system/demo?demoTour=funeral-home&demoStep=dashboard',
+    cta: 'Next: dashboard value',
   },
   {
     id: 'dashboard',
     title: 'Director dashboard',
     body: 'Point to active cases, waiting items, calls avoided, and the next partner work. This is the B2B value in under ten seconds.',
-    href: '/estate?demoTour=funeral-home&demoStep=task',
-    cta: 'Next: family command center',
+    href: '/system/demo?demoTour=funeral-home&demoStep=task',
+    cta: 'Next: task spine',
   },
   {
     id: 'task',
     title: 'Move one task',
     body: 'Show one task at a time: what Passage handles, what staff handles, and how proof is recorded. No mystery status changes.',
-    href: '/participating?demoTour=funeral-home&demoStep=participant',
+    href: '/system/demo?demoTour=funeral-home&demoStep=participant',
     cta: 'Next: participant view',
   },
   {
@@ -103,7 +103,7 @@ const DEMO_TOUR_STEPS = [
     id: 'chat',
     title: 'Coordinate the people',
     body: 'Use the mock chats to show family, cemetery, clergy, and funeral-home staff in one tracked coordination trail.',
-    href: '/vendors/request?demoTour=funeral-home&demoStep=vendor',
+    href: '/system/demo?demoTour=funeral-home&demoStep=vendor',
     cta: 'Next: vendor loop',
   },
   {
@@ -129,6 +129,7 @@ function demoStepFor(path, queryStep) {
   if (path === '/estate') return 'task';
   if (path === '/participating') return 'participant';
   if (path === '/vendors/request') return 'vendor';
+  if (path === '/vendors/onboard' || path === '/vendors/admin') return 'vendor';
   return 'overview';
 }
 
@@ -199,6 +200,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
         {showSystemAdminLinks && (
           <>
             <Link href="/system/demo" style={isActivePath(path, '/system/demo') ? activeStyle : navLink}>Demo</Link>
+            <Link href="/vendors/request" style={isActivePath(path, '/vendors/request') ? activeStyle : navLink}>Vendor page</Link>
             <Link href="/vendors/admin" style={isActivePath(path, '/vendors/admin') ? activeStyle : navLink}>Vendor admin</Link>
           </>
         )}

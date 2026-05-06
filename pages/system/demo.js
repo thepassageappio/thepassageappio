@@ -123,6 +123,73 @@ const mockChats = [
   },
 ];
 
+const ecosystemPaths = [
+  {
+    title: 'Family command center',
+    body: 'One next task, proof capture, people, messages, events, exports, and a readable activity trail.',
+    label: 'Dummy task spine',
+  },
+  {
+    title: 'Participant view',
+    body: 'Assigned work only: accept it, mark waiting, record handled, or ask for help. No funeral-home admin clutter.',
+    label: 'Dummy helper flow',
+  },
+  {
+    title: 'Funeral-home dashboard',
+    body: 'Case inbox, staff work, waiting items, location metrics, calls avoided, and CSV export.',
+    label: 'Dummy partner view',
+  },
+  {
+    title: 'Vendor page',
+    body: 'Task-native request portal: viewed, accepted, in-progress, completed, and referral value tracking.',
+    label: 'Dummy vendor loop',
+  },
+  {
+    title: 'Vendor admin',
+    body: 'System-admin approval and vendor trust controls. Not visible to families or partner funeral homes.',
+    label: 'System admin only',
+  },
+];
+
+const readinessChecks = [
+  'Demo studio is separate from the partner funeral-home dashboard.',
+  'System-admin nav exposes Demo, Vendor page, and Vendor admin.',
+  'Guided coach stays in dummy demo data and does not depend on real estates.',
+  'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language.',
+  'CSV export remains the adoption-trust close.',
+];
+
+const valueStory = [
+  {
+    title: 'For funeral directors',
+    body: 'Passage turns repeated status calls into one family command center: what is done, what is waiting, who owns it, and proof.',
+    metric: 'Fewer repeated calls',
+  },
+  {
+    title: 'For employees',
+    body: 'Staff see the next case task, what Passage prepared, what they must do, and where to record the outcome.',
+    metric: 'Clear delegated work',
+  },
+  {
+    title: 'For families',
+    body: 'Families see one calm next step and can invite helpers without losing control or wondering what happened.',
+    metric: 'Less confusion',
+  },
+  {
+    title: 'For adoption',
+    body: 'CSV export and demo-safe onboarding show Passage can sit on top of existing funeral-home systems.',
+    metric: 'No lock-in',
+  },
+];
+
+const tomorrowWorkflow = [
+  'Create or import a case with the family contact.',
+  'Move the single next task: handle it, assign it, or mark what is waiting.',
+  'Use messages to coordinate family, staff, cemetery, clergy, or vendor context.',
+  'Watch the activity trail instead of answering another "where are we?" call.',
+  'Export the case record when the funeral home needs it in its existing system.',
+];
+
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
 }
@@ -136,6 +203,8 @@ export default function SystemDemo() {
   const [selectedStep, setSelectedStep] = useState('overview');
   const [selectedChat, setSelectedChat] = useState(0);
   const [notice, setNotice] = useState('');
+  const [demoStaffRows, setDemoStaffRows] = useState(staff);
+  const [demoCaseRows, setDemoCaseRows] = useState(cases);
 
   useEffect(() => {
     if (!supabase) return;
@@ -163,6 +232,16 @@ export default function SystemDemo() {
   function demoAction(message) {
     setNotice(message);
     window.setTimeout(() => setNotice(''), 3500);
+  }
+
+  function addDemoEmployee() {
+    setDemoStaffRows((rows) => [...rows, ['Demo arranger', 'Added during this demo only. Routes service-prep tasks and family follow-up.']]);
+    demoAction('Demo employee added locally. No staff account or production record was created.');
+  }
+
+  function addDemoFamily() {
+    setDemoCaseRows((rows) => [...rows, ['Turrisi Family', 'At-need', 'First 48 hours active', 'Demo location']]);
+    demoAction('Demo family case added locally. No real estate or Supabase row was created.');
   }
 
   return (
@@ -193,11 +272,10 @@ export default function SystemDemo() {
               <Panel>
                 <div style={eyebrow}>System admin sales demo</div>
                 <h1 style={{ ...h1, maxWidth: 720 }}>A guided walkthrough for funeral-home directors.</h1>
-                <p style={{ ...lead, maxWidth: 760 }}>Use this as the clean demo environment. It shows the order, the talk track, and the operational "wow" moments without cluttering a live partner dashboard.</p>
+                <p style={{ ...lead, maxWidth: 760 }}>Use this as the clean demo environment. It uses dummy staff, dummy families, dummy messages, dummy vendor requests, and dummy export moments only.</p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
                   <Link href="/system/demo?demoTour=funeral-home&demoStep=overview" style={primaryLink}>Start guided overlay</Link>
-                  <Link href="/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard" style={secondaryLink}>Open partner dashboard with guide</Link>
-                  <Link href="/vendors/admin" style={secondaryLink}>Vendor admin</Link>
+                  <button onClick={() => demoAction('Demo reset: use the dummy cases, staff, messages, vendor loop, and export close below. No real estate data is touched.')} style={secondaryButton}>Reset dummy demo</button>
                 </div>
               </Panel>
 
@@ -235,7 +313,76 @@ export default function SystemDemo() {
                 </div>
               </Panel>
 
-              <DemoStage selectedChat={selectedChat} setSelectedChat={setSelectedChat} demoAction={demoAction} />
+              <DemoStage
+                selectedChat={selectedChat}
+                setSelectedChat={setSelectedChat}
+                demoAction={demoAction}
+                staffRows={demoStaffRows}
+                caseRows={demoCaseRows}
+                addDemoEmployee={addDemoEmployee}
+                addDemoFamily={addDemoFamily}
+              />
+            </section>
+
+            <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(280px, .75fr)', gap: 22, marginTop: 22, alignItems: 'start' }}>
+              <Panel>
+                <div style={eyebrow}>Connected product map</div>
+                <h2 style={h2}>Every demo stop points to the same task spine.</h2>
+                <p style={{ ...lead, marginBottom: 14 }}>This is dummy demo data only. It explains how the real family, participant, funeral-home, and vendor surfaces fit together without opening real estates or touching production records.</p>
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {ecosystemPaths.map((path) => (
+                    <div key={path.title} style={{ ...smallCard, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 18, fontWeight: 900 }}>{path.title}</div>
+                        <div style={smallText}>{path.body}</div>
+                      </div>
+                      <span style={tinyPill}>{path.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+
+              <Panel>
+                <div style={eyebrow}>Readiness checks</div>
+                <h2 style={h2}>Demo-safe boundaries.</h2>
+                <div style={{ display: 'grid', gap: 9 }}>
+                  {readinessChecks.map((check) => (
+                    <div key={check} style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr)', gap: 9, alignItems: 'start', color: C.mid, lineHeight: 1.45 }}>
+                      <span style={{ color: C.sage, fontWeight: 900 }}>OK</span>
+                      <span>{check}</span>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            </section>
+
+            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 22, marginTop: 22, alignItems: 'start' }}>
+              <Panel>
+                <div style={eyebrow}>Close the demo</div>
+                <h2 style={h2}>What the director should understand.</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10 }}>
+                  {valueStory.map((item) => (
+                    <div key={item.title} style={smallCard}>
+                      <span style={tinyPill}>{item.metric}</span>
+                      <div style={{ fontSize: 18, fontWeight: 900, marginTop: 10 }}>{item.title}</div>
+                      <div style={smallText}>{item.body}</div>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+
+              <Panel>
+                <div style={eyebrow}>How they use it tomorrow</div>
+                <h2 style={h2}>The daily operating loop.</h2>
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {tomorrowWorkflow.map((item, index) => (
+                    <div key={item} style={{ display: 'grid', gridTemplateColumns: '30px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
+                      <span style={{ width: 30, height: 30, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{index + 1}</span>
+                      <span style={{ color: C.mid, lineHeight: 1.5 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
             </section>
           </>
         )}
@@ -245,34 +392,36 @@ export default function SystemDemo() {
   );
 }
 
-function DemoStage({ selectedChat, setSelectedChat, demoAction }) {
+function DemoStage({ selectedChat, setSelectedChat, demoAction, staffRows, caseRows, addDemoEmployee, addDemoFamily }) {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <Panel>
         <div style={eyebrow}>1. Staff and locations</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
-          {staff.map(([role, body]) => (
-            <div key={role} style={smallCard}>
+          {staffRows.map(([role, body], index) => (
+            <div key={role + index} style={smallCard}>
               <div style={{ fontSize: 17, fontWeight: 900 }}>{role}</div>
               <div style={smallText}>{body}</div>
             </div>
           ))}
         </div>
+        <button onClick={addDemoEmployee} style={{ ...tinyButton, marginTop: 12 }}>Add dummy employee</button>
       </Panel>
 
       <Panel>
         <div style={eyebrow}>2. Case setup</div>
         <div style={{ display: 'grid', gap: 9 }}>
-          {cases.map(([name, type, status, location]) => (
-            <div key={name} style={{ ...smallCard, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'center' }}>
+          {caseRows.map(([name, type, status, location], index) => (
+            <div key={name + index} style={{ ...smallCard, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 18, fontWeight: 900 }}>{name}</div>
                 <div style={smallText}>{type} - {location} - {status}</div>
               </div>
-              <button onClick={() => demoAction(`${name} opened in the guided talk track. In the live dashboard this opens the case record.`)} style={tinyButton}>Open</button>
+              <button onClick={() => demoAction(`${name} opened in the dummy talk track. No real case record was opened or changed.`)} style={tinyButton}>Preview</button>
             </div>
           ))}
         </div>
+        <button onClick={addDemoFamily} style={{ ...tinyButton, marginTop: 12 }}>Add dummy family</button>
       </Panel>
 
       <Panel>
@@ -335,7 +484,9 @@ const h2 = { fontSize: 30, lineHeight: 1.12, margin: '8px 0 10px', fontWeight: 4
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0 };
 const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
 const primaryLink = { ...primaryButton, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' };
+const secondaryButton = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
 const secondaryLink = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' };
 const smallCard = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 14 };
 const smallText = { color: C.mid, fontSize: 13.5, lineHeight: 1.5, marginTop: 4 };
 const tinyButton = { border: '1px solid #c8deca', background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
+const tinyPill = { border: '1px solid #c8deca', background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, whiteSpace: 'nowrap', fontSize: 13 };

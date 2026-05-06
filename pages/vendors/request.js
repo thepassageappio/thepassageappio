@@ -1,12 +1,43 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js';
+import { SiteHeader } from '../../components/SiteChrome';
 import { money } from '../../lib/vendorEconomics';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
+const SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
+
+const demoRequest = {
+  status: 'accepted',
+  task_title: 'Livestream support for Friday service',
+  urgency: 'planned',
+  requested_at: '2026-05-06T14:20:00Z',
+  viewed_at: '2026-05-06T14:24:00Z',
+  responded_at: '2026-05-06T14:31:00Z',
+  estimated_value: 450,
+  final_value: '',
+  platform_fee_amount: 72,
+  funeral_home_share_amount: 24,
+  passage_share_amount: 48,
+  vendors: { business_name: 'Hudson Valley Memorial Media' },
+  workflows: { deceased_name: 'Marian Ellis' },
+};
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function isSystemAdmin(user) {
+  return SYSTEM_ADMIN_EMAILS.includes(normalizeEmail(user?.email));
+}
 
 export default function VendorRequestPage() {
   const router = useRouter();
   const token = String(router.query.token || '');
+  const [user, setUser] = useState(null);
   const [request, setRequest] = useState(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -16,9 +47,31 @@ export default function VendorRequestPage() {
   const [finalValue, setFinalValue] = useState('');
 
   useEffect(() => {
-    if (!token) return;
+    if (!supabase) {
+      setLoading(false);
+      return undefined;
+    }
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     load();
   }, [token]);
+
+  useEffect(() => {
+    if (!token && isSystemAdmin(user)) {
+      setRequest(demoRequest);
+      setEstimatedValue(demoRequest.estimated_value || '');
+      setFinalValue('');
+      setError('');
+    }
+  }, [token, user]);
 
   async function load() {
     setLoading(true);
@@ -36,6 +89,22 @@ export default function VendorRequestPage() {
   }
 
   async function update(action) {
+    if (!token) {
+      const now = new Date().toISOString();
+      const next = {
+        ...request,
+        status: action === 'completed' || action === 'in_progress' || action === 'declined' ? action : 'accepted',
+        viewed_at: request?.viewed_at || now,
+        responded_at: ['accepted', 'declined'].includes(action) ? now : request?.responded_at,
+        in_progress_at: action === 'in_progress' ? now : request?.in_progress_at,
+        completed_at: action === 'completed' ? now : request?.completed_at,
+        estimated_value: estimatedValue,
+        final_value: finalValue,
+      };
+      setRequest(next);
+      setNotice('Demo update saved locally. No vendor request record was changed.');
+      return;
+    }
     setUpdating(action);
     setError('');
     setNotice('');
@@ -58,18 +127,26 @@ export default function VendorRequestPage() {
 
   const familyName = request?.workflows?.deceased_name || request?.workflows?.estate_name || request?.workflows?.name || 'Family case';
   const vendorName = request?.vendors?.business_name || 'Vendor';
+  const demoMode = !token && isSystemAdmin(user);
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink, padding: 24 }}>
-      <section style={{ maxWidth: 760, margin: '0 auto' }}>
-        <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 18 }}>Passage</div>
+    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
+      <SiteHeader user={user} />
+      <section style={{ maxWidth: 760, margin: '0 auto', padding: 24 }}>
         {loading && <div style={cardStyle}>Loading request...</div>}
         {error && <div style={{ ...cardStyle, background: C.roseFaint, color: C.rose, borderColor: C.rose + '44' }}>{error}</div>}
+        {!loading && !token && !demoMode && (
+          <div style={cardStyle}>
+            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
+            <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>Open this from a vendor request link.</h1>
+            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>This page needs a request token so Passage can show the correct family task and vendor status loop.</p>
+          </div>
+        )}
         {!loading && request && (
           <div style={cardStyle}>
-            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Local support request</div>
+            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Demo vendor request' : 'Local support request'}</div>
             <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendorName}, a family asked for help.</h1>
-            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Passage keeps this request visible to the family and any connected funeral home. Update it here so nobody has to chase a separate call or text.</p>
+            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{demoMode ? 'This is dummy demo data for system admins. Button clicks update local screen state only; no real vendor_request record is changed.' : 'Passage keeps this request visible to the family and any connected funeral home. Update it here so nobody has to chase a separate call or text.'}</p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, margin: '18px 0' }}>
               <Info label="Family case" value={familyName} />
