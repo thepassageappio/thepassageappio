@@ -56,6 +56,82 @@ function isSystemAdminUser(user) {
   return !!email && systemAdminEmails().includes(email);
 }
 
+const DEMO_TOUR_STEPS = [
+  {
+    id: 'overview',
+    title: 'Start with the promise',
+    body: 'Open with the funeral-home problem: fewer repeated calls, visible proof, and data that can leave Passage any time.',
+    href: '/system/demo?demoTour=funeral-home&demoStep=team',
+    cta: 'Next: team setup',
+  },
+  {
+    id: 'team',
+    title: 'Show staff setup',
+    body: 'Explain directors, arrangers, coordinators, and location admins. This is where a home sees Passage as operational, not consumer-only.',
+    href: '/system/demo?demoTour=funeral-home&demoStep=case',
+    cta: 'Next: create a case',
+  },
+  {
+    id: 'case',
+    title: 'Create the family case',
+    body: 'Walk through at-need versus pre-need. Keep it simple: add the family contact, then Passage creates the command center.',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
+    cta: 'Open partner dashboard',
+  },
+  {
+    id: 'dashboard',
+    title: 'Director dashboard',
+    body: 'Point to active cases, waiting items, calls avoided, and the next partner work. This is the B2B value in under ten seconds.',
+    href: '/estate?demoTour=funeral-home&demoStep=task',
+    cta: 'Next: family command center',
+  },
+  {
+    id: 'task',
+    title: 'Move one task',
+    body: 'Show one task at a time: what Passage handles, what staff handles, and how proof is recorded. No mystery status changes.',
+    href: '/participating?demoTour=funeral-home&demoStep=participant',
+    cta: 'Next: participant view',
+  },
+  {
+    id: 'participant',
+    title: 'Participant acts',
+    body: 'Show the helper view: one assigned responsibility, clear accept/waiting/handled buttons, and an update back to the coordinator.',
+    href: '/system/demo?demoTour=funeral-home&demoStep=chat',
+    cta: 'Next: communication',
+  },
+  {
+    id: 'chat',
+    title: 'Coordinate the people',
+    body: 'Use the mock chats to show family, cemetery, clergy, and funeral-home staff in one tracked coordination trail.',
+    href: '/vendors/request?demoTour=funeral-home&demoStep=vendor',
+    cta: 'Next: vendor loop',
+  },
+  {
+    id: 'vendor',
+    title: 'Local help stays task-native',
+    body: 'Vendors appear only when useful. The request has viewed, accepted, in-progress, and completed states inside Passage.',
+    href: '/system/demo?demoTour=funeral-home&demoStep=export',
+    cta: 'Next: close the demo',
+  },
+  {
+    id: 'export',
+    title: 'Close with adoption trust',
+    body: 'Show CSV export, reporting, and the line that matters: Passage sits on top of their system without trapping data.',
+    href: '/system/demo',
+    cta: 'End walkthrough',
+  },
+];
+
+function demoStepFor(path, queryStep) {
+  const requested = String(queryStep || '');
+  if (DEMO_TOUR_STEPS.some(step => step.id === requested)) return requested;
+  if (path === '/funeral-home/dashboard') return 'dashboard';
+  if (path === '/estate') return 'task';
+  if (path === '/participating') return 'participant';
+  if (path === '/vendors/request') return 'vendor';
+  return 'overview';
+}
+
 function isActivePath(current, href) {
   if (!current) return false;
   if (href === '/') return current === '/';
@@ -91,6 +167,8 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
   const signInHandler = onSignIn || defaultSignIn;
   const signOutHandler = onSignOut || defaultSignOut;
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
+  const demoTourActive = router?.query?.demoTour === 'funeral-home' && showSystemAdminLinks;
+  const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(path, router?.query?.demoStep)) : null;
   const activeStyle = {
     background: CHROME_COLORS.sage,
     color: '#fff',
@@ -119,7 +197,10 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
       <div style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
-          <Link href="/vendors/admin" style={isActivePath(path, '/vendors/admin') ? activeStyle : navLink}>Vendor admin</Link>
+          <>
+            <Link href="/system/demo" style={isActivePath(path, '/system/demo') ? activeStyle : navLink}>Demo</Link>
+            <Link href="/vendors/admin" style={isActivePath(path, '/vendors/admin') ? activeStyle : navLink}>Vendor admin</Link>
+          </>
         )}
         <Link href={dashboardHref} style={(isActivePath(path, '/') || isActivePath(path, '/estate')) ? activeStyle : quietMyEstate}>My estate</Link>
         <span style={{ width: 104, display: 'inline-flex', justifyContent: 'flex-end' }}>
@@ -131,7 +212,24 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
           )}
         </span>
       </div>
+      {activeDemoStep && <DemoCoach step={activeDemoStep} />}
     </nav>
+  );
+}
+
+function DemoCoach({ step }) {
+  return (
+    <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 80, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage demo guide</div>
+          <div style={{ fontSize: 22, lineHeight: 1.15, marginTop: 6 }}>{step.title}</div>
+        </div>
+        <Link href={step.href === '/system/demo' ? '/system/demo' : '/system/demo?demoTour=funeral-home'} style={{ color: '#d8d0c7', textDecoration: 'none', fontSize: 12 }}>Exit</Link>
+      </div>
+      <p style={{ color: '#d8d0c7', fontSize: 14, lineHeight: 1.55, margin: '10px 0 14px' }}>{step.body}</p>
+      <Link href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
+    </div>
   );
 }
 

@@ -45,8 +45,6 @@ export default function FuneralHomeDashboard() {
   const [updating, setUpdating] = useState('');
   const [showNewCase, setShowNewCase] = useState(false);
   const [showTools, setShowTools] = useState(false);
-  const [showDemoTools, setShowDemoTools] = useState(false);
-  const [showGuidedDemo, setShowGuidedDemo] = useState(false);
   const [expandedCaseId, setExpandedCaseId] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [creating, setCreating] = useState(false);
@@ -62,12 +60,6 @@ export default function FuneralHomeDashboard() {
     coordinatorEmail: '',
     coordinatorPhone: '',
     caseReference: '',
-  });
-  const [demoForm, setDemoForm] = useState({
-    localName: 'Beacon Family Funeral Home',
-    multiName: 'Hudson Valley Funeral Group',
-    logoUrl: '',
-    primaryColor: '#6b8f71',
   });
 
   useEffect(() => {
@@ -274,69 +266,6 @@ export default function FuneralHomeDashboard() {
     await load(token);
   }
 
-  async function createDemoCase(kind = 'local') {
-    if (!token) return;
-    setCreating(true);
-    setError('');
-    const localCases = [{
-      funeralHomeName: demoForm.localName,
-      caseType: 'immediate',
-      personName: 'Marian Ellis',
-      dateOfDeath: '2026-04-29',
-      coordinatorName: 'Claire Ellis',
-      coordinatorEmail: user?.email || '',
-      coordinatorPhone: '+1 845 555 0142',
-      caseReference: 'DEMO-LOCAL-001',
-      demoType: 'local',
-    }];
-    const multiCases = [
-      {
-        funeralHomeName: demoForm.multiName,
-        caseType: 'immediate',
-        personName: 'Robert Alvarez',
-        dateOfDeath: '2026-04-30',
-        coordinatorName: 'Dana Alvarez',
-        coordinatorEmail: user?.email || '',
-        coordinatorPhone: '+1 845 555 0184',
-        caseReference: 'DEMO-MULTI-001',
-        demoType: 'multi',
-      },
-      {
-        funeralHomeName: demoForm.multiName,
-        caseType: 'prepaid',
-        personName: 'Eleanor Price',
-        coordinatorName: 'Michael Price',
-        coordinatorEmail: user?.email || '',
-        coordinatorPhone: '+1 845 555 0192',
-        caseReference: 'DEMO-MULTI-002',
-        demoType: 'multi',
-      },
-    ];
-    const payloads = kind === 'multi' ? multiCases : localCases;
-    for (const payload of payloads) {
-      const res = await fetch('/api/partnerCase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify({
-          ...payload,
-          demo: true,
-          demoLogoUrl: demoForm.logoUrl,
-          demoPrimaryColor: demoForm.primaryColor,
-        }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setCreating(false);
-        setError(json.error || 'Could not create demo case.');
-        return;
-      }
-    }
-    setShowNewCase(false);
-    setNotice(kind === 'multi' ? 'Multi-location demo is ready with at-need and prepaid cases.' : 'Local one-location demo is ready.');
-    await load(token);
-    setCreating(false);
-  }
-
   async function startPartnerCheckout(planId = 'partner_pilot') {
     if (!user || !token) return signIn();
     setError('');
@@ -467,40 +396,12 @@ export default function FuneralHomeDashboard() {
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
 
-        {user && isAdminDemo && showGuidedDemo && (
-          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Demo walkthrough</div>
-                <div style={{ fontSize: 21, marginTop: 3 }}>Show value in five moves.</div>
-                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>Use this path for directors: create/import, move work, show proof, export data, then show ROI.</div>
-              </div>
-              <button onClick={() => setShowGuidedDemo(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 12 }}>
-              {[
-                ['1', 'Create or import', 'Start an at-need or pre-need case in under a minute.'],
-                ['2', 'Assign or handle', 'Show work staff can do for the family.'],
-                ['3', 'Family view', 'Show what is done, in progress, and waiting.'],
-                ['4', 'Proof trail', 'Open messages, status, and communication history.'],
-                ['5', 'Export', 'Download for the existing funeral-home system.'],
-              ].map(([n, title, body]) => (
-                <div key={n} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
-                  <div style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</div>
-                  <div style={{ fontSize: 15, marginTop: 2 }}>{title}</div>
-                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>{body}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {user && !loading && showTools && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner tools</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Import, export, billing, and admin demo tools live here.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Import, export, billing, and partner controls live here.</div>
               </div>
               <button onClick={() => setShowTools(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
             </div>
@@ -509,43 +410,6 @@ export default function FuneralHomeDashboard() {
               <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Download template</a>
               <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV to me'}</button>
               <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Start pilot billing</button>
-              {isAdminDemo && <button onClick={() => setShowGuidedDemo(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: showGuidedDemo ? C.sage : C.card, color: showGuidedDemo ? '#fff' : C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{showGuidedDemo ? 'Hide guided demo' : 'Start guided demo'}</button>}
-              {isAdminDemo && <button onClick={() => setShowDemoTools(v => !v)} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showDemoTools ? 'Hide demo setup' : 'Demo setup'}</button>}
-            </div>
-          </div>
-        )}
-
-        {user && !loading && isAdminDemo && showDemoTools && (
-          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 10 }}>
-              <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Admin sales demo mode</div>
-                <div style={{ fontSize: 20, marginTop: 3 }}>Build the demo you are walking into.</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 4 }}>Visible only to Passage admins. Real partner users never see demo launch controls.</div>
-              </div>
-              {demoForm.logoUrl && <img src={demoForm.logoUrl} alt="" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 14, border: `1px solid ${C.border}`, background: C.bg, padding: 8 }} />}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
-              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
-                Local demo name
-                <input value={demoForm.localName} onChange={e => setDemoForm(prev => ({ ...prev, localName: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
-              </label>
-              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
-                Multi-location demo name
-                <input value={demoForm.multiName} onChange={e => setDemoForm(prev => ({ ...prev, multiName: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
-              </label>
-              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
-                Logo URL
-                <input value={demoForm.logoUrl} onChange={e => setDemoForm(prev => ({ ...prev, logoUrl: e.target.value }))} placeholder="https://..." style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
-              </label>
-              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
-                Brand color
-                <input value={demoForm.primaryColor} onChange={e => setDemoForm(prev => ({ ...prev, primaryColor: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
-              </label>
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-              <button onClick={() => createDemoCase('local')} disabled={creating} style={{ border: 'none', borderRadius: 12, padding: '10px 13px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: creating ? 'default' : 'pointer' }}>{creating ? 'Creating...' : 'Create local one-location demo'}</button>
-              <button onClick={() => createDemoCase('multi')} disabled={creating} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', background: C.card, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: creating ? 'default' : 'pointer' }}>{creating ? 'Creating...' : 'Create multi-location demo'}</button>
             </div>
           </div>
         )}
