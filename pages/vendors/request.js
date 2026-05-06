@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader } from '../../components/SiteChrome';
 import { money } from '../../lib/vendorEconomics';
+import { vendorCategoryLabel } from '../../lib/vendors';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -38,6 +39,10 @@ export default function VendorRequestPage() {
   const router = useRouter();
   const token = String(router.query.token || '');
   const [user, setUser] = useState(null);
+  const [userToken, setUserToken] = useState('');
+  const [vendorProfile, setVendorProfile] = useState(null);
+  const [vendorRequests, setVendorRequests] = useState([]);
+  const [vendorMessage, setVendorMessage] = useState('');
   const [request, setRequest] = useState(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -51,8 +56,14 @@ export default function VendorRequestPage() {
       setLoading(false);
       return undefined;
     }
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user || null);
+      setUserToken(data.session?.access_token || '');
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      setUserToken(session?.access_token || '');
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -73,6 +84,12 @@ export default function VendorRequestPage() {
     }
   }, [token, user]);
 
+  useEffect(() => {
+    if (!token && user && !isSystemAdmin(user) && userToken) {
+      loadVendorProfile(userToken);
+    }
+  }, [token, user, userToken]);
+
   async function load() {
     setLoading(true);
     setError('');
@@ -86,6 +103,27 @@ export default function VendorRequestPage() {
     setRequest(json.request);
     setEstimatedValue(json.request?.estimated_value || '');
     setFinalValue(json.request?.final_value || '');
+  }
+
+  async function loadVendorProfile(accessToken = userToken) {
+    setLoading(true);
+    setError('');
+    setVendorMessage('');
+    try {
+      const res = await fetch('/api/vendors/me', { headers: { Authorization: 'Bearer ' + accessToken } });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not load your vendor profile.');
+        return;
+      }
+      setVendorProfile(json.vendor || null);
+      setVendorRequests(json.requests || []);
+      setVendorMessage(json.message || '');
+    } catch (err) {
+      setError(err?.message || 'Could not load your vendor profile.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function update(action) {
@@ -136,11 +174,16 @@ export default function VendorRequestPage() {
         {loading && <div style={cardStyle}>Loading request...</div>}
         {error && <div style={{ ...cardStyle, background: C.roseFaint, color: C.rose, borderColor: C.rose + '44' }}>{error}</div>}
         {!loading && !token && !demoMode && (
-          <div style={cardStyle}>
-            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
-            <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>Open this from a vendor request link.</h1>
-            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>This page needs a request token so Passage can show the correct family task and vendor status loop.</p>
-          </div>
+          vendorProfile ? (
+            <VendorDashboard vendor={vendorProfile} requests={vendorRequests} />
+          ) : (
+            <div style={cardStyle}>
+              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
+              <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{user ? 'No approved vendor profile yet.' : 'Sign in to manage vendor requests.'}</h1>
+              <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first, Passage system admin approves them, then the approved contact email can sign in here to manage the business and respond to task-native requests.'}</p>
+              {!user && <button onClick={() => supabase?.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } })} style={buttonStyle(C.sage)}>Sign in</button>}
+            </div>
+          )
         )}
         {!loading && request && (
           <div style={cardStyle}>
@@ -198,6 +241,42 @@ export default function VendorRequestPage() {
         )}
       </section>
     </main>
+  );
+}
+
+function VendorDashboard({ vendor, requests }) {
+  const openRequests = requests.filter((item) => !['completed', 'declined'].includes(item.status));
+  return (
+    <div style={cardStyle}>
+      <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Approved vendor portal</div>
+      <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendor.business_name}</h1>
+      <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests from families or funeral homes appear here when Passage recommends you inside a task.</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, margin: '16px 0' }}>
+        <Info label="Category" value={vendorCategoryLabel(vendor.category)} />
+        <Info label="Open requests" value={openRequests.length} />
+        <Info label="Service area" value={(vendor.zip_codes_served || []).join(', ') || 'Not set'} />
+      </div>
+
+      <details open style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13 }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 900, fontSize: 18 }}>Incoming requests ({requests.length})</summary>
+        <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
+          {!requests.length && <div style={{ color: C.mid }}>No requests yet. When one arrives, you can view it, quote it, accept it, or mark it completed from here.</div>}
+          {requests.map((request) => {
+            const familyName = request.workflows?.deceased_name || request.workflows?.estate_name || request.workflows?.name || 'Family case';
+            return (
+              <a key={request.id} href={`/vendors/request?token=${request.response_token}`} style={{ display: 'grid', gap: 6, background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: 12, color: C.ink, textDecoration: 'none' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+                  <strong>{request.task_title || 'Local help request'}</strong>
+                  <span style={{ color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 8px', fontSize: 12, fontWeight: 900 }}>{labelForStatus(request.status)}</span>
+                </div>
+                <div style={{ color: C.mid, fontSize: 13 }}>{familyName} - {request.urgency === 'rush' ? 'Rush' : 'Planned'} - {new Date(request.requested_at).toLocaleString()}</div>
+              </a>
+            );
+          })}
+        </div>
+      </details>
+    </div>
   );
 }
 

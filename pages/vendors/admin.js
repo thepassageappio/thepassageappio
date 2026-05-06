@@ -1,64 +1,198 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader } from '../../components/SiteChrome';
 import { vendorCategoryLabel } from '../../lib/vendors';
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 
 export default function VendorAdmin() {
+  const [user, setUser] = useState(null);
   const [token, setToken] = useState('');
   const [vendors, setVendors] = useState([]);
+  const [filter, setFilter] = useState('pending');
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [updating, setUpdating] = useState('');
 
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      setError('Vendor admin needs Supabase public environment variables before it can load applications.');
+      return undefined;
+    }
     supabase.auth.getSession().then(({ data }) => {
+      setUser(data?.session?.user || null);
       const accessToken = data?.session?.access_token || '';
       setToken(accessToken);
       if (accessToken) load(accessToken);
+      else setLoading(false);
     });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const accessToken = session?.access_token || '';
+      setUser(session?.user || null);
+      setToken(accessToken);
+      if (accessToken) load(accessToken);
+      else {
+        setVendors([]);
+        setLoading(false);
+      }
+    });
+    return () => data.subscription.unsubscribe();
   }, []);
 
   async function load(accessToken = token) {
-    const res = await fetch('/api/vendors/admin', { headers: { Authorization: 'Bearer ' + accessToken } });
-    const json = await res.json().catch(() => ({}));
-    if (res.ok) setVendors(json.vendors || []);
-    else setMessage(json.error || 'Could not load vendors.');
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/vendors/admin', { headers: { Authorization: 'Bearer ' + accessToken } });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setVendors(json.vendors || []);
+      } else {
+        setError(json.error || 'Could not load vendor applications.');
+      }
+    } catch (err) {
+      setError(err?.message || 'Could not reach vendor admin.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function setStatus(vendorId, status) {
+    if (!token) {
+      setError('Please sign in before reviewing vendor applications.');
+      return;
+    }
+    setUpdating(vendorId + ':' + status);
+    setError('');
+    setMessage('');
     const res = await fetch('/api/vendors/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify({ vendorId, status }),
     });
     const json = await res.json().catch(() => ({}));
-    setMessage(res.ok ? 'Vendor updated.' : json.error || 'Could not update vendor.');
+    const vendor = json.vendor || vendors.find((item) => item.id === vendorId);
+    setUpdating('');
+    setMessage(res.ok ? statusMessage(status, vendor) : '');
+    if (!res.ok) setError(json.error || 'Could not update vendor.');
     if (res.ok) load();
   }
 
+  async function signIn() {
+    if (!supabase || typeof window === 'undefined') return;
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+  }
+
+  async function signOut() {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    setUser(null);
+    setVendors([]);
+  }
+
+  const counts = useMemo(() => ({
+    all: vendors.length,
+    pending: vendors.filter((vendor) => vendor.status === 'pending').length,
+    active: vendors.filter((vendor) => vendor.status === 'active').length,
+    inactive: vendors.filter((vendor) => vendor.status === 'inactive').length,
+    rejected: vendors.filter((vendor) => vendor.status === 'rejected').length,
+  }), [vendors]);
+  const visibleVendors = filter === 'all' ? vendors : vendors.filter((vendor) => vendor.status === filter);
+
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
-      <SiteHeader />
+      <SiteHeader user={user} onSignIn={user ? null : signIn} onSignOut={user ? signOut : null} />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '22px' }}>
         <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage admin</div>
         <h1 style={{ fontSize: 44, lineHeight: 1.05, margin: '8px 0 16px', fontWeight: 400 }}>Vendor applications</h1>
+        <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.6, maxWidth: 720, marginTop: -4 }}>Review trusted local support partners before they appear inside family tasks. Approval makes the vendor active; the vendor signs in with the application email to manage requests from the vendor page.</p>
+
+        <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, margin: '18px 0', display: 'grid', gap: 12 }}>
+          <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Approval path</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
+            {[
+              ['1', 'Vendor applies', 'Business, category, ZIPs, email, and phone are captured.'],
+              ['2', 'System admin reviews', 'Only Passage system admins can approve, pause, or reject.'],
+              ['3', 'Vendor signs in', 'Their contact email becomes the business login identity.'],
+              ['4', 'Task-native requests', 'Families see vendors only inside relevant tasks.'],
+            ].map(([number, title, body]) => (
+              <div key={title} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 12 }}>
+                <div style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{number}</div>
+                <div style={{ fontSize: 16, fontWeight: 900, marginTop: 4 }}>{title}</div>
+                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>{body}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {message && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 12, padding: 12, marginBottom: 12 }}>{message}</div>}
+        {error && <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '55', color: C.rose, borderRadius: 12, padding: 12, marginBottom: 12 }}>{error}</div>}
+
+        {!user && !loading && (
+          <div style={emptyStyle}>
+            <div style={{ fontSize: 24, marginBottom: 6 }}>Sign in as a Passage system admin.</div>
+            <p style={{ color: C.mid, lineHeight: 1.6, marginTop: 0 }}>Vendor approvals are restricted because approving a vendor controls who families may see inside tasks.</p>
+            <button onClick={signIn} style={primaryButton}>Sign in with Google</button>
+          </div>
+        )}
+
+        {user && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+            {[
+              ['pending', `Pending (${counts.pending})`],
+              ['active', `Approved (${counts.active})`],
+              ['inactive', `Paused (${counts.inactive})`],
+              ['rejected', `Rejected (${counts.rejected})`],
+              ['all', `All (${counts.all})`],
+            ].map(([value, label]) => (
+              <button key={value} onClick={() => setFilter(value)} style={{ border: '1px solid ' + (filter === value ? C.sage : C.border), background: filter === value ? C.sage : C.card, color: filter === value ? '#fff' : C.mid, borderRadius: 999, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{label}</button>
+            ))}
+          </div>
+        )}
+
+        {loading && <div style={emptyStyle}>Loading vendor applications...</div>}
+
+        {user && !loading && vendors.length === 0 && (
+          <div style={emptyStyle}>
+            <div style={{ fontSize: 24, marginBottom: 6 }}>No vendor applications yet.</div>
+            <p style={{ color: C.mid, lineHeight: 1.6, marginTop: 0 }}>When a vendor submits the support partner form, it will appear here for system-admin approval.</p>
+            <Link href="/vendors/onboard" style={{ ...primaryButton, display: 'inline-flex', textDecoration: 'none' }}>Open vendor application form</Link>
+          </div>
+        )}
+
+        {user && !loading && vendors.length > 0 && visibleVendors.length === 0 && (
+          <div style={emptyStyle}>No {filter} vendors right now.</div>
+        )}
+
         <div style={{ display: 'grid', gap: 10 }}>
-          {vendors.map((vendor) => (
+          {visibleVendors.map((vendor) => (
             <div key={vendor.id} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <div>
                   <div style={{ fontSize: 21 }}>{vendor.business_name}</div>
-                  <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{vendorCategoryLabel(vendor.category)} - {vendor.contact_email} - {(vendor.zip_codes_served || []).join(', ')}</div>
+                  <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{vendorCategoryLabel(vendor.category)} - {vendor.contact_email || 'no email yet'} - {(vendor.zip_codes_served || []).join(', ') || 'no ZIPs yet'}</div>
+                  <div style={{ color: C.soft, fontSize: 12.5, marginTop: 5 }}>{vendor.contact_phone || 'No phone'}{vendor.website ? ` - ${vendor.website}` : ''}</div>
                   {vendor.short_description && <div style={{ color: C.mid, fontSize: 13, marginTop: 7, lineHeight: 1.5 }}>{vendor.short_description}</div>}
                 </div>
                 <span style={{ color: vendor.status === 'active' ? C.sage : vendor.status === 'rejected' ? C.rose : C.soft, background: vendor.status === 'rejected' ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '5px 9px', fontSize: 12, fontWeight: 900 }}>{vendor.status}</span>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {['active', 'inactive', 'rejected'].map((status) => (
-                  <button key={status} onClick={() => setStatus(vendor.id, status)} style={{ border: '1px solid ' + C.border, background: status === 'active' ? C.sage : C.card, color: status === 'active' ? '#fff' : C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{status}</button>
-                ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 12 }}>
+                <div style={{ color: C.mid, fontSize: 13 }}>Availability: {vendor.rush_supported ? `rush${vendor.rush_window_hours ? ` (${vendor.rush_window_hours}h)` : ''}` : 'planned'}{vendor.planned_supported ? ' + planned' : ''}</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button disabled={updating === vendor.id + ':active'} onClick={() => setStatus(vendor.id, 'active')} style={{ ...smallButton, background: C.sage, color: '#fff', borderColor: C.sage }}>{updating === vendor.id + ':active' ? 'Approving...' : 'Approve vendor'}</button>
+                  <button disabled={updating === vendor.id + ':inactive'} onClick={() => setStatus(vendor.id, 'inactive')} style={smallButton}>{updating === vendor.id + ':inactive' ? 'Pausing...' : 'Pause'}</button>
+                  <button disabled={updating === vendor.id + ':rejected'} onClick={() => setStatus(vendor.id, 'rejected')} style={{ ...smallButton, color: C.rose }}>{updating === vendor.id + ':rejected' ? 'Rejecting...' : 'Reject'}</button>
+                </div>
               </div>
             </div>
           ))}
@@ -67,3 +201,19 @@ export default function VendorAdmin() {
     </main>
   );
 }
+
+function statusMessage(status, vendor) {
+  const email = vendor?.contact_email;
+  if (status === 'active') {
+    return email
+      ? `Vendor approved. ${email} can sign in and use the vendor page for this business.`
+      : 'Vendor approved. Add a contact email so they can sign in and manage their vendor page.';
+  }
+  if (status === 'inactive') return 'Vendor paused. They will not be recommended inside tasks while paused.';
+  if (status === 'rejected') return 'Vendor rejected. They will not appear in family tasks.';
+  return 'Vendor updated.';
+}
+
+const emptyStyle = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, color: C.ink, marginBottom: 14 };
+const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
+const smallButton = { border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
