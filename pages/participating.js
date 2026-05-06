@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPrompt, taskActionStatus } from '../lib/taskActions';
+import { getTaskPlaybook } from '../lib/taskPlaybooks';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -130,6 +131,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const handled = isHandled(itemStatus(item));
   const kind = roleKind(estate?.role, item);
   const contract = requestContract(kind, estate, item);
+  const playbook = getTaskPlaybook(itemTitle(item));
   const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'acknowledged' ? 'Status: Confirmed' : itemStatus(item) === 'blocked' ? 'Status: Needs help' : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
   const [savedPulse, setSavedPulse] = useState(false);
   const noteChange = (value) => {
@@ -167,6 +169,10 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 5 }}>{contract.serviceLine}</div>
         <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.45, marginTop: 5 }}>{contract.authority}</div>
         <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>{contract.payer}</div>
+      </div>
+      <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 11, padding: '9px 10px', marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>What Passage gives you</div>
+        <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginTop: 4 }}>{playbook.actionResultLabel || playbook.whatPassageDoes}</div>
       </div>
       {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
       {!handled && (

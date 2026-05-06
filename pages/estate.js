@@ -1256,6 +1256,11 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Owner: {ownerBucket(task)}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {proof}</span>
                     </div>
+                    {task.playbook.actionResultLabel && (
+                      <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '7px 9px', color: SAGE, fontSize: 11.5, lineHeight: 1.45, marginTop: 7, fontWeight: 800 }}>
+                        {task.playbook.actionResultLabel}
+                      </div>
+                    )}
                     <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 9px', marginTop: 7 }}>
                       <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Passage handles</div>
                       <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{task.playbook.whatPassageDoes}</div>
