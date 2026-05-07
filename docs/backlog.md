@@ -10,6 +10,9 @@
 - Stop-the-line regressions: estate persistence, invite confirmation, partner case creation/load, task action feedback (no "Confirmed" without proof).
 - B2B activation gap: verify the newly seeded test funeral-home `organization` + `funeral_home_partner`, family/estate participation join, and terminal task status persistence through live app flows before calling any funeral-home demo ready.
 - Terminal task status QA: marking handled must update the task row used by dashboards/reports, not only write `task_status_events`.
+- Auth/RLS bridge from contract proof: create a real auth user or invite path for `demo@collinsffh.com`, bridge accepted `estate_participants` into `estate_access`, and route all task completion/status writes through service-role API endpoints rather than direct client inserts into `task_status_events`.
+- Canonical data-source guardrails: app code should ignore `people.invitation_token`, use `estate_participants.invite_token` for invites, use `organization_case_reference` for current location demos until a location foreign key exists, and treat per-case dollar value as roadmap-only until schema exists.
+- Partner billing org-link migration is drafted but not approved/applied: add `funeral_home_partners.organization_id`, backfill Collins/HVFG, scope RLS by org, and expose `partnerPlan`/`activationStatus` from `/api/partnerContext`. Open owner gate: confirm HVFG plan/fee/trial values before any production SQL.
 - Repo hygiene: `.gitattributes` now normalizes LF line endings; monitor for any remaining phantom dirty files after Windows edits.
 - Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
 - Webhook-as-proof QA: Resend + Twilio `webhook_events` record provider + timestamp + actor and are surfaced as proof; vendor requests show Sent/Received/Accepted/Declined with visible activity.

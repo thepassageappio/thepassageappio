@@ -19,8 +19,8 @@ function statusLabel(value) {
   if (value === 'needs_review') return 'Needs review';
   if (value === 'blocked') return 'Blocked';
   if (value === 'acknowledged') return 'Confirmed';
-  if (value === 'sent' || value === 'assigned' || value === 'waiting') return 'Waiting for confirmation';
-  if (value === 'handled' || value === 'completed') return 'Handled';
+  if (value === 'sent' || value === 'assigned' || value === 'waiting' || value === 'pending') return 'Waiting for confirmation';
+  if (value === 'handled' || value === 'completed' || value === 'done') return 'Handled';
   return 'Draft';
 }
 

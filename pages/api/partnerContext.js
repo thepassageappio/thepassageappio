@@ -14,7 +14,7 @@ function isHandledStatus(status) {
 }
 
 function isWaitingStatus(status) {
-  return ['sent', 'waiting', 'assigned', 'acknowledged'].includes(String(status || '').toLowerCase());
+  return ['sent', 'waiting', 'pending', 'assigned', 'acknowledged'].includes(String(status || '').toLowerCase());
 }
 
 function locationNameForWorkflow(workflow) {

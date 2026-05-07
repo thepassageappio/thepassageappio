@@ -50,7 +50,7 @@ export default async function handler(req, res) {
   const { data: tasks, error } = await supabase
     .from('tasks')
     .select('id,workflow_id,title,status,last_action_at,assigned_to_name,assigned_to_email,channel,recipient,reminder_4h_sent_at,reminder_24h_sent_at')
-    .in('status', ['sent', 'waiting', 'assigned', 'delivered'])
+    .in('status', ['sent', 'waiting', 'pending', 'assigned', 'delivered'])
     .is('acknowledged_at', null)
     .order('last_action_at', { ascending: true, nullsFirst: false })
     .limit(40);

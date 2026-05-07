@@ -3,7 +3,7 @@ import { serviceSupabase, isUuid, recordStatusEvent } from '../../../../lib/task
 import { isPassageAdmin } from '../../../../lib/adminAccess';
 import { taskActionConfirmation, taskActionOutcomeStatus } from '../../../../lib/taskActions';
 
-const allowedStatuses = new Set(['waiting', 'acknowledged', 'handled', 'blocked', 'not_applicable']);
+const allowedStatuses = new Set(['waiting', 'pending', 'acknowledged', 'handled', 'completed', 'done', 'blocked', 'not_applicable']);
 const allowedChannels = new Set(['email', 'sms', 'call', 'website', 'record', 'participant']);
 
 async function userCanUpdateTask(auth, task) {
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
     channel: channel || 'record',
     recipient: recipient || task.assigned_to_name || task.assigned_to_email || null,
   };
-  if (status === 'handled') updates.completed_at = now;
+  if (['handled', 'completed', 'done'].includes(status)) updates.completed_at = now;
   if (status === 'acknowledged') updates.acknowledged_at = now;
   if (typeof notes === 'string') updates.notes = notes.trim();
   const resolvedOutcomeStatus = outcomeStatus || taskActionOutcomeStatus(status);

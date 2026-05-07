@@ -1080,7 +1080,7 @@ function statusBucket(status) {
   var s = status || 'draft';
   if (['handled', 'completed', 'acknowledged', 'delivered'].includes(s)) return 'good';
   if (['failed', 'blocked', 'needs_review'].includes(s)) return 'bad';
-  if (['sent', 'waiting', 'assigned', 'in_progress'].includes(s)) return 'wait';
+  if (['sent', 'waiting', 'pending', 'assigned', 'in_progress'].includes(s)) return 'wait';
   return 'draft';
 }
 
@@ -1365,7 +1365,7 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
   }, [initialTaskId, queueKey]);
   var current = queue[selectedIndex] || null;
   var openedFromTaskLink = Boolean(initialTaskId && current && String(current.item && current.item.id ? current.item.id : '') === String(initialTaskId));
-  var waiting = openTasks.filter(function(t) { return ['waiting', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
+  var waiting = openTasks.filter(function(t) { return ['waiting', 'pending', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
   var needsOwner = openOutcomes.filter(function(o) { return !o.owner_label; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
   var recent = (communicationCenter && communicationCenter.length ? communicationCenter : [].concat(events || [], actions || [])).slice(0, 8);
   var tabs = [

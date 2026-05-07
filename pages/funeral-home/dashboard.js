@@ -9,10 +9,10 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
 function statusLabel(value) {
-  if (value === 'handled' || value === 'completed') return 'Handled';
+  if (value === 'handled' || value === 'completed' || value === 'done') return 'Handled';
   if (value === 'acknowledged') return 'Confirmed';
   if (value === 'blocked' || value === 'needs_review' || value === 'failed') return 'Needs help';
-  if (value === 'sent' || value === 'waiting' || value === 'assigned') return 'Waiting for confirmation';
+  if (value === 'sent' || value === 'waiting' || value === 'pending' || value === 'assigned') return 'Waiting for confirmation';
   return 'Draft';
 }
 
@@ -297,8 +297,8 @@ export default function FuneralHomeDashboard() {
   const cases = data?.cases || [];
   const isAdminDemo = !!data?.isPassageAdmin;
   const totalBlocked = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
-  const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['sent', 'waiting', 'assigned'].includes(t.status || '')).length, 0);
-  const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed'].includes(t.status || '')).length, 0);
+  const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['sent', 'waiting', 'pending', 'assigned'].includes(t.status || '')).length, 0);
+  const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length, 0);
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
   const totalVendorRequests = cases.reduce((sum, item) => sum + (item.vendorRequests?.length || 0), 0);
   const totalVendorValue = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.final_value || request.estimated_value || 0), 0), 0);
@@ -346,7 +346,7 @@ export default function FuneralHomeDashboard() {
   const isMultiLocation = locations.length > 1 || /group|multi/i.test(String(org?.name || '') + ' ' + String(org?.plan || ''));
   const displayCases = isMultiLocation && selectedLocation !== 'all' ? cases.filter(item => locationNameFor(item) === selectedLocation) : cases;
   const caseInbox = displayCases
-    .map(item => ({ caseItem: item, task: item.nextPartnerTask || (item.partnerTasks || []).find(t => !['handled', 'completed'].includes(t.status || '')) || (item.tasks || []).find(t => !['handled', 'completed'].includes(t.status || '')) }))
+    .map(item => ({ caseItem: item, task: item.nextPartnerTask || (item.partnerTasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || '')) || (item.tasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || '')) }))
     .filter(row => row.task)
     .slice(0, 4);
 
@@ -737,8 +737,8 @@ export default function FuneralHomeDashboard() {
                     <tbody>
                       {locations.map(location => {
                         const rows = cases.filter(item => locationNameFor(item) === location);
-                        const handled = rows.reduce((sum, item) => sum + item.tasks.filter(t => ['handled', 'completed'].includes(t.status || '')).length, 0);
-                        const waiting = rows.reduce((sum, item) => sum + item.tasks.filter(t => ['sent', 'waiting', 'assigned', 'blocked'].includes(t.status || '')).length, 0);
+                        const handled = rows.reduce((sum, item) => sum + item.tasks.filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length, 0);
+                        const waiting = rows.reduce((sum, item) => sum + item.tasks.filter(t => ['sent', 'waiting', 'pending', 'assigned', 'blocked'].includes(t.status || '')).length, 0);
                         return (
                           <tr key={location}>
                             <td style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}`, fontWeight: 900 }}>{location}</td>
@@ -757,8 +757,8 @@ export default function FuneralHomeDashboard() {
           )}
           <div style={{ display: 'grid', gap: 12 }}>
             {displayCases.map(item => {
-              const handledCount = item.tasks.filter(t => ['handled', 'completed'].includes(t.status || '')).length;
-              const waitingCount = item.tasks.filter(t => ['sent', 'waiting', 'assigned'].includes(t.status || '')).length;
+              const handledCount = item.tasks.filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length;
+              const waitingCount = item.tasks.filter(t => ['sent', 'waiting', 'pending', 'assigned'].includes(t.status || '')).length;
               const progressCount = item.tasks.filter(t => ['draft', 'acknowledged'].includes(t.status || '')).length;
               const open = item.tasks.length - handledCount;
               const blocked = item.tasks.filter(t => ['blocked', 'needs_review', 'failed'].includes(t.status || '')).length;
@@ -766,7 +766,7 @@ export default function FuneralHomeDashboard() {
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
               const topTasks = partnerTasks.length ? partnerTasks.slice(0, 3) : item.tasks.slice(0, 3);
-              const nextPartnerTask = item.nextPartnerTask || topTasks.find(task => !['handled', 'completed'].includes(task.status || ''));
+              const nextPartnerTask = item.nextPartnerTask || topTasks.find(task => !['handled', 'completed', 'done'].includes(task.status || ''));
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               const isExpanded = expandedCaseId === item.id;
               const itemLocation = locationNameFor(item);
@@ -879,7 +879,7 @@ export default function FuneralHomeDashboard() {
                         </div>
                         <div style={{ fontSize: 11, color: C.mid, whiteSpace: 'nowrap' }}>{statusLabel(task.status)}</div>
                       </div>
-                      {task.playbook?.funeralHomeEligible && !['handled', 'completed'].includes(task.status || '') && (
+                      {task.playbook?.funeralHomeEligible && !['handled', 'completed', 'done'].includes(task.status || '') && (
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                           <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Start on behalf of family', prompt: taskActionPrompt('waiting', task, 'funeral_home') }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start on behalf of family</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request family information', prompt: taskActionPrompt('blocked', task, 'funeral_home') }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Need family info</button>
@@ -910,7 +910,7 @@ export default function FuneralHomeDashboard() {
                           </div>
                         </div>
                       )}
-                      {['handled', 'completed'].includes(task.status || '') && (
+                      {['handled', 'completed', 'done'].includes(task.status || '') && (
                         <div style={{ marginTop: 8, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 10, padding: '8px 10px', color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Handled for the family</div>
                       )}
                     </div>
