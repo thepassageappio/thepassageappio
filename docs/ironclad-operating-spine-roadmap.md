@@ -168,7 +168,7 @@ These are not failures to hide. They are the work queue until fixed and QA-passe
 - FAQ, Trust, Privacy, and Terms overview destinations exist, but they are not final legal/compliance policy. The next legal sprint must replace overview copy with owner/counsel-approved language.
 - Urgent flow has drifted away from the one-action crisis spec. The triage logic is good, but too many controls are visible at once and the progress sidebar reads empty before the user has context.
 - The task action UI is still not fully shared everywhere.
-- Proof attachments are placeholder-level, not storage-backed.
+- Proof attachments now have a first storage-backed path from estate tasks into `passage-documents/task-support`; later work still needs a durable `task_attachments` index/table and document-center surfacing.
 - Funeral-home employee permissions are visible but not yet fully schema-enforced.
 - Vendor approval/profile/request status exists in pieces and needs a stronger provisioning loop.
 - Demo studio is separate, but the guided story needs to expose only the active step and stay dummy-only.
@@ -448,7 +448,7 @@ Likely schema work, requiring owner approval:
 - `workflows.location_id`.
 - `tasks.assigned_to_user_id`.
 - `tasks.assignment_actor_role`.
-- `task_attachments` or storage-backed proof uploads.
+- `task_attachments` index/table for storage-backed proof uploads already saved under `passage-documents/task-support`.
 - Estate value fields for ROI:
   - `estimated_case_value`
   - `actual_case_value`
