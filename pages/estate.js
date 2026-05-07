@@ -1739,9 +1739,12 @@ export default function EstatePage() {
   var s20 = useState(''); var pendingTaskDraftText = s20[0]; var setPendingTaskDraftText = s20[1];
   var s21 = useState(''); var pendingRecipientName = s21[0]; var setPendingRecipientName = s21[1];
   var s22 = useState(''); var pendingRecipientEmail = s22[0]; var setPendingRecipientEmail = s22[1];
-  var s23 = useState(false); var assigningTaskRecipient = s23[0]; var setAssigningTaskRecipient = s23[1];
-  var s24 = useState(null); var pendingTaskAttachment = s24[0]; var setPendingTaskAttachment = s24[1];
-  var s25 = useState(false); var uploadingTaskAttachment = s25[0]; var setUploadingTaskAttachment = s25[1];
+  var s23 = useState(''); var pendingRecipientRole = s23[0]; var setPendingRecipientRole = s23[1];
+  var s24 = useState(''); var pendingRecipientPhone = s24[0]; var setPendingRecipientPhone = s24[1];
+  var s25 = useState(''); var pendingSavedPersonId = s25[0]; var setPendingSavedPersonId = s25[1];
+  var s26 = useState(false); var assigningTaskRecipient = s26[0]; var setAssigningTaskRecipient = s26[1];
+  var s27 = useState(null); var pendingTaskAttachment = s27[0]; var setPendingTaskAttachment = s27[1];
+  var s28 = useState(false); var uploadingTaskAttachment = s28[0]; var setUploadingTaskAttachment = s28[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -2029,6 +2032,9 @@ export default function EstatePage() {
     setPendingTaskNote('');
     setPendingTaskDraftText('');
     setPendingTaskAttachment(null);
+    setPendingSavedPersonId('');
+    setPendingRecipientRole('');
+    setPendingRecipientPhone('');
     showToast(saved.confirmation || taskActionConfirmation(status, task, 'family'));
   }
 
@@ -2042,6 +2048,17 @@ export default function EstatePage() {
   function taskAssignedName(task) {
     if (!task) return '';
     return task.assigned_to_name || task.assigned_to || task.owner_label || task.recipient_name || task.recipient || '';
+  }
+
+  function applySavedPersonToPending(personId) {
+    setPendingSavedPersonId(personId);
+    if (!personId) return;
+    var person = (people || []).find(function(p) { return String(p.id || p.email || p.name) === String(personId); });
+    if (!person) return;
+    setPendingRecipientName(person.name || person.full_name || person.email || '');
+    setPendingRecipientEmail(person.email || '');
+    setPendingRecipientRole(person.estate_role_label || person.relationship || person.role || '');
+    setPendingRecipientPhone(person.phone || person.phone_number || '');
   }
 
   async function sendTaskDraftFromCommand(task, messageText) {
@@ -2107,6 +2124,8 @@ export default function EstatePage() {
     if (!task?.id) return null;
     var assigneeName = String(pendingRecipientName || '').trim();
     var assigneeEmail = String(pendingRecipientEmail || '').trim().toLowerCase();
+    var assigneeRole = String(pendingRecipientRole || '').trim();
+    var assigneePhone = String(pendingRecipientPhone || '').trim();
     if (!assigneeName && !assigneeEmail) {
       showToast('Add the recipient name and email before sending through Passage.');
       return null;
@@ -2128,6 +2147,8 @@ export default function EstatePage() {
       body: JSON.stringify({
         name: assigneeName || assigneeEmail,
         email: assigneeEmail,
+        role: assigneeRole,
+        phone: assigneePhone,
         actor: user?.email || coordinatorName || 'Passage',
       }),
     }).catch(function() { return null; });
@@ -2489,6 +2510,9 @@ export default function EstatePage() {
     setPendingTaskDraftText(draft && draft.mode ? taskWorkspaceDraft(draft.task, draft.mode) : '');
     setPendingRecipientName(draft && draft.task ? taskAssignedName(draft.task) : '');
     setPendingRecipientEmail(draft && draft.task ? taskAssignedEmail(draft.task) : '');
+    setPendingRecipientRole('');
+    setPendingRecipientPhone('');
+    setPendingSavedPersonId('');
     setPendingTaskAttachment(null);
     showToast('Opening task update panel...');
     setTimeout(function() {
@@ -2684,6 +2708,20 @@ export default function EstatePage() {
                           </div>
                           {currentEmail && <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 900 }}>Ready to notify</span>}
                         </div>
+                        {(people || []).length > 0 && (
+                          <div style={{ marginTop: 9 }}>
+                            <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: SOFT, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+                              Choose someone already attached
+                              <select value={pendingSavedPersonId} onChange={function(e) { applySavedPersonToPending(e.target.value); }} style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5, background: CARD, color: INK }}>
+                                <option value="">Use a saved person...</option>
+                                {(people || []).slice(0, 12).map(function(person) {
+                                  var id = person.id || person.email || person.name;
+                                  return <option key={id} value={id}>{person.name || person.email || 'Family contact'}{person.email ? ' - ' + person.email : ''}</option>;
+                                })}
+                              </select>
+                            </label>
+                          </div>
+                        )}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8, marginTop: 9 }}>
                           <input
                             value={pendingRecipientName}
@@ -2697,11 +2735,35 @@ export default function EstatePage() {
                             placeholder="Email address"
                             style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
                           />
+                          <input
+                            value={pendingRecipientRole}
+                            onChange={function(e) { setPendingRecipientRole(e.target.value); }}
+                            placeholder="Role: executor, clergy, sibling..."
+                            style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
+                          />
+                          <input
+                            value={pendingRecipientPhone}
+                            onChange={function(e) { setPendingRecipientPhone(e.target.value); }}
+                            placeholder="Phone for reference"
+                            style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
+                          />
                         </div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 9 }}>
                           <button onClick={function() { saveTaskRecipientFromCommand(pendingTaskAction.task); }} disabled={assigningTaskRecipient} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>
                             {assigningTaskRecipient ? 'Saving owner...' : currentEmail ? 'Update owner only' : 'Save owner only'}
                           </button>
+                          {(pendingTaskAction.mode === 'assignment' || pendingTaskAction.mode === 'message') && (
+                            <button
+                              onClick={function() {
+                                saveTaskRecipientFromCommand(pendingTaskAction.task).then(function(savedTask) {
+                                  if (savedTask) sendTaskDraftFromCommand(savedTask, pendingTaskDraftText);
+                                });
+                              }}
+                              disabled={assigningTaskRecipient || pendingTaskAction.sending}
+                              style={miniBtn(SAGE, '#fff', SAGE)}>
+                              {assigningTaskRecipient ? 'Saving...' : pendingTaskAction.sending ? 'Sending...' : 'Save owner + send handoff'}
+                            </button>
+                          )}
                           <span style={{ fontSize: 11.5, color: MID, lineHeight: 1.4 }}>This updates the task owner, records the audit trail, and enables reminders or Send through Passage.</span>
                         </div>
                       </div>
@@ -2844,7 +2906,15 @@ export default function EstatePage() {
                 {pendingTaskAction.status === 'choose' ? 'Save owner' : pendingTaskAction.mode ? taskWorkspaceSaveLabel(pendingTaskAction.mode) : taskActionCopy(pendingTaskAction.status).save}
               </button>
               <button
-                onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); setPendingTaskDraftText(''); setPendingTaskAttachment(null); }}
+                onClick={function() {
+                  setPendingTaskAction(null);
+                  setPendingTaskNote('');
+                  setPendingTaskDraftText('');
+                  setPendingTaskAttachment(null);
+                  setPendingSavedPersonId('');
+                  setPendingRecipientRole('');
+                  setPendingRecipientPhone('');
+                }}
                 style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
                 Cancel
               </button>

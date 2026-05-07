@@ -50,9 +50,11 @@ export default async function handler(req, res) {
   const taskId = String(req.query.id || '').trim();
   if (!taskId) return res.status(400).json({ error: 'Invalid task id.' });
 
-  const { name, email, actor } = req.body || {};
+  const { name, email, role, phone, actor } = req.body || {};
   const assigneeEmail = String(email || '').trim().toLowerCase();
   const assigneeName = String(name || '').trim() || assigneeEmail;
+  const assigneeRole = String(role || '').trim();
+  const assigneePhone = String(phone || '').trim();
 
   if (!assigneeName) return res.status(400).json({ error: 'Add the recipient name or email.' });
   if (!assigneeEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(assigneeEmail)) {
@@ -98,14 +100,22 @@ export default async function handler(req, res) {
     last_actor: actorName,
     channel: 'record',
     recipient: assigneeEmail,
-    detail: task.title + ' assigned to ' + assigneeName + ' <' + assigneeEmail + '>',
+    detail: [
+      task.title + ' assigned to ' + assigneeName + ' <' + assigneeEmail + '>',
+      assigneeRole ? 'Role: ' + assigneeRole : '',
+      assigneePhone ? 'Phone: ' + assigneePhone : '',
+    ].filter(Boolean).join(' | '),
   }]).then(() => {}, () => {});
 
   await serviceSupabase.from('estate_events').insert([{
     estate_id: task.workflow_id,
     event_type: 'task_assigned',
     title: 'Task assigned',
-    description: task.title + ' assigned to ' + assigneeName,
+    description: [
+      task.title + ' assigned to ' + assigneeName,
+      assigneeRole ? 'Role: ' + assigneeRole : '',
+      assigneePhone ? 'Phone: ' + assigneePhone : '',
+    ].filter(Boolean).join(' | '),
     actor: actorName,
   }]).then(() => {}, () => {});
 
