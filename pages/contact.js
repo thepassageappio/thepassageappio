@@ -45,6 +45,24 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', category: categories[0], urgency: 'Normal', message: '' });
   const [state, setState] = useState('idle');
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const rawCategory = String(params.get('category') || '').trim().toLowerCase();
+    const plan = String(params.get('plan') || '').trim();
+    if (!rawCategory && !plan) return;
+    setForm(prev => {
+      const category = rawCategory.includes('vendor')
+        ? 'Local vendor interest'
+        : rawCategory.includes('funeral') || rawCategory.includes('partner')
+          ? 'Funeral home / partner inquiry'
+          : prev.category;
+      const planLine = plan ? `Interested plan: ${plan.replace(/_/g, ' ')}.` : '';
+      const message = prev.message || planLine;
+      return { ...prev, category, message };
+    });
+  }, []);
+
   function set(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
 
   async function submit(e) {
