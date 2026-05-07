@@ -34,6 +34,58 @@ function slugify(value) {
     .slice(0, 48) || 'partner';
 }
 
+function schemaColumnError(error) {
+  const message = String(error?.message || error || '');
+  return /schema cache|column .* does not exist|Could not find the .* column/i.test(message);
+}
+
+async function createFamilyParticipantLink({ workflowId, taskId, familyName, familyEmail, familyPhone, now }) {
+  const email = String(familyEmail || '').trim().toLowerCase();
+  if (!workflowId || !email) return { created: false, reason: 'missing_family_email' };
+
+  const inviteToken = randomUUID();
+  const attempts = [
+    {
+      workflow_id: workflowId,
+      email,
+      name: String(familyName || email).trim(),
+      phone: familyPhone || null,
+      role: 'family_coordinator',
+      invite_status: 'sent',
+      invite_token: inviteToken,
+      task_id: taskId || null,
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      workflow_id: workflowId,
+      email,
+      role: 'family_coordinator',
+      invite_status: 'sent',
+      invite_token: inviteToken,
+      task_id: taskId || null,
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      workflow_id: workflowId,
+      email,
+      invite_status: 'sent',
+      invite_token: inviteToken,
+      created_at: now,
+      updated_at: now,
+    },
+  ];
+
+  for (const row of attempts) {
+    const result = await admin.from('estate_participants').insert([row]).select('id,invite_token').maybeSingle();
+    if (!result.error) return { created: true, id: result.data?.id || null, inviteToken: result.data?.invite_token || inviteToken };
+    if (!schemaColumnError(result.error)) return { created: false, error: result.error.message };
+  }
+
+  return { created: false, error: 'Could not create family participant link with the available schema.' };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -169,6 +221,23 @@ export default async function handler(req, res) {
     });
     const { data: createdTasks, error: tasksError } = await admin.from('tasks').insert(rows).select('id,title,workflow_id');
     if (tasksError) throw tasksError;
+    const familyParticipant = await createFamilyParticipantLink({
+      workflowId: workflow.id,
+      taskId: createdTasks?.[0]?.id || null,
+      familyName: coordinatorName || 'Family coordinator',
+      familyEmail: coordinatorEmail || email,
+      familyPhone: coordinatorPhone || null,
+      now,
+    });
+    if (familyParticipant.created) {
+      await admin.from('estate_events').insert([{
+        estate_id: workflow.id,
+        event_type: 'family_participant_link_created',
+        title: 'Family command-center link prepared',
+        description: `${coordinatorEmail || email} can accept access to this Passage case.`,
+        actor: email,
+      }]).then(() => {}, () => {});
+    }
 
     if (demo && createdTasks?.length) {
       const first = createdTasks[0];
@@ -225,7 +294,7 @@ export default async function handler(req, res) {
       updated_at: now,
     }]).then(() => {}, () => {});
 
-    return res.status(200).json({ success: true, workflowId: workflow.id, organizationId });
+    return res.status(200).json({ success: true, workflowId: workflow.id, organizationId, familyParticipant });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Could not create partner case.' });
   }
