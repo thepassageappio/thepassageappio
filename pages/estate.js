@@ -2538,6 +2538,7 @@ export default function EstatePage() {
   // ── LOADING ──────────────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
+      <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
       <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: SOFT, fontSize: 14 }}>Loading...</div>
       </div>
@@ -2548,12 +2549,13 @@ export default function EstatePage() {
   // ── NO ESTATE ─────────────────────────────────────────────────────────────────
   if (!estateId || !estate) return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
+      <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
       <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: INK, marginBottom: 8 }}>Estate not found</div>
-        <div style={{ fontSize: 14, color: SOFT, marginBottom: 28, textAlign: 'center', lineHeight: 1.6 }}>This link may have expired or the estate may have been archived.</div>
-        <button onClick={function() { window.location.href = '/'; }}
+        <div style={{ fontSize: 14, color: SOFT, marginBottom: 28, textAlign: 'center', lineHeight: 1.6, maxWidth: 420 }}>This link may have expired, the estate may have been archived, or you may need to open the estate from your index.</div>
+        <button onClick={function() { window.location.href = '/?dashboard=1'; }}
           style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: SAGE, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-          Go home
+          Open My estate
         </button>
       </div>
       <SiteFooter />
@@ -2574,9 +2576,9 @@ export default function EstatePage() {
       <div style={{ background: CARD, borderBottom: '1px solid ' + BORDER, position: 'sticky', top: 0, zIndex: 40 }}>
         <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 22px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button onClick={function() { window.location.href = '/'; }}
+          <button onClick={function() { window.location.href = '/?dashboard=1'; }}
             style={{ border: 'none', background: 'transparent', color: SOFT, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
-            Back to estate
+            Back to My estate
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <div style={{ fontSize: 12, color: SOFT, maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
