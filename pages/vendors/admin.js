@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
-import { SiteHeader } from '../../components/SiteChrome';
+import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { vendorCategoryLabel } from '../../lib/vendors';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -222,6 +222,7 @@ export default function VendorAdmin() {
           ))}
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }
