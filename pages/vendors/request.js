@@ -12,12 +12,12 @@ const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '
 const SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
 
 const demoRequest = {
-  status: 'accepted',
+  status: 'sent',
   task_title: 'Livestream support for Friday service',
   urgency: 'planned',
   requested_at: '2026-05-06T14:20:00Z',
   viewed_at: '2026-05-06T14:24:00Z',
-  responded_at: '2026-05-06T14:31:00Z',
+  responded_at: '',
   estimated_value: 450,
   final_value: '',
   platform_fee_amount: 72,
@@ -178,6 +178,11 @@ export default function VendorRequestPage() {
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Demo vendor request' : 'Local support request'}</div>
             <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendorName}, a family asked for help.</h1>
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{demoMode ? 'This is dummy demo data for system admins. Button clicks update local screen state only; no real vendor_request record is changed.' : 'Passage keeps this request visible to the family and any connected funeral home. Update it here so nobody has to chase a separate call or text.'}</p>
+            {demoMode && (
+              <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', color: C.amber, borderRadius: 12, padding: 10, margin: '12px 0', fontWeight: 800, fontSize: 13.5, lineHeight: 1.45 }}>
+                System admin demo only. Live vendor links use the same buttons, then write status, value, proof trail, estate event, and task activity through the request token.
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, margin: '18px 0' }}>
               <Info label="Family case" value={familyName} />
@@ -219,6 +224,11 @@ export default function VendorRequestPage() {
             </div>
 
             {notice && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 12, padding: 10, marginBottom: 10, fontWeight: 800 }}>{notice}</div>}
+            {demoMode && request.local_demo_action_at && (
+              <div style={{ color: C.mid, fontSize: 12.5, margin: '-2px 0 10px' }}>
+                Last local demo action: {new Date(request.local_demo_action_at).toLocaleString()}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => update('accepted')} disabled={!!updating} style={buttonStyle(C.sage)}>{updating === 'accepted' ? 'Updating...' : 'Accept request'}</button>
               <button onClick={() => update('in_progress')} disabled={!!updating} style={buttonStyle(C.amber)}>{updating === 'in_progress' ? 'Updating...' : 'Mark in progress'}</button>
@@ -263,6 +273,7 @@ function applyVendorRequestTransition(current, action, values = {}) {
     next.completed_at = null;
     next.final_value = '';
   }
+  next.local_demo_action_at = now;
   return next;
 }
 

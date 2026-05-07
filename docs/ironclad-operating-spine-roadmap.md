@@ -340,6 +340,7 @@ Must ship:
 - Request status progression: sent, viewed, quoted, accepted, in progress, completed.
 - Family/funeral-home task view shows vendor status in the same task/audit spine.
 - Revenue-share values remain tracked, not promised, until payment flow is approved.
+- Vendor request action buttons must be visibly state-changing in system-admin demo mode and persistently state-changing for tokenized live requests.
 
 Acceptance:
 
@@ -350,6 +351,7 @@ Acceptance:
 - Approved vendors land in a vendor-owned setup/dashboard path, not a family participant path.
 - Vendor admin is system-admin only, loads a meaningful empty state, and explains the provisioned-user path.
 - Seeded providers are not enough: at least one vendor request and one marketplace interaction must be created in a non-production-safe demo/test path and visible in the task/audit spine.
+- Vendor request actions prove the spine: status, value, proof trail, estate event, task activity, and owner notification attempt are all clear and auditable.
 
 ## Sprint 6: Linear Sales Demo Studio
 
