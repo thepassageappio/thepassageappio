@@ -8,10 +8,10 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#9a9288', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#eef5ef', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#a97832', amberFaint: '#fbf5e8' };
 
 const needs = [
-  ['Fewer repeated calls', 'Families can see what is waiting, who owns it, and what your staff already handled.'],
-  ['Cleaner first intake', 'A family can arrive with the funeral prep summary instead of scattered notes and missing details.'],
-  ['Act on behalf', 'Directors can mark partner-ready work in progress, request family info, or close it with a visible audit trail.'],
-  ['Better handoffs', 'Staff see the case story: service details, family contact, proof, waiting items, and blocked tasks.'],
+  ['Fewer repeated calls', 'Immediate operational relief.', 'Families can see what is waiting, who owns it, and what your staff already handled.'],
+  ['Cleaner first intake', 'Better facts before the arrangement meeting.', 'A family can arrive with the funeral prep summary instead of scattered notes and missing details.'],
+  ['Act on behalf', 'Visible help without taking over the family.', 'Directors can mark partner-ready work in progress, request family info, or close it with a visible audit trail.'],
+  ['Better handoffs', 'One case story for every staff handoff.', 'Staff see the case story: service details, family contact, proof, waiting items, and blocked tasks.'],
 ];
 
 const workflow = [
@@ -26,6 +26,14 @@ const tiers = [
   ['Local', '$249.99/mo', 'For a busy independent home.', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
   ['Group', '$349.99/mo', 'For multi-location teams.', 'Locations, reporting, lead capture, priority onboarding'],
 ];
+
+function planForTier(index) {
+  return index === 0 ? 'partner_pilot' : index === 1 ? 'partner_local' : 'partner_group';
+}
+
+function contactHref(planId) {
+  return '/contact?category=Funeral%20home%20pilot&plan=' + encodeURIComponent(planId);
+}
 
 export default function FuneralHomePage() {
   const [user, setUser] = useState(null);
@@ -49,7 +57,7 @@ export default function FuneralHomePage() {
   async function startCheckout(planId) {
     setError('');
     if (!user) {
-      window.location.href = '/contact?category=Funeral%20home%20pilot&plan=' + encodeURIComponent(planId);
+      window.location.href = contactHref(planId);
       return;
     }
     setBusy(planId);
@@ -107,8 +115,8 @@ export default function FuneralHomePage() {
           </div>
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: '14px 16px', display: 'grid', alignContent: 'center' }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>{needs[activeNeed][0]}</div>
-            <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.25, marginBottom: 4 }}>Immediate operational relief.</div>
-            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5 }}>{needs[activeNeed][1]}</div>
+            <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.25, marginBottom: 4 }}>{needs[activeNeed][1]}</div>
+            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5 }}>{needs[activeNeed][2]}</div>
           </div>
         </div>
 
@@ -131,26 +139,38 @@ export default function FuneralHomePage() {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16 }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>How funeral homes pay</div>
             <div style={{ display: 'grid', gap: 8 }}>
-              {tiers.map(([name, price, body, detail], i) => (
-                <div key={name} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'center', background: i === 0 ? C.roseFaint : C.sageFaint, border: `1px solid ${i === 0 ? C.rose : C.sage}22`, borderRadius: 14, padding: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 17 }}>
-                      {name}{' '}
-                      {i === 0 ? (
-                        <>
-                          <span style={{ color: C.soft, fontSize: 13, fontWeight: 900, textDecoration: 'line-through' }}>{price}</span>{' '}
-                          <span style={{ color: C.rose, fontSize: 13, fontWeight: 900 }}>$0 for 3 months</span>
-                        </>
-                      ) : (
-                        <span style={{ color: C.sage, fontSize: 13, fontWeight: 900 }}>{price}</span>
-                      )}
+              {tiers.map(([name, price, body, detail], i) => {
+                const planId = planForTier(i);
+                return (
+                  <div key={name} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'center', background: i === 0 ? C.roseFaint : C.sageFaint, border: `1px solid ${i === 0 ? C.rose : C.sage}22`, borderRadius: 14, padding: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 17 }}>
+                        {name}{' '}
+                        {i === 0 ? (
+                          <>
+                            <span style={{ color: C.soft, fontSize: 13, fontWeight: 900, textDecoration: 'line-through' }}>{price}</span>{' '}
+                            <span style={{ color: C.rose, fontSize: 13, fontWeight: 900 }}>$0 for 3 months</span>
+                          </>
+                        ) : (
+                          <span style={{ color: C.sage, fontSize: 13, fontWeight: 900 }}>{price}</span>
+                        )}
+                      </div>
+                      <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginTop: 2 }}>{body}</div>
+                      <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{detail}</div>
                     </div>
-                    <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginTop: 2 }}>{body}</div>
-                    <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{detail}</div>
+                    <Link
+                      href={contactHref(planId)}
+                      onClick={(event) => {
+                        if (!user) return;
+                        event.preventDefault();
+                        startCheckout(planId);
+                      }}
+                      style={{ background: i === 0 ? C.rose : C.sage, color: '#fff', border: 'none', borderRadius: 10, padding: '8px 10px', fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12, textDecoration: 'none' }}>
+                      {busy === planId ? '...' : 'Start'}
+                    </Link>
                   </div>
-                  <button onClick={() => startCheckout(i === 0 ? 'partner_pilot' : i === 1 ? 'partner_local' : 'partner_group')} style={{ background: i === 0 ? C.rose : C.sage, color: '#fff', border: 'none', borderRadius: 10, padding: '8px 10px', fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12 }}>{busy ? '...' : 'Start'}</button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
