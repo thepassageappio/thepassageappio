@@ -87,6 +87,9 @@ const reportingMetrics = [
 export default function SystemAdminPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState(null);
+  const [metricsError, setMetricsError] = useState('');
+  const [metricsLoading, setMetricsLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -106,6 +109,31 @@ export default function SystemAdminPage() {
 
   const admin = useMemo(() => isSystemAdmin(user), [user]);
 
+  useEffect(() => {
+    if (!admin || !supabase) return undefined;
+    let cancelled = false;
+    async function loadMetrics() {
+      setMetricsLoading(true);
+      setMetricsError('');
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/system/metrics', {
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+      }).catch(() => null);
+      if (cancelled) return;
+      setMetricsLoading(false);
+      if (!response || !response.ok) {
+        const data = response ? await response.json().catch(() => ({})) : {};
+        setMetricsError(data.error || 'System metrics could not load.');
+        return;
+      }
+      const data = await response.json().catch(() => ({}));
+      setMetrics(data);
+    }
+    loadMetrics();
+    return () => { cancelled = true; };
+  }, [admin]);
+
   async function signIn() {
     if (!supabase || typeof window === 'undefined') return;
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
@@ -115,6 +143,25 @@ export default function SystemAdminPage() {
     if (!supabase) return;
     await supabase.auth.signOut();
     setUser(null);
+  }
+
+  async function downloadMetricsCsv() {
+    if (!supabase) return;
+    const session = await supabase.auth.getSession();
+    const token = session?.data?.session?.access_token || '';
+    const response = await fetch('/api/system/metrics?format=csv', {
+      headers: token ? { Authorization: 'Bearer ' + token } : {},
+    });
+    if (!response.ok) return;
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'passage-system-metrics.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -160,11 +207,27 @@ export default function SystemAdminPage() {
             <section id="business-health" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(280px, .9fr)', gap: 18, marginTop: 22, alignItems: 'start' }}>
               <Panel>
                 <div style={eyebrow}>Business health dashboard</div>
-                <h2 style={h2}>Next reporting sprint lives here.</h2>
+                <h2 style={h2}>Internal metrics spine.</h2>
                 <p style={lead}>This will act as the rough CRM and operating console until Passage grows into a dedicated reporting stack. Every metric needs a raw CSV export and a source-table label.</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 9, marginTop: 14 }}>
-                  {reportingMetrics.map((metric) => <div key={metric} style={metricCard}>{metric}</div>)}
-                </div>
+                <button onClick={downloadMetricsCsv} style={primaryButton}>Export raw metrics CSV</button>
+                {metricsLoading && <div style={{ ...smallText, marginTop: 12 }}>Loading live metrics...</div>}
+                {metricsError && <div style={{ ...smallText, marginTop: 12, color: C.rose }}>{metricsError}</div>}
+                {metrics?.metrics?.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 9, marginTop: 14 }}>
+                    {metrics.metrics.map((item) => (
+                      <div key={item.label} style={item.status === 'real' ? metricCard : unavailableMetricCard}>
+                        <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: item.status === 'real' ? C.sage : C.amber, marginBottom: 5 }}>{item.status}</div>
+                        <div style={{ fontSize: 24, lineHeight: 1.05 }}>{item.value == null ? 'N/A' : item.value}</div>
+                        <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.35, marginTop: 5 }}>{item.label}</div>
+                        <div style={{ fontSize: 10.5, color: C.soft, marginTop: 5 }}>Source: {item.source}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 9, marginTop: 14 }}>
+                    {reportingMetrics.map((metric) => <div key={metric} style={metricCard}>{metric}</div>)}
+                  </div>
+                )}
               </Panel>
               <Panel>
                 <div style={eyebrow}>Data honesty</div>
@@ -204,3 +267,4 @@ const cardLink = { background: C.card, border: '1px solid ' + C.border, borderRa
 const livePill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' };
 const plannedPill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' };
 const metricCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.sage, fontWeight: 900, fontSize: 14 };
+const unavailableMetricCard = { background: C.amberFaint, border: '1px solid #ead8b8', borderRadius: 13, padding: 12, color: C.amber, fontWeight: 900, fontSize: 14 };
