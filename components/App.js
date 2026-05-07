@@ -3742,7 +3742,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Active estate command centers</div>
                 <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>Each estate has its own tasks, owners, documents, obituary, and activity history. Open the estate you want to manage.</div>
-                {redWorkflows.map((wf) => {
+                {redWorkflows.slice(0, 3).map((wf) => {
                   const wfId = wf.id;
                   const wfName = wf.name;
                   const wfCoord = wf.coordinator_name;
@@ -3789,6 +3789,25 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                     </div>
                   );
                 })}
+                {redWorkflows.length > 3 && (
+                  <details style={{ marginTop: 8 }}>
+                    <summary style={{ cursor: "pointer", color: C.rose, fontSize: 12, fontWeight: 800, background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 10, padding: "9px 11px" }}>
+                      Show {redWorkflows.length - 3} more active estate{redWorkflows.length - 3 === 1 ? "" : "s"}
+                    </summary>
+                    <div style={{ display: "grid", gap: 7, marginTop: 8 }}>
+                      {redWorkflows.slice(3).map((wf) => (
+                        <button key={wf.id} onClick={() => onOpenPlan(wf)}
+                          style={{ width: "100%", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                            <span style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{wf.name}</span>
+                            <span style={{ fontSize: 11, color: C.rose, fontWeight: 800 }}>Open</span>
+                          </div>
+                          <div style={{ fontSize: 10.5, color: C.mid, marginTop: 2 }}>Started {new Date(wf.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+                )}
               </div>
             )}
 
@@ -3802,7 +3821,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                   </div>
                   {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: "none", borderRadius: 10, padding: "8px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>Set up</button>}
                 </div>
-                {greenWorkflows.map((wf) => {
+                {greenWorkflows.slice(0, 2).map((wf) => {
                   const wfId = wf.id;
                   const wfName = wf.name;
                   const wfStatus = wf.status;
@@ -3847,7 +3866,26 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                     </div>
                   );
                 })}
-                {Array.from({ length: Math.max(0, estateSeatLimit - greenWorkflows.length) }).map((_, i) => (
+                {greenWorkflows.length > 2 && (
+                  <details style={{ marginBottom: 8 }}>
+                    <summary style={{ cursor: "pointer", color: C.sage, fontSize: 12, fontWeight: 800, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, padding: "9px 11px" }}>
+                      Show {greenWorkflows.length - 2} more planning estate{greenWorkflows.length - 2 === 1 ? "" : "s"}
+                    </summary>
+                    <div style={{ display: "grid", gap: 7, marginTop: 8 }}>
+                      {greenWorkflows.slice(2).map((wf) => (
+                        <button key={wf.id} onClick={() => onOpenPlan(wf)}
+                          style={{ width: "100%", background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                            <span style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{wf.name}</span>
+                            <span style={{ fontSize: 11, color: C.sage, fontWeight: 800 }}>Open</span>
+                          </div>
+                          <div style={{ fontSize: 10.5, color: C.mid, marginTop: 2 }}>Wishes, documents, obituary, people, memories, messages, and proof live inside this estate.</div>
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+                )}
+                {Array.from({ length: Math.min(Math.max(0, estateSeatLimit - greenWorkflows.length), 1) }).map((_, i) => (
                   <button key={`slot-${i}`} onClick={isPaidPlan || greenWorkflows.length === 0 ? onStartPlan : undefined}
                     style={{ width: "100%", background: i === 0 && greenWorkflows.length === 0 ? C.sageFaint : C.bgSubtle, border: `1px dashed ${i === 0 && greenWorkflows.length === 0 ? C.sageLight : C.border}`, borderRadius: 12, padding: "13px 14px", cursor: isPaidPlan || greenWorkflows.length === 0 ? "pointer" : "default", fontFamily: "inherit", textAlign: "left", marginBottom: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
@@ -3867,6 +3905,11 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                     </div>
                   </button>
                 ))}
+                {Math.max(0, estateSeatLimit - greenWorkflows.length) > 1 && (
+                  <div style={{ background: C.bgSubtle, border: `1px dashed ${C.border}`, borderRadius: 12, padding: "11px 13px", color: C.mid, fontSize: 11.5, lineHeight: 1.45, marginBottom: 8 }}>
+                    {Math.max(0, estateSeatLimit - greenWorkflows.length) - 1} additional estate slot{Math.max(0, estateSeatLimit - greenWorkflows.length) - 1 === 1 ? "" : "s"} available. Use <strong>Set up</strong> when you are ready to create the next estate workspace.
+                  </div>
+                )}
                 {plan === 'free' && greenWorkflows.length > 0 && (
                   <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.amber, lineHeight: 1.5 }}>
                     Upgrade to unlock additional estate slots for a spouse, parent, or family plan.
