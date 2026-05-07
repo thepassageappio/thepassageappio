@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { SiteFooter } from "../components/SiteChrome";
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -218,7 +219,7 @@ export default function SharePage() {
   var nav = { background: CARD, borderBottom: "1px solid " + BORDER, padding: "13px 20px", display: "flex", alignItems: "center", gap: 10 };
 
   if (!loaded) {
-    return <div style={outer}><div style={nav}><div style={{ width: 22, height: 22, borderRadius: "50%", background: "radial-gradient(circle, " + SAGE_LIGHT + ", " + SAGE + "70)" }} /><span style={{ fontSize: 16, color: INK }}>Passage</span></div><div style={{ padding: 40, color: SOFT, textAlign: "center" }}>Loading...</div></div>;
+    return <div style={outer}><div style={nav}><div style={{ width: 22, height: 22, borderRadius: "50%", background: "radial-gradient(circle, " + SAGE_LIGHT + ", " + SAGE + "70)" }} /><span style={{ fontSize: 16, color: INK }}>Passage</span></div><div style={{ padding: 40, color: SOFT, textAlign: "center" }}>Loading...</div><SiteFooter /></div>;
   }
 
   var dn = wf ? (wf.deceased_name || "your loved one") : "your loved one";
@@ -350,6 +351,7 @@ export default function SharePage() {
           </>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 }

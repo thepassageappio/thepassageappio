@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import { SiteHeader } from '../../components/SiteChrome';
+import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { VENDOR_CATEGORIES } from '../../lib/vendors';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
@@ -39,7 +39,7 @@ export default function VendorOnboard() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '20px 22px 46px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(360px, .7fr)', gap: 18, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 26 }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>Trusted local support</div>
             <h1 style={{ fontSize: 'clamp(36px, 6vw, 72px)', lineHeight: 1.03, margin: 0, fontWeight: 400 }}>Help families at the moment your work matters most.</h1>
@@ -56,7 +56,7 @@ export default function VendorOnboard() {
             <label style={labelStyle}>Business name<input value={form.businessName} onChange={(e) => update('businessName', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Category<select value={form.category} onChange={(e) => update('category', e.target.value)} style={inputStyle}>{Object.entries(VENDOR_CATEGORIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <label style={labelStyle}>ZIP codes served<input value={form.zipCodes} onChange={(e) => update('zipCodes', e.target.value)} placeholder="12508, 12601, 10512" style={inputStyle} /></label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 8 }}>
               <label style={checkStyle}><input type="checkbox" checked={form.rushSupported} onChange={(e) => update('rushSupported', e.target.checked)} /> Rush support</label>
               <label style={checkStyle}><input type="checkbox" checked={form.plannedSupported} onChange={(e) => update('plannedSupported', e.target.checked)} /> Planned support</label>
             </div>
@@ -72,6 +72,7 @@ export default function VendorOnboard() {
           </form>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

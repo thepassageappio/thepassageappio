@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { SiteFooter } from "../components/SiteChrome";
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -73,33 +74,36 @@ export default function ConfirmPage() {
   var confirms = workflow ? (workflow.confirmed_by || []).length : 0;
   var required = workflow ? (workflow.confirmation_count || 2) : 2;
 
-  var outer = { background: BG, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", fontFamily: "Georgia, serif" };
+  var outer = { background: BG, minHeight: "calc(100vh - 94px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", fontFamily: "Georgia, serif" };
   var box = { background: CARD, borderRadius: 20, padding: "36px 28px", width: "100%", maxWidth: 480, boxShadow: "0 4px 32px rgba(0,0,0,0.08)" };
+  function shell(content) {
+    return <main style={{ background: BG, minHeight: "100vh", fontFamily: "Georgia, serif" }}><div style={outer}>{content}</div><SiteFooter /></main>;
+  }
 
-  if (step === "loading") return <div style={outer}><div style={Object.assign({}, box, { textAlign: "center", color: SOFT })}>Loading...</div></div>;
+  if (step === "loading") return shell(<div style={Object.assign({}, box, { textAlign: "center", color: SOFT })}>Loading...</div>);
 
   if (step === "error") return (
-    <div style={outer}>
+    shell(
       <div style={Object.assign({}, box, { textAlign: "center" })}>
         <div style={{ fontSize: 34, marginBottom: 16 }}>🕊️</div>
         <div style={{ fontSize: 20, color: INK, marginBottom: 12 }}>Link not found</div>
         <div style={{ fontSize: 14, color: MID, lineHeight: 1.65 }}>This confirmation link is invalid or has expired. Please contact the family coordinator.</div>
       </div>
-    </div>
+    )
   );
 
   if (step === "already") return (
-    <div style={outer}>
+    shell(
       <div style={Object.assign({}, box, { textAlign: "center" })}>
         <div style={{ fontSize: 34, marginBottom: 16 }}>✅</div>
         <div style={{ fontSize: 20, color: INK, marginBottom: 12 }}>Plan already activated</div>
         <div style={{ fontSize: 14, color: MID, lineHeight: 1.65 }}>The estate plan for {dname} was activated. All assigned contacts have been notified.</div>
       </div>
-    </div>
+    )
   );
 
   if (step === "done") return (
-    <div style={outer}>
+    shell(
       <div style={Object.assign({}, box, { textAlign: "center" })}>
         <div style={{ fontSize: 42, marginBottom: 16 }}>🕊️</div>
         <div style={{ fontSize: 22, color: INK, marginBottom: 16 }}>{result && result.triggered ? "The plan has been activated." : "Confirmation received."}</div>
@@ -110,11 +114,11 @@ export default function ConfirmPage() {
         </div>
         <div style={{ marginTop: 16, fontSize: 13, color: SOFT }}>We are so sorry for your loss.</div>
       </div>
-    </div>
+    )
   );
 
   return (
-    <div style={outer}>
+    shell(
       <div style={box}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>🕊️</div>
@@ -148,6 +152,6 @@ export default function ConfirmPage() {
           Passage · thepassageapp.io
         </div>
       </div>
-    </div>
+    )
   );
 }

@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { SiteFooter } from '../components/SiteChrome';
 
 var sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -87,6 +88,7 @@ function Shell({ step, total, onBack, children }) {
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '24px 20px 80px' }}>
         <div style={{ width: '100%', maxWidth: 500 }}>{children}</div>
       </div>
+      <SiteFooter />
     </div>
   );
 }
