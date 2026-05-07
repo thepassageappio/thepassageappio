@@ -72,9 +72,10 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      status: 'sent',
+      status: sent.data?.skipped ? 'prepared' : 'sent',
+      skipped: Boolean(sent.data?.skipped),
       providerId: sent.data?.id || sent.data?.sid || null,
-      message: 'Message sent - awaiting delivery confirmation.',
+      message: sent.data?.skipped ? 'Message prepared - delivery provider is not configured.' : 'Message sent - awaiting delivery confirmation.',
     });
   } catch (err) {
     await recordStatusEvent({

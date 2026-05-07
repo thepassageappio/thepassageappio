@@ -2038,7 +2038,7 @@ export default function EstatePage() {
     }
     var updateKey = 'send_task_' + task.id;
     setPendingTaskAction(function(prev) { return prev ? Object.assign({}, prev, { sending: true }) : prev; });
-    var response = await fetch('/api/sendEmail', {
+    var response = await fetch('/api/tasks/' + task.id + '/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify({
@@ -2609,11 +2609,26 @@ export default function EstatePage() {
             {(() => {
               var assigningOnly = pendingTaskAction.status === 'choose';
               var copy = taskActionCopy(pendingTaskAction.status);
+              var assignedEmailForSpine = taskAssignedEmail(pendingTaskAction.task);
               return (
                 <>
                   <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this task' : 'Save this update'}</div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{displayTaskTitle(pendingTaskAction.task)}</div>
                   <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{pendingTaskAction.prompt || copy.prompt}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 12 }}>
+                    <div style={{ background: assignedEmailForSpine ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (assignedEmailForSpine ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 12, padding: '9px 10px' }}>
+                      <div style={{ fontSize: 10.5, fontWeight: 900, color: assignedEmailForSpine ? SAGE : AMBER, letterSpacing: '.11em', textTransform: 'uppercase' }}>1. Owner</div>
+                      <div style={{ fontSize: 12.5, color: INK, fontWeight: 800, lineHeight: 1.35, marginTop: 3 }}>{assignedEmailForSpine ? 'Ready' : 'Needed before notify'}</div>
+                    </div>
+                    <div style={{ background: assignedEmailForSpine ? SAGE_FAINT : SUBTLE, border: '1px solid ' + (assignedEmailForSpine ? SAGE_LIGHT : BORDER), borderRadius: 12, padding: '9px 10px' }}>
+                      <div style={{ fontSize: 10.5, fontWeight: 900, color: assignedEmailForSpine ? SAGE : MID, letterSpacing: '.11em', textTransform: 'uppercase' }}>2. Message</div>
+                      <div style={{ fontSize: 12.5, color: INK, fontWeight: 800, lineHeight: 1.35, marginTop: 3 }}>{pendingTaskAction.mode === 'assignment' ? 'Send handoff link' : pendingTaskAction.mode ? 'Use prepared workspace' : 'Optional update'}</div>
+                    </div>
+                    <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '9px 10px' }}>
+                      <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.11em', textTransform: 'uppercase' }}>3. Proof</div>
+                      <div style={{ fontSize: 12.5, color: INK, fontWeight: 800, lineHeight: 1.35, marginTop: 3 }}>Audit trail saved here</div>
+                    </div>
+                  </div>
                   {!assigningOnly && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 11 }}>
                       <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'handled', title: taskActionCopy('handled').title, detail: 'Proof recorded for ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('handled', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'handled' ? SAGE : SAGE_FAINT, pendingTaskAction.status === 'handled' ? '#fff' : SAGE, SAGE_LIGHT)}>Handled</button>
@@ -2631,6 +2646,11 @@ export default function EstatePage() {
                             <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase' }}>Owner / recipient</div>
                             <div style={{ fontSize: 12.5, color: currentEmail ? SAGE : AMBER, fontWeight: 800, lineHeight: 1.4, marginTop: 4 }}>
                               {currentEmail ? 'Assigned to ' + currentName + ' at ' + currentEmail + '.' : 'No email recipient is assigned yet. Add one before sending or reminding through Passage.'}
+                            </div>
+                            <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.45, marginTop: 5 }}>
+                              {currentEmail
+                                ? 'Sending through Passage gives them a direct task link, copies you, logs the handoff, and keeps this item pending until someone marks it handled.'
+                                : 'Start by choosing the person responsible. Passage will not send anything until you review the message and click send.'}
                             </div>
                           </div>
                           {currentEmail && <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 900 }}>Ready to notify</span>}
@@ -2651,7 +2671,7 @@ export default function EstatePage() {
                         </div>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 9 }}>
                           <button onClick={function() { saveTaskRecipientFromCommand(pendingTaskAction.task); }} disabled={assigningTaskRecipient} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>
-                            {assigningTaskRecipient ? 'Saving owner...' : currentEmail ? 'Update owner' : 'Save owner'}
+                            {assigningTaskRecipient ? 'Saving owner...' : currentEmail ? 'Update owner only' : 'Save owner only'}
                           </button>
                           <span style={{ fontSize: 11.5, color: MID, lineHeight: 1.4 }}>This updates the task owner, records the audit trail, and enables reminders or Send through Passage.</span>
                         </div>
