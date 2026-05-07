@@ -4327,6 +4327,70 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </div>
       </section>
 
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '12px 24px 48px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 14 }}>
+          {[
+            { label: 'Before', title: 'Plan before it is needed', body: 'People, wishes, documents, obituary notes, memories, and trusted contacts live inside each estate file.' },
+            { label: 'During', title: 'One clear task spine', body: 'Every urgent item has an owner, message, proof requirement, waiting state, and audit trail.' },
+            { label: 'After', title: 'Keep the long tail organized', body: 'Benefits, banks, insurance, government, property, and digital accounts stay visible after the service.' },
+          ].map(function(item) {
+            return (
+              <div key={item.label} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
+                <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>{item.label}</div>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, lineHeight: 1.15, color: C.ink, marginBottom: 8 }}>{item.title}</div>
+                <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6 }}>{item.body}</div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 48px' }}>
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 18, padding: '24px 26px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, .8fr)', gap: 24, alignItems: 'center', boxShadow: '0 16px 44px rgba(55,45,35,.06)' }}>
+          <div>
+            <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>For funeral homes</div>
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(30px, 4vw, 44px)', lineHeight: 1.05, margin: '0 0 12px', fontWeight: 400, color: C.ink }}>A quieter family command center for every case.</h2>
+            <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.7, margin: 0 }}>Passage sits on top of the funeral home workflow: create a case, guide the family, delegate tasks, act on behalf, show proof, and export the data back out.</p>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+              <a href="/funeral-home" style={{ background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>See funeral-home workflow</a>
+              <a href="/system/demo" style={{ background: C.bgCard, color: C.sage, textDecoration: 'none', border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>View guided demo</a>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gap: 9 }}>
+            {[
+              ['Create case', 'Family gets a calm home base'],
+              ['Move work', 'Staff, family, and helpers see ownership'],
+              ['Show proof', 'Every send, wait, and completion is logged'],
+              ['Export', 'CSV keeps their existing system in control'],
+            ].map(function(row) {
+              return (
+                <div key={row[0]} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: '11px 12px' }}>
+                  <div style={{ color: C.sage, fontSize: 12, fontWeight: 900 }}>{row[0]}</div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>{row[1]}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 58px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 14 }}>
+          {[
+            { title: 'Approval first', body: 'Nothing is sent or shared until the family approves it.' },
+            { title: 'Role-based access', body: 'Families, participants, funeral-home staff, vendors, and Passage system admins do not see the same controls.' },
+            { title: 'Trust layer', body: 'FAQ, privacy, terms, data ownership, and support paths are visible before pilots.' },
+          ].map(function(item) {
+            return (
+              <div key={item.title} style={{ background: item.title === 'Trust layer' ? C.goldFaint : C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
+                <div style={{ fontFamily: 'Georgia, serif', color: C.ink, fontSize: 20, marginBottom: 8 }}>{item.title}</div>
+                <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6 }}>{item.body}</div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       <SiteFooter />
     </div>
   );
