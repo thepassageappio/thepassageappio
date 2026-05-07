@@ -6,6 +6,7 @@ import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
+import { taskWorkspaceFor } from '../lib/taskWorkspace';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -132,6 +133,11 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const kind = roleKind(estate?.role, item);
   const contract = requestContract(kind, estate, item);
   const playbook = getTaskPlaybook(itemTitle(item));
+  const workspace = taskWorkspaceFor({ ...item, playbook }, {
+    estateName: estate?.deceased_name || estate?.name || 'this estate',
+    coordinatorName: estate?.coordinator_name || 'the coordinator',
+    surface: 'your assigned task',
+  });
   const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'acknowledged' ? 'Status: Confirmed' : itemStatus(item) === 'blocked' ? 'Status: Needs help' : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
   const [savedPulse, setSavedPulse] = useState(false);
   const [proofWarning, setProofWarning] = useState('');
@@ -183,6 +189,17 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 11, padding: '9px 10px', marginBottom: 8 }}>
         <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>What Passage gives you</div>
         <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginTop: 4 }}>{playbook.actionResultLabel || playbook.whatPassageDoes}</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8, marginBottom: 8 }}>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>Output or request</div>
+          <div style={{ color: C.ink, fontSize: 12.8, fontWeight: 900, lineHeight: 1.35, marginTop: 4 }}>{workspace.output.label}</div>
+          <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{workspace.output.body}</div>
+        </div>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>Where your update goes</div>
+          <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{workspace.proofDestination}</div>
+        </div>
       </div>
       {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
       {!handled && (
