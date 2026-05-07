@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionStatus } from '../../lib/taskActions';
+import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionRequiresNote, taskActionStatus } from '../../lib/taskActions';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -127,17 +127,17 @@ export default async function handler(req, res) {
 
   const table = kind === 'task' ? 'tasks' : 'workflow_actions';
   const emailColumn = kind === 'task' ? 'assigned_to_email' : 'recipient_email';
+  const trimmedNotes = typeof notes === 'string' ? notes.trim() : '';
 
   if (action === 'save_note') {
-    const trimmed = typeof notes === 'string' ? notes.trim() : '';
-    if (!trimmed) return res.status(400).json({ error: 'Add a note to save.' });
+    if (!trimmedNotes) return res.status(400).json({ error: 'Add a note to save.' });
     const { data, error } = await updateParticipantRecord({
       table,
       kind,
       emailColumn,
       id,
       email,
-      updates: { notes: trimmed, updated_at: new Date().toISOString() },
+      updates: { notes: trimmedNotes, updated_at: new Date().toISOString() },
     });
     if (error) return res.status(500).json({ error: error.message });
     if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
@@ -168,7 +168,7 @@ export default async function handler(req, res) {
       status: data.status || 'waiting',
       action,
       taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
-      notes: trimmed,
+      notes: trimmedNotes,
     });
 
     return res.status(200).json({
@@ -182,6 +182,9 @@ export default async function handler(req, res) {
   }
 
   const status = taskActionStatus(action) || 'needs_review';
+  if (taskActionRequiresNote(action) && !trimmedNotes) {
+    return res.status(400).json({ error: 'Add a short proof or blocker note before saving this update.' });
+  }
   const terminalStatus = ['handled', 'completed', 'done'].includes(status);
   const actorName = userData.user.user_metadata?.full_name || email;
   const stamp = normalizedAction === 'accept' ? 'accepted_at'
@@ -206,7 +209,7 @@ export default async function handler(req, res) {
   }
   if (status === 'acknowledged') updates.acknowledged_at = new Date().toISOString();
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
-  if (typeof notes === 'string' && notes.trim()) updates.notes = notes.trim();
+  if (trimmedNotes) updates.notes = trimmedNotes;
   const { data, error } = await updateParticipantRecord({
     table,
     kind,
@@ -242,7 +245,7 @@ export default async function handler(req, res) {
     status,
     action,
     taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
-    notes: typeof notes === 'string' ? notes.trim() : '',
+    notes: trimmedNotes,
   });
   return res.status(200).json({
     success: true,

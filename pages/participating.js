@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle } from '../lib/communicationCenter';
-import { taskActionConfirmation, taskActionPrompt, taskActionStatus } from '../lib/taskActions';
+import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -134,9 +134,19 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const playbook = getTaskPlaybook(itemTitle(item));
   const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'acknowledged' ? 'Status: Confirmed' : itemStatus(item) === 'blocked' ? 'Status: Needs help' : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
   const [savedPulse, setSavedPulse] = useState(false);
+  const [proofWarning, setProofWarning] = useState('');
   const noteChange = (value) => {
     onNotes(value);
     setSavedPulse(false);
+    setProofWarning('');
+  };
+  const submitAction = (action) => {
+    if (taskActionRequiresNote(action) && !String(notes || '').trim()) {
+      setProofWarning('Add a short proof, blocker, or waiting note first so the coordinator knows what changed.');
+      return;
+    }
+    setProofWarning('');
+    onAction(action);
   };
   return (
     <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, background: linked || primary ? C.sageFaint : C.card, borderRadius: 16, padding: primary ? 20 : 16, marginTop: 14, color: C.mid, fontSize: 15, lineHeight: 1.55, boxShadow: primary ? '0 4px 20px rgba(0,0,0,.05)' : 'none' }}>
@@ -177,15 +187,18 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
       {!handled && (
         <>
-          <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder="Add notes for the coordinator" style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
+          <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder={taskActionPlaceholder('handled', item, 'participant') || 'Add proof, what is waiting, or what help you need'} style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${proofWarning ? C.rose : C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
+          <div style={{ fontSize: 11.5, color: proofWarning ? C.rose : C.soft, fontWeight: proofWarning ? 800 : 400, marginTop: 4 }}>
+            {proofWarning || 'Proof, waiting notes, and help requests are saved to the estate activity trail.'}
+          </div>
           {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
           <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
             <button onClick={() => { onAction('save_note'); setSavedPulse(true); setTimeout(() => setSavedPulse(false), 1800); }} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800 }}>Save note</button>
             {actionSet(kind).map(([action, label]) => (
-              <button key={action} onClick={() => onAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>
+              <button key={action} onClick={() => submitAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>
             ))}
-            <button onClick={() => onAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I need help</button>
-            <button onClick={() => onAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I can't handle this</button>
+            <button onClick={() => submitAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I need help</button>
+            <button onClick={() => submitAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I can't handle this</button>
           </div>
         </>
       )}
@@ -267,6 +280,10 @@ export default function ParticipatingPage() {
     const token = sessionData?.session?.access_token;
     if (!token) return;
     const note = notesByItem[kind + ':' + id] || '';
+    if (taskActionRequiresNote(action) && !String(note || '').trim()) {
+      setActionNotice('Add a short proof, waiting, or help note before saving this update.');
+      return;
+    }
     const r = await fetch('/api/participantAction', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
@@ -344,8 +361,11 @@ export default function ParticipatingPage() {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, maxWidth: 520 }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>Open the task someone sent you.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
-              Sign in with the email that received the Passage invite. You will only see the estate work connected to you, with the task, notes, and service details the coordinator shared.
+              Sign in with the email that received the Passage invite. Passage will show one responsibility at a time, keep the rest of the estate private, and record proof for the coordinator.
             </p>
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 13, lineHeight: 1.55, marginBottom: 12 }}>
+              <strong style={{ color: C.ink }}>What happens after sign-in:</strong> accept the task, save what happened, or say what is waiting. The family gets clarity without another call.
+            </div>
             <button onClick={() => signIn(router.asPath || '/participating')} style={{ border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
             <div style={{ height: 12 }} />
             <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
