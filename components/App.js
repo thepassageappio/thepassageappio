@@ -3631,7 +3631,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               )}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.05fr) minmax(300px, .95fr)", gap: 12, alignItems: "stretch", marginBottom: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 12, alignItems: "stretch", marginBottom: 12 }}>
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
                 <div>
@@ -3794,7 +3794,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
             {/* Green path estate slots */}
             {estateSeatLimit > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 16, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink, marginBottom: 2 }}>Planning estates</div>
                     <div style={{ fontSize: 11.5, color: C.mid }}>{usedGreenSeats} of {estateSeatLimit} slots in use. Open one estate file at a time.</div>
@@ -3811,12 +3811,18 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                   return (
                     <div key={wfId} style={{ marginBottom: 7 }}>
                       <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "13px 14px" }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                          <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
+                            <div style={{ fontSize: 11, color: C.mid, marginTop: 3 }}>Open this estate before editing wishes, documents, obituary, memories, or people.</div>
+                          </div>
                           <span style={{ fontSize: 10.5, color: wfStatus === 'ready' ? C.sage : C.amber, fontWeight: 700, background: wfStatus === 'ready' ? C.sageFaint : C.goldFaint, border: `1px solid ${wfStatus === 'ready' ? C.sageLight : C.gold}30`, borderRadius: 7, padding: "2px 9px" }}>
                             {wfStatus === 'triggered' ? '🔔 Activated' : wfStatus === 'ready' ? '✓ Ready' : '⏳ Draft'}
                           </span>
                         </div>
+                        <button onClick={() => onOpenPlan(wf)} style={{ width: "100%", border: "none", borderRadius: 10, padding: "10px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5, marginBottom: 9 }}>
+                          Open estate workspace
+                        </button>
                         {wfStatus === 'ready' && (
                           <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.55, marginBottom: 8 }}>
                             <strong>{confirmCount} of {reqCount}</strong> confirmations received.
@@ -3834,7 +3840,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                           </div>
                         )}
                         <details style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10 }}>
-                          <summary style={{ cursor: "pointer", color: C.sage, fontSize: 12, fontWeight: 900 }}>Open this estate file</summary>
+                          <summary style={{ cursor: "pointer", color: C.sage, fontSize: 12, fontWeight: 900 }}>Estate file sections</summary>
                           <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 7 }}>Estate file</div>
                           {[
                             { label: "Wishes", complete: !!estateFileFor(wf).wishes || profile?.wishes_complete, desc: "Service preferences and final wishes" },
