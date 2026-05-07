@@ -95,8 +95,29 @@ export default function PricingPage() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignIn={!user ? signIn : null} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1060, margin: '0 auto', padding: '12px 22px 36px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .72fr) minmax(360px, 1fr)', gap: 14, alignItems: 'stretch', marginBottom: 12 }}>
+      <style>{`
+        @media (max-width: 720px) {
+          .pricing-hero-grid,
+          .pricing-plan-grid,
+          .pricing-option-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .pricing-page-section {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+          }
+          .pricing-group-tabs {
+            width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          .pricing-group-tabs button {
+            flex: 1 0 auto;
+          }
+        }
+      `}</style>
+      <section className="pricing-page-section" style={{ maxWidth: 1060, margin: '0 auto', padding: '12px 22px 36px' }}>
+        <div className="pricing-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .72fr) minmax(0, 1fr)', gap: 14, alignItems: 'stretch', marginBottom: 12 }}>
           <div style={{ alignSelf: 'center' }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Pricing</div>
             <h1 style={{ fontSize: 'clamp(30px, 3.7vw, 42px)', lineHeight: 1.02, margin: '0 0 8px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
@@ -130,20 +151,20 @@ export default function PricingPage() {
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 5 }}>Planning ahead</div>
               <div style={{ fontSize: 22, lineHeight: 1.15 }}>Pick the number of estates.</div>
             </div>
-            <div style={{ display: 'flex', gap: 6, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 4 }}>
+            <div className="pricing-group-tabs" style={{ display: 'flex', gap: 6, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 4 }}>
               {groups.map(g => (
                 <button key={g.key} onClick={() => setActiveGroup(g.key)} style={{ border: 'none', borderRadius: 10, padding: '8px 11px', background: activeGroup === g.key ? C.sage : 'transparent', color: activeGroup === g.key ? '#fff' : C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.5 }}>{g.label}</button>
               ))}
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.55fr) minmax(0,1fr)', gap: 12, alignItems: 'stretch' }}>
+          <div className="pricing-plan-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.55fr) minmax(0,1fr)', gap: 12, alignItems: 'stretch' }}>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}25`, borderRadius: 15, padding: 14 }}>
               <div style={{ fontSize: 21, fontWeight: 800 }}>{group.label}</div>
               <div style={{ color: C.sage, fontSize: 12.5, fontWeight: 800, margin: '4px 0 8px' }}>{group.seats}</div>
               <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.55 }}>{group.desc}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
+            <div className="pricing-option-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
               {group.options.map(([id, label, price, per]) => (
                 <button key={id} disabled={busy === id} onClick={() => checkout(id)} style={{ textAlign: 'left', border: `1px solid ${selectedPlan === id ? C.sage : C.border}`, background: selectedPlan === id ? C.sageFaint : '#fff', borderRadius: 15, padding: 15, cursor: 'pointer', fontFamily: 'Georgia,serif', minHeight: 112 }}>
                   <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 9 }}>{label}</div>
