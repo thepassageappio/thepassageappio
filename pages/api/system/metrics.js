@@ -56,6 +56,56 @@ async function sumColumn(admin, table, column, filters = []) {
   }
 }
 
+async function fetchRecentLeads(admin) {
+  try {
+    const { data, error } = await admin
+      .from('leads')
+      .select('id,email,first_name,flow_type,source,notes,created_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) return { rows: [], error: error.message };
+    return { rows: data || [], error: null };
+  } catch (error) {
+    return { rows: [], error: error.message };
+  }
+}
+
+function parseLeadNotes(notes) {
+  try {
+    return notes ? JSON.parse(notes) : {};
+  } catch {
+    return {};
+  }
+}
+
+function summarizeLeads(rows = []) {
+  const byType = {};
+  const bySource = {};
+  const recent = [];
+  rows.forEach((row) => {
+    const notes = parseLeadNotes(row.notes);
+    const type = notes.category || row.flow_type || 'Unknown';
+    const source = row.source || notes.source || 'Unknown';
+    byType[type] = (byType[type] || 0) + 1;
+    bySource[source] = (bySource[source] || 0) + 1;
+    if (recent.length < 12) {
+      recent.push({
+        email: row.email || '',
+        name: row.first_name || '',
+        type,
+        source,
+        urgency: notes.urgency || '',
+        createdAt: row.created_at || '',
+      });
+    }
+  });
+  return {
+    byType: Object.entries(byType).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
+    bySource: Object.entries(bySource).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
+    recent,
+  };
+}
+
 function metric(label, result, unit = '') {
   return {
     label,
@@ -72,9 +122,12 @@ function csvEscape(value) {
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
-function toCsv(metrics) {
-  const rows = [['label', 'value', 'unit', 'status', 'source', 'error']];
-  metrics.forEach((item) => rows.push([item.label, item.value, item.unit, item.status, item.source, item.error]));
+function toRawCsv(metrics, leadSummary) {
+  const rows = [['section', 'label', 'value', 'unit', 'status', 'source', 'error']];
+  metrics.forEach((item) => rows.push(['metrics', item.label, item.value, item.unit, item.status, item.source, item.error]));
+  (leadSummary.byType || []).forEach((item) => rows.push(['lead_type', item.label, item.count, '', 'real', 'leads.notes.category', '']));
+  (leadSummary.bySource || []).forEach((item) => rows.push(['lead_source', item.label, item.count, '', 'real', 'leads.source', '']));
+  (leadSummary.recent || []).forEach((item) => rows.push(['recent_lead', item.type, item.email, item.urgency, 'real', item.source, item.createdAt]));
   return rows.map((row) => row.map(csvEscape).join(',')).join('\n');
 }
 
@@ -100,6 +153,8 @@ export default async function handler(req, res) {
     funeralHomePartners,
     organizations,
     notifications,
+    leads,
+    recentLeads,
   ] = await Promise.all([
     countRows(auth.admin, 'workflows'),
     countRows(auth.admin, 'workflows', [{ op: 'eq', column: 'path', value: 'red' }]),
@@ -117,7 +172,10 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'funeral_home_partners'),
     countRows(auth.admin, 'organizations'),
     countRows(auth.admin, 'notification_log'),
+    countRows(auth.admin, 'leads'),
+    fetchRecentLeads(auth.admin),
   ]);
+  const leadSummary = summarizeLeads(recentLeads.rows);
 
   const metrics = [
     metric('Total estates', estates),
@@ -136,17 +194,19 @@ export default async function handler(req, res) {
     metric('Funeral-home partners', funeralHomePartners),
     metric('Organizations', organizations),
     metric('Notifications logged', notifications),
+    metric('Leads and support inquiries', leads),
   ];
 
   if (req.query.format === 'csv') {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="passage-system-metrics.csv"');
-    return res.status(200).send(toCsv(metrics));
+    return res.status(200).send(toRawCsv(metrics, leadSummary));
   }
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
     owner: auth.user.email,
     metrics,
+    leads: Object.assign({ error: recentLeads.error || null }, leadSummary),
   });
 }

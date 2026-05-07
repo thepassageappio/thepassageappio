@@ -228,6 +228,26 @@ export default function SystemAdminPage() {
                     {reportingMetrics.map((metric) => <div key={metric} style={metricCard}>{metric}</div>)}
                   </div>
                 )}
+                {metrics?.leads && (
+                  <div style={{ marginTop: 18 }}>
+                    <div style={eyebrow}>Lead and support CRM</div>
+                    <p style={{ ...smallText, marginTop: 4 }}>Contact, vendor, partner, support, billing, feature, and bug inquiries are grouped from the leads table. The export includes the raw rows behind this view.</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10, marginTop: 10 }}>
+                      <div style={subPanel}>
+                        <h3 style={h3}>By inquiry type</h3>
+                        {(metrics.leads.byType || []).length ? metrics.leads.byType.slice(0, 8).map((item) => (
+                          <MetricRow key={item.label} label={item.label} value={item.count} />
+                        )) : <div style={smallText}>No lead categories yet.</div>}
+                      </div>
+                      <div style={subPanel}>
+                        <h3 style={h3}>Recent inquiries</h3>
+                        {(metrics.leads.recent || []).length ? metrics.leads.recent.slice(0, 6).map((item) => (
+                          <MetricRow key={item.email + item.createdAt} label={(item.type || 'Inquiry') + (item.urgency ? ' - ' + item.urgency : '')} value={item.email || 'No email'} />
+                        )) : <div style={smallText}>No recent inquiries yet.</div>}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </Panel>
               <Panel>
                 <div style={eyebrow}>Data honesty</div>
@@ -262,6 +282,15 @@ function Panel({ children }) {
   return <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.05)', marginTop: 18 }}>{children}</div>;
 }
 
+function MetricRow({ label, value }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, borderTop: '1px solid ' + C.border, padding: '8px 0', alignItems: 'flex-start' }}>
+      <span style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.35 }}>{label}</span>
+      <strong style={{ color: C.ink, fontSize: 12.5, textAlign: 'right', lineHeight: 1.35 }}>{value}</strong>
+    </div>
+  );
+}
+
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const h1 = { fontSize: 'clamp(34px, 5vw, 56px)', lineHeight: 1.04, margin: '8px 0 10px', fontWeight: 400, maxWidth: 820 };
 const h2 = { fontSize: 28, lineHeight: 1.12, margin: '8px 0 10px', fontWeight: 400 };
@@ -275,3 +304,4 @@ const livePill = { background: C.sageFaint, color: C.sage, border: '1px solid #c
 const plannedPill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' };
 const metricCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.sage, fontWeight: 900, fontSize: 14 };
 const unavailableMetricCard = { background: C.amberFaint, border: '1px solid #ead8b8', borderRadius: 13, padding: 12, color: C.amber, fontWeight: 900, fontSize: 14 };
+const subPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
