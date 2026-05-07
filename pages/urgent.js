@@ -576,8 +576,9 @@ export default function UrgentPage() {
         .authority-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:9px; }
         .authority-options button { border:1px solid ${C.sageLight}; background:${C.card}; color:${C.sageDark}; border-radius:999px; padding:8px 10px; cursor:pointer; font-weight:800; font-size:12px; }
         .authority-options button.active { background:${C.sage}; color:white; border-color:${C.sage}; }
-        details.later-details { grid-column:1 / -1; border-top:1px solid ${C.border}; padding-top:8px; }
+        details.later-details { border:1px solid ${C.border}; background:${C.card}; border-radius:14px; padding:11px 12px; margin-bottom:16px; }
         details.later-details summary { cursor:pointer; color:${C.sageDark}; font-size:12px; font-weight:850; }
+        .quiet-empty-progress { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:13px; color:${C.sageDark}; font-size:13px; line-height:1.55; margin:12px 0; }
         .owner { background: ${C.subtle}; border-radius: 14px; padding: 13px 14px; color: ${C.mid}; line-height: 1.45; margin-bottom: 14px; }
         .owner strong { color: ${C.ink}; }
         .playbook { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; margin:0 0 18px; }
@@ -748,37 +749,36 @@ export default function UrgentPage() {
                 <input value={dateOfDeath} onChange={e => setDateOfDeath(e.target.value)} type="date" />
               </div>
               <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
-                {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Sign in to save'}
+                {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Save this plan'}
               </button>
-              <div className="save-helper">The details below are saved into the command center before it opens.</div>
+              <div className="save-helper">Use the first step now. When you are ready to keep this command center, Passage will ask you to sign in.</div>
               {saveError && <div className="save-error">{saveError}</div>}
             </div>
-            <div className="context-grid">
-              <div className="context-title">Shape the first steps</div>
-              <div className="context-help">Only answer what helps the current step. Later details can wait.</div>
-              <div className="field compact">
-                <label>Official pronouncement</label>
-                <select value={context.pronouncementStatus} onChange={e => updateContext('pronouncementStatus', e.target.value)}>
-                  <option value="">Not sure yet</option>
-                  <option value="confirmed">Pronounced / confirmed</option>
-                  <option value="needed">Need to confirm</option>
-                </select>
-              </div>
-              <div className="field compact">
-                <label>Funeral home</label>
-                <input value={context.funeralHomeName} onChange={e => updateContext('funeralHomeName', e.target.value)} placeholder="Name, if known" />
-              </div>
-              <div className="field compact">
-                <label>Healthcare proxy / decision-maker</label>
-                <input value={context.authorityName} onChange={e => updateContext('authorityName', e.target.value)} placeholder="Name, if known" />
-              </div>
-              <div className="field compact">
-                <label>Hospital / hospice / doctor</label>
-                <input value={context.hospitalOrHospiceContact} onChange={e => updateContext('hospitalOrHospiceContact', e.target.value)} placeholder="Contact or facility" />
-              </div>
-              <details className="later-details">
-                <summary>Details for later if you already know them</summary>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 10, marginTop: 10 }}>
+            <details className="later-details">
+              <summary>Add optional details if you already know them</summary>
+              <div className="context-grid" style={{ marginTop: 10, marginBottom: 0 }}>
+                <div className="context-title">Helpful later, not required now</div>
+                <div className="context-help">Skip this unless it helps the current step. Passage can save it into the command center when you are ready.</div>
+                <div className="field compact">
+                  <label>Official pronouncement</label>
+                  <select value={context.pronouncementStatus} onChange={e => updateContext('pronouncementStatus', e.target.value)}>
+                    <option value="">Not sure yet</option>
+                    <option value="confirmed">Pronounced / confirmed</option>
+                    <option value="needed">Need to confirm</option>
+                  </select>
+                </div>
+                <div className="field compact">
+                  <label>Funeral home</label>
+                  <input value={context.funeralHomeName} onChange={e => updateContext('funeralHomeName', e.target.value)} placeholder="Name, if known" />
+                </div>
+                <div className="field compact">
+                  <label>Healthcare proxy / decision-maker</label>
+                  <input value={context.authorityName} onChange={e => updateContext('authorityName', e.target.value)} placeholder="Name, if known" />
+                </div>
+                <div className="field compact">
+                  <label>Hospital / hospice / doctor</label>
+                  <input value={context.hospitalOrHospiceContact} onChange={e => updateContext('hospitalOrHospiceContact', e.target.value)} placeholder="Contact or facility" />
+                </div>
                   <div className="field compact">
                     <label>Cemetery / burial place</label>
                     <input value={context.cemeteryName} onChange={e => updateContext('cemeteryName', e.target.value)} placeholder="Name, if known" />
@@ -804,9 +804,8 @@ export default function UrgentPage() {
                     <label>Medical records / documents location</label>
                     <input value={context.medicalRecordsLocation} onChange={e => updateContext('medicalRecordsLocation', e.target.value)} placeholder="Records, proxy, medication list, insurance cards" />
                   </div>
-                </div>
-              </details>
-            </div>
+              </div>
+            </details>
             <div className="phase">{primary.phase}</div>
             <h2>{primary.title}</h2>
             <p className="support">{primary.support}</p>
@@ -851,10 +850,14 @@ export default function UrgentPage() {
             <div className="meter" style={{ '--pct': `${Math.round((handled / outcomes.length) * 100)}%` }}>
               <div className="fill" />
             </div>
-            <div className="stat-row">
-              <div className="stat"><b>{assigned}</b><span>Assigned</span></div>
-              <div className="stat"><b>{handled}</b><span>Handled</span></div>
-            </div>
+            {(assigned + handled) > 0 ? (
+              <div className="stat-row">
+                <div className="stat"><b>{assigned}</b><span>Assigned</span></div>
+                <div className="stat"><b>{handled}</b><span>Handled</span></div>
+              </div>
+            ) : (
+              <div className="quiet-empty-progress">Nothing has been assigned yet. Start with the one action on the left; Passage will keep the rest from crowding you.</div>
+            )}
             <div className="next">
               <h3>This can wait</h3>
               {nextItems.slice(0, 1).map((item, index) => (
