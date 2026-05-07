@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
-import { SiteHeader } from '../components/SiteChrome';
+import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import VendorSupport from '../components/VendorSupport';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
 
@@ -2497,21 +2497,26 @@ export default function EstatePage() {
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
   if (loading) return (
-    <div style={{ background: BG, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif' }}>
-      <div style={{ color: SOFT, fontSize: 14 }}>Loading...</div>
+    <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
+      <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: SOFT, fontSize: 14 }}>Loading...</div>
+      </div>
+      <SiteFooter />
     </div>
   );
 
   // ── NO ESTATE ─────────────────────────────────────────────────────────────────
   if (!estateId || !estate) return (
-    <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ fontSize: 48, marginBottom: 20 }}>🕊️</div>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: INK, marginBottom: 8 }}>Estate not found</div>
-      <div style={{ fontSize: 14, color: SOFT, marginBottom: 28 }}>This link may have expired or the estate may have been archived.</div>
-      <button onClick={function() { window.location.href = '/'; }}
-        style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: SAGE, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-        Go home
-      </button>
+    <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
+      <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: INK, marginBottom: 8 }}>Estate not found</div>
+        <div style={{ fontSize: 14, color: SOFT, marginBottom: 28, textAlign: 'center', lineHeight: 1.6 }}>This link may have expired or the estate may have been archived.</div>
+        <button onClick={function() { window.location.href = '/'; }}
+          style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: SAGE, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          Go home
+        </button>
+      </div>
+      <SiteFooter />
     </div>
   );
 
@@ -3147,6 +3152,7 @@ export default function EstatePage() {
           Your estate plan is saved. Come back anytime.
         </div>
       </div>
+      <SiteFooter />
     </div>
   );
 }
