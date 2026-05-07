@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionRequiresNote, taskActionStatus } from '../../lib/taskActions';
+import { normalizeTaskStatusForStorage } from '../../lib/taskStatus';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -19,8 +20,8 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
   if (!to || String(to).toLowerCase() === String(actorEmail).toLowerCase()) return;
 
   const deceased = workflow.deceased_name || workflow.name || 'this estate';
-  const statusLine = status === 'handled' ? 'marked this as handled'
-    : status === 'waiting' ? 'updated this as waiting'
+  const statusLine = status === 'done' || status === 'handled' ? 'marked this as handled'
+    : status === 'pending' || status === 'waiting' ? 'updated this as waiting'
     : status === 'acknowledged' ? 'accepted this task'
     : status === 'blocked' ? 'needs help with this task'
     : 'updated this task';
@@ -181,14 +182,15 @@ export default async function handler(req, res) {
     });
   }
 
-  const status = taskActionStatus(action) || 'needs_review';
+  const requestedStatus = taskActionStatus(action) || 'needs_review';
+  const status = normalizeTaskStatusForStorage(requestedStatus);
   if (taskActionRequiresNote(action) && !trimmedNotes) {
     return res.status(400).json({ error: 'Add a short proof or blocker note before saving this update.' });
   }
-  const terminalStatus = ['handled', 'completed', 'done'].includes(status);
+  const terminalStatus = status === 'done';
   const actorName = userData.user.user_metadata?.full_name || email;
   const stamp = normalizedAction === 'accept' ? 'accepted_at'
-    : status === 'handled' ? 'handled_at'
+    : terminalStatus ? 'handled_at'
     : 'help_requested_at';
 
   const updates = {
