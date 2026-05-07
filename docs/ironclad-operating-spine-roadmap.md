@@ -168,6 +168,8 @@ These are not failures to hide. They are the work queue until fixed and QA-passe
 - FAQ, Trust, Privacy, and Terms overview destinations exist, but they are not final legal/compliance policy. The next legal sprint must replace overview copy with owner/counsel-approved language.
 - Urgent flow has been pulled back toward the crisis spec: triage first, sequence rail before save/details, no empty progress sidebar, no sign-in wall before value, and local completion requires proof. Remaining work is persistence of local proof into the saved estate task row.
 - The task action UI is still not fully shared everywhere, but the estate and participant surfaces now enforce the same proof/waiting/help spine more consistently.
+- The estate index must never execute task work itself. Attention cards now route into the selected estate with an explicit open/assign intent; the estate workspace owns assignment, message, proof, and audit. Future work should preserve this boundary rather than adding more index-page actions.
+- Client-side exceptions now fall back to a Passage recovery screen instead of the black framework error, but recovery is not a substitute for QA. Any recovered screen should be treated as a P0 finding until the underlying path is fixed.
 - Proof attachments now have a first storage-backed path from estate tasks into `passage-documents/task-support`; later work still needs a durable `task_attachments` index/table and document-center surfacing.
 - Funeral-home employee permissions are visible but not yet fully schema-enforced.
 - Vendor approval/profile/request status exists in pieces and needs a stronger provisioning loop.
