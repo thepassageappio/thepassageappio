@@ -390,6 +390,8 @@ export default function UrgentPage() {
   const [saveError, setSaveError] = useState('');
   const [paidSuccess, setPaidSuccess] = useState(false);
   const [handoff, setHandoff] = useState(false);
+  const [proofByOutcome, setProofByOutcome] = useState({});
+  const [proofError, setProofError] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -439,12 +441,18 @@ export default function UrgentPage() {
   };
 
   const markHandled = (id) => {
-    setOutcomes(prev => prev.map(o => o.id === id ? { ...o, status: 'handled' } : o));
+    const proof = String(proofByOutcome[id] || '').trim();
+    if (!proof) {
+      setProofError('Add the proof or reference before marking this handled.');
+      return;
+    }
+    setProofError('');
+    setOutcomes(prev => prev.map(o => o.id === id ? { ...o, status: 'handled', proof } : o));
   };
 
   const signIn = async () => {
     try {
-      localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, context, outcomes, people }));
+      localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, context, outcomes, people, proofByOutcome }));
     } catch {}
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/urgent' } });
   };
@@ -462,6 +470,7 @@ export default function UrgentPage() {
       if (saved.context && typeof saved.context === 'object') setContext(prev => ({ ...prev, ...saved.context }));
       if (Array.isArray(saved.outcomes)) setOutcomes(saved.outcomes);
       if (Array.isArray(saved.people)) setPeople(saved.people);
+      if (saved.proofByOutcome && typeof saved.proofByOutcome === 'object') setProofByOutcome(saved.proofByOutcome);
     } catch {}
   }, []);
 
@@ -847,6 +856,27 @@ export default function UrgentPage() {
             </div>
 
             {selectedSituation && primary.owner && <TaskPlaybook task={primary} />}
+
+            {selectedSituation && primary.owner && primary.status !== 'handled' && (
+              <div className="playbook" style={{ marginTop: 0 }}>
+                <div className="playbook-kicker">Proof before closing</div>
+                <div className="playbook-title">How will the family know this happened?</div>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <label>Proof, reference, or next instruction</label>
+                  <input
+                    value={proofByOutcome[primary.id] || ''}
+                    onChange={e => {
+                      setProofByOutcome(prev => ({ ...prev, [primary.id]: e.target.value }));
+                      setProofError('');
+                    }}
+                    placeholder="Example: Spoke with hospice nurse Maria; she will call back with pronouncement time."
+                  />
+                </div>
+                <div style={{ color: proofError ? C.rose : C.mid, fontSize: 12.5, lineHeight: 1.45, fontWeight: proofError ? 800 : 400 }}>
+                  {proofError || 'Passage keeps handled items tied to proof, not just a checked box.'}
+                </div>
+              </div>
+            )}
 
             {selectedSituation && (
               <div className="stack">
