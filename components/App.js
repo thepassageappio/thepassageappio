@@ -3979,11 +3979,6 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
 
 // ─── LANDING ──────────────────────────────────────────────────────────────────
 function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
-  const [entered, setEntered] = useState(false);
-  useEffect(() => { setTimeout(() => setEntered(true), 80); }, []);
-
-  const anim = { opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(16px)', transition: 'all 0.7s ease' };
-
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
 
@@ -3995,7 +3990,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <a href="/content" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Guides</a>
           <a href="/pricing" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Pricing</a>
           <a href="/contact" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Contact</a>
-          <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Participant</a>
+          <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>My tasks</a>
           <a href="/funeral-home" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Funeral homes</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>
@@ -4013,7 +4008,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       </nav>
 
       {/* ── HERO ── */}
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '52px 24px 20px', textAlign: 'center', opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(16px)', transition: 'all 0.7s ease' }}>
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '52px 24px 20px', textAlign: 'center', opacity: 1, transform: 'none', transition: 'all 0.7s ease' }}>
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 5vw, 52px)', lineHeight: 1.15, color: C.ink, marginBottom: 20, fontWeight: 400 }}>
           When someone dies, your family needs{' '}
           <em style={{ color: C.sage }}>a clear next step.</em>
@@ -4266,9 +4261,6 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 }
 
 function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
-  const [entered, setEntered] = useState(false);
-  useEffect(() => { setTimeout(() => setEntered(true), 80); }, []);
-
   const navLink = { fontSize: 12.5, color: C.mid, textDecoration: 'none' };
 
   return (
@@ -4280,7 +4272,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <a href="/content" style={navLink}>Guides</a>
           <a href="/pricing" style={navLink}>Pricing</a>
           <a href="/contact" style={navLink}>Contact</a>
-          <a href="/participating" style={navLink}>Participant</a>
+          <a href="/participating" style={navLink}>My tasks</a>
           <a href="/funeral-home" style={navLink}>Funeral homes</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>My estate</button>
@@ -4290,7 +4282,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </div>
       </nav>
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 24px 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 24, alignItems: 'center', opacity: entered ? 1 : 0, transform: entered ? 'none' : 'translateY(14px)', transition: 'all .7s ease' }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 24px 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 24, alignItems: 'center', opacity: 1, transform: 'none', transition: 'all .7s ease' }}>
         <div>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 10 }}>One calm place for transition</div>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(34px, 4.6vw, 54px)', lineHeight: 1.03, color: C.ink, margin: '0 0 12px', fontWeight: 400 }}>
@@ -4497,4 +4489,3 @@ export default function App() {
     </>
   );
 }
-

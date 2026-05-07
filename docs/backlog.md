@@ -5,12 +5,12 @@
 - Round 14 ironclad spine pass: treat `docs/ironclad-operating-spine-roadmap.md` as the readiness contract for families, participants, funeral homes, funeral-home staff, vendors, Passage system admins, messaging, permissions, demo, and task orchestration.
 - Hold every sprint to the scorecard loops: red path closes, funeral-home partner activates, payment entitlement works, and vendor marketplace connects. Schema presence alone is not success.
 - Sprint 2 entry point: build the shared task action spine so assigned/unassigned tasks route through the same assign, send, proof, waiting, help, output, and audit behavior across every persona.
-- Public trust/demo blockers from external QA: SSR-visible landing hero, simpler mobile nav, clearer `Participant` label, privacy/terms destinations after owner-approved legal copy, funeral-home tier CTAs with visible fallback, feature tab smoke tests, and urgent flow reduced back to one action at a time.
+- Public trust/demo blockers from external QA: privacy/terms destinations after owner-approved legal copy, funeral-home feature tab smoke tests, and any remaining mobile nav simplification. SSR-visible landing hero, clearer `My tasks` nav label, funeral-home tier CTA fallback, and urgent triage-first posture have been patched and need green-deploy QA.
 - Post-simplification QA sweep (0d2bc3a..11902d0): command center hierarchy + nav, wishes save, comms center parity; no dead ends.
 - Stop-the-line regressions: estate persistence, invite confirmation, partner case creation/load, task action feedback (no "Confirmed" without proof).
-- B2B activation gap: create/verify the test funeral-home `organization` + `funeral_home_partner` path, the family/estate participation join path, and terminal task status persistence before calling any funeral-home demo ready.
+- B2B activation gap: verify the newly seeded test funeral-home `organization` + `funeral_home_partner`, family/estate participation join, and terminal task status persistence through live app flows before calling any funeral-home demo ready.
 - Terminal task status QA: marking handled must update the task row used by dashboards/reports, not only write `task_status_events`.
-- Repo hygiene: clear phantom dirty files such as `components/App.js` when Git reports modified metadata/line-ending drift with no content diff; add or verify `.gitattributes` line-ending rules so cleanup does not pollute product commits.
+- Repo hygiene: `.gitattributes` now normalizes LF line endings; monitor for any remaining phantom dirty files after Windows edits.
 - Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
 - Webhook-as-proof QA: Resend + Twilio `webhook_events` record provider + timestamp + actor and are surfaced as proof; vendor requests show Sent/Received/Accepted/Declined with visible activity.
 - Partner + vendor access policy (minimal): roles + org membership (multi-location admin vs staff vs vendor vs Passage admin) + who can act-on-behalf.
