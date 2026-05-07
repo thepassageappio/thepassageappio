@@ -4383,33 +4383,14 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 }
 
 function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
-  const navLink = { fontSize: 12.5, color: C.mid, textDecoration: 'none' };
-
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <style>{`
         @media (max-width: 720px) {
-          .home-nav-secondary { display: none !important; }
-          .home-nav-links { gap: 8px !important; }
           .home-proof-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
-      <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
-        <CandleLogo size={32} nameSize={21} />
-        <div className="home-nav-links" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <a className="home-nav-secondary" href="/mission" style={navLink}>Mission</a>
-          <a href="/guides" style={navLink}>Guides</a>
-          <a className="home-nav-secondary" href="/pricing" style={navLink}>Pricing</a>
-          <a className="home-nav-secondary" href="/contact" style={navLink}>Contact</a>
-          <a className="home-nav-secondary" href="/participating" style={navLink}>My tasks</a>
-          <a href="/funeral-home" style={navLink}>Funeral homes</a>
-          {user ? (
-            <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>My estate</button>
-          ) : (
-            <button onClick={handleSignInWithGoogle} style={{ background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: C.ink, fontFamily: 'inherit' }}>Sign in</button>
-          )}
-        </div>
-      </nav>
+      <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} />
 
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 24px 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 24, alignItems: 'center', opacity: 1, transform: 'none', transition: 'all .7s ease' }}>
         <div>

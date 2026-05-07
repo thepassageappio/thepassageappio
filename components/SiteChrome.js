@@ -143,6 +143,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
   const router = useRouter();
   const path = router?.pathname || '';
   const dashboardHref = '/?dashboard=1';
+  const estateActive = isActivePath(path, '/estate') || router?.query?.dashboard === '1';
   const controlled = typeof user !== 'undefined';
   const [localUser, setLocalUser] = useState(null);
   const currentUser = controlled ? user : localUser;
@@ -207,7 +208,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
         {showSystemAdminLinks && (
           <Link href="/system/admin" style={(isActivePath(path, '/system') || isActivePath(path, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
-        <Link href={dashboardHref} style={(isActivePath(path, '/') || isActivePath(path, '/estate')) ? activeStyle : quietMyEstate}>My estate</Link>
+        <Link href={dashboardHref} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>
         <span style={{ width: 104, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
             <button onClick={signOutHandler} style={{ width: 100, minHeight: 44, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 12, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
