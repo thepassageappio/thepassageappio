@@ -1423,6 +1423,9 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
                   </>
                 ) : (
                   <>
+                    {!taskAssignedName(current.item) && !taskAssignedEmail(current.item) && (
+                      <button onClick={function() { onTaskAction(current.item, 'assign'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Assign owner</button>
+                    )}
                     <button onClick={function() { onTaskAction(current.item, 'handled'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Confirm / record proof</button>
                     <button onClick={function() { onTaskAction(current.item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Still waiting</button>
                     <button onClick={function() { onTaskAction(current.item, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
@@ -2457,6 +2460,10 @@ export default function EstatePage() {
   function taskActionFromCommand(task, action) {
     if (!task) return;
     var mode = taskWorkspaceMode(task);
+    if (action === 'assign') {
+      startTaskUpdate({ task: task, status: 'choose', title: 'Assign owner', detail: 'Owner assigned for ' + displayTaskTitle(task), prompt: 'Choose who owns this task. Add email when Passage should send or remind them.' });
+      return;
+    }
     if (mode && (action === 'open' || action === 'handled')) {
       var status = action === 'handled' ? 'handled' : 'waiting';
       startTaskUpdate({
@@ -2593,6 +2600,43 @@ export default function EstatePage() {
                     <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'waiting', title: taskActionCopy('waiting').title, detail: 'Waiting for response on ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('waiting', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'waiting' ? AMBER : AMBER_FAINT, pendingTaskAction.status === 'waiting' ? '#fff' : AMBER, AMBER_BORDER)}>Waiting</button>
                     <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'blocked', title: taskActionCopy('blocked').title, detail: 'Help needed for ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('blocked', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'blocked' ? ROSE : ROSE_FAINT, pendingTaskAction.status === 'blocked' ? '#fff' : ROSE, ROSE + '35')}>Needs help</button>
                   </div>
+                  {(() => {
+                    var currentEmail = taskAssignedEmail(pendingTaskAction.task);
+                    var currentName = taskAssignedName(pendingTaskAction.task) || currentEmail;
+                    return (
+                      <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 14, padding: '11px 12px', marginTop: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase' }}>Owner / recipient</div>
+                            <div style={{ fontSize: 12.5, color: currentEmail ? SAGE : AMBER, fontWeight: 800, lineHeight: 1.4, marginTop: 4 }}>
+                              {currentEmail ? 'Assigned to ' + currentName + ' at ' + currentEmail + '.' : 'No email recipient is assigned yet. Add one before sending or reminding through Passage.'}
+                            </div>
+                          </div>
+                          {currentEmail && <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 900 }}>Ready to notify</span>}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8, marginTop: 9 }}>
+                          <input
+                            value={pendingRecipientName}
+                            onChange={function(e) { setPendingRecipientName(e.target.value); }}
+                            placeholder="Name or role"
+                            style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
+                          />
+                          <input
+                            value={pendingRecipientEmail}
+                            onChange={function(e) { setPendingRecipientEmail(e.target.value); }}
+                            placeholder="Email address"
+                            style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 9 }}>
+                          <button onClick={function() { saveTaskRecipientFromCommand(pendingTaskAction.task); }} disabled={assigningTaskRecipient} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>
+                            {assigningTaskRecipient ? 'Saving owner...' : currentEmail ? 'Update owner' : 'Save owner'}
+                          </button>
+                          <span style={{ fontSize: 11.5, color: MID, lineHeight: 1.4 }}>This updates the task owner, records the audit trail, and enables reminders or Send through Passage.</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </>
               );
             })()}
@@ -2629,26 +2673,6 @@ export default function EstatePage() {
                               ? 'Ready to send to ' + messageRecipientName + ' at ' + messageRecipientEmail + '.'
                               : 'No recipient is assigned yet. Add the owner or contact here, then Passage can send and log it.'}
                           </div>
-                          {!messageRecipientEmail && (
-                            <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: 10, marginTop: 8, display: 'grid', gap: 8 }}>
-                              <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase' }}>Assign recipient</div>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                <input
-                                  value={pendingRecipientName}
-                                  onChange={function(e) { setPendingRecipientName(e.target.value); }}
-                                  placeholder="Name or role"
-                                  style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
-                                />
-                                <input
-                                  value={pendingRecipientEmail}
-                                  onChange={function(e) { setPendingRecipientEmail(e.target.value); }}
-                                  placeholder="Email address"
-                                  style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
-                                />
-                              </div>
-                              <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.4 }}>This saves the owner on the task, records the audit event, and unlocks Send through Passage.</div>
-                            </div>
-                          )}
                         </>
                       )}
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
