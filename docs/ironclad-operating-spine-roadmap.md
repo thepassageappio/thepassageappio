@@ -92,7 +92,7 @@ Near-term product constraints:
 - Mobile is not optional: family coordination, invitations, task updates, and urgent guidance must be comfortable on phones.
 - Trust layer is now a product requirement: privacy, security, data ownership, role visibility, audit logging, legal boundaries, and support routing need visible homes before serious pilots.
 - Public trust scaffolding is live only as product-boundary copy. Final Terms, Privacy, data retention, vendor terms, partner terms, and urgent-path liability language still require owner/counsel review before pilots can rely on them.
-- AI, memorial, marketplace, and vault expansion must wait behind workflow excellence, task outputs, proof, permissions, and trust maturity.
+- AI, memorial, marketplace, and vault expansion must wait behind workflow excellence, task outputs, proof, permissions, and trust maturity. OpenAI implementation planning lives in `docs/openai-integration-migration-plan.md`; there is no active OpenAI code path today.
 
 ## Readiness Contract
 
