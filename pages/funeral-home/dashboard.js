@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
+import { taskOutputFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
@@ -448,68 +449,6 @@ export default function FuneralHomeDashboard() {
     ['Location manager', 'Location-scoped cases, staff queues, waiting items, exports.', /location|manager/i.test(currentRole) ? 'Your current view' : 'Next permission layer'],
     ['Staff / employee', 'Assigned tasks first, with case context, family messages, proof, and audit trail.', !isDirectorRole ? 'Your current view' : 'Delegation target'],
   ];
-
-  function outputForTask(task, item) {
-    const title = sharedTaskTitle(task);
-    const lower = title.toLowerCase();
-    const caseName = item?.deceased_name || item?.estate_name || item?.name || 'this family';
-    if (lower.includes('funeral home meeting')) {
-      return {
-        label: 'Arrangement meeting summary',
-        body: 'Passage turns known family facts, service preferences, contact details, and missing fields into a meeting summary your team can print, export, or send back to the family.',
-      };
-    }
-    if (lower.includes('obituary')) {
-      return {
-        label: 'Obituary draft workspace',
-        body: 'Passage should produce editable obituary language, then track copy/download/share proof before the task is closed.',
-      };
-    }
-    if (lower.includes('prepayment') || lower.includes('policy')) {
-      return {
-        label: 'Policy detail request',
-        body: 'Passage prepares the exact family request for policy carrier, policy number, funding status, and document location, then keeps the task waiting until proof is saved.',
-      };
-    }
-    if (lower.includes('burial') || lower.includes('service') || lower.includes('wishes')) {
-      return {
-        label: 'Service wishes packet',
-        body: 'Passage gathers burial, service, clergy, cemetery, and preference details into a structured summary that can feed the family view and partner export.',
-      };
-    }
-    if (task?.playbook?.actionResultLabel) {
-      return {
-        label: task.playbook.actionResultLabel.replace(/^Action result:\s*/i, ''),
-        body: task.playbook?.whatPassageDoes || task.playbook?.automationExplanation || 'Passage prepares the task output, keeps the next action visible, and records proof when staff moves it.',
-      };
-    }
-    return {
-      label: 'Task output and proof trail',
-      body: `Passage prepares the next step for ${caseName}, tracks who owns it, and keeps proof visible to the family and staff.`,
-    };
-  }
-
-  function familyRequestDraft(task, item) {
-    const title = sharedTaskTitle(task);
-    const coordinator = item?.coordinator_name || 'the family coordinator';
-    const caseName = item?.deceased_name || item?.estate_name || item?.name || 'your loved one';
-    const lower = title.toLowerCase();
-    if (lower.includes('funeral home meeting')) {
-      return `Hi ${coordinator}, we are preparing the arrangement meeting summary for ${caseName}. Please confirm any missing service wishes, cemetery details, clergy/officiant contact, prepaid policy information, or documents you want included.`;
-    }
-    if (lower.includes('prepayment') || lower.includes('policy')) {
-      return `Hi ${coordinator}, can you send the prepaid funeral, Medicaid, insurance, or policy details you have for ${caseName}? Carrier name, policy number, funding status, and where the document is stored are enough to move this forward.`;
-    }
-    if (lower.includes('burial') || lower.includes('service') || lower.includes('wishes')) {
-      return `Hi ${coordinator}, can you confirm the family's burial, service, clergy, cemetery, or final wishes for ${caseName}? Passage will keep this waiting until those details are recorded.`;
-    }
-    return `Hi ${coordinator}, we need one detail from the family before staff can move "${title}" forward for ${caseName}. Please reply with what you know, what is missing, or who should own the next step.`;
-  }
-
-  function proofDestination(task) {
-    const title = sharedTaskTitle(task);
-    return `Saved updates appear in Recent proof, the communication/proof log, the family status view, reports, and the CSV export for "${title}".`;
-  }
 
   function money(value) {
     return `$${Math.round(Number(value || 0)).toLocaleString()}`;
@@ -1141,8 +1080,10 @@ export default function FuneralHomeDashboard() {
                   {isExpanded && topTasks.map(task => (
                     <div key={task.id} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 11, marginTop: 11 }}>
                       {(() => {
-                        const output = outputForTask(task, item);
-                        const draft = familyRequestDraft(task, item);
+                        const context = { caseName: item?.deceased_name || item?.estate_name || item?.name, coordinatorName: item?.coordinator_name, surface: 'Recent proof' };
+                        const output = taskOutputFor(task, context);
+                        const draft = taskRequestDraftFor(task, context);
+                        const proofDestination = taskProofDestination(task, context);
                         return (
                           <>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'start' }}>
@@ -1173,7 +1114,7 @@ export default function FuneralHomeDashboard() {
                         </div>
                         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 11 }}>
                           <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Where the proof lives</div>
-                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>{proofDestination(task)}</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>{proofDestination}</div>
                         </div>
                       </div>
                       {task.playbook?.funeralHomeEligible && !['handled', 'completed', 'done'].includes(task.status || '') && (
@@ -1205,7 +1146,7 @@ export default function FuneralHomeDashboard() {
                               disabled={!taskDraftNote.trim() || updating === task.id + taskDraft.status || updating === task.id + 'handle_for_family'}
                               onClick={() => taskDraft.status === 'handled'
                                 ? handleForFamily(task, `${org?.name || 'Funeral home'} completed ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}`)
-                                : updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'requested family information' : 'started this on behalf of the family'} for ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}. ${proofDestination(task)}`)}
+                                : updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'requested family information' : 'started this on behalf of the family'} for ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}. ${proofDestination}`)}
                               style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
                               {taskDraft.status === 'handled' ? 'Save proof and close' : taskDraft.status === 'blocked' ? 'Save family request' : 'Save waiting update'}
                             </button>

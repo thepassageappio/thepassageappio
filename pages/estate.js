@@ -9,6 +9,7 @@ import { getTaskPlaybook } from '../lib/taskPlaybooks';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import VendorSupport from '../components/VendorSupport';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
+import { taskWorkspaceFor } from '../lib/taskWorkspace';
 
 var sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -1278,6 +1279,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
             var color = state === 'good' ? SAGE : state === 'bad' ? ROSE : state === 'wait' ? AMBER : MID;
             var proof = task.playbook.proofRequired || 'confirmation';
             var hasReminderRecipient = Boolean(task.assigned_to_email || (String(task.recipient || '').includes('@')));
+            var workspace = taskWorkspaceFor(task, { estateName: 'your loved one', coordinatorName: coordinatorName || 'the coordinator', surface: 'this estate task' });
             return (
               <div key={task.id} style={{ borderTop: '1px solid ' + BORDER, padding: '10px 0' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10 }}>
@@ -1295,6 +1297,17 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                         {task.playbook.actionResultLabel}
                       </div>
                     )}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 7, marginTop: 7 }}>
+                      <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 9px' }}>
+                        <div style={{ color: SAGE, fontSize: 10.5, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Output</div>
+                        <div style={{ color: INK, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{workspace.output.label}</div>
+                        <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{workspace.output.body}</div>
+                      </div>
+                      <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
+                        <div style={{ color: SOFT, fontSize: 10.5, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Proof destination</div>
+                        <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{workspace.proofDestination}</div>
+                      </div>
+                    </div>
                     <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 9px', marginTop: 7 }}>
                       <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Passage handles</div>
                       <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{task.playbook.whatPassageDoes}</div>
