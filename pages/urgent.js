@@ -423,8 +423,6 @@ export default function UrgentPage() {
       owner: null,
     };
   const nextItems = selectedSituation ? outcomes.filter(o => o.id !== primary?.id) : [];
-  const handled = outcomes.filter(o => o.status === 'handled').length;
-  const assigned = outcomes.filter(o => o.owner).length;
 
   const reassurance = useMemo(() => {
     if (!selectedSituation) return 'We will start with the right real-world path, then show only the next action.';
@@ -673,7 +671,7 @@ export default function UrgentPage() {
           <p className="lede">{reassurance} Passage will keep this focused: who owns the next action, what can wait, and what is already handled.</p>
         </section>
 
-        <section className={selectedSituation ? "grid" : "grid grid-single"}>
+        <section className="grid grid-single">
           <div className="card primary-card">
             {paidSuccess && <div className="paid-success">You're in the right place. We'll guide you step by step.</div>}
             <div className="triage">
@@ -862,6 +860,22 @@ export default function UrgentPage() {
                 )}
               </div>
             )}
+            {selectedSituation && nextItems.length > 0 && (
+              <details className="later-details" style={{ marginTop: 16, marginBottom: 0 }}>
+                <summary>What can wait until this is owned</summary>
+                <div className="next" style={{ marginTop: 10 }}>
+                  {nextItems.slice(0, 2).map((item, index) => (
+                    <div className="next-item" key={item.id}>
+                      <div className="dot">{index + 1}</div>
+                      <div>
+                        <div className="next-title">{item.phase} - {item.title}</div>
+                        <div className="next-support">{item.owner ? `${item.owner.name} owns this.` : item.support}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
               </>
             ) : (
               <div className="urgent-alert" style={{ background: C.sageFaint, borderColor: C.sageLight }}>
@@ -869,36 +883,6 @@ export default function UrgentPage() {
               </div>
             )}
           </div>
-
-          {selectedSituation && (
-          <aside className="card side">
-            <div className="kicker">Progress</div>
-            <h2 style={{ fontSize: 23 }}>Still steady.</h2>
-            <div className="meter" style={{ '--pct': `${Math.round((handled / outcomes.length) * 100)}%` }}>
-              <div className="fill" />
-            </div>
-            {(assigned + handled) > 0 ? (
-              <div className="stat-row">
-                <div className="stat"><b>{assigned}</b><span>Assigned</span></div>
-                <div className="stat"><b>{handled}</b><span>Handled</span></div>
-              </div>
-            ) : (
-              <div className="quiet-empty-progress">Nothing has been assigned yet. Start with the one action on the left; Passage will keep the rest from crowding you.</div>
-            )}
-            <div className="next">
-              <h3>This can wait</h3>
-              {nextItems.slice(0, 1).map((item, index) => (
-                <div className="next-item" key={item.id}>
-                  <div className="dot">{index + 1}</div>
-                  <div>
-                    <div className="next-title">{item.phase} - {item.title}</div>
-                    <div className="next-support">{item.owner ? `${item.owner.name} owns this.` : item.support}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </aside>
-          )}
         </section>
       </div>
 
