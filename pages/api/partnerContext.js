@@ -25,6 +25,7 @@ function locationNameForWorkflow(workflow) {
 }
 
 function valueFromRequest(request, field) {
+  if (field === 'final_value' && request?.final_value_cents != null) return Number(request.final_value_cents || 0) / 100;
   return Number(request?.[field] || 0);
 }
 

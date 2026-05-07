@@ -376,7 +376,8 @@ export default function FuneralHomeDashboard() {
   const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length, 0);
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
   const totalVendorRequests = cases.reduce((sum, item) => sum + (item.vendorRequests?.length || 0), 0);
-  const totalVendorValue = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.final_value || request.estimated_value || 0), 0), 0);
+  const vendorValue = (request) => Number(request?.final_value ?? (request?.final_value_cents != null ? Number(request.final_value_cents || 0) / 100 : request?.estimated_value) ?? 0);
+  const totalVendorValue = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + vendorValue(request), 0), 0);
   const funeralHomeShare = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.funeral_home_share_amount || 0), 0), 0);
   const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to_email || t.assigned_to_name || t.owner_name || t.participant_id).length, 0);
   const callsAvoided = totalCommunications + assignmentsCoordinated + totalVendorRequests;
@@ -1071,7 +1072,7 @@ export default function FuneralHomeDashboard() {
                             {request.responded_at && <span style={miniPill}>Accepted</span>}
                             {request.in_progress_at && <span style={miniPill}>In progress</span>}
                             {request.completed_at && <span style={miniPill}>Completed</span>}
-                            {(request.final_value || request.estimated_value) && <span style={miniPill}>Value ${Math.round(Number(request.final_value || request.estimated_value || 0))}</span>}
+                            {vendorValue(request) > 0 && <span style={miniPill}>Value ${Math.round(vendorValue(request))}</span>}
                           </div>
                         </div>
                       ))}

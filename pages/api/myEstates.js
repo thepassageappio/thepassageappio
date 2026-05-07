@@ -10,6 +10,7 @@ const admin = createClient(url, service);
 function buildTaskStats(tasks) {
   const grouped = {};
   (tasks || []).forEach((task) => {
+    if (!task) return;
     const workflowId = task.workflow_id;
     if (!workflowId) return;
     if (!grouped[workflowId]) grouped[workflowId] = { total: 0, required: 0, completed: 0, assigned: 0, openTasks: [] };
@@ -20,12 +21,12 @@ function buildTaskStats(tasks) {
     if (task.status !== 'not_applicable' && (task.assigned_to_name || task.assigned_to_email)) grouped[workflowId].assigned += 1;
     if (task.status !== 'not_applicable' && !handled) {
       grouped[workflowId].openTasks.push({
-        id: task.id,
-        title: task.title,
+        id: task.id || `${workflowId}-${grouped[workflowId].openTasks.length}`,
+        title: task.title || 'Estate task',
         assignedTo: task.assigned_to_name || '',
         assignedEmail: task.assigned_to_email || '',
         dueDays: task.due_days_after_trigger ?? 0,
-        createdAt: task.created_at,
+        createdAt: task.created_at || null,
       });
     }
   });
@@ -70,7 +71,14 @@ export default async function handler(req, res) {
   [...(owned || []), ...(coordinated || [])].forEach((workflow) => {
     if (workflow?.id && !byId.has(workflow.id)) byId.set(workflow.id, workflow);
   });
-  const workflows = Array.from(byId.values()).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  const workflows = Array.from(byId.values())
+    .filter((workflow) => workflow?.id)
+    .map((workflow) => ({
+      ...workflow,
+      name: workflow.name || workflow.estate_name || (workflow.deceased_name ? `Estate of ${workflow.deceased_name}` : 'Estate workspace'),
+      confirmed_by: Array.isArray(workflow.confirmed_by) ? workflow.confirmed_by : [],
+    }))
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   const workflowIds = workflows.map((workflow) => workflow.id);
 
   let taskStats = {};

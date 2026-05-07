@@ -15,6 +15,9 @@ class PassageErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
+    console.error('Passage client error message:', error?.message || error);
+    console.error('Passage client error stack:', error?.stack || '');
+    console.error('Passage client component stack:', info?.componentStack || '');
     console.error('Passage client error:', error, info);
   }
 

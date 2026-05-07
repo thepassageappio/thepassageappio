@@ -345,7 +345,7 @@ const loadTasks = async (workflowId) => {
     .eq('workflow_id', workflowId)
     .order('created_at', { ascending: true });
   if (error) { console.error('loadTasks:', error); return []; }
-  return data || [];
+  return safeArray(data);
 };
 
 const updateTask = async (taskId, updates) => {
@@ -629,15 +629,22 @@ const getEstateSeatLimit = (userData) => {
   return PLAN_SEATS[userData?.plan || 'free'] || 1;
 };
 
-const getUsedGreenSeatCount = (workflows) => workflows.filter(w =>
-  w.status !== 'archived' &&
-  w.path === 'green' &&
-  (w.seat_status || 'active') !== 'archived'
+const getUsedGreenSeatCount = (workflows) => (Array.isArray(workflows) ? workflows.filter(Boolean) : []).filter(w =>
+  w?.status !== 'archived' &&
+  w?.path === 'green' &&
+  (w?.seat_status || 'active') !== 'archived'
 ).length;
 
 const shorten = (value, max) => {
   const text = String(value || '').replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim();
   return text.length > max ? text.slice(0, Math.max(0, max - 3)).trim() + '...' : text;
+};
+
+const safeArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
+const safePlainObject = (value) => (value && typeof value === 'object' && !Array.isArray(value)) ? value : {};
+const safeDateLabel = (value, options = { month: 'short', day: 'numeric' }) => {
+  const time = value ? new Date(value).getTime() : NaN;
+  return Number.isFinite(time) ? new Date(time).toLocaleDateString('en-US', options) : 'recently';
 };
 
 const smsSegmentInfo = (value) => {
@@ -810,10 +817,11 @@ const handleSignInWithGoogle = async () => {
 
 // ─── MERGE helper — merge DB tasks back onto static task list ─────────────────
 const buildTaskList = (dbTasks) => {
+  const safeDbTasks = safeArray(dbTasks);
   const result = [];
   POST_DEATH_TASKS.forEach(tier => {
     tier.tasks.forEach(staticTask => {
-      const db = dbTasks.find(d => d.title === staticTask.title);
+      const db = safeDbTasks.find(d => d?.title === staticTask.title);
       const playbook = getTaskPlaybook(staticTask.title);
       result.push({
         ...staticTask,
@@ -842,7 +850,7 @@ const buildTaskList = (dbTasks) => {
   });
   // Append any custom tasks from DB not in static list
   const staticTitles = new Set(POST_DEATH_TASKS.flatMap(t => t.tasks.map(tt => tt.title)));
-  dbTasks.filter(d => !staticTitles.has(d.title)).forEach(d => {
+  safeDbTasks.filter(d => d?.title && !staticTitles.has(d.title)).forEach(d => {
     const tierNum = d.priority === 'urgent' ? 1 : d.priority === 'high' ? 2 : d.due_days_after_trigger > 7 ? 4 : 3;
     const tierMeta = POST_DEATH_TASKS.find(t => t.tier === tierNum) || POST_DEATH_TASKS[0];
     const playbook = getTaskPlaybook(d.title);
@@ -3435,8 +3443,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
           loadUserWorkflows(user.id),
         ]);
         if (cancelled) return;
-        const wfs = Array.isArray(workflowResult) ? workflowResult : (workflowResult?.workflows || []);
-        const precomputedTaskStats = !Array.isArray(workflowResult) ? (workflowResult?.taskStats || null) : null;
+        const wfs = safeArray(Array.isArray(workflowResult) ? workflowResult : (workflowResult?.workflows || [])).filter(wf => wf?.id);
+        const precomputedTaskStats = !Array.isArray(workflowResult) ? safePlainObject(workflowResult?.taskStats) : null;
         setUserData(u || null);
         setProfile(p || null);
         if (p) {
@@ -3449,7 +3457,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
             organ_donation: !!p.organ_donor,
           });
         }
-        setWorkflows(wfs || []);
+        setWorkflows(wfs);
 
         // Load task completion stats for all workflows
         const workflowIds = (wfs || []).map(w => w.id).filter(Boolean);
@@ -3462,21 +3470,22 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
           if (cancelled) return;
           if (stats) {
             const grouped = {};
-            stats.forEach(t => {
+            safeArray(stats).forEach(t => {
+              if (!t?.workflow_id) return;
               if (!grouped[t.workflow_id]) grouped[t.workflow_id] = { total: 0, required: 0, completed: 0, assigned: 0, openTasks: [] };
               if (t.status !== 'not_applicable') grouped[t.workflow_id].required++;
               grouped[t.workflow_id].total++;
               const handled = t.status === 'handled' || t.status === 'completed' || t.status === 'done';
               if (t.status !== 'not_applicable' && handled) grouped[t.workflow_id].completed++;
-              if (t.status !== 'not_applicable' && t.assigned_to_name) grouped[t.workflow_id].assigned++;
+              if (t.status !== 'not_applicable' && (t.assigned_to_name || t.assigned_to_email)) grouped[t.workflow_id].assigned++;
               if (t.status !== 'not_applicable' && !handled) {
                 grouped[t.workflow_id].openTasks.push({
-                  id: t.id,
-                  title: t.title,
+                  id: t.id || `${t.workflow_id}-${grouped[t.workflow_id].openTasks.length}`,
+                  title: t.title || 'Estate task',
                   assignedTo: t.assigned_to_name || '',
                   assignedEmail: t.assigned_to_email || '',
                   dueDays: t.due_days_after_trigger ?? 0,
-                  createdAt: t.created_at,
+                  createdAt: t.created_at || null,
                 });
               }
             });
@@ -3525,20 +3534,23 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
     family_annual: { label: "Family Steward Annual", color: C.sage, price: "$199.99/yr", nextCharge: "Next year", renewal: "Annual" },
   };
   const pd = planMap[plan] || planMap.free;
-  const redWorkflows = workflows.filter(w => w.status !== 'archived' && w.path !== 'green');
-  const greenWorkflows = workflows.filter(w => w.status !== 'archived' && w.path === 'green');
-  const activeWorkflows = workflows.filter(w => w.status !== 'archived');
+  const workflowList = safeArray(workflows).filter(w => w?.id);
+  const taskStatsByWorkflow = safePlainObject(taskStats);
+  const taskStatValues = Object.values(taskStatsByWorkflow).filter(Boolean);
+  const redWorkflows = workflowList.filter(w => w?.status !== 'archived' && w?.path !== 'green');
+  const greenWorkflows = workflowList.filter(w => w?.status !== 'archived' && w?.path === 'green');
+  const activeWorkflows = workflowList.filter(w => w?.status !== 'archived');
   const hasAnyEstate = activeWorkflows.length > 0;
   const activeFileWorkflow = activeFileWorkflowId
     ? activeWorkflows.find(w => String(w.id) === String(activeFileWorkflowId))
     : null;
   const estateFileFor = (wf) => (wf?.orchestration_summary?.estate_file && typeof wf.orchestration_summary.estate_file === 'object') ? wf.orchestration_summary.estate_file : {};
   const attentionItems = activeWorkflows.flatMap(wf => {
-    const openTasks = (taskStats[wf.id]?.openTasks || []).slice(0, 3);
+    const openTasks = safeArray(taskStatsByWorkflow[wf.id]?.openTasks).slice(0, 3);
     return openTasks.map(task => ({ ...task, workflow: wf }));
   }).sort((a, b) => (a.dueDays ?? 0) - (b.dueDays ?? 0)).slice(0, 5);
-  const totalRequired = Object.values(taskStats).reduce((sum, s) => sum + (s.required || 0), 0);
-  const totalHandled = Object.values(taskStats).reduce((sum, s) => sum + (s.completed || 0), 0);
+  const totalRequired = taskStatValues.reduce((sum, s) => sum + (s.required || 0), 0);
+  const totalHandled = taskStatValues.reduce((sum, s) => sum + (s.completed || 0), 0);
   const portfolioReady = totalRequired > 0 ? Math.round((totalHandled / totalRequired) * 100) : 0;
   const estateSeatLimit = getEstateSeatLimit(userData);
   const usedGreenSeats = getUsedGreenSeatCount(workflows);
@@ -3691,7 +3703,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               )}
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
-                {[{l:"Active estates",v:activeWorkflows.length},{l:"Tasks handled",v:totalRequired ? `${totalHandled}/${totalRequired}` : "0"},{l:"Participants",v:Object.values(taskStats).reduce((sum, s) => sum + (s.assigned || 0), 0)}].map(i => (
+                {[{l:"Active estates",v:activeWorkflows.length},{l:"Tasks handled",v:totalRequired ? `${totalHandled}/${totalRequired}` : "0"},{l:"Participants",v:taskStatValues.reduce((sum, s) => sum + (s.assigned || 0), 0)}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 10, padding: "10px 11px" }}>
                     <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{i.v}</div>
@@ -3775,10 +3787,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                             <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
                             <div style={{ fontSize: 11, color: C.mid, marginTop: 2 }}>
                               {wfCoord && `Coordinator: ${wfCoord} · `}
-                              Started {new Date(wfDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              Started {safeDateLabel(wfDate)}
                             </div>
-                            {taskStats[wfId] && (() => {
-                              const s = taskStats[wfId];
+                            {taskStatsByWorkflow[wfId] && (() => {
+                              const s = taskStatsByWorkflow[wfId];
                               const required = s.required ?? s.total;
                               const pct = required > 0 ? Math.round((s.completed / required) * 100) : 0;
                               return (
@@ -3821,7 +3833,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                             <span style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{wf.name}</span>
                             <span style={{ fontSize: 11, color: C.rose, fontWeight: 800 }}>Open</span>
                           </div>
-                          <div style={{ fontSize: 10.5, color: C.mid, marginTop: 2 }}>Started {new Date(wf.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                          <div style={{ fontSize: 10.5, color: C.mid, marginTop: 2 }}>Started {safeDateLabel(wf.created_at)}</div>
                         </button>
                       ))}
                     </div>
@@ -3844,7 +3856,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                   const wfId = wf.id;
                   const wfName = wf.name;
                   const wfStatus = wf.status;
-                  const confirmCount = (wf.confirmed_by || []).length;
+                  const confirmCount = safeArray(wf.confirmed_by).length;
                   const reqCount = wf.confirmation_count || 2;
                   const triggerUrl = typeof window !== 'undefined' ? `${window.location.origin}/confirm?token=${wf.trigger_token}` : '';
                   return (
