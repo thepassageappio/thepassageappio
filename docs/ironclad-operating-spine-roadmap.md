@@ -164,18 +164,18 @@ No task may be labeled automated unless it produces a visible artifact, sent com
 
 These are not failures to hide. They are the work queue until fixed and QA-passed:
 
-- Public landing/nav/footer still need demo-grade trust polish: no SSR blank hero fallback, fewer mobile nav decisions, clearer label than `Participant`, and visible privacy/terms links before B2B demos.
+- Public landing/nav/footer are now mostly unified: shared header is live, mobile hides secondary links, `My tasks` replaced ambiguous participant language, footer trust/legal destinations are visible, and homepage SSR hero opacity has a visible fallback. Remaining work is content proof/social proof, not basic chrome.
 - FAQ, Trust, Privacy, and Terms overview destinations exist, but they are not final legal/compliance policy. The next legal sprint must replace overview copy with owner/counsel-approved language.
-- Urgent flow has drifted away from the one-action crisis spec. The triage logic is good, but too many controls are visible at once and the progress sidebar reads empty before the user has context.
-- The task action UI is still not fully shared everywhere.
+- Urgent flow has been pulled back toward the crisis spec: triage first, sequence rail before save/details, no empty progress sidebar, no sign-in wall before value, and local completion requires proof. Remaining work is persistence of local proof into the saved estate task row.
+- The task action UI is still not fully shared everywhere, but the estate and participant surfaces now enforce the same proof/waiting/help spine more consistently.
 - Proof attachments now have a first storage-backed path from estate tasks into `passage-documents/task-support`; later work still needs a durable `task_attachments` index/table and document-center surfacing.
 - Funeral-home employee permissions are visible but not yet fully schema-enforced.
 - Vendor approval/profile/request status exists in pieces and needs a stronger provisioning loop.
 - Demo studio is separate, but the guided story needs to expose only the active step and stay dummy-only.
 - Estate-level public planning slots and estate-file modules still need to move into a cleaner per-estate tab model.
-- Guide unlock UI is awkward and belongs in the locked guide card/module.
+- Guide unlock UI now lives inside the locked guide card/module and records a support/lead inquiry. Remaining work is richer guide content and public proof.
 - Reporting is useful but still derived from imperfect existing fields; case value and marketplace share need durable fields before pilot-grade ROI.
-- The funeral-home marketing page is strong, but demo trust depends on all tier CTAs having a visible fallback, dashboard access being smoke-tested, feature tabs visibly changing, and the closed loop being demonstrable.
+- The funeral-home marketing page tier CTAs have visible fallback, dashboard access has a graceful signed-out path, and feature tabs visibly change. Remaining demo trust depends on the closed loop being demonstrable from partner case creation through family-visible update.
 - Schema has moved ahead of product activation. `organizations`, `funeral_home_partners`, `estate_participants`, `subscriptions`, `account_entitlements`, `marketplace_interactions`, and `vendor_requests` must have real demo/test activation paths before they are used in demos as proof.
 - Status events are not enough. A task loop is not healthy until the task row reaches the expected terminal state and the event/audit trail agrees with it.
 
