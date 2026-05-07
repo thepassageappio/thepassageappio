@@ -449,6 +449,68 @@ export default function FuneralHomeDashboard() {
     ['Staff / employee', 'Assigned tasks first, with case context, family messages, proof, and audit trail.', !isDirectorRole ? 'Your current view' : 'Delegation target'],
   ];
 
+  function outputForTask(task, item) {
+    const title = sharedTaskTitle(task);
+    const lower = title.toLowerCase();
+    const caseName = item?.deceased_name || item?.estate_name || item?.name || 'this family';
+    if (lower.includes('funeral home meeting')) {
+      return {
+        label: 'Arrangement meeting summary',
+        body: 'Passage turns known family facts, service preferences, contact details, and missing fields into a meeting summary your team can print, export, or send back to the family.',
+      };
+    }
+    if (lower.includes('obituary')) {
+      return {
+        label: 'Obituary draft workspace',
+        body: 'Passage should produce editable obituary language, then track copy/download/share proof before the task is closed.',
+      };
+    }
+    if (lower.includes('prepayment') || lower.includes('policy')) {
+      return {
+        label: 'Policy detail request',
+        body: 'Passage prepares the exact family request for policy carrier, policy number, funding status, and document location, then keeps the task waiting until proof is saved.',
+      };
+    }
+    if (lower.includes('burial') || lower.includes('service') || lower.includes('wishes')) {
+      return {
+        label: 'Service wishes packet',
+        body: 'Passage gathers burial, service, clergy, cemetery, and preference details into a structured summary that can feed the family view and partner export.',
+      };
+    }
+    if (task?.playbook?.actionResultLabel) {
+      return {
+        label: task.playbook.actionResultLabel.replace(/^Action result:\s*/i, ''),
+        body: task.playbook?.whatPassageDoes || task.playbook?.automationExplanation || 'Passage prepares the task output, keeps the next action visible, and records proof when staff moves it.',
+      };
+    }
+    return {
+      label: 'Task output and proof trail',
+      body: `Passage prepares the next step for ${caseName}, tracks who owns it, and keeps proof visible to the family and staff.`,
+    };
+  }
+
+  function familyRequestDraft(task, item) {
+    const title = sharedTaskTitle(task);
+    const coordinator = item?.coordinator_name || 'the family coordinator';
+    const caseName = item?.deceased_name || item?.estate_name || item?.name || 'your loved one';
+    const lower = title.toLowerCase();
+    if (lower.includes('funeral home meeting')) {
+      return `Hi ${coordinator}, we are preparing the arrangement meeting summary for ${caseName}. Please confirm any missing service wishes, cemetery details, clergy/officiant contact, prepaid policy information, or documents you want included.`;
+    }
+    if (lower.includes('prepayment') || lower.includes('policy')) {
+      return `Hi ${coordinator}, can you send the prepaid funeral, Medicaid, insurance, or policy details you have for ${caseName}? Carrier name, policy number, funding status, and where the document is stored are enough to move this forward.`;
+    }
+    if (lower.includes('burial') || lower.includes('service') || lower.includes('wishes')) {
+      return `Hi ${coordinator}, can you confirm the family's burial, service, clergy, cemetery, or final wishes for ${caseName}? Passage will keep this waiting until those details are recorded.`;
+    }
+    return `Hi ${coordinator}, we need one detail from the family before staff can move "${title}" forward for ${caseName}. Please reply with what you know, what is missing, or who should own the next step.`;
+  }
+
+  function proofDestination(task) {
+    const title = sharedTaskTitle(task);
+    return `Saved updates appear in Recent proof, the communication/proof log, the family status view, reports, and the CSV export for "${title}".`;
+  }
+
   function money(value) {
     return `$${Math.round(Number(value || 0)).toLocaleString()}`;
   }
@@ -1078,6 +1140,11 @@ export default function FuneralHomeDashboard() {
                   )}
                   {isExpanded && topTasks.map(task => (
                     <div key={task.id} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 11, marginTop: 11 }}>
+                      {(() => {
+                        const output = outputForTask(task, item);
+                        const draft = familyRequestDraft(task, item);
+                        return (
+                          <>
                       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'start' }}>
                         <div>
                           <div style={{ fontSize: 13.5, color: C.ink, fontWeight: 800 }}>{sharedTaskTitle(task)}</div>
@@ -1094,11 +1161,26 @@ export default function FuneralHomeDashboard() {
                         </div>
                         <div style={{ fontSize: 11, color: C.mid, whiteSpace: 'nowrap' }}>{statusLabel(task.status)}</div>
                       </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8, marginTop: 10 }}>
+                        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 11 }}>
+                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Output Passage prepares</div>
+                          <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, lineHeight: 1.25, marginTop: 5 }}>{output.label}</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>{output.body}</div>
+                        </div>
+                        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: 11 }}>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Family communication</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>{draft}</div>
+                        </div>
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 11 }}>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Where the proof lives</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>{proofDestination(task)}</div>
+                        </div>
+                      </div>
                       {task.playbook?.funeralHomeEligible && !['handled', 'completed', 'done'].includes(task.status || '') && (
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
-                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Start on behalf of family', prompt: taskActionPrompt('waiting', task, 'funeral_home') }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start on behalf of family</button>
-                          <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request family information', prompt: taskActionPrompt('blocked', task, 'funeral_home') }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Need family info</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Record what was handled', prompt: taskActionPrompt('handled', task, 'funeral_home') }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Handle this for family'}</button>
+                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Start and track work', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Start tracking work</button>
+                          <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Record proof and close task', prompt: taskActionPrompt('handled', task, 'funeral_home'), draft, output }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Record proof / complete output'}</button>
                         </div>
                       )}
                       {taskDraft?.task?.id === task.id && (
@@ -1106,6 +1188,12 @@ export default function FuneralHomeDashboard() {
                           <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Tell Passage what to track</div>
                           <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900, marginBottom: 4 }}>{taskDraft.label}</div>
                           <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginBottom: 8 }}>{taskDraft.prompt}</div>
+                          {taskDraft.output && (
+                            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', marginBottom: 8 }}>
+                              <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Output being updated</div>
+                              <div style={{ color: C.ink, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{taskDraft.output.label}</div>
+                            </div>
+                          )}
                           <textarea
                             value={taskDraftNote}
                             onChange={(e) => setTaskDraftNote(e.target.value)}
@@ -1117,9 +1205,9 @@ export default function FuneralHomeDashboard() {
                               disabled={!taskDraftNote.trim() || updating === task.id + taskDraft.status || updating === task.id + 'handle_for_family'}
                               onClick={() => taskDraft.status === 'handled'
                                 ? handleForFamily(task, `${org?.name || 'Funeral home'} completed ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}`)
-                                : updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'needs family information' : 'started this on behalf of the family'} for ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}`)}
+                                : updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'requested family information' : 'started this on behalf of the family'} for ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}. ${proofDestination(task)}`)}
                               style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
-                              {taskDraft.status === 'handled' ? 'Save handled update' : 'Save request'}
+                              {taskDraft.status === 'handled' ? 'Save proof and close' : taskDraft.status === 'blocked' ? 'Save family request' : 'Save waiting update'}
                             </button>
                             <button onClick={() => { setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
                           </div>
@@ -1128,6 +1216,9 @@ export default function FuneralHomeDashboard() {
                       {['handled', 'completed', 'done'].includes(task.status || '') && (
                         <div style={{ marginTop: 8, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 10, padding: '8px 10px', color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Handled for the family</div>
                       )}
+                          </>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>

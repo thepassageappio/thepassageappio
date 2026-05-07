@@ -252,13 +252,20 @@ Acceptance:
 
 Status: shipped as a first visibility slice. Needs QA against director, location manager, staff, and multi-location expectations before being called pilot-ready.
 
-## Sprint 2: Shared Task Action Modal
+## Sprint 2: Universal Task Workspace Spine
 
-Goal: Replace divergent task buttons with one shared action experience.
+Goal: Replace divergent task buttons with one shared action experience and one cross-persona task workspace.
 
 Must ship:
 
-- Shared `TaskActionModal` used by estate, participant, funeral-home staff, and vendor-adjacent task surfaces.
+- Shared task workspace contract used by estate, family coordinator, participant/helper, funeral-home staff, director/admin, and vendor-adjacent task surfaces.
+- Every task card must show:
+  - what output Passage prepares or tracks
+  - who owns the next action
+  - what communication/request is available
+  - where proof, notes, uploads, and status updates will appear
+  - what the family, staff, participant, vendor, and reports will see after save
+- Shared `TaskActionModal`/workspace controls replace persona-specific one-off buttons wherever possible.
 - Every task action supports the same spine:
   - assign owner
   - send through Passage when a recipient exists
@@ -274,11 +281,13 @@ Must ship:
 Acceptance:
 
 - A user does not need to learn a different task UI by persona.
+- Funeral-home staff, family users, participants, and vendors can all see whether a task is producing a packet, message, draft, checklist, request, proof note, or guided external step.
 - A task marked handled shows what happened, who recorded it, and when.
 - A waiting task shows who/what it is waiting on.
 - If a recipient is missing, the user is prompted to assign or add one before sending.
 - If a recipient exists, the user can send through Passage, CC the coordinator where appropriate, and see the message in the estate communication/audit center.
 - Generated task outputs are saved or visibly attached to the task/estate support area.
+- Notes cannot disappear into an invisible backend. They must surface in the task proof panel, family/partner communication log, relevant participant view, and reports/export where appropriate.
 
 Demo blockers included in this sprint:
 
@@ -286,6 +295,7 @@ Demo blockers included in this sprint:
 - `Send through Passage` must be visible when a task has an assigned recipient and must create an estate communication/audit event.
 - Assigned clergy, funeral-home, family, and participant tasks use the same send/proof/waiting/help workflow.
 - Task output workspaces, such as obituary or packets, must make clear whether the user is drafting, sending, downloading, or marking done.
+- Funeral-home task actions must not feel like a glorified checklist: staff must see the produced output, family request draft, proof destination, and family-visible status before saving.
 
 ## Sprint 3: Participant and Staff Onboarding Reliability
 
