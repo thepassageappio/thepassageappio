@@ -3689,7 +3689,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                           </div>
                           <div style={{ display: "grid", gap: 3, marginTop: 8 }}>
                             <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>Output</div>
-                            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.35 }}>{workspace.output}</div>
+                            <div style={{ fontSize: 11.5, color: C.ink, lineHeight: 1.35, fontWeight: 800 }}>{workspace.output?.label || 'Task output and proof trail'}</div>
+                            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.35 }}>{workspace.output?.body || 'Passage prepares the next step, tracks the owner, and keeps proof visible.'}</div>
                             <div style={{ fontSize: 10.5, color: C.soft, lineHeight: 1.35 }}>Proof: {workspace.proofDestination}</div>
                           </div>
                         </div>
