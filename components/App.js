@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { getTaskPlaybook } from "../lib/taskPlaybooks";
 import { SiteFooter, SiteHeader } from "./SiteChrome";
+import { taskWorkspaceFor } from "../lib/taskWorkspace";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -3653,6 +3654,11 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               ) : (
                 <div style={{ display: "grid", gap: 8 }}>
                   {attentionItems.map(item => {
+                    const workspace = taskWorkspaceFor(item, {
+                      persona: 'family',
+                      estateName: item.workflow?.name || 'this estate',
+                      requesterName: userData?.first_name || user?.email || 'Passage',
+                    });
                     const openAttentionItem = () => {
                       if (!item?.workflow?.id) {
                         if (typeof window !== 'undefined') window.location.href = '/?dashboard=1';
@@ -3668,6 +3674,11 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                           <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink, lineHeight: 1.35 }}>{item.title}</div>
                           <div style={{ fontSize: 11.5, color: C.mid, marginTop: 3 }}>
                             {item.workflow.name || "Estate"}{item.assignedTo ? ` - ${item.assignedTo} is handling this` : " - unassigned"}
+                          </div>
+                          <div style={{ display: "grid", gap: 3, marginTop: 8 }}>
+                            <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>Output</div>
+                            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.35 }}>{workspace.output}</div>
+                            <div style={{ fontSize: 10.5, color: C.soft, lineHeight: 1.35 }}>Proof: {workspace.proofDestination}</div>
                           </div>
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 800, color: item.assignedTo ? C.sage : C.rose, whiteSpace: "nowrap" }}>
