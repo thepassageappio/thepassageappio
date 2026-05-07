@@ -309,6 +309,10 @@ export default function FuneralHomeDashboard() {
   const timeSavedLabel = callsAvoided > 0 ? `${Math.max(1, Math.round(timeSavedMinutes / 60))} hr est.` : 'None yet';
   const reports = data?.reports || {};
   const partnerStaff = data?.staff || [];
+  const activationStatus = data?.activationStatus || 'inactive';
+  const partnerPlan = data?.partnerPlan || null;
+  const partnerNeedsConfig = user && data && activationStatus === 'no_partner_record';
+  const partnerTrialExpired = user && data && activationStatus === 'trial_expired';
   const glanceItems = [
     ['Active cases', cases.length],
     ['Tasks handled by Passage', totalHandled],
@@ -417,6 +421,16 @@ export default function FuneralHomeDashboard() {
         {user && loading && <div style={{ color: C.soft }}>Loading partner cases...</div>}
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
+        {partnerNeedsConfig && (
+          <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 16, color: C.amber, marginBottom: 12, lineHeight: 1.45 }}>
+            Partner access is active, but billing/trial metadata is not linked yet. Cases and reports can still load; Passage admin should connect the partner billing record before a paid pilot.
+          </div>
+        )}
+        {partnerTrialExpired && (
+          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 14, padding: 16, color: C.rose, marginBottom: 12, lineHeight: 1.45 }}>
+            This partner trial has ended. Existing cases stay visible; ask Passage to reactivate billing before creating new pilot cases.
+          </div>
+        )}
 
         {user && !loading && showTools && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
@@ -431,7 +445,7 @@ export default function FuneralHomeDashboard() {
               <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Upload CSV</button>
               <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Download template</a>
               <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV to me'}</button>
-              <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Start pilot billing</button>
+              <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{partnerPlan?.plan ? `Billing: ${partnerPlan.plan}` : 'Start pilot billing'}</button>
             </div>
           </div>
         )}

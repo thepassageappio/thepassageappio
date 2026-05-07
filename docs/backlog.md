@@ -13,6 +13,9 @@
 - Auth/RLS bridge from contract proof: create a real auth user or invite path for `demo@collinsffh.com`, bridge accepted `estate_participants` into `estate_access`, and route all task completion/status writes through service-role API endpoints rather than direct client inserts into `task_status_events`.
 - Canonical data-source guardrails: app code should ignore `people.invitation_token`, use `estate_participants.invite_token` for invites, use `organization_case_reference` for current location demos until a location foreign key exists, and treat per-case dollar value as roadmap-only until schema exists.
 - Partner billing org-link migration is drafted but not approved/applied: add `funeral_home_partners.organization_id`, backfill Collins/HVFG, scope RLS by org, and expose `partnerPlan`/`activationStatus` from `/api/partnerContext`. Open owner gate: confirm HVFG plan/fee/trial values before any production SQL.
+- Current RLS risk: until the org-link migration ships, app code must never rely on client-side reads from `funeral_home_partners`; use the server/service-role partner context and return only the matched plan.
+- Collins activation blocker: `demo@collinsffh.com` needs an Auth user/invite path and member `user_id` backfill before staff login QA can pass.
+- Participant acceptance blocker: invite acceptance must upsert both `estate_participants` and `estate_access` so the participant can see the task plus funeral-home activity/events.
 - Repo hygiene: `.gitattributes` now normalizes LF line endings; monitor for any remaining phantom dirty files after Windows edits.
 - Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
 - Webhook-as-proof QA: Resend + Twilio `webhook_events` record provider + timestamp + actor and are surfaced as proof; vendor requests show Sent/Received/Accepted/Declined with visible activity.

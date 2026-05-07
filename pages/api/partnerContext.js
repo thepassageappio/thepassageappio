@@ -28,6 +28,74 @@ function valueFromRequest(request, field) {
   return Number(request?.[field] || 0);
 }
 
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function normalizeName(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function findPartnerForMembership(membership, partnerRows = []) {
+  const org = membership?.organizations || {};
+  const orgId = String(membership?.organization_id || org.id || '');
+  const memberEmail = normalizeEmail(membership?.email);
+  const supportEmail = normalizeEmail(org.support_email);
+  const orgName = normalizeName(org.name);
+  return (partnerRows || []).find(row => {
+    const rowOrgId = String(row.organization_id || '');
+    if (rowOrgId && orgId && rowOrgId === orgId) return true;
+    const rowEmail = normalizeEmail(row.email || row.contact_email || row.support_email);
+    if (rowEmail && (rowEmail === memberEmail || rowEmail === supportEmail)) return true;
+    return orgName && normalizeName(row.name || row.brand_name || row.funeral_home_name) === orgName;
+  }) || null;
+}
+
+function activationStatusFor(partner) {
+  if (!partner) return 'no_partner_record';
+  if (partner.subscribed_at) return 'active_paid';
+  if (partner.trial_ends_at) {
+    const trialEnds = new Date(partner.trial_ends_at).getTime();
+    if (Number.isFinite(trialEnds) && trialEnds > Date.now()) return 'active_trial';
+    if (Number.isFinite(trialEnds) && trialEnds <= Date.now()) return 'trial_expired';
+  }
+  return 'inactive';
+}
+
+function billingStatusFor(partner) {
+  if (!partner) return 'not_configured';
+  if (partner.subscribed_at) return 'paid';
+  if (partner.stripe_customer_id) return 'stripe_pending';
+  return 'not_configured';
+}
+
+function serializePartnerPlan(partner) {
+  if (!partner) return null;
+  return {
+    id: partner.id || null,
+    plan: partner.plan || null,
+    monthlyFeeCents: Number(partner.monthly_fee_cents || 0),
+    trialStartedAt: partner.trial_started_at || null,
+    trialEndsAt: partner.trial_ends_at || null,
+    subscribedAt: partner.subscribed_at || null,
+    stripeCustomerId: partner.stripe_customer_id || null,
+    familiesReferred: Number(partner.families_referred || 0),
+    familiesActivated: Number(partner.families_activated || 0),
+  };
+}
+
+function featureFlagsFor(membership, org, activationStatus) {
+  const role = String(membership?.role || '').toLowerCase();
+  const isManager = ['owner', 'admin', 'director', 'location_manager', 'manager'].includes(role);
+  return {
+    whiteLabelEnabled: !!org?.white_label_enabled,
+    marketplaceEnabled: org?.marketplace_enabled !== false,
+    canCreateCases: !['trial_expired', 'inactive'].includes(activationStatus),
+    canViewReports: isManager,
+    canManageBilling: role === 'owner',
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -47,6 +115,34 @@ export default async function handler(req, res) {
 
   const organizationIds = (memberships || []).map(m => m.organization_id).filter(Boolean);
   if (organizationIds.length === 0) return res.status(200).json({ organizations: [], cases: [], isPassageAdmin: adminMode });
+
+  let partnerRows = [];
+  const { data: partnerData } = await admin
+    .from('funeral_home_partners')
+    .select('*')
+    .limit(200);
+  partnerRows = partnerData || [];
+
+  const primaryMembership = (memberships || [])[0] || null;
+  const primaryOrg = primaryMembership?.organizations || null;
+  const primaryPartner = findPartnerForMembership(primaryMembership, partnerRows);
+  const activationStatus = activationStatusFor(primaryPartner);
+  const partnerPlan = serializePartnerPlan(primaryPartner);
+  const featureFlags = featureFlagsFor(primaryMembership, primaryOrg, activationStatus);
+  const partnerContexts = (memberships || []).map(membership => {
+    const org = membership.organizations || {};
+    const partner = findPartnerForMembership(membership, partnerRows);
+    const status = activationStatusFor(partner);
+    return {
+      organizationId: membership.organization_id,
+      organizationName: org.name || null,
+      membership: { role: membership.role || null, status: membership.status || null, email: membership.email || null },
+      partnerPlan: serializePartnerPlan(partner),
+      activationStatus: status,
+      billingStatus: billingStatusFor(partner),
+      featureFlags: featureFlagsFor(membership, org, status),
+    };
+  });
 
   const { data: workflows, error: workflowError } = await admin
     .from('workflows')
@@ -215,6 +311,12 @@ export default async function handler(req, res) {
 
   return res.status(200).json({
     organizations: memberships || [],
+    partnerPlan,
+    activationStatus,
+    billingStatus: billingStatusFor(primaryPartner),
+    trialEndsAt: primaryPartner?.trial_ends_at || null,
+    featureFlags,
+    partnerContexts,
     cases,
     staff,
     reports,
