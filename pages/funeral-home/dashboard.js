@@ -58,6 +58,7 @@ export default function FuneralHomeDashboard() {
   const [taskDraft, setTaskDraft] = useState(null);
   const [taskDraftNote, setTaskDraftNote] = useState('');
   const [activePartnerView, setActivePartnerView] = useState('work');
+  const [latestFamilyLink, setLatestFamilyLink] = useState(null);
   const casePanelRef = useRef(null);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
@@ -281,9 +282,33 @@ export default function FuneralHomeDashboard() {
       setError(json.error || 'Could not create this family case.');
       return;
     }
+    if (json.familyParticipant?.created && json.familyParticipant?.inviteToken) {
+      const familyUrl = `${window.location.origin}/accept?token=${json.familyParticipant.inviteToken}`;
+      setLatestFamilyLink({
+        workflowId: json.workflowId,
+        email: caseForm.coordinatorEmail || user?.email || '',
+        url: familyUrl,
+      });
+      setNotice('Case created. Family access is prepared; copy the handoff link when you are ready. No real email or SMS was sent.');
+    } else {
+      setLatestFamilyLink(null);
+      setNotice(json.familyParticipant?.reason === 'missing_family_email'
+        ? 'Case created. Add a family email before sending a family access link.'
+        : 'Case created. Family access was not prepared yet; use the family view or coordinator email to complete the handoff.');
+    }
     setShowNewCase(false);
     setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '' });
     await load(token);
+  }
+
+  async function copyText(value, label = 'Copied.') {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setNotice(label);
+    } catch {
+      setError('Could not copy automatically. Select the link and copy it manually.');
+    }
   }
 
   async function startPartnerCheckout(planId = 'partner_pilot') {
@@ -318,6 +343,7 @@ export default function FuneralHomeDashboard() {
   const timeSavedLabel = callsAvoided > 0 ? `${Math.max(1, Math.round(timeSavedMinutes / 60))} hr est.` : 'None yet';
   const reports = data?.reports || {};
   const partnerStaff = data?.staff || [];
+  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://www.thepassageapp.io';
   const activationStatus = data?.activationStatus || 'inactive';
   const partnerPlan = data?.partnerPlan || null;
   const partnerNeedsConfig = user && data && activationStatus === 'no_partner_record';
@@ -458,6 +484,17 @@ export default function FuneralHomeDashboard() {
         {user && loading && <div style={{ color: C.soft }}>Loading partner cases...</div>}
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
+        {user && latestFamilyLink?.url && (
+          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 16, padding: 14, marginBottom: 14, boxShadow: '0 4px 18px rgba(0,0,0,.04)' }}>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Family handoff prepared</div>
+            <div style={{ color: C.ink, fontSize: 17, fontWeight: 900, marginTop: 4 }}>Give the family this link when you are ready to invite them.</div>
+            <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>This is the spine handoff: case created, family participant prepared, acceptance grants estate access, and future task proof stays on the case.</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8, alignItems: 'center', marginTop: 10 }}>
+              <input readOnly value={latestFamilyLink.url} style={{ minWidth: 0, border: `1px solid ${C.border}`, borderRadius: 11, background: C.bg, padding: '9px 10px', color: C.mid, fontFamily: 'Georgia,serif', fontSize: 12.5 }} />
+              <button onClick={() => copyText(latestFamilyLink.url, 'Family handoff link copied.')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Copy link</button>
+            </div>
+          </div>
+        )}
         {partnerNeedsConfig && (
           <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 16, color: C.amber, marginBottom: 12, lineHeight: 1.45 }}>
             Partner access is active, but billing/trial metadata is not linked yet. Cases and reports can still load; Passage admin should connect the partner billing record before a paid pilot.
@@ -849,6 +886,7 @@ export default function FuneralHomeDashboard() {
               const partnerTasks = item.partnerTasks || [];
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
+              const familyParticipants = item.familyParticipants || [];
               const topTasks = partnerTasks.length ? partnerTasks.slice(0, 3) : item.tasks.slice(0, 3);
               const nextPartnerTask = item.nextPartnerTask || topTasks.find(task => !['handled', 'completed', 'done'].includes(task.status || ''));
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
@@ -914,6 +952,28 @@ export default function FuneralHomeDashboard() {
                     </div>
                     <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>Share this status instead of answering another "where are we?" call.</div>
                   </div>
+                  {familyParticipants.length > 0 && (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
+                      <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Family access handoff</div>
+                      {familyParticipants.slice(0, 3).map(participant => {
+                        const inviteUrl = participant.invite_token ? `${siteOrigin}/accept?token=${participant.invite_token}` : '';
+                        const accepted = !!participant.accepted_at || /accepted|active/i.test(String(participant.invite_status || ''));
+                        return (
+                          <div key={participant.id || participant.email} style={{ fontSize: 12.3, color: C.mid, lineHeight: 1.45, padding: '6px 0', borderTop: `1px solid ${C.border}` }}>
+                            <strong style={{ color: C.ink }}>{participant.name || participant.email || 'Family participant'}</strong>
+                            <div>{participant.email || 'No email saved'} - {accepted ? 'Accepted access' : 'Access prepared, not accepted yet'}</div>
+                            {inviteUrl && (
+                              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 6, alignItems: 'center', marginTop: 6 }}>
+                                <input readOnly value={inviteUrl} style={{ minWidth: 0, border: `1px solid ${C.border}`, borderRadius: 9, background: C.bg, padding: '7px 8px', color: C.mid, fontFamily: 'Georgia,serif', fontSize: 11.5 }} />
+                                <button onClick={() => copyText(inviteUrl, 'Family handoff link copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Copy</button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>No message is sent from this screen. Use this prepared link when the director is ready for the family to accept their command center.</div>
+                    </div>
+                  )}
                   {isExpanded && (item.communicationCenter?.length > 0 || item.communications?.length > 0) && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Communication and proof log</div>

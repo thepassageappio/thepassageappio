@@ -169,6 +169,7 @@ export default async function handler(req, res) {
   let statusEvents = [];
   let communications = [];
   let vendorRequests = [];
+  let familyParticipants = [];
   if (workflowIds.length > 0) {
     const { data: taskData } = await admin
       .from('tasks')
@@ -200,6 +201,24 @@ export default async function handler(req, res) {
       .order('requested_at', { ascending: false })
       .limit(120);
     vendorRequests = vendorRequestData || [];
+
+    const familyParticipantAttempts = [
+      'id,workflow_id,email,name,phone,role,invite_status,invite_token,accepted_at,created_at,updated_at',
+      'id,workflow_id,email,role,invite_status,invite_token,accepted_at,created_at,updated_at',
+      'id,workflow_id,email,invite_status,invite_token,created_at,updated_at',
+    ];
+    for (const selection of familyParticipantAttempts) {
+      const { data: participantData, error: participantError } = await admin
+        .from('estate_participants')
+        .select(selection)
+        .in('workflow_id', workflowIds)
+        .order('created_at', { ascending: false })
+        .limit(120);
+      if (!participantError) {
+        familyParticipants = participantData || [];
+        break;
+      }
+    }
   }
 
   const cases = visibleWorkflows.map(w => {
@@ -207,6 +226,7 @@ export default async function handler(req, res) {
     const caseStatusEvents = statusEvents.filter(e => e.workflow_id === w.id);
     const caseCommunications = communications.filter(c => c.workflow_id === w.id);
     const caseVendorRequests = vendorRequests.filter(v => v.workflow_id === w.id);
+    const caseFamilyParticipants = familyParticipants.filter(p => p.workflow_id === w.id);
     const partnerTasks = caseTasks.filter(t => t.playbook?.funeralHomeEligible);
     return {
       ...w,
@@ -214,6 +234,7 @@ export default async function handler(req, res) {
       activity: caseStatusEvents.slice(0, 6),
       communications: caseCommunications.slice(0, 8),
       vendorRequests: caseVendorRequests.slice(0, 8),
+      familyParticipants: caseFamilyParticipants.slice(0, 8),
       partnerTasks,
       nextPartnerTask: selectNextTask(partnerTasks.length ? partnerTasks : caseTasks, 'funeral_home'),
       communicationCenter: buildCommunicationCenter({
