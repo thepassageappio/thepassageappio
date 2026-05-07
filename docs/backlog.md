@@ -19,6 +19,7 @@
 - Participant acceptance blocker: invite acceptance must upsert both `estate_participants` and `estate_access` so the participant can see the task plus funeral-home activity/events.
 - Vendor request action blocker: vendor `Accept request`, `Mark in progress`, `Mark completed`, and `Decline` must update one coherent current status, proof trail, owner notification, task status event, and family/funeral-home-visible activity without contradictory states like declined plus completed.
 - Repo hygiene: `.gitattributes` now normalizes LF line endings; monitor for any remaining phantom dirty files after Windows edits.
+- QA infrastructure: Browser plugin / local Playwright visual QA is currently blocked in this desktop session by a missing app-server path and no repo-local Playwright package. Add a durable QA setup so every deploy can run Browser/Chrome screenshots plus direct backend smoke without manual repair.
 - Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
 - Webhook-as-proof QA: Resend + Twilio `webhook_events` record provider + timestamp + actor and are surfaced as proof; vendor requests show Sent/Received/Accepted/Declined with visible activity.
 - Partner + vendor access policy (minimal): roles + org membership (multi-location admin vs staff vs vendor vs Passage admin) + who can act-on-behalf.

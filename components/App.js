@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { getTaskPlaybook } from "../lib/taskPlaybooks";
-import { SiteHeader } from "./SiteChrome";
+import { SiteFooter, SiteHeader } from "./SiteChrome";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -4251,10 +4251,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </div>
       </div>
 
-      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '18px 24px 34px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
-        <div>Passage coordinates life-to-death transitions with care.</div>
-        <a href="/contact" style={{ color: C.soft, textDecoration: 'none' }}>thepassageappio@gmail.com</a>
-      </footer>
+      <SiteFooter />
 
     </div>
   );
@@ -4329,10 +4326,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </div>
       </section>
 
-      <footer style={{ maxWidth: 980, margin: '0 auto', padding: '20px 24px 34px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', fontSize: 12, color: C.soft }}>
-        <div>Passage coordinates life-to-death transitions with care.</div>
-        <a href="/contact" style={{ color: C.soft, textDecoration: 'none' }}>thepassageappio@gmail.com</a>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
