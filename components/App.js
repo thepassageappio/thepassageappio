@@ -3537,7 +3537,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
         ) : (
           <>
             <div style={{ marginBottom: 12 }}>
-              <Heading size={22}>My estate command center{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
+              <Heading size={22}>My estate index{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
               {redWorkflows.length > 0 ? (
                 <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 13, color: C.sage, fontWeight: 500 }}>
                   ✓ Estate plan active — assign tasks to notify people automatically
@@ -3712,8 +3712,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               <div style={{ background: C.bgCard, borderRadius: 16, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink, marginBottom: 2 }}>Planning estate slots</div>
-                    <div style={{ fontSize: 11.5, color: C.mid }}>{usedGreenSeats} of {estateSeatLimit} slots in use.</div>
+                    <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink, marginBottom: 2 }}>Planning estates</div>
+                    <div style={{ fontSize: 11.5, color: C.mid }}>{usedGreenSeats} of {estateSeatLimit} slots in use. Open one estate file at a time.</div>
                   </div>
                   {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: "none", borderRadius: 10, padding: "8px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>Set up</button>}
                 </div>
@@ -3749,7 +3749,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                             </button>
                           </div>
                         )}
-                        <div style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10 }}>
+                        <details style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10 }}>
+                          <summary style={{ cursor: "pointer", color: C.sage, fontSize: 12, fontWeight: 900 }}>Open this estate file</summary>
                           <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 7 }}>Estate file</div>
                           {[
                             { label: "Wishes", complete: profile?.wishes_complete, desc: "Service preferences and final wishes" },
@@ -3776,7 +3777,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                               </button>
                             </div>
                           ))}
-                        </div>
+                        </details>
                       </div>
                     </div>
                   );
