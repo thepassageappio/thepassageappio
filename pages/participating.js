@@ -207,6 +207,7 @@ export default function ParticipatingPage() {
   const [showHandled, setShowHandled] = useState({});
   const [showOtherOpen, setShowOtherOpen] = useState({});
   const [actionNotice, setActionNotice] = useState('');
+  const [acceptedInviteToken, setAcceptedInviteToken] = useState('');
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -225,9 +226,31 @@ export default function ParticipatingPage() {
   async function load(token) {
     setLoading(true);
     setError('');
+    let acceptedInvite = null;
+    const inviteToken = String(router.query.invite || router.query.token || router.query.invite_token || '').trim();
+    if (inviteToken && inviteToken !== acceptedInviteToken) {
+      const inviteRes = await fetch('/api/acceptParticipantInvite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ inviteToken }),
+      });
+      const inviteJson = await inviteRes.json().catch(() => ({}));
+      if (inviteRes.ok) {
+        acceptedInvite = inviteJson;
+        setAcceptedInviteToken(inviteToken);
+        setActionNotice('Invite accepted. Your assigned estate work is ready below.');
+        if (inviteJson.redirectTo && !(router.query.estate || router.query.task)) {
+          router.replace(inviteJson.redirectTo, undefined, { shallow: true });
+        }
+      } else {
+        setAcceptedInviteToken(inviteToken);
+        setActionNotice('');
+        setError(inviteJson.error || 'Could not accept this invite.');
+      }
+    }
     const params = new URLSearchParams();
-    if (router.query.estate) params.set('estate', String(router.query.estate));
-    if (router.query.task) params.set('task', String(router.query.task));
+    if (router.query.estate || acceptedInvite?.estateId) params.set('estate', String(router.query.estate || acceptedInvite.estateId));
+    if (router.query.task || acceptedInvite?.taskId) params.set('task', String(router.query.task || acceptedInvite.taskId));
     const r = await fetch('/api/participantContext' + (params.toString() ? '?' + params.toString() : ''), { headers: { Authorization: 'Bearer ' + token } });
     const json = await r.json();
     if (!r.ok) setError(json.error || 'Could not load participating estates.');

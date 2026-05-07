@@ -69,14 +69,21 @@ export default async function handler(req, res) {
   if (!allowed) return res.status(403).json({ error: 'You do not have access to update this task.' });
 
   const now = new Date().toISOString();
+  const actorName = actor || auth.user?.user_metadata?.full_name || auth.user?.email || 'Passage';
+  const actorEmail = auth.user?.email || (String(actor || '').includes('@') ? String(actor).toLowerCase() : null);
+  const terminalStatus = ['handled', 'completed', 'done'].includes(status);
   const updates = {
     status,
     last_action_at: now,
-    last_actor: actor || auth.user?.email || 'Passage',
+    last_actor: actorName,
     channel: channel || 'record',
     recipient: recipient || task.assigned_to_name || task.assigned_to_email || null,
   };
-  if (['handled', 'completed', 'done'].includes(status)) updates.completed_at = now;
+  if (terminalStatus) {
+    updates.completed_at = now;
+    updates.completed_by = actorName;
+    updates.completed_by_email = actorEmail;
+  }
   if (status === 'acknowledged') updates.acknowledged_at = now;
   if (typeof notes === 'string') updates.notes = notes.trim();
   const resolvedOutcomeStatus = outcomeStatus || taskActionOutcomeStatus(status);
@@ -94,9 +101,9 @@ export default async function handler(req, res) {
   const detailText = detail || `${task.title} - ${status.replace(/_/g, ' ')}`;
   const result = await recordStatusEvent({
     workflowId: task.workflow_id,
-    taskId: isUuid(taskId) ? taskId : null,
+    taskId: isUuid(task.id) ? task.id : taskId,
     status,
-    actor: actor || auth.user?.email || 'Passage',
+    actor: actorName,
     channel: channel || 'record',
     recipient: recipient || task.assigned_to_name || task.assigned_to_email || null,
     detail: detailText,

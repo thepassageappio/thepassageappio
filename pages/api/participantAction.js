@@ -182,6 +182,8 @@ export default async function handler(req, res) {
   }
 
   const status = taskActionStatus(action) || 'needs_review';
+  const terminalStatus = ['handled', 'completed', 'done'].includes(status);
+  const actorName = userData.user.user_metadata?.full_name || email;
   const stamp = normalizedAction === 'accept' ? 'accepted_at'
     : status === 'handled' ? 'handled_at'
     : 'help_requested_at';
@@ -191,13 +193,17 @@ export default async function handler(req, res) {
     [stamp]: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     outcome_status: outcomeStatus || taskActionOutcomeStatus(action),
-    completed_by_email: email,
     coordinator_notified_at: new Date().toISOString(),
     last_action_at: new Date().toISOString(),
-    last_actor: email,
+    last_actor: actorName,
     channel: 'participant',
     recipient: email,
   };
+  if (terminalStatus) {
+    updates.completed_at = new Date().toISOString();
+    updates.completed_by = actorName;
+    updates.completed_by_email = email;
+  }
   if (status === 'acknowledged') updates.acknowledged_at = new Date().toISOString();
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
   if (typeof notes === 'string' && notes.trim()) updates.notes = notes.trim();
