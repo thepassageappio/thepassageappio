@@ -260,12 +260,18 @@ export default function FuneralHomeDashboard() {
 
   function openPartnerWork(caseId) {
     if (!caseId) return;
+    setActivePartnerView('work');
+    setSelectedLocation('all');
     setExpandedCaseId(caseId);
     setNotice('Opening the case work queue.');
     window.setTimeout(() => {
       const panel = document.getElementById('partner-case-' + caseId);
-      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 0);
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        setNotice('Case work is open. If the case is filtered out, switch to All locations.');
+      }
+    }, 80);
   }
 
   async function downloadExport() {
@@ -511,6 +517,7 @@ export default function FuneralHomeDashboard() {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, maxWidth: 520 }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>Sign in as partner staff.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Only staff connected to a Passage partner organization can view this dashboard.</p>
+            {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45, marginBottom: 10 }}>{error}</div>}
             <form onSubmit={signInWithPassword} style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
               <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>
                 Partner email
@@ -655,7 +662,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>{sharedTaskNext(task, 'funeral_home')}</div>
                   <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 10 }}>
                     <button onClick={() => openPartnerWork(caseItem.id)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Open work</button>
-                    <Link href={`/estate?id=${caseItem.id}`} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, textDecoration: 'none' }}>Family view</Link>
+                    <Link href={`/funeral-home/summary?id=${caseItem.id}`} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, textDecoration: 'none' }}>Family summary</Link>
                   </div>
                 </div>
               ))}
@@ -965,7 +972,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Hide work' : 'Show work'}</button>
-                      <Link href={`/estate?id=${item.id}`} style={{ color: '#fff', background: C.sage, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Open case</Link>
+                      <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 12px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close case work' : 'Open case work'}</button>
                       <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Print family summary</Link>
                     </div>
                   </div>
