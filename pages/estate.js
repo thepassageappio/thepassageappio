@@ -319,6 +319,7 @@ function taskWorkspaceMode(item) {
 }
 
 function taskWorkspaceTitle(mode) {
+  if (mode === 'assignment') return 'Assignment message workspace';
   if (mode === 'obituary') return 'Obituary draft workspace';
   if (mode === 'message') return 'Message draft workspace';
   if (mode === 'packet') return 'Packet / request workspace';
@@ -2208,6 +2209,18 @@ export default function EstatePage() {
     var title = displayTaskTitle(task);
     var lovedOne = name || 'your loved one';
     var playbook = getTaskPlaybook(task?.title || title);
+    if (mode === 'assignment') {
+      return [
+        'Passage task assignment:',
+        '',
+        'Hi, this is ' + (coordinatorName || '[coordinator]') + '. We are coordinating next steps for ' + lovedOne + ' in Passage.',
+        '',
+        'Can you please take ownership of this task?',
+        title,
+        '',
+        'Please open Passage to accept it, mark it handled, say you are waiting, or ask for help.'
+      ].join('\n');
+    }
     if (mode === 'obituary') return obituaryDraftForTask(task);
     if (mode === 'call') {
       return [
@@ -2461,7 +2474,7 @@ export default function EstatePage() {
     if (!task) return;
     var mode = taskWorkspaceMode(task);
     if (action === 'assign') {
-      startTaskUpdate({ task: task, status: 'choose', title: 'Assign owner', detail: 'Owner assigned for ' + displayTaskTitle(task), prompt: 'Choose who owns this task. Add email when Passage should send or remind them.' });
+      startTaskUpdate({ task: task, status: 'choose', mode: 'assignment', title: 'Assign owner', detail: 'Owner assigned for ' + displayTaskTitle(task), prompt: 'Choose who owns this task. Add email when Passage should send or remind them.' });
       return;
     }
     if (mode && (action === 'open' || action === 'handled')) {
@@ -2594,17 +2607,20 @@ export default function EstatePage() {
         {pendingTaskAction && (
           <div id="task-update-panel" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '20px 22px', marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
             {(() => {
+              var assigningOnly = pendingTaskAction.status === 'choose';
               var copy = taskActionCopy(pendingTaskAction.status);
               return (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Save this update</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this task' : 'Save this update'}</div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{displayTaskTitle(pendingTaskAction.task)}</div>
                   <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{pendingTaskAction.prompt || copy.prompt}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 11 }}>
-                    <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'handled', title: taskActionCopy('handled').title, detail: 'Proof recorded for ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('handled', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'handled' ? SAGE : SAGE_FAINT, pendingTaskAction.status === 'handled' ? '#fff' : SAGE, SAGE_LIGHT)}>Handled</button>
-                    <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'waiting', title: taskActionCopy('waiting').title, detail: 'Waiting for response on ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('waiting', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'waiting' ? AMBER : AMBER_FAINT, pendingTaskAction.status === 'waiting' ? '#fff' : AMBER, AMBER_BORDER)}>Waiting</button>
-                    <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'blocked', title: taskActionCopy('blocked').title, detail: 'Help needed for ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('blocked', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'blocked' ? ROSE : ROSE_FAINT, pendingTaskAction.status === 'blocked' ? '#fff' : ROSE, ROSE + '35')}>Needs help</button>
-                  </div>
+                  {!assigningOnly && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 11 }}>
+                      <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'handled', title: taskActionCopy('handled').title, detail: 'Proof recorded for ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('handled', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'handled' ? SAGE : SAGE_FAINT, pendingTaskAction.status === 'handled' ? '#fff' : SAGE, SAGE_LIGHT)}>Handled</button>
+                      <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'waiting', title: taskActionCopy('waiting').title, detail: 'Waiting for response on ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('waiting', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'waiting' ? AMBER : AMBER_FAINT, pendingTaskAction.status === 'waiting' ? '#fff' : AMBER, AMBER_BORDER)}>Waiting</button>
+                      <button onClick={function() { setPendingTaskAction(Object.assign({}, pendingTaskAction, { status: 'blocked', title: taskActionCopy('blocked').title, detail: 'Help needed for ' + displayTaskTitle(pendingTaskAction.task), prompt: taskActionPrompt('blocked', pendingTaskAction.task, 'family') })); }} style={miniBtn(pendingTaskAction.status === 'blocked' ? ROSE : ROSE_FAINT, pendingTaskAction.status === 'blocked' ? '#fff' : ROSE, ROSE + '35')}>Needs help</button>
+                    </div>
+                  )}
                   {(() => {
                     var currentEmail = taskAssignedEmail(pendingTaskAction.task);
                     var currentName = taskAssignedName(pendingTaskAction.task) || currentEmail;
@@ -2654,7 +2670,9 @@ export default function EstatePage() {
                     <>
                       <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{taskWorkspaceTitle(pendingTaskAction.mode)}</div>
                       <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginBottom: 9 }}>
-                        {pendingTaskAction.mode === 'obituary'
+                        {pendingTaskAction.mode === 'assignment'
+                          ? 'Write the exact task request once. Save the owner, then send through Passage so the assignee gets the link and the estate keeps the proof trail.'
+                          : pendingTaskAction.mode === 'obituary'
                           ? 'Draft here first. Copy it for the funeral home, newspaper, social post, or a future Passage memorial page. Saving below records the draft and where it went.'
                           : pendingTaskAction.mode === 'message'
                             ? (messageRecipientEmail ? 'Send this through Passage to ' + messageRecipientName + '. Passage will copy you, log the audit trail, and keep the task waiting until someone confirms.' : 'Assign this task to someone with an email first. Then Passage can send this message, copy you, and log the audit trail here.')
@@ -2671,7 +2689,7 @@ export default function EstatePage() {
                         onChange={function(e) { setPendingTaskDraftText(e.target.value); }}
                         style={{ width: '100%', boxSizing: 'border-box', minHeight: 170, border: '1.5px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55, background: CARD, color: INK }}
                       />
-                      {pendingTaskAction.mode === 'message' && (
+                      {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'assignment') && (
                         <>
                           <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginTop: 8, color: messageRecipientEmail ? SAGE : AMBER, fontSize: 12.5, fontWeight: 800, lineHeight: 1.35 }}>
                             {messageRecipientEmail
@@ -2681,7 +2699,7 @@ export default function EstatePage() {
                         </>
                       )}
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
-                        {pendingTaskAction.mode === 'message' && (
+                        {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'assignment') && (
                           <button
                             onClick={function() {
                               if (!messageRecipientEmail) {
@@ -2698,9 +2716,9 @@ export default function EstatePage() {
                           </button>
                         )}
                         <button onClick={function() { copyTextToClipboard(pendingTaskDraftText, pendingTaskAction.mode === 'call' ? 'Call script' : pendingTaskAction.mode === 'packet' ? 'Packet draft' : pendingTaskAction.mode === 'message' ? 'Message draft' : pendingTaskAction.mode === 'obituary' ? 'Obituary draft' : 'Task draft'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>
-                          {pendingTaskAction.mode === 'call' ? 'Copy call script' : pendingTaskAction.mode === 'packet' ? 'Copy packet' : pendingTaskAction.mode === 'message' ? 'Copy message' : pendingTaskAction.mode === 'obituary' ? 'Copy obituary' : 'Copy draft'}
+                          {pendingTaskAction.mode === 'call' ? 'Copy call script' : pendingTaskAction.mode === 'packet' ? 'Copy packet' : (pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'assignment') ? 'Copy message' : pendingTaskAction.mode === 'obituary' ? 'Copy obituary' : 'Copy draft'}
                         </button>
-                        {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'obituary') && (
+                        {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'assignment' || pendingTaskAction.mode === 'obituary') && (
                           <button onClick={function() {
                             copyTextToClipboard('Passage: ' + name + ' - ' + displayTaskTitle(pendingTaskAction.task) + '. Open Passage for details: www.thepassageapp.io', 'Short message');
                           }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Copy short text</button>
@@ -2726,7 +2744,7 @@ export default function EstatePage() {
             <textarea
               value={pendingTaskNote}
               onChange={function(e) { setPendingTaskNote(e.target.value); }}
-              placeholder={pendingTaskAction.mode ? 'What happened with this? Example: copied packet to provider portal, called and left voicemail, reference #1234, or waiting on Claire to approve.' : taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
+              placeholder={pendingTaskAction.status === 'choose' ? 'Optional internal note about why this person owns it.' : pendingTaskAction.mode ? 'What happened with this? Example: copied packet to provider portal, called and left voicemail, reference #1234, or waiting on Claire to approve.' : taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
               style={{ width: '100%', boxSizing: 'border-box', minHeight: 82, border: '1.5px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.45, background: CARD, color: INK }}
             />
             <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10 }}>
@@ -2758,6 +2776,10 @@ export default function EstatePage() {
                 onClick={function() {
                   var noteForSave = pendingTaskNote;
                   var detailForSave = pendingTaskAction.detail;
+                  if (pendingTaskAction.status === 'choose') {
+                    saveTaskRecipientFromCommand(pendingTaskAction.task);
+                    return;
+                  }
                   if (pendingTaskAction.mode) {
                     var proofLabel = taskWorkspaceProofLabel(pendingTaskAction.mode);
                     noteForSave = [
@@ -2769,8 +2791,8 @@ export default function EstatePage() {
                   }
                   updateTaskFromCommand(pendingTaskAction.task, pendingTaskAction.status, detailForSave, pendingTaskAction.prompt, noteForSave);
                 }}
-                style={{ border: 'none', background: pendingTaskAction.status === 'choose' ? BORDER : SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: pendingTaskAction.status === 'choose' ? 'not-allowed' : 'pointer' }}>
-                {pendingTaskAction.mode ? taskWorkspaceSaveLabel(pendingTaskAction.mode) : taskActionCopy(pendingTaskAction.status).save}
+                style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>
+                {pendingTaskAction.status === 'choose' ? 'Save owner' : pendingTaskAction.mode ? taskWorkspaceSaveLabel(pendingTaskAction.mode) : taskActionCopy(pendingTaskAction.status).save}
               </button>
               <button
                 onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); setPendingTaskDraftText(''); setPendingTaskAttachment(null); }}
