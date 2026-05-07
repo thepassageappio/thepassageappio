@@ -3652,8 +3652,16 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: 8 }}>
-                  {attentionItems.map(item => (
-                    <button key={`${item.workflow.id}-${item.id}`} onClick={() => onOpenPlan(item.workflow, item.id)}
+                  {attentionItems.map(item => {
+                    const openAttentionItem = () => {
+                      if (!item?.workflow?.id) {
+                        if (typeof window !== 'undefined') window.location.href = '/?dashboard=1';
+                        return;
+                      }
+                      onOpenPlan(item.workflow, item.id, item.assignedTo ? 'open' : 'assign');
+                    };
+                    return (
+                    <button key={`${item.workflow.id}-${item.id}`} type="button" onClick={openAttentionItem}
                       style={{ width: "100%", textAlign: "left", background: item.workflow.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderRadius: 12, padding: "12px 13px", cursor: "pointer", fontFamily: "inherit" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                         <div style={{ minWidth: 0 }}>
@@ -3667,7 +3675,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                         </span>
                       </div>
                     </button>
-                  ))}
+                  );})}
                 </div>
               )}
 
@@ -4623,11 +4631,12 @@ export default function App() {
     setView("landing");
   };
 
-  const handleOpenPlan = (workflow, focusTaskId = '') => {
+  const handleOpenPlan = (workflow, focusTaskId = '', intent = '') => {
     if (!workflow?.id) return;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams({ id: workflow.id });
       if (focusTaskId) params.set('task', focusTaskId);
+      if (intent) params.set('intent', intent);
       window.location.href = '/estate?' + params.toString();
       return;
     }

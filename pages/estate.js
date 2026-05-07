@@ -1728,6 +1728,7 @@ export default function EstatePage() {
   var params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   var estateId = params.get('id') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('passage_last_estate_id') : null);
   var initialTaskId = params.get('task') || '';
+  var initialTaskIntent = (params.get('intent') || '').toLowerCase();
 
   var s0 = useState(null); var estate = s0[0]; var setEstate = s0[1];
   var s1 = useState([]); var outcomes = s1[0]; var setOutcomes = s1[1];
@@ -1758,6 +1759,7 @@ export default function EstatePage() {
   var s26 = useState(false); var assigningTaskRecipient = s26[0]; var setAssigningTaskRecipient = s26[1];
   var s27 = useState(null); var pendingTaskAttachment = s27[0]; var setPendingTaskAttachment = s27[1];
   var s28 = useState(false); var uploadingTaskAttachment = s28[0]; var setUploadingTaskAttachment = s28[1];
+  var s29 = useState(''); var openedInitialTaskKey = s29[0]; var setOpenedInitialTaskKey = s29[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -2573,6 +2575,16 @@ export default function EstatePage() {
   }
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
+  useEffect(function() {
+    if (loading || !initialTaskId || !tasks.length) return;
+    var key = String(initialTaskId) + ':' + (initialTaskIntent || 'open');
+    if (openedInitialTaskKey === key) return;
+    var task = tasks.find(function(t) { return String(t.id) === String(initialTaskId); });
+    if (!task) return;
+    setOpenedInitialTaskKey(key);
+    taskActionFromCommand(task, initialTaskIntent === 'assign' ? 'assign' : 'open');
+  }, [loading, initialTaskId, initialTaskIntent, tasks.length, openedInitialTaskKey]);
+
   if (loading) return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
