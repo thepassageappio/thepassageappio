@@ -53,9 +53,9 @@ const adminModules = [
   },
   {
     title: 'Support and lead inbox',
-    body: 'Contact form inquiries, feature requests, bug reports, billing disputes, and pilot leads.',
+    body: 'Contact form intake is live. A filterable internal inbox for feature requests, bug reports, billing disputes, and pilot leads is next.',
     href: '/contact',
-    status: 'Planned',
+    status: 'Intake live',
   },
   {
     title: 'Business health dashboard',
@@ -66,8 +66,8 @@ const adminModules = [
   {
     title: 'Legal and FAQ trust layer',
     body: 'FAQ, Terms, Privacy, data ownership, urgent-path disclaimer, and support routing.',
-    href: '/system/admin#trust-layer',
-    status: 'Roadmap',
+    href: '/faq',
+    status: 'Live scaffold',
   },
 ];
 
@@ -197,7 +197,7 @@ export default function SystemAdminPage() {
                 <Link key={module.title} href={module.href} style={{ ...cardLink, opacity: module.status === 'Planned' || module.status === 'Roadmap' ? .78 : 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
                     <h2 style={{ ...h3, margin: 0 }}>{module.title}</h2>
-                    <span style={module.status === 'Live' || module.status === 'Live demo' ? livePill : plannedPill}>{module.status}</span>
+                    <span style={module.status === 'Live' || module.status === 'Live demo' || module.status === 'Intake live' || module.status === 'Live scaffold' ? livePill : plannedPill}>{module.status}</span>
                   </div>
                   <p style={{ ...smallText, marginBottom: 0 }}>{module.body}</p>
                 </Link>
@@ -241,6 +241,13 @@ export default function SystemAdminPage() {
                 <div style={eyebrow}>FAQ, support, terms, and privacy</div>
                 <h2 style={h2}>Public trust layer is queued behind owner/legal review.</h2>
                 <p style={lead}>The FAQ should explain vendor applications, support requests, feature requests, bug reports, billing disputes, urgent-path limits, and data ownership. Terms and Privacy need owner/counsel approval before production legal claims change.</p>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
+                  <Link href="/faq" style={secondaryLink}>FAQ</Link>
+                  <Link href="/trust" style={secondaryLink}>Trust</Link>
+                  <Link href="/privacy" style={secondaryLink}>Privacy</Link>
+                  <Link href="/terms" style={secondaryLink}>Terms</Link>
+                  <Link href="/contact" style={secondaryLink}>Contact intake</Link>
+                </div>
               </Panel>
             </section>
           </>

@@ -752,5 +752,5 @@ Before moving to the next sprint:
 - At least one smoke path per actor must be checked.
 - Any dead button, blank page, browser alert dead-end, or silent action becomes P0 for the next patch.
 - If a path is not fully verified, report it as unverified instead of calling it fixed.
-- Public route smoke list must include `/`, `/urgent`, `/content`, `/funeral-home`, `/funeral-home/dashboard`, `/participating`, `/estate`, `/system/demo`, `/vendors/request`, `/vendors/admin`, `/contact`, and `/pricing`.
+- Public route smoke list must include `/`, `/urgent`, `/guides`, `/funeral-home`, `/funeral-home/dashboard`, `/participating`, `/estate`, `/system/demo`, `/vendors/request`, `/vendors/admin`, `/contact`, `/pricing`, `/faq`, `/trust`, `/privacy`, and `/terms`.
 - B2B loop smoke must include: pricing CTA, dashboard gated path, feature tabs, case create, family link, act-on-behalf, family-visible update, export.

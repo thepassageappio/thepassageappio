@@ -53,10 +53,11 @@ const sections = [
   {
     title: 'Support, billing, and product requests',
     items: [
-      ['How do I report a bug?', 'Use Contact and choose Technical issue. Include the page, what you clicked, and what you expected to happen.'],
+      ['How do I report a bug?', 'Use Contact and choose Report a bug or Technical issue. Include the page, what you clicked, and what you expected to happen.'],
       ['How do I request a feature?', 'Use Contact and describe the workflow gap, who needs it, and what proof or output should appear.'],
       ['How do I dispute billing?', 'Use Contact and choose Billing or Stripe. Include the account email and charge date.'],
       ['Where are Terms and Privacy?', 'The public Trust, Privacy, and Terms overview pages explain current product boundaries. Formal legal copy still needs owner/counsel review before it becomes final production policy.'],
+      ['Where do support requests go today?', 'Contact submissions are captured as support or lead inquiries. Vendor applications use the vendor application form and appear in the Passage system-admin vendor queue after submission.'],
     ],
   },
 ];
