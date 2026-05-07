@@ -6,6 +6,12 @@ import { taskActionConfirmation, taskActionOutcomeStatus } from '../../../../lib
 const allowedStatuses = new Set(['waiting', 'pending', 'acknowledged', 'handled', 'completed', 'done', 'blocked', 'not_applicable']);
 const allowedChannels = new Set(['email', 'sms', 'call', 'website', 'record', 'participant']);
 
+function normalizeStoredStatus(status) {
+  if (['handled', 'completed', 'done'].includes(status)) return 'done';
+  if (['waiting', 'pending'].includes(status)) return 'pending';
+  return status;
+}
+
 async function userCanUpdateTask(auth, task) {
   if (auth.source === 'internal') return true;
   const email = auth.user?.email?.toLowerCase();
@@ -57,6 +63,7 @@ export default async function handler(req, res) {
   const { status, channel, recipient, detail, notes, outcomeStatus, followUpAt, actor } = req.body || {};
   if (!allowedStatuses.has(status)) return res.status(400).json({ error: 'Invalid task status.' });
   if (channel && !allowedChannels.has(channel)) return res.status(400).json({ error: 'Invalid task channel.' });
+  const storedStatus = normalizeStoredStatus(status);
 
   const { data: task, error } = await serviceSupabase
     .from('tasks')
@@ -71,9 +78,9 @@ export default async function handler(req, res) {
   const now = new Date().toISOString();
   const actorName = actor || auth.user?.user_metadata?.full_name || auth.user?.email || 'Passage';
   const actorEmail = auth.user?.email || (String(actor || '').includes('@') ? String(actor).toLowerCase() : null);
-  const terminalStatus = ['handled', 'completed', 'done'].includes(status);
+  const terminalStatus = storedStatus === 'done';
   const updates = {
-    status,
+    status: storedStatus,
     last_action_at: now,
     last_actor: actorName,
     channel: channel || 'record',
@@ -84,7 +91,7 @@ export default async function handler(req, res) {
     updates.completed_by = actorName;
     updates.completed_by_email = actorEmail;
   }
-  if (status === 'acknowledged') updates.acknowledged_at = now;
+  if (storedStatus === 'acknowledged') updates.acknowledged_at = now;
   if (typeof notes === 'string') updates.notes = notes.trim();
   const resolvedOutcomeStatus = outcomeStatus || taskActionOutcomeStatus(status);
   if (resolvedOutcomeStatus) updates.outcome_status = resolvedOutcomeStatus;
@@ -102,7 +109,7 @@ export default async function handler(req, res) {
   const result = await recordStatusEvent({
     workflowId: task.workflow_id,
     taskId: isUuid(task.id) ? task.id : taskId,
-    status,
+    status: storedStatus,
     actor: actorName,
     channel: channel || 'record',
     recipient: recipient || task.assigned_to_name || task.assigned_to_email || null,
@@ -116,7 +123,8 @@ export default async function handler(req, res) {
       id: task.id,
       workflowId: task.workflow_id,
       title: task.title,
-      status,
+      status: storedStatus,
+      requestedStatus: status,
       outcomeStatus: resolvedOutcomeStatus,
     },
     confirmation: taskActionConfirmation(status, task, auth.source === 'internal' ? 'system' : 'family'),

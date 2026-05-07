@@ -361,14 +361,14 @@ function displayTaskNext(item) {
 
 function statusText(status) {
   var value = String(status || '').replace(/_/g, ' ');
-  if (!value || value === 'pending') return 'Draft';
+  if (!value) return 'Draft';
   if (value === 'sent') return 'Sent';
-  if (value === 'assigned' || value === 'waiting') return 'Waiting for confirmation';
+  if (value === 'assigned' || value === 'waiting' || value === 'pending') return 'Waiting for confirmation';
   if (value === 'delivered') return 'Delivered';
   if (value === 'acknowledged') return 'Confirmed';
   if (value === 'blocked') return 'Blocked';
   if (value === 'needs review') return 'Needs review';
-  if (value === 'handled' || value === 'completed') return 'Handled';
+  if (value === 'handled' || value === 'completed' || value === 'done') return 'Handled';
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
@@ -1078,7 +1078,7 @@ function FuneralPrepDocument({ form, missing }) {
 
 function statusBucket(status) {
   var s = status || 'draft';
-  if (['handled', 'completed', 'acknowledged', 'delivered'].includes(s)) return 'good';
+  if (['handled', 'completed', 'done', 'acknowledged', 'delivered'].includes(s)) return 'good';
   if (['failed', 'blocked', 'needs_review'].includes(s)) return 'bad';
   if (['sent', 'waiting', 'pending', 'assigned', 'in_progress'].includes(s)) return 'wait';
   return 'draft';
@@ -1706,6 +1706,9 @@ export default function EstatePage() {
   var s18 = useState(''); var pendingTaskNote = s18[0]; var setPendingTaskNote = s18[1];
   var s19 = useState([]); var communicationCenter = s19[0]; var setCommunicationCenter = s19[1];
   var s20 = useState(''); var pendingTaskDraftText = s20[0]; var setPendingTaskDraftText = s20[1];
+  var s21 = useState(''); var pendingRecipientName = s21[0]; var setPendingRecipientName = s21[1];
+  var s22 = useState(''); var pendingRecipientEmail = s22[0]; var setPendingRecipientEmail = s22[1];
+  var s23 = useState(false); var assigningTaskRecipient = s23[0]; var setAssigningTaskRecipient = s23[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -2020,6 +2023,59 @@ export default function EstatePage() {
     setCommunicationCenter(function(prev) { return [sentUpdate].concat(prev || []).slice(0, 10); });
     await refreshExecutionData();
     showToast(sent.skipped ? 'Message saved in the estate record. Email is not configured in this environment.' : 'Message sent, copied to you, and saved in the estate message center.');
+  }
+
+  async function saveTaskRecipientFromCommand(task) {
+    if (!task?.id) return null;
+    var assigneeName = String(pendingRecipientName || '').trim();
+    var assigneeEmail = String(pendingRecipientEmail || '').trim().toLowerCase();
+    if (!assigneeName && !assigneeEmail) {
+      showToast('Add the recipient name and email before sending through Passage.');
+      return null;
+    }
+    if (!assigneeEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(assigneeEmail)) {
+      showToast('Add a valid recipient email before sending through Passage.');
+      return null;
+    }
+    var session = await sb.auth.getSession();
+    var token = session && session.data && session.data.session ? session.data.session.access_token : '';
+    if (!token) {
+      showToast('Please sign in to assign this task.');
+      return null;
+    }
+    setAssigningTaskRecipient(true);
+    var response = await fetch('/api/tasks/' + task.id + '/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        name: assigneeName || assigneeEmail,
+        email: assigneeEmail,
+        actor: user?.email || coordinatorName || 'Passage',
+      }),
+    }).catch(function() { return null; });
+    setAssigningTaskRecipient(false);
+    if (!response || !response.ok) {
+      var data = response ? await response.json().catch(function() { return {}; }) : {};
+      showToast(data.error || 'Recipient could not be saved.');
+      return null;
+    }
+    var saved = await response.json().catch(function() { return {}; });
+    var savedTask = saved.task || Object.assign({}, task, {
+      assigned_to_name: assigneeName || assigneeEmail,
+      assigned_to_email: assigneeEmail,
+      owner_label: assigneeName || assigneeEmail,
+      recipient: assigneeEmail,
+    });
+    setTasks(function(prev) {
+      return (prev || []).map(function(item) {
+        return String(item.id) === String(task.id) ? Object.assign({}, item, savedTask) : item;
+      });
+    });
+    setPendingTaskAction(function(prev) {
+      return prev ? Object.assign({}, prev, { task: Object.assign({}, prev.task, savedTask) }) : prev;
+    });
+    showToast(saved.confirmation || 'Recipient saved. You can send through Passage now.');
+    return savedTask;
   }
 
   function recordPrepEvent(detail) {
@@ -2341,6 +2397,8 @@ export default function EstatePage() {
     setPendingTaskAction(draft);
     setPendingTaskNote('');
     setPendingTaskDraftText(draft && draft.mode ? taskWorkspaceDraft(draft.task, draft.mode) : '');
+    setPendingRecipientName(draft && draft.task ? taskAssignedName(draft.task) : '');
+    setPendingRecipientEmail(draft && draft.task ? taskAssignedEmail(draft.task) : '');
     showToast('Opening task update panel...');
     setTimeout(function() {
       var panel = document.getElementById('task-update-panel');
@@ -2517,25 +2575,49 @@ export default function EstatePage() {
                         style={{ width: '100%', boxSizing: 'border-box', minHeight: 170, border: '1.5px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '11px 12px', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55, background: CARD, color: INK }}
                       />
                       {pendingTaskAction.mode === 'message' && (
-                        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginTop: 8, color: messageRecipientEmail ? SAGE : AMBER, fontSize: 12.5, fontWeight: 800, lineHeight: 1.35 }}>
-                          {messageRecipientEmail
-                            ? 'Ready to send to ' + messageRecipientName + ' at ' + messageRecipientEmail + '.'
-                            : 'No recipient is assigned yet. Assign an owner/contact before sending.'}
-                        </div>
+                        <>
+                          <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginTop: 8, color: messageRecipientEmail ? SAGE : AMBER, fontSize: 12.5, fontWeight: 800, lineHeight: 1.35 }}>
+                            {messageRecipientEmail
+                              ? 'Ready to send to ' + messageRecipientName + ' at ' + messageRecipientEmail + '.'
+                              : 'No recipient is assigned yet. Add the owner or contact here, then Passage can send and log it.'}
+                          </div>
+                          {!messageRecipientEmail && (
+                            <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: 10, marginTop: 8, display: 'grid', gap: 8 }}>
+                              <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase' }}>Assign recipient</div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                <input
+                                  value={pendingRecipientName}
+                                  onChange={function(e) { setPendingRecipientName(e.target.value); }}
+                                  placeholder="Name or role"
+                                  style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
+                                />
+                                <input
+                                  value={pendingRecipientEmail}
+                                  onChange={function(e) { setPendingRecipientEmail(e.target.value); }}
+                                  placeholder="Email address"
+                                  style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5 }}
+                                />
+                              </div>
+                              <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.4 }}>This saves the owner on the task, records the audit event, and unlocks Send through Passage.</div>
+                            </div>
+                          )}
+                        </>
                       )}
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
                         {pendingTaskAction.mode === 'message' && (
                           <button
                             onClick={function() {
                               if (!messageRecipientEmail) {
-                                showToast('Assign this task to someone with an email before sending through Passage.');
+                                saveTaskRecipientFromCommand(pendingTaskAction.task).then(function(savedTask) {
+                                  if (savedTask) sendTaskDraftFromCommand(savedTask, pendingTaskDraftText);
+                                });
                                 return;
                               }
                               sendTaskDraftFromCommand(pendingTaskAction.task, pendingTaskDraftText);
                             }}
-                            disabled={pendingTaskAction.sending}
+                            disabled={pendingTaskAction.sending || assigningTaskRecipient}
                             style={miniBtn(messageRecipientEmail ? SAGE : SUBTLE, messageRecipientEmail ? '#fff' : MID, messageRecipientEmail ? SAGE : BORDER)}>
-                            {pendingTaskAction.sending ? 'Sending...' : messageRecipientEmail ? 'Send through Passage' : 'Assign recipient to send'}
+                            {pendingTaskAction.sending ? 'Sending...' : assigningTaskRecipient ? 'Saving recipient...' : messageRecipientEmail ? 'Send through Passage' : 'Save recipient + send'}
                           </button>
                         )}
                         <button onClick={function() { copyTextToClipboard(pendingTaskDraftText, pendingTaskAction.mode === 'call' ? 'Call script' : pendingTaskAction.mode === 'packet' ? 'Packet draft' : pendingTaskAction.mode === 'message' ? 'Message draft' : pendingTaskAction.mode === 'obituary' ? 'Obituary draft' : 'Task draft'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>
