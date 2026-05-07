@@ -1709,6 +1709,8 @@ export default function EstatePage() {
   var s21 = useState(''); var pendingRecipientName = s21[0]; var setPendingRecipientName = s21[1];
   var s22 = useState(''); var pendingRecipientEmail = s22[0]; var setPendingRecipientEmail = s22[1];
   var s23 = useState(false); var assigningTaskRecipient = s23[0]; var setAssigningTaskRecipient = s23[1];
+  var s24 = useState(null); var pendingTaskAttachment = s24[0]; var setPendingTaskAttachment = s24[1];
+  var s25 = useState(false); var uploadingTaskAttachment = s25[0]; var setUploadingTaskAttachment = s25[1];
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -1818,6 +1820,50 @@ export default function EstatePage() {
   function showToast(msg) {
     setToast(msg);
     setTimeout(function() { setToast(''); }, 2200);
+  }
+
+  function safeTaskFileName(name) {
+    return String(name || 'task-support-file')
+      .replace(/[^a-zA-Z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 90) || 'task-support-file';
+  }
+
+  async function uploadTaskProofAttachment(file) {
+    if (!file) return;
+    if (!user) {
+      showToast('Please sign in before attaching proof.');
+      return;
+    }
+    if (!pendingTaskAction?.task?.id || !estateId) {
+      showToast('Open a task before attaching proof.');
+      return;
+    }
+    setUploadingTaskAttachment(true);
+    try {
+      var filePath = [
+        'task-support',
+        String(estateId),
+        String(pendingTaskAction.task.id),
+        Date.now() + '-' + safeTaskFileName(file.name),
+      ].join('/');
+      var upload = await sb.storage.from('passage-documents').upload(filePath, file, {
+        upsert: false,
+        contentType: file.type || undefined,
+      });
+      if (upload.error) throw upload.error;
+      var attachment = { name: file.name, path: filePath, size: file.size || 0 };
+      setPendingTaskAttachment(attachment);
+      setPendingTaskNote(function(prev) {
+        var line = 'Task support attachment: ' + attachment.name + ' (storage path: ' + attachment.path + ')';
+        return prev && prev.trim() ? prev.trim() + '\n' + line : line;
+      });
+      showToast('Attachment uploaded and added to the proof note.');
+    } catch (err) {
+      showToast(err?.message || 'Attachment could not be uploaded.');
+    } finally {
+      setUploadingTaskAttachment(false);
+    }
   }
 
   function homeLink(open) {
@@ -1951,6 +1997,7 @@ export default function EstatePage() {
     setPendingTaskAction(null);
     setPendingTaskNote('');
     setPendingTaskDraftText('');
+    setPendingTaskAttachment(null);
     showToast(saved.confirmation || taskActionConfirmation(status, task, 'family'));
   }
 
@@ -2399,6 +2446,7 @@ export default function EstatePage() {
     setPendingTaskDraftText(draft && draft.mode ? taskWorkspaceDraft(draft.task, draft.mode) : '');
     setPendingRecipientName(draft && draft.task ? taskAssignedName(draft.task) : '');
     setPendingRecipientEmail(draft && draft.task ? taskAssignedEmail(draft.task) : '');
+    setPendingTaskAttachment(null);
     showToast('Opening task update panel...');
     setTimeout(function() {
       var panel = document.getElementById('task-update-panel');
@@ -2655,13 +2703,26 @@ export default function EstatePage() {
             <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Attachments</div>
               <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45 }}>
-                For now, save the confirmation number, screenshot filename, or document location in the note above. File upload should be added next as Documents / Task support so screenshots, PDFs, and permits are stored against this task.
+                Upload a screenshot, PDF, permit, or supporting file. Passage stores it as task support and adds the storage path to the proof note so the estate record points back to it.
               </div>
-              <button
-                onClick={function() { showToast('Attachment storage is not enabled yet. Add the file name or reference in the proof note for now.'); }}
-                style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 10, padding: '8px 10px', marginTop: 8, fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
-                Attach file soon
-              </button>
+              {pendingTaskAttachment && (
+                <div style={{ marginTop: 8, background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 10px', color: SAGE, fontSize: 12.5, fontWeight: 800, lineHeight: 1.4 }}>
+                  Attached: {pendingTaskAttachment.name}
+                </div>
+              )}
+              <label style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid ' + BORDER, background: uploadingTaskAttachment ? SUBTLE : CARD, color: uploadingTaskAttachment ? SOFT : MID, borderRadius: 10, padding: '8px 10px', marginTop: 8, fontFamily: 'inherit', fontWeight: 800, cursor: uploadingTaskAttachment ? 'wait' : 'pointer' }}>
+                {uploadingTaskAttachment ? 'Uploading...' : 'Attach proof file'}
+                <input
+                  type="file"
+                  disabled={uploadingTaskAttachment}
+                  onChange={function(e) {
+                    var file = e.target.files && e.target.files[0];
+                    e.target.value = '';
+                    uploadTaskProofAttachment(file);
+                  }}
+                  style={{ display: 'none' }}
+                />
+              </label>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
               <button
@@ -2683,7 +2744,7 @@ export default function EstatePage() {
                 {pendingTaskAction.mode ? taskWorkspaceSaveLabel(pendingTaskAction.mode) : taskActionCopy(pendingTaskAction.status).save}
               </button>
               <button
-                onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); setPendingTaskDraftText(''); }}
+                onClick={function() { setPendingTaskAction(null); setPendingTaskNote(''); setPendingTaskDraftText(''); setPendingTaskAttachment(null); }}
                 style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
                 Cancel
               </button>
