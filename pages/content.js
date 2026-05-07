@@ -111,27 +111,14 @@ export default function ContentPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '6px 22px 16px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(300px, .48fr)', gap: 12, alignItems: 'start', marginBottom: 10 }}>
-          <div>
-            <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Help guides</div>
-            <h1 style={{ fontSize: 'clamp(28px, 2.8vw, 36px)', lineHeight: 1.02, margin: '0 0 7px', fontWeight: 400 }}>Pick the guide you need right now.</h1>
-            <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.42, margin: 0, maxWidth: 660 }}>Unlock once, then read all four guides here. No searching. No drip campaign.</p>
-          </div>
-          <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, boxShadow: '0 12px 34px rgba(55,45,35,.05)' }}>
-            <div style={{ fontSize: 17, lineHeight: 1.2, marginBottom: 5 }}>{leadUnlocked ? 'Guides unlocked' : 'Send me the guide'}</div>
-            <p style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.34, margin: '0 0 8px' }}>{leadUnlocked ? 'Choose any guide. It opens below.' : 'Just the guide and next place to start.'}</p>
-            {!leadUnlocked && <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={inputStyle} />}
-            {!leadUnlocked && <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={inputStyle} />}
-            <select value={interest} onChange={e => { setInterest(e.target.value); setUnlocked(leadUnlocked); }} style={inputStyle}>
-              {guides.map(g => <option key={g.title}>{g.title}</option>)}
-            </select>
-            {!leadUnlocked && <button style={{ width: '100%', border: 'none', borderRadius: 11, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{unlocked ? 'Guide unlocked' : 'Unlock guide'}</button>}
-            {error && <p style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, lineHeight: 1.45, margin: '10px 0 0' }}>{error}</p>}
-          </form>
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Help guides</div>
+          <h1 style={{ fontSize: 'clamp(28px, 2.8vw, 36px)', lineHeight: 1.02, margin: '0 0 7px', fontWeight: 400 }}>Pick the guide you need right now.</h1>
+          <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.42, margin: 0, maxWidth: 660 }}>Choose the guide first. If it is locked, unlock it in place and keep reading here.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, .34fr) minmax(0, .66fr)', gap: 10, alignItems: 'stretch' }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 8, display: 'grid', gap: 7, alignContent: 'start', maxHeight: 'calc(100vh - 226px)', overflowY: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 10, alignItems: 'start' }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 8, display: 'grid', gap: 7, alignContent: 'start' }}>
             {guides.map(g => {
               const active = selected.title === g.title;
               return (
@@ -144,7 +131,7 @@ export default function ContentPage() {
             })}
           </div>
 
-          <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 13, boxShadow: '0 12px 34px rgba(55,45,35,.05)', maxHeight: 'calc(100vh - 226px)', overflowY: 'auto' }}>
+          <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 13, boxShadow: '0 12px 34px rgba(55,45,35,.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', borderBottom: `1px solid ${C.border}`, paddingBottom: 10, marginBottom: 10 }}>
               <div>
                 <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 5 }}>{selected.type}</div>
@@ -155,9 +142,14 @@ export default function ContentPage() {
             </div>
 
             {!unlocked ? (
-              <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 13, padding: 13, color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
-                Enter your email above to unlock the full guide immediately. You will stay on this page.
-              </div>
+              <form onSubmit={submit} style={{ background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 13, padding: 13 }}>
+                <div style={{ fontSize: 17, lineHeight: 1.2, marginBottom: 5 }}>Unlock this guide</div>
+                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, margin: '0 0 10px' }}>Enter your email once. The guide opens immediately on this page, and the request is recorded as a Passage guide lead.</p>
+                <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={{ ...inputStyle, borderColor: '#ead5d2' }} />
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ ...inputStyle, borderColor: '#ead5d2' }} />
+                <button style={{ width: '100%', border: 'none', borderRadius: 11, padding: '12px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Unlock guide</button>
+                {error && <p style={{ color: C.rose, background: '#fff', border: `1px solid ${C.rose}30`, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, lineHeight: 1.45, margin: '10px 0 0' }}>{error}</p>}
+              </form>
             ) : (
               <div>
                 <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.42, marginTop: 0 }}>Start with the next section that matches where you are right now.</p>
