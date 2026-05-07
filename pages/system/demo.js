@@ -153,7 +153,7 @@ const ecosystemPaths = [
 
 const readinessChecks = [
   'Demo studio is separate from the partner funeral-home dashboard.',
-  'System-admin nav exposes Demo, Vendor page, and Vendor admin.',
+  'System-admin nav rolls demo, vendor approval, vendor QA, reporting, and support intake under one Passage-only command center.',
   'Guided coach stays in dummy demo data and does not depend on real estates.',
   'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language.',
   'CSV export remains the adoption-trust close.',

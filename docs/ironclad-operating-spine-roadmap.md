@@ -172,7 +172,7 @@ These are not failures to hide. They are the work queue until fixed and QA-passe
 - Funeral-home employee permissions are visible but not yet fully schema-enforced.
 - Vendor approval/profile/request status exists in pieces and needs a stronger provisioning loop.
 - Demo studio is separate, but the guided story needs to expose only the active step and stay dummy-only.
-- Estate-level public planning slots and estate-file modules still need to move into a cleaner per-estate tab model.
+- Estate index now points users into a selected estate before editing wishes, documents, obituary, people, memories, messages, or proof. Remaining work is to make the per-estate file drawer feel native inside the estate workspace instead of a routed overlay with a back link.
 - Guide unlock UI now lives inside the locked guide card/module and records a support/lead inquiry. Remaining work is richer guide content and public proof.
 - Reporting is useful but still derived from imperfect existing fields; case value and marketplace share need durable fields before pilot-grade ROI.
 - The funeral-home marketing page tier CTAs have visible fallback, dashboard access has a graceful signed-out path, and feature tabs visibly change. Remaining demo trust depends on the closed loop being demonstrable from partner case creation through family-visible update.
