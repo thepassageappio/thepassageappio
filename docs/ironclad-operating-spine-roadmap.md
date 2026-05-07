@@ -15,6 +15,74 @@ This roadmap is sequenced so each sprint makes the current product more trustwor
 
 The latest product audit reinforces the same direction: Passage wins as a crisis coordination system, not as a broad memorial/social/AI product. Until the operating spine is reliable, new feature volume should be treated as risk.
 
+## Current Sprint Sequence
+
+Use this sequence to decide the next sprint whenever QA finds multiple valid issues. Marketplace, AI, memorial, and lifecycle expansion must not outrank the operating spine until the core paths are closed.
+
+### Sprint A: Operational Calm / UX Unification
+
+Purpose: make the whole product feel like one calm operating system instead of several pages stitched together.
+
+Focus:
+
+- Design-system normalization across homepage, urgent, estate, participant, funeral home, vendor, and admin surfaces.
+- Spacing, typography, dashboard density, visual hierarchy, and mobile consistency.
+- One visible next action per primary screen, especially for grieving users.
+- Remove exposed internal/admin concepts from public or family navigation.
+- Make footer, trust links, and public page depth consistent with the investor one-pager and sell sheet quality.
+
+### Sprint B: Red Path Authority & Guidance
+
+Purpose: make the first 10 seconds after a death feel directive, trustworthy, and low-load.
+
+Focus:
+
+- Triage first, authority second, minimum details third.
+- Branches for unexpected home death, hospice at home, hospital/facility, and already-past-first-steps.
+- Staging by minutes, today, next 72 hours, first week, and later.
+- Decision-maker/NOK flows and professional handoff guidance.
+- No empty progress dashboard or sign-in wall before a useful first-step plan.
+
+### Sprint C: Funeral Home Operational Layer
+
+Purpose: make the B2B pilot story credible for directors, location managers, staff, and families.
+
+Focus:
+
+- Operator dashboards with active cases, staff work, waiting responses, calls avoided, exports, and audit.
+- Family visibility controls and act-on-behalf feedback.
+- Communication logs, case progression states, role management, and staff workflow optimization.
+- Location, employee, task, response-time, marketplace, and ROI reporting without exposing Passage-only business data.
+- End-to-end proof: create case -> family link -> task assignment -> staff/funeral home action -> family-visible update -> export/report.
+
+### Sprint D: Trust / Security / Enterprise Readiness
+
+Purpose: make Passage feel legitimate enough for serious B2B pilots and sensitive family data.
+
+Focus:
+
+- Permissions polish, role visibility, audit visibility, export/backup assurances, and vault/document handling confidence.
+- Trust center, security explanations, data ownership, retention, support routing, FAQ, Terms, Privacy, and urgent-path boundaries.
+- Legal/compliance copy remains owner/counsel-review required before pilots rely on it.
+
+### Sprint E: Lifecycle & Retention Layer
+
+Purpose: make Passage become the family operating system over time after the urgent and planning spines work.
+
+Focus:
+
+- Planning updates, anniversaries/remembrance, long-term family continuity, multi-generation records, household record maintenance, and lifecycle engagement loops.
+- This follows core command-center trust, not before it.
+
+### Sprint F: Marketplace / AI Expansion
+
+Purpose: expand value only after tasks, roles, proof, outputs, and trust are stable.
+
+Focus:
+
+- Task-native vendor ecosystem, contextual referrals, vendor revenue-share reporting, AI orchestration, advanced automations, integrations, and predictive workflows.
+- AI work must use a server-side adapter, structured outputs, audit/proof logging, prompt fixtures, and no client-side model calls.
+
 Near-term product constraints:
 
 - Bias every public and in-app screen toward operational clarity: what matters now, who owns it, what is waiting, and what proof exists.

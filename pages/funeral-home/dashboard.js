@@ -16,6 +16,13 @@ function statusLabel(value) {
   return 'Draft';
 }
 
+function normalizedTaskStatus(value) {
+  const clean = String(value || '').toLowerCase();
+  if (clean === 'handled' || clean === 'completed' || clean === 'done') return 'done';
+  if (clean === 'waiting' || clean === 'pending' || clean === 'sent' || clean === 'assigned') return 'pending';
+  return clean || 'draft';
+}
+
 function vendorRequestLabel(value) {
   if (value === 'completed') return 'Completed';
   if (value === 'in_progress') return 'In progress';
@@ -155,12 +162,13 @@ export default function FuneralHomeDashboard() {
       if (!res.ok) {
         setError(json.error || 'Could not update this task.');
       } else {
+        const nextStatus = normalizedTaskStatus(json.task?.status || json.status || status);
         setData(prev => prev ? {
           ...prev,
           cases: (prev.cases || []).map(item => ({
             ...item,
-            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, status, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
-            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, status: nextStatus, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status: nextStatus, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
           })),
         } : prev);
         setNotice(json.confirmation || taskActionConfirmation(status, task, 'funeral_home'));
@@ -196,12 +204,13 @@ export default function FuneralHomeDashboard() {
       if (!res.ok) {
         setError(json.error || 'Could not handle this for the family.');
       } else {
+        const nextStatus = normalizedTaskStatus(json.task?.status || json.status || 'done');
         setData(prev => prev ? {
           ...prev,
           cases: (prev.cases || []).map(item => ({
             ...item,
-            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, status: 'handled', last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
-            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status: 'handled', last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, status: nextStatus, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status: nextStatus, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
           })),
         } : prev);
         setTaskDraft(null);
@@ -353,6 +362,26 @@ export default function FuneralHomeDashboard() {
     .map(item => ({ caseItem: item, task: item.nextPartnerTask || (item.partnerTasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || '')) || (item.tasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || '')) }))
     .filter(row => row.task)
     .slice(0, 4);
+  const currentMembership = (partnerStaff || []).find(member => String(member.email || '').toLowerCase() === String(user?.email || '').toLowerCase()) || null;
+  const currentRole = String(currentMembership?.role || data?.organizations?.[0]?.role || 'staff').toLowerCase();
+  const isDirectorRole = /owner|admin|director|manager|location/i.test(currentRole);
+  const currentUserEmail = String(user?.email || '').toLowerCase();
+  const allPartnerTasks = displayCases.flatMap(item => (item.tasks || []).map(task => ({
+    ...task,
+    caseName: item.deceased_name || item.estate_name || item.name || 'Family case',
+    caseId: item.id,
+    locationName: locationNameFor(item),
+  })));
+  const assignedWorkQueue = allPartnerTasks
+    .filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()))
+    .filter(task => isDirectorRole || String(task.assigned_to_email || '').toLowerCase() === currentUserEmail || String(task.last_actor || '').toLowerCase() === currentUserEmail)
+    .sort((a, b) => partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))
+    .slice(0, 6);
+  const roleCards = [
+    ['Director / admin', 'All cases, locations, staff queues, reports, billing prompts.', isDirectorRole ? 'Your current view' : 'Managed by leadership'],
+    ['Location manager', 'Location-scoped cases, staff queues, waiting items, exports.', /location|manager/i.test(currentRole) ? 'Your current view' : 'Next permission layer'],
+    ['Staff / employee', 'Assigned tasks first, with case context, family messages, proof, and audit trail.', !isDirectorRole ? 'Your current view' : 'Delegation target'],
+  ];
 
   function money(value) {
     return `$${Math.round(Number(value || 0)).toLocaleString()}`;
@@ -361,6 +390,14 @@ export default function FuneralHomeDashboard() {
   function roleLabel(role) {
     const clean = String(role || 'staff').replace(/_/g, ' ');
     return clean.charAt(0).toUpperCase() + clean.slice(1);
+  }
+
+  function partnerTaskPriorityFromStatus(status) {
+    const clean = String(status || '').toLowerCase();
+    if (['blocked', 'failed', 'needs_review'].includes(clean)) return 0;
+    if (['sent', 'waiting', 'pending', 'assigned'].includes(clean)) return 1;
+    if (clean === 'acknowledged') return 2;
+    return 3;
   }
 
   return (
@@ -555,8 +592,41 @@ export default function FuneralHomeDashboard() {
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.5 }}>
-              Next schema hardening: add explicit employee permissions for <strong>all cases</strong>, <strong>location cases</strong>, or <strong>assigned tasks only</strong>. The UI is ready to express that model without making funeral-home staff use the family participant page.
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 12 }}>
+              {roleCards.map(([title, body, status]) => (
+                <div key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{status}</div>
+                  <div style={{ color: C.ink, fontSize: 16, fontWeight: 900, marginTop: 4 }}>{title}</div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>{body}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8 }}>
+                <div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Delegation queue' : 'My assigned work'}</div>
+                  <div style={{ fontSize: 18 }}>{isDirectorRole ? 'What staff should move next.' : 'What this employee should move next.'}</div>
+                </div>
+                <div style={{ color: C.mid, fontSize: 12.5 }}>Each task keeps estate context, status, proof, and audit together.</div>
+              </div>
+              {assignedWorkQueue.length === 0 ? (
+                <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 13 }}>
+                  No assigned work is waiting in this view. Directors can delegate from Case work; employees will land here with only their task queue and the surrounding case context they need.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {assignedWorkQueue.map(task => (
+                    <div key={`${task.caseId}_${task.id}`} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'center' }}>
+                      <div>
+                        <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{task.caseName} - {task.locationName}</div>
+                        <div style={{ fontSize: 15.5, fontWeight: 900, marginTop: 3 }}>{sharedTaskTitle(task)}</div>
+                        <div style={{ color: C.mid, fontSize: 12.5, marginTop: 3 }}>Owner: {task.assigned_to_name || task.assigned_to_email || task.last_actor || 'Unassigned'} - {statusLabel(task.status)}</div>
+                      </div>
+                      <button onClick={() => openPartnerWork(task.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open work</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
