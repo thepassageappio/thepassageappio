@@ -3,7 +3,7 @@
 // Route: /estate?id=:estateId
 // Replaces generic dashboard for post-urgent users
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
@@ -315,6 +315,36 @@ function dateTimeLabel(value) {
   return date ? date.toLocaleString() : '';
 }
 
+class TaskPanelBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('Passage task panel error message:', error?.message || error);
+    console.error('Passage task panel component stack:', info?.componentStack || '');
+    this.setState({ error });
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '35', borderRadius: 14, padding: '13px 15px', marginBottom: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, color: ROSE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Task panel recovered</div>
+        <div style={{ fontSize: 14, color: INK, fontWeight: 900, lineHeight: 1.35 }}>This task has one field Passage could not display safely.</div>
+        <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 5 }}>The estate is still intact. Use another task action, reload, or return to the estate index while Passage keeps the issue isolated.</div>
+      </div>
+    );
+  }
+}
+
 function ownerForTask(task) {
   return textValue(task.assigned_to_name || task.assigned_to_email || task.owner_label || task.owner_kind, 'Needs owner');
 }
@@ -340,7 +370,7 @@ function isObituaryTask(item) {
 }
 
 function taskWorkspaceMode(item) {
-  var title = String(item?.title || item?.name || '').toLowerCase();
+  var title = textValue(item?.title || item?.name, '').toLowerCase();
   if (!title) return '';
   if (isObituaryTask(item)) return 'obituary';
   if (title.indexOf('share the news') >= 0 || title.indexOf('notify close friends') >= 0 || title.indexOf('immediate family') >= 0 || title.indexOf('faith community') >= 0 || title.indexOf('clergy') >= 0 || title.indexOf('photos') >= 0 || title.indexOf('memories') >= 0 || title.indexOf('travel') >= 0 || title.indexOf('reception') >= 0 || title.indexOf('thank you') >= 0) return 'message';
@@ -772,14 +802,14 @@ function SecondaryCard({ title, meta, cta, onClick, collapsed, onToggle }) {
 function formatEventDate(ev) {
   if (!ev || !ev.date) return 'Date not set';
   try {
-    return new Date(ev.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return new Date(textValue(ev.date) + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   } catch (e) {
-    return ev.date;
+    return textValue(ev.date, 'Date not set');
   }
 }
 
 function eventLabel(ev) {
-  var raw = String(ev.event_type || ev.name || 'Service detail').replace(/_/g, ' ');
+  var raw = textValue(ev.event_type || ev.name, 'Service detail').replace(/_/g, ' ');
   if (raw.toLowerCase() === 'funeral') return 'Funeral service';
   if (raw.toLowerCase() === 'burial') return 'Cemetery / burial';
   if (raw.toLowerCase() === 'visitation') return 'Wake / visitation';
@@ -805,7 +835,7 @@ function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people,
     ['Clergy/officiant', trusted.clergy || context.clergyName || context.clergy_or_officiant],
     ['Hospital/hospice', trusted.hospital_hospice_or_doctor || context.hospitalOrHospiceContact],
     ['Medical records', trusted.medical_records_location || context.medicalRecordsLocation || context.medical_records_location],
-  ].filter(function(item) { return item[1]; });
+  ].map(function(item) { return [item[0], textValue(item[1], '')]; }).filter(function(item) { return item[1]; });
   var sortedEvents = (serviceEvents || []).slice().sort(function(a, b) {
     var da = (a.date || '9999-12-31') + ' ' + (a.time || '');
     var db = (b.date || '9999-12-31') + ' ' + (b.time || '');
@@ -828,7 +858,7 @@ function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people,
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Estate map</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>What is happening for {name}</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>What is happening for {textValue(name, 'your loved one')}</div>
           <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Service details, owners, and messages in one place.</div>
         </div>
         <button onClick={function() { window.location.href = '/share?wid=' + encodeURIComponent(estateId); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', whiteSpace: 'nowrap' }}>Social drafts</button>
@@ -2116,8 +2146,10 @@ export default function EstatePage() {
 
   function taskAssignedEmail(task) {
     if (!task) return '';
-    if (task.assigned_to_email) return task.assigned_to_email;
-    if (String(task.recipient || '').includes('@')) return task.recipient;
+    var assignedEmail = textValue(task.assigned_to_email, '');
+    var recipient = textValue(task.recipient, '');
+    if (assignedEmail) return assignedEmail;
+    if (recipient.includes('@')) return recipient;
     return '';
   }
 
@@ -2308,14 +2340,14 @@ export default function EstatePage() {
   var bannerBorder = needsOwnerCount > 0 && !allHandled ? AMBER_BORDER : SAGE_LIGHT;
 
   var firstIncomplete = outcomes.findIndex(function(o) { return o.status !== 'handled'; });
-  var name = estate ? (estate.deceased_first_name || estate.deceased_name || 'your loved one') : 'your loved one';
-  var coordinatorName = estate ? (estate.coordinator_name || 'You') : 'You';
+  var name = estate ? textValue(estate.deceased_first_name || estate.deceased_name, 'your loved one') : 'your loved one';
+  var coordinatorName = estate ? textValue(estate.coordinator_name, 'You') : 'You';
   function obituaryDraftForTask(task) {
     var lovedOne = name || 'your loved one';
-    var familyName = estate?.family_name || estate?.coordinator_name || 'the family';
+    var familyName = textValue(estate?.family_name || estate?.coordinator_name, 'the family');
     var serviceLine = serviceEvents && serviceEvents.length > 0
       ? 'Service details: ' + serviceEvents.map(function(ev) {
-        return [eventLabel(ev), ev.date, ev.time, ev.location_name].filter(Boolean).join(' - ');
+        return [eventLabel(ev), textValue(ev.date), textValue(ev.time), textValue(ev.location_name)].filter(Boolean).join(' - ');
       }).join('; ') + '.'
       : 'Service details will be shared when they are available.';
     return [
@@ -2332,7 +2364,7 @@ export default function EstatePage() {
   function taskWorkspaceDraft(task, mode) {
     var title = displayTaskTitle(task);
     var lovedOne = name || 'your loved one';
-    var playbook = getTaskPlaybook(task?.title || title);
+    var playbook = getTaskPlaybook(textValue(task?.title, title));
     if (mode === 'assignment') {
       return [
         'Passage task assignment:',
@@ -2357,22 +2389,22 @@ export default function EstatePage() {
         '2. Who should we speak with?',
         '3. What confirmation number, timestamp, or document should we save?',
         '',
-        'Proof to save: ' + (playbook.proofRequired || 'confirmation or reference number') + '.'
+        'Proof to save: ' + textValue(playbook.proofRequired, 'confirmation or reference number') + '.'
       ].join('\n');
     }
     if (mode === 'packet') {
       var template = playbook.institutionTemplate;
       return [
-        'Subject: ' + ((template && template.subject) || (title + ' - next steps')),
+        'Subject: ' + textValue(template && template.subject, title + ' - next steps'),
         '',
-        template ? template.body.replace('[name]', lovedOne) : 'I am helping coordinate next steps for ' + lovedOne + '. Please confirm what you need, where this should be sent, and what reference number or proof we should save.',
+        template ? textValue(template.body, '').replace('[name]', lovedOne) : 'I am helping coordinate next steps for ' + lovedOne + '. Please confirm what you need, where this should be sent, and what reference number or proof we should save.',
         '',
         'Known details to include:',
         '- Loved one: ' + lovedOne,
         '- Coordinator: ' + (coordinatorName || '[coordinator]'),
         '- Task: ' + title,
         '',
-        'Proof to save: ' + (playbook.proofRequired || 'submission confirmation, reference number, or instructions') + '.'
+        'Proof to save: ' + textValue(playbook.proofRequired, 'submission confirmation, reference number, or instructions') + '.'
       ].join('\n');
     }
     if (mode === 'official') {
@@ -2382,9 +2414,9 @@ export default function EstatePage() {
         'Use the official agency or institution process. Passage should record what happened here after you complete it.',
         '',
         'Information likely needed:',
-        (playbook.requiredInfo || []).length ? playbook.requiredInfo.map(function(info) { return '- ' + info; }).join('\n') : '- Name, date, relationship, and reference details',
+        Array.isArray(playbook.requiredInfo) && playbook.requiredInfo.length ? playbook.requiredInfo.map(function(info) { return '- ' + textValue(info); }).join('\n') : '- Name, date, relationship, and reference details',
         '',
-        'Proof to save: ' + (playbook.proofRequired || 'official confirmation or next instruction') + '.'
+        'Proof to save: ' + textValue(playbook.proofRequired, 'official confirmation or next instruction') + '.'
       ].join('\n');
     }
     if (mode === 'record') {
@@ -2395,7 +2427,7 @@ export default function EstatePage() {
         '',
         'Add what is known now. If something is unknown, leave it waiting and Passage will keep it visible.',
         '',
-        'Proof to save: ' + (playbook.proofRequired || 'saved detail or document location') + '.'
+        'Proof to save: ' + textValue(playbook.proofRequired, 'saved detail or document location') + '.'
       ].join('\n');
     }
     return [
@@ -2744,6 +2776,7 @@ export default function EstatePage() {
         />
 
         {pendingTaskAction && (
+          <TaskPanelBoundary resetKey={(pendingTaskAction.task?.id || '') + ':' + (pendingTaskAction.status || '') + ':' + (pendingTaskAction.mode || '')}>
           <div id="task-update-panel" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '20px 22px', marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
             {(() => {
               var assigningOnly = pendingTaskAction.status === 'choose';
@@ -3012,6 +3045,7 @@ export default function EstatePage() {
               </button>
             </div>
           </div>
+          </TaskPanelBoundary>
         )}
 
         {resumeEvent && (
