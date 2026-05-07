@@ -48,6 +48,9 @@ export default function FuneralHomeDashboard() {
   const [vendorPrefs, setVendorPrefs] = useState({ vendors: [], preferred: [], marketplaceEnabled: true });
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [partnerEmail, setPartnerEmail] = useState('');
+  const [partnerPassword, setPartnerPassword] = useState('');
+  const [signingIn, setSigningIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState('');
   const [showNewCase, setShowNewCase] = useState(false);
@@ -101,6 +104,37 @@ export default function FuneralHomeDashboard() {
 
   async function signIn() {
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/funeral-home/dashboard' } });
+  }
+
+  async function signInWithPassword(event) {
+    event?.preventDefault?.();
+    if (!partnerEmail.trim() || !partnerPassword) {
+      setError('Enter the partner email and password for this workspace.');
+      return;
+    }
+    setSigningIn(true);
+    setError('');
+    setNotice('');
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: partnerEmail.trim(),
+        password: partnerPassword,
+      });
+      if (authError) {
+        setError(authError.message || 'Could not sign in with that partner account.');
+        return;
+      }
+      const session = authData?.session;
+      setUser(session?.user || authData?.user || null);
+      setToken(session?.access_token || '');
+      if (session?.access_token) {
+        await load(session.access_token);
+        await loadPreferredVendors(session.access_token);
+      }
+      setNotice('Partner workspace opened. Cases, staff work, reports, and proof are ready below.');
+    } finally {
+      setSigningIn(false);
+    }
   }
 
   async function signOut() {
@@ -477,7 +511,37 @@ export default function FuneralHomeDashboard() {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, maxWidth: 520 }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>Sign in as partner staff.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Only staff connected to a Passage partner organization can view this dashboard.</p>
-            <button onClick={signIn} style={{ border: 'none', borderRadius: 13, padding: '13px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+            <form onSubmit={signInWithPassword} style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+              <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>
+                Partner email
+                <input
+                  value={partnerEmail}
+                  onChange={event => setPartnerEmail(event.target.value)}
+                  type="email"
+                  placeholder="demo@collinsffh.com"
+                  autoComplete="email"
+                  style={{ border: `1.5px solid ${C.border}`, borderRadius: 12, background: C.bg, padding: '12px 13px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 14 }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>
+                Password
+                <input
+                  value={partnerPassword}
+                  onChange={event => setPartnerPassword(event.target.value)}
+                  type="password"
+                  placeholder="Partner password"
+                  autoComplete="current-password"
+                  style={{ border: `1.5px solid ${C.border}`, borderRadius: 12, background: C.bg, padding: '12px 13px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 14 }}
+                />
+              </label>
+              <button type="submit" disabled={signingIn} style={{ border: 'none', borderRadius: 13, padding: '13px 18px', background: signingIn ? C.border : C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: signingIn ? 'wait' : 'pointer' }}>
+                {signingIn ? 'Opening workspace...' : 'Open partner workspace'}
+              </button>
+            </form>
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.55, marginBottom: 12 }}>
+              Demo partners can use the email and password Passage issued. Real partner teams can continue with Google when their domain is connected.
+            </div>
+            <button onClick={signIn} style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
           </div>
         )}
 

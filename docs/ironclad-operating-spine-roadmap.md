@@ -176,6 +176,8 @@ These are not failures to hide. They are the work queue until fixed and QA-passe
 - Guide unlock UI now lives inside the locked guide card/module and records a support/lead inquiry. Remaining work is richer guide content and public proof.
 - Reporting is useful but still derived from imperfect existing fields; case value and marketplace share need durable fields before pilot-grade ROI.
 - The funeral-home marketing page tier CTAs have visible fallback, dashboard access has a graceful signed-out path, and feature tabs visibly change. Remaining demo trust depends on the closed loop being demonstrable from partner case creation through family-visible update.
+- Collins demo auth is active through email/password. The partner dashboard must keep that password path available for demo users while Google remains the real-world partner option.
+- Public funeral-home walkthrough CTAs must not route a prospect into `system/demo` or any Passage-admin-only surface. Until a public guided demo exists, route to contact/walkthrough booking.
 - Schema has moved ahead of product activation. `organizations`, `funeral_home_partners`, `estate_participants`, `subscriptions`, `account_entitlements`, `marketplace_interactions`, and `vendor_requests` must have real demo/test activation paths before they are used in demos as proof.
 - Status events are not enough. A task loop is not healthy until the task row reaches the expected terminal state and the event/audit trail agrees with it.
 
@@ -197,6 +199,11 @@ Minimum B2B activation proof before a serious funeral-home meeting:
 3. The family opens the linked command center.
 4. The partner marks one task handled and the family sees the update.
 5. At least one verified notification channel records delivery or a clear fallback.
+
+Latest DB contract status:
+
+- Collins auth, org membership, partner context, invite token lookup, estate access, task visibility, done analytics fields, and task-status-event task IDs are green for the seeded demo path.
+- Remaining QA is runtime/product: verify the live UI signs Collins in, opens partner cases, accepts family invite routes without a dead end, and writes one new task status event with `task_id` through the app path.
 
 ## Success Scorecard
 

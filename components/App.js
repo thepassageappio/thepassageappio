@@ -4450,7 +4450,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.7, margin: 0 }}>Passage sits on top of the funeral home workflow: create a case, guide the family, delegate tasks, act on behalf, show proof, and export the data back out.</p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
               <a href="/funeral-home" style={{ background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>See funeral-home workflow</a>
-              <a href="/system/demo" style={{ background: C.bgCard, color: C.sage, textDecoration: 'none', border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>View guided demo</a>
+              <a href="/contact?category=Funeral%20home%20walkthrough" style={{ background: C.bgCard, color: C.sage, textDecoration: 'none', border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>Book guided walkthrough</a>
             </div>
           </div>
           <div style={{ display: 'grid', gap: 9 }}>
