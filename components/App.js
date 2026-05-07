@@ -4436,6 +4436,11 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       </section>
 
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '12px 24px 48px' }}>
+        <div style={{ maxWidth: 720, marginBottom: 18 }}>
+          <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>How Passage works</div>
+          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 3.4vw, 38px)', lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400, color: C.ink }}>One spine before, during, and after.</h2>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.65, margin: 0 }}>Each estate keeps its own people, wishes, documents, tasks, messages, proof, and activity history together so families and partners are not chasing scattered updates.</p>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 14 }}>
           {[
             { label: 'Before', title: 'Plan before it is needed', body: 'People, wishes, documents, obituary notes, memories, and trusted contacts live inside each estate file.' },
