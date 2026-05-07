@@ -23,6 +23,7 @@ Near-term product constraints:
 - Funeral-home surfaces should feel restrained, practical, and operationally serious.
 - Mobile is not optional: family coordination, invitations, task updates, and urgent guidance must be comfortable on phones.
 - Trust layer is now a product requirement: privacy, security, data ownership, role visibility, audit logging, legal boundaries, and support routing need visible homes before serious pilots.
+- Public trust scaffolding is live only as product-boundary copy. Final Terms, Privacy, data retention, vendor terms, partner terms, and urgent-path liability language still require owner/counsel review before pilots can rely on them.
 - AI, memorial, marketplace, and vault expansion must wait behind workflow excellence, task outputs, proof, permissions, and trust maturity.
 
 ## Readiness Contract
@@ -96,6 +97,7 @@ No task may be labeled automated unless it produces a visible artifact, sent com
 These are not failures to hide. They are the work queue until fixed and QA-passed:
 
 - Public landing/nav/footer still need demo-grade trust polish: no SSR blank hero fallback, fewer mobile nav decisions, clearer label than `Participant`, and visible privacy/terms links before B2B demos.
+- FAQ, Trust, Privacy, and Terms overview destinations exist, but they are not final legal/compliance policy. The next legal sprint must replace overview copy with owner/counsel-approved language.
 - Urgent flow has drifted away from the one-action crisis spec. The triage logic is good, but too many controls are visible at once and the progress sidebar reads empty before the user has context.
 - The task action UI is still not fully shared everywhere.
 - Proof attachments are placeholder-level, not storage-backed.
