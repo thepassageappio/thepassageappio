@@ -402,6 +402,56 @@ Acceptance:
 - A task marked handled updates both the task row and the audit/event trail.
 - Dashboard metrics label whether they are real, demo, or unavailable.
 
+## Sprint 7B: Public FAQ, Support, and Legal Trust Layer
+
+Goal: Give families, vendors, participants, funeral homes, and prospects clear answers while reducing support and liability ambiguity before pilots.
+
+Must ship:
+
+- FAQ page with audience sections:
+  - urgent family users
+  - planning users
+  - participants/helpers
+  - funeral homes and employees
+  - local vendors
+  - billing, support, feature requests, bug reports, and disputes
+- Vendor FAQ answers:
+  - how to become a local vendor supporting families
+  - how applications are reviewed
+  - whether the vendor admin list comes from vendor applications, not the general contact form
+  - how approved vendors sign in
+  - how task-native requests work
+  - how a vendor gets support or disputes a request/billing issue
+- Support routing model:
+  - vendor applications
+  - contact/support inquiries
+  - feature requests
+  - bug reports
+  - billing disputes
+  - funeral-home pilot inquiries
+  - family urgent-flow support
+- Owner/counsel-reviewed legal pages:
+  - Terms
+  - Privacy Policy
+  - data ownership and retention
+  - accepted use
+  - payment/billing terms
+  - vendor participation terms
+  - urgent-path disclaimer and liability limitation
+- Urgent-path disclaimer language must make clear:
+  - Passage provides coordination guidance, not emergency, legal, medical, financial, religious, or funeral-directing advice.
+  - Passage does not replace 911, local authorities, hospice, medical professionals, funeral directors, attorneys, clergy, or other professionals.
+  - Users remain responsible for deciding whether to call 911, hospice, police, a funeral home, or another authority.
+  - Workflows and recommendations are best-practice guidance and customizable planning tools, not guaranteed instructions.
+  - Users accept Terms before relying on saved workflows, paid services, or partner features.
+
+Acceptance:
+
+- A vendor can understand how to apply and where their admin request appears.
+- A family understands that Passage coordinates next steps but does not replace emergency/local professional judgment.
+- A funeral-home prospect sees Privacy/Terms/Support destinations before a serious demo.
+- Legal/disclaimer language remains marked owner/counsel-review required until approved.
+
 ## Sprint 8: Communication Command Center
 
 Goal: Make family, funeral home, participant, and vendor communication feel like one coordinated truth instead of scattered task notes.
@@ -474,6 +524,115 @@ Acceptance:
 - A 12-minute funeral-home demo can show the loop without hand-waving.
 - If SMS is not fully approved, the product says email fallback is the verified channel instead of implying SMS certainty.
 - No demo CTA hits a dead end.
+
+## Sprint 11: Passage System Admin Shell
+
+Goal: Collapse Passage-only utilities into one system-admin command center so public, family, vendor, and funeral-home nav stays calm.
+
+Must ship:
+
+- Single `System admin` nav entry visible only to Passage system admins, not estate admins, funeral-home admins, location managers, vendor admins, or family coordinators.
+- Organize Passage-only tools under the shell:
+  - demo studio
+  - vendor applications/admin
+  - vendor page QA shortcut
+  - leads/support inbox
+  - internal reporting
+  - raw data exports
+  - platform QA links
+- Role copy that distinguishes Passage system admin from customer account admins.
+- Meaningful empty/loading/error states for every admin module.
+- Admin module audit copy that explains whether data is real, demo, estimated, or unavailable.
+
+Acceptance:
+
+- Public header no longer exposes Demo, Vendor page, and Vendor admin as separate top-level links.
+- Customer admins cannot see Passage system-admin tools.
+- Steve can reach demo, vendor admin, support inquiries, reporting, and raw exports from one admin entry.
+
+## Sprint 12: Passage Business Health Dashboard
+
+Goal: Surface the business metrics and raw operating data Passage needs before a dedicated CRM/business intelligence stack exists.
+
+Must ship:
+
+- Time filters:
+  - day
+  - week
+  - month
+  - quarter
+  - year
+  - custom range
+- Revenue and subscription metrics:
+  - ARR
+  - MRR
+  - NRR
+  - churn percent
+  - subscription amount
+  - renewal dates
+  - free-to-paid conversion time
+  - pilot customers not converted
+- Revenue segmentation:
+  - B2B funeral-home revenue
+  - D2C planning/urgent revenue
+  - marketplace/vendor revenue
+  - rev-share percent and dollars
+  - marketplace spend/value by customer and time period
+- Lead/support CRM-lite views:
+  - submitted leads
+  - contact inquiry type
+  - vendor applications
+  - feature requests
+  - bug reports
+  - billing disputes
+  - pilot prospects and conversion stage
+- Engagement/customer health metrics:
+  - tasks by customer/org
+  - tasks per estate
+  - participants per estate
+  - user login count where available
+  - activity/session proxy where available
+  - participant invitation acceptance time
+  - funeral-home response time
+  - vendor response time
+  - renewal risk indicators
+- Raw data export behind every report:
+  - CSV export for the rows powering each chart/table
+  - source table/view label
+  - date range and filters captured in export
+  - clear indicator when a metric is estimated, demo-only, or unavailable
+
+Acceptance:
+
+- Internal metrics do not invent ARR/MRR/NRR/churn if subscription/account tables are empty.
+- Every number is traceable to a source table/view or a clearly marked missing instrumentation need.
+- The dashboard can function as a rough CRM and business health console until Passage outgrows it.
+
+## Sprint 13: Customer ROI and Operations Reporting
+
+Goal: Turn the same operating spine into customer-facing ROI reports for funeral homes without exposing Passage-only business data.
+
+Must ship:
+
+- Funeral-home reporting tabs:
+  - tasks completed
+  - calls avoided
+  - average response time
+  - tasks per estate
+  - tasks by employee
+  - tasks by location
+  - participant response time
+  - vendor request status
+  - marketplace value and funeral-home share where enabled
+- Filters by day, week, month, quarter, year, and location.
+- Raw CSV export for every funeral-home report.
+- Clear separation between Passage internal revenue metrics and funeral-home ROI metrics.
+
+Acceptance:
+
+- A funeral-home director can see why Passage saves staff time.
+- Multi-location operators can compare workload and response time by location.
+- Employee metrics never expose family-private details beyond that role's permission scope.
 
 ## Confidence Rule
 

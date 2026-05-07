@@ -47,6 +47,7 @@ export default async function handler(req, res) {
 
   const now = new Date().toISOString();
   const finalValue = Number(req.query.finalValue || req.body?.finalValue || 0);
+  const resetFromDeclined = request.status === 'declined' && status !== 'declined';
   const economics = calculateVendorEconomics({
     value: finalValue,
     marketplaceFeePercent: request.marketplace_fee_percent,
@@ -55,17 +56,18 @@ export default async function handler(req, res) {
   });
   const update = {
     status,
-    responded_at: status === 'accepted' || status === 'declined' ? now : request.responded_at || now,
-    in_progress_at: status === 'in_progress' ? now : request.in_progress_at,
+    responded_at: status === 'accepted' || status === 'declined' || resetFromDeclined ? now : request.responded_at || now,
+    in_progress_at: status === 'declined' || status === 'accepted' ? null : status === 'in_progress' || resetFromDeclined ? now : request.in_progress_at || now,
     completed_at: status === 'completed' ? now : null,
-    final_value: finalValue > 0 ? finalValue : null,
+    final_value: status === 'declined' ? null : finalValue > 0 ? finalValue : null,
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
     passage_share_amount: economics.passageShareAmount,
     payment_collection_status: status === 'completed' && finalValue > 0 ? 'passage_collects' : 'tracking_only',
     updated_at: now,
   };
-  await admin.from('vendor_requests').update(update).eq('id', request.id);
+  const { error: updateError } = await admin.from('vendor_requests').update(update).eq('id', request.id);
+  if (updateError) return res.status(500).send(updateError.message);
 
   const vendorName = request.vendors?.business_name || 'Vendor';
   const category = vendorCategoryLabel(request.vendors?.category);

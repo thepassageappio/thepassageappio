@@ -128,19 +128,9 @@ export default function VendorRequestPage() {
 
   async function update(action) {
     if (!token) {
-      const now = new Date().toISOString();
-      const next = {
-        ...request,
-        status: action === 'completed' || action === 'in_progress' || action === 'declined' ? action : 'accepted',
-        viewed_at: request?.viewed_at || now,
-        responded_at: ['accepted', 'declined'].includes(action) ? now : request?.responded_at,
-        in_progress_at: action === 'in_progress' ? now : request?.in_progress_at,
-        completed_at: action === 'completed' ? now : request?.completed_at,
-        estimated_value: estimatedValue,
-        final_value: finalValue,
-      };
+      const next = applyVendorRequestTransition(request, action, { estimatedValue, finalValue });
       setRequest(next);
-      setNotice('Demo update saved locally. No vendor request record was changed.');
+      setNotice(noticeForAction(action, true));
       return;
     }
     setUpdating(action);
@@ -158,9 +148,7 @@ export default function VendorRequestPage() {
       return;
     }
     setRequest(json.request);
-    setNotice(action === 'completed'
-      ? 'Marked completed. Passage will show the family and funeral home that this is handled.'
-      : 'Updated. Passage will keep the family and funeral home informed.');
+    setNotice(noticeForAction(action, false));
   }
 
   const familyName = request?.workflows?.deceased_name || request?.workflows?.estate_name || request?.workflows?.name || 'Family case';
@@ -242,6 +230,48 @@ export default function VendorRequestPage() {
       </section>
     </main>
   );
+}
+
+function applyVendorRequestTransition(current, action, values = {}) {
+  const now = new Date().toISOString();
+  const status = ['completed', 'in_progress', 'declined'].includes(action) ? action : 'accepted';
+  const next = {
+    ...current,
+    status,
+    viewed_at: current?.viewed_at || now,
+    estimated_value: values.estimatedValue,
+    final_value: values.finalValue,
+  };
+  if (status === 'accepted') {
+    next.responded_at = now;
+    next.in_progress_at = null;
+    next.completed_at = null;
+  }
+  if (status === 'in_progress') {
+    next.responded_at = current?.status === 'declined' ? now : current?.responded_at || now;
+    next.in_progress_at = now;
+    next.completed_at = null;
+  }
+  if (status === 'completed') {
+    next.responded_at = current?.status === 'declined' ? now : current?.responded_at || now;
+    next.in_progress_at = current?.status === 'declined' ? now : current?.in_progress_at || now;
+    next.completed_at = now;
+  }
+  if (status === 'declined') {
+    next.responded_at = now;
+    next.in_progress_at = null;
+    next.completed_at = null;
+    next.final_value = '';
+  }
+  return next;
+}
+
+function noticeForAction(action, demo) {
+  const prefix = demo ? 'Demo update saved locally. ' : '';
+  if (action === 'completed') return prefix + 'Marked completed. Passage will show the family and funeral home that this is handled.';
+  if (action === 'in_progress') return prefix + 'Marked in progress. Passage will keep this visible while the vendor works.';
+  if (action === 'declined') return prefix + 'Marked declined. Passage will show that this request needs another option.';
+  return prefix + 'Request accepted. Passage will keep the family and funeral home informed.';
 }
 
 function VendorDashboard({ vendor, requests }) {

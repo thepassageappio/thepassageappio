@@ -75,6 +75,7 @@ export default async function handler(req, res) {
   const estimatedValue = Number(req.body?.estimatedValue || request.estimated_value || 0);
   const finalValue = Number(req.body?.finalValue || request.final_value || 0);
   const valueForFee = action === 'completed' ? finalValue : estimatedValue;
+  const resetFromDeclined = request.status === 'declined' && action !== 'declined';
   const economics = calculateVendorEconomics({
     value: valueForFee,
     marketplaceFeePercent: request.marketplace_fee_percent,
@@ -84,11 +85,11 @@ export default async function handler(req, res) {
   const update = {
     status: action,
     viewed_at: request.viewed_at || now,
-    responded_at: ['accepted', 'declined'].includes(action) ? now : request.responded_at || now,
-    in_progress_at: action === 'in_progress' ? now : request.in_progress_at,
-    completed_at: action === 'completed' ? now : request.completed_at,
+    responded_at: ['accepted', 'declined'].includes(action) || resetFromDeclined ? now : request.responded_at || now,
+    in_progress_at: action === 'declined' || action === 'accepted' ? null : action === 'in_progress' || resetFromDeclined ? now : request.in_progress_at || now,
+    completed_at: action === 'declined' || action === 'accepted' || action === 'in_progress' ? null : now,
     estimated_value: estimatedValue > 0 ? estimatedValue : request.estimated_value,
-    final_value: finalValue > 0 ? finalValue : request.final_value,
+    final_value: action === 'declined' ? null : finalValue > 0 ? finalValue : request.final_value,
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
     passage_share_amount: economics.passageShareAmount,

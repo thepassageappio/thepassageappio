@@ -16,6 +16,7 @@
 - Current RLS risk: until the org-link migration ships, app code must never rely on client-side reads from `funeral_home_partners`; use the server/service-role partner context and return only the matched plan.
 - Collins activation blocker: `demo@collinsffh.com` needs an Auth user/invite path and member `user_id` backfill before staff login QA can pass.
 - Participant acceptance blocker: invite acceptance must upsert both `estate_participants` and `estate_access` so the participant can see the task plus funeral-home activity/events.
+- Vendor request action blocker: vendor `Accept request`, `Mark in progress`, `Mark completed`, and `Decline` must update one coherent current status, proof trail, owner notification, task status event, and family/funeral-home-visible activity without contradictory states like declined plus completed.
 - Repo hygiene: `.gitattributes` now normalizes LF line endings; monitor for any remaining phantom dirty files after Windows edits.
 - Persona QA: red-path (home/hospice/hospital/past-first-steps) + funeral-home demo (one-location + multi-location) + invited family view; always one clear next action.
 - Webhook-as-proof QA: Resend + Twilio `webhook_events` record provider + timestamp + actor and are surfaced as proof; vendor requests show Sent/Received/Accepted/Declined with visible activity.
@@ -33,12 +34,17 @@
 - Add schema activation smoke: `funeral_home_partners`, `estate_participants`, `vendor_requests`, `marketplace_interactions`, `subscriptions`, `accounts`, and `account_entitlements` either receive test/demo rows from live flows or are explicitly omitted from demo claims.
 - Wire or visibly defer the payment loop: Pilot/Local/Group pricing CTAs must either reach checkout/test checkout and write entitlement state, or route to a contact/pilot fallback with no dead end.
 - Turn system-admin demo into a one-step-at-a-time guided sales studio with dummy-only data and a stronger prospect narrative.
+- Split the header/nav shell by audience: public users see only core paths, signed-in users see role-appropriate work areas, and Passage system-admin utilities like Demo, Vendor page, and Vendor admin move behind a system-admin menu so the banner stays calm at desktop and mobile sizes.
 - Clean up the public guide unlock page: move the email/name/guide selector into the locked article module so the page reads as one contained "pick guide -> unlock article" action instead of a floating form plus disconnected locked preview.
 - Fix vendor admin/provisioning loop: submitted applications load, system admin approves/declines, approved vendors get profile setup and vendor-owned dashboard access.
+- Harden vendor request actions: token-based vendor actions and system-admin demo actions must share the same status transition rules, visible proof trail, and no-real-record demo copy so the marketplace loop can be trusted in demos.
 - Define funeral-home staff role UX: director/admin, location manager, and employee dashboards with location/assigned-work scope and reporting.
 - Add ROI/reporting fields plan: case value, location, employee, tasks completed, time saved, marketplace revenue share, and CSV exports.
+- Add an AI execution spine only after task/output contracts are stable: there is no active OpenAI integration today, so start future AI work with a server-side Responses API adapter, current recommended GPT model default, strict structured-output schemas, prompt fixtures, audit/proof logging, and no direct client-side model calls.
 - Tighten and freeze the 15-minute funeral home demo script + objection answers (doc-only until owner approves outreach).
 - Produce a one-page pilot handout (offer terms placeholders; no pricing changes).
+- Add FAQ/support/legal trust layer: vendor application FAQ, family/participant/funeral-home FAQ, feature request, bug report, billing dispute, support routing, Privacy, Terms, data ownership, urgent-path disclaimer, and owner/counsel-reviewed liability language before serious pilots.
+- Add Passage system-admin shell and business health dashboard: one admin tab for demo, vendor admin, vendor page QA, leads/support inbox, raw data exports, ARR/MRR/NRR/churn, pilot conversion, contact inquiry types, engagement, marketplace value, rev share, and customer health metrics.
 - Map top red-path tasks into automated / assisted / guided-manual tiers; list proof required + follow-up loop for each.
 - Identify owner-facing notification gaps for participant/vendor/funeral-home completion events (inventory only).
 - Define trusted vendor criteria + an approval/override process for funeral homes.
