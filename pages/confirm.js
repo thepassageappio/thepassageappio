@@ -85,7 +85,7 @@ export default function ConfirmPage() {
   if (step === "error") return (
     shell(
       <div style={Object.assign({}, box, { textAlign: "center" })}>
-        <div style={{ fontSize: 34, marginBottom: 16 }}>🕊️</div>
+        <div style={{ fontSize: 11, color: SAGE, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12 }}>Passage</div>
         <div style={{ fontSize: 20, color: INK, marginBottom: 12 }}>Link not found</div>
         <div style={{ fontSize: 14, color: MID, lineHeight: 1.65 }}>This confirmation link is invalid or has expired. Please contact the family coordinator.</div>
       </div>
@@ -95,7 +95,7 @@ export default function ConfirmPage() {
   if (step === "already") return (
     shell(
       <div style={Object.assign({}, box, { textAlign: "center" })}>
-        <div style={{ fontSize: 34, marginBottom: 16 }}>✅</div>
+        <div style={{ fontSize: 11, color: SAGE, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12 }}>Confirmed</div>
         <div style={{ fontSize: 20, color: INK, marginBottom: 12 }}>Plan already activated</div>
         <div style={{ fontSize: 14, color: MID, lineHeight: 1.65 }}>The estate plan for {dname} was activated. All assigned contacts have been notified.</div>
       </div>
@@ -105,7 +105,7 @@ export default function ConfirmPage() {
   if (step === "done") return (
     shell(
       <div style={Object.assign({}, box, { textAlign: "center" })}>
-        <div style={{ fontSize: 42, marginBottom: 16 }}>🕊️</div>
+        <div style={{ fontSize: 11, color: SAGE, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12 }}>Passage</div>
         <div style={{ fontSize: 22, color: INK, marginBottom: 16 }}>{result && result.triggered ? "The plan has been activated." : "Confirmation received."}</div>
         <div style={{ fontSize: 14, color: MID, lineHeight: 1.75 }}>
           {result && result.triggered
@@ -121,7 +121,6 @@ export default function ConfirmPage() {
     shell(
       <div style={box}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <div style={{ fontSize: 32, marginBottom: 10 }}>🕊️</div>
           <div style={{ fontSize: 11, color: SOFT, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8 }}>Passage</div>
           <div style={{ fontSize: 22, color: INK, lineHeight: 1.35, marginBottom: 14 }}>Confirming the passing of {dname}</div>
           <div style={{ background: SUBTLE, borderRadius: 12, padding: "12px 16px", fontSize: 13, color: MID, lineHeight: 1.65 }}>
