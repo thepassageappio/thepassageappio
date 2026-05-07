@@ -736,6 +736,20 @@ export default function UrgentPage() {
 
             {selectedSituation ? (
               <>
+            <div className="phase-rail" aria-label="Urgent work sequence">
+              {['Minutes', 'Today', 'Next 72 hours'].map((label) => {
+                const items = outcomes.filter(item => phaseLabel(item.phase) === label);
+                const openCount = items.filter(item => item.status !== 'handled').length;
+                const active = primary && phaseLabel(primary.phase) === label;
+                const done = items.length > 0 && openCount === 0;
+                return (
+                  <div key={label} className={`phase-card ${active ? 'active' : done ? 'done' : ''}`}>
+                    <b>{label}</b>
+                    <span>{done ? 'Handled' : active ? 'This is the section to do now' : `${openCount || items.length} step${(openCount || items.length) === 1 ? '' : 's'} can wait`}</span>
+                  </div>
+                );
+              })}
+            </div>
             <div className="authority-strip">
               <div className="context-title">Who can make decisions right now?</div>
               <div className="context-help">Release, medical, and funeral decisions need a clear person. If you are not sure, Passage will keep that visible before anything is sent.</div>
@@ -814,23 +828,9 @@ export default function UrgentPage() {
                   <div className="field compact">
                     <label>Medical records / documents location</label>
                     <input value={context.medicalRecordsLocation} onChange={e => updateContext('medicalRecordsLocation', e.target.value)} placeholder="Records, proxy, medication list, insurance cards" />
-                  </div>
+                </div>
               </div>
             </details>
-            <div className="phase-rail" aria-label="Urgent work sequence">
-              {['Minutes', 'Today', 'Next 72 hours'].map((label) => {
-                const items = outcomes.filter(item => phaseLabel(item.phase) === label);
-                const openCount = items.filter(item => item.status !== 'handled').length;
-                const active = primary && phaseLabel(primary.phase) === label;
-                const done = items.length > 0 && openCount === 0;
-                return (
-                  <div key={label} className={`phase-card ${active ? 'active' : done ? 'done' : ''}`}>
-                    <b>{label}</b>
-                    <span>{done ? 'Handled' : active ? 'Do this section now' : `${openCount || items.length} step${(openCount || items.length) === 1 ? '' : 's'} waiting`}</span>
-                  </div>
-                );
-              })}
-            </div>
             <div className="phase">{primary.phase}</div>
             <h2>{primary.title}</h2>
             <p className="support">{primary.support}</p>
