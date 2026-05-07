@@ -4357,14 +4357,20 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
+      <style>{`
+        @media (max-width: 720px) {
+          .home-nav-secondary { display: none !important; }
+          .home-nav-links { gap: 8px !important; }
+        }
+      `}</style>
       <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
         <CandleLogo size={32} nameSize={21} />
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <a href="/mission" style={navLink}>Mission</a>
+        <div className="home-nav-links" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <a className="home-nav-secondary" href="/mission" style={navLink}>Mission</a>
           <a href="/content" style={navLink}>Guides</a>
-          <a href="/pricing" style={navLink}>Pricing</a>
-          <a href="/contact" style={navLink}>Contact</a>
-          <a href="/participating" style={navLink}>My tasks</a>
+          <a className="home-nav-secondary" href="/pricing" style={navLink}>Pricing</a>
+          <a className="home-nav-secondary" href="/contact" style={navLink}>Contact</a>
+          <a className="home-nav-secondary" href="/participating" style={navLink}>My tasks</a>
           <a href="/funeral-home" style={navLink}>Funeral homes</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>My estate</button>

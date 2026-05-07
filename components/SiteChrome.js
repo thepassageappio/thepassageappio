@@ -194,9 +194,16 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
   };
   return (
     <nav style={{ maxWidth: 1180, margin: '0 auto', padding: '14px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 18 }}>
+      <style>{`
+        @media (max-width: 720px) {
+          .passage-nav-secondary { display: none !important; }
+          .passage-nav-wrap { gap: 6px !important; font-size: 13px !important; }
+          .passage-nav-wrap a, .passage-nav-wrap button { min-height: 40px !important; padding: 8px 9px !important; }
+        }
+      `}</style>
       <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 26, fontWeight: 700 }}>Passage</Link>
-      <div style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
+      <div className="passage-nav-wrap" style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
           <Link href="/system/admin" style={(isActivePath(path, '/system') || isActivePath(path, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
