@@ -10,9 +10,12 @@ const C = {
 const categories = [
   'Urgent family support',
   'Planning-ahead question',
+  'Funeral home / partner inquiry',
+  'Local vendor interest',
+  'Feature request',
+  'Report a bug',
   'Billing or Stripe',
   'Technical issue',
-  'Funeral home / partner inquiry',
   'Content or press',
   'Other',
 ];
@@ -68,9 +71,10 @@ export default function ContactPage() {
         <div>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Contact Passage</div>
           <h1 style={{ fontSize: 'clamp(28px, 3.3vw, 36px)', lineHeight: 1.04, margin: '0 0 8px', fontWeight: 400 }}>How can we help right now?</h1>
-          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Use this form for support, billing, urgent-flow feedback, partnership inquiries, or content requests. For emergencies, contact local emergency services or the appropriate funeral, medical, legal, or government office directly.</p>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Use this form for support, billing, bug reports, feature requests, urgent-flow feedback, partnership inquiries, or content requests. For emergencies, contact local emergency services or the appropriate funeral, medical, legal, or government office directly.</p>
           <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
             <strong style={{ color: C.ink }}>Support email:</strong> <SupportEmail /><br />
+            <strong style={{ color: C.ink }}>Vendor applications:</strong> use the vendor form so it reaches the system-admin approval queue. <Link href="/vendors/onboard" style={{ color: C.sage, fontWeight: 900 }}>Apply as a vendor</Link><br />
             <strong style={{ color: C.ink }}>Partnerships:</strong> funeral homes, attorneys, planners, and care teams can use the partner inquiry category.
           </div>
         </div>
