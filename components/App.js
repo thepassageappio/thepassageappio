@@ -379,12 +379,11 @@ const grantEstateAccess = async (workflowId, person) => {
 
 const humanStatus = (status) => {
   if (status === 'handled' || status === 'completed' || status === 'done') return 'Handled';
-  if (status === 'sent' || status === 'assigned' || status === 'waiting') return 'Waiting for confirmation';
+  if (status === 'sent' || status === 'assigned' || status === 'waiting' || status === 'pending') return 'Waiting for confirmation';
   if (status === 'acknowledged') return 'Confirmed';
   if (status === 'blocked') return 'Blocked';
   if (status === 'needs_review') return 'Needs review';
   if (status === 'in_progress') return 'In progress';
-  if (status === 'pending') return 'Draft';
   return status ? status.replace(/_/g, ' ') : 'Draft';
 };
 
@@ -3480,6 +3479,9 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
   const redWorkflows = workflows.filter(w => w.status !== 'archived' && w.path !== 'green');
   const greenWorkflows = workflows.filter(w => w.status !== 'archived' && w.path === 'green');
   const activeWorkflows = workflows.filter(w => w.status !== 'archived');
+  const activeFileWorkflow = activeFileWorkflowId
+    ? activeWorkflows.find(w => String(w.id) === String(activeFileWorkflowId))
+    : null;
   const attentionItems = activeWorkflows.flatMap(wf => {
     const openTasks = (taskStats[wf.id]?.openTasks || []).slice(0, 3);
     return openTasks.map(task => ({ ...task, workflow: wf }));
@@ -3842,10 +3844,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
 
       {showObituary ? (
         <ObituaryModal
-          workflowId={redWorkflows.length > 0 ? redWorkflows[0].id : null}
+          workflowId={activeFileWorkflow?.id || (redWorkflows.length > 0 ? redWorkflows[0].id : null)}
           userId={user && user.id}
-          deceasedName={redWorkflows.length > 0 ? redWorkflows[0].deceased_name : null}
-          dateOfDeath={redWorkflows.length > 0 ? redWorkflows[0].date_of_death : null}
+          deceasedName={activeFileWorkflow?.deceased_name || activeFileWorkflow?.name || (redWorkflows.length > 0 ? redWorkflows[0].deceased_name : null)}
+          dateOfDeath={activeFileWorkflow?.date_of_death || (redWorkflows.length > 0 ? redWorkflows[0].date_of_death : null)}
           onClose={() => setShowObituary(false)}
           onSaved={(draft) => {
             setProfile(prev => ({ ...(prev || {}), obituary_draft: draft }));
