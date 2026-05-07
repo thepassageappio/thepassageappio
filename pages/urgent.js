@@ -454,7 +454,12 @@ export default function UrgentPage() {
     try {
       localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, context, outcomes, people, proofByOutcome }));
     } catch {}
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/urgent' } });
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/urgent' } });
+      if (error) throw error;
+    } catch (error) {
+      setSaveError(error?.message || 'Passage could not start sign-in. Please try again.');
+    }
   };
 
   useEffect(() => {
@@ -489,38 +494,46 @@ export default function UrgentPage() {
       return;
     }
     setSavingEstate(true);
-    const { data: sessionData } = await supabase.auth.getSession();
-    const primaryOwner = outcomes.find(o => o.id === 'funeral')?.owner || null;
-    const firstOwner = primary?.owner || outcomes.find(o => o.owner)?.owner || primaryOwner || null;
-    const response = await fetch('/api/urgentEstate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + (sessionData?.session?.access_token || ''),
-      },
-      body: JSON.stringify({
-        deceasedName,
-        dateOfDeath,
-        coordinatorName: coordinatorName || user.user_metadata?.full_name || user.email,
-        coordinatorEmail: coordinatorEmail || user.email,
-        primaryOwner,
-        firstOwner,
-        context,
-        outcomes,
-      }),
-    });
-    const json = await response.json().catch(() => ({}));
-    if (!response.ok || !json.estateId) {
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('Your session expired. Please sign in again so Passage can save this command center.');
+
+      const primaryOwner = outcomes.find(o => o.id === 'funeral')?.owner || null;
+      const firstOwner = primary?.owner || outcomes.find(o => o.owner)?.owner || primaryOwner || null;
+      const response = await fetch('/api/urgentEstate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + accessToken,
+        },
+        body: JSON.stringify({
+          deceasedName,
+          dateOfDeath,
+          coordinatorName: coordinatorName || user.user_metadata?.full_name || user.email,
+          coordinatorEmail: coordinatorEmail || user.email,
+          primaryOwner,
+          firstOwner,
+          context,
+          outcomes,
+        }),
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok || !json.estateId) {
+        throw new Error(json.error || 'Passage could not save this yet. Please try again.');
+      }
+      try { window.sessionStorage.setItem('passage_last_estate_id', json.estateId); } catch {}
       setSavingEstate(false);
-      setSaveError(json.error || 'Passage could not save this yet. Please try again.');
-      return;
+      setHandoff(true);
+      setTimeout(() => {
+        window.location.assign('/estate?id=' + encodeURIComponent(json.estateId) + '&from=urgent');
+      }, 650);
+    } catch (error) {
+      setSavingEstate(false);
+      setHandoff(false);
+      setSaveError(error?.message || 'Passage could not save this command center yet. Please try again.');
     }
-    setSavingEstate(false);
-    setHandoff(true);
-    try { window.sessionStorage.setItem('passage_last_estate_id', json.estateId); } catch {}
-    setTimeout(() => {
-      window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
-    }, 650);
   };
 
   const updateContext = (key, value) => {
