@@ -303,6 +303,34 @@ function taskKey(title) {
   return clean(title).toLowerCase();
 }
 
+const LOCAL_OUTCOME_TASK_TITLES = {
+  emergency: 'Call 911 or emergency services',
+  pronouncement: 'Confirm official pronouncement of death',
+  authority: 'Identify healthcare proxy or legal decision-maker',
+  hospice: 'Call hospice nurse or hospice agency',
+  release: 'Confirm hospital or facility release process',
+  funeral: 'Contact the funeral home',
+  family: 'Notify immediate family members',
+  home: 'Secure the home and valuables',
+};
+
+function localOutcomeMap(rawOutcomes) {
+  const map = new Map();
+  if (!Array.isArray(rawOutcomes)) return map;
+  rawOutcomes.forEach(item => {
+    const proof = clean(item?.proof);
+    if (!proof && item?.status !== 'handled') return;
+    const canonicalTitle = LOCAL_OUTCOME_TASK_TITLES[item?.id] || clean(item?.title);
+    if (!canonicalTitle) return;
+    map.set(taskKey(canonicalTitle), {
+      proof,
+      status: item?.status === 'handled' ? 'done' : clean(item?.status),
+      owner: item?.owner || null,
+    });
+  });
+  return map;
+}
+
 function firstTasksForContext(context) {
   const tasks = [];
   let position = 1;
@@ -467,6 +495,7 @@ export default async function handler(req, res) {
   const primaryOwner = req.body?.primaryOwner || null;
   const firstOwner = req.body?.firstOwner || primaryOwner || null;
   const context = cleanContext(req.body?.context);
+  const localOutcomes = localOutcomeMap(req.body?.outcomes);
 
   let existingQuery = admin
     .from('workflows')
@@ -520,28 +549,64 @@ export default async function handler(req, res) {
   const ownerPhone = clean(firstOwner?.phone);
 
   const allTasks = buildTasksForContext(context);
-  const tasks = allTasks.map(({ position, ...task }, index) => ({
-    ...task,
-    workflow_id: workflow.id,
-    user_id: user.id,
-    category: safeTaskCategory(task.category),
-    automation_level: task.automation_level || 'MANUAL',
-    execution_kind: task.execution_kind || 'record',
-    waiting_on: task.waiting_on || null,
-    partner_owner_role: task.partner_owner_role || null,
-    funeral_home_eligible: Boolean(task.funeral_home_eligible),
-    proof_required: task.proof_required || 'confirmation',
-    status: index === 0 && ownerLabel ? 'assigned' : 'pending',
-    assigned_to_name: index === 0 && ownerLabel ? ownerLabel : null,
-    assigned_to_email: index === 0 && ownerEmail ? ownerEmail : null,
-    recipient: index === 0 ? (ownerEmail || ownerPhone || ownerLabel || null) : null,
-    channel: index === 0 && ownerEmail ? 'email' : index === 0 && ownerPhone ? 'sms' : null,
-    last_action_at: index === 0 && ownerLabel ? new Date().toISOString() : null,
-    last_actor: index === 0 && ownerLabel ? coordinatorName : null,
-  }));
+  const now = new Date().toISOString();
+  const tasks = allTasks.map(({ position, ...task }, index) => {
+    const local = localOutcomes.get(taskKey(task.title));
+    const localOwner = local?.owner || null;
+    const taskOwnerLabel = clean(localOwner?.name) || (index === 0 && ownerLabel ? ownerLabel : null);
+    const taskOwnerEmail = clean(localOwner?.email) || (index === 0 && ownerEmail ? ownerEmail : null);
+    const taskOwnerPhone = clean(localOwner?.phone) || (index === 0 && ownerPhone ? ownerPhone : null);
+    const completed = local?.status === 'done';
+    const row = {
+      ...task,
+      workflow_id: workflow.id,
+      user_id: user.id,
+      category: safeTaskCategory(task.category),
+      automation_level: task.automation_level || 'MANUAL',
+      execution_kind: task.execution_kind || 'record',
+      waiting_on: task.waiting_on || null,
+      partner_owner_role: task.partner_owner_role || null,
+      funeral_home_eligible: Boolean(task.funeral_home_eligible),
+      proof_required: task.proof_required || 'confirmation',
+      status: completed ? 'done' : taskOwnerLabel ? 'assigned' : 'pending',
+      assigned_to_name: taskOwnerLabel,
+      assigned_to_email: taskOwnerEmail,
+      recipient: taskOwnerEmail || taskOwnerPhone || taskOwnerLabel || null,
+      channel: taskOwnerEmail ? 'email' : taskOwnerPhone ? 'sms' : null,
+      last_action_at: (completed || taskOwnerLabel) ? now : null,
+      last_actor: completed ? (taskOwnerLabel || coordinatorName) : taskOwnerLabel ? coordinatorName : null,
+    };
+    if (local?.proof) row.notes = local.proof;
+    if (completed) {
+      row.completed_at = now;
+      row.completed_by = taskOwnerLabel || coordinatorName;
+      row.completed_by_email = taskOwnerEmail || user.email;
+    }
+    return row;
+  });
   const { error: tasksError } = await admin.from('tasks').upsert(tasks, { onConflict: 'workflow_id,title', ignoreDuplicates: false });
   if (tasksError) {
     return res.status(500).json({ error: tasksError.message || 'Could not create urgent tasks.' });
+  }
+
+  const completedLocalTasks = tasks.filter(task => task.status === 'done' && task.notes);
+  if (completedLocalTasks.length > 0) {
+    const { data: savedTasks } = await admin
+      .from('tasks')
+      .select('id,title,workflow_id,status,notes,last_actor,last_action_at')
+      .eq('workflow_id', workflow.id)
+      .in('title', completedLocalTasks.map(task => task.title));
+    const events = (savedTasks || []).map(task => ({
+      workflow_id: workflow.id,
+      task_id: task.id,
+      status: 'done',
+      last_action_at: task.last_action_at || now,
+      last_actor: task.last_actor || coordinatorName,
+      channel: 'urgent_path',
+      recipient: task.last_actor || coordinatorName,
+      detail: `${task.title} - proof saved from urgent path: ${task.notes}`,
+    }));
+    if (events.length) await admin.from('task_status_events').insert(events).then(() => {}, () => {});
   }
 
   const outcomes = allTasks.slice(0, 5).map((taskItem, index) => ({

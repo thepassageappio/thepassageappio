@@ -506,6 +506,7 @@ export default function UrgentPage() {
         primaryOwner,
         firstOwner,
         context,
+        outcomes,
       }),
     });
     const json = await response.json().catch(() => ({}));
