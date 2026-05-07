@@ -3253,18 +3253,31 @@ export default function EstatePage() {
             cta="Review"
             onClick={function() { openPeopleCoordination(true); }}
           />
-          <SecondaryCard
-            title="Planning file"
-            meta="Documents, wishes, obituary, voice notes"
-            cta="Open"
-            onClick={function() { window.location.href = homeLink('documents'); }}
-          />
-          <SecondaryCard
-            title="Scheduled messages"
-            meta="Letters, texts, or voice notes for dates and milestones"
-            cta="Open My file"
-            onClick={function() { window.location.href = homeLink('memories'); }}
-          />
+          <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '14px 16px', marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>Estate file for {name}</div>
+                <div style={{ fontSize: 12, color: SOFT, marginTop: 3 }}>Wishes, obituary, documents, memories, messages, and proof stay scoped to this estate.</div>
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 7, padding: '4px 9px', whiteSpace: 'nowrap' }}>This estate</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(128px, 1fr))', gap: 8 }}>
+              {[
+                ['Wishes', 'Service, faith, family preferences', 'wishes'],
+                ['Obituary', 'Draft, copy, and review', 'obituary'],
+                ['Documents', 'Upload or note file locations', 'documents'],
+                ['Memories', 'Letters, voice notes, messages', 'memories'],
+              ].map(function(item) {
+                return (
+                  <button key={item[0]} onClick={function() { window.location.href = homeLink(item[2]); }}
+                    style={{ textAlign: 'left', border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: INK, borderRadius: 11, padding: '10px 11px', minHeight: 74, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <div style={{ fontSize: 13, fontWeight: 900, lineHeight: 1.25 }}>{item[0]}</div>
+                    <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.35, marginTop: 3 }}>{item[1]}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {events.length > 0 && (
