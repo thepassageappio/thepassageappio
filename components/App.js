@@ -3913,6 +3913,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
           </>
         )}
       </div>
+      <SiteFooter />
       {wishesToast ? (
         <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: C.sage, color: "#fff", borderRadius: 12, padding: "11px 20px", fontSize: 13, fontWeight: 600, zIndex: 999 }}>{wishesToast}</div>
       ) : null}

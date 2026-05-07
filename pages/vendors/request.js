@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
-import { SiteHeader } from '../../components/SiteChrome';
+import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { money } from '../../lib/vendorEconomics';
 import { vendorCategoryLabel } from '../../lib/vendors';
 
@@ -238,6 +238,7 @@ export default function VendorRequestPage() {
           </div>
         )}
       </section>
+      <SiteFooter />
     </main>
   );
 }
