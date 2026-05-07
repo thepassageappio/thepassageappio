@@ -11,6 +11,20 @@ Round 14 QA showed that Passage is functional but still asks users and prospects
 
 This roadmap is sequenced so each sprint makes the current product more trustworthy without pretending deeper schema or compliance work is already complete.
 
+## Product Audit Constraints
+
+The latest product audit reinforces the same direction: Passage wins as a crisis coordination system, not as a broad memorial/social/AI product. Until the operating spine is reliable, new feature volume should be treated as risk.
+
+Near-term product constraints:
+
+- Bias every public and in-app screen toward operational clarity: what matters now, who owns it, what is waiting, and what proof exists.
+- Red path must feel like guided crisis coordination, not an onboarding dashboard.
+- Green path should feel like family protection and preparedness, not mortality branding.
+- Funeral-home surfaces should feel restrained, practical, and operationally serious.
+- Mobile is not optional: family coordination, invitations, task updates, and urgent guidance must be comfortable on phones.
+- Trust layer is now a product requirement: privacy, security, data ownership, role visibility, audit logging, legal boundaries, and support routing need visible homes before serious pilots.
+- AI, memorial, marketplace, and vault expansion must wait behind workflow excellence, task outputs, proof, permissions, and trust maturity.
+
 ## Readiness Contract
 
 Passage is not customer-ready until every actor below has a clear home, a clear next action, role-appropriate visibility, and a reliable way to record proof.

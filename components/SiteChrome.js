@@ -198,11 +198,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
       <div style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
-          <>
-            <Link href="/system/demo" style={isActivePath(path, '/system/demo') ? activeStyle : navLink}>Demo</Link>
-            <Link href="/vendors/request" style={isActivePath(path, '/vendors/request') ? activeStyle : navLink}>Vendor page</Link>
-            <Link href="/vendors/admin" style={isActivePath(path, '/vendors/admin') ? activeStyle : navLink}>Vendor admin</Link>
-          </>
+          <Link href="/system/admin" style={(isActivePath(path, '/system') || isActivePath(path, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
         <Link href={dashboardHref} style={(isActivePath(path, '/') || isActivePath(path, '/estate')) ? activeStyle : quietMyEstate}>My estate</Link>
         <span style={{ width: 104, display: 'inline-flex', justifyContent: 'flex-end' }}>

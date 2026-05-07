@@ -6,6 +6,7 @@
 - Hold every sprint to the scorecard loops: red path closes, funeral-home partner activates, payment entitlement works, and vendor marketplace connects. Schema presence alone is not success.
 - Sprint 2 entry point: build the shared task action spine so assigned/unassigned tasks route through the same assign, send, proof, waiting, help, output, and audit behavior across every persona.
 - Public trust/demo blockers from external QA: privacy/terms destinations after owner-approved legal copy, funeral-home feature tab smoke tests, and any remaining mobile nav simplification. SSR-visible landing hero, clearer `My tasks` nav label, funeral-home tier CTA fallback, and urgent triage-first posture have been patched and need green-deploy QA.
+- Product-audit north star: Passage must bias toward crisis coordination and workflow confidence over memorial/social/AI feature expansion. Next gains come from restraint, emotional pacing, mobile usability, trust/security, and one clear next action per screen.
 - Post-simplification QA sweep (0d2bc3a..11902d0): command center hierarchy + nav, wishes save, comms center parity; no dead ends.
 - Stop-the-line regressions: estate persistence, invite confirmation, partner case creation/load, task action feedback (no "Confirmed" without proof).
 - B2B activation gap: verify the newly seeded test funeral-home `organization` + `funeral_home_partner`, family/estate participation join, and terminal task status persistence through live app flows before calling any funeral-home demo ready.
@@ -44,6 +45,7 @@
 - Tighten and freeze the 15-minute funeral home demo script + objection answers (doc-only until owner approves outreach).
 - Produce a one-page pilot handout (offer terms placeholders; no pricing changes).
 - Add FAQ/support/legal trust layer: vendor application FAQ, family/participant/funeral-home FAQ, feature request, bug report, billing dispute, support routing, Privacy, Terms, data ownership, urgent-path disclaimer, and owner/counsel-reviewed liability language before serious pilots.
+- Add Trust & Security page: role-based access, audit trail, data ownership, document handling, encryption/security posture, privacy, and plain-language boundaries around emergency/legal/medical/funeral guidance.
 - Add Passage system-admin shell and business health dashboard: one admin tab for demo, vendor admin, vendor page QA, leads/support inbox, raw data exports, ARR/MRR/NRR/churn, pilot conversion, contact inquiry types, engagement, marketplace value, rev share, and customer health metrics.
 - Map top red-path tasks into automated / assisted / guided-manual tiers; list proof required + follow-up loop for each.
 - Identify owner-facing notification gaps for participant/vendor/funeral-home completion events (inventory only).
