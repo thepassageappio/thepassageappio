@@ -1878,12 +1878,13 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
     setSaving(true);
     setSendError("");
     const personData = { name: name || selectedRole, role: role || selectedRole, email, phone, notifyChannel };
+    const canNotify = Boolean((personData.email && notifyChannel !== 'sms') || (personData.phone && notifyChannel !== 'email'));
     const saved = await savePerson(userId, { ...personData, id: selectedPerson?.id, notify_channel: notifyChannel });
     await grantEstateAccess(workflowId, personData);
     if (task.dbId) {
       await updateTask(task.dbId, { assigned_to_name: personData.name, assigned_to_email: personData.email || null, assigned_to_person_id: saved?.id || null, status: 'assigned' });
     }
-    if (saved && workflowId) {
+    if (saved && workflowId && canNotify) {
       if (personData.email && notifyChannel !== 'sms') await saveWorkflowAction(workflowId, saved, task.title, 'email');
       if (personData.phone && notifyChannel !== 'email') await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
       try {
@@ -1894,13 +1895,13 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
         return;
       }
     }
-    onAssign(task.id, personData.name, personData.role, { email: personData.email, phone: personData.phone });
+    onAssign(task.id, personData.name, personData.role, { email: personData.email, phone: personData.phone, notified: canNotify });
     setSaving(false);
     setShowPreview(false);
     onClose();
   };
 
-  const handleAssign = async () => {
+  const handleAssign = async (options = {}) => {
     setSaving(true);
     setSendError("");
     const personData = {
@@ -1908,6 +1909,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
       role: role || selectedRole,
       email, phone, notifyChannel,
     };
+    const canNotify = !options.skipNotify && Boolean((personData.email && notifyChannel !== 'sms') || (personData.phone && notifyChannel !== 'email'));
 
     const saved = await savePerson(userId, { ...personData, id: selectedPerson?.id });
     await grantEstateAccess(workflowId, personData);
@@ -1921,7 +1923,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
       });
     }
 
-    if (saved && workflowId) {
+    if (saved && workflowId && canNotify) {
       if (personData.email && notifyChannel !== 'sms') await saveWorkflowAction(workflowId, saved, task.title, 'email');
       if (personData.phone && notifyChannel !== 'email') await saveWorkflowAction(workflowId, { ...saved, phone: personData.phone }, task.title, 'sms');
       try {
@@ -1933,7 +1935,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
       }
     }
 
-    onAssign(task.id, personData.name, personData.role, { email: personData.email, phone: personData.phone });
+    onAssign(task.id, personData.name, personData.role, { email: personData.email, phone: personData.phone, notified: canNotify });
     setSaving(false);
     onClose();
   };
@@ -2015,6 +2017,16 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
 
         {step === "details" && (
           <div>
+            {(() => {
+              const canNotify = Boolean((email && notifyChannel !== 'sms') || (phone && notifyChannel !== 'email'));
+              return (
+                <div style={{ background: canNotify ? C.sageFaint : C.goldFaint, border: `1px solid ${canNotify ? C.sageLight : C.gold}55`, borderRadius: 12, padding: "10px 12px", marginBottom: 14, fontSize: 12.5, lineHeight: 1.5, color: canNotify ? C.sage : C.amber, fontWeight: 700 }}>
+                  {canNotify
+                    ? "This will assign the task, send the prepared message, and record the action on the estate."
+                    : "No email or phone is saved yet. Assign ownership now, then send the prepared message after contact info is added."}
+                </div>
+              );
+            })()}
             {selectedRole && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 9, padding: "5px 12px", marginBottom: 16 }}>
                 <span style={{ fontSize: 12, color: C.rose, fontWeight: 600 }}>Role: {selectedRole || role}</span>
@@ -2051,7 +2063,10 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
 
             <div style={{ display: "flex", gap: 10 }}>
               <Btn variant="ghost" onClick={() => setStep("pick")}>← Back</Btn>
-              <Btn variant="rose" onClick={() => setShowPreview(true)} disabled={!name || saving} style={{ flex: 1 }}>
+              <Btn variant="ghost" onClick={() => handleAssign({ skipNotify: true })} disabled={!name || saving} style={{ flex: 1 }}>
+                {saving ? "Saving..." : "Assign only"}
+              </Btn>
+              <Btn variant="rose" onClick={() => setShowPreview(true)} disabled={!name || saving || !((email && notifyChannel !== 'sms') || (phone && notifyChannel !== 'email'))} style={{ flex: 1 }}>
                 {saving ? "Sending..." : "Preview & send →"}
               </Btn>
             </div>
@@ -2116,7 +2131,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
   };
 
   const handleAssign = (taskId, name, role, contact = {}) => {
-    const hasMessage = contact.email || contact.phone;
+    const hasMessage = contact.notified || false;
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignedTo: name, assignedRole: role, status: t.completed ? t.status : (hasMessage ? 'sent' : 'assigned') } : t));
     setToast(hasMessage ? `Message sent to ${name}. Waiting for them to confirm.` : `Waiting for ${name} to confirm.`);
   };
