@@ -173,6 +173,12 @@ function mergeOutcomePlan(nextPlan, previous) {
   });
 }
 
+function phaseLabel(phase) {
+  if (phase === 'Minutes' || phase === 'Right now') return 'Minutes';
+  if (phase === 'Today') return 'Today';
+  return 'Next 72 hours';
+}
+
 const nextPreview = {
   unexpected: ['Emergency services or a medical examiner handle the official pronouncement path', 'They tell you what must happen next', 'Only after that can a funeral home usually be contacted'],
   hospice: ['Your hospice nurse handles or coordinates the official pronouncement path', 'They guide medications, equipment, and next instructions', 'Then the funeral home can coordinate pickup'],
@@ -578,6 +584,12 @@ export default function UrgentPage() {
         .authority-options button.active { background:${C.sage}; color:white; border-color:${C.sage}; }
         details.later-details { border:1px solid ${C.border}; background:${C.card}; border-radius:14px; padding:11px 12px; margin-bottom:16px; }
         details.later-details summary { cursor:pointer; color:${C.sageDark}; font-size:12px; font-weight:850; }
+        .phase-rail { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0 0 14px; }
+        .phase-card { border:1px solid ${C.border}; background:${C.card}; border-radius:13px; padding:10px; }
+        .phase-card.active { border-color:${C.rose}; background:${C.roseFaint}; }
+        .phase-card.done { border-color:${C.sageLight}; background:${C.sageFaint}; }
+        .phase-card b { display:block; color:${C.ink}; font-size:13px; margin-bottom:3px; }
+        .phase-card span { color:${C.mid}; font-size:11.5px; line-height:1.35; }
         .quiet-empty-progress { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:13px; color:${C.sageDark}; font-size:13px; line-height:1.55; margin:12px 0; }
         .owner { background: ${C.subtle}; border-radius: 14px; padding: 13px 14px; color: ${C.mid}; line-height: 1.45; margin-bottom: 14px; }
         .owner strong { color: ${C.ink}; }
@@ -631,7 +643,7 @@ export default function UrgentPage() {
           .grid { grid-template-columns: 1fr; }
           .save-strip { grid-template-columns: 1fr; }
           .context-grid { grid-template-columns:1fr; }
-          .triage-grid, .authority-options { grid-template-columns:1fr; }
+          .triage-grid, .authority-options, .phase-rail { grid-template-columns:1fr; }
           .save-command { width:100%; }
           .primary-card { padding: 22px; }
           .field.two { grid-template-columns: 1fr; }
@@ -806,6 +818,20 @@ export default function UrgentPage() {
                   </div>
               </div>
             </details>
+            <div className="phase-rail" aria-label="Urgent work sequence">
+              {['Minutes', 'Today', 'Next 72 hours'].map((label) => {
+                const items = outcomes.filter(item => phaseLabel(item.phase) === label);
+                const openCount = items.filter(item => item.status !== 'handled').length;
+                const active = primary && phaseLabel(primary.phase) === label;
+                const done = items.length > 0 && openCount === 0;
+                return (
+                  <div key={label} className={`phase-card ${active ? 'active' : done ? 'done' : ''}`}>
+                    <b>{label}</b>
+                    <span>{done ? 'Handled' : active ? 'Do this section now' : `${openCount || items.length} step${(openCount || items.length) === 1 ? '' : 's'} waiting`}</span>
+                  </div>
+                );
+              })}
+            </div>
             <div className="phase">{primary.phase}</div>
             <h2>{primary.title}</h2>
             <p className="support">{primary.support}</p>
