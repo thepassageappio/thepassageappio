@@ -2927,7 +2927,7 @@ const normalizeServiceType = (value) => ({
   none: 'none',
 })[value] || value || '';
 
-function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose, onSaved }) {
+function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, initialDraftPayload, onClose, onSaved }) {
   const [form, setForm] = useState({
     full_name: deceasedName || '',
     date_of_death: dateOfDeath || '',
@@ -2946,6 +2946,16 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose,
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (initialDraftPayload) {
+      try {
+        const saved = typeof initialDraftPayload === 'string' ? JSON.parse(initialDraftPayload) : initialDraftPayload;
+        if (saved && typeof saved === 'object') {
+          if (saved.form) setForm(f => ({ ...f, ...saved.form }));
+          if (saved.draft) setDraft(saved.draft);
+          return;
+        }
+      } catch {}
+    }
     if (!userId) return;
     supabase.from('profiles').select('obituary_draft').eq('user_id', userId).maybeSingle().then(({ data }) => {
       if (data?.obituary_draft) {
@@ -2960,7 +2970,7 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose,
         setDraft(data.obituary_draft);
       }
     });
-  }, [userId]);
+  }, [userId, initialDraftPayload]);
 
   const generateDraft = async () => {
     setGenerating(true);
@@ -2986,11 +2996,34 @@ function ObituaryModal({ workflowId, userId, deceasedName, dateOfDeath, onClose,
     setSaving(true);
     setError('');
     const payload = JSON.stringify({ form, draft, saved_at: new Date().toISOString() });
-    const { error } = await supabase.from('profiles').upsert([{
-      user_id: userId,
-      obituary_draft: payload,
-      updated_at: new Date().toISOString(),
-    }], { onConflict: 'user_id' });
+    let error = null;
+    if (workflowId) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const response = await fetch('/api/estateFile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          workflowId,
+          section: 'obituary',
+          payload: { form, draft },
+        }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        error = { message: result.error || 'Could not save this obituary yet.' };
+      }
+    } else {
+      const result = await supabase.from('profiles').upsert([{
+        user_id: userId,
+        obituary_draft: payload,
+        updated_at: new Date().toISOString(),
+      }], { onConflict: 'user_id' });
+      error = result.error;
+    }
     setSaving(false);
     if (error) {
       console.error('saveObituary:', error);
@@ -3482,6 +3515,29 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
   const activeFileWorkflow = activeFileWorkflowId
     ? activeWorkflows.find(w => String(w.id) === String(activeFileWorkflowId))
     : null;
+  const estateFileFor = (wf) => (wf?.orchestration_summary?.estate_file && typeof wf.orchestration_summary.estate_file === 'object') ? wf.orchestration_summary.estate_file : {};
+  const wishesFromEstate = (wf) => {
+    const saved = estateFileFor(wf).wishes;
+    if (saved) return saved;
+    return {
+      disposition: profile?.disposition === 'green' ? 'green_burial' : profile?.disposition === 'unsure' ? 'undecided' : profile?.disposition || '',
+      service_type: profile?.service_type === 'funeral' ? 'religious' : profile?.service_type === 'celebration' ? 'celebration_of_life' : profile?.service_type === 'private' ? 'memorial' : profile?.service_type || '',
+      religious_leader: profile?.healthcare_proxy_name || '',
+      music_preferences: profile?.music_notes || '',
+      special_requests: profile?.special_requests || '',
+      organ_donation: !!profile?.organ_donor,
+    };
+  };
+  const openEstateFileSection = (wf, label) => {
+    setActiveFileWorkflowId(wf.id);
+    if (label === "Wishes") {
+      setWishesData(wishesFromEstate(wf));
+      setShowWishes(true);
+    } else if (label === "Obituary") setShowObituary(true);
+    else if (label === "People") setShowPeople(true);
+    else if (label === "Documents") setShowDocuments(true);
+    else if (label === "Memories") setShowMemories(true);
+  };
   const attentionItems = activeWorkflows.flatMap(wf => {
     const openTasks = (taskStats[wf.id]?.openTasks || []).slice(0, 3);
     return openTasks.map(task => ({ ...task, workflow: wf }));
@@ -3509,7 +3565,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify(wishesData),
+      body: JSON.stringify({ ...wishesData, workflowId: activeFileWorkflowId }),
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -3519,6 +3575,17 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
       return;
     }
     setProfile(prev => ({ ...(prev || {}), ...(result.profile || {}) }));
+    if (result.estateFile && activeFileWorkflowId) {
+      setWorkflows(prev => prev.map(wf => String(wf.id) === String(activeFileWorkflowId)
+        ? {
+          ...wf,
+          orchestration_summary: {
+            ...(wf.orchestration_summary || {}),
+            estate_file: result.estateFile,
+          },
+        }
+        : wf));
+    }
     setShowWishes(false);
     setWishesToast("Wishes saved.");
     setTimeout(() => setWishesToast(""), 3000);
@@ -3755,8 +3822,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                           <summary style={{ cursor: "pointer", color: C.sage, fontSize: 12, fontWeight: 900 }}>Open this estate file</summary>
                           <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 7 }}>Estate file</div>
                           {[
-                            { label: "Wishes", complete: profile?.wishes_complete, desc: "Service preferences and final wishes" },
-                            { label: "Obituary", complete: !!profile?.obituary_draft, desc: "Draft and save obituary language" },
+                            { label: "Wishes", complete: !!estateFileFor(wf).wishes || profile?.wishes_complete, desc: "Service preferences and final wishes" },
+                            { label: "Obituary", complete: !!estateFileFor(wf).obituary || !!profile?.obituary_draft, desc: "Draft and save obituary language" },
                             { label: "People", complete: profile?.people_complete, desc: "Executor, activators, family, partners" },
                             { label: "Documents", complete: profile?.documents_complete, desc: "Will, insurance, directives, records" },
                             { label: "Memories", complete: profile?.vault_complete, desc: "Letters, voice notes, scheduled messages" },
@@ -3767,14 +3834,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                                 <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{s.label}</div>
                                 <div style={{ fontSize: 10.5, color: C.mid, marginTop: 1 }}>{s.desc}</div>
                               </div>
-                              <button onClick={() => {
-                                setActiveFileWorkflowId(wfId);
-                                if (s.label === "Wishes") setShowWishes(true);
-                                else if (s.label === "Obituary") setShowObituary(true);
-                                else if (s.label === "People") setShowPeople(true);
-                                else if (s.label === "Documents") setShowDocuments(true);
-                                else if (s.label === "Memories") setShowMemories(true);
-                              }} style={{ fontSize: 11, color: C.sage, fontWeight: 800, background: C.bgCard, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontFamily: "inherit" }}>
+                              <button onClick={() => openEstateFileSection(wf, s.label)} style={{ fontSize: 11, color: C.sage, fontWeight: 800, background: C.bgCard, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontFamily: "inherit" }}>
                                 {s.complete ? "Edit" : "Add"}
                               </button>
                             </div>
@@ -3848,9 +3908,26 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
           userId={user && user.id}
           deceasedName={activeFileWorkflow?.deceased_name || activeFileWorkflow?.name || (redWorkflows.length > 0 ? redWorkflows[0].deceased_name : null)}
           dateOfDeath={activeFileWorkflow?.date_of_death || (redWorkflows.length > 0 ? redWorkflows[0].date_of_death : null)}
+          initialDraftPayload={estateFileFor(activeFileWorkflow).obituary}
           onClose={() => setShowObituary(false)}
           onSaved={(draft) => {
             setProfile(prev => ({ ...(prev || {}), obituary_draft: draft }));
+            if (activeFileWorkflow?.id) {
+              let parsed = draft;
+              try { parsed = JSON.parse(draft); } catch {}
+              setWorkflows(prev => prev.map(wf => String(wf.id) === String(activeFileWorkflow.id)
+                ? {
+                  ...wf,
+                  orchestration_summary: {
+                    ...(wf.orchestration_summary || {}),
+                    estate_file: {
+                      ...(wf.orchestration_summary?.estate_file || {}),
+                      obituary: parsed,
+                    },
+                  },
+                }
+                : wf));
+            }
             setWishesToast("Obituary saved.");
             setTimeout(() => setWishesToast(""), 3000);
           }}
@@ -3919,8 +3996,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setShowWishes(false)}>
           <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
-            <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 4 }}>Your wishes</div>
-            <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 20, lineHeight: 1.55 }}>These guide your family so they do not have to guess. Saved securely and shared only when your plan activates.</div>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 4 }}>Wishes for {activeFileWorkflow?.estate_name || activeFileWorkflow?.name || "this estate"}</div>
+            <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 20, lineHeight: 1.55 }}>These guide your family so they do not have to guess. Saved to this estate file and shared only when the plan activates.</div>
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Final arrangements</div>
               {[["burial","Burial"],["cremation","Cremation"],["green_burial","Green burial"],["donation","Body donation"],["undecided","Not sure yet"]].map(([v,l]) => (
@@ -3959,8 +4036,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setShowPeople(false)}>
           <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: 18, padding: "24px 20px 32px", width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,.24)" }}>
             <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
-            <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 4 }}>Your people</div>
-            <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 20, lineHeight: 1.55 }}>Designate who handles what when your plan activates. They receive their tasks automatically.</div>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 4 }}>People for {activeFileWorkflow?.estate_name || activeFileWorkflow?.name || "this estate"}</div>
+            <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 20, lineHeight: 1.55 }}>Designate who handles what when this estate activates. They receive estate-specific tasks, not a global family checklist.</div>
             <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
               <div style={{ fontSize: 13, color: C.sage, fontWeight: 600, marginBottom: 6 }}>Use role templates from your estate plan</div>
               <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.55 }}>Go to any active estate plan, tap ⚡ Quick assign, and add role holders there. They will appear here automatically.</div>

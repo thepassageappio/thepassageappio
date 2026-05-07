@@ -41,6 +41,7 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
   const userId = authData.user.id;
+  const workflowId = String(body.workflowId || '').trim();
   const nextProfile = {
     user_id: userId,
     disposition: normalizeDisposition(body.disposition),
@@ -72,5 +73,56 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: error.message || 'Could not save wishes.' });
   }
 
-  return res.status(200).json({ profile: data || nextProfile });
+  let estateFile = null;
+  if (workflowId) {
+    const { data: workflow, error: workflowError } = await admin
+      .from('workflows')
+      .select('id,user_id,orchestration_summary')
+      .eq('id', workflowId)
+      .maybeSingle();
+    if (workflowError) {
+      return res.status(500).json({ error: workflowError.message || 'Could not load estate file.' });
+    }
+    if (!workflow || workflow.user_id !== userId) {
+      return res.status(404).json({ error: 'Estate file not found.' });
+    }
+    const summary = workflow.orchestration_summary && typeof workflow.orchestration_summary === 'object'
+      ? workflow.orchestration_summary
+      : {};
+    const wishes = {
+      disposition: body.disposition || '',
+      service_type: body.service_type || '',
+      religious_leader: body.religious_leader || '',
+      music_preferences: body.music_preferences || '',
+      special_requests: body.special_requests || '',
+      organ_donation: !!body.organ_donation,
+      updated_at: new Date().toISOString(),
+    };
+    const nextSummary = {
+      ...summary,
+      estate_file: {
+        ...(summary.estate_file || {}),
+        wishes,
+      },
+      planning_context: {
+        ...(summary.planning_context || {}),
+        disposition: nextProfile.disposition,
+        service_type: nextProfile.service_type,
+        clergy_or_officiant: body.religious_leader || summary.planning_context?.clergy_or_officiant || '',
+        faith_notes: body.special_requests || summary.planning_context?.faith_notes || '',
+      },
+    };
+    const { data: workflowUpdate, error: updateError } = await admin
+      .from('workflows')
+      .update({ orchestration_summary: nextSummary, updated_at: new Date().toISOString() })
+      .eq('id', workflowId)
+      .select('id,orchestration_summary')
+      .maybeSingle();
+    if (updateError) {
+      return res.status(500).json({ error: updateError.message || 'Could not save wishes to estate file.' });
+    }
+    estateFile = workflowUpdate?.orchestration_summary?.estate_file || nextSummary.estate_file || null;
+  }
+
+  return res.status(200).json({ profile: data || nextProfile, estateFile });
 }
