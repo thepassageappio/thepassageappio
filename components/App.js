@@ -3527,6 +3527,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
   const redWorkflows = workflows.filter(w => w.status !== 'archived' && w.path !== 'green');
   const greenWorkflows = workflows.filter(w => w.status !== 'archived' && w.path === 'green');
   const activeWorkflows = workflows.filter(w => w.status !== 'archived');
+  const hasAnyEstate = activeWorkflows.length > 0;
   const activeFileWorkflow = activeFileWorkflowId
     ? activeWorkflows.find(w => String(w.id) === String(activeFileWorkflowId))
     : null;
@@ -3631,6 +3632,27 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               )}
             </div>
 
+            {!hasAnyEstate && (
+              <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
+                <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 6 }}>Start one estate workspace</div>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.2, marginBottom: 6 }}>Create the estate before adding wishes, people, documents, memories, or tasks.</div>
+                <Sub>Each estate gets its own file, task spine, participants, messages, proof, and exports. Nothing should float loose on this index page.</Sub>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 10, marginTop: 14 }}>
+                  <button onClick={onStartPlan} style={{ textAlign: "left", background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "14px", cursor: "pointer", fontFamily: "inherit" }}>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: C.ink, marginBottom: 4 }}>Plan ahead</div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5 }}>Create a planning estate, then add wishes, documents, trusted people, obituary, and memories inside it.</div>
+                    <div style={{ color: C.sage, fontSize: 12.5, fontWeight: 900, marginTop: 10 }}>Set up planning estate {'->'}</div>
+                  </button>
+                  <button onClick={() => window.location.href = '/urgent'} style={{ textAlign: "left", background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: "14px", cursor: "pointer", fontFamily: "inherit" }}>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: C.ink, marginBottom: 4 }}>Someone just passed</div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5 }}>Start the urgent path first. Passage will create the command center after the first-step plan.</div>
+                    <div style={{ color: C.rose, fontSize: 12.5, fontWeight: 900, marginTop: 10 }}>Start urgent guidance {'->'}</div>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {hasAnyEstate && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 12, alignItems: "stretch", marginBottom: 12 }}>
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
@@ -3735,6 +3757,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               )}
             </div>
             </div>
+            )}
 
             {/* Red path active plans */}
             {redWorkflows.length > 0 && (
@@ -3792,7 +3815,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
             )}
 
             {/* Green path estate slots */}
-            {estateSeatLimit > 0 && (
+            {hasAnyEstate && estateSeatLimit > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 16, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
                   <div>
