@@ -73,7 +73,7 @@ export default function FuneralHomePage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '12px 22px 32px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .92fr) minmax(320px, .68fr)', gap: 12, alignItems: 'stretch', marginBottom: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 12, alignItems: 'stretch', marginBottom: 10 }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: '20px 22px' }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 9 }}>For funeral homes</div>
             <h1 style={{ fontSize: 'clamp(31px, 4.1vw, 50px)', lineHeight: .98, margin: '0 0 10px', fontWeight: 400 }}>
@@ -97,7 +97,7 @@ export default function FuneralHomePage() {
           </div>
         </div>
 
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 12, marginBottom: 10, display: 'grid', gridTemplateColumns: '260px minmax(0,1fr)', gap: 12 }}>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 12, marginBottom: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 12 }}>
           <div style={{ display: 'grid', gap: 6 }}>
             {needs.map(([title], index) => (
               <button key={title} onClick={() => setActiveNeed(index)} style={{ textAlign: 'left', border: `1px solid ${activeNeed === index ? C.sage : C.border}`, background: activeNeed === index ? C.sageFaint : C.bg, borderRadius: 12, padding: '9px 11px', color: activeNeed === index ? C.sage : C.mid, cursor: 'pointer', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900 }}>
@@ -112,7 +112,7 @@ export default function FuneralHomePage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .72fr) minmax(340px, .78fr)', gap: 12, marginBottom: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 12, marginBottom: 10 }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16 }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Partner workflow</div>
             <div style={{ display: 'grid', gap: 9 }}>
