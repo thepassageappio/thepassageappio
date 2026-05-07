@@ -3532,28 +3532,6 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
     ? activeWorkflows.find(w => String(w.id) === String(activeFileWorkflowId))
     : null;
   const estateFileFor = (wf) => (wf?.orchestration_summary?.estate_file && typeof wf.orchestration_summary.estate_file === 'object') ? wf.orchestration_summary.estate_file : {};
-  const wishesFromEstate = (wf) => {
-    const saved = estateFileFor(wf).wishes;
-    if (saved) return saved;
-    return {
-      disposition: profile?.disposition === 'green' ? 'green_burial' : profile?.disposition === 'unsure' ? 'undecided' : profile?.disposition || '',
-      service_type: profile?.service_type === 'funeral' ? 'religious' : profile?.service_type === 'celebration' ? 'celebration_of_life' : profile?.service_type === 'private' ? 'memorial' : profile?.service_type || '',
-      religious_leader: profile?.healthcare_proxy_name || '',
-      music_preferences: profile?.music_notes || '',
-      special_requests: profile?.special_requests || '',
-      organ_donation: !!profile?.organ_donor,
-    };
-  };
-  const openEstateFileSection = (wf, label) => {
-    setActiveFileWorkflowId(wf.id);
-    if (label === "Wishes") {
-      setWishesData(wishesFromEstate(wf));
-      setShowWishes(true);
-    } else if (label === "Obituary") setShowObituary(true);
-    else if (label === "People") setShowPeople(true);
-    else if (label === "Documents") setShowDocuments(true);
-    else if (label === "Memories") setShowMemories(true);
-  };
   const attentionItems = activeWorkflows.flatMap(wf => {
     const openTasks = (taskStats[wf.id]?.openTasks || []).slice(0, 3);
     return openTasks.map(task => ({ ...task, workflow: wf }));
@@ -3865,28 +3843,6 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                         <div style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10, fontSize: 11.5, color: C.mid, lineHeight: 1.45 }}>
                           Wishes, documents, obituary, people, memories, messages, and proof live inside this estate workspace so nothing floats loose on the index.
                         </div>
-                        <details style={{ display: "none", borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10 }}>
-                          <summary style={{ cursor: "pointer", color: C.sage, fontSize: 12, fontWeight: 900 }}>Estate file sections</summary>
-                          <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 7 }}>Estate file</div>
-                          {[
-                            { label: "Wishes", complete: !!estateFileFor(wf).wishes || profile?.wishes_complete, desc: "Service preferences and final wishes" },
-                            { label: "Obituary", complete: !!estateFileFor(wf).obituary || !!profile?.obituary_draft, desc: "Draft and save obituary language" },
-                            { label: "People", complete: profile?.people_complete, desc: "Executor, activators, family, partners" },
-                            { label: "Documents", complete: profile?.documents_complete, desc: "Will, insurance, directives, records" },
-                            { label: "Memories", complete: profile?.vault_complete, desc: "Letters, voice notes, scheduled messages" },
-                          ].map((s) => (
-                            <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: `1px solid ${C.sageLight}55` }}>
-                              <div style={{ width: 20, height: 20, borderRadius: "50%", background: s.complete ? C.sage : C.bgCard, color: s.complete ? "#fff" : C.soft, border: `1px solid ${s.complete ? C.sage : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, flexShrink: 0 }}>{s.complete ? "✓" : ""}</div>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{s.label}</div>
-                                <div style={{ fontSize: 10.5, color: C.mid, marginTop: 1 }}>{s.desc}</div>
-                              </div>
-                              <button onClick={() => openEstateFileSection(wf, s.label)} style={{ fontSize: 11, color: C.sage, fontWeight: 800, background: C.bgCard, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontFamily: "inherit" }}>
-                                {s.complete ? "Edit" : "Add"}
-                              </button>
-                            </div>
-                          ))}
-                        </details>
                       </div>
                     </div>
                   );
@@ -3919,29 +3875,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
               </div>
             )}
 
-            {/* Start emergency */}
-            <div style={{ display: "none", background: C.roseFaint, borderRadius: 18, padding: "18px", border: `1px solid ${C.rose}22`, marginBottom: 12 }}>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 15.5, color: C.ink, marginBottom: 5 }}>Someone in your family passed away?</div>
-              <Sub>Start a $79.99 urgent estate plan. We plan to reserve 15% of each urgent purchase for grief support or memorial impact in their honor.</Sub>
-              <button onClick={() => window.location.href = '/urgent'} style={{ marginTop: 12, padding: "10px 18px", background: C.rose, border: "none", borderRadius: 11, fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}>
-                Start emergency plan →
-              </button>
-            </div>
 
-            {/* Account */}
-            <div style={{ display: "none", background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 12 }}>Account</div>
-              {[{l:"Email",v:user?.email},{l:"Member since",v:userData?.created_at ? new Date(userData.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'}) : "—"},{l:"Plan",v:pd.label},{l:"Status",v:userData?.plan_status || "active"}].map(i => (
-                <div key={i.l} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: 12, color: C.soft, fontWeight: 600 }}>{i.l}</span>
-                  <span style={{ fontSize: 12.5, color: C.ink, fontWeight: 500 }}>{i.v}</span>
-                </div>
-              ))}
-            </div>
-
-            <button onClick={onSignOut} style={{ display: "none", width: "100%", padding: "12px", background: "none", border: `1px solid ${C.border}`, borderRadius: 11, fontSize: 13, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>
-              Sign out of Passage
-            </button>
           </>
         )}
       </div>
