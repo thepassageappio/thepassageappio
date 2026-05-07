@@ -4368,13 +4368,14 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         @media (max-width: 720px) {
           .home-nav-secondary { display: none !important; }
           .home-nav-links { gap: 8px !important; }
+          .home-proof-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <nav style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
         <CandleLogo size={32} nameSize={21} />
         <div className="home-nav-links" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <a className="home-nav-secondary" href="/mission" style={navLink}>Mission</a>
-          <a href="/content" style={navLink}>Guides</a>
+          <a href="/guides" style={navLink}>Guides</a>
           <a className="home-nav-secondary" href="/pricing" style={navLink}>Pricing</a>
           <a className="home-nav-secondary" href="/contact" style={navLink}>Contact</a>
           <a className="home-nav-secondary" href="/participating" style={navLink}>My tasks</a>
@@ -4474,6 +4475,30 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
                 <div key={row[0]} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: '11px 12px' }}>
                   <div style={{ color: C.sage, fontSize: 12, fontWeight: 900 }}>{row[0]}</div>
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>{row[1]}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 48px' }}>
+        <div className="home-proof-grid" style={{ background: C.bgDark, color: '#fff', borderRadius: 18, padding: '24px 26px', display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(0, 1fr)', gap: 18, alignItems: 'center' }}>
+          <div>
+            <div style={{ color: '#b9d2bd', fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>What Passage proves</div>
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(26px, 3.2vw, 36px)', lineHeight: 1.08, margin: 0, fontWeight: 400 }}>The work is visible, exportable, and measurable.</h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 9 }}>
+            {[
+              ['Calls avoided', 'Every message, task owner, and update reduces repeat status calls.'],
+              ['Tasks completed', 'Handled, waiting, and help states roll into one estate audit trail.'],
+              ['Staff workload', 'Funeral-home reports can show tasks by case, employee, and location.'],
+              ['Data portability', 'CSV export keeps Passage from trapping a funeral home in a new system.'],
+            ].map(function(row) {
+              return (
+                <div key={row[0]} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.13)', borderRadius: 13, padding: '12px 13px' }}>
+                  <div style={{ color: '#fff', fontSize: 13, fontWeight: 900, marginBottom: 5 }}>{row[0]}</div>
+                  <div style={{ color: '#d8d0c7', fontSize: 12.5, lineHeight: 1.45 }}>{row[1]}</div>
                 </div>
               );
             })}
