@@ -541,26 +541,53 @@ function proofRowsFor(actions, tasks, events) {
 // ── INLINE ASSIGN ─────────────────────────────────────────────────────────────
 function InlineAssign({ onSave, onClose }) {
   var s = useState(''); var name = s[0]; var setName = s[1];
+  var e = useState(''); var email = e[0]; var setEmail = e[1];
+  var p = useState(''); var phone = p[0]; var setPhone = p[1];
+  var n = useState(''); var note = n[0]; var setNote = n[1];
+  function save(ownerName) {
+    var cleanName = String(ownerName || name || '').trim();
+    if (!cleanName) return;
+    onSave({
+      name: cleanName,
+      email: email.trim(),
+      phone: phone.trim(),
+      note: note.trim(),
+    });
+  }
   return (
-    <div style={{ background: SUBTLE, borderRadius: 11, padding: 14, marginTop: 10 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Who owns this?</div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+    <div style={{ background: SUBTLE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 14, marginTop: 10 }}>
+      <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Assign and prepare handoff</div>
+      <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>
+        Pick the owner first. Add email or phone when Passage should send or remind them; otherwise the owner is saved for the estate record.
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginBottom: 8 }}>
         <input value={name} onChange={function(e) { setName(e.target.value); }}
-          placeholder="Their name"
-          style={{ flex: 1, padding: '10px 12px', borderRadius: 9, border: '1.5px solid ' + BORDER, fontFamily: 'inherit', fontSize: 14, color: INK, outline: 'none', background: CARD, minHeight: 44, boxSizing: 'border-box' }} />
-        <button onClick={function() { if (name.trim()) onSave(name.trim()); }}
-          style={{ padding: '10px 16px', borderRadius: 9, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44, whiteSpace: 'nowrap' }}>
-          Assign
+          placeholder="Owner name or role"
+          style={{ padding: '10px 12px', borderRadius: 9, border: '1.5px solid ' + BORDER, fontFamily: 'inherit', fontSize: 14, color: INK, outline: 'none', background: CARD, minHeight: 44, boxSizing: 'border-box', minWidth: 0 }} />
+        <input value={email} onChange={function(evt) { setEmail(evt.target.value); }}
+          placeholder="Email for handoff"
+          style={{ padding: '10px 12px', borderRadius: 9, border: '1.5px solid ' + BORDER, fontFamily: 'inherit', fontSize: 14, color: INK, outline: 'none', background: CARD, minHeight: 44, boxSizing: 'border-box', minWidth: 0 }} />
+        <input value={phone} onChange={function(evt) { setPhone(evt.target.value); }}
+          placeholder="Phone for text/reminder"
+          style={{ padding: '10px 12px', borderRadius: 9, border: '1.5px solid ' + BORDER, fontFamily: 'inherit', fontSize: 14, color: INK, outline: 'none', background: CARD, minHeight: 44, boxSizing: 'border-box', minWidth: 0 }} />
+      </div>
+      <textarea value={note} onChange={function(evt) { setNote(evt.target.value); }}
+        placeholder="Optional handoff note: why they own it, what they should do first, or where proof should be saved."
+        style={{ width: '100%', boxSizing: 'border-box', minHeight: 68, borderRadius: 9, border: '1.5px solid ' + BORDER, padding: '10px 12px', fontFamily: 'inherit', fontSize: 13, color: INK, lineHeight: 1.45, background: CARD, marginBottom: 8 }} />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button onClick={function() { save(); }}
+          style={{ flex: '1 1 150px', padding: '10px 16px', borderRadius: 9, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+          Save owner
+        </button>
+        <button onClick={function() { save('You'); }}
+          style={{ flex: '1 1 150px', padding: '10px 16px', borderRadius: 9, border: '1.5px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+          Assign to me
+        </button>
+        <button onClick={onClose}
+          style={{ flex: '1 1 110px', padding: '10px 16px', borderRadius: 9, border: '1.5px solid ' + BORDER, background: CARD, color: SOFT, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+          Cancel
         </button>
       </div>
-      <button onClick={function() { onSave('You'); }}
-        style={{ width: '100%', padding: '9px', borderRadius: 9, border: '1.5px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40, marginBottom: 6 }}>
-        Assign to me
-      </button>
-      <button onClick={onClose}
-        style={{ width: '100%', padding: '6px', borderRadius: 9, border: 'none', background: 'none', color: SOFT, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
-        Cancel
-      </button>
     </div>
   );
 }
@@ -3077,9 +3104,21 @@ export default function EstatePage() {
                   onNeedsHelp={function() { recordOutcomeNeedsHelp(outcome); }}
                   onAssignOpen={function() { setShowAssign(i); setExpanded(i); }}
                   onAssignClose={function() { setShowAssign(-1); }}
-                  onAssignSave={function(ownerName) {
+                  onAssignSave={function(owner) {
+                    var payload = typeof owner === 'string' ? { name: owner } : (owner || {});
+                    var ownerName = String(payload.name || '').trim();
+                    if (!ownerName) return;
                     var statusUpdate = outcomes[i].status === 'needs_owner' ? 'not_started' : outcomes[i].status;
-                    updateOutcome(i, { owner_label: ownerName, status: statusUpdate });
+                    var contactLines = [
+                      payload.email ? 'Email: ' + payload.email : '',
+                      payload.phone ? 'Phone: ' + payload.phone : '',
+                      payload.note ? 'Handoff note: ' + payload.note : ''
+                    ].filter(Boolean);
+                    updateOutcome(i, {
+                      owner_label: ownerName,
+                      status: statusUpdate,
+                      notes: contactLines.length ? contactLines.join('\n') : outcomes[i].notes,
+                    });
                   }}
                 />
               );

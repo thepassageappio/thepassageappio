@@ -3862,7 +3862,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
                             </button>
                           </div>
                         )}
-                        <details style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10 }}>
+                        <div style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10, fontSize: 11.5, color: C.mid, lineHeight: 1.45 }}>
+                          Wishes, documents, obituary, people, memories, messages, and proof live inside this estate workspace so nothing floats loose on the index.
+                        </div>
+                        <details style={{ display: "none", borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10 }}>
                           <summary style={{ cursor: "pointer", color: C.sage, fontSize: 12, fontWeight: 900 }}>Estate file sections</summary>
                           <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 7 }}>Estate file</div>
                           {[
