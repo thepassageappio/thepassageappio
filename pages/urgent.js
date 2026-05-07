@@ -467,16 +467,16 @@ export default function UrgentPage() {
 
   const openCommandCenter = async () => {
     setSaveError('');
-    if (!user) {
-      await signIn();
-      return;
-    }
     if (!deceasedName.trim()) {
       setSaveError('Add their name so Passage can save this as a real estate command center.');
       return;
     }
     if (!selectedSituation) {
       setSaveError('Choose what happened first so Passage can create the right first steps.');
+      return;
+    }
+    if (!user) {
+      await signIn();
       return;
     }
     setSavingEstate(true);
@@ -760,9 +760,9 @@ export default function UrgentPage() {
                 <input value={dateOfDeath} onChange={e => setDateOfDeath(e.target.value)} type="date" />
               </div>
               <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
-                {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Save this plan'}
+                {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Keep this command center'}
               </button>
-              <div className="save-helper">Use the first step now. When you are ready to keep this command center, Passage will ask you to sign in.</div>
+              <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the command center, owners, notes, and proof.</div>
               {saveError && <div className="save-error">{saveError}</div>}
             </div>
             <details className="later-details">
