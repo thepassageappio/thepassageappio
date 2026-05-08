@@ -442,6 +442,17 @@ export default function FuneralHomeDashboard() {
     .map(({ caseItem, orchestration }) => ({ caseItem, task: itemNextPartnerTask(caseItem, orchestration) }))
     .filter(row => row.task)
     .slice(0, 4);
+  const spineInbox = caseOrchestrationRows.flatMap(({ caseItem }) => (caseItem.communicationCenter || []).map(event => ({
+    ...event,
+    caseId: caseItem.id,
+    caseName: caseItem.deceased_name || caseItem.estate_name || caseItem.name || 'Family case',
+    locationName: locationNameFor(caseItem),
+  }))).filter(event => {
+    const status = String(event.status || '').toLowerCase();
+    const text = `${event.title || ''} ${event.detail || ''} ${event.statusLabel || ''}`.toLowerCase();
+    return ['blocked', 'failed', 'needs_review', 'waiting', 'pending', 'requested', 'sent', 'acknowledged'].includes(status)
+      || /waiting|needs help|failed|request|asked|declined|quote|accepted|in progress/.test(text);
+  }).slice(0, 6);
   const currentMembership = (partnerStaff || []).find(member => String(member.email || '').toLowerCase() === String(user?.email || '').toLowerCase()) || null;
   const currentRole = String(currentMembership?.role || data?.organizations?.[0]?.role || 'staff').toLowerCase();
   const isDirectorRole = /owner|admin|director|manager|location/i.test(currentRole);
@@ -720,6 +731,10 @@ export default function FuneralHomeDashboard() {
             onOpenCase={openPartnerWork}
             onExport={downloadExport}
           />
+        )}
+
+        {user && !loading && data && activePartnerView === 'work' && (
+          <PartnerAttentionInbox items={spineInbox} onOpenCase={openPartnerWork} />
         )}
 
         {user && !loading && data && (
@@ -1339,6 +1354,46 @@ function DirectorOperatingLoop({ steps, nextStep, useCases, firstOpenCase, onCre
           </div>
         </aside>
       </div>
+    </section>
+  );
+}
+
+function PartnerAttentionInbox({ items, onOpenCase }) {
+  return (
+    <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 18 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10 }}>
+        <div>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Attention inbox</div>
+          <div style={{ fontSize: 21, marginTop: 3 }}>One place for family, staff, participant, and vendor updates.</div>
+        </div>
+        <div style={{ color: C.mid, fontSize: 12.5 }}>Audit proves what happened. Notifications get attention. Conversation moves the work.</div>
+      </div>
+      {items.length === 0 ? (
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.sage, fontSize: 13 }}>
+          No open coordination updates need attention right now.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {items.map(item => {
+            const kind = item.kind === 'vendor' ? 'Vendor' : item.kind === 'message' ? 'Message' : item.kind === 'task' ? 'Task status' : 'Case update';
+            return (
+              <button key={`${item.caseId}_${item.id}`} onClick={() => onOpenCase(item.caseId)} style={{ textAlign: 'left', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 12, alignItems: 'center', border: `1px solid ${C.border}`, background: C.bg, borderRadius: 12, padding: 12, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{kind} - {item.caseName} - {item.locationName}</div>
+                  <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, marginTop: 3 }}>{item.title || 'Update recorded'}</div>
+                  <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>{item.detail || item.statusLabel || 'Open the case to respond or record proof.'}</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 7 }}>
+                    {item.actor && <span style={miniPill}>From {item.actor}</span>}
+                    {item.recipient && <span style={miniPill}>To {item.recipient}</span>}
+                    {item.statusLabel && <span style={miniPill}>{item.statusLabel}</span>}
+                  </div>
+                </div>
+                <span style={{ color: C.sage, fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>Open case</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

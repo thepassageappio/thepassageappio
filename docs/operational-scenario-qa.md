@@ -21,6 +21,7 @@ Every scenario must answer:
 - What communication happened or is prepared?
 - What proof exists?
 - Who was notified, by what channel, and what fallback happened?
+- Is this an audit/status event, a notification delivery, or an actual coordination message?
 - What can each role see?
 - What changed in reports/export?
 

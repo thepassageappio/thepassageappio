@@ -89,9 +89,26 @@ Each role should see the same truth with scoped detail:
 
 No communication should be trapped only inside a modal, a vendor page, a participant page, or a funeral-home card. It must roll up to the estate communication/proof spine and down to the relevant role-specific view.
 
+### Communication, Notification, and Audit Are Separate
+
+Do not conflate these three layers:
+
+- Audit/status trail: immutable record of what happened, who acted, when, current task truth, and proof. This is the source of operational trust.
+- Notification delivery: channel attempt/result for getting attention: in-app, email, SMS, copied message, provider status, fallback, skipped reason. This is not the conversation itself.
+- Communication thread: human coordination around the task/case: asks, replies, clarifications, approvals, vendor quote/status, staff-family updates. This is how work moves without scattered calls.
+
+They must be linked by estate/case id, task id, actor, recipient, and timestamp, but they should not appear as one undifferentiated log to users.
+
+User-facing surfaces should separate them:
+
+- "Current status" answers what is true now.
+- "Conversation" answers what people are coordinating.
+- "Proof" answers how we know it happened.
+- "Notification" answers who was alerted and whether delivery worked.
+
 ### Communication Spine Model
 
-Every meaningful update starts from one of five verbs:
+Every meaningful coordination update starts from one of five verbs:
 
 - Assign: someone becomes responsible for the next action.
 - Ask: someone needs information, approval, documents, or a decision.
