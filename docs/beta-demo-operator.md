@@ -46,14 +46,23 @@ Track leads in a simple table or CRM with:
 Core promise:
 Passage reduces repeated calls, gives families a calmer command center, and lets staff act on behalf of families without losing proof.
 
+Primary buyer demo:
+Optimize the next serious funeral-home demo for a one-location owner/director. Multi-location reporting should remain visible as an expansion path, but the first proof story should match the Local-tier buyer: one independent funeral home, stretched staff, repeated family calls, and a need for simple proof/export.
+
 Demo arc:
 1. Create or load a case.
-2. Show today's value metrics.
-3. Open family case.
-4. Act on behalf of family.
-5. Show family status view.
-6. Export data for their current system.
+2. Assign staff.
+3. Request missing information from the family.
+4. Staff handles the task or records what is waiting.
+5. Show the family-visible proof/status update.
+6. Show report/export change.
 7. Explain pilot billing.
+
+Co-branding:
+Family command center should be subtly co-branded for funeral-home-created cases: funeral-home logo/accent in the header, small "Powered by Passage" language, and enough Passage identity to support future family planning adoption.
+
+Staff visibility:
+Staff default to assigned tasks plus their open cases. Directors/admins and location managers can see all cases at the location or organization scope as appropriate.
 
 ## Vendor Network Narrative
 
@@ -66,6 +75,9 @@ Rules:
 - No endless lists.
 - Funeral homes can control preferred partners.
 - Passage tracks requests and future revenue opportunities.
+- Families and funeral homes can both initiate help, but funeral homes curate/prefer/hide visible options.
+- Family requests outside the preferred list route through approval/review.
+- First demo categories: flowers/sympathy, catering/reception or meal support, and transportation.
 
 ## Owner Approval Gates
 
@@ -76,4 +88,3 @@ Codex can draft but should not execute:
 - Production SQL
 - Pricing changes
 - Legal/compliance copy
-

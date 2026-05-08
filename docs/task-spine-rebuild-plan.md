@@ -109,6 +109,8 @@ Every action must write the same kind of truth:
 
 Start with crisis triage, then one next action. Do not show an empty dashboard first. The red path should land in an estate operating spine with urgency copy, authority cautions, and immediate proof capture.
 
+Boundary: be direct before Passage coordination begins. If there is immediate safety, medical, or unclear-pronouncement risk, the screen should say to call 911/local emergency services, hospice, the facility, coroner/medical examiner, or funeral home as appropriate. Passage is the calm command center after the first urgent professional/local-authority step, not a replacement for emergency, medical, legal, religious, or funeral-directing judgment.
+
 ### Green Path Family
 
 Start with planning readiness and one calm preparation action. Green tasks should emphasize future family clarity: who owns it, where the document/output lives, and what family will see later.
@@ -125,13 +127,45 @@ Invite link lands on one assigned responsibility, not a dashboard. The participa
 
 Default screen is case work plus staff work plus reports. Director/admin can create cases, delegate to employees, act on behalf of family, request family info, request vendors, export, and see ROI.
 
+Primary demo buyer is a one-location owner/director first. The product should prove the Local-tier story before optimizing for multi-location complexity. Multi-location should still be structurally visible through location/report patterns, but it is not the first demo narrative.
+
 ### Funeral Home Employee
 
 Default screen is My assigned work. Employees should not land in a broad case dashboard first. They see assigned tasks, case context, prepared output/request, family visibility, and proof controls.
 
+First pilot default: staff see assigned tasks plus their open cases. Location managers and directors/admins get an "All cases at this location" visibility mode. The staff path should reduce noise; the manager path should preserve workload visibility.
+
 ### Vendor
 
 Vendor experience is request-native. Vendor receives a task-linked request, sees context and sensitivity, can quote/ask for details/accept/in progress/complete/decline, and every status flows back to the estate/funeral-home spine.
+
+Vendor posture: both family and funeral home may initiate help, but funeral homes curate/prefer/hide visible options. Families should never browse a generic directory. If a family requests a vendor outside the preferred list, it should route through an approval/review flow rather than feeling like an open marketplace.
+
+First demo vendor categories:
+
+- Florist / sympathy flowers
+- Catering / reception or meal support
+- Transportation
+
+Clergy/officiant and estate cleanout can follow after the first vendor loop is trustworthy.
+
+## Branding and Demo Positioning
+
+For families who arrive through a funeral home, use subtle co-branding:
+
+- funeral-home logo and primary accent in the family command center header
+- small "Powered by Passage" footer language
+- enough Passage identity to support long-term family adoption without making the funeral home feel displaced
+
+Demo language should say "Passage prepares this for your review" more often than "Passage automates this" until the send/proof/follow-up loop is fully proven. Automation labels must be earned by visible artifacts, sends, requests, or logged follow-up.
+
+Highest-impact demo outputs:
+
+- funeral home meeting packet / arrangement summary
+- family notification message set
+- obituary draft
+- vendor request / quote workflow
+- staff + family status summary or one-page report
 
 ## Sprint Order
 
@@ -167,6 +201,19 @@ Vendor experience is request-native. Vendor receives a task-linked request, sees
 6. Demo hardening
    - B2B closed loop: create case -> family link -> staff assignment -> task action -> family-visible proof -> vendor request if relevant -> report/export.
    - Do not call demo-safe until every actor path passes smoke QA.
+
+## 12-Minute Pilot Demo Loop
+
+The first demo loop to perfect is:
+
+1. Funeral home creates a case.
+2. Funeral home assigns staff.
+3. Funeral home requests missing information from family.
+4. Staff handles the task or records what is waiting.
+5. Family sees the proof/update without another phone call.
+6. Funeral home sees the case status, staff action, and report/export change.
+
+This loop must be perfect before broadening the story. It proves the sell-sheet value: fewer repeated calls, clear ownership, proof, no disruption to the funeral home's system, and exportable case data.
 
 ## Design Rule
 
