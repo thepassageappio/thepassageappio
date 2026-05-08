@@ -195,7 +195,7 @@ export default function VendorRequestPage() {
             </div>
             {demoMode && (
               <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', color: C.amber, borderRadius: 12, padding: 10, margin: '14px 22px 0', fontWeight: 800, fontSize: 13.5, lineHeight: 1.45 }}>
-                System admin demo only. Live vendor links use the same buttons, then write status, value, proof trail, estate event, and task activity through the request token.
+                Demo mode. No live messages, payments, or production request records are changed.
               </div>
             )}
 
