@@ -570,6 +570,41 @@ export default function FuneralHomeDashboard() {
     .sort((a, b) => partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))
     .slice(0, 6);
   const firstStaffTask = assignedWorkQueue[0] || null;
+  const staffRoster = (partnerStaff.length ? partnerStaff : [{ email: user?.email, role: currentRole || 'director', scope: isDirectorRole ? 'all_cases' : 'assigned' }])
+    .map(member => ({
+      email: String(member.email || '').toLowerCase(),
+      label: member.email || (isDirectorRole ? 'Director' : 'Staff member'),
+      role: member.role || (isDirectorRole ? 'director' : 'staff'),
+      scope: member.scope || (isDirectorRole ? 'all_cases' : 'assigned'),
+    }));
+  const staffRosterEmails = new Set(staffRoster.map(member => member.email).filter(Boolean));
+  const assignedEmails = new Set(allPartnerTasks.map(task => String(task.assigned_to_email || '').toLowerCase()).filter(Boolean));
+  assignedEmails.forEach(email => {
+    if (!staffRosterEmails.has(email)) {
+      staffRoster.push({ email, label: email, role: 'assigned contact', scope: 'assigned' });
+      staffRosterEmails.add(email);
+    }
+  });
+  const unassignedStaffTasks = allPartnerTasks.filter(task => !task.assigned_to_email && !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+  const staffWorkloads = staffRoster.map(member => {
+    const rows = allPartnerTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
+    const openRows = rows.filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const waitingRows = openRows.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
+    const blockedRows = openRows.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
+    const handledRows = rows.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const nextTask = openRows.sort((a, b) => partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null;
+    return { ...member, open: openRows.length, waiting: waitingRows.length, blocked: blockedRows.length, handled: handledRows.length, nextTask };
+  }).concat(unassignedStaffTasks.length ? [{
+    email: '',
+    label: 'Unassigned work',
+    role: 'needs owner',
+    scope: 'director_attention',
+    open: unassignedStaffTasks.length,
+    waiting: unassignedStaffTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
+    blocked: unassignedStaffTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+    handled: 0,
+    nextTask: unassignedStaffTasks.sort((a, b) => partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
+  }] : []).sort((a, b) => (b.blocked - a.blocked) || (b.open - a.open) || (b.waiting - a.waiting));
   const focusedDisplayCases = showAllCases
     ? displayCases
     : (expandedCaseId ? displayCases.filter(item => item.id === expandedCaseId) : displayCases.slice(0, 1));
@@ -874,14 +909,14 @@ export default function FuneralHomeDashboard() {
               </div>
               <div style={{ color: C.mid, fontSize: 12.5 }}>Role scoping uses the same task proof and communication spine.</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-              {(partnerStaff.length ? partnerStaff : [{ email: user?.email, role: 'director', scope: 'all_cases', assignedOpen: 0, handled: totalHandled, waiting: totalWaiting, blocked: totalBlocked }]).map(member => (
-                <div key={`${member.organization_id || 'org'}_${member.email || member.role}`} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 13 }}>
-                  <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{member.email || 'Invited staff member'}</div>
-                  <div style={{ color: C.sage, fontSize: 11.5, fontWeight: 900, marginTop: 3 }}>{roleLabel(member.role)} - {member.scope === 'all_cases' ? 'Can see cases and reports' : 'Assigned work first'}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
+              {staffWorkloads.map(member => (
+                <div key={`${member.email || member.label}_${member.role}`} style={{ background: member.blocked ? C.roseFaint : member.open ? C.sageFaint : C.bg, border: `1px solid ${member.blocked ? C.rose + '44' : member.open ? C.sage + '22' : C.border}`, borderRadius: 14, padding: 13 }}>
+                  <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{member.label}</div>
+                  <div style={{ color: member.blocked ? C.rose : C.sage, fontSize: 11.5, fontWeight: 900, marginTop: 3 }}>{roleLabel(member.role)} - {member.scope === 'all_cases' ? 'Can see cases and reports' : member.scope === 'director_attention' ? 'Needs assignment' : 'Assigned work first'}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 10 }}>
                     {[
-                      ['Open', member.assignedOpen || 0],
+                      ['Open', member.open || 0],
                       ['Handled', member.handled || 0],
                       ['Waiting', member.waiting || 0],
                     ].map(([label, value]) => (
@@ -892,6 +927,13 @@ export default function FuneralHomeDashboard() {
                     ))}
                   </div>
                   {member.blocked > 0 && <div style={{ color: C.rose, fontSize: 12, fontWeight: 900, marginTop: 8 }}>{member.blocked} blocked item{member.blocked === 1 ? '' : 's'}</div>}
+                  {member.nextTask && (
+                    <button onClick={() => openPartnerWork(member.nextTask.caseId)} style={{ width: '100%', textAlign: 'left', border: `1px solid ${member.blocked ? C.rose + '44' : C.sage + '33'}`, background: C.card, color: C.ink, borderRadius: 11, padding: '9px 10px', marginTop: 9, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
+                      <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Next today</div>
+                      <div style={{ fontSize: 13.5, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>{sharedTaskTitle(member.nextTask)}</div>
+                      <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35, marginTop: 3 }}>{member.nextTask.caseName} - {statusLabel(member.nextTask.status)}</div>
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
