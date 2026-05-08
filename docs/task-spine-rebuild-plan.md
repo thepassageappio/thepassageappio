@@ -106,6 +106,15 @@ User-facing surfaces should separate them:
 - "Proof" answers how we know it happened.
 - "Notification" answers who was alerted and whether delivery worked.
 
+Implementation rule:
+
+- Product-facing APIs return `coordinationSpine`, not a flattened communication feed.
+- `coordinationSpine.conversation` contains human asks, replies, clarifications, approvals, participant updates, and vendor statuses.
+- `coordinationSpine.proof` contains audit/status truth and estate proof events.
+- `coordinationSpine.notifications` contains delivery attempts/results and provider failures.
+- `coordinationSpine.attentionItems` is the role-scoped "look here now" inbox derived from those layers.
+- UI should never make users infer whether an item is a conversation, proof, or notification from a generic activity row.
+
 ### Communication Spine Model
 
 Every meaningful coordination update starts from one of five verbs:

@@ -1481,7 +1481,7 @@ function SpineFact({ label, value, tone }) {
   );
 }
 
-function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, communicationCenter, initialTaskId, estateId, estateName, coordinatorName, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, estateId, estateName, coordinatorName, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
   var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
   var queue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
@@ -1512,7 +1512,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, comm
   var lastActor = item ? textValue(item.last_actor || item.completed_by || item.updated_by, 'No one yet') : 'Passage';
   var lastTime = item && item.last_action_at ? timeAgo(item.last_action_at) : '';
   var missingOwner = item && (owner === 'Unassigned' || owner === 'Needs owner');
-  var recent = (communicationCenter && communicationCenter.length ? communicationCenter : [].concat(events || [], actions || [])).slice(0, 6);
+  var recent = (coordinationSpine && coordinationSpine.latest && coordinationSpine.latest.length ? coordinationSpine.latest : [].concat(events || [], actions || [])).slice(0, 6);
   var handledCount = (tasks || []).filter(function(t) { return isHandledStatus(t.status); }).length + (outcomes || []).filter(function(o) { return isHandledStatus(o.status); }).length;
   var waitingCount = (tasks || []).filter(function(t) { return ['waiting', 'pending', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
   var blockedCount = (tasks || []).filter(function(t) { return ['blocked', 'failed', 'needs_review'].includes(t.status || ''); }).length + openOutcomes.filter(function(o) { return !o.owner_label; }).length;
@@ -1602,7 +1602,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, comm
           )}
 
           <details style={{ borderTop: '1px solid ' + BORDER, marginTop: 16, paddingTop: 11 }}>
-            <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Communication and proof trail</summary>
+            <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Conversation, proof, and notifications</summary>
             <div style={{ marginTop: 8 }}>
               {recent.length ? recent.map(function(row) {
                 var rowTitle = textValue(row.title || row.subject, statusText(row.status || row.delivery_status) || 'Update recorded');
@@ -1610,8 +1610,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, comm
                 var rowAt = dateTimeLabel(row.at || row.created_at || row.sent_at || row.last_action_at);
                 return (
                   <div key={(row.id || rowAt || rowTitle) + '_spine'} style={{ borderTop: '1px solid ' + BORDER, padding: '8px 0' }}>
-                    <div style={{ color: INK, fontSize: 12.8, fontWeight: 900 }}>{rowTitle}</div>
+                    <div style={{ color: INK, fontSize: 12.8, fontWeight: 900 }}>{row.layerLabel ? row.layerLabel + ': ' : ''}{rowTitle}</div>
                     <div style={{ color: MID, fontSize: 12, lineHeight: 1.45 }}>{rowDetail}</div>
+                    {row.expectedUpdate && <div style={{ color: SAGE, fontSize: 11.5, fontWeight: 800, lineHeight: 1.4, marginTop: 2 }}>{row.expectedUpdate}</div>}
                     {rowAt && <div style={{ color: SOFT, fontSize: 10.5, marginTop: 2 }}>{rowAt}</div>}
                   </div>
                 );
@@ -1624,7 +1625,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, comm
   );
 }
 
-function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, communicationCenter, initialTaskId, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
   var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
   var openQueue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
@@ -1661,7 +1662,7 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
   var openedFromTaskLink = Boolean(initialTaskId && current && String(current.item && current.item.id ? current.item.id : '') === String(initialTaskId));
   var waiting = openTasks.filter(function(t) { return ['waiting', 'pending', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
   var needsOwner = openOutcomes.filter(function(o) { return !o.owner_label; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
-  var recent = (communicationCenter && communicationCenter.length ? communicationCenter : [].concat(events || [], actions || [])).slice(0, 8);
+  var recent = (coordinationSpine && coordinationSpine.latest && coordinationSpine.latest.length ? coordinationSpine.latest : [].concat(events || [], actions || [])).slice(0, 8);
   var tabs = [
     ['now', 'Do next', queue.length ? queue.length + ' open' : 'clear'],
     ['people', 'People', needsOwner + ' need owner'],
@@ -1794,8 +1795,9 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
             var at = dateTimeLabel(row.at || row.created_at || row.sent_at || row.last_action_at);
             return (
               <div key={(row.id || row.created_at || row.sent_at) + '_update'} style={{ borderTop: '1px solid ' + BORDER, paddingTop: 8 }}>
-                <div style={{ color: INK, fontSize: 13, fontWeight: 900 }}>{title}</div>
+                <div style={{ color: INK, fontSize: 13, fontWeight: 900 }}>{row.layerLabel ? row.layerLabel + ': ' : ''}{title}</div>
                 <div style={{ color: MID, fontSize: 12, lineHeight: 1.45 }}>{detail}</div>
+                {row.expectedUpdate && <div style={{ color: SAGE, fontSize: 11.5, fontWeight: 800, lineHeight: 1.4, marginTop: 2 }}>{row.expectedUpdate}</div>}
                 {recipient && <div style={{ color: SOFT, fontSize: 11, marginTop: 2 }}>Recipient: {recipient}</div>}
                 {at && <div style={{ color: SOFT, fontSize: 10.5, marginTop: 2 }}>{at}</div>}
               </div>
@@ -2013,7 +2015,7 @@ export default function EstatePage() {
   var s16 = useState('now'); var activeCommandTab = s16[0]; var setActiveCommandTab = s16[1];
   var s17 = useState(null); var pendingTaskAction = s17[0]; var setPendingTaskAction = s17[1];
   var s18 = useState(''); var pendingTaskNote = s18[0]; var setPendingTaskNote = s18[1];
-  var s19 = useState([]); var communicationCenter = s19[0]; var setCommunicationCenter = s19[1];
+  var s19 = useState({ conversation: [], proof: [], notifications: [], attentionItems: [], latest: [] }); var coordinationSpine = s19[0]; var setCoordinationSpine = s19[1];
   var s20 = useState(''); var pendingTaskDraftText = s20[0]; var setPendingTaskDraftText = s20[1];
   var s21 = useState(''); var pendingRecipientName = s21[0]; var setPendingRecipientName = s21[1];
   var s22 = useState(''); var pendingRecipientEmail = s22[0]; var setPendingRecipientEmail = s22[1];
@@ -2056,7 +2058,7 @@ export default function EstatePage() {
               { data: data.people || [] },
               { data: data.actions || [] },
               { data: data.announcements || [] },
-              { data: data.communicationCenter || [] },
+              { data: data.coordinationSpine || { conversation: [], proof: [], notifications: [], attentionItems: [], latest: [] } },
             ];
           });
         }).catch(function() { return results; });
@@ -2070,7 +2072,7 @@ export default function EstatePage() {
       if (results[5].data) setPeople(results[5].data);
       if (results[6].data) setActions(results[6].data);
       if (results[7].data) setAnnouncements(results[7].data);
-      if (results[8] && results[8].data) setCommunicationCenter(results[8].data);
+      if (results[8] && results[8].data) setCoordinationSpine(results[8].data);
       setLoading(false);
       // Update last viewed
       sb.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', estateId).then(function() {});
@@ -2942,7 +2944,7 @@ export default function EstatePage() {
             events={events}
             actions={actions}
             people={people}
-            communicationCenter={communicationCenter}
+            coordinationSpine={coordinationSpine}
             initialTaskId={initialTaskId}
             estateId={estateId}
             estateName={name}

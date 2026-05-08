@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { buildCommunicationCenter, selectNextTask } from '../../lib/communicationCenter';
+import { buildCoordinationSpine, selectNextTask } from '../../lib/communicationCenter';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -126,6 +126,14 @@ export default async function handler(req, res) {
       const estateStatusEvents = statusEvents.filter(e => e.workflow_id === w.id);
       const estateCommunications = communications.filter(c => c.workflow_id === w.id);
       const estateVendorRequests = vendorRequests.filter(v => v.workflow_id === w.id);
+      const coordinationSpine = buildCoordinationSpine({
+        tasks: estateTasks.concat(estateActions),
+        statusEvents: estateStatusEvents,
+        communications: estateCommunications,
+        vendorRequests: estateVendorRequests,
+        limit: 10,
+        role: 'participant',
+      });
       return {
         ...w,
         role: access.find(a => a.workflow_id === w.id)?.role ||
@@ -138,13 +146,7 @@ export default async function handler(req, res) {
         statusEvents: estateStatusEvents,
         communications: estateCommunications,
         vendorRequests: estateVendorRequests,
-        communicationCenter: buildCommunicationCenter({
-          tasks: estateTasks.concat(estateActions),
-          statusEvents: estateStatusEvents,
-          communications: estateCommunications,
-          vendorRequests: estateVendorRequests,
-          limit: 10,
-        }),
+        coordinationSpine,
         nextTask: selectNextTask(estateTasks.concat(estateActions), 'participant'),
       };
     });

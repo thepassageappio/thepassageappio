@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
-import { taskDisplayTitle as sharedTaskTitle, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
+import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 import { taskOutputFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 import { orchestrateTasks } from '../../lib/taskOrchestration';
@@ -442,12 +442,15 @@ export default function FuneralHomeDashboard() {
     .map(({ caseItem, orchestration }) => ({ caseItem, task: itemNextPartnerTask(caseItem, orchestration) }))
     .filter(row => row.task)
     .slice(0, 4);
-  const spineInbox = caseOrchestrationRows.flatMap(({ caseItem }) => (caseItem.communicationCenter || []).map(event => ({
+  const spineInbox = caseOrchestrationRows.flatMap(({ caseItem }) => {
+    const source = caseItem.coordinationSpine?.attentionItems || [];
+    return source.map(event => ({
     ...event,
     caseId: caseItem.id,
     caseName: caseItem.deceased_name || caseItem.estate_name || caseItem.name || 'Family case',
     locationName: locationNameFor(caseItem),
-  }))).filter(event => {
+    }));
+  }).filter(event => {
     const status = String(event.status || '').toLowerCase();
     const text = `${event.title || ''} ${event.detail || ''} ${event.statusLabel || ''}`.toLowerCase();
     return ['blocked', 'failed', 'needs_review', 'waiting', 'pending', 'requested', 'sent', 'acknowledged'].includes(status)
@@ -1099,7 +1102,7 @@ export default function FuneralHomeDashboard() {
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Next partner work</div>
                     <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>
                       {nextPartnerTask ? (
-                        <>Move this now: <strong style={{ color: C.ink }}>{sharedTaskTitle(nextPartnerTask)}</strong>. {orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')} <strong style={{ color: C.sage }}>That is one less call your team has to take.</strong></>
+                        <>Move this now: <strong style={{ color: C.ink }}>{sharedTaskTitle(nextPartnerTask)}</strong>. {orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')} <strong style={{ color: C.sage }}>{orchestration.nextAction?.expectedUpdate || taskExpectedUpdate(nextPartnerTask, 'funeral_home')}</strong></>
                       ) : (
                         <>No partner-ready work is open for this case right now. <strong style={{ color: C.sage }}>The family status is still visible.</strong></>
                       )}
@@ -1170,13 +1173,14 @@ export default function FuneralHomeDashboard() {
                       <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>No message is sent from this screen. Use this prepared link when the director is ready for the family to accept their command center.</div>
                     </div>
                   )}
-                  {isExpanded && (item.communicationCenter?.length > 0 || item.communications?.length > 0) && (
+                  {isExpanded && item.coordinationSpine?.latest?.length > 0 && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
-                      <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Communication and proof log</div>
-                      {(item.communicationCenter?.length ? item.communicationCenter : item.communications).slice(0, 5).map(message => (
+                      <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Conversation, proof, and notifications</div>
+                      {item.coordinationSpine.latest.slice(0, 5).map(message => (
                         <div key={message.id} style={{ fontSize: 12.3, color: C.mid, lineHeight: 1.45, padding: '5px 0', borderTop: `1px solid ${C.border}` }}>
-                          <strong style={{ color: C.ink }}>{message.title || message.subject || 'Family update'}</strong>
+                          <strong style={{ color: C.ink }}>{message.layerLabel ? `${message.layerLabel}: ` : ''}{message.title || message.subject || 'Family update'}</strong>
                           <div>{message.detail || `${message.channel || 'message'} to ${message.recipient_name || message.recipient_email || message.recipient_phone || message.recipient || 'recipient'} - ${message.statusLabel || statusLabel(message.status)}`}</div>
+                          {message.expectedUpdate && <div style={{ color: C.sage, fontWeight: 800 }}>{message.expectedUpdate}</div>}
                           {(message.at || message.sent_at) && <div style={{ color: C.soft }}>{new Date(message.at || message.sent_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</div>}
                           {message.error_message && <div style={{ color: C.rose }}>{message.error_message}</div>}
                         </div>

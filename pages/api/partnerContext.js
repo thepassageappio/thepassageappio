@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { enrichTaskWithPlaybook, partnerTaskPriority } from '../../lib/taskPlaybooks';
 import { isPassageAdmin } from '../../lib/adminAccess';
-import { buildCommunicationCenter, selectNextTask } from '../../lib/communicationCenter';
+import { buildCoordinationSpine, selectNextTask } from '../../lib/communicationCenter';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -229,6 +229,14 @@ export default async function handler(req, res) {
     const caseVendorRequests = vendorRequests.filter(v => v.workflow_id === w.id);
     const caseFamilyParticipants = familyParticipants.filter(p => p.workflow_id === w.id);
     const partnerTasks = caseTasks.filter(t => t.playbook?.funeralHomeEligible);
+    const coordinationSpine = buildCoordinationSpine({
+      tasks: caseTasks,
+      statusEvents: caseStatusEvents,
+      communications: caseCommunications,
+      vendorRequests: caseVendorRequests,
+      limit: 10,
+      role: 'funeral_home',
+    });
     return {
       ...w,
       tasks: caseTasks,
@@ -238,13 +246,7 @@ export default async function handler(req, res) {
       familyParticipants: caseFamilyParticipants.slice(0, 8),
       partnerTasks,
       nextPartnerTask: selectNextTask(partnerTasks.length ? partnerTasks : caseTasks, 'funeral_home'),
-      communicationCenter: buildCommunicationCenter({
-        tasks: caseTasks,
-        statusEvents: caseStatusEvents,
-        communications: caseCommunications,
-        vendorRequests: caseVendorRequests,
-        limit: 10,
-      }),
+      coordinationSpine,
       waitingOnFamily: caseTasks.filter(t => /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
       blockedTasks: caseTasks.filter(t => ['blocked', 'failed', 'needs_review'].includes(t.status || '')),
     };

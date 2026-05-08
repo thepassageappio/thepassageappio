@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { buildCommunicationCenter, selectNextTask } from '../../lib/communicationCenter';
+import { buildCoordinationSpine, selectNextTask } from '../../lib/communicationCenter';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -91,6 +91,16 @@ export default async function handler(req, res) {
 
   await admin.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', id).then(() => {}, () => {});
 
+  const coordinationSpine = buildCoordinationSpine({
+    tasks: tasks || [],
+    statusEvents: statusEvents || [],
+    communications: communications || [],
+    vendorRequests: vendorRequests || [],
+    estateEvents: events || [],
+    limit: 16,
+    role: 'family',
+  });
+
   return res.status(200).json({
     estate,
     outcomes: outcomes || [],
@@ -103,14 +113,7 @@ export default async function handler(req, res) {
     statusEvents: statusEvents || [],
     communications: communications || [],
     vendorRequests: vendorRequests || [],
-    communicationCenter: buildCommunicationCenter({
-      tasks: tasks || [],
-      statusEvents: statusEvents || [],
-      communications: communications || [],
-      vendorRequests: vendorRequests || [],
-      estateEvents: events || [],
-      limit: 16,
-    }),
+    coordinationSpine,
     nextTask: selectNextTask(tasks || [], 'family'),
   });
 }

@@ -331,16 +331,33 @@ export default function ParticipatingPage() {
               ...estate,
               tasks: kind === 'task' ? (estate.tasks || []).map(updateItem) : estate.tasks,
               actions: kind === 'action' ? (estate.actions || []).map(updateItem) : estate.actions,
-              communicationCenter: [
+              coordinationSpine: {
+                ...(estate.coordinationSpine || { conversation: [], proof: [], notifications: [], attentionItems: [], latest: [] }),
+                conversation: [
+                  {
+                    id: 'local-' + kind + '-' + id + '-' + Date.now(),
+                    layer: 'conversation',
+                    layerLabel: 'Conversation',
+                    title: action === 'save_note' ? 'Note saved' : (json.confirmation || actionConfirmation(action)).replace(/\.$/, ''),
+                    detail: json.eventDetail || note || 'Saved in Passage.',
+                    at: new Date().toISOString(),
+                    statusLabel: nextStatus || 'saved',
+                  },
+                  ...((estate.coordinationSpine && estate.coordinationSpine.conversation) || []),
+                ],
+                latest: [
                 {
                   id: 'local-' + kind + '-' + id + '-' + Date.now(),
+                  layer: 'conversation',
+                  layerLabel: 'Conversation',
                   title: action === 'save_note' ? 'Note saved' : (json.confirmation || actionConfirmation(action)).replace(/\.$/, ''),
                   detail: json.eventDetail || note || 'Saved in Passage.',
                   at: new Date().toISOString(),
                   statusLabel: nextStatus || 'saved',
                 },
-                ...(estate.communicationCenter || []),
-              ],
+                  ...((estate.coordinationSpine && estate.coordinationSpine.latest) || []),
+                ],
+              },
             };
           }),
         };
@@ -481,7 +498,7 @@ export default function ParticipatingPage() {
                         {[
                           ['Your next task', primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
                           ['Open for you', openItems.length],
-                          ['Updates', estate.communicationCenter?.length || 0],
+                          ['Updates', estate.coordinationSpine?.latest?.length || 0],
                         ].map(([label, value]) => (
                           <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
                             <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
@@ -501,14 +518,15 @@ export default function ParticipatingPage() {
                         />
                       )}
 
-                      {estate.communicationCenter?.length > 0 && (
+                      {estate.coordinationSpine?.latest?.length > 0 && (
                         <details style={{ marginTop: 12, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 12px', background: C.card }}>
                           <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 13, fontWeight: 900 }}>Recent updates the coordinator can see</summary>
                           <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
-                            {estate.communicationCenter.slice(0, 5).map(row => (
+                            {estate.coordinationSpine.latest.slice(0, 5).map(row => (
                               <div key={row.id || row.at || row.title} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 7, color: C.mid, fontSize: 12.3, lineHeight: 1.45 }}>
-                                <strong style={{ color: C.ink }}>{row.title || 'Update recorded'}</strong>
+                                <strong style={{ color: C.ink }}>{row.layerLabel ? `${row.layerLabel}: ` : ''}{row.title || 'Update recorded'}</strong>
                                 <div>{row.detail || row.statusLabel || 'Saved in Passage.'}</div>
+                                {row.expectedUpdate && <div style={{ color: C.sage, fontSize: 11.5, fontWeight: 800 }}>{row.expectedUpdate}</div>}
                                 {row.at && <div style={{ color: C.soft, fontSize: 11 }}>{new Date(row.at).toLocaleString()}</div>}
                               </div>
                             ))}
