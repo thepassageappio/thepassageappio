@@ -380,6 +380,8 @@ export default function FuneralHomeDashboard() {
   const totalVendorValue = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + vendorValue(request), 0), 0);
   const funeralHomeShare = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.funeral_home_share_amount || 0), 0), 0);
   const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to_email || t.assigned_to_name || t.owner_name || t.participant_id).length, 0);
+  const familyRequestsOpen = cases.reduce((sum, item) => sum + (item.waitingOnFamily?.length || 0) + (item.tasks || []).filter(t => ['blocked', 'needs_review'].includes(String(t.status || '').toLowerCase())).length, 0);
+  const proofEventsLogged = cases.reduce((sum, item) => sum + (item.activity || []).filter(event => ['handled', 'completed', 'done', 'waiting', 'blocked', 'sent'].includes(String(event.status || '').toLowerCase())).length, 0);
   const callsAvoided = totalCommunications + assignmentsCoordinated + totalVendorRequests;
   const timeSavedMinutes = callsAvoided * 8;
   const timeSavedLabel = callsAvoided > 0 ? `${Math.max(1, Math.round(timeSavedMinutes / 60))} hr est.` : 'None yet';
@@ -449,6 +451,66 @@ export default function FuneralHomeDashboard() {
     ['Director / admin', 'All cases, locations, staff queues, reports, billing prompts.', isDirectorRole ? 'Your current view' : 'Managed by leadership'],
     ['Location manager', 'Location-scoped cases, staff queues, waiting items, exports.', /location|manager/i.test(currentRole) ? 'Your current view' : 'Next permission layer'],
     ['Staff / employee', 'Assigned tasks first, with case context, family messages, proof, and audit trail.', !isDirectorRole ? 'Your current view' : 'Delegation target'],
+  ];
+  const firstCase = displayCases[0] || cases[0] || null;
+  const firstOpenCase = caseInbox[0]?.caseItem || firstCase;
+  const directorLoopSteps = [
+    {
+      key: 'case',
+      label: 'Case intake',
+      proof: cases.length ? `${cases.length} active case${cases.length === 1 ? '' : 's'}` : 'No case created yet',
+      done: cases.length > 0,
+      waiting: false,
+      next: cases.length ? 'Keep moving the oldest open family item.' : 'Create an at-need or pre-need case.',
+    },
+    {
+      key: 'staff',
+      label: 'Staff delegation',
+      proof: assignmentsCoordinated ? `${assignmentsCoordinated} assignment${assignmentsCoordinated === 1 ? '' : 's'} coordinated` : 'No owner assigned yet',
+      done: assignmentsCoordinated > 0,
+      waiting: cases.length > 0 && assignmentsCoordinated === 0,
+      next: assignmentsCoordinated ? 'Employees see assigned work first.' : 'Assign the next task to staff or a participant.',
+    },
+    {
+      key: 'family',
+      label: 'Family input',
+      proof: familyRequestsOpen ? `${familyRequestsOpen} family request${familyRequestsOpen === 1 ? '' : 's'} open` : totalCommunications ? `${totalCommunications} family update${totalCommunications === 1 ? '' : 's'} logged` : 'No family request logged yet',
+      done: totalCommunications > 0 || familyRequestsOpen > 0,
+      waiting: familyRequestsOpen > 0,
+      next: familyRequestsOpen ? 'Passage shows what is waiting and who owes it.' : 'Ask once through Passage instead of chasing calls.',
+    },
+    {
+      key: 'proof',
+      label: 'Proof and status',
+      proof: proofEventsLogged ? `${proofEventsLogged} proof/status event${proofEventsLogged === 1 ? '' : 's'}` : totalHandled ? `${totalHandled} handled task${totalHandled === 1 ? '' : 's'}` : 'No proof saved yet',
+      done: proofEventsLogged > 0 || totalHandled > 0,
+      waiting: totalWaiting > 0,
+      next: totalHandled || proofEventsLogged ? 'Family and staff see the same status truth.' : 'Record what was done, waiting, or blocked.',
+    },
+    {
+      key: 'local',
+      label: 'Local support',
+      proof: totalVendorRequests ? `${totalVendorRequests} task-linked request${totalVendorRequests === 1 ? '' : 's'}` : 'No local support needed',
+      done: totalVendorRequests > 0,
+      waiting: totalVendorRequests > 0,
+      next: totalVendorRequests ? 'Vendor status stays connected to the case.' : 'Offer trusted help only inside relevant tasks.',
+    },
+    {
+      key: 'report',
+      label: 'Report and ROI',
+      proof: callsAvoided ? `${callsAvoided} call${callsAvoided === 1 ? '' : 's'} avoided estimate` : 'ROI starts after work is logged',
+      done: callsAvoided > 0,
+      waiting: false,
+      next: callsAvoided ? 'Export a record for your existing system.' : 'Move work through Passage to produce the report.',
+    },
+  ];
+  const nextDirectorStep = directorLoopSteps.find(step => !step.done || step.waiting) || directorLoopSteps[directorLoopSteps.length - 1];
+  const directorUseCases = [
+    ['Delegate', assignmentsCoordinated || assignedWorkQueue.length, 'assigned staff or participant work'],
+    ['Reduce calls', callsAvoided, 'updates, assignments, and requests captured'],
+    ['Ask family', familyRequestsOpen || totalCommunications, 'family inputs routed through the case'],
+    ['Act for family', totalHandled, 'tasks handled with visible proof'],
+    ['Coordinate support', totalVendorRequests, 'vendor requests without a directory'],
   ];
 
   function money(value) {
@@ -629,6 +691,18 @@ export default function FuneralHomeDashboard() {
               {funeralHomeShare > 0 && <strong style={{ color: C.sage }}> Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</strong>}
             </div>
           </div>
+        )}
+
+        {user && !loading && data && (
+          <DirectorOperatingLoop
+            steps={directorLoopSteps}
+            nextStep={nextDirectorStep}
+            useCases={directorUseCases}
+            firstOpenCase={firstOpenCase}
+            onCreateCase={() => openCasePanel('immediate')}
+            onOpenCase={openPartnerWork}
+            onExport={downloadExport}
+          />
         )}
 
         {user && !loading && data && (
@@ -1172,6 +1246,66 @@ export default function FuneralHomeDashboard() {
       </section>
       <SiteFooter />
     </main>
+  );
+}
+
+function DirectorOperatingLoop({ steps, nextStep, useCases, firstOpenCase, onCreateCase, onOpenCase, onExport }) {
+  const nextActionLabel = !firstOpenCase
+    ? 'Create first case'
+    : nextStep?.key === 'report'
+      ? 'Export report CSV'
+      : 'Open next case work';
+  const handleNext = () => {
+    if (!firstOpenCase) return onCreateCase?.();
+    if (nextStep?.key === 'report') return onExport?.();
+    return onOpenCase?.(firstOpenCase.id);
+  };
+  return (
+    <section style={{ background: C.bgDark, color: '#fff', borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 12px 34px rgba(0,0,0,.12)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18, alignItems: 'start' }}>
+        <div>
+          <div style={{ color: '#b7d0bb', fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director operating loop</div>
+          <h2 style={{ fontSize: 27, lineHeight: 1.12, margin: '7px 0 7px', fontWeight: 400 }}>One case spine from intake to proof to report.</h2>
+          <p style={{ color: '#d7d0c7', fontSize: 13.5, lineHeight: 1.55, maxWidth: 650, margin: 0 }}>
+            Passage should remove scattered calls, staff memory, loose vendor threads, and unclear family requests. The demo loop below is the work a director cares about.
+          </p>
+          <div style={{ display: 'grid', gap: 0, marginTop: 16, borderTop: '1px solid rgba(255,255,255,.16)' }}>
+            {steps.map((step, index) => {
+              const active = step.key === nextStep?.key;
+              const status = step.done ? (step.waiting ? 'Waiting' : 'Ready') : 'Next';
+              return (
+                <div key={step.key} style={{ display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr) 74px', gap: 10, alignItems: 'center', minHeight: 58, borderBottom: '1px solid rgba(255,255,255,.13)', color: active ? '#fff' : '#eee8df' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 999, display: 'grid', placeItems: 'center', background: step.done && !step.waiting ? C.sage : active ? C.amber : 'rgba(255,255,255,.1)', color: '#fff', fontSize: 12, fontWeight: 900 }}>{index + 1}</div>
+                  <div>
+                    <div style={{ fontSize: 13.5, fontWeight: 900 }}>{step.label}</div>
+                    <div style={{ color: active ? '#e8cf9d' : '#aaa39b', fontSize: 11.5, marginTop: 2 }}>{step.proof}</div>
+                    <div style={{ color: '#d7d0c7', fontSize: 12.5, lineHeight: 1.4, marginTop: 3 }}>{step.next}</div>
+                  </div>
+                  <div style={{ justifySelf: 'end', color: step.waiting ? '#e8cf9d' : step.done ? '#b7d0bb' : '#fff', fontSize: 11, fontWeight: 900 }}>{status}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <aside style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 15, padding: 14 }}>
+          <div style={{ color: '#b7d0bb', fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Move this now</div>
+          <div style={{ fontSize: 20, lineHeight: 1.2, marginTop: 6 }}>{nextStep?.label || 'Start the loop'}</div>
+          <div style={{ color: '#d7d0c7', fontSize: 12.5, lineHeight: 1.5, marginTop: 7 }}>{nextStep?.next || 'Create the first case and Passage will surface the next operating step.'}</div>
+          <button onClick={handleNext} style={{ width: '100%', border: 'none', borderRadius: 12, background: C.sage, color: '#fff', padding: '11px 13px', marginTop: 12, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{nextActionLabel}</button>
+          <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
+            {useCases.map(([label, value, body]) => (
+              <div key={label} style={{ display: 'grid', gridTemplateColumns: '58px minmax(0, 1fr)', gap: 9, alignItems: 'baseline' }}>
+                <div style={{ color: '#fff', fontSize: 20 }}>{value}</div>
+                <div>
+                  <div style={{ color: '#b7d0bb', fontSize: 11.5, fontWeight: 900 }}>{label}</div>
+                  <div style={{ color: '#c8c1b8', fontSize: 11.5, lineHeight: 1.35 }}>{body}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
+    </section>
   );
 }
 
