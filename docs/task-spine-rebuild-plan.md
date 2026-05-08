@@ -89,6 +89,93 @@ Each role should see the same truth with scoped detail:
 
 No communication should be trapped only inside a modal, a vendor page, a participant page, or a funeral-home card. It must roll up to the estate communication/proof spine and down to the relevant role-specific view.
 
+### Communication Spine Model
+
+Every meaningful update starts from one of five verbs:
+
+- Assign: someone becomes responsible for the next action.
+- Ask: someone needs information, approval, documents, or a decision.
+- Update: someone records what changed, what is waiting, or what is blocked.
+- Prove: someone saves evidence that the work happened.
+- Escalate: the task needs help, permission, a professional, or a different owner.
+
+Those verbs should always create one shared event with scoped visibility:
+
+- Family-visible event: reduces "where are we?" uncertainty.
+- Funeral-home event: helps staff/directors know who owns the next move.
+- Staff/internal event: preserves handoff notes that should not confuse the family.
+- Participant event: gives an invited helper only the context they need.
+- Vendor event: keeps quote/status/proof tied to the task without exposing unrelated estate details.
+- System/admin event: catches delivery failures, demo issues, and audit/debug facts.
+
+The task row should show current truth; the communication/proof trail should show how it got there.
+
+### Notification Routing
+
+Notification routing should happen after the event is created, not before. The order is:
+
+1. Save the task/action event in the estate spine.
+2. Determine who needs to know based on role, task visibility, and next action.
+3. Resolve channel preferences: in-app first, email as official default, SMS only with consent/urgency.
+4. Send or prepare the message.
+5. Log the attempted channel, provider status, fallback, skipped reason, and actor.
+6. Update the same event/trail with sent, delivered, viewed, failed, or waiting state.
+
+This prevents "message sent" from becoming an invisible side effect. The communication attempt itself becomes proof.
+
+### Role-Specific Communication Rules
+
+Family coordinator:
+
+- Sees all family-facing work, funeral-home updates, participant responses, vendor statuses, and proof.
+- Gets notified when the next action changes, someone asks for family input, proof is saved, or something is blocked.
+- Should not receive every internal staff note.
+
+Funeral-home director/admin:
+
+- Sees all cases, all staff queues, family requests, vendor statuses, proof, export/report changes, and escalation events.
+- Gets notified for blocked work, unassigned work, family responses, staff completions, failed notifications, and report-worthy changes.
+
+Funeral-home employee:
+
+- Sees assigned work first with case context, family request text, proof requirements, and allowed internal notes.
+- Gets notified only for assignments, replies to their requests, escalations, and director reassignment.
+
+Participant/helper:
+
+- Sees one assigned responsibility, the request, deadline/context, how to respond, and their own proof history.
+- Gets notified for assignment, reminder, coordinator clarification, and accepted/handled confirmation.
+
+Vendor:
+
+- Sees only task-linked request context, requested service, sensitivity note, quote/status controls, and their response/proof trail.
+- Gets notified for request, family/funeral-home clarification, accepted quote, status due, and completion confirmation.
+
+System admin:
+
+- Sees provider failures, orphaned events, demo-data warnings, and audit inconsistencies.
+
+### Status Truth
+
+A communication should never leave task status ambiguous:
+
+- Assigned: owner exists; recipient may still need invite/notification.
+- Sent: request/message left Passage or was prepared for manual send.
+- Delivered/viewed: provider or portal confirms receipt.
+- Waiting: Passage is waiting on a named person/entity.
+- Needs help: owner cannot move forward without escalation.
+- Handled: output/proof is saved and visible to the right audience.
+- Failed: delivery or action failed and needs retry/fallback.
+
+Every status must answer:
+
+- who owns it now
+- who is waiting
+- what was communicated
+- what proof exists
+- who can see it
+- what happens next
+
 ## Notification Preference Contract
 
 Notification preferences are also part of the spine. Passage should not guess differently on different screens.
