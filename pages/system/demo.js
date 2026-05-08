@@ -399,6 +399,14 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
             </div>
           ))}
         </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+          <Link href="/vendors/request?demo=1" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+            Open vendor demo request
+          </Link>
+          <button onClick={() => demoAction('Demo: vendor accepts, updates progress, then marks complete. Family and funeral home see status without a sales directory.')} style={tinyButton}>
+            Explain vendor loop
+          </button>
+        </div>
       </Panel>
     );
   }
