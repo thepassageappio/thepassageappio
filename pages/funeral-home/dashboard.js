@@ -834,16 +834,23 @@ export default function FuneralHomeDashboard() {
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
-                  {assignedWorkQueue.map(task => (
-                    <div key={`${task.caseId}_${task.id}`} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'center' }}>
+                  {assignedWorkQueue.map(task => {
+                    const blocked = ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase());
+                    const waiting = ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase());
+                    const tone = blocked ? C.rose : waiting ? C.amber : C.sage;
+                    return (
+                    <div key={`${task.caseId}_${task.id}`} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '44' : C.border}`, borderLeft: `5px solid ${tone}`, borderRadius: 13, padding: 13, display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center' }}>
                       <div>
                         <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{task.caseName} - {task.locationName}</div>
-                        <div style={{ fontSize: 15.5, fontWeight: 900, marginTop: 3 }}>{sharedTaskTitle(task)}</div>
-                        <div style={{ color: C.mid, fontSize: 12.5, marginTop: 3 }}>Owner: {task.assigned_to_name || task.assigned_to_email || task.last_actor || 'Unassigned'} - {statusLabel(task.status)}</div>
+                        <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3, lineHeight: 1.25 }}>{sharedTaskTitle(task)}</div>
+                        <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{task.assigned_to_name || task.assigned_to_email || task.last_actor || 'Unassigned'}</strong> - {statusLabel(task.status)}</div>
+                        <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '7px 8px', marginTop: 8, color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                          <strong style={{ color: C.ink }}>Expected update:</strong> {taskExpectedUpdate(task, 'funeral_home')}
+                        </div>
                       </div>
                       <button onClick={() => openPartnerWork(task.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open work</button>
                     </div>
-                  ))}
+                  );})}
                 </div>
               )}
             </div>
