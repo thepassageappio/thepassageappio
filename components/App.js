@@ -3707,7 +3707,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                           <div style={{ fontSize: 11.5, color: C.mid, marginTop: 3 }}>
                             {item.workflow.name || "Estate"}{item.assignedTo ? ` - ${item.assignedTo} is handling this` : " - unassigned"}
                           </div>
-                          <div style={{ marginTop: 7, background: CARD, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderRadius: 9, padding: "8px 9px", fontSize: 11.5, color: blockers.length ? C.amber : C.mid, lineHeight: 1.4 }}>
+                          <div style={{ marginTop: 7, background: C.bgCard, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderRadius: 9, padding: "8px 9px", fontSize: 11.5, color: blockers.length ? C.amber : C.mid, lineHeight: 1.4 }}>
                             <strong style={{ color: C.ink }}>Why this is next:</strong> {nextReason}
                           </div>
                           <div style={{ display: "grid", gap: 3, marginTop: 8 }}>
