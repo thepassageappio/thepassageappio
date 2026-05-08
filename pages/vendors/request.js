@@ -152,6 +152,7 @@ export default function VendorRequestPage() {
   const vendorName = request?.vendors?.business_name || 'Vendor';
   const demoMode = !token && isSystemAdmin(user);
   const requestStatus = labelForStatus(request?.status);
+  const urgencyLabel = request?.urgency === 'rush' ? 'Needed within 24 hours' : 'Planning ahead';
   const nextExpected = request?.status === 'completed'
     ? 'Completed. Passage will show the family and funeral home this request is handled.'
     : request?.status === 'in_progress'
@@ -186,6 +187,9 @@ export default function VendorRequestPage() {
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Demo scoped vendor request' : 'Scoped local support request'}</div>
               <h1 style={{ fontSize: 'clamp(30px, 5vw, 44px)', lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
               <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'This is dummy demo data for system admins. Button clicks update local screen state only; no real vendor_request record is changed.' : 'This is not a public directory lead. It is one task-native request connected to a family case, visible to the right people.'}</p>
+              <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 12 }}>
+                <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After accepting:</strong> the family and funeral home will be notified that you are working on it.
+              </div>
             </div>
             {demoMode && (
               <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', color: C.amber, borderRadius: 12, padding: 10, margin: '14px 22px 0', fontWeight: 800, fontSize: 13.5, lineHeight: 1.45 }}>
@@ -206,7 +210,7 @@ export default function VendorRequestPage() {
               <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 16, padding: 14 }}>
                 <Info label="Family case" value={familyName} />
                 <div style={{ height: 8 }} />
-                <Info label="Urgency" value={request.urgency === 'rush' ? 'Rush' : 'Planned'} />
+                <Info label="Urgency" value={urgencyLabel} />
                 <div style={{ height: 8 }} />
                 <Info label="Status" value={requestStatus} />
               </div>
@@ -305,7 +309,7 @@ function noticeForAction(action, demo) {
   if (action === 'completed') return prefix + 'Marked completed. Passage will show the family and funeral home that this is handled.';
   if (action === 'in_progress') return prefix + 'Marked in progress. Passage will keep this visible while the vendor works.';
   if (action === 'declined') return prefix + 'Marked declined. Passage will show that this request needs another option.';
-  return prefix + 'Request accepted. Passage will keep the family and funeral home informed.';
+  return prefix + 'Request accepted. The family and funeral home will be notified that you are working on it.';
 }
 
 function VendorDashboard({ vendor, requests }) {

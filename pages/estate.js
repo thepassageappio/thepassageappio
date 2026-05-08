@@ -620,7 +620,7 @@ function InlineAssign({ onSave, onClose }) {
     <div style={{ background: SUBTLE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 14, marginTop: 10 }}>
       <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Assign and prepare handoff</div>
       <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>
-        Pick the owner first. Add email or phone when Passage should send or remind them; otherwise the owner is saved for the estate record.
+        Pick the person responsible. Add contact info only when they need a Passage handoff.
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginBottom: 8 }}>
         <input value={name} onChange={function(e) { setName(e.target.value); }}
@@ -2573,7 +2573,7 @@ export default function EstatePage() {
         'Open your secure Passage task:',
         taskUrl,
         '',
-        'First time using Passage? Use this link, sign in or create an account with this same email address, and Passage will show only the work assigned to you.',
+        'If this is your first time using Passage, open the link and sign in with this same email address.',
         '',
         'From there you can accept it, mark it handled, say you are waiting, or ask for help.'
       ].join('\n');
@@ -2612,7 +2612,7 @@ export default function EstatePage() {
       return [
         'Official step: ' + title,
         '',
-        'Use the official agency or institution process. Passage should record what happened here after you complete it.',
+        'Use the official agency or institution process, then record the outcome here.',
         '',
         'Information likely needed:',
         Array.isArray(playbook.requiredInfo) && playbook.requiredInfo.length ? playbook.requiredInfo.map(function(info) { return '- ' + textValue(info); }).join('\n') : '- Name, date, relationship, and reference details',
@@ -3030,8 +3030,8 @@ export default function EstatePage() {
                             </div>
                             <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.45, marginTop: 5 }}>
                               {currentEmail
-                                ? 'Sending through Passage gives them a direct task link, copies you, logs the handoff, and keeps this item pending until someone marks it handled. First-time users sign in with this email to see only their assigned work.'
-                                : 'Start by choosing the person responsible. Email is the official first-time access key. SMS can be used as an opt-in nudge with the same link, but phone-only access needs a separate invite/OTP flow.'}
+                                ? 'Ready for a Passage handoff.'
+                                : 'Choose an owner before sending or reminding.'}
                             </div>
                           </div>
                           {currentEmail && <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 900 }}>Ready to notify</span>}
@@ -3094,7 +3094,7 @@ export default function EstatePage() {
                               {assigningTaskRecipient ? 'Saving...' : pendingTaskAction.sending ? 'Sending...' : 'Save owner + send handoff'}
                             </button>
                           )}
-                          <span style={{ fontSize: 11.5, color: MID, lineHeight: 1.4 }}>This updates the task owner, records the audit trail, and enables reminders or Send through Passage.</span>
+                          <span style={{ fontSize: 11.5, color: MID, lineHeight: 1.4 }}>Owner and proof are saved on the task.</span>
                         </div>
                       </div>
                     );
@@ -3112,7 +3112,7 @@ export default function EstatePage() {
                       <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{taskWorkspaceTitle(pendingTaskAction.mode)}</div>
                       <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginBottom: 9 }}>
                         {pendingTaskAction.mode === 'assignment'
-                          ? 'Write the exact task request once. Save the owner, then send through Passage so the assignee gets the link and the estate keeps the proof trail.'
+                          ? 'Task request'
                           : pendingTaskAction.mode === 'obituary'
                           ? 'Draft here first. Copy it for the funeral home, newspaper, social post, or a future Passage memorial page. Saving below records the draft and where it went.'
                           : pendingTaskAction.mode === 'message'
@@ -3134,8 +3134,8 @@ export default function EstatePage() {
                         <>
                           <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginTop: 8, color: messageRecipientEmail ? SAGE : AMBER, fontSize: 12.5, fontWeight: 800, lineHeight: 1.35 }}>
                             {messageRecipientEmail
-                              ? 'Ready to send to ' + messageRecipientName + ' at ' + messageRecipientEmail + '.'
-                              : 'No recipient is assigned yet. Add the owner or contact here, then Passage can send and log it.'}
+                          ? 'Ready to send to ' + messageRecipientName + ' at ' + messageRecipientEmail + '.'
+                              : 'Assign a recipient first.'}
                           </div>
                         </>
                       )}
@@ -3179,9 +3179,10 @@ export default function EstatePage() {
                         })()}
                       </div>
                       {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'assignment') && (
-                        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginTop: 9, color: MID, fontSize: 12.3, lineHeight: 1.45 }}>
-                          <strong style={{ color: INK }}>How first-time access works:</strong> email is the secure identity key today. The message includes a Passage link; the assignee signs in or creates an account with the assigned email and lands on their scoped task list. SMS should only be a consented reminder carrying that same link, not the source of access by itself.
-                        </div>
+                        <details style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginTop: 9, color: MID, fontSize: 12.3, lineHeight: 1.45 }}>
+                          <summary style={{ cursor: 'pointer', color: SAGE, fontWeight: 900 }}>Access details</summary>
+                          Email is the secure identity key today. SMS is an optional reminder with the same link after consent.
+                        </details>
                       )}
                     </>
                   );

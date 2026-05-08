@@ -33,6 +33,7 @@
   - P1: mobile task completion and invite acceptance QA at 100% Chrome viewport.
   - P1: visible trust layer: permissions, audit trail, data ownership, export confidence, document visibility.
   - P2: favicon and console hygiene, including repeated Supabase client warnings.
+- Add a public Resources / How Passage works section for educational content, workflow explainers, funeral-home demo education, and user guidance so role workspaces can stay action-first instead of instructional.
 - Build shared `TaskActionModal` so family, participant, funeral-home staff, and vendor-adjacent task surfaces use the same assign/send/proof/waiting/help/handled interaction.
 - Build shared notification preference resolution for the task spine: in-app/email/text availability, consent, fallback, skipped-channel logging, role visibility, and a simple preference setup for family coordinators, participants, funeral-home staff/admins, and vendors.
 - Build shared communication event router: Assign / Ask / Update / Prove / Escalate events should update task truth, communication/proof trail, notification attempts, role-scoped visibility, and reports from one model.

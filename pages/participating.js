@@ -360,7 +360,9 @@ export default function ParticipatingPage() {
         };
       });
     }
-    setActionNotice(r.ok ? (json.confirmation || actionConfirmation(action)) + ' Passage is tracking this for the coordinator.' : (json.error || 'Passage could not save that update. Please try again.'));
+    setActionNotice(r.ok
+      ? (json.confirmation || actionConfirmation(action)) + (action === 'handled' ? ' Thanks - this helps keep the family on track.' : ' Passage is tracking this for the coordinator.')
+      : (json.error || 'Passage could not save that update. Please try again.'));
     await load(token);
   }
 

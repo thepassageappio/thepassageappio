@@ -691,6 +691,9 @@ export default function UrgentPage() {
           <div className="kicker">Urgent Path</div>
           <h1>You do not have to hold every next step at once.</h1>
           <p className="lede">{reassurance} Passage will keep this focused: who owns the next action, what can wait, and what is already handled.</p>
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '12px 14px', color: C.sageDark, fontSize: 14, lineHeight: 1.55, maxWidth: 720, margin: '14px auto 0' }}>
+            If you need to step away for a while, Passage will keep this organized. Come back to one next step, not a pile of decisions.
+          </div>
         </section>
 
         <section className="grid grid-single">
