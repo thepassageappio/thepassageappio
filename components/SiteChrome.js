@@ -139,7 +139,7 @@ function isActivePath(current, href) {
   return current === href || current.startsWith(href + '/');
 }
 
-export function SiteHeader({ user, onSignIn, onSignOut, onDashboard }) {
+export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   const router = useRouter();
   const path = router?.pathname || '';
   const dashboardHref = '/?dashboard=1';
@@ -173,6 +173,12 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard }) {
     event.preventDefault();
     if (typeof window !== 'undefined') window.history.pushState(null, '', dashboardHref);
     onDashboard();
+  }
+  function handleHomeClick(event) {
+    if (path !== '/' || typeof onHome !== 'function') return;
+    event.preventDefault();
+    if (typeof window !== 'undefined') window.history.pushState(null, '', '/');
+    onHome();
   }
 
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
@@ -209,7 +215,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard }) {
           .passage-nav-wrap a, .passage-nav-wrap button { min-height: 40px !important; padding: 8px 9px !important; }
         }
       `}</style>
-      <Link href="/" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 26, fontWeight: 700 }}>Passage</Link>
+      <Link href="/" onClick={handleHomeClick} style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 26, fontWeight: 700 }}>Passage</Link>
       <div className="passage-nav-wrap" style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (

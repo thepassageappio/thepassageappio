@@ -4672,8 +4672,12 @@ export default function App() {
     setDashboardRefreshKey(k => k + 1);
     setView("dashboard");
   };
+  const openHome = () => {
+    setActivePlan(null);
+    setView("landing");
+  };
 
-  const commonProps = { user, onSignOut: handleSignOut, onDashboard: openDashboard };
+  const commonProps = { user, onSignOut: handleSignOut, onDashboard: openDashboard, onHome: openHome };
 
   return (
     <>
