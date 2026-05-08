@@ -3663,14 +3663,14 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
 
             {hasAnyEstate && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 12, alignItems: "stretch", marginBottom: 12 }}>
-            <div style={{ background: C.bgCard, borderRadius: 18, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+            <div style={{ background: C.bgCard, borderRadius: 18, padding: "16px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.soft, fontWeight: 700, marginBottom: 5 }}>Command center</div>
-                  <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, lineHeight: 1.25 }}>What needs attention now</div>
+                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 900, marginBottom: 5 }}>Estate operating queue</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink, lineHeight: 1.18 }}>The next thing Passage needs from someone.</div>
                 </div>
                 {totalRequired > 0 && (
-                  <div style={{ minWidth: 88, textAlign: "right" }}>
+                  <div style={{ minWidth: 92, textAlign: "right", background: C.bgSubtle, borderRadius: 12, padding: "8px 10px" }}>
                     <div style={{ fontSize: 18, fontWeight: 800, color: portfolioReady === 100 ? C.sage : C.ink }}>{portfolioReady}%</div>
                     <div style={{ fontSize: 10.5, color: C.soft }}>ready</div>
                   </div>
@@ -3682,7 +3682,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   You've handled what's needed right now. You're in a good place.
                 </div>
               ) : (
-                <div style={{ display: "grid", gap: 8 }}>
+                <div style={{ display: "grid", gap: 10 }}>
                   {attentionItems.map(item => {
                     const workspace = item.workspace || taskWorkspaceFor(item, {
                       persona: 'family',
@@ -3698,27 +3698,38 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                       }
                       onOpenPlan(item.workflow, item.id, item.assignedTo ? 'open' : 'assign');
                     };
+                    const ownerLabel = item.assignedTo || item.assignedEmail || 'No owner yet';
+                    const statusTone = item.assignedTo ? C.sage : C.amber;
+                    const statusBg = item.assignedTo ? C.sageFaint : C.goldFaint;
                     return (
                     <button key={`${item.workflow.id}-${item.id}`} type="button" onClick={openAttentionItem}
-                      style={{ width: "100%", textAlign: "left", background: item.workflow.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderRadius: 12, padding: "12px 13px", cursor: "pointer", fontFamily: "inherit" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                      style={{ width: "100%", textAlign: "left", background: C.bgCard, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderLeft: `5px solid ${item.workflow.path === 'green' ? C.sage : C.rose}`, borderRadius: 14, padding: "13px 14px", cursor: "pointer", fontFamily: "inherit" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 13, alignItems: "start" }}>
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink, lineHeight: 1.35 }}>{item.title}</div>
-                          <div style={{ fontSize: 11.5, color: C.mid, marginTop: 3 }}>
-                            {item.workflow.name || "Estate"}{item.assignedTo ? ` - ${item.assignedTo} is handling this` : " - unassigned"}
+                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 7 }}>
+                            <span style={{ fontSize: 10, color: item.workflow.path === 'green' ? C.sage : C.rose, background: item.workflow.path === 'green' ? C.sageFaint : C.roseFaint, borderRadius: 999, padding: "3px 8px", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{item.workflow.path === 'green' ? 'Planning' : 'Urgent'}</span>
+                            <span style={{ fontSize: 10.5, color: statusTone, background: statusBg, borderRadius: 999, padding: "3px 8px", fontWeight: 900 }}>{ownerLabel}</span>
                           </div>
-                          <div style={{ marginTop: 7, background: C.bgCard, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderRadius: 9, padding: "8px 9px", fontSize: 11.5, color: blockers.length ? C.amber : C.mid, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>Why this is next:</strong> {nextReason}
+                          <div style={{ fontSize: 15.5, fontWeight: 900, color: C.ink, lineHeight: 1.25 }}>{item.title}</div>
+                          <div style={{ fontSize: 12, color: C.mid, marginTop: 4 }}>
+                            {item.workflow.name || "Estate"}
                           </div>
-                          <div style={{ display: "grid", gap: 3, marginTop: 8 }}>
-                            <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>Output</div>
-                            <div style={{ fontSize: 11.5, color: C.ink, lineHeight: 1.35, fontWeight: 800 }}>{workspace.output?.label || 'Task output and proof trail'}</div>
-                            <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.35 }}>{workspace.output?.body || 'Passage prepares the next step, tracks the owner, and keeps proof visible.'}</div>
-                            <div style={{ fontSize: 10.5, color: C.soft, lineHeight: 1.35 }}>Proof: {workspace.proofDestination}</div>
+                          <div style={{ marginTop: 9, background: blockers.length ? C.goldFaint : C.sageFaint, border: `1px solid ${blockers.length ? C.gold + '44' : C.sageLight}`, borderRadius: 11, padding: "9px 10px", fontSize: 12, color: blockers.length ? C.amber : C.mid, lineHeight: 1.45 }}>
+                            <strong style={{ color: C.ink }}>Next expected update:</strong> {nextReason}
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 7, marginTop: 9 }}>
+                            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 7 }}>
+                              <div style={{ fontSize: 9.5, color: C.soft, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>Output</div>
+                              <div style={{ fontSize: 11.8, color: C.ink, lineHeight: 1.35, fontWeight: 800 }}>{workspace.output?.label || 'Task output and proof trail'}</div>
+                            </div>
+                            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 7 }}>
+                              <div style={{ fontSize: 9.5, color: C.soft, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>Proof</div>
+                              <div style={{ fontSize: 11.8, color: C.mid, lineHeight: 1.35 }}>{workspace.proofDestination}</div>
+                            </div>
                           </div>
                         </div>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: item.assignedTo ? C.sage : C.rose, whiteSpace: "nowrap" }}>
-                          {item.assignedTo ? "Open" : "Assign"}
+                        <span style={{ fontSize: 11.5, fontWeight: 900, color: item.assignedTo ? C.sage : C.rose, whiteSpace: "nowrap", alignSelf: "center" }}>
+                          {item.assignedTo ? "Open ->" : "Assign ->"}
                         </span>
                       </div>
                     </button>

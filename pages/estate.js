@@ -1516,73 +1516,88 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
   var handledCount = (tasks || []).filter(function(t) { return isHandledStatus(t.status); }).length + (outcomes || []).filter(function(o) { return isHandledStatus(o.status); }).length;
   var waitingCount = (tasks || []).filter(function(t) { return ['waiting', 'pending', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
   var blockedCount = (tasks || []).filter(function(t) { return ['blocked', 'failed', 'needs_review'].includes(t.status || ''); }).length + openOutcomes.filter(function(o) { return !o.owner_label; }).length;
+  var conversationCount = coordinationSpine?.conversation?.length || 0;
+  var proofCount = coordinationSpine?.proof?.length || 0;
+  var notificationCount = coordinationSpine?.notifications?.length || 0;
+  var expectedUpdate = item
+    ? (recent.find(function(row) { return row.taskId && String(row.taskId) === String(item.id) && row.expectedUpdate; })?.expectedUpdate || (missingOwner ? 'Assign an owner so Passage knows who should respond next.' : waitingCount ? 'Next update appears here when the owner, family, or recipient responds.' : 'Save proof when this is handled so everyone sees the same truth.'))
+    : 'No one needs to do anything right now.';
+  var statusTone = blockedCount ? ROSE : waitingCount ? AMBER : SAGE;
+  var statusBg = blockedCount ? ROSE_FAINT : waitingCount ? AMBER_FAINT : SAGE_FAINT;
 
   function select(index) {
     setSelectedIndex(Math.max(0, Math.min(index, Math.max(queue.length - 1, 0))));
   }
 
   return (
-    <section style={{ borderTop: '1px solid ' + BORDER, borderBottom: '1px solid ' + BORDER, padding: '20px 0 22px', marginBottom: 24 }}>
+    <section style={{ borderTop: '1px solid ' + BORDER, borderBottom: '1px solid ' + BORDER, padding: '24px 0 26px', marginBottom: 24 }}>
       <style>{`
         @media (max-width: 760px) {
           .passage-task-spine-grid { grid-template-columns: 1fr !important; }
-          .passage-task-spine-queue { border-right: none !important; border-bottom: 1px solid ${BORDER} !important; padding-right: 0 !important; padding-bottom: 12px !important; }
+          .passage-task-spine-queue { border-right: none !important; border-bottom: 1px solid ${BORDER} !important; padding-right: 0 !important; padding-bottom: 14px !important; }
           .passage-task-spine-facts { grid-template-columns: 1fr !important; }
+          .passage-task-spine-actions { grid-template-columns: 1fr !important; }
         }
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 18 }}>
         <div>
           <div style={{ fontSize: 10.5, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Estate operating spine</div>
-          <div style={{ fontSize: 24, color: INK, lineHeight: 1.15, fontWeight: 900 }}>Move the next useful thing.</div>
-          <div style={{ color: MID, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>Passage keeps owner, communication, output, proof, status, and reporting tied to the same task.</div>
+          <div style={{ fontSize: 28, color: INK, lineHeight: 1.08, fontWeight: 900 }}>One next move. One shared truth.</div>
+          <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.55, marginTop: 7, maxWidth: 620 }}>Every task keeps the owner, request, response expectation, proof, and family-visible status together.</div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <span style={{ color: SAGE, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 999, padding: '6px 9px', fontSize: 11.5, fontWeight: 900 }}>{handledCount} handled</span>
-          <span style={{ color: AMBER, background: AMBER_FAINT, border: '1px solid ' + AMBER_BORDER, borderRadius: 999, padding: '6px 9px', fontSize: 11.5, fontWeight: 900 }}>{waitingCount} waiting</span>
-          <span style={{ color: blockedCount ? ROSE : SAGE, background: blockedCount ? ROSE_FAINT : SAGE_FAINT, border: '1px solid ' + (blockedCount ? ROSE + '35' : SAGE_LIGHT), borderRadius: 999, padding: '6px 9px', fontSize: 11.5, fontWeight: 900 }}>{blockedCount} need attention</span>
+        <div style={{ minWidth: 180, background: statusBg, border: '1px solid ' + (blockedCount ? ROSE + '35' : waitingCount ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 16, padding: '11px 13px', textAlign: 'right' }}>
+          <div style={{ color: statusTone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{blockedCount ? 'Needs attention' : waitingCount ? 'Waiting' : 'On track'}</div>
+          <div style={{ color: INK, fontSize: 20, lineHeight: 1.1, fontWeight: 900, marginTop: 4 }}>{handledCount} handled</div>
+          <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{waitingCount} waiting · {blockedCount} blocked</div>
         </div>
       </div>
 
-      <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, .72fr) minmax(0, 1.28fr)', gap: 16, alignItems: 'start' }}>
-        <aside className="passage-task-spine-queue" style={{ borderRight: '1px solid ' + BORDER, paddingRight: 14 }}>
-          <div style={{ fontSize: 11, color: SOFT, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Work queue</div>
+      <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, .58fr) minmax(0, 1.42fr)', gap: 20, alignItems: 'stretch' }}>
+        <aside className="passage-task-spine-queue" style={{ borderRight: '1px solid ' + BORDER, paddingRight: 16 }}>
+          <div style={{ fontSize: 11, color: SOFT, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 9 }}>Open work</div>
           {queue.length === 0 ? (
             <div style={{ color: SAGE, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 11, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45 }}>Nothing open. The estate is quiet right now.</div>
           ) : queue.slice(0, 8).map(function(entry, index) {
             var selected = index === selectedIndex;
             var entryOwner = entry.kind === 'task' ? taskSpineOwner(entry.item) : textValue(entry.item.owner_label, 'Needs owner');
+            var entryStatus = taskSpineStatus(entry.item);
             return (
-              <button key={entry.kind + '_' + (entry.item.id || index)} onClick={function() { select(index); }} style={{ width: '100%', textAlign: 'left', border: 'none', borderLeft: '3px solid ' + (selected ? SAGE : 'transparent'), background: selected ? SAGE_FAINT : 'transparent', padding: '9px 9px 9px 10px', marginBottom: 4, cursor: 'pointer', fontFamily: 'inherit' }}>
-                <div style={{ color: selected ? INK : MID, fontSize: 12.5, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(entry.item)}</div>
-                <div style={{ color: entryOwner === 'Needs owner' || entryOwner === 'Unassigned' ? AMBER : SOFT, fontSize: 11.2, lineHeight: 1.3, marginTop: 3 }}>{entryOwner}</div>
+              <button key={entry.kind + '_' + (entry.item.id || index)} onClick={function() { select(index); }} style={{ width: '100%', textAlign: 'left', border: 'none', borderLeft: '4px solid ' + (selected ? SAGE : 'transparent'), background: selected ? SAGE_FAINT : 'transparent', padding: '10px 10px 10px 11px', marginBottom: 5, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ color: selected ? INK : MID, fontSize: 12.7, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(entry.item)}</div>
+                <div style={{ color: entryOwner === 'Needs owner' || entryOwner === 'Unassigned' ? AMBER : SOFT, fontSize: 11.2, lineHeight: 1.35, marginTop: 4 }}>{entryOwner} · {entryStatus}</div>
               </button>
             );
           })}
           {queue.length > 8 && <div style={{ color: SOFT, fontSize: 11.5, marginTop: 6 }}>{queue.length - 8} more open items in the full timeline below.</div>}
         </aside>
 
-        <div>
-          <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
-          <div style={{ color: INK, fontSize: 26, lineHeight: 1.12, fontWeight: 900 }}>{title}</div>
-          <div style={{ color: MID, fontSize: 14, lineHeight: 1.55, marginTop: 8 }}>{item ? displayTaskNext(item) : 'Passage will surface the next owner, message, proof, and status when work appears.'}</div>
-
-          <div className="passage-task-spine-facts" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', columnGap: 18, marginTop: 16 }}>
-            <SpineFact label="Owner" value={owner} tone={missingOwner ? 'warn' : 'good'} />
-            <SpineFact label="Recipient / contact" value={recipient} tone={recipient.includes('Add recipient') ? 'warn' : 'good'} />
-            <SpineFact label="Output Passage prepares" value={textValue(workspace?.output?.label, 'Task output and proof trail')} tone="good" />
-            <SpineFact label="Proof destination" value={proof} />
-            <SpineFact label="Status truth" value={status} tone={blockedCount ? 'warn' : 'good'} />
-            <SpineFact label="Last actor / time" value={lastTime ? lastActor + ' - ' + lastTime : lastActor} />
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(210px, .65fr)', gap: 14, alignItems: 'stretch' }} className="passage-task-spine-facts">
+            <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 18, padding: 18 }}>
+              <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
+              <div style={{ color: INK, fontSize: 29, lineHeight: 1.08, fontWeight: 900 }}>{title}</div>
+              <div style={{ color: MID, fontSize: 14.5, lineHeight: 1.55, marginTop: 10 }}>{item ? displayTaskNext(item) : 'Passage will surface the next owner, message, proof, and status when work appears.'}</div>
+              <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
+                <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
+              </div>
+              {workspace?.output?.body && (
+                <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 12, marginTop: 13, color: MID, fontSize: 12.8, lineHeight: 1.55 }}>
+                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 4 }}>Passage prepares</div>
+                  <strong style={{ color: INK }}>{workspace.output.label}:</strong> {workspace.output.body}
+                </div>
+              )}
+            </div>
+            <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 18, padding: 15 }}>
+              <SpineFact label="Owner" value={owner} tone={missingOwner ? 'warn' : 'good'} />
+              <SpineFact label="Recipient / contact" value={recipient} tone={recipient.includes('Add recipient') ? 'warn' : 'good'} />
+              <SpineFact label="Status truth" value={status} tone={blockedCount ? 'warn' : 'good'} />
+              <SpineFact label="Proof destination" value={proof} />
+              <SpineFact label="Last actor / time" value={lastTime ? lastActor + ' - ' + lastTime : lastActor} />
+            </div>
           </div>
 
-          {workspace?.output?.body && (
-            <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '11px 12px', color: MID, fontSize: 12.7, lineHeight: 1.5, marginTop: 12 }}>
-              <strong style={{ color: SAGE }}>Prepared output:</strong> {workspace.output.body}
-            </div>
-          )}
-
           {item && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+            <div className="passage-task-spine-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8, marginTop: 12 }}>
               {current.kind === 'outcome' ? (
                 <>
                   <button onClick={function() { onOpenOutcome(item); }} style={miniBtn(SAGE, '#fff', SAGE)}>Open workspace</button>
@@ -1601,9 +1616,19 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
             </div>
           )}
 
-          <details style={{ borderTop: '1px solid ' + BORDER, marginTop: 16, paddingTop: 11 }}>
-            <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Conversation, proof, and notifications</summary>
-            <div style={{ marginTop: 8 }}>
+          <details style={{ borderTop: '1px solid ' + BORDER, marginTop: 16, paddingTop: 12 }}>
+            <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Coordination trail</summary>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 10 }} className="passage-task-spine-actions">
+              {[['Conversation', conversationCount], ['Proof', proofCount], ['Notifications', notificationCount]].map(function(row) {
+                return (
+                  <div key={row[0]} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px' }}>
+                    <div style={{ color: SOFT, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
+                    <div style={{ color: INK, fontSize: 17, fontWeight: 900, marginTop: 2 }}>{row[1]}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ marginTop: 9 }}>
               {recent.length ? recent.map(function(row) {
                 var rowTitle = textValue(row.title || row.subject, statusText(row.status || row.delivery_status) || 'Update recorded');
                 var rowDetail = textValue(row.detail || row.description || row.recipient || row.recipient_email || row.recipient_phone, 'Saved in Passage.');
