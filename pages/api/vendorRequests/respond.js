@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { recordStatusEvent } from '../../../lib/taskStatus';
+import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { vendorCategoryLabel } from '../../../lib/vendors';
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 
@@ -79,21 +79,19 @@ export default async function handler(req, res) {
       ? `${vendorName} completed request`
       : `${vendorName} declined`;
   const detail = `${category} request for ${request.task_title || 'this task'} was ${status}.`;
-  await admin.from('estate_events').insert([{
-    estate_id: request.workflow_id,
-    event_type: status === 'completed' ? 'vendor_help_completed' : 'vendor_help_updated',
-    title,
-    description: detail,
-    actor: vendorName,
-  }]).then(() => {}, () => {});
-  await recordStatusEvent({
+  await recordTaskCommunicationEvent({
+    verb: status === 'completed' ? 'prove' : status === 'declined' ? 'escalate' : 'update',
     workflowId: request.workflow_id,
     taskId: request.task_id,
+    taskTitle: request.task_title,
     status: status === 'completed' ? 'handled' : status === 'accepted' || status === 'in_progress' ? 'acknowledged' : 'blocked',
     actor: vendorName,
+    actorRole: 'vendor',
     channel: 'vendor',
     recipient: vendorName,
+    recipientRole: 'vendor',
     detail,
+    visibility: 'family_funeral_home',
   });
   await sendStatusEmail({ request, title, detail });
 

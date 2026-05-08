@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
-import { recordStatusEvent } from '../../../lib/taskStatus';
+import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { categoryForTask, vendorCategoryLabel } from '../../../lib/vendors';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -106,21 +106,19 @@ export default async function handler(req, res) {
 
   const emailSent = await sendVendorEmail({ vendor, workflow, request, taskTitle: resolvedTaskTitle });
   const detail = `${vendorCategoryLabel(vendor.category)} help requested from ${vendor.business_name}. ${emailSent ? 'Vendor notified.' : 'Vendor request recorded.'} We'll coordinate this here.`;
-  await admin.from('estate_events').insert([{
-    estate_id: workflow.id,
-    event_type: 'vendor_help_requested',
-    title: `${vendorCategoryLabel(vendor.category)} help requested`,
-    description: detail,
-    actor: auth.user.email || 'Passage',
-  }]).then(() => {}, () => {});
-  await recordStatusEvent({
+  await recordTaskCommunicationEvent({
+    verb: 'ask',
     workflowId: workflow.id,
     taskId: task?.id || null,
+    taskTitle: resolvedTaskTitle,
     status: 'waiting',
     actor: auth.user.email || 'Passage',
+    actorRole: workflow.organization_id ? 'funeral_home' : 'family_coordinator',
     channel: 'vendor',
     recipient: vendor.business_name,
+    recipientRole: 'vendor',
     detail,
+    visibility: 'family_funeral_home',
   });
   return res.status(200).json({ success: true, request: { ...request, vendors: { business_name: vendor.business_name, category: vendor.category } } });
 }

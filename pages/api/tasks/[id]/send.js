@@ -1,5 +1,6 @@
 import { verifyDeliveryRequest, internalHeaders } from '../../../../lib/deliveryAuth';
-import { serviceSupabase, isUuid, recordStatusEvent } from '../../../../lib/taskStatus';
+import { serviceSupabase, isUuid } from '../../../../lib/taskStatus';
+import { recordTaskCommunicationEvent } from '../../../../lib/communicationEvents';
 
 const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
@@ -78,14 +79,17 @@ export default async function handler(req, res) {
       message: sent.data?.skipped ? 'Message prepared - delivery provider is not configured.' : 'Message sent - awaiting delivery confirmation.',
     });
   } catch (err) {
-    await recordStatusEvent({
+    await recordTaskCommunicationEvent({
+      verb: 'escalate',
       workflowId: task.workflow_id,
       taskId: isUuid(taskId) ? taskId : null,
       actionId: req.body?.actionId,
       status: 'failed',
       actor: req.body?.coordinatorName || auth.user?.email || 'Passage',
+      actorRole: auth.source === 'internal' ? 'system' : 'coordinator',
       channel,
       recipient,
+      recipientRole: channel === 'sms' || channel === 'email' ? 'recipient' : '',
       detail: userMessage(err),
       provider: channel === 'sms' ? 'twilio' : 'resend',
     });

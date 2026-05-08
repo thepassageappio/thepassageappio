@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionRequiresNote, taskActionStatus } from '../../lib/taskActions';
 import { normalizeTaskStatusForStorage } from '../../lib/taskStatus';
+import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -143,25 +144,21 @@ export default async function handler(req, res) {
     if (error) return res.status(500).json({ error: error.message });
     if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
 
-    await admin.from('estate_events').insert([{
-      estate_id: data.workflow_id,
-      event_type: 'participant_note',
-      title: 'Participant added a note',
-      description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - note saved',
-      actor: email,
-    }]).then(() => {}, () => {});
-
-    await admin.from('task_status_events').insert([{
-      workflow_id: data.workflow_id,
-      task_id: kind === 'task' ? data.id : null,
-      action_id: kind === 'action' ? data.id : null,
+    await recordTaskCommunicationEvent({
+      verb: 'update',
+      workflowId: data.workflow_id,
+      taskId: kind === 'task' ? data.id : null,
+      actionId: kind === 'action' ? data.id : null,
+      taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
       status: data.status || 'in_progress',
-      last_action_at: new Date().toISOString(),
-      last_actor: email,
+      actor: email,
+      actorRole: 'participant',
       channel: 'participant',
       recipient: email,
+      recipientRole: 'family_coordinator',
       detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - note saved',
-    }]).then(() => {}, () => {});
+      visibility: 'family',
+    });
 
     await notifyCoordinator({
       workflowId: data.workflow_id,
@@ -223,24 +220,23 @@ export default async function handler(req, res) {
 
   if (error) return res.status(500).json({ error: error.message });
   if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
-  await admin.from('estate_events').insert([{
-    estate_id: data.workflow_id,
-    event_type: taskActionEventType(action, 'participant'),
-    title: taskActionEventTitle(action, 'Participant'),
-    description: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + normalizedAction.replace(/_/g, ' '),
-    actor: email,
-  }]).then(() => {}, () => {});
-  await admin.from('task_status_events').insert([{
-    workflow_id: data.workflow_id,
-    task_id: kind === 'task' ? data.id : null,
-    action_id: kind === 'action' ? data.id : null,
+  await recordTaskCommunicationEvent({
+    verb: status === 'done' ? 'prove' : status === 'blocked' ? 'escalate' : status === 'acknowledged' ? 'assign' : 'update',
+    workflowId: data.workflow_id,
+    taskId: kind === 'task' ? data.id : null,
+    actionId: kind === 'action' ? data.id : null,
+    taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
     status,
-    last_action_at: new Date().toISOString(),
-    last_actor: email,
+    actor: email,
+    actorRole: 'participant',
     channel: 'participant',
     recipient: email,
+    recipientRole: 'family_coordinator',
     detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + normalizedAction.replace(/_/g, ' '),
-  }]).then(() => {}, () => {});
+    visibility: 'family',
+    eventType: taskActionEventType(action, 'participant'),
+    eventTitle: taskActionEventTitle(action, 'Participant'),
+  });
   await notifyCoordinator({
     workflowId: data.workflow_id,
     actorEmail: email,
