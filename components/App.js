@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getTaskPlaybook } from "../lib/taskPlaybooks";
 import { SiteFooter, SiteHeader } from "./SiteChrome";
 import { taskWorkspaceFor } from "../lib/taskWorkspace";
+import { orchestrateTasks } from "../lib/taskOrchestration";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -3482,6 +3483,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 grouped[t.workflow_id].openTasks.push({
                   id: t.id || `${t.workflow_id}-${grouped[t.workflow_id].openTasks.length}`,
                   title: t.title || 'Estate task',
+                  status: t.status || 'open',
                   assignedTo: t.assigned_to_name || '',
                   assignedEmail: t.assigned_to_email || '',
                   dueDays: t.due_days_after_trigger ?? 0,
@@ -3545,10 +3547,26 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
     ? activeWorkflows.find(w => String(w.id) === String(activeFileWorkflowId))
     : null;
   const estateFileFor = (wf) => (wf?.orchestration_summary?.estate_file && typeof wf.orchestration_summary.estate_file === 'object') ? wf.orchestration_summary.estate_file : {};
+  const estateOrchestrationByWorkflow = new Map(activeWorkflows.map(wf => {
+    const openTasks = safeArray(taskStatsByWorkflow[wf.id]?.openTasks).map(task => ({
+      ...task,
+      status: task.status || 'open',
+      assigned_to_name: task.assignedTo || task.assigned_to_name || '',
+      assigned_to_email: task.assignedEmail || task.assigned_to_email || '',
+      due_days_after_trigger: task.dueDays ?? task.due_days_after_trigger ?? 0,
+    }));
+    return [wf.id, orchestrateTasks({
+      tasks: openTasks,
+      role: wf.path === 'green' ? 'green_family' : 'family',
+      context: { estateName: wf.name || 'this estate', requesterName: userData?.first_name || user?.email || 'Passage' },
+    })];
+  }));
   const attentionItems = activeWorkflows.flatMap(wf => {
-    const openTasks = safeArray(taskStatsByWorkflow[wf.id]?.openTasks).slice(0, 3);
-    return openTasks.map(task => ({ ...task, workflow: wf }));
-  }).sort((a, b) => (a.dueDays ?? 0) - (b.dueDays ?? 0)).slice(0, 5);
+    const orchestration = estateOrchestrationByWorkflow.get(wf.id);
+    const next = orchestration?.nextTask;
+    if (!next) return [];
+    return [{ ...next, workflow: wf, nextAction: orchestration.nextAction, workspace: next.workspace, assignedTo: next.assignedTo || next.assigned_to_name || '', assignedEmail: next.assignedEmail || next.assigned_to_email || '' }];
+  }).sort((a, b) => (a.dueDays ?? a.due_days_after_trigger ?? 0) - (b.dueDays ?? b.due_days_after_trigger ?? 0)).slice(0, 5);
   const totalRequired = taskStatValues.reduce((sum, s) => sum + (s.required || 0), 0);
   const totalHandled = taskStatValues.reduce((sum, s) => sum + (s.completed || 0), 0);
   const portfolioReady = totalRequired > 0 ? Math.round((totalHandled / totalRequired) * 100) : 0;
@@ -3666,11 +3684,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               ) : (
                 <div style={{ display: "grid", gap: 8 }}>
                   {attentionItems.map(item => {
-                    const workspace = taskWorkspaceFor(item, {
+                    const workspace = item.workspace || taskWorkspaceFor(item, {
                       persona: 'family',
                       estateName: item.workflow?.name || 'this estate',
                       requesterName: userData?.first_name || user?.email || 'Passage',
                     });
+                    const nextReason = item.nextAction?.reason || 'Move this next.';
+                    const blockers = safeArray(item.nextAction?.blockers);
                     const openAttentionItem = () => {
                       if (!item?.workflow?.id) {
                         if (typeof window !== 'undefined') window.location.href = '/?dashboard=1';
@@ -3686,6 +3706,9 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                           <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink, lineHeight: 1.35 }}>{item.title}</div>
                           <div style={{ fontSize: 11.5, color: C.mid, marginTop: 3 }}>
                             {item.workflow.name || "Estate"}{item.assignedTo ? ` - ${item.assignedTo} is handling this` : " - unassigned"}
+                          </div>
+                          <div style={{ marginTop: 7, background: CARD, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderRadius: 9, padding: "8px 9px", fontSize: 11.5, color: blockers.length ? C.amber : C.mid, lineHeight: 1.4 }}>
+                            <strong style={{ color: C.ink }}>Why this is next:</strong> {nextReason}
                           </div>
                           <div style={{ display: "grid", gap: 3, marginTop: 8 }}>
                             <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>Output</div>
