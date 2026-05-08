@@ -5,6 +5,7 @@ import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 import { taskOutputFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
+import { orchestrateTasks } from '../../lib/taskOrchestration';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
@@ -428,8 +429,17 @@ export default function FuneralHomeDashboard() {
   const locations = Array.from(new Set(cases.map(locationNameFor).filter(Boolean)));
   const isMultiLocation = locations.length > 1 || /group|multi/i.test(String(org?.name || '') + ' ' + String(org?.plan || ''));
   const displayCases = isMultiLocation && selectedLocation !== 'all' ? cases.filter(item => locationNameFor(item) === selectedLocation) : cases;
-  const caseInbox = displayCases
-    .map(item => ({ caseItem: item, task: item.nextPartnerTask || (item.partnerTasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || '')) || (item.tasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || '')) }))
+  const caseOrchestrationRows = displayCases.map(item => ({
+    caseItem: item,
+    orchestration: orchestrateTasks({
+      tasks: item.tasks || [],
+      role: 'funeral_home',
+      context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, surface: 'case work' },
+    }),
+  }));
+  const orchestrationByCaseId = new Map(caseOrchestrationRows.map(row => [row.caseItem.id, row.orchestration]));
+  const caseInbox = caseOrchestrationRows
+    .map(({ caseItem, orchestration }) => ({ caseItem, task: itemNextPartnerTask(caseItem, orchestration) }))
     .filter(row => row.task)
     .slice(0, 4);
   const currentMembership = (partnerStaff || []).find(member => String(member.email || '').toLowerCase() === String(user?.email || '').toLowerCase()) || null;
@@ -528,6 +538,13 @@ export default function FuneralHomeDashboard() {
     if (['sent', 'waiting', 'pending', 'assigned'].includes(clean)) return 1;
     if (clean === 'acknowledged') return 2;
     return 3;
+  }
+
+  function itemNextPartnerTask(item, orchestration) {
+    return item.nextPartnerTask
+      || orchestration?.nextTask
+      || (item.partnerTasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || ''))
+      || (item.tasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || ''));
   }
 
   return (
@@ -1034,8 +1051,9 @@ export default function FuneralHomeDashboard() {
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
               const familyParticipants = item.familyParticipants || [];
-              const topTasks = partnerTasks.length ? partnerTasks.slice(0, 3) : item.tasks.slice(0, 3);
-              const nextPartnerTask = item.nextPartnerTask || topTasks.find(task => !['handled', 'completed', 'done'].includes(task.status || ''));
+              const orchestration = orchestrationByCaseId.get(item.id) || orchestrateTasks({ tasks: item.tasks || [], role: 'funeral_home', context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, surface: 'case work' } });
+              const topTasks = (partnerTasks.length ? partnerTasks : orchestration.tasks.length ? orchestration.tasks : item.tasks).slice(0, 3);
+              const nextPartnerTask = itemNextPartnerTask(item, orchestration);
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               const isExpanded = expandedCaseId === item.id;
               const itemLocation = locationNameFor(item);
@@ -1066,12 +1084,28 @@ export default function FuneralHomeDashboard() {
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Next partner work</div>
                     <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55 }}>
                       {nextPartnerTask ? (
-                        <>Move this now: <strong style={{ color: C.ink }}>{sharedTaskTitle(nextPartnerTask)}</strong>. {sharedTaskNext(nextPartnerTask, 'funeral_home')} <strong style={{ color: C.sage }}>That is one less call your team has to take.</strong></>
+                        <>Move this now: <strong style={{ color: C.ink }}>{sharedTaskTitle(nextPartnerTask)}</strong>. {orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')} <strong style={{ color: C.sage }}>That is one less call your team has to take.</strong></>
                       ) : (
                         <>No partner-ready work is open for this case right now. <strong style={{ color: C.sage }}>The family status is still visible.</strong></>
                       )}
                     </div>
                   </div>
+                  {orchestration.progress.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7, marginTop: 9 }}>
+                      {orchestration.progress.slice(0, 5).map(row => (
+                        <div key={row.category} style={{ background: C.bg, border: `1px solid ${row.needsHelp ? C.rose + '44' : row.waiting ? C.amber + '33' : C.border}`, borderRadius: 11, padding: '8px 9px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                            <div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row.category}</div>
+                            <div style={{ color: row.needsHelp ? C.rose : row.waiting ? C.amber : C.sage, fontSize: 11, fontWeight: 900 }}>{row.percent}%</div>
+                          </div>
+                          <div style={{ height: 5, borderRadius: 999, background: C.border, marginTop: 6, overflow: 'hidden' }}>
+                            <div style={{ width: `${row.percent}%`, height: '100%', background: row.needsHelp ? C.rose : row.waiting ? C.amber : C.sage }} />
+                          </div>
+                          <div style={{ color: C.mid, fontSize: 11.2, marginTop: 5 }}>{row.open} open{row.waiting ? `, ${row.waiting} waiting` : ''}{row.needsHelp ? `, ${row.needsHelp} needs help` : ''}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {isExpanded && item.activity?.length > 0 && (
                     <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Recent proof</div>
