@@ -154,6 +154,16 @@ export default function VendorRequestPage() {
   const familyName = request?.workflows?.deceased_name || request?.workflows?.estate_name || request?.workflows?.name || 'Family case';
   const vendorName = request?.vendors?.business_name || 'Vendor';
   const demoMode = !token && isSystemAdmin(user);
+  const requestStatus = labelForStatus(request?.status);
+  const nextExpected = request?.status === 'completed'
+    ? 'Completed. Passage will show the family and funeral home this request is handled.'
+    : request?.status === 'in_progress'
+      ? 'In progress. Update again when the service is completed or if details are missing.'
+      : request?.status === 'accepted'
+        ? 'Accepted. The family and funeral home can see you are working on it.'
+        : request?.status === 'declined'
+          ? 'Declined. Passage will keep the request visible so another option can be found.'
+          : 'Waiting for your response. Accept, ask for details, or decline if you cannot help.';
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -174,25 +184,39 @@ export default function VendorRequestPage() {
           )
         )}
         {!loading && request && (
-          <div style={cardStyle}>
-            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Demo vendor request' : 'Local support request'}</div>
-            <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendorName}, a family asked for help.</h1>
-            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{demoMode ? 'This is dummy demo data for system admins. Button clicks update local screen state only; no real vendor_request record is changed.' : 'Passage keeps this request visible to the family and any connected funeral home. Update it here so nobody has to chase a separate call or text.'}</p>
+          <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: 22, borderBottom: '1px solid ' + C.border, background: C.card }}>
+              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Demo scoped vendor request' : 'Scoped local support request'}</div>
+              <h1 style={{ fontSize: 'clamp(30px, 5vw, 44px)', lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
+              <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'This is dummy demo data for system admins. Button clicks update local screen state only; no real vendor_request record is changed.' : 'This is not a public directory lead. It is one task-native request connected to a family case, visible to the right people.'}</p>
+            </div>
             {demoMode && (
-              <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', color: C.amber, borderRadius: 12, padding: 10, margin: '12px 0', fontWeight: 800, fontSize: 13.5, lineHeight: 1.45 }}>
+              <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', color: C.amber, borderRadius: 12, padding: 10, margin: '14px 22px 0', fontWeight: 800, fontSize: 13.5, lineHeight: 1.45 }}>
                 System admin demo only. Live vendor links use the same buttons, then write status, value, proof trail, estate event, and task activity through the request token.
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, margin: '18px 0' }}>
-              <Info label="Family case" value={familyName} />
-              <Info label="Task" value={request.task_title || 'Local help'} />
-              <Info label="Urgency" value={request.urgency === 'rush' ? 'Rush' : 'Planned'} />
-              <Info label="Status" value={labelForStatus(request.status)} />
+            <div style={{ padding: 22 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(220px, .8fr)', gap: 12, marginBottom: 14 }}>
+              <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 15 }}>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>What is needed now</div>
+                <div style={{ color: C.ink, fontSize: 19, fontWeight: 900, lineHeight: 1.25 }}>{vendorName}</div>
+                <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 6 }}>Respond to this one request for {familyName}. Passage will keep your status tied to the task so the family and funeral home do not need another call.</div>
+                <div style={{ background: C.card, borderLeft: '4px solid ' + (request?.status === 'declined' ? C.rose : request?.status === 'sent' ? C.amber : C.sage), borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
+                  <strong style={{ color: C.ink }}>Next expected update:</strong> {nextExpected}
+                </div>
+              </div>
+              <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 16, padding: 14 }}>
+                <Info label="Family case" value={familyName} />
+                <div style={{ height: 8 }} />
+                <Info label="Urgency" value={request.urgency === 'rush' ? 'Rush' : 'Planned'} />
+                <div style={{ height: 8 }} />
+                <Info label="Status" value={requestStatus} />
+              </div>
             </div>
 
             <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 14, marginBottom: 14 }}>
-              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Proof trail</div>
+              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Status and proof trail</div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <Pill label="Sent" time={request.requested_at} />
                 {request.viewed_at && <Pill label="Viewed" time={request.viewed_at} />}
@@ -209,7 +233,7 @@ export default function VendorRequestPage() {
 
             <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14, marginBottom: 14 }}>
               <div style={{ color: C.soft, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Booking value</div>
-              <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5, marginTop: 0 }}>For now, this records the booking opportunity so Passage and the funeral home stay in the transaction trail. Family-facing payment collection can be turned on with Stripe Connect next.</p>
+              <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5, marginTop: 0 }}>Record an estimate only when useful. The family should feel supported, not sold to.</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                 <label style={labelStyle}>Estimated value<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                 <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
@@ -234,6 +258,7 @@ export default function VendorRequestPage() {
               <button onClick={() => update('in_progress')} disabled={!!updating} style={buttonStyle(C.amber)}>{updating === 'in_progress' ? 'Updating...' : 'Mark in progress'}</button>
               <button onClick={() => update('completed')} disabled={!!updating} style={buttonStyle(C.sage)}>{updating === 'completed' ? 'Updating...' : 'Mark completed'}</button>
               <button onClick={() => update('declined')} disabled={!!updating} style={{ ...buttonStyle('#fff'), color: C.rose, border: '1px solid ' + C.rose + '55' }}>Decline</button>
+            </div>
             </div>
           </div>
         )}

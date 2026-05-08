@@ -3,14 +3,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { createClient } from '@supabase/supabase-js';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
-import { taskDisplayTitle as sharedTaskTitle } from '../lib/communicationCenter';
+import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
 import { taskWorkspaceFor } from '../lib/taskWorkspace';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
-const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
+const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
 async function signIn(returnTo = '/participating') {
   await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + returnTo } });
@@ -139,6 +139,9 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     surface: 'your assigned task',
   });
   const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'acknowledged' ? 'Status: Confirmed' : itemStatus(item) === 'blocked' ? 'Status: Needs help' : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
+  const expectedUpdate = taskExpectedUpdate(item, 'participant');
+  const statusTone = handled ? C.sage : itemStatus(item) === 'blocked' ? C.rose : C.amber;
+  const statusBg = handled ? C.sageFaint : itemStatus(item) === 'blocked' ? C.roseFaint : C.amberFaint;
   const [savedPulse, setSavedPulse] = useState(false);
   const [proofWarning, setProofWarning] = useState('');
   const noteChange = (value) => {
@@ -155,40 +158,35 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     onAction(action);
   };
   return (
-    <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, background: linked || primary ? C.sageFaint : C.card, borderRadius: 16, padding: primary ? 20 : 16, marginTop: 14, color: C.mid, fontSize: 15, lineHeight: 1.55, boxShadow: primary ? '0 4px 20px rgba(0,0,0,.05)' : 'none' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 6 }}>
+    <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, borderLeft: `5px solid ${statusTone}`, background: primary ? C.card : C.card, borderRadius: 16, padding: primary ? 20 : 16, marginTop: 14, color: C.mid, fontSize: 15, lineHeight: 1.55, boxShadow: primary ? '0 4px 20px rgba(0,0,0,.05)' : 'none' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 10 }}>
         <div>
           <div style={{ fontSize: primary ? 22 : 17, color: C.ink, fontWeight: 800, lineHeight: 1.3 }}>{itemTitle(item)}</div>
-          {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Start here</div>}
+          {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Your assigned slice</div>}
         </div>
-        <span style={{ fontSize: 11, fontWeight: 800, color: handled ? C.sage : C.rose, background: handled ? C.card : C.roseFaint, borderRadius: 999, padding: '4px 8px', flexShrink: 0 }}>{statusLabel(itemStatus(item))}</span>
+        <span style={{ fontSize: 11, fontWeight: 900, color: statusTone, background: statusBg, borderRadius: 999, padding: '5px 9px', flexShrink: 0 }}>{statusLabel(itemStatus(item))}</span>
       </div>
       {primary && (
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', marginBottom: 8 }}>
-          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800, marginBottom: 4 }}>You've been assigned this responsibility for {(estate?.deceased_name || estate?.name || 'this family')}'s estate.</div>
-          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginBottom: 7 }}>You've been asked by {estate?.coordinator_name || 'the family coordinator'} to help with {(estate?.deceased_name || estate?.name || 'this family')}'s estate.</div>
-          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800, marginBottom: 7 }}>Your responsibility: {itemTitle(item)}</div>
-          <div style={{ display: 'inline-flex', color: handled ? C.sage : C.rose, background: handled ? C.sageFaint : C.roseFaint, borderRadius: 999, padding: '4px 9px', fontSize: 11.5, fontWeight: 800, marginBottom: 7 }}>{officialStatus}</div>
-          <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 800 }}>Start with this one task. Passage will tell the coordinator what you decide.</div>
-          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 4 }}>
-            {estate?.coordinator_name || 'The coordinator'} will see your update. You are not responsible for the whole estate.
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 13px', marginBottom: 10 }}>
+          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>Why you are here</div>
+          <div style={{ fontSize: 13, color: C.ink, fontWeight: 900, lineHeight: 1.4 }}>You have one responsibility for {(estate?.deceased_name || estate?.name || 'this family')}'s estate.</div>
+          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>
+            {estate?.coordinator_name || 'The coordinator'} will see your response. You are not responsible for the whole estate.
           </div>
         </div>
       )}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', marginBottom: 8 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 13px', marginBottom: 9 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', marginBottom: 6 }}>
           <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em' }}>{contract.label}</div>
           <div style={{ fontSize: 11, color: C.mid, fontWeight: 800 }}>{statusLabel(itemStatus(item))}</div>
         </div>
         <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.5, fontWeight: 800 }}>{contract.action}</div>
-        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 5 }}>{taskActionPrompt('handled', item, 'participant')}</div>
-        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 5 }}>{contract.serviceLine}</div>
+        <div style={{ background: statusBg, borderLeft: `4px solid ${statusTone}`, borderRadius: 10, padding: '8px 9px', fontSize: 12.2, color: C.mid, lineHeight: 1.45, marginTop: 8 }}>
+          <strong style={{ color: C.ink }}>Next expected update:</strong> {expectedUpdate}
+        </div>
+        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 7 }}>{contract.serviceLine}</div>
         <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.45, marginTop: 5 }}>{contract.authority}</div>
         <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>{contract.payer}</div>
-      </div>
-      <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 11, padding: '9px 10px', marginBottom: 8 }}>
-        <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>What Passage gives you</div>
-        <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginTop: 4 }}>{playbook.actionResultLabel || playbook.whatPassageDoes}</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8, marginBottom: 8 }}>
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
@@ -204,7 +202,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
       {!handled && (
         <>
-          <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder={taskActionPlaceholder('handled', item, 'participant') || 'Add proof, what is waiting, or what help you need'} style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 78 : 58, marginTop: 6, padding: '9px 10px', borderRadius: 9, border: `1px solid ${proofWarning ? C.rose : C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
+          <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder={taskActionPlaceholder('handled', item, 'participant') || 'Add proof, what is waiting, or what help you need'} style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 82 : 62, marginTop: 6, padding: '10px 11px', borderRadius: 11, border: `1px solid ${proofWarning ? C.rose : C.border}`, background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
           <div style={{ fontSize: 11.5, color: proofWarning ? C.rose : C.soft, fontWeight: proofWarning ? 800 : 400, marginTop: 4 }}>
             {proofWarning || 'Proof, waiting notes, and help requests are saved to the estate activity trail.'}
           </div>
