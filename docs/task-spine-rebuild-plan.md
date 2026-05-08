@@ -115,6 +115,14 @@ Implementation rule:
 - `coordinationSpine.attentionItems` is the role-scoped "look here now" inbox derived from those layers.
 - UI should never make users infer whether an item is a conversation, proof, or notification from a generic activity row.
 
+Attention hierarchy:
+
+- Urgent: failed delivery, blocked work, needs-review, declined request.
+- Waiting: family response, vendor response, pending request, sent message.
+- Assigned: a named person owns the next action.
+- Proof/update: reassurance only, not primary work.
+- Family surfaces should show the one clearest item and hide mechanics. Operator surfaces can show more items, but must label why each item deserves attention.
+
 ### Communication Spine Model
 
 Every meaningful coordination update starts from one of five verbs:

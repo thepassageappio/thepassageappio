@@ -1411,12 +1411,20 @@ function PartnerAttentionInbox({ items, onOpenCase }) {
         <div style={{ display: 'grid', gap: 8 }}>
           {items.map(item => {
             const kind = item.kind === 'vendor' ? 'Vendor' : item.kind === 'message' ? 'Message' : item.kind === 'task' ? 'Task status' : 'Case update';
+            const urgent = item.attentionLevel === 'urgent';
+            const waiting = item.attentionLevel === 'waiting';
+            const tone = urgent ? C.rose : waiting ? C.amber : C.sage;
+            const bg = urgent ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint;
             return (
-              <button key={`${item.caseId}_${item.id}`} onClick={() => onOpenCase(item.caseId)} style={{ textAlign: 'left', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 12, alignItems: 'center', border: `1px solid ${C.border}`, background: C.bg, borderRadius: 12, padding: 12, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+              <button key={`${item.caseId}_${item.id}`} onClick={() => onOpenCase(item.caseId)} style={{ textAlign: 'left', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 12, alignItems: 'center', border: `1px solid ${urgent ? C.rose + '44' : C.border}`, borderLeft: `5px solid ${tone}`, background: C.bg, borderRadius: 12, padding: 12, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{kind} - {item.caseName} - {item.locationName}</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ color: tone, background: bg, borderRadius: 999, padding: '3px 8px', fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 900 }}>{item.attentionLabel || kind}</span>
+                    <span style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{item.caseName} - {item.locationName}</span>
+                  </div>
                   <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, marginTop: 3 }}>{item.title || 'Update recorded'}</div>
                   <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>{item.detail || item.statusLabel || 'Open the case to respond or record proof.'}</div>
+                  {item.expectedUpdate && <div style={{ color: tone, fontSize: 11.8, lineHeight: 1.4, fontWeight: 800, marginTop: 4 }}>{item.expectedUpdate}</div>}
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 7 }}>
                     {item.actor && <span style={miniPill}>From {item.actor}</span>}
                     {item.recipient && <span style={miniPill}>To {item.recipient}</span>}
