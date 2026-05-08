@@ -396,9 +396,6 @@ export default function ParticipatingPage() {
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
               Sign in with the email that received the Passage invite. Passage will show one responsibility at a time, keep the rest of the estate private, and record proof for the coordinator.
             </p>
-            <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 13, lineHeight: 1.55, marginBottom: 12 }}>
-              <strong style={{ color: C.ink }}>What happens after sign-in:</strong> accept the task, save what happened, or say what is waiting. The family gets clarity without another call.
-            </div>
             <button onClick={() => signIn(router.asPath || '/participating')} style={{ border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
             <div style={{ height: 12 }} />
             <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />

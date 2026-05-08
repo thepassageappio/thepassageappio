@@ -937,7 +937,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8 }}>
                   <div>
                     <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Add employee</div>
-                    <div style={{ color: C.mid, fontSize: 12.5, marginTop: 3 }}>Saved employees appear in task assignment dropdowns.</div>
+                    <div style={{ color: C.mid, fontSize: 12.5, marginTop: 3 }}>Saved employees become assignable on case work.</div>
                   </div>
                   <div style={{ color: C.mid, fontSize: 11.8 }}>No message is sent.</div>
                 </div>
@@ -966,7 +966,7 @@ export default function FuneralHomeDashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8 }}>
                 <div>
                   <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Delegation queue' : 'My assigned work'}</div>
-                  <div style={{ fontSize: 18 }}>{isDirectorRole ? 'What staff should move next.' : 'What this employee should move next.'}</div>
+                  <div style={{ fontSize: 18 }}>{isDirectorRole ? 'Next staff move' : 'Your next move'}</div>
                 </div>
                 <div style={{ color: C.mid, fontSize: 12.5 }}>Each task keeps estate context, status, proof, and audit together.</div>
               </div>
@@ -1346,7 +1346,7 @@ export default function FuneralHomeDashboard() {
                         {assignOpen && (
                           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, marginTop: 10 }}>
                             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Assign owner</div>
-                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>Pick a saved staff member or case contact. Manual assignment is available when the person is not set up yet.</div>
+                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>Saved staff and case contacts appear first.</div>
                             {assignmentOptions.length > 0 ? (
                               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, 1fr) auto', gap: 8, marginTop: 10, alignItems: 'center' }}>
                                 <select
@@ -1614,11 +1614,8 @@ function DirectorOperatingLoop({ steps, nextStep, useCases, firstOpenCase, onCre
     <section style={{ background: C.bgDark, color: '#fff', borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 12px 34px rgba(0,0,0,.12)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18, alignItems: 'start' }}>
         <div>
-          <div style={{ color: '#b7d0bb', fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>2. Director operating loop</div>
-          <h2 style={{ fontSize: 27, lineHeight: 1.12, margin: '7px 0 7px', fontWeight: 400 }}>Move the case from intake to proof to report.</h2>
-          <p style={{ color: '#d7d0c7', fontSize: 13.5, lineHeight: 1.55, maxWidth: 650, margin: 0 }}>
-            This is the director's workflow checklist for the day: create or open a case, delegate staff work, ask family once, record proof, coordinate local support, and export the report.
-          </p>
+          <div style={{ color: '#b7d0bb', fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Case flow</div>
+          <h2 style={{ fontSize: 27, lineHeight: 1.12, margin: '7px 0 7px', fontWeight: 400 }}>Move the next case toward proof and report.</h2>
           <div style={{ display: 'grid', gap: 0, marginTop: 16, borderTop: '1px solid rgba(255,255,255,.16)' }}>
             {steps.map((step, index) => {
               const active = step.key === nextStep?.key;

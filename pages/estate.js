@@ -1278,9 +1278,9 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     <div id="execution-layer" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>What to do</div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Task operating spine</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>Proof, follow-up, and ownership</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Every task has a next action, an owner, proof, and a reminder if it stalls.</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Owner, proof, waiting state, and next action stay together.</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>{actionTasks.length} open</span>
       </div>
@@ -1297,8 +1297,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
       </div>
 
       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Action lanes</div>
-        <div style={{ fontSize: 12.2, color: MID, lineHeight: 1.45, marginBottom: 8 }}>Send, prepare, call, or record the next outside step.</div>
+        <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Open action lanes</div>
         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
           {['Automate', 'Call', 'Packet', 'Guide', 'Record'].map(function(lane) {
             return <span key={lane} style={{ background: lane === 'Automate' ? SAGE_FAINT : lane === 'Packet' ? AMBER_FAINT : SUBTLE, color: lane === 'Packet' ? AMBER : SAGE, border: '1px solid ' + (lane === 'Packet' ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 999, padding: '5px 9px', fontSize: 11.5, fontWeight: 900 }}>{lane}: {laneCounts[lane] || 0}</span>;
