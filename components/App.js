@@ -4428,12 +4428,135 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   );
 }
 
+function ProductSpinePreview() {
+  const panelStyle = {
+    background: C.bgCard,
+    border: `1px solid ${C.border}`,
+    borderRadius: 16,
+    padding: 16,
+    boxShadow: '0 14px 34px rgba(55,45,35,.05)',
+    minWidth: 0,
+  };
+  const miniLabel = { color: C.soft, fontSize: 10.5, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 };
+  const rows = [
+    {
+      role: 'Director view',
+      title: 'Cemetery plot details are blocking next work',
+      status: 'Waiting on family',
+      body: 'Assign staff, send one family request, keep the cemetery/vendor context on the task, and see the next expected update.',
+      facts: ['Owner: Maria, arrangements', 'Next update: tomorrow morning', 'Proof: family reply + cemetery confirmation'],
+      tone: C.gold,
+      bg: C.goldFaint,
+    },
+    {
+      role: 'Family view',
+      title: 'The funeral home needs one detail from you',
+      status: 'Your next step',
+      body: 'A calm request explains why the detail matters, who will use it, and what happens after the family responds.',
+      facts: ['Reply once', 'No repeated calls', 'Status stays visible'],
+      tone: C.sage,
+      bg: C.sageFaint,
+    },
+    {
+      role: 'Staff view',
+      title: 'Assigned work with case context',
+      status: 'Ready to handle',
+      body: 'Employees see assigned tasks first, the proof required, and the family-facing status before they mark work handled.',
+      facts: ['Case: Eleanor Price', 'Proof destination: case spine', 'Escalate if blocked'],
+      tone: C.sage,
+      bg: C.sageFaint,
+    },
+    {
+      role: 'Vendor view',
+      title: 'Scoped local support request',
+      status: 'Quote requested',
+      body: 'Vendors receive only the relevant request, respond naturally, and update status without becoming a sales directory.',
+      facts: ['Category: flowers', 'Visible to director only', 'Family sees support status'],
+      tone: C.rose,
+      bg: C.roseFaint,
+    },
+  ];
+
+  return (
+    <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 48px' }}>
+      <div style={{ maxWidth: 720, marginBottom: 18 }}>
+        <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>See the spine in action</div>
+        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 3.4vw, 40px)', lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400, color: C.ink }}>Not a checklist. A living coordination spine.</h2>
+        <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.65, margin: 0 }}>One task carries the owner, request, conversation, proof, notification delivery, status, and next expected update. Each party sees the slice they need.</p>
+      </div>
+
+      <div className="home-spine-preview" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(280px, .8fr)', gap: 16, alignItems: 'stretch' }}>
+        <div style={{ ...panelStyle, background: C.bgDark, color: '#fff', padding: 18 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 16 }}>
+            <div>
+              <div style={{ color: '#b9d2bd', fontSize: 10.5, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>Case spine</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: 25, lineHeight: 1.12 }}>Eleanor Price</div>
+              <div style={{ color: '#d8d0c7', fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Poughkeepsie location - pre-need case - family coordinator active</div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 12, padding: '9px 10px', textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ color: '#fff', fontSize: 20, fontWeight: 900 }}>8</div>
+              <div style={{ color: '#d8d0c7', fontSize: 10.5 }}>calls avoided</div>
+            </div>
+          </div>
+
+          <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 14, padding: 14, marginBottom: 12 }}>
+            <div style={{ color: '#b9d2bd', fontSize: 10.5, fontWeight: 900, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 8 }}>Clearest next action</div>
+            <div style={{ color: '#fff', fontSize: 17, fontWeight: 900, lineHeight: 1.25 }}>Ask family for cemetery plot details</div>
+            <div style={{ color: '#d8d0c7', fontSize: 12.5, lineHeight: 1.55, marginTop: 6 }}>Passage prepares one message, routes the response to staff, and records proof on the task.</div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+            {[
+              ['Owner', 'Maria, staff'],
+              ['Waiting', 'Family reply'],
+              ['Next update', 'Tomorrow AM'],
+            ].map(function(row) {
+              return (
+                <div key={row[0]} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, padding: 10 }}>
+                  <div style={{ color: '#b9d2bd', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>{row[0]}</div>
+                  <div style={{ color: '#fff', fontSize: 12.5, fontWeight: 800, marginTop: 4 }}>{row[1]}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: 10 }}>
+          {rows.map(function(row) {
+            return (
+              <div key={row.role} style={{ ...panelStyle, padding: 13, borderLeft: `4px solid ${row.tone}` }}>
+                <div style={{ ...miniLabel, color: row.tone }}>{row.role}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 5 }}>
+                  <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, lineHeight: 1.25 }}>{row.title}</div>
+                  <div style={{ background: row.bg, color: row.tone, borderRadius: 9, padding: '4px 7px', fontSize: 10.5, fontWeight: 900, flexShrink: 0 }}>{row.status}</div>
+                </div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 8 }}>{row.body}</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {row.facts.map(function(fact) {
+                    return <span key={fact} style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 8, padding: '4px 6px', color: C.mid, fontSize: 10.8, lineHeight: 1.25 }}>{fact}</span>;
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+        <a href="/funeral-home" style={{ background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>See funeral-home workflow</a>
+        <a href="/contact?category=Funeral%20home%20walkthrough" style={{ background: C.bgCard, color: C.sage, textDecoration: 'none', border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>Book 15-min walkthrough</a>
+      </div>
+    </section>
+  );
+}
+
 function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <style>{`
         @media (max-width: 720px) {
           .home-proof-grid { grid-template-columns: 1fr !important; }
+          .home-spine-preview { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} onDashboard={onDashboard} />
@@ -4484,6 +4607,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           </div>
         </div>
       </section>
+
+      <ProductSpinePreview />
 
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '12px 24px 48px' }}>
         <div style={{ maxWidth: 720, marginBottom: 18 }}>
