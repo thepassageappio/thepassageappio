@@ -3393,7 +3393,7 @@ function MemoriesModal({ userId, workflowId, onClose, onSaved }) {
   );
 }
 
-function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refreshKey }) {
+function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHome, onDashboard, refreshKey }) {
   const [userData, setUserData] = useState(null);
   const [profile, setProfile] = useState(null);
   const [workflows, setWorkflows] = useState([]);
@@ -3600,7 +3600,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, refr
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
-      <SiteHeader user={user} onSignOut={onSignOut} />
+      <SiteHeader user={user} onSignOut={onSignOut} onDashboard={onDashboard} onHome={onHome} />
       {backEstateId && (
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 16px 6px", display: "flex", justifyContent: "flex-end" }}>
           <button onClick={() => { window.location.href = '/estate?id=' + encodeURIComponent(backEstateId); }} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 8, padding: "6px 11px", fontSize: 11.5, color: C.sage, cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>Back to estate</button>
