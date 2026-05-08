@@ -35,6 +35,7 @@ function isSystemAdmin(user) {
 export default function VendorRequestPage() {
   const router = useRouter();
   const token = String(router.query.token || '');
+  const demoQuery = router.query.demo === '1' || router.query.demo === 'true';
   const [user, setUser] = useState(null);
   const [userToken, setUserToken] = useState('');
   const [vendorProfile, setVendorProfile] = useState(null);
@@ -73,13 +74,14 @@ export default function VendorRequestPage() {
   }, [token]);
 
   useEffect(() => {
-    if (!token && isSystemAdmin(user)) {
+    if (!token && (demoQuery || isSystemAdmin(user))) {
       setRequest(demoRequest);
       setEstimatedValue(demoRequest.estimated_value || '');
       setFinalValue('');
       setError('');
+      setLoading(false);
     }
-  }, [token, user]);
+  }, [token, user, demoQuery]);
 
   useEffect(() => {
     if (!token && user && !isSystemAdmin(user) && userToken) {
@@ -150,7 +152,7 @@ export default function VendorRequestPage() {
 
   const familyName = request?.workflows?.deceased_name || request?.workflows?.estate_name || request?.workflows?.name || 'Family case';
   const vendorName = request?.vendors?.business_name || 'Vendor';
-  const demoMode = !token && isSystemAdmin(user);
+  const demoMode = !token && (demoQuery || isSystemAdmin(user));
   const requestStatus = labelForStatus(request?.status);
   const urgencyLabel = request?.urgency === 'rush' ? 'Needed within 24 hours' : 'Planning ahead';
   const nextExpected = request?.status === 'completed'
