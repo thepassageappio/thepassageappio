@@ -1459,7 +1459,7 @@ function taskSpineRecipient(item) {
   if (email) return email;
   if (phone) return phone;
   if (recipient) return recipient;
-  return 'Add recipient when Passage should send';
+  return 'Add recipient before sending';
 }
 
 function taskSpineStatus(item) {
