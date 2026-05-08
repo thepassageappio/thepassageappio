@@ -1578,7 +1578,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           <div style={{ fontSize: 11, color: SOFT, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 9 }}>Open work</div>
           {queue.length === 0 ? (
             <div style={{ color: SAGE, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 11, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45 }}>Nothing open. The estate is quiet right now.</div>
-          ) : queue.slice(0, 8).map(function(entry, index) {
+          ) : (
+            <div style={{ maxHeight: 610, overflowY: 'auto', paddingRight: 4 }}>
+          {queue.map(function(entry, index) {
             var selected = index === selectedIndex;
             var entryOwner = entry.kind === 'task' ? taskSpineOwner(entry.item) : textValue(entry.item.owner_label, 'Needs owner');
             var entryStatus = taskSpineStatus(entry.item);
@@ -1589,7 +1591,8 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               </button>
             );
           })}
-          {queue.length > 8 && <div style={{ color: SOFT, fontSize: 11.5, marginTop: 6 }}>{queue.length - 8} more open items in the full timeline below.</div>}
+            </div>
+          )}
         </aside>
 
         <div style={{ minWidth: 0 }}>
@@ -3366,351 +3369,23 @@ export default function EstatePage() {
           </div>
         )}
 
-        <details style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
-          <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Messages, proof, and activation</summary>
-          <div style={{ marginTop: 12 }}>
-            <TaskPanelBoundary resetKey={'proof:' + estateId + ':' + actions.length + ':' + tasks.length + ':' + events.length} title="Proof log recovered" detail="The proof and activation log hit a display issue.">
-              <ActivatePlanView
-                estate={estate}
-                actions={actions}
-                tasks={tasks}
-                outcomes={outcomes}
-                activating={activating}
-                onActivate={activatePlan}
-              />
-
-              <ProofPanel
-                actions={actions}
-                tasks={tasks}
-                events={events}
-              />
-            </TaskPanelBoundary>
-          </div>
-        </details>
-
-        <details id="all-task-tools" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
-          <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>All task tools</summary>
-          <div style={{ marginTop: 12 }}>
-            <TaskPanelBoundary resetKey={'execution:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Task tools recovered" detail="The full task tools section hit a display issue.">
-              <ExecutionLayerPanel
-                tasks={tasks}
-                outcomes={outcomes}
-                estateId={estateId}
-                coordinatorName={coordinatorName}
-                onRefresh={refreshExecutionData}
-              />
-            </TaskPanelBoundary>
-          </div>
-        </details>
-
-        <details style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
-          <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Estate map and funeral home summary</summary>
-          <div style={{ marginTop: 12 }}>
-            <TaskPanelBoundary resetKey={'map:' + estateId + ':' + serviceEvents.length + ':' + people.length + ':' + tasks.length} title="Estate map recovered" detail="The estate map or funeral-home summary hit a display issue.">
-              <EstateOrchestrationMap
-                estate={estate}
-                estateId={estateId}
-                name={name}
-                serviceEvents={serviceEvents}
-                people={people}
-                actions={actions}
-                announcements={announcements}
-                tasks={tasks}
-                outcomes={outcomes}
-              />
-
-              <FuneralHomePrepGenerator
-                estate={estate}
-                estateId={estateId}
-                name={name}
-                coordinatorName={coordinatorName}
-                serviceEvents={serviceEvents}
-                people={people}
-                tasks={tasks}
-                onRecord={recordPrepEvent}
-              />
-            </TaskPanelBoundary>
-          </div>
-        </details>
-
-        <TaskPanelBoundary resetKey={'people:' + estateId + ':' + outcomes.length + ':' + readinessPct} title="Ownership section recovered" detail="The people and ownership section hit a display issue.">
-        <div id="people-coordination" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 4 }}>People and ownership</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>Pick one item below, assign who owns it, then record proof or mark it waiting. That is the whole job here.</div>
-          <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 12, marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 7 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: SAGE }}>{readinessPct}% ready</div>
-              <div style={{ fontSize: 11.5, color: MID }}>{readinessHandledCount} of {requiredCount || 0} required items handled</div>
-            </div>
-            <div style={{ height: 6, background: CARD, borderRadius: 999, overflow: 'hidden' }}>
-              <div style={{ width: readinessPct + '%', height: '100%', background: SAGE, borderRadius: 999 }} />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-            <div style={{ background: AMBER_FAINT, borderRadius: 10, padding: 10 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: AMBER }}>{needsOwnerCount}</div>
-              <div style={{ fontSize: 10.5, color: MID }}>Needs owner</div>
-            </div>
-            <div style={{ background: SUBTLE, borderRadius: 10, padding: 10 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: MID }}>{outcomes.filter(function(o) { return o.status === 'in_progress' || o.status === 'not_started'; }).length}</div>
-              <div style={{ fontSize: 10.5, color: MID }}>In motion</div>
-            </div>
-            <div style={{ background: SAGE_FAINT, borderRadius: 10, padding: 10 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: SAGE }}>{handledCount}</div>
-              <div style={{ fontSize: 10.5, color: MID }}>Handled</div>
-            </div>
-          </div>
-          {outcomes.length > 0 && (
-            <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
-              {outcomes.filter(function(o) { return !isHandledStatus(o.status); }).slice(0, 5).map(function(o) {
-                var idx = outcomes.findIndex(function(item) { return String(item.id) === String(o.id); });
-                return (
-                  <div key={o.id} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 11, padding: '10px 11px', display: 'grid', gap: 8 }}>
-                    <div>
-                      <div style={{ fontSize: 13, color: INK, fontWeight: 800 }}>{displayTaskTitle(o)}</div>
-                      <div style={{ fontSize: 12, color: MID, marginTop: 2 }}>{textValue(o.owner_label, '') ? textValue(o.owner_label, '') + ' owns this' : 'No owner yet'}</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                      <button onClick={function() { setExpanded(idx); setShowAssign(idx); setTimeout(function() { var el = document.getElementById('outcome_' + o.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 9, padding: '7px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>{textValue(o.owner_label, '') ? 'Change owner' : 'Assign owner'}</button>
-                      <button onClick={function() { setExpanded(idx); setShowAssign(-1); setTimeout(function() { var el = document.getElementById('outcome_' + o.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }} style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 9, padding: '7px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>Open step</button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          <div style={{ fontSize: 12, color: SOFT, marginTop: 10, lineHeight: 1.5 }}>Passage keeps this estate separate from every other estate you manage.</div>
-        </div>
-        </TaskPanelBoundary>
-
-        <TaskPanelBoundary resetKey={'timeline:' + estateId + ':' + timelineGroups.reduce(function(total, g) { return total + g.items.length; }, 0)} title="Timeline recovered" detail="The plan timeline hit a display issue.">
-        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 4 }}>Plan timeline</div>
-              <div style={{ fontSize: 12, color: SOFT, lineHeight: 1.45 }}>Tasks grouped by when they matter, with ownership and the next move.</div>
-            </div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '4px 9px', whiteSpace: 'nowrap' }}>
-              {timelineGroups.reduce(function(total, g) { return total + g.items.length; }, 0)} open
-            </div>
-          </div>
-          {recentParticipantEvents.length > 0 && (
-            <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '10px 12px', marginBottom: 10 }}>
-              <div style={{ fontSize: 11, color: SAGE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>People helping right now</div>
-              {recentParticipantEvents.map(function(e) {
-                var actor = textValue(e.actor, 'Someone');
-                var action = e.event_type === 'participant_handled' ? 'marked this as handled' : e.event_type === 'participant_waiting' ? 'updated this as waiting' : e.event_type === 'participant_acknowledged' ? 'confirmed this' : e.event_type === 'participant_blocked' ? 'needs help with this' : e.event_type === 'task_message_sent' ? 'was sent a message' : 'accepted or updated this task';
-                return <div key={e.id} style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, padding: '3px 0' }}><strong style={{ color: INK }}>{actor}</strong> {action}{timeAgo(e.created_at) ? ' ' + timeAgo(e.created_at) : ''}: {textValue(e.description || e.title, 'Task updated')}</div>;
-              })}
-            </div>
-          )}
-          {timelineGroups.map(function(group) {
-            var primary = group.items[0];
-            return (
-              <div key={group.key} style={{ borderTop: '1px solid ' + BORDER, paddingTop: 12, marginTop: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>{textValue(group.label, 'Next steps')}</div>
-                  <div style={{ fontSize: 11.5, color: SOFT, textAlign: 'right' }}>{textValue(group.help, '')}</div>
-                </div>
-                {primary && (
-                  <div style={{ background: isPlanningEstate ? SAGE_FAINT : ROSE_FAINT, border: '1px solid ' + (isPlanningEstate ? SAGE_LIGHT : ROSE + '30'), borderRadius: 11, padding: '10px 12px', marginBottom: 8 }}>
-                    <div style={{ fontSize: 11, color: isPlanningEstate ? SAGE : ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{isPlanningEstate ? 'Open this next' : 'Do this next'}</div>
-                    <button onClick={function() { openTimelineItem(primary); }} style={{ width: '100%', border: isPlanningEstate ? '1px solid ' + SAGE_LIGHT : 'none', background: isPlanningEstate ? CARD : SAGE, color: isPlanningEstate ? INK : '#fff', borderRadius: 10, padding: '10px 12px', fontSize: 13, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
-                      {textValue(primary.title, 'Open this step')}
-                    </button>
-                  </div>
-                )}
-                {group.items.length > 0 ? group.items.map(function(item) {
-                  return (
-                    <button key={item.id} onClick={function() { openTimelineItem(item); }} style={{ width: '100%', background: SUBTLE, borderRadius: 10, padding: '10px 12px', marginBottom: 7, border: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
-                      <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.35, marginBottom: 6 }}>{textValue(item.title, 'Task')}</div>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span style={{ fontSize: 11.5, color: item.owner === 'Needs owner' ? AMBER : SAGE, fontWeight: 700 }}>{textValue(item.owner, 'Needs owner')}</span>
-                        <span style={{ width: 3, height: 3, borderRadius: '50%', background: SOFT }} />
-                        <span style={{ fontSize: 11.5, color: SOFT }}>{textValue(item.next, 'Open this item')}</span>
-                      </div>
-                      {/waiting/i.test(item.next || '') && (
-                        <div style={{ fontSize: 11.5, color: AMBER, fontWeight: 800, marginTop: 5 }}>
-                          If we don&apos;t hear back, we&apos;ll prompt you.
-                        </div>
-                      )}
-                    </button>
-                  );
-                }) : (
-                  <div style={{ background: SAGE_FAINT, borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: SAGE, fontWeight: 700 }}>
-                    Nothing waiting here.
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        </TaskPanelBoundary>
-
-        {readyFor72 && (
-          <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: SAGE, marginBottom: 5 }}>The first urgent items are clear.</div>
-            <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>
-              If you have a little room now, Passage has the next 72 hours ready. Start with one item, or assign it to someone who can help.
-            </div>
-          </div>
-        )}
-
-        <TaskPanelBoundary resetKey={'outcomes:' + estateId + ':' + outcomes.length + ':' + expanded + ':' + showAssign} title="Outcome list recovered" detail="The estate outcome list hit a display issue.">
-        {outcomes.length > 0 ? (
-          <>
-            <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 12 }}>Here's what matters first</div>
-            {outcomes.map(function(outcome, i) {
-              return (
-                <OutcomeCard
-                  key={outcome.id}
-                  id={'outcome_' + outcome.id}
-                  outcome={outcome}
-                  estateId={estateId}
-                  expanded={expanded === i}
-                  showAssign={showAssign === i}
-                  showProof={showProof === i}
-                  onToggle={function() { setExpanded(expanded === i ? -1 : i); setShowAssign(-1); setShowProof(-1); }}
-                  onMarkHandled={function() { proofOutcomeFromCommand(outcome); }}
-                  onMarkInProgress={function() { updateOutcome(i, { status: 'in_progress' }); }}
-                  onNeedsHelp={function() { recordOutcomeNeedsHelp(outcome); }}
-                  onAssignOpen={function() { setShowAssign(i); setShowProof(-1); setExpanded(i); }}
-                  onAssignClose={function() { setShowAssign(-1); }}
-                  onProofOpen={function() { setShowProof(i); setShowAssign(-1); setExpanded(i); }}
-                  onProofClose={function() { setShowProof(-1); }}
-                  onProofSave={function(note) { recordOutcomeHandled(outcome, note); }}
-                  onAssignSave={function(owner) {
-                    var payload = typeof owner === 'string' ? { name: owner } : (owner || {});
-                    var ownerName = textValue(payload.name, '').trim();
-                    if (!ownerName) return;
-                    var statusUpdate = outcomes[i].status === 'needs_owner' ? 'not_started' : outcomes[i].status;
-                    var contactLines = [
-                      payload.email ? 'Email: ' + textValue(payload.email) : '',
-                      payload.phone ? 'Phone: ' + textValue(payload.phone) : '',
-                      payload.note ? 'Handoff note: ' + textValue(payload.note) : ''
-                    ].filter(Boolean);
-                    updateOutcome(i, {
-                      owner_label: ownerName,
-                      status: statusUpdate,
-                      notes: contactLines.length ? contactLines.join('\n') : outcomes[i].notes,
-                    });
-                  }}
-                />
-              );
-            })}
-          </>
-        ) : (
-          // No outcomes yet — show task list instead
-          tasks.length > 0 ? (
-            <>
-              <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 12 }}>Your task list</div>
-              {tasks.slice(0, 5).map(function(task, i) {
-                return (
-                  <div key={task.id} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '14px 16px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2px solid ' + BORDER, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: SOFT }}>{i + 1}</div>
-                    <div style={{ flex: 1, fontSize: 14, color: INK, lineHeight: 1.4 }}>{displayTaskTitle(task)}</div>
-                  </div>
-                );
-              })}
-            </>
-          ) : (
-            <div style={{ background: SUBTLE, borderRadius: 14, padding: '24px', textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 14, color: SOFT, lineHeight: 1.7 }}>No outcomes yet. Finish the intake flow to generate your first 24-hour plan.</div>
-              <button onClick={function() { window.location.href = '/urgent'; }}
-                style={{ marginTop: 14, padding: '11px 20px', borderRadius: 11, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Georgia, serif' }}>
-                Start urgent intake
-              </button>
-            </div>
-          )
-        )}
-        </TaskPanelBoundary>
-
-        <TaskPanelBoundary resetKey={'secondary:' + estateId + ':' + upNextTasks.length + ':' + events.length} title="Secondary estate tools recovered" detail="The secondary estate tools hit a display issue.">
-        {/* Up next — collapsed secondary tasks */}
-        {upNextTasks.length > 0 && (
-          <div style={{ marginTop: 8, marginBottom: 16 }}>
-            <button onClick={function() { setShowUpNext(!showUpNext); }}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: SUBTLE, borderRadius: 12, padding: '12px 16px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', marginBottom: showUpNext ? 8 : 0 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: MID }}>Up next</span>
-              <span style={{ fontSize: 13, color: SOFT }}>{showUpNext ? '↑' : '↓'}</span>
-            </button>
-            {showUpNext && upNextTasks.map(function(task, i) {
-              return (
-                <div key={task.id} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 11, padding: '12px 16px', marginBottom: 6, fontSize: 13.5, color: MID, lineHeight: 1.4 }}>
-                  {displayTaskTitle(task)}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Secondary module cards */}
-        <div style={{ marginBottom: 20 }}>
-          <SecondaryCard
-            title="Share the news"
-            meta="Prepare an announcement for family and community"
-            cta="Prepare"
-            onClick={function() { window.location.href = '/announce?estate=' + estateId + '&name=' + encodeURIComponent(name); }}
-          />
-          <SecondaryCard
-            title="People and coordination"
-            meta={outcomes.filter(function(o) { return !o.owner_label; }).length + ' items need an owner'}
-            cta="Review"
-            onClick={function() { openPeopleCoordination(true); }}
-          />
-          <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '14px 16px', marginBottom: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>Estate file for {textValue(name, 'your loved one')}</div>
-                <div style={{ fontSize: 12, color: SOFT, marginTop: 3 }}>Wishes, obituary, documents, memories, messages, and proof stay scoped to this estate.</div>
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 7, padding: '4px 9px', whiteSpace: 'nowrap' }}>This estate</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(128px, 1fr))', gap: 8 }}>
-              {[
-                ['Wishes', 'Service, faith, family preferences', 'wishes'],
-                ['Obituary', 'Draft, copy, and review', 'obituary'],
-                ['Documents', 'Upload or note file locations', 'documents'],
-                ['Memories', 'Letters, voice notes, messages', 'memories'],
-              ].map(function(item) {
-                return (
-                  <button key={item[0]} onClick={function() { window.location.href = homeLink(item[2]); }}
-                    style={{ textAlign: 'left', border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: INK, borderRadius: 11, padding: '10px 11px', minHeight: 74, cursor: 'pointer', fontFamily: 'inherit' }}>
-                    <div style={{ fontSize: 13, fontWeight: 900, lineHeight: 1.25 }}>{item[0]}</div>
-                    <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.35, marginTop: 3 }}>{item[1]}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {events.length > 0 && (
-          <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 10 }}>Activity history</div>
-            {events.slice(0, 5).map(function(e) {
-              var eventTitle = textValue(e.title, 'Estate update');
-              var eventDescription = textValue(e.description, '');
-              var eventAt = dateTimeLabel(e.created_at);
-              return (
-                <div key={e.id} style={{ borderTop: '1px solid ' + BORDER, padding: '9px 0' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>{eventTitle}</div>
-                  {eventDescription && <div style={{ fontSize: 12, color: MID, lineHeight: 1.45 }}>{eventDescription}</div>}
-                  {eventAt && <div style={{ fontSize: 10.5, color: SOFT, marginTop: 2 }}>{eventAt}</div>}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        </TaskPanelBoundary>
-
-        {/* Primary CTA */}
-        {!allHandled && firstIncomplete >= 0 && (
-          <button onClick={function() { openPeopleCoordination(false); }}
-            style={{ width: '100%', padding: '16px', borderRadius: 13, border: 'none', background: SAGE, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'Georgia, serif', marginBottom: 10, minHeight: 52 }}>
-            Start with the first item
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginBottom: 16 }}>
+          <button onClick={function() { window.location.href = '/announce?estate=' + estateId + '&name=' + encodeURIComponent(name); }}
+            style={{ textAlign: 'left', border: '1px solid ' + BORDER, background: CARD, color: INK, borderRadius: 12, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 900 }}>Announcement</div>
+            <div style={{ fontSize: 11.3, color: MID, lineHeight: 1.35, marginTop: 3 }}>Draft or review family-facing news.</div>
           </button>
-        )}
+          <button onClick={function() { window.location.href = homeLink('documents'); }}
+            style={{ textAlign: 'left', border: '1px solid ' + BORDER, background: CARD, color: INK, borderRadius: 12, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 900 }}>Estate files</div>
+            <div style={{ fontSize: 11.3, color: MID, lineHeight: 1.35, marginTop: 3 }}>Documents and proof stay scoped here.</div>
+          </button>
+          <button onClick={function() { window.location.href = homeLink('wishes'); }}
+            style={{ textAlign: 'left', border: '1px solid ' + BORDER, background: CARD, color: INK, borderRadius: 12, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 900 }}>Preferences</div>
+            <div style={{ fontSize: 11.3, color: MID, lineHeight: 1.35, marginTop: 3 }}>Service, faith, family wishes.</div>
+          </button>
+        </div>
         {allHandled && (
           <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '16px', marginBottom: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: SAGE, marginBottom: 4 }}>You've handled what's needed right now. You're in a good place.</div>
@@ -3718,10 +3393,6 @@ export default function EstatePage() {
             <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>We'll guide you through what comes next when you're ready.</div>
           </div>
         )}
-        <button onClick={function() { window.location.href = '/announce?estate=' + estateId + '&name=' + encodeURIComponent(name); }}
-          style={{ width: '100%', padding: '14px', borderRadius: 13, border: '1.5px solid ' + BORDER, background: CARD, color: MID, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 50 }}>
-          Get help coordinating
-        </button>
 
         <div style={{ fontSize: 11.5, color: SOFT, textAlign: 'center', marginTop: 16, lineHeight: 1.65 }}>
           Your estate plan is saved. Come back anytime.

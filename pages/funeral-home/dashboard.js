@@ -1120,15 +1120,19 @@ export default function FuneralHomeDashboard() {
         {user && activePartnerView === 'work' && cases.length > 0 && (
           <>
           {isMultiLocation && (
-            <details style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 12 }}>
-              <summary style={{ cursor: 'pointer', color: C.ink, fontWeight: 900 }}>Location filter and workload</summary>
-              <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, margin: '12px 0 8px' }}>Location view</div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 12, marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: showTools ? 10 : 0 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginRight: 2 }}>Work scope</span>
                 {['all', ...locations].map(location => (
                   <button key={location} onClick={() => setSelectedLocation(location)} style={{ border: `1px solid ${selectedLocation === location ? C.sage : C.border}`, background: selectedLocation === location ? C.sage : C.card, color: selectedLocation === location ? '#fff' : C.mid, borderRadius: 999, padding: '8px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
                     {location === 'all' ? 'All locations' : location} {location !== 'all' ? `(${cases.filter(item => locationNameFor(item) === location).length})` : `(${cases.length})`}
                   </button>
                 ))}
+                </div>
+                <button onClick={() => setShowTools(prev => !prev)} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 999, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
+                  {showTools ? 'Hide metrics' : 'Location metrics'}
+                </button>
               </div>
               {showTools && (
                 <div style={{ marginTop: 12, overflowX: 'auto' }}>
@@ -1161,7 +1165,7 @@ export default function FuneralHomeDashboard() {
                   </table>
                 </div>
               )}
-            </details>
+            </div>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
             <div>
