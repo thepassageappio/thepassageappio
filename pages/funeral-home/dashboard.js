@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 import { taskOutputFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 import { orchestrateTasks } from '../../lib/taskOrchestration';
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
 function statusLabel(value) {
@@ -42,6 +41,7 @@ function partnerCaseTypeLabel(item) {
 }
 
 const miniPill = { background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 };
+const inputStyle = { border: `1.5px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 12.5, minWidth: 0 };
 
 export default function FuneralHomeDashboard() {
   const [user, setUser] = useState(null);
@@ -62,6 +62,7 @@ export default function FuneralHomeDashboard() {
   const [creating, setCreating] = useState(false);
   const [taskDraft, setTaskDraft] = useState(null);
   const [taskDraftNote, setTaskDraftNote] = useState('');
+  const [assignmentDraft, setAssignmentDraft] = useState({ taskId: '', name: '', email: '', role: '', phone: '' });
   const [activePartnerView, setActivePartnerView] = useState('work');
   const [latestFamilyLink, setLatestFamilyLink] = useState(null);
   const casePanelRef = useRef(null);
@@ -253,6 +254,49 @@ export default function FuneralHomeDashboard() {
         setTaskDraft(null);
         setTaskDraftNote('');
         setNotice(json.confirmation || 'Handled for the family. The family can see exactly what your team recorded.');
+        await load(token);
+      }
+    } finally {
+      setUpdating('');
+    }
+  }
+
+  async function assignTaskOwner(task) {
+    if (!token || !task?.id) return;
+    const payload = {
+      name: assignmentDraft.name,
+      email: assignmentDraft.email,
+      role: assignmentDraft.role,
+      phone: assignmentDraft.phone,
+      actor: user?.email || 'Funeral home staff',
+    };
+    if (!String(payload.email || '').trim()) {
+      setError('Add an email so Passage can save the assignment and prepare the notification path.');
+      return;
+    }
+    setUpdating(task.id + 'assign');
+    setError('');
+    setNotice('');
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not assign this task.');
+      } else {
+        setData(prev => prev ? {
+          ...prev,
+          cases: (prev.cases || []).map(item => ({
+            ...item,
+            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, ...(json.task || {}), status: t.status || 'assigned' } : t),
+            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, ...(json.task || {}), status: t.status || 'assigned' } : t),
+          })),
+        } : prev);
+        setNotice(json.confirmation || 'Owner saved. Passage can route the task notification when approved.');
+        setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' });
         await load(token);
       }
     } finally {
@@ -1139,6 +1183,82 @@ export default function FuneralHomeDashboard() {
                     {vendorRequests.length > 0 && <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{vendorRequests.length} local help requests</span>}
                     <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{conversationCount} convo / {proofCount} proof / {notificationCount} alerts</span>
                   </div>
+                  {isExpanded && nextPartnerTask && (() => {
+                    const context = { caseName: item?.deceased_name || item?.estate_name || item?.name, coordinatorName: item?.coordinator_name, surface: 'case spine proof' };
+                    const output = taskOutputFor(nextPartnerTask, context);
+                    const draft = taskRequestDraftFor(nextPartnerTask, context);
+                    const proofDestination = taskProofDestination(nextPartnerTask, context);
+                    const actionOpen = taskDraft?.task?.id === nextPartnerTask.id;
+                    const assignOpen = assignmentDraft.taskId === nextPartnerTask.id;
+                    const packetText = [
+                      `${output.label} prepared for ${item?.deceased_name || item?.estate_name || item?.name || 'this case'}.`,
+                      `Known context: coordinator ${item.coordinator_name || 'family coordinator'}${item.coordinator_email ? ` (${item.coordinator_email})` : ''}.`,
+                      'Include service preferences, cemetery/clergy contacts, prepaid policy details, documents received, and open questions.',
+                      'Family-facing status: the funeral home is preparing the meeting summary and will confirm missing items before the arrangement meeting.',
+                    ].join('\n');
+                    return (
+                      <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(230px, .65fr)', gap: 12, alignItems: 'stretch' }}>
+                          <div>
+                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Action workspace</div>
+                            <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(nextPartnerTask)}</div>
+                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>This is where the director or employee actually moves the work: assign it, ask family once, prepare the output, record proof, or mark it waiting.</div>
+                          </div>
+                          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 11 }}>
+                            <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Prepared output</div>
+                            <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900, marginTop: 4 }}>{output.label}</div>
+                            <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 4 }}>{output.body}</div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))', gap: 8, marginTop: 12 }}>
+                          <button onClick={() => { setAssignmentDraft({ taskId: nextPartnerTask.id, name: nextPartnerTask.assigned_to_name || '', email: nextPartnerTask.assigned_to_email || '', role: nextPartnerTask.playbook?.partnerOwnerRole || 'staff', phone: '' }); setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Assign owner<br /><span style={{ color: C.mid, fontWeight: 500 }}>staff, participant, or helper</span></button>
+                          <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'blocked', label: 'Ask family for the missing detail', prompt: 'Passage saves this as a family request on the task. Email/SMS delivery is a separate approval step.', draft, output, proofDestination }); setTaskDraftNote(draft); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Request family info<br /><span style={{ color: C.mid, fontWeight: 500 }}>one request, not phone tag</span></button>
+                          <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Prepare packet and record proof', prompt: 'Edit the prepared output, then save it as proof. This updates the family-visible status and reports.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Prepare / record proof<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>save output to the spine</span></button>
+                          <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'waiting', label: 'Mark waiting with next update', prompt: 'Explain what is waiting and when the next update is expected.', draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${nextPartnerTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(nextPartnerTask)} can move forward. Next update expected tomorrow morning.`); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Mark waiting<br /><span style={{ color: C.soft, fontWeight: 500 }}>set response expectation</span></button>
+                        </div>
+                        {assignOpen && (
+                          <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, marginTop: 10 }}>
+                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Assign and route</div>
+                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>Assignment saves the owner and creates proof. Passage can send the notification after approval; this screen does not send real email or SMS by itself.</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
+                              <input value={assignmentDraft.name} onChange={event => setAssignmentDraft(prev => ({ ...prev, name: event.target.value }))} placeholder="Name or role" style={inputStyle} />
+                              <input value={assignmentDraft.email} onChange={event => setAssignmentDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="Email address" style={inputStyle} />
+                              <input value={assignmentDraft.role} onChange={event => setAssignmentDraft(prev => ({ ...prev, role: event.target.value }))} placeholder="Role: staff, executor, clergy..." style={inputStyle} />
+                              <input value={assignmentDraft.phone} onChange={event => setAssignmentDraft(prev => ({ ...prev, phone: event.target.value }))} placeholder="Phone for future SMS opt-in" style={inputStyle} />
+                            </div>
+                            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
+                              <button disabled={updating === nextPartnerTask.id + 'assign'} onClick={() => assignTaskOwner(nextPartnerTask)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === nextPartnerTask.id + 'assign' ? 'Saving...' : 'Save owner and proof'}</button>
+                              <button onClick={() => setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' })} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
+                            </div>
+                          </div>
+                        )}
+                        {actionOpen && (
+                          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, marginTop: 10 }}>
+                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{taskDraft.label}</div>
+                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>{taskDraft.prompt}</div>
+                            <textarea
+                              value={taskDraftNote}
+                              onChange={(e) => setTaskDraftNote(e.target.value)}
+                              placeholder={taskActionPlaceholder(taskDraft.status, nextPartnerTask, 'funeral_home')}
+                              style={{ width: '100%', boxSizing: 'border-box', minHeight: 112, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink, marginTop: 9 }}
+                            />
+                            <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.45, marginTop: 6 }}>{proofDestination}</div>
+                            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
+                              <button
+                                disabled={!taskDraftNote.trim() || updating === nextPartnerTask.id + taskDraft.status || updating === nextPartnerTask.id + 'handle_for_family'}
+                                onClick={() => taskDraft.status === 'handled'
+                                  ? handleForFamily(nextPartnerTask, `${org?.name || 'Funeral home'} completed ${sharedTaskTitle(nextPartnerTask)}: ${taskDraftNote.trim()}`)
+                                  : updateTask(nextPartnerTask, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'requested family information' : 'updated waiting status'} for ${sharedTaskTitle(nextPartnerTask)}: ${taskDraftNote.trim()}. ${proofDestination}`)}
+                                style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+                                {taskDraft.status === 'handled' ? 'Save proof and close task' : taskDraft.status === 'blocked' ? 'Save family request' : 'Save waiting update'}
+                              </button>
+                              <button onClick={() => { setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {orchestration.progress.length > 0 && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7, marginTop: 9 }}>
                       {orchestration.progress.slice(0, 5).map(row => (

@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 const C = {
   bg: '#f6f3ee',

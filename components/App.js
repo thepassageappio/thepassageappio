@@ -1,14 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabaseBrowser";
 import { getTaskPlaybook } from "../lib/taskPlaybooks";
 import { SiteFooter, SiteHeader } from "./SiteChrome";
 import { taskWorkspaceFor } from "../lib/taskWorkspace";
 import { orchestrateTasks } from "../lib/taskOrchestration";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thepassageapp.io").replace(/\/$/, "");
 

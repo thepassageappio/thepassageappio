@@ -4,17 +4,12 @@
 // Replaces generic dashboard for post-urgent users
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase as sb } from '../lib/supabaseBrowser';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import VendorSupport from '../components/VendorSupport';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
 import { taskWorkspaceFor } from '../lib/taskWorkspace';
-
-var sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 
 // ── TOKENS ────────────────────────────────────────────────────────────────────
 var BG = '#f6f3ee';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabaseBrowser';
 import { vendorAvailabilityLabel, vendorCategoryLabel } from '../lib/vendors';
 
 const C = {
@@ -16,8 +16,6 @@ const C = {
   amber: '#b07d2e',
   subtle: '#f0ece5',
 };
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 export default function VendorSupport({ workflowId, taskId, taskTitle, authToken, onRequested }) {
   const [loading, setLoading] = useState(false);
