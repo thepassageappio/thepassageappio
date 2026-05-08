@@ -161,7 +161,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 10 }}>
         <div>
           <div style={{ fontSize: primary ? 22 : 17, color: C.ink, fontWeight: 800, lineHeight: 1.3 }}>{itemTitle(item)}</div>
-          {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Your assigned slice</div>}
+          {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Your next responsibility</div>}
         </div>
         <span style={{ fontSize: 11, fontWeight: 900, color: statusTone, background: statusBg, borderRadius: 999, padding: '5px 9px', flexShrink: 0 }}>{statusLabel(itemStatus(item))}</span>
       </div>
@@ -531,8 +531,8 @@ export default function ParticipatingPage() {
                       )}
 
                   {estate.events.length > 0 && (
-                    <div style={{ marginTop: 14, background: C.sageFaint, borderRadius: 13, padding: 14 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: C.sage, marginBottom: 8 }}>Service information</div>
+                    <details style={{ marginTop: 14, background: C.sageFaint, borderRadius: 13, padding: 14 }}>
+                      <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: C.sage }}>Service information</summary>
                       {estate.events.slice(0, 3).map(ev => (
                         <div key={ev.id} style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, borderTop: `1px solid ${C.border}`, padding: '7px 0' }}>
                           <strong style={{ color: C.ink }}>{ev.name || ev.event_type}</strong>{ev.date ? ` - ${ev.date}` : ''}{ev.time ? ` at ${ev.time}` : ''}<br />
@@ -540,7 +540,7 @@ export default function ParticipatingPage() {
                         </div>
                       ))}
                       {estate.events.length > 3 && <div style={{ fontSize: 12, color: C.soft, marginTop: 6 }}>{estate.events.length - 3} more service detail{estate.events.length - 3 === 1 ? '' : 's'} saved.</div>}
-                    </div>
+                    </details>
                   )}
 
                       {otherOpen.length > 0 && (

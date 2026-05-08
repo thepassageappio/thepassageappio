@@ -216,8 +216,8 @@ export default function VendorRequestPage() {
               </div>
             </div>
 
-            <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 14, marginBottom: 14 }}>
-              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Status and proof trail</div>
+            <details style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 14, marginBottom: 14 }}>
+              <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 13, fontWeight: 900 }}>Status and proof trail</summary>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <Pill label="Sent" time={request.requested_at} />
                 {request.viewed_at && <Pill label="Viewed" time={request.viewed_at} />}
@@ -230,10 +230,10 @@ export default function VendorRequestPage() {
                 {request.in_progress_at && <Pill label="In progress" time={request.in_progress_at} />}
                 {request.completed_at && <Pill label="Completed" time={request.completed_at} />}
               </div>
-            </div>
+            </details>
 
-            <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14, marginBottom: 14 }}>
-              <div style={{ color: C.soft, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Booking value</div>
+            <details style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14, marginBottom: 14 }}>
+              <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 13, fontWeight: 900 }}>Estimate or final value</summary>
               <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5, marginTop: 0 }}>Record an estimate only when useful. The family should feel supported, not sold to.</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                 <label style={labelStyle}>Estimated value<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
@@ -246,7 +246,7 @@ export default function VendorRequestPage() {
                   {request.passage_share_amount && <span>Passage share: <strong>{money(request.passage_share_amount)}</strong></span>}
                 </div>
               )}
-            </div>
+            </details>
 
             {notice && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 12, padding: 10, marginBottom: 10, fontWeight: 800 }}>{notice}</div>}
             {demoMode && request.local_demo_action_at && (
@@ -314,6 +314,7 @@ function noticeForAction(action, demo) {
 
 function VendorDashboard({ vendor, requests }) {
   const openRequests = requests.filter((item) => !['completed', 'declined'].includes(item.status));
+  const primaryRequest = openRequests[0] || requests[0];
   return (
     <div style={cardStyle}>
       <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Approved vendor portal</div>
@@ -326,7 +327,15 @@ function VendorDashboard({ vendor, requests }) {
         <Info label="Service area" value={(vendor.zip_codes_served || []).join(', ') || 'Not set'} />
       </div>
 
-      <details open style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13 }}>
+      {primaryRequest && (
+        <a href={`/vendors/request?token=${primaryRequest.response_token}`} style={{ display: 'block', background: C.sageFaint, border: '1px solid #c8deca', borderLeft: `5px solid ${C.sage}`, borderRadius: 14, padding: 13, color: C.ink, textDecoration: 'none', marginBottom: 12 }}>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Next request</div>
+          <div style={{ fontSize: 18, fontWeight: 900, lineHeight: 1.2, marginTop: 5 }}>{primaryRequest.task_title || 'Local help request'}</div>
+          <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 5 }}>{primaryRequest.workflows?.deceased_name || primaryRequest.workflows?.estate_name || primaryRequest.workflows?.name || 'Family case'} - {primaryRequest.urgency === 'rush' ? 'Needed within 24 hours' : 'Planning ahead'}</div>
+        </a>
+      )}
+
+      <details style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13 }}>
         <summary style={{ cursor: 'pointer', fontWeight: 900, fontSize: 18 }}>Incoming requests ({requests.length})</summary>
         <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
           {!requests.length && <div style={{ color: C.mid }}>No requests yet. When one arrives, you can view it, quote it, accept it, or mark it completed from here.</div>}
