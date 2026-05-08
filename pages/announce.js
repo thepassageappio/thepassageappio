@@ -382,7 +382,7 @@ export default function AnnouncePage() {
           {selectedAudience ? selectedAudience.label : audience}
         </div>
         <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '11px 14px', fontSize: 13, color: SAGE, fontWeight: 700, lineHeight: 1.55, marginTop: 8 }}>
-          This is for: {audienceLabel || 'the audience you choose'}. No individual recipients are selected on this screen. Passage saves the draft to the estate so you can copy it, send it yourself, or attach recipients later.
+          Draft saved for {audienceLabel || 'the selected audience'}.
         </div>
       </div>
 
@@ -411,13 +411,13 @@ export default function AnnouncePage() {
       </div>
 
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>How would you like to use this?</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Delivery</div>
         {CHANNELS.map(function(c) {
           return <Option key={c.id} label={c.label} sub={c.sub} selected={channel === c.id} disabled={c.disabled} onClick={function() { setChannel(c.id); }} />;
         })}
         {channel && channel !== 'copy' && (
           <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER + '35', borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: AMBER, fontWeight: 700, lineHeight: 1.5, marginTop: 8 }}>
-            Selected: {channelLabel}. This saves a {channel === 'sms' ? 'text' : 'email'} draft for {audienceLabel}. It does not send to a hidden list.
+            Selected: {channelLabel}. No hidden recipient list.
           </div>
         )}
       </div>

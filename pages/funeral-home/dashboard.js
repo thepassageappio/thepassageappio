@@ -930,7 +930,7 @@ export default function FuneralHomeDashboard() {
               )}
               {assignedWorkQueue.length === 0 ? (
                 <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 13 }}>
-                  No assigned work is waiting in this view. Directors can delegate from Case work; employees will land here with only their task queue and the surrounding case context they need.
+                  No assigned work is waiting.
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
@@ -1073,7 +1073,7 @@ export default function FuneralHomeDashboard() {
         {user && !loading && data && data.organizations.length === 0 && !showNewCase && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>Create your partner workspace.</div>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Start a pilot workspace from the first family case. Passage will connect this staff login to the funeral home automatically.</p>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Create the first partner case to open the staff workspace.</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
             </div>
@@ -1415,7 +1415,7 @@ export default function FuneralHomeDashboard() {
                           </div>
                         );
                       })}
-                      <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>No message is sent from this screen. Use this prepared link when the director is ready for the family to accept their command center.</div>
+                      <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>Family access link ready.</div>
                     </div>
                   )}
                   {isExpanded && item.coordinationSpine?.latest?.length > 0 && (
@@ -1628,7 +1628,7 @@ function PartnerAttentionInbox({ items, onOpenCase }) {
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>3. Attention inbox</div>
           <div style={{ fontSize: 21, marginTop: 3 }}>Open these when someone is waiting or a status changed.</div>
         </div>
-        <div style={{ color: C.mid, fontSize: 12.5 }}>This is not chat. It is the director's queue for family replies, staff updates, vendor responses, and proof events.</div>
+        <div style={{ color: C.mid, fontSize: 12.5 }}>Family replies, staff updates, vendor responses, and proof events.</div>
       </div>
       {items.length === 0 ? (
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.sage, fontSize: 13 }}>

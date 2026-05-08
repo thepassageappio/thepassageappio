@@ -1298,7 +1298,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
 
       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
         <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Action lanes</div>
-        <div style={{ fontSize: 12.2, color: MID, lineHeight: 1.45, marginBottom: 8 }}>Every task is separated into what Passage can send, what Passage can prepare, what requires a call, and what must be completed through an outside party.</div>
+        <div style={{ fontSize: 12.2, color: MID, lineHeight: 1.45, marginBottom: 8 }}>Send, prepare, call, or record the next outside step.</div>
         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
           {['Automate', 'Call', 'Packet', 'Guide', 'Record'].map(function(lane) {
             return <span key={lane} style={{ background: lane === 'Automate' ? SAGE_FAINT : lane === 'Packet' ? AMBER_FAINT : SUBTLE, color: lane === 'Packet' ? AMBER : SAGE, border: '1px solid ' + (lane === 'Packet' ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 999, padding: '5px 9px', fontSize: 11.5, fontWeight: 900 }}>{lane}: {laneCounts[lane] || 0}</span>;
@@ -1571,7 +1571,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
             <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 18, padding: 18 }}>
               <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
               <div style={{ color: INK, fontSize: 29, lineHeight: 1.08, fontWeight: 900 }}>{title}</div>
-              <div style={{ color: MID, fontSize: 14.5, lineHeight: 1.55, marginTop: 10 }}>{item ? displayTaskNext(item) : 'Passage will surface the next owner, message, proof, and status when work appears.'}</div>
+              <div style={{ color: MID, fontSize: 14.5, lineHeight: 1.55, marginTop: 10 }}>{item ? displayTaskNext(item) : 'No estate work needs attention right now.'}</div>
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
                 <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
               </div>
@@ -1984,7 +1984,7 @@ function ProofPanel({ actions, tasks, events }) {
       )}
       {rows.length === 0 ? (
         <div style={{ background: SUBTLE, borderRadius: 12, padding: '12px 13px', fontSize: 13, color: MID, lineHeight: 1.55 }}>
-          Nothing has been sent or handled yet. Start with one task, then Passage will keep the proof here.
+          No task proof has been recorded yet.
         </div>
       ) : rows.map(function(row, i) {
         var color = row.tone === 'good' ? SAGE : row.tone === 'warn' ? ROSE : MID;
@@ -2626,7 +2626,7 @@ export default function EstatePage() {
         '',
         title,
         '',
-        'Add what is known now. If something is unknown, leave it waiting and Passage will keep it visible.',
+        'Add what is known now. Leave unknown items waiting.',
         '',
         'Proof to save: ' + textValue(playbook.proofRequired, 'saved detail or document location') + '.'
       ].join('\n');
@@ -2836,7 +2836,7 @@ export default function EstatePage() {
     if (!task) return;
     var mode = taskWorkspaceMode(task);
     if (action === 'assign') {
-      startTaskUpdate({ task: task, status: 'choose', mode: 'assignment', title: 'Assign owner', detail: 'Owner assigned for ' + displayTaskTitle(task), prompt: 'Choose who owns this task. Add email when Passage should send or remind them.' });
+      startTaskUpdate({ task: task, status: 'choose', mode: 'assignment', title: 'Assign owner', detail: 'Owner assigned for ' + displayTaskTitle(task), prompt: 'Choose who owns this task.' });
       return;
     }
     if (mode && (action === 'open' || action === 'handled')) {
@@ -2854,7 +2854,7 @@ export default function EstatePage() {
       return;
     }
     if (action === 'open') {
-      startTaskUpdate({ task: task, status: 'choose', title: 'Update task', detail: 'Task update for ' + displayTaskTitle(task), prompt: 'Choose what happened. Passage will save it here and keep the estate current.' });
+      startTaskUpdate({ task: task, status: 'choose', title: 'Update task', detail: 'Task update for ' + displayTaskTitle(task), prompt: 'Choose what happened.' });
       return;
     }
     if (action === 'handled') {
@@ -3116,14 +3116,14 @@ export default function EstatePage() {
                           : pendingTaskAction.mode === 'obituary'
                           ? 'Draft here first. Copy it for the funeral home, newspaper, social post, or a future Passage memorial page. Saving below records the draft and where it went.'
                           : pendingTaskAction.mode === 'message'
-                            ? (messageRecipientEmail ? 'Send this through Passage to ' + messageRecipientName + '. Passage will copy you, log the audit trail, and keep the task waiting until someone confirms.' : 'Assign this task to someone with an email first. Then Passage can send this message, copy you, and log the audit trail here.')
+                            ? (messageRecipientEmail ? 'Ready to send to ' + messageRecipientName + '.' : 'Assign a recipient first.')
                             : pendingTaskAction.mode === 'packet'
-                              ? 'Use this as the request packet. Copy it into email, a form, or the provider portal, then record the reference or response.'
+                              ? 'Request packet'
                               : pendingTaskAction.mode === 'call'
-                                ? 'Use this as the call script. After the call, save who you spoke with, what they said, and any reference number.'
+                                ? 'Call script'
                                 : pendingTaskAction.mode === 'official'
-                                  ? 'Use this to complete the outside official step, then save the confirmation or blocker here.'
-                                  : 'Save the estate detail here so Passage can reuse it in messages, summaries, and follow-up.'}
+                                  ? 'Official step'
+                                  : 'Estate detail'}
                       </div>
                       <textarea
                         value={pendingTaskDraftText}
@@ -3306,7 +3306,7 @@ export default function EstatePage() {
             {!isPlanningEstate && firstOpenTask && (
               <>
                 <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginTop: 7 }}>
-                  Record what happened, mark it waiting, or flag that you need help. Passage will keep tracking this here.
+                  Record what happened, mark waiting, or flag help.
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                   <button onClick={function() { taskActionFromCommand(firstOpenTask, 'handled'); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Confirm / record proof</button>
