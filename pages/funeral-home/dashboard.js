@@ -64,6 +64,7 @@ export default function FuneralHomeDashboard() {
   const [taskDraftNote, setTaskDraftNote] = useState('');
   const [assignmentDraft, setAssignmentDraft] = useState({ taskId: '', name: '', email: '', role: '', phone: '' });
   const [activePartnerView, setActivePartnerView] = useState('work');
+  const [showAllCases, setShowAllCases] = useState(false);
   const [latestFamilyLink, setLatestFamilyLink] = useState(null);
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
   const [staffDraft, setStaffDraft] = useState({ email: '', role: 'staff' });
@@ -569,6 +570,9 @@ export default function FuneralHomeDashboard() {
     .sort((a, b) => partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))
     .slice(0, 6);
   const firstStaffTask = assignedWorkQueue[0] || null;
+  const focusedDisplayCases = showAllCases
+    ? displayCases
+    : (expandedCaseId ? displayCases.filter(item => item.id === expandedCaseId) : displayCases.slice(0, 1));
   const roleCards = [
     ['Director / admin', 'All cases, locations, staff queues, reports, billing prompts.', isDirectorRole ? 'Your current view' : 'Managed by leadership'],
     ['Location manager', 'Location-scoped cases, staff queues, waiting items, exports.', /location|manager/i.test(currentRole) ? 'Your current view' : 'Next permission layer'],
@@ -836,29 +840,14 @@ export default function FuneralHomeDashboard() {
           </HelpOverlay>
         )}
 
-        {user && !loading && data && riskItems.length > 0 && (
-          <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}44`, borderRadius: 18, padding: 16, marginBottom: 18 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ color: C.amber, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Escalating / at risk</div>
-                <div style={{ color: C.ink, fontSize: 22, lineHeight: 1.2, marginTop: 4 }}>Watch these before they become calls.</div>
-              </div>
-              <div style={{ color: C.amber, fontSize: 12.5, fontWeight: 900 }}>{riskItems.length} item{riskItems.length === 1 ? '' : 's'} need director confidence</div>
-            </div>
-            <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
-              {riskItems.map(({ task, caseItem, label }) => (
-                <button key={`${caseItem.id}_${task.id}_${label}`} onClick={() => openPartnerWork(caseItem.id)} style={{ width: '100%', textAlign: 'left', background: C.card, border: `1px solid ${C.amber}33`, borderLeft: `5px solid ${C.amber}`, borderRadius: 12, padding: 12, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
-                  <div style={{ color: C.amber, fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>{label}</div>
-                  <div style={{ color: C.ink, fontSize: 15, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(task)}</div>
-                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>{caseItem.deceased_name || caseItem.estate_name || caseItem.name || 'Family case'} - {taskExpectedUpdate(task, 'funeral_home')}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {user && !loading && data && activePartnerView === 'work' && (
-          <PartnerAttentionInbox items={spineInbox} onOpenCase={openPartnerWork} />
+          <PartnerDirectorFocus
+            riskItems={riskItems}
+            inboxItems={spineInbox}
+            caseItems={caseInbox}
+            isMultiLocation={isMultiLocation}
+            onOpenCase={openPartnerWork}
+          />
         )}
 
         {user && !loading && data && (
@@ -873,32 +862,6 @@ export default function FuneralHomeDashboard() {
                 <div style={{ fontSize: 11.5, opacity: .78, marginTop: 2 }}>{body}</div>
               </button>
             ))}
-          </div>
-        )}
-
-        {user && !loading && data && activePartnerView === 'work' && caseInbox.length > 0 && (
-          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Case inbox</div>
-                <div style={{ fontSize: 22, marginTop: 3 }}>Move the next item first.</div>
-              </div>
-              <div style={{ color: C.mid, fontSize: 12.5 }}>Each card is one place your team can reduce a follow-up call.</div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 12 }}>
-              {caseInbox.map(({ caseItem, task }) => (
-                <div key={`${caseItem.id}_${task.id}`} style={{ border: `1px solid ${C.border}`, borderRadius: 14, padding: 13, background: C.sageFaint }}>
-                  <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{isMultiLocation ? locationNameFor(caseItem) : 'Next case'}</div>
-                  <div style={{ color: C.ink, fontSize: 16, fontWeight: 900, lineHeight: 1.25, marginTop: 4 }}>{caseItem.deceased_name || caseItem.estate_name || caseItem.name || 'Family case'}</div>
-                  <div style={{ color: C.sage, fontSize: 13, fontWeight: 900, lineHeight: 1.3, marginTop: 8 }}>{sharedTaskTitle(task)}</div>
-                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>{sharedTaskNext(task, 'funeral_home')}</div>
-                  <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 10 }}>
-                    <button onClick={() => openPartnerWork(caseItem.id)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Open work</button>
-                    <Link href={`/funeral-home/summary?id=${caseItem.id}`} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 900, textDecoration: 'none' }}>Family summary</Link>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         )}
 
@@ -1157,8 +1120,9 @@ export default function FuneralHomeDashboard() {
         {user && activePartnerView === 'work' && cases.length > 0 && (
           <>
           {isMultiLocation && (
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Location view</div>
+            <details style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 12 }}>
+              <summary style={{ cursor: 'pointer', color: C.ink, fontWeight: 900 }}>Location filter and workload</summary>
+              <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, margin: '12px 0 8px' }}>Location view</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {['all', ...locations].map(location => (
                   <button key={location} onClick={() => setSelectedLocation(location)} style={{ border: `1px solid ${selectedLocation === location ? C.sage : C.border}`, background: selectedLocation === location ? C.sage : C.card, color: selectedLocation === location ? '#fff' : C.mid, borderRadius: 999, padding: '8px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
@@ -1197,10 +1161,21 @@ export default function FuneralHomeDashboard() {
                   </table>
                 </div>
               )}
-            </div>
+            </details>
           )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+            <div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Selected case work</div>
+              <div style={{ color: C.mid, fontSize: 12.5, marginTop: 3 }}>{showAllCases ? `${displayCases.length} cases visible` : 'Showing one case. Expand all only when you need the list.'}</div>
+            </div>
+            {displayCases.length > 1 && (
+              <button onClick={() => setShowAllCases(prev => !prev)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.sage, borderRadius: 11, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
+                {showAllCases ? 'Show one case' : `Show all ${displayCases.length} cases`}
+              </button>
+            )}
+          </div>
           <div style={{ display: 'grid', gap: 12 }}>
-            {displayCases.map(item => {
+            {focusedDisplayCases.map(item => {
               const handledCount = item.tasks.filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length;
               const waitingCount = item.tasks.filter(t => ['sent', 'waiting', 'pending', 'assigned'].includes(t.status || '')).length;
               const progressCount = item.tasks.filter(t => ['draft', 'acknowledged'].includes(t.status || '')).length;
@@ -1667,6 +1642,102 @@ function HelpOverlay({ children, onClose }) {
       </div>
     </div>
   );
+}
+
+function PartnerDirectorFocus({ riskItems, inboxItems, caseItems, isMultiLocation, onOpenCase }) {
+  const firstRisk = riskItems[0] || null;
+  const firstInbox = inboxItems[0] || null;
+  const firstCase = caseItems[0] || null;
+  const empty = !firstRisk && !firstInbox && !firstCase;
+  return (
+    <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 18 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
+        <div>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director focus</div>
+          <div style={{ fontSize: 22, marginTop: 3 }}>One operating layer for risk, replies, and next case work.</div>
+        </div>
+        <div style={{ color: C.mid, fontSize: 12.5 }}>{riskItems.length} at risk / {inboxItems.length} updates / {caseItems.length} next cases</div>
+      </div>
+      {empty ? (
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.sage, fontSize: 13, fontWeight: 800 }}>
+          No director attention items right now.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
+          <FocusWidget
+            label="At risk"
+            count={riskItems.length}
+            tone={C.amber}
+            bg={C.amberFaint}
+            title={firstRisk ? sharedTaskTitle(firstRisk.task) : 'No risk items'}
+            body={firstRisk ? `${firstRisk.caseItem.deceased_name || firstRisk.caseItem.estate_name || firstRisk.caseItem.name || 'Family case'} - ${taskExpectedUpdate(firstRisk.task, 'funeral_home')}` : 'Nothing is escalating.'}
+            cta={firstRisk ? 'Open case' : ''}
+            onClick={firstRisk ? () => onOpenCase(firstRisk.caseItem.id) : null}
+          />
+          <FocusWidget
+            label="Attention"
+            count={inboxItems.length}
+            tone={firstInbox?.attentionLevel === 'urgent' ? C.rose : firstInbox?.attentionLevel === 'waiting' ? C.amber : C.sage}
+            bg={firstInbox?.attentionLevel === 'urgent' ? C.roseFaint : firstInbox?.attentionLevel === 'waiting' ? C.amberFaint : C.sageFaint}
+            title={firstInbox ? (firstInbox.title || 'Update recorded') : 'No new replies'}
+            body={firstInbox ? (firstInbox.expectedUpdate || firstInbox.detail || firstInbox.statusLabel || 'Open the case to respond.') : 'Family, staff, vendor, and proof updates are quiet.'}
+            cta={firstInbox ? 'Open case' : ''}
+            onClick={firstInbox ? () => onOpenCase(firstInbox.caseId) : null}
+          />
+          <FocusWidget
+            label={isMultiLocation && firstCase ? locationNameFor(firstCase.caseItem) : 'Next case'}
+            count={caseItems.length}
+            tone={C.sage}
+            bg={C.sageFaint}
+            title={firstCase ? (firstCase.caseItem.deceased_name || firstCase.caseItem.estate_name || firstCase.caseItem.name || 'Family case') : 'No open case work'}
+            body={firstCase ? `${sharedTaskTitle(firstCase.task)} - ${sharedTaskNext(firstCase.task, 'funeral_home')}` : 'Nothing needs partner action right now.'}
+            cta={firstCase ? 'Open work' : ''}
+            onClick={firstCase ? () => onOpenCase(firstCase.caseItem.id) : null}
+          />
+        </div>
+      )}
+      {(riskItems.length > 1 || inboxItems.length > 1 || caseItems.length > 1) && (
+        <details style={{ marginTop: 10, borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
+          <summary style={{ cursor: 'pointer', color: C.mid, fontWeight: 900 }}>Show supporting queue</summary>
+          <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+            {riskItems.slice(1, 4).map(({ task, caseItem, label }) => (
+              <button key={`${caseItem.id}_${task.id}_${label}`} onClick={() => onOpenCase(caseItem.id)} style={queueButtonStyle(C.amber)}>
+                <strong>{label}</strong> - {caseItem.deceased_name || caseItem.estate_name || caseItem.name || 'Family case'}: {sharedTaskTitle(task)}
+              </button>
+            ))}
+            {inboxItems.slice(1, 4).map(item => (
+              <button key={`${item.caseId}_${item.id}`} onClick={() => onOpenCase(item.caseId)} style={queueButtonStyle(item.attentionLevel === 'urgent' ? C.rose : C.sage)}>
+                <strong>{item.attentionLabel || 'Attention'}</strong> - {item.caseName}: {item.title || item.detail || 'Update recorded'}
+              </button>
+            ))}
+            {caseItems.slice(1, 4).map(({ caseItem, task }) => (
+              <button key={`${caseItem.id}_${task.id}`} onClick={() => onOpenCase(caseItem.id)} style={queueButtonStyle(C.sage)}>
+                <strong>{caseItem.deceased_name || caseItem.estate_name || caseItem.name || 'Family case'}</strong> - {sharedTaskTitle(task)}
+              </button>
+            ))}
+          </div>
+        </details>
+      )}
+    </section>
+  );
+}
+
+function FocusWidget({ label, count, tone, bg, title, body, cta, onClick }) {
+  return (
+    <button disabled={!onClick} onClick={onClick || undefined} style={{ textAlign: 'left', border: `1px solid ${tone}33`, borderLeft: `5px solid ${tone}`, background: bg, borderRadius: 14, padding: 13, fontFamily: 'Georgia,serif', cursor: onClick ? 'pointer' : 'default', minHeight: 150 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+        <div style={{ color: tone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+        <span style={{ color: tone, background: C.card, borderRadius: 999, padding: '3px 7px', fontSize: 11, fontWeight: 900 }}>{count}</span>
+      </div>
+      <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.18, fontWeight: 900, marginTop: 8 }}>{title}</div>
+      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>{body}</div>
+      {cta && <div style={{ color: tone, fontSize: 12, fontWeight: 900, marginTop: 10 }}>{cta}</div>}
+    </button>
+  );
+}
+
+function queueButtonStyle(tone) {
+  return { textAlign: 'left', background: C.bg, border: `1px solid ${C.border}`, borderLeft: `4px solid ${tone}`, borderRadius: 10, padding: '9px 10px', color: C.mid, fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.5 };
 }
 
 function PartnerAttentionInbox({ items, onOpenCase }) {
