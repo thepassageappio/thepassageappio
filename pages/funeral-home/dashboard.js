@@ -66,6 +66,7 @@ export default function FuneralHomeDashboard() {
   const [activePartnerView, setActivePartnerView] = useState('work');
   const [latestFamilyLink, setLatestFamilyLink] = useState(null);
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
+  const [staffDraft, setStaffDraft] = useState({ email: '', role: 'staff' });
   const casePanelRef = useRef(null);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
@@ -298,6 +299,36 @@ export default function FuneralHomeDashboard() {
         } : prev);
         setNotice(json.confirmation || 'Owner saved. Passage can route the task notification when approved.');
         setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' });
+        await load(token);
+      }
+    } finally {
+      setUpdating('');
+    }
+  }
+
+  async function addPartnerStaff(event) {
+    event?.preventDefault?.();
+    if (!token) return;
+    const email = String(staffDraft.email || '').trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      setError('Add a staff email before saving.');
+      return;
+    }
+    setUpdating('partner_staff');
+    setError('');
+    setNotice('');
+    try {
+      const res = await fetch('/api/partnerStaff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ email, role: staffDraft.role || 'staff' }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not save this staff profile.');
+      } else {
+        setNotice(json.confirmation || 'Staff profile saved.');
+        setStaffDraft({ email: '', role: 'staff' });
         await load(token);
       }
     } finally {
@@ -901,6 +932,27 @@ export default function FuneralHomeDashboard() {
                 </div>
               ))}
             </div>
+            {isDirectorRole && (
+              <form onSubmit={addPartnerStaff} style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8 }}>
+                  <div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Add employee</div>
+                    <div style={{ color: C.mid, fontSize: 12.5, marginTop: 3 }}>Saved employees appear in task assignment dropdowns.</div>
+                  </div>
+                  <div style={{ color: C.mid, fontSize: 11.8 }}>No message is sent.</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, alignItems: 'center' }}>
+                  <input value={staffDraft.email} onChange={event => setStaffDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="employee@funeralhome.com" style={inputStyle} />
+                  <select value={staffDraft.role} onChange={event => setStaffDraft(prev => ({ ...prev, role: event.target.value }))} style={inputStyle}>
+                    <option value="staff">Staff</option>
+                    <option value="location_manager">Location manager</option>
+                    <option value="director">Director</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <button disabled={updating === 'partner_staff'} style={{ border: 'none', background: updating === 'partner_staff' ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_staff' ? 'wait' : 'pointer' }}>{updating === 'partner_staff' ? 'Saving...' : 'Save staff'}</button>
+                </div>
+              </form>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 12 }}>
               {roleCards.map(([title, body, status]) => (
                 <div key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
