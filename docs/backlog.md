@@ -27,6 +27,7 @@
 ## Next
 
 - Build shared `TaskActionModal` so family, participant, funeral-home staff, and vendor-adjacent task surfaces use the same assign/send/proof/waiting/help/handled interaction.
+- Build shared notification preference resolution for the task spine: in-app/email/text availability, consent, fallback, skipped-channel logging, role visibility, and a simple preference setup for family coordinators, participants, funeral-home staff/admins, and vendors.
 - Add participant and funeral-home employee onboarding reliability: assignment notifications land on a role-appropriate work page with one clear action.
 - Rebuild `My estate` as an estate index plus per-estate command center tabs: Today, Tasks, People, Events, Documents and outputs, Obituary and wishes, Messages, Audit.
 - Productize Tier 1 outputs: obituary draft, funeral-home packet, family notification set, clergy outreach, bank/government packets, executor summary, and home/assets checklist.
