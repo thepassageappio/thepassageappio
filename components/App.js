@@ -4402,7 +4402,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           .home-proof-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
-      <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} />
+      <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} onDashboard={onDashboard} />
 
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 24px 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 24, alignItems: 'center', opacity: 1, transform: 'none', transition: 'all .7s ease' }}>
         <div>

@@ -139,7 +139,7 @@ function isActivePath(current, href) {
   return current === href || current.startsWith(href + '/');
 }
 
-export function SiteHeader({ user, onSignIn, onSignOut }) {
+export function SiteHeader({ user, onSignIn, onSignOut, onDashboard }) {
   const router = useRouter();
   const path = router?.pathname || '';
   const dashboardHref = '/?dashboard=1';
@@ -168,6 +168,13 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
 
   const signInHandler = onSignIn || defaultSignIn;
   const signOutHandler = onSignOut || defaultSignOut;
+  function handleDashboardClick(event) {
+    if (path !== '/' || typeof onDashboard !== 'function') return;
+    event.preventDefault();
+    if (typeof window !== 'undefined') window.history.pushState(null, '', dashboardHref);
+    onDashboard();
+  }
+
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
   const demoTourActive = router?.query?.demoTour === 'funeral-home' && showSystemAdminLinks;
   const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(path, router?.query?.demoStep)) : null;
@@ -208,7 +215,7 @@ export function SiteHeader({ user, onSignIn, onSignOut }) {
         {showSystemAdminLinks && (
           <Link href="/system/admin" style={(isActivePath(path, '/system') || isActivePath(path, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
-        <Link href={dashboardHref} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>
+        <Link href={dashboardHref} onClick={handleDashboardClick} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>
         <span style={{ width: 104, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
             <button onClick={signOutHandler} style={{ width: 100, minHeight: 44, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 12, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
