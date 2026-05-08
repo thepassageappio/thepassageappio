@@ -1453,6 +1453,177 @@ function miniBtn(bg, color, border) {
   return { border: '1px solid ' + border, background: bg, color: color, borderRadius: 12, padding: '10px 12px', minHeight: 42, fontSize: 12.5, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer' };
 }
 
+function taskSpineOwner(item) {
+  return textValue(item?.assigned_to_name || item?.assigned_to_email || item?.owner_label || item?.recipient_name || item?.recipient, 'Unassigned');
+}
+
+function taskSpineRecipient(item) {
+  var email = textValue(item?.assigned_to_email || item?.recipient_email, '');
+  var phone = textValue(item?.assigned_to_phone || item?.recipient_phone, '');
+  var recipient = textValue(item?.recipient, '');
+  if (email) return email;
+  if (phone) return phone;
+  if (recipient) return recipient;
+  return 'Add recipient when Passage should send';
+}
+
+function taskSpineStatus(item) {
+  return statusText(item?.status || item?.delivery_status || item?.outcome_status || 'not_started');
+}
+
+function SpineFact({ label, value, tone }) {
+  var color = tone === 'warn' ? AMBER : tone === 'good' ? SAGE : MID;
+  return (
+    <div style={{ borderTop: '1px solid ' + BORDER, padding: '9px 0 7px' }}>
+      <div style={{ fontSize: 10.5, color: SOFT, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+      <div style={{ color: color, fontSize: 13, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{value}</div>
+    </div>
+  );
+}
+
+function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, communicationCenter, initialTaskId, estateId, estateName, coordinatorName, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+  var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
+  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
+  var queue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
+  var allQueue = (tasks || []).map(function(task) { return { kind: 'task', item: task }; }).concat((outcomes || []).map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
+  var initialIndex = initialTaskId ? queue.findIndex(function(entry) { return String(entry.item?.id || '') === String(initialTaskId); }) : 0;
+  var selectedState = useState(Math.max(initialIndex, 0));
+  var selectedIndex = selectedState[0];
+  var setSelectedIndex = selectedState[1];
+  useEffect(function() {
+    if (!initialTaskId) return;
+    var idx = queue.findIndex(function(entry) { return String(entry.item?.id || '') === String(initialTaskId); });
+    if (idx >= 0) setSelectedIndex(idx);
+  }, [initialTaskId, queue.length]);
+  useEffect(function() {
+    if (queue.length === 0 && selectedIndex !== 0) setSelectedIndex(0);
+    if (queue.length > 0 && selectedIndex > queue.length - 1) setSelectedIndex(queue.length - 1);
+  }, [queue.length, selectedIndex]);
+
+  var current = queue[selectedIndex] || allQueue[0] || null;
+  var item = current?.item || null;
+  var playbook = item ? getTaskPlaybook(item.title || item.name || '') : {};
+  var workspace = item ? taskWorkspaceFor(Object.assign({}, item, { playbook: playbook }), { estateName: estateName || 'this estate', coordinatorName: coordinatorName || 'the coordinator', surface: 'the task proof trail' }) : null;
+  var title = item ? displayTaskTitle(item) : 'Nothing needs action right now';
+  var owner = item ? taskSpineOwner(item) : 'No owner needed';
+  var recipient = item ? taskSpineRecipient(item) : 'No recipient needed';
+  var proof = textValue(playbook.proofRequired || item?.proof_required, item ? 'confirmation or saved note' : 'No proof needed');
+  var status = item ? taskSpineStatus(item) : 'Clear';
+  var lastActor = item ? textValue(item.last_actor || item.completed_by || item.updated_by, 'No one yet') : 'Passage';
+  var lastTime = item && item.last_action_at ? timeAgo(item.last_action_at) : '';
+  var missingOwner = item && (owner === 'Unassigned' || owner === 'Needs owner');
+  var recent = (communicationCenter && communicationCenter.length ? communicationCenter : [].concat(events || [], actions || [])).slice(0, 6);
+  var handledCount = (tasks || []).filter(function(t) { return isHandledStatus(t.status); }).length + (outcomes || []).filter(function(o) { return isHandledStatus(o.status); }).length;
+  var waitingCount = (tasks || []).filter(function(t) { return ['waiting', 'pending', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
+  var blockedCount = (tasks || []).filter(function(t) { return ['blocked', 'failed', 'needs_review'].includes(t.status || ''); }).length + openOutcomes.filter(function(o) { return !o.owner_label; }).length;
+
+  function select(index) {
+    setSelectedIndex(Math.max(0, Math.min(index, Math.max(queue.length - 1, 0))));
+  }
+
+  return (
+    <section style={{ borderTop: '1px solid ' + BORDER, borderBottom: '1px solid ' + BORDER, padding: '20px 0 22px', marginBottom: 24 }}>
+      <style>{`
+        @media (max-width: 760px) {
+          .passage-task-spine-grid { grid-template-columns: 1fr !important; }
+          .passage-task-spine-queue { border-right: none !important; border-bottom: 1px solid ${BORDER} !important; padding-right: 0 !important; padding-bottom: 12px !important; }
+          .passage-task-spine-facts { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 10.5, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Estate operating spine</div>
+          <div style={{ fontSize: 24, color: INK, lineHeight: 1.15, fontWeight: 900 }}>Move the next useful thing.</div>
+          <div style={{ color: MID, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>Passage keeps owner, communication, output, proof, status, and reporting tied to the same task.</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <span style={{ color: SAGE, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 999, padding: '6px 9px', fontSize: 11.5, fontWeight: 900 }}>{handledCount} handled</span>
+          <span style={{ color: AMBER, background: AMBER_FAINT, border: '1px solid ' + AMBER_BORDER, borderRadius: 999, padding: '6px 9px', fontSize: 11.5, fontWeight: 900 }}>{waitingCount} waiting</span>
+          <span style={{ color: blockedCount ? ROSE : SAGE, background: blockedCount ? ROSE_FAINT : SAGE_FAINT, border: '1px solid ' + (blockedCount ? ROSE + '35' : SAGE_LIGHT), borderRadius: 999, padding: '6px 9px', fontSize: 11.5, fontWeight: 900 }}>{blockedCount} need attention</span>
+        </div>
+      </div>
+
+      <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, .72fr) minmax(0, 1.28fr)', gap: 16, alignItems: 'start' }}>
+        <aside className="passage-task-spine-queue" style={{ borderRight: '1px solid ' + BORDER, paddingRight: 14 }}>
+          <div style={{ fontSize: 11, color: SOFT, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Work queue</div>
+          {queue.length === 0 ? (
+            <div style={{ color: SAGE, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 11, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45 }}>Nothing open. The estate is quiet right now.</div>
+          ) : queue.slice(0, 8).map(function(entry, index) {
+            var selected = index === selectedIndex;
+            var entryOwner = entry.kind === 'task' ? taskSpineOwner(entry.item) : textValue(entry.item.owner_label, 'Needs owner');
+            return (
+              <button key={entry.kind + '_' + (entry.item.id || index)} onClick={function() { select(index); }} style={{ width: '100%', textAlign: 'left', border: 'none', borderLeft: '3px solid ' + (selected ? SAGE : 'transparent'), background: selected ? SAGE_FAINT : 'transparent', padding: '9px 9px 9px 10px', marginBottom: 4, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ color: selected ? INK : MID, fontSize: 12.5, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(entry.item)}</div>
+                <div style={{ color: entryOwner === 'Needs owner' || entryOwner === 'Unassigned' ? AMBER : SOFT, fontSize: 11.2, lineHeight: 1.3, marginTop: 3 }}>{entryOwner}</div>
+              </button>
+            );
+          })}
+          {queue.length > 8 && <div style={{ color: SOFT, fontSize: 11.5, marginTop: 6 }}>{queue.length - 8} more open items in the full timeline below.</div>}
+        </aside>
+
+        <div>
+          <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
+          <div style={{ color: INK, fontSize: 26, lineHeight: 1.12, fontWeight: 900 }}>{title}</div>
+          <div style={{ color: MID, fontSize: 14, lineHeight: 1.55, marginTop: 8 }}>{item ? displayTaskNext(item) : 'Passage will surface the next owner, message, proof, and status when work appears.'}</div>
+
+          <div className="passage-task-spine-facts" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', columnGap: 18, marginTop: 16 }}>
+            <SpineFact label="Owner" value={owner} tone={missingOwner ? 'warn' : 'good'} />
+            <SpineFact label="Recipient / contact" value={recipient} tone={recipient.includes('Add recipient') ? 'warn' : 'good'} />
+            <SpineFact label="Output Passage prepares" value={textValue(workspace?.output?.label, 'Task output and proof trail')} tone="good" />
+            <SpineFact label="Proof destination" value={proof} />
+            <SpineFact label="Status truth" value={status} tone={blockedCount ? 'warn' : 'good'} />
+            <SpineFact label="Last actor / time" value={lastTime ? lastActor + ' - ' + lastTime : lastActor} />
+          </div>
+
+          {workspace?.output?.body && (
+            <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '11px 12px', color: MID, fontSize: 12.7, lineHeight: 1.5, marginTop: 12 }}>
+              <strong style={{ color: SAGE }}>Prepared output:</strong> {workspace.output.body}
+            </div>
+          )}
+
+          {item && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+              {current.kind === 'outcome' ? (
+                <>
+                  <button onClick={function() { onOpenOutcome(item); }} style={miniBtn(SAGE, '#fff', SAGE)}>Open workspace</button>
+                  <button onClick={function() { onAssignOutcome(item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Assign owner</button>
+                  <button onClick={function() { onOutcomeProgress(item); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Mark waiting</button>
+                  <button onClick={function() { onOutcomeHandled(item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Save proof</button>
+                </>
+              ) : (
+                <>
+                  <button onClick={function() { onTaskAction(item, missingOwner ? 'assign' : 'handled'); }} style={miniBtn(SAGE, '#fff', SAGE)}>{missingOwner ? 'Assign owner first' : 'Save proof / handled'}</button>
+                  <button onClick={function() { onTaskAction(item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Waiting</button>
+                  <button onClick={function() { onTaskAction(item, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
+                  <button onClick={function() { onTaskAction(item, 'assign'); }} style={miniBtn(CARD, MID, BORDER)}>Owner / message</button>
+                </>
+              )}
+            </div>
+          )}
+
+          <details style={{ borderTop: '1px solid ' + BORDER, marginTop: 16, paddingTop: 11 }}>
+            <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Communication and proof trail</summary>
+            <div style={{ marginTop: 8 }}>
+              {recent.length ? recent.map(function(row) {
+                var rowTitle = textValue(row.title || row.subject, statusText(row.status || row.delivery_status) || 'Update recorded');
+                var rowDetail = textValue(row.detail || row.description || row.recipient || row.recipient_email || row.recipient_phone, 'Saved in Passage.');
+                var rowAt = dateTimeLabel(row.at || row.created_at || row.sent_at || row.last_action_at);
+                return (
+                  <div key={(row.id || rowAt || rowTitle) + '_spine'} style={{ borderTop: '1px solid ' + BORDER, padding: '8px 0' }}>
+                    <div style={{ color: INK, fontSize: 12.8, fontWeight: 900 }}>{rowTitle}</div>
+                    <div style={{ color: MID, fontSize: 12, lineHeight: 1.45 }}>{rowDetail}</div>
+                    {rowAt && <div style={{ color: SOFT, fontSize: 10.5, marginTop: 2 }}>{rowAt}</div>}
+                  </div>
+                );
+              }) : <div style={{ color: SOFT, fontSize: 12.5 }}>No proof events yet. The first action will create the trail.</div>}
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, communicationCenter, initialTaskId, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
   var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
@@ -2763,7 +2934,7 @@ export default function EstatePage() {
 
         {/* Outcomes — generated from /urgent or empty state */}
         <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">
-          <SimpleCommandCenter
+          <TaskSpineCommandCenter
             activeTab={activeCommandTab}
             setActiveTab={setActiveCommandTab}
             outcomes={outcomes}
@@ -2773,6 +2944,9 @@ export default function EstatePage() {
             people={people}
             communicationCenter={communicationCenter}
             initialTaskId={initialTaskId}
+            estateId={estateId}
+            estateName={name}
+            coordinatorName={coordinatorName}
             onOpenOutcome={openOutcomeFromCommand}
             onAssignOutcome={assignOutcomeFromCommand}
             onOutcomeHandled={recordOutcomeHandled}
