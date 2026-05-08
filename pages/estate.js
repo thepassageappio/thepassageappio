@@ -654,8 +654,34 @@ function InlineAssign({ onSave, onClose }) {
   );
 }
 
+function InlineProof({ onSave, onClose }) {
+  var n = useState(''); var note = n[0]; var setNote = n[1];
+  var clean = String(note || '').trim();
+  return (
+    <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 14, marginTop: 10 }}>
+      <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Save proof and close task</div>
+      <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>
+        Add what happened, who confirmed it, or where the proof lives.
+      </div>
+      <textarea value={note} onChange={function(evt) { setNote(evt.target.value); }}
+        placeholder="Example: Michael checked the house, brought in the mail, and confirmed nothing urgent needs follow-up."
+        style={{ width: '100%', boxSizing: 'border-box', minHeight: 84, borderRadius: 9, border: '1.5px solid ' + BORDER, padding: '10px 12px', fontFamily: 'inherit', fontSize: 13, color: INK, lineHeight: 1.45, background: CARD, marginBottom: 8 }} />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button disabled={!clean} onClick={function() { if (clean) onSave(clean); }}
+          style={{ flex: '1 1 190px', padding: '10px 16px', borderRadius: 9, border: 'none', background: clean ? SAGE : BORDER, color: '#fff', fontSize: 13, fontWeight: 800, cursor: clean ? 'pointer' : 'not-allowed', fontFamily: 'inherit', minHeight: 44 }}>
+          Mark done and save proof
+        </button>
+        <button onClick={onClose}
+          style={{ flex: '1 1 110px', padding: '10px 16px', borderRadius: 9, border: '1.5px solid ' + BORDER, background: CARD, color: SOFT, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── OUTCOME CARD ──────────────────────────────────────────────────────────────
-function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, onMarkHandled, onMarkInProgress, onNeedsHelp, onAssignOpen, onAssignClose, onAssignSave, toast }) {
+function OutcomeCard({ id, outcome, estateId, expanded, showAssign, showProof, onToggle, onMarkHandled, onMarkInProgress, onNeedsHelp, onAssignOpen, onAssignClose, onAssignSave, onProofOpen, onProofClose, onProofSave, toast }) {
   var visual = outcomeVisualState(outcome);
   var statusColor = visual.color;
   var statusBg = visual.bg;
@@ -747,9 +773,9 @@ function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, on
                     In progress
                   </button>
                 )}
-                <button onClick={onMarkHandled}
+                <button onClick={onProofOpen || onMarkHandled}
                   style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
-                  Record proof
+                  Mark done / proof
                 </button>
                 <button onClick={onNeedsHelp}
                   style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid ' + (ROSE + '35'), background: ROSE_FAINT, color: ROSE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
@@ -767,6 +793,7 @@ function OutcomeCard({ id, outcome, estateId, expanded, showAssign, onToggle, on
               </div>
             )}
             {showAssign && <InlineAssign onSave={onAssignSave} onClose={onAssignClose} />}
+            {showProof && <InlineProof onSave={onProofSave || onMarkHandled} onClose={onProofClose} />}
           </div>
         </div>
       )}
@@ -1597,11 +1624,11 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                   <button onClick={function() { onOpenOutcome(item); }} style={miniBtn(SAGE, '#fff', SAGE)}>Open workspace</button>
                   <button onClick={function() { onAssignOutcome(item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Assign owner</button>
                   <button onClick={function() { onOutcomeProgress(item); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Mark waiting</button>
-                  <button onClick={function() { onOutcomeHandled(item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Save proof</button>
+                <button onClick={function() { onOutcomeHandled(item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Mark done / proof</button>
                 </>
               ) : (
                 <>
-                  <button onClick={function() { onTaskAction(item, missingOwner ? 'assign' : 'handled'); }} style={miniBtn(SAGE, '#fff', SAGE)}>{missingOwner ? 'Assign owner first' : 'Save proof / handled'}</button>
+                  <button onClick={function() { onTaskAction(item, 'handled'); }} style={miniBtn(SAGE, '#fff', SAGE)}>Mark done / proof</button>
                   <button onClick={function() { onTaskAction(item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Waiting</button>
                   <button onClick={function() { onTaskAction(item, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
                   <button onClick={function() { onTaskAction(item, 'assign'); }} style={miniBtn(CARD, MID, BORDER)}>Owner / message</button>
@@ -2022,6 +2049,7 @@ export default function EstatePage() {
   var s4 = useState(true); var loading = s4[0]; var setLoading = s4[1];
   var s5 = useState(-1); var expanded = s5[0]; var setExpanded = s5[1];
   var s6 = useState(-1); var showAssign = s6[0]; var setShowAssign = s6[1];
+  var sp = useState(-1); var showProof = sp[0]; var setShowProof = sp[1];
   var s7 = useState(''); var toast = s7[0]; var setToast = s7[1];
   var s8 = useState(false); var showAnnounce = s8[0]; var setShowAnnounce = s8[1];
   var s9 = useState(false); var showUpNext = s9[0]; var setShowUpNext = s9[1];
@@ -2210,7 +2238,12 @@ export default function EstatePage() {
     if (!outcome?.id) return;
     var savedNote = typeof updates.notes === 'string' ? updates.notes.trim() : '';
     var visual = outcomeVisualState(Object.assign({}, outcome, updates));
-    var updateResult = await sb.from('outcomes').update(Object.assign({ updated_at: new Date().toISOString() }, updates)).eq('id', outcome.id);
+    var dbUpdates = Object.assign({ updated_at: new Date().toISOString() }, updates);
+    delete dbUpdates.notes;
+    delete dbUpdates.proof_note;
+    delete dbUpdates.help_note;
+    delete dbUpdates.reference;
+    var updateResult = await sb.from('outcomes').update(dbUpdates).eq('id', outcome.id);
     if (updateResult.error) {
       showToast(updateResult.error.message || 'This update could not be saved.');
       return;
@@ -2235,6 +2268,7 @@ export default function EstatePage() {
     if (updates.owner_label) {
       setExpanded(-1);
       setShowAssign(-1);
+      setShowProof(-1);
     }
     if (updates.status === 'handled') showToast("That's taken care of. You're all set here.");
     else if (updates.outcome_status === 'help') showToast("Needs help is saved. We'll keep it visible.");
@@ -2774,6 +2808,20 @@ export default function EstatePage() {
     if (idx >= 0) {
       setExpanded(idx);
       setShowAssign(idx);
+      setShowProof(-1);
+      setTimeout(function() {
+        var el = document.getElementById('outcome_' + outcome.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }
+
+  function proofOutcomeFromCommand(outcome) {
+    var idx = indexForOutcome(outcome);
+    if (idx >= 0) {
+      setExpanded(idx);
+      setShowAssign(-1);
+      setShowProof(idx);
       setTimeout(function() {
         var el = document.getElementById('outcome_' + outcome.id);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2786,18 +2834,19 @@ export default function EstatePage() {
     if (idx >= 0) updateOutcome(idx, updates);
   }
 
-  function recordOutcomeHandled(outcome) {
+  function recordOutcomeHandled(outcome, providedNote) {
     var idx = indexForOutcome(outcome);
     if (idx < 0) return;
-    var note = typeof window !== 'undefined'
+    var note = typeof providedNote === 'string' ? providedNote : (typeof window !== 'undefined'
       ? window.prompt('What proof should be saved for this step? Add a reference number, provider name, or short note.')
-      : '';
+      : '');
     if (note === null) return;
     if (!String(note || '').trim()) {
       showToast('Add the proof or reference so everyone can see what happened.');
       return;
     }
     updateOutcome(idx, { status: 'handled', outcome_status: 'completed', notes: String(note).trim() });
+    setShowProof(-1);
   }
 
   function recordOutcomeNeedsHelp(outcome) {
@@ -2976,7 +3025,7 @@ export default function EstatePage() {
             coordinatorName={coordinatorName}
             onOpenOutcome={openOutcomeFromCommand}
             onAssignOutcome={assignOutcomeFromCommand}
-            onOutcomeHandled={recordOutcomeHandled}
+            onOutcomeHandled={proofOutcomeFromCommand}
             onOutcomeProgress={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'in_progress' }); }}
             onTaskAction={taskActionFromCommand}
           />
@@ -3520,12 +3569,16 @@ export default function EstatePage() {
                   estateId={estateId}
                   expanded={expanded === i}
                   showAssign={showAssign === i}
-                  onToggle={function() { setExpanded(expanded === i ? -1 : i); setShowAssign(-1); }}
-                  onMarkHandled={function() { recordOutcomeHandled(outcome); }}
+                  showProof={showProof === i}
+                  onToggle={function() { setExpanded(expanded === i ? -1 : i); setShowAssign(-1); setShowProof(-1); }}
+                  onMarkHandled={function() { proofOutcomeFromCommand(outcome); }}
                   onMarkInProgress={function() { updateOutcome(i, { status: 'in_progress' }); }}
                   onNeedsHelp={function() { recordOutcomeNeedsHelp(outcome); }}
-                  onAssignOpen={function() { setShowAssign(i); setExpanded(i); }}
+                  onAssignOpen={function() { setShowAssign(i); setShowProof(-1); setExpanded(i); }}
                   onAssignClose={function() { setShowAssign(-1); }}
+                  onProofOpen={function() { setShowProof(i); setShowAssign(-1); setExpanded(i); }}
+                  onProofClose={function() { setShowProof(-1); }}
+                  onProofSave={function(note) { recordOutcomeHandled(outcome, note); }}
                   onAssignSave={function(owner) {
                     var payload = typeof owner === 'string' ? { name: owner } : (owner || {});
                     var ownerName = textValue(payload.name, '').trim();
