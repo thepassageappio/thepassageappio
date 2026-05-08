@@ -2560,6 +2560,7 @@ export default function EstatePage() {
     var title = displayTaskTitle(task);
     var lovedOne = name || 'your loved one';
     var playbook = getTaskPlaybook(textValue(task?.title, title));
+    var taskUrl = SITE_URL + '/participating?estate=' + encodeURIComponent(estateId || '') + (task?.id ? '&task=' + encodeURIComponent(task.id) : '');
     if (mode === 'assignment') {
       return [
         'Passage task assignment:',
@@ -2569,7 +2570,12 @@ export default function EstatePage() {
         'Can you please take ownership of this task?',
         title,
         '',
-        'Please open Passage to accept it, mark it handled, say you are waiting, or ask for help.'
+        'Open your secure Passage task:',
+        taskUrl,
+        '',
+        'First time using Passage? Use this link, sign in or create an account with this same email address, and Passage will show only the work assigned to you.',
+        '',
+        'From there you can accept it, mark it handled, say you are waiting, or ask for help.'
       ].join('\n');
     }
     if (mode === 'obituary') return obituaryDraftForTask(task);
@@ -3024,8 +3030,8 @@ export default function EstatePage() {
                             </div>
                             <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.45, marginTop: 5 }}>
                               {currentEmail
-                                ? 'Sending through Passage gives them a direct task link, copies you, logs the handoff, and keeps this item pending until someone marks it handled.'
-                                : 'Start by choosing the person responsible. Passage will not send anything until you review the message and click send.'}
+                                ? 'Sending through Passage gives them a direct task link, copies you, logs the handoff, and keeps this item pending until someone marks it handled. First-time users sign in with this email to see only their assigned work.'
+                                : 'Start by choosing the person responsible. Email is the official first-time access key. SMS can be used as an opt-in nudge with the same link, but phone-only access needs a separate invite/OTP flow.'}
                             </div>
                           </div>
                           {currentEmail && <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 900 }}>Ready to notify</span>}
@@ -3172,6 +3178,11 @@ export default function EstatePage() {
                           return officialLink ? <a href={officialLink} target="_blank" rel="noreferrer" style={Object.assign({}, miniBtn(CARD, MID, BORDER), { textDecoration: 'none', display: 'inline-flex', alignItems: 'center' })}>{textValue(playbook.officialLinkLabel, 'Open official site')}</a> : null;
                         })()}
                       </div>
+                      {(pendingTaskAction.mode === 'message' || pendingTaskAction.mode === 'assignment') && (
+                        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginTop: 9, color: MID, fontSize: 12.3, lineHeight: 1.45 }}>
+                          <strong style={{ color: INK }}>How first-time access works:</strong> email is the secure identity key today. The message includes a Passage link; the assignee signs in or creates an account with the assigned email and lands on their scoped task list. SMS should only be a consented reminder carrying that same link, not the source of access by itself.
+                        </div>
+                      )}
                     </>
                   );
                 })()}
