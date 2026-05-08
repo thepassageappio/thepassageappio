@@ -30,6 +30,21 @@ Friday:
 - Vendor request walkthrough.
 - Pricing and pilot offer explanation.
 
+## Demo Readiness Bar
+
+The demo must prove the sell-sheet promise, not merely show screens:
+
+- fewer repeated family calls
+- one shared case status
+- clear task ownership
+- communication tracked automatically
+- staff can act on behalf of family
+- family sees proof/status without calling
+- CSV/export returns data to the funeral home's existing workflow
+- vendor help appears only inside relevant tasks and never as a generic directory
+
+If a walkthrough requires explanation that the UI does not support, the path is not demo-ready.
+
 ## Beta Pipeline
 
 Track leads in a simple table or CRM with:
@@ -57,6 +72,8 @@ Demo arc:
 5. Show the family-visible proof/status update.
 6. Show report/export change.
 7. Explain pilot billing.
+
+The demo should feel like: "holy shit, this actually reduces chaos." Every click should either reduce a call, assign ownership, prepare an output, send/request information, save proof, or update reporting.
 
 Co-branding:
 Family command center should be subtly co-branded for funeral-home-created cases: funeral-home logo/accent in the header, small "Powered by Passage" language, and enough Passage identity to support future family planning adoption.

@@ -12,6 +12,18 @@ Passage should not feel like a checklist, project board, vendor directory, or co
 - one proof trail
 - one status truth across family, participants, funeral homes, employees, vendors, and Passage admins
 
+The external promise from the current sell sheet and investor one-pager is now the acceptance bar:
+
+- Families get one calm command center before, during, and after a death.
+- Funeral homes reduce repeated "what's next?" calls.
+- Staff can act on behalf of families without losing proof.
+- Case status is shared instead of trapped in voicemails, texts, and staff memory.
+- Tasks and communication are logged as they happen.
+- Passage sits on top of existing funeral-home workflows, with exportable data and no migration burden.
+- Participants, vendors, family, and staff each get only the slice they need.
+
+If a demo path does not prove these claims end to end, it is not demo-ready.
+
 ## Research Pressure Test
 
 Current SaaS onboarding guidance points in the same direction: reduce time to value, avoid dumping users into feature tours, and route each role to the first meaningful action. For Passage, the first value moment is not "create a task." It is "Passage tells me what happens next, who owns it, and what proof will show it happened."
@@ -214,6 +226,67 @@ The first demo loop to perfect is:
 6. Funeral home sees the case status, staff action, and report/export change.
 
 This loop must be perfect before broadening the story. It proves the sell-sheet value: fewer repeated calls, clear ownership, proof, no disruption to the funeral home's system, and exportable case data.
+
+## Three Sprint Demo-Readiness Plan
+
+### Sprint 1: Operational Calm
+
+Goal: make Passage feel trustworthy before the prospect evaluates feature depth.
+
+Must ship:
+
+- normalized typography, spacing, density, buttons, inputs, and status language across family, participant, funeral-home, vendor, and admin paths
+- one obvious next action per primary screen
+- fewer nested cards; primary screens use operating surfaces, rails, proof trails, and secondary drawers
+- mobile-safe task, assignment, notification, participant, and vendor paths
+- emotionally paced red/green family entry points
+
+Acceptance:
+
+- user can say what to do next in 3 seconds
+- no page feels like a pile of cards
+- no dead button, unclear status, or unexplained recovery path in the demo route
+
+### Sprint 2: Perfect Demo Loop
+
+Goal: make the one-location funeral-home loop undeniably useful.
+
+Must ship:
+
+- case creation
+- staff assignment
+- family information request
+- staff task handling or waiting update
+- family-visible proof/status update
+- communication/proof trail
+- vendor request/quote path where relevant and non-salesy
+- report/export change
+
+Acceptance:
+
+- 12-minute walkthrough runs without hand-waving
+- every action changes visible state
+- family, staff, director, participant, vendor, and report surfaces show the same task truth
+- no real email/SMS sends during QA unless explicitly approved; demo/fallback state is honest
+
+### Sprint 3: Trust and Enterprise Readiness
+
+Goal: make a serious operator believe Passage can touch grieving-family coordination safely.
+
+Must ship:
+
+- role/permission clarity for director/admin, location manager, staff, family coordinator, participant, vendor, and Passage admin
+- visible audit/proof model
+- export confidence and data ownership copy
+- vault/document handling trust language where exposed
+- support/trust center surfaces ready for demos, with legal/compliance pages still marked owner/counsel-review where appropriate
+- notification preference model and fallback logging
+
+Acceptance:
+
+- product feels safe enough for a pilot conversation
+- operators understand who can see, assign, send, complete, and report
+- trust story is plain-language and operational, not SOC2 theater
 
 ## Design Rule
 
