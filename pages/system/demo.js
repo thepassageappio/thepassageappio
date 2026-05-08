@@ -61,11 +61,11 @@ const demoSteps = [
     action: 'Explain that assignment sends an actionable email/SMS when configured and logs the update in Passage.',
   },
   {
-    id: 'chat',
+    id: 'coordinate',
     kicker: 'Coordinate',
-    title: 'Use one thread for the handoff.',
-    point: 'Mock the real-life handoff: family, funeral home, cemetery, and religious leader in one tracked trail.',
-    action: 'Point out that these messages become proof, not side-channel chaos.',
+    title: 'Coordinate without mixing messages, notifications, and proof.',
+    point: 'Mock the real-life handoff: director asks family once, staff sees the work, cemetery/vendor gets a scoped request, and proof is recorded separately.',
+    action: 'Say: "Notifications get attention. Conversation coordinates the work. Proof records what happened."',
   },
   {
     id: 'vendor',
@@ -98,29 +98,44 @@ const cases = [
 
 const mockChats = [
   {
-    title: 'Family + funeral home',
+    title: 'Family request',
     messages: [
-      ['Family', 'We confirmed the hospital release contact. Can you coordinate pickup timing?'],
-      ['Director', 'Yes. I will call decedent affairs now and record the release reference here.'],
-      ['Passage', 'Task moved to waiting. Family will see that the funeral home is tracking it.'],
+      ['Director', 'We need the cemetery plot section and lot number before we can finalize Thursday.'],
+      ['Family', 'It is Section B, Lot 18. I uploaded the deed from my mother.'],
+      ['Status', 'Waiting state cleared. Staff can now confirm with cemetery.'],
     ],
   },
   {
-    title: 'Family + cemetery + funeral home',
+    title: 'Cemetery handoff',
     messages: [
       ['Coordinator', 'The family prefers Thursday afternoon if the cemetery can confirm availability.'],
       ['Cemetery', 'Thursday at 2:00 PM is available. Permit must be received first.'],
-      ['Passage', 'Cemetery availability recorded. Permit remains a blocker.'],
+      ['Status', 'Cemetery availability recorded. Permit remains a blocker.'],
     ],
   },
   {
-    title: 'Family + religious leader',
+    title: 'Participant help',
     messages: [
-      ['Family', 'Rabbi Cohen can lead the service if the time is after 4:00 PM.'],
-      ['Religious leader', 'I can do 4:30 PM and will send readings tonight.'],
-      ['Passage', 'Officiant availability recorded under service details.'],
+      ['Family', 'Paul can bring the framed photo and confirm pallbearer names.'],
+      ['Participant', 'I have the photo and will send names by 6 PM.'],
+      ['Status', 'Participant task remains assigned. Next update expected this evening.'],
     ],
   },
+];
+
+const coordinationLayers = [
+  ['Conversation', 'The human request and reply attached to the task.'],
+  ['Notification', 'Email/SMS/in-app routing that tells the right person attention is needed.'],
+  ['Proof', 'The recorded outcome: actor, timestamp, note, file, status, and destination.'],
+];
+
+const demoMetrics = [
+  ['Active cases', '20'],
+  ['Waiting responses', '7'],
+  ['Staff tasks today', '14'],
+  ['Calls avoided', '38'],
+  ['CSV exports', '5'],
+  ['Avg next update', '18 hrs'],
 ];
 
 const ecosystemPaths = [
@@ -474,11 +489,20 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
     );
   }
 
-  if (activeStepId === 'chat') {
+  if (activeStepId === 'coordinate') {
     return (
       <Panel>
         <div style={eyebrow}>Demo screen</div>
-        <h2 style={h2}>Communication command center.</h2>
+        <h2 style={h2}>Task-native coordination.</h2>
+        <p style={{ ...lead, marginBottom: 14 }}>The demo should prove the director can coordinate family, staff, cemetery, clergy, and vendors from one case task without creating another phone tree.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 9, marginBottom: 14 }}>
+          {coordinationLayers.map(([title, body]) => (
+            <div key={title} style={smallCard}>
+              <div style={{ fontSize: 16, fontWeight: 900 }}>{title}</div>
+              <div style={smallText}>{body}</div>
+            </div>
+          ))}
+        </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
           {mockChats.map((chat, index) => (
             <button key={chat.title} onClick={() => setSelectedChat(index)} style={{ ...tinyButton, background: selectedChat === index ? C.sage : C.sageFaint, color: selectedChat === index ? '#fff' : C.sage }}>{chat.title}</button>
@@ -521,6 +545,14 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
     <Panel>
       <div style={eyebrow}>Demo screen</div>
       <h2 style={h2}>ROI, portability, and daily use.</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 9, marginBottom: 16 }}>
+        {demoMetrics.map(([label, value]) => (
+          <div key={label} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 12 }}>
+            <div style={{ color: C.sage, fontSize: 21, fontWeight: 900, lineHeight: 1 }}>{value}</div>
+            <div style={{ color: C.mid, fontSize: 11.5, fontWeight: 900, marginTop: 5 }}>{label}</div>
+          </div>
+        ))}
+      </div>
       <div style={{ display: 'grid', gap: 10 }}>
         {tomorrowWorkflow.map((item, index) => (
           <div key={item} style={{ display: 'grid', gridTemplateColumns: '30px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
