@@ -66,12 +66,13 @@ Optimize the next serious funeral-home demo for a one-location owner/director. M
 
 Demo arc:
 1. Create or load a case.
-2. Assign staff.
-3. Request missing information from the family.
-4. Staff handles the task or records what is waiting.
-5. Show the family-visible proof/status update.
-6. Show report/export change.
-7. Explain pilot billing.
+2. Add or confirm the staff employee who can own work.
+3. Assign staff from the saved employee/case-contact dropdown.
+4. Request missing information from the family.
+5. Staff handles the task or records what is waiting.
+6. Show the family-visible proof/status update.
+7. Show report/export change.
+8. Explain pilot billing.
 
 The demo should feel like: "holy shit, this actually reduces chaos." Every click should either reduce a call, assign ownership, prepare an output, send/request information, save proof, or update reporting.
 
@@ -127,6 +128,8 @@ Say:
 "Employees land on assigned work first. They do not need the whole business dashboard. They need the case context, owner, expected update, and proof requirement."
 
 Show:
+- Add employee profile. No message is sent.
+- Return to a case task and assign from the saved employee dropdown.
 - My assigned work / Delegation queue.
 - Expected update.
 - Open work button.
@@ -179,7 +182,7 @@ Show one painful workflow in action before showing modules. The prospect should 
 
 The demo instance should support these paths without real email, SMS, payments, or production data changes:
 - Director creates or opens a realistic case and immediately sees active cases, waiting responses, staff workload, calls avoided, and export/report controls.
-- Director assigns an employee to one task, with owner, next expected update, proof destination, and family-facing status visible.
+- Director adds or confirms one employee, then assigns that employee to one task from the saved staff/case-contact dropdown, with owner, next expected update, proof destination, and family-facing status visible.
 - Director asks the family for one missing detail from inside the task, such as cemetery plot details, obituary approval, pronouncement confirmation, or service preference.
 - Family sees one calm request, understands why it matters, replies once, and sees the reassuring status change.
 - Staff sees assigned work first, handles the task, records proof, and escalates if blocked.

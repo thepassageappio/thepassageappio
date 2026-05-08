@@ -52,9 +52,9 @@ const demoSteps = [
   {
     id: 'delegation',
     kicker: 'Delegate',
-    title: 'Assign work to the right person.',
-    point: 'Employees, family participants, clergy, cemetery contacts, and vendors are different actors with different views.',
-    action: 'Explain that assignment sends an actionable email/SMS when configured and logs the update in Passage.',
+    title: 'Set up the employee, then assign the work.',
+    point: 'Directors save staff profiles first; case tasks then assign from saved employees, family contacts, participants, clergy, cemetery contacts, or vendors.',
+    action: 'Show Add employee in Staff work, then assign a task from the saved dropdown. Notifications remain approval-based.',
   },
   {
     id: 'coordinate',
