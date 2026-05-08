@@ -322,8 +322,8 @@ class TaskPanelBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('Passage task panel error message:', error?.message || error);
-    console.error('Passage task panel component stack:', info?.componentStack || '');
+    console.error('Passage estate section error message:', error?.message || error);
+    console.error('Passage estate section component stack:', info?.componentStack || '');
     this.setState({ error });
   }
 
@@ -335,11 +335,13 @@ class TaskPanelBoundary extends React.Component {
 
   render() {
     if (!this.state.error) return this.props.children;
+    var title = this.props.title || 'Estate section recovered';
+    var detail = this.props.detail || 'One part of this estate workspace has a field Passage could not display safely.';
     return (
       <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '35', borderRadius: 14, padding: '13px 15px', marginBottom: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: ROSE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Task panel recovered</div>
-        <div style={{ fontSize: 14, color: INK, fontWeight: 900, lineHeight: 1.35 }}>This task has one field Passage could not display safely.</div>
-        <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 5 }}>The estate is still intact. Use another task action, reload, or return to the estate index while Passage keeps the issue isolated.</div>
+        <div style={{ fontSize: 11, fontWeight: 900, color: ROSE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{title}</div>
+        <div style={{ fontSize: 14, color: INK, fontWeight: 900, lineHeight: 1.35 }}>{detail}</div>
+        <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 5 }}>The estate is still intact. The rest of the workspace should remain usable while Passage isolates this section.</div>
       </div>
     );
   }
@@ -2470,7 +2472,8 @@ export default function EstatePage() {
         return false;
       })
       .map(function(o) {
-        return { id: 'outcome_' + o.id, rawTitle: o.title, title: displayTaskTitle(o), owner: o.owner_label || 'Needs owner', status: o.status || 'not_started', next: o.status === 'needs_owner' ? 'Assign an owner' : o.status === 'in_progress' ? ((o.owner_label || 'Someone') + ' is working on this') : displayTaskNext(o) };
+        var ownerLabel = textValue(o.owner_label, '');
+        return { id: 'outcome_' + o.id, rawTitle: textValue(o.title, ''), title: displayTaskTitle(o), owner: ownerLabel || 'Needs owner', status: textValue(o.status, 'not_started'), next: o.status === 'needs_owner' ? 'Assign an owner' : o.status === 'in_progress' ? ((ownerLabel || 'Someone') + ' is working on this') : displayTaskNext(o) };
       });
     var taskItems = tasks
       .filter(function(t) { return !isHandledStatus(t.status) && bucketForTask(t) === bucket.key; })
@@ -2478,7 +2481,8 @@ export default function EstatePage() {
         var working = ['assigned', 'waiting', 'in_progress'].includes(t.status || '');
         var signal = participantSignal(t);
         var responseWait = ['sent', 'delivered'].includes(t.status || '') && !t.acknowledged_at ? 'Waiting for confirmation' : '';
-        return { id: 'task_' + t.id, rawTitle: t.title, title: displayTaskTitle(t), owner: ownerForTask(t), status: t.status || 'pending', next: signal || responseWait || (working ? ((t.assigned_to_name || t.assigned_to_email || 'Someone') + ' is working on this') : t.assigned_to_name || t.assigned_to_email ? 'Waiting on owner' : displayTaskNext(t)) };
+        var taskOwner = textValue(t.assigned_to_name || t.assigned_to_email, '');
+        return { id: 'task_' + t.id, rawTitle: textValue(t.title, ''), title: displayTaskTitle(t), owner: ownerForTask(t), status: textValue(t.status, 'pending'), next: signal || responseWait || (working ? ((taskOwner || 'Someone') + ' is working on this') : taskOwner ? 'Waiting on owner' : displayTaskNext(t)) };
       });
     return Object.assign({}, bucket, { items: outcomeItems.concat(taskItems) });
   });
@@ -2758,25 +2762,27 @@ export default function EstatePage() {
         </div>
 
         {/* Outcomes — generated from /urgent or empty state */}
-        <SimpleCommandCenter
-          activeTab={activeCommandTab}
-          setActiveTab={setActiveCommandTab}
-          outcomes={outcomes}
-          tasks={tasks}
-          events={events}
-          actions={actions}
-          people={people}
-          communicationCenter={communicationCenter}
-          initialTaskId={initialTaskId}
-          onOpenOutcome={openOutcomeFromCommand}
-          onAssignOutcome={assignOutcomeFromCommand}
-          onOutcomeHandled={recordOutcomeHandled}
-          onOutcomeProgress={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'in_progress' }); }}
-          onTaskAction={taskActionFromCommand}
-        />
+        <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">
+          <SimpleCommandCenter
+            activeTab={activeCommandTab}
+            setActiveTab={setActiveCommandTab}
+            outcomes={outcomes}
+            tasks={tasks}
+            events={events}
+            actions={actions}
+            people={people}
+            communicationCenter={communicationCenter}
+            initialTaskId={initialTaskId}
+            onOpenOutcome={openOutcomeFromCommand}
+            onAssignOutcome={assignOutcomeFromCommand}
+            onOutcomeHandled={recordOutcomeHandled}
+            onOutcomeProgress={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'in_progress' }); }}
+            onTaskAction={taskActionFromCommand}
+          />
+        </TaskPanelBoundary>
 
         {pendingTaskAction && (
-          <TaskPanelBoundary resetKey={(pendingTaskAction.task?.id || '') + ':' + (pendingTaskAction.status || '') + ':' + (pendingTaskAction.mode || '')}>
+          <TaskPanelBoundary resetKey={(pendingTaskAction.task?.id || '') + ':' + (pendingTaskAction.status || '') + ':' + (pendingTaskAction.mode || '')} title="Task panel recovered" detail="This task has one field Passage could not display safely.">
           <div id="task-update-panel" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '20px 22px', marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
             {(() => {
               var assigningOnly = pendingTaskAction.status === 'choose';
@@ -3051,7 +3057,7 @@ export default function EstatePage() {
         {resumeEvent && (
           <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
             <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Last thing you were working on</div>
-            <div style={{ fontSize: 14, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{resumeEvent.description || resumeEvent.title}</div>
+            <div style={{ fontSize: 14, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{textValue(resumeEvent.description || resumeEvent.title, 'Estate update')}</div>
             <div style={{ fontSize: 12, color: SAGE, fontWeight: 800, marginTop: 4 }}>Continue with the next open item below.</div>
           </div>
         )}
@@ -3059,7 +3065,7 @@ export default function EstatePage() {
         {false && firstFastTitle && (
           <div style={{ background: isPlanningEstate ? SAGE_FAINT : ROSE_FAINT, border: '1px solid ' + (isPlanningEstate ? SAGE_LIGHT : ROSE + '30'), borderRadius: 14, padding: '13px 15px', marginBottom: 12 }}>
             <div style={{ fontSize: 11, color: isPlanningEstate ? SAGE : ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>{isPlanningEstate ? 'Next planning step' : 'Just do this now'}</div>
-            <div style={{ fontSize: 15, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{firstFastTitle}</div>
+            <div style={{ fontSize: 15, color: INK, fontWeight: 800, lineHeight: 1.35 }}>{textValue(firstFastTitle, 'Next step')}</div>
             {isPlanningEstate && firstOpenOutcome && (
               <>
                 <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45, marginTop: 7 }}>
@@ -3107,64 +3113,71 @@ export default function EstatePage() {
         <details style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
           <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Messages, proof, and activation</summary>
           <div style={{ marginTop: 12 }}>
-            <ActivatePlanView
-              estate={estate}
-              actions={actions}
-              tasks={tasks}
-              outcomes={outcomes}
-              activating={activating}
-              onActivate={activatePlan}
-            />
+            <TaskPanelBoundary resetKey={'proof:' + estateId + ':' + actions.length + ':' + tasks.length + ':' + events.length} title="Proof log recovered" detail="The proof and activation log hit a display issue.">
+              <ActivatePlanView
+                estate={estate}
+                actions={actions}
+                tasks={tasks}
+                outcomes={outcomes}
+                activating={activating}
+                onActivate={activatePlan}
+              />
 
-            <ProofPanel
-              actions={actions}
-              tasks={tasks}
-              events={events}
-            />
+              <ProofPanel
+                actions={actions}
+                tasks={tasks}
+                events={events}
+              />
+            </TaskPanelBoundary>
           </div>
         </details>
 
         <details id="all-task-tools" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
           <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>All task tools</summary>
           <div style={{ marginTop: 12 }}>
-            <ExecutionLayerPanel
-              tasks={tasks}
-              outcomes={outcomes}
-              estateId={estateId}
-              coordinatorName={coordinatorName}
-              onRefresh={refreshExecutionData}
-            />
+            <TaskPanelBoundary resetKey={'execution:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Task tools recovered" detail="The full task tools section hit a display issue.">
+              <ExecutionLayerPanel
+                tasks={tasks}
+                outcomes={outcomes}
+                estateId={estateId}
+                coordinatorName={coordinatorName}
+                onRefresh={refreshExecutionData}
+              />
+            </TaskPanelBoundary>
           </div>
         </details>
 
         <details style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '12px 14px', marginBottom: 12 }}>
           <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900 }}>Estate map and funeral home summary</summary>
           <div style={{ marginTop: 12 }}>
-            <EstateOrchestrationMap
-              estate={estate}
-              estateId={estateId}
-              name={name}
-              serviceEvents={serviceEvents}
-              people={people}
-              actions={actions}
-              announcements={announcements}
-              tasks={tasks}
-              outcomes={outcomes}
-            />
+            <TaskPanelBoundary resetKey={'map:' + estateId + ':' + serviceEvents.length + ':' + people.length + ':' + tasks.length} title="Estate map recovered" detail="The estate map or funeral-home summary hit a display issue.">
+              <EstateOrchestrationMap
+                estate={estate}
+                estateId={estateId}
+                name={name}
+                serviceEvents={serviceEvents}
+                people={people}
+                actions={actions}
+                announcements={announcements}
+                tasks={tasks}
+                outcomes={outcomes}
+              />
 
-            <FuneralHomePrepGenerator
-              estate={estate}
-              estateId={estateId}
-              name={name}
-              coordinatorName={coordinatorName}
-              serviceEvents={serviceEvents}
-              people={people}
-              tasks={tasks}
-              onRecord={recordPrepEvent}
-            />
+              <FuneralHomePrepGenerator
+                estate={estate}
+                estateId={estateId}
+                name={name}
+                coordinatorName={coordinatorName}
+                serviceEvents={serviceEvents}
+                people={people}
+                tasks={tasks}
+                onRecord={recordPrepEvent}
+              />
+            </TaskPanelBoundary>
           </div>
         </details>
 
+        <TaskPanelBoundary resetKey={'people:' + estateId + ':' + outcomes.length + ':' + readinessPct} title="Ownership section recovered" detail="The people and ownership section hit a display issue.">
         <div id="people-coordination" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: INK, marginBottom: 4 }}>People and ownership</div>
           <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>Pick one item below, assign who owns it, then record proof or mark it waiting. That is the whole job here.</div>
@@ -3199,10 +3212,10 @@ export default function EstatePage() {
                   <div key={o.id} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 11, padding: '10px 11px', display: 'grid', gap: 8 }}>
                     <div>
                       <div style={{ fontSize: 13, color: INK, fontWeight: 800 }}>{displayTaskTitle(o)}</div>
-                      <div style={{ fontSize: 12, color: MID, marginTop: 2 }}>{o.owner_label ? o.owner_label + ' owns this' : 'No owner yet'}</div>
+                      <div style={{ fontSize: 12, color: MID, marginTop: 2 }}>{textValue(o.owner_label, '') ? textValue(o.owner_label, '') + ' owns this' : 'No owner yet'}</div>
                     </div>
                     <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                      <button onClick={function() { setExpanded(idx); setShowAssign(idx); setTimeout(function() { var el = document.getElementById('outcome_' + o.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 9, padding: '7px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>{o.owner_label ? 'Change owner' : 'Assign owner'}</button>
+                      <button onClick={function() { setExpanded(idx); setShowAssign(idx); setTimeout(function() { var el = document.getElementById('outcome_' + o.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 9, padding: '7px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>{textValue(o.owner_label, '') ? 'Change owner' : 'Assign owner'}</button>
                       <button onClick={function() { setExpanded(idx); setShowAssign(-1); setTimeout(function() { var el = document.getElementById('outcome_' + o.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }} style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 9, padding: '7px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>Open step</button>
                     </div>
                   </div>
@@ -3212,7 +3225,9 @@ export default function EstatePage() {
           )}
           <div style={{ fontSize: 12, color: SOFT, marginTop: 10, lineHeight: 1.5 }}>Passage keeps this estate separate from every other estate you manage.</div>
         </div>
+        </TaskPanelBoundary>
 
+        <TaskPanelBoundary resetKey={'timeline:' + estateId + ':' + timelineGroups.reduce(function(total, g) { return total + g.items.length; }, 0)} title="Timeline recovered" detail="The plan timeline hit a display issue.">
         <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
             <div>
@@ -3227,9 +3242,9 @@ export default function EstatePage() {
             <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '10px 12px', marginBottom: 10 }}>
               <div style={{ fontSize: 11, color: SAGE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>People helping right now</div>
               {recentParticipantEvents.map(function(e) {
-                var actor = e.actor || 'Someone';
+                var actor = textValue(e.actor, 'Someone');
                 var action = e.event_type === 'participant_handled' ? 'marked this as handled' : e.event_type === 'participant_waiting' ? 'updated this as waiting' : e.event_type === 'participant_acknowledged' ? 'confirmed this' : e.event_type === 'participant_blocked' ? 'needs help with this' : e.event_type === 'task_message_sent' ? 'was sent a message' : 'accepted or updated this task';
-                return <div key={e.id} style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, padding: '3px 0' }}><strong style={{ color: INK }}>{actor}</strong> {action}{timeAgo(e.created_at) ? ' ' + timeAgo(e.created_at) : ''}: {e.description || e.title}</div>;
+                return <div key={e.id} style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, padding: '3px 0' }}><strong style={{ color: INK }}>{actor}</strong> {action}{timeAgo(e.created_at) ? ' ' + timeAgo(e.created_at) : ''}: {textValue(e.description || e.title, 'Task updated')}</div>;
               })}
             </div>
           )}
@@ -3238,25 +3253,25 @@ export default function EstatePage() {
             return (
               <div key={group.key} style={{ borderTop: '1px solid ' + BORDER, paddingTop: 12, marginTop: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>{group.label}</div>
-                  <div style={{ fontSize: 11.5, color: SOFT, textAlign: 'right' }}>{group.help}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>{textValue(group.label, 'Next steps')}</div>
+                  <div style={{ fontSize: 11.5, color: SOFT, textAlign: 'right' }}>{textValue(group.help, '')}</div>
                 </div>
                 {primary && (
                   <div style={{ background: isPlanningEstate ? SAGE_FAINT : ROSE_FAINT, border: '1px solid ' + (isPlanningEstate ? SAGE_LIGHT : ROSE + '30'), borderRadius: 11, padding: '10px 12px', marginBottom: 8 }}>
                     <div style={{ fontSize: 11, color: isPlanningEstate ? SAGE : ROSE, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{isPlanningEstate ? 'Open this next' : 'Do this next'}</div>
                     <button onClick={function() { openTimelineItem(primary); }} style={{ width: '100%', border: isPlanningEstate ? '1px solid ' + SAGE_LIGHT : 'none', background: isPlanningEstate ? CARD : SAGE, color: isPlanningEstate ? INK : '#fff', borderRadius: 10, padding: '10px 12px', fontSize: 13, fontWeight: 800, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
-                      {primary.title}
+                      {textValue(primary.title, 'Open this step')}
                     </button>
                   </div>
                 )}
                 {group.items.length > 0 ? group.items.map(function(item) {
                   return (
                     <button key={item.id} onClick={function() { openTimelineItem(item); }} style={{ width: '100%', background: SUBTLE, borderRadius: 10, padding: '10px 12px', marginBottom: 7, border: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
-                      <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.35, marginBottom: 6 }}>{item.title}</div>
+                      <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.35, marginBottom: 6 }}>{textValue(item.title, 'Task')}</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span style={{ fontSize: 11.5, color: item.owner === 'Needs owner' ? AMBER : SAGE, fontWeight: 700 }}>{item.owner}</span>
+                        <span style={{ fontSize: 11.5, color: item.owner === 'Needs owner' ? AMBER : SAGE, fontWeight: 700 }}>{textValue(item.owner, 'Needs owner')}</span>
                         <span style={{ width: 3, height: 3, borderRadius: '50%', background: SOFT }} />
-                        <span style={{ fontSize: 11.5, color: SOFT }}>{item.next}</span>
+                        <span style={{ fontSize: 11.5, color: SOFT }}>{textValue(item.next, 'Open this item')}</span>
                       </div>
                       {/waiting/i.test(item.next || '') && (
                         <div style={{ fontSize: 11.5, color: AMBER, fontWeight: 800, marginTop: 5 }}>
@@ -3274,6 +3289,7 @@ export default function EstatePage() {
             );
           })}
         </div>
+        </TaskPanelBoundary>
 
         {readyFor72 && (
           <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '16px 18px', marginBottom: 16 }}>
@@ -3284,6 +3300,7 @@ export default function EstatePage() {
           </div>
         )}
 
+        <TaskPanelBoundary resetKey={'outcomes:' + estateId + ':' + outcomes.length + ':' + expanded + ':' + showAssign} title="Outcome list recovered" detail="The estate outcome list hit a display issue.">
         {outcomes.length > 0 ? (
           <>
             <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 12 }}>Here's what matters first</div>
@@ -3304,13 +3321,13 @@ export default function EstatePage() {
                   onAssignClose={function() { setShowAssign(-1); }}
                   onAssignSave={function(owner) {
                     var payload = typeof owner === 'string' ? { name: owner } : (owner || {});
-                    var ownerName = String(payload.name || '').trim();
+                    var ownerName = textValue(payload.name, '').trim();
                     if (!ownerName) return;
                     var statusUpdate = outcomes[i].status === 'needs_owner' ? 'not_started' : outcomes[i].status;
                     var contactLines = [
-                      payload.email ? 'Email: ' + payload.email : '',
-                      payload.phone ? 'Phone: ' + payload.phone : '',
-                      payload.note ? 'Handoff note: ' + payload.note : ''
+                      payload.email ? 'Email: ' + textValue(payload.email) : '',
+                      payload.phone ? 'Phone: ' + textValue(payload.phone) : '',
+                      payload.note ? 'Handoff note: ' + textValue(payload.note) : ''
                     ].filter(Boolean);
                     updateOutcome(i, {
                       owner_label: ownerName,
@@ -3346,7 +3363,9 @@ export default function EstatePage() {
             </div>
           )
         )}
+        </TaskPanelBoundary>
 
+        <TaskPanelBoundary resetKey={'secondary:' + estateId + ':' + upNextTasks.length + ':' + events.length} title="Secondary estate tools recovered" detail="The secondary estate tools hit a display issue.">
         {/* Up next — collapsed secondary tasks */}
         {upNextTasks.length > 0 && (
           <div style={{ marginTop: 8, marginBottom: 16 }}>
@@ -3382,7 +3401,7 @@ export default function EstatePage() {
           <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '14px 16px', marginBottom: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>Estate file for {name}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>Estate file for {textValue(name, 'your loved one')}</div>
                 <div style={{ fontSize: 12, color: SOFT, marginTop: 3 }}>Wishes, obituary, documents, memories, messages, and proof stay scoped to this estate.</div>
               </div>
               <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 7, padding: '4px 9px', whiteSpace: 'nowrap' }}>This estate</span>
@@ -3423,6 +3442,7 @@ export default function EstatePage() {
             })}
           </div>
         )}
+        </TaskPanelBoundary>
 
         {/* Primary CTA */}
         {!allHandled && firstIncomplete >= 0 && (
