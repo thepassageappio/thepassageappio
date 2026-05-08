@@ -1,6 +1,7 @@
 import { verifyDeliveryRequest } from '../../../../lib/deliveryAuth';
-import { serviceSupabase, isUuid } from '../../../../lib/taskStatus';
+import { serviceSupabase } from '../../../../lib/taskStatus';
 import { isPassageAdmin } from '../../../../lib/adminAccess';
+import { recordTaskCommunicationEvent } from '../../../../lib/communicationEvents';
 
 async function userCanAssignTask(auth, task) {
   if (auth.source === 'internal') return true;
@@ -92,32 +93,23 @@ export default async function handler(req, res) {
     .eq('workflow_id', task.workflow_id);
   if (updateError) return res.status(500).json({ error: updateError.message });
 
-  await serviceSupabase.from('task_status_events').insert([{
-    workflow_id: task.workflow_id,
-    task_id: isUuid(task.id) ? task.id : null,
+  await recordTaskCommunicationEvent({
+    verb: 'assign',
     status: 'assigned',
-    last_action_at: now,
-    last_actor: actorName,
-    channel: 'record',
+    workflowId: task.workflow_id,
+    taskId: task.id,
+    taskTitle: task.title,
+    actor: actorName,
+    actorRole: auth.source === 'internal' ? 'system' : 'coordinator',
     recipient: assigneeEmail,
+    recipientRole: assigneeRole || 'participant',
+    channel: 'record',
     detail: [
       task.title + ' assigned to ' + assigneeName + ' <' + assigneeEmail + '>',
       assigneeRole ? 'Role: ' + assigneeRole : '',
       assigneePhone ? 'Phone: ' + assigneePhone : '',
     ].filter(Boolean).join(' | '),
-  }]).then(() => {}, () => {});
-
-  await serviceSupabase.from('estate_events').insert([{
-    estate_id: task.workflow_id,
-    event_type: 'task_assigned',
-    title: 'Task assigned',
-    description: [
-      task.title + ' assigned to ' + assigneeName,
-      assigneeRole ? 'Role: ' + assigneeRole : '',
-      assigneePhone ? 'Phone: ' + assigneePhone : '',
-    ].filter(Boolean).join(' | '),
-    actor: actorName,
-  }]).then(() => {}, () => {});
+  });
 
   return res.status(200).json({
     success: true,

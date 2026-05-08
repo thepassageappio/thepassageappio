@@ -1,7 +1,8 @@
 import { verifyDeliveryRequest } from '../../../../lib/deliveryAuth';
-import { serviceSupabase, isUuid, recordStatusEvent } from '../../../../lib/taskStatus';
+import { serviceSupabase, isUuid } from '../../../../lib/taskStatus';
 import { isPassageAdmin } from '../../../../lib/adminAccess';
 import { taskActionConfirmation, taskActionOutcomeStatus } from '../../../../lib/taskActions';
+import { recordTaskCommunicationEvent } from '../../../../lib/communicationEvents';
 
 const allowedStatuses = new Set(['waiting', 'pending', 'acknowledged', 'handled', 'completed', 'done', 'blocked', 'not_applicable']);
 const allowedChannels = new Set(['email', 'sms', 'call', 'website', 'record', 'participant']);
@@ -106,13 +107,15 @@ export default async function handler(req, res) {
   if (updateError) return res.status(500).json({ error: updateError.message });
 
   const detailText = detail || `${task.title} - ${status.replace(/_/g, ' ')}`;
-  const result = await recordStatusEvent({
+  const result = await recordTaskCommunicationEvent({
     workflowId: task.workflow_id,
     taskId: isUuid(task.id) ? task.id : taskId,
     status: storedStatus,
     actor: actorName,
+    actorRole: auth.source === 'internal' ? 'system' : 'coordinator',
     channel: channel || 'record',
     recipient: recipient || task.assigned_to_name || task.assigned_to_email || null,
+    recipientRole: channel === 'participant' ? 'participant' : '',
     detail: detailText,
   });
 

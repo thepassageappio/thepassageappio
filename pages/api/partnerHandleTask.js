@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { recordStatusEvent } from '../../lib/taskStatus';
+import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 import { isPassageAdmin } from '../../lib/adminAccess';
 import { taskActionConfirmation } from '../../lib/taskActions';
 
@@ -59,14 +59,19 @@ export default async function handler(req, res) {
     const subjectName = workflow.deceased_name || workflow.estate_name || 'this family case';
     const detail = cleanNote;
 
-    const statusResult = await recordStatusEvent({
+    const statusResult = await recordTaskCommunicationEvent({
+      verb: 'prove',
       workflowId: workflow.id,
       taskId: task.id,
+      taskTitle: task.title,
       status: 'handled',
       actor: user.email,
+      actorRole: 'funeral_home',
       channel: 'record',
       recipient: workflow.coordinator_name || workflow.coordinator_email || 'Family coordinator',
+      recipientRole: 'family_coordinator',
       detail,
+      visibility: 'family_funeral_home',
     });
 
     let emailSent = false;
