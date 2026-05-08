@@ -30,6 +30,22 @@ Current SaaS onboarding guidance points in the same direction: reduce time to va
 
 Vendor/RFQ workflow patterns also support the Passage model: requests and responses should stay linked to the original work item, collect responses centrally, and avoid making the user chase separate vendor threads. For grief-sensitive work, that means vendors only appear inside a relevant task and only as "trusted local help if wanted," never as a sales directory.
 
+## Operational Calm QA Lens
+
+The May 2026 deep QA/audit is a useful product lens, not a detour from the main sprint. Keep what supports the spine; ignore anything that pulls Passage back into generic polish or feature sprawl.
+
+- Passage wins as a crisis coordination and family/funeral-home operating layer, not as a memorial, AI, or feature-volume product.
+- The strongest category line is "the calm coordination layer for everything families must manage after a death."
+- Every first-run path must reduce cognitive load. A grieving user should not feel like they are configuring software.
+- The red path must behave like guided incident response for families: situation triage, immediate authority guidance, then coordination activation.
+- The green path must feel like making things easier for loved ones, not mortality branding.
+- Funeral-home screens must feel restrained, practical, and enterprise-clean: fewer repeated calls, clearer owner/status/proof, data export, and visible ROI.
+- Mobile is a first-class QA gate because real family coordination happens on phones.
+- Trust must be visible: role permissions, data ownership, audit trail, export confidence, and plain security language.
+- Design-system hardening is not cosmetic. Inconsistent spacing, cards, buttons, empty states, and modal behavior create perceived fragility.
+
+The next gains should come from orchestration clarity: one owner, one next action, one communication/proof trail, and one status truth across funeral-home B2B, red-path family, green-path planning, participants, and vendors.
+
 ## Spine Contract
 
 Every task-facing surface must render the same fields:
@@ -180,6 +196,14 @@ Highest-impact demo outputs:
 - staff + family status summary or one-page report
 
 ## Sprint Order
+
+0. Operational Calm hardening
+   - Normalize spacing, button hierarchy, cards, empty states, modals, loading states, and status colors.
+   - Reduce nested card/panel density on family and funeral-home surfaces.
+   - Tighten homepage first 15 seconds around red path vs green path.
+   - Make red path situation triage directive before asking users to configure anything.
+   - Surface trust, permissions, audit, and export confidence where users hesitate.
+   - QA mobile for one-handed task completion, invite acceptance, and family/funeral-home status reading.
 
 1. Estate operating spine rebuild
    - Replace card-heavy command center with active-work surface.

@@ -26,6 +26,13 @@
 
 ## Next
 
+- Operational Calm hardening sprint, only where it supports task-spine demo readiness:
+  - P0: remove remaining card soup and normalize visual hierarchy across estate, red path, participant, funeral-home, and vendor surfaces.
+  - P0: make the red path first 3 minutes feel like guided family incident response: situation -> immediate authority guidance -> coordination activation.
+  - P0: strengthen workflow visibility everywhere: owner, waiting reason, proof destination, last actor/time, next action.
+  - P1: mobile task completion and invite acceptance QA at 100% Chrome viewport.
+  - P1: visible trust layer: permissions, audit trail, data ownership, export confidence, document visibility.
+  - P2: favicon and console hygiene, including repeated Supabase client warnings.
 - Build shared `TaskActionModal` so family, participant, funeral-home staff, and vendor-adjacent task surfaces use the same assign/send/proof/waiting/help/handled interaction.
 - Build shared notification preference resolution for the task spine: in-app/email/text availability, consent, fallback, skipped-channel logging, role visibility, and a simple preference setup for family coordinators, participants, funeral-home staff/admins, and vendors.
 - Add participant and funeral-home employee onboarding reliability: assignment notifications land on a role-appropriate work page with one clear action.
