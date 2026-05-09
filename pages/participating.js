@@ -412,9 +412,9 @@ export default function ParticipatingPage() {
             <div>
               {(router.query.estate || router.query.task) && (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
-                  <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>This is the task someone asked you to help with.</div>
+                  <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>Your next responsibility</div>
                   <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>
-                    Start with the task below. You can accept it, ask for details, or record what happened. The coordinator will see your update in Passage.
+                    Accept it, ask for details, or record what happened. Your update goes back to the coordinator.
                   </div>
                 </div>
               )}
