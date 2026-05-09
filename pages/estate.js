@@ -628,8 +628,12 @@ function InlineAssign({ onSave, onClose }) {
     });
   }
   return (
-    <div style={{ background: SUBTLE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 14, marginTop: 10 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+    <div role="dialog" aria-modal="true" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(680px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SUBTLE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 5 }}>
       <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Assign and prepare handoff</div>
+        <button onClick={onClose} aria-label="Close assignment" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 32, height: 32, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
+      </div>
       <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>
         Pick the person responsible. Add contact info only when they need a Passage handoff.
       </div>
@@ -662,6 +666,7 @@ function InlineAssign({ onSave, onClose }) {
         </button>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -669,8 +674,12 @@ function InlineProof({ onSave, onClose }) {
   var n = useState(''); var note = n[0]; var setNote = n[1];
   var clean = String(note || '').trim();
   return (
-    <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 14, marginTop: 10 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+    <div role="dialog" aria-modal="true" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 5 }}>
       <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Save proof and close task</div>
+        <button onClick={onClose} aria-label="Close proof" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 32, height: 32, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
+      </div>
       <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>
         Add what happened, who confirmed it, or where the proof lives.
       </div>
@@ -687,6 +696,7 @@ function InlineProof({ onSave, onClose }) {
           Cancel
         </button>
       </div>
+    </div>
     </div>
   );
 }
