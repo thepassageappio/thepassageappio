@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { supabase } from '../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 
 const C = {
@@ -74,6 +76,70 @@ const handoff = [
 ];
 
 export default function HospiceWarmPath() {
+  const [user, setUser] = useState(null);
+  const [form, setForm] = useState({
+    lovedOneName: '',
+    coordinatorName: '',
+    hospiceAgency: '',
+    hospiceContact: '',
+    hospicePhone: '',
+    funeralHomeName: '',
+    expectedWindow: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!supabase) return undefined;
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  function updateField(field, value) {
+    setForm(prev => ({ ...prev, [field]: value }));
+  }
+
+  async function signIn() {
+    if (!supabase || typeof window === 'undefined') return;
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+  }
+
+  async function saveWarmWorkspace() {
+    setSaving(true);
+    setError('');
+    setNotice('');
+    try {
+      if (!user) {
+        await signIn();
+        return;
+      }
+      const { data } = await supabase.auth.getSession();
+      const token = data?.session?.access_token;
+      if (!token) throw new Error('Sign in once so Passage can save this workspace.');
+      const res = await fetch('/api/warmPathEstate', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          coordinatorEmail: user.email,
+          coordinatorName: form.coordinatorName || user.user_metadata?.full_name || user.email,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Could not save warm-path workspace.');
+      setNotice('Warm-path workspace saved. Opening the command center.');
+      window.setTimeout(() => {
+        window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
+      }, 600);
+    } catch (err) {
+      setError(err.message || 'Could not save warm-path workspace.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia, serif' }}>
       <style>{`
@@ -83,7 +149,8 @@ export default function HospiceWarmPath() {
             grid-template-columns: 1fr !important;
           }
           .warm-task-row,
-          .warm-handoff-row {
+          .warm-handoff-row,
+          .warm-contact-grid {
             grid-template-columns: 1fr !important;
           }
         }
@@ -100,6 +167,7 @@ export default function HospiceWarmPath() {
               Passage keeps the family from starting over at each handoff. Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 22 }}>
+              <a href="#start-warm-workspace" style={primaryLink}>Start warm-path workspace</a>
               <Link href="/urgent" style={primaryLink}>Death has occurred</Link>
               <Link href="/share?dn=Your%20loved%20one&cn=Your%20family" style={secondaryLink}>Prepare family update</Link>
               <Link href="/packet" style={secondaryLink}>View continuity packets</Link>
@@ -118,6 +186,44 @@ export default function HospiceWarmPath() {
               {['Family owns permissions', 'Nothing shares without approval', 'Unknown dates become visible tasks'].map(item => (
                 <div key={item} style={statusRow}>{item}</div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="start-warm-workspace" style={section}>
+        <div className="warm-two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .95fr) minmax(0, 1.05fr)', gap: 16, alignItems: 'stretch' }}>
+          <div style={panel}>
+            <div style={eyebrow}>Saved warm-path workspace</div>
+            <h2 style={h2}>Start with what the family knows now.</h2>
+            <p style={lead}>This creates a real Passage workspace with the first care-preparation tasks. It does not send email or SMS. It keeps unknown dates visible until they are available.</p>
+            <div style={{ display: 'grid', gap: 9, marginTop: 16 }}>
+              {[
+                'Name the family coordinator',
+                'Record hospice/on-call contact',
+                'Prepare the first-hour plan',
+                'Record preferred funeral home or undecided status',
+                'Prepare family update list',
+                'Prepare funeral-home handoff packet',
+              ].map(item => <div key={item} style={statusRow}>{item}</div>)}
+            </div>
+          </div>
+          <div style={panel}>
+            <div style={eyebrow}>Create workspace</div>
+            <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+              <input value={form.lovedOneName} onChange={event => updateField('lovedOneName', event.target.value)} placeholder="Loved one's name" style={inputStyle} />
+              <input value={form.coordinatorName} onChange={event => updateField('coordinatorName', event.target.value)} placeholder="Family coordinator name" style={inputStyle} />
+              <input value={form.hospiceAgency} onChange={event => updateField('hospiceAgency', event.target.value)} placeholder="Hospice agency or care team, if known" style={inputStyle} />
+              <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 10 }}>
+                <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
+                <input value={form.hospicePhone} onChange={event => updateField('hospicePhone', event.target.value)} placeholder="Phone" style={inputStyle} />
+              </div>
+              <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={inputStyle} />
+              <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if the family knows it" style={inputStyle} />
+              {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{error}</div>}
+              {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{notice}</div>}
+              {!user && <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>Sign in once so Passage can save this to your family command center.</div>}
+              <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save warm-path workspace' : 'Sign in and save workspace'}</button>
             </div>
           </div>
         </div>
@@ -239,6 +345,8 @@ const lead = { color: C.mid, fontSize: 16, lineHeight: 1.62, margin: 0 };
 const smallText = { color: C.mid, fontSize: 13.5, lineHeight: 1.52, margin: 0 };
 const primaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 18px', background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 13, fontWeight: 900 };
 const secondaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 18px', background: C.card, color: C.sage, textDecoration: 'none', borderRadius: 13, border: '1px solid #c8deca', fontWeight: 900 };
+const primaryButton = { border: 'none', minHeight: 48, borderRadius: 13, background: C.sage, color: '#fff', padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
+const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 13, background: C.card, minHeight: 48, padding: '0 14px', fontFamily: 'Georgia,serif', fontSize: 15, color: C.ink };
 const statusRow = { background: C.card, border: '1px solid #c8deca', borderRadius: 13, padding: '12px 14px', color: C.sage, fontWeight: 900 };
 const card = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18 };
 const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 22, padding: 24, boxShadow: '0 10px 34px rgba(55,45,35,.04)' };
