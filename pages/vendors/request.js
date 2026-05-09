@@ -90,6 +90,20 @@ export default function VendorRequestPage() {
     }
   }, [token, user, userToken]);
 
+  useEffect(() => {
+    if (!pendingVendorAction || typeof window === 'undefined') return undefined;
+    const previousOverflow = document.body.style.overflow;
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') setPendingVendorAction('');
+    }
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [pendingVendorAction]);
+
   async function load() {
     setLoading(true);
     setError('');
@@ -287,7 +301,7 @@ export default function VendorRequestPage() {
             </div>
             {pendingVendorAction && (
               <div onClick={() => setPendingVendorAction('')} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-                <div role="dialog" aria-modal="true" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+                <div role="dialog" aria-modal="true" aria-label="Respond to vendor request" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                     <div>
                       <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor response</div>

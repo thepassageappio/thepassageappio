@@ -638,7 +638,7 @@ function InlineAssign({ onSave, onClose }) {
   }
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-    <div role="dialog" aria-modal="true" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(680px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SUBTLE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+    <div role="dialog" aria-modal="true" aria-label="Assign estate task" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(680px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SUBTLE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 5 }}>
       <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Assign and prepare handoff</div>
         <button onClick={onClose} aria-label="Close assignment" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 32, height: 32, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
@@ -684,7 +684,7 @@ function InlineProof({ onSave, onClose }) {
   var clean = String(note || '').trim();
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-    <div role="dialog" aria-modal="true" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+    <div role="dialog" aria-modal="true" aria-label="Record estate proof" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 5 }}>
       <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Save proof and close task</div>
         <button onClick={onClose} aria-label="Close proof" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 32, height: 32, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
@@ -2285,6 +2285,24 @@ export default function EstatePage() {
     return function() { sb.removeChannel(channel); };
   }, [estateId]);
 
+  useEffect(function() {
+    if (!pendingTaskAction || typeof window === 'undefined') return undefined;
+    var previousOverflow = document.body.style.overflow;
+    function handleKeyDown(event) {
+      if (event.key !== 'Escape') return;
+      setPendingTaskAction(null);
+      setPendingTaskNote('');
+      setPendingTaskDraftText('');
+      setPendingTaskAttachment(null);
+    }
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return function() {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [pendingTaskAction]);
+
   function showToast(msg) {
     setToast(msg);
     setTimeout(function() { setToast(''); }, 2200);
@@ -3149,7 +3167,7 @@ export default function EstatePage() {
         {pendingTaskAction && (
           <TaskPanelBoundary resetKey={(pendingTaskAction.task?.id || '') + ':' + (pendingTaskAction.status || '') + ':' + (pendingTaskAction.mode || '')} title="Task panel recovered" detail="This task has one field Passage could not display safely.">
           <div onClick={clearPendingTaskAction} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-          <div id="task-update-panel" role="dialog" aria-modal="true" onClick={function(e) { e.stopPropagation(); }} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 18, padding: '20px 22px', boxShadow: '0 24px 80px rgba(0,0,0,.22)' }}>
+          <div id="task-update-panel" role="dialog" aria-modal="true" aria-label="Update estate task" onClick={function(e) { e.stopPropagation(); }} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 18, padding: '20px 22px', boxShadow: '0 24px 80px rgba(0,0,0,.22)' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
               <button onClick={clearPendingTaskAction} aria-label="Close task action" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 34, height: 34, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
             </div>

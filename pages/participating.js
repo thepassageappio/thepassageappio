@@ -196,6 +196,24 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const [proofWarning, setProofWarning] = useState('');
   const [pendingAction, setPendingAction] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const responseDialogOpen = Boolean(pendingAction || detailsOpen);
+  useEffect(() => {
+    if (!responseDialogOpen || typeof window === 'undefined') return undefined;
+    const previousOverflow = document.body.style.overflow;
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setPendingAction('');
+        setDetailsOpen(false);
+        setProofWarning('');
+      }
+    }
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [responseDialogOpen]);
   const noteChange = (value) => {
     onNotes(value);
     setSavedPulse(false);
@@ -209,6 +227,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     setProofWarning('');
     onAction(action);
     setPendingAction('');
+    setDetailsOpen(false);
   };
   const actionLabel = (action) => {
     if (action === 'save_note') return 'Save note';
@@ -255,7 +274,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <button onClick={() => setDetailsOpen(true)} style={{ border: 'none', background: 'transparent', color: C.sage, fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, padding: '9px 0 0', cursor: 'pointer' }}>Open details, proof, and visibility</button>
           {(pendingAction || detailsOpen) && (
             <div onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-              <div role="dialog" aria-modal="true" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+              <div role="dialog" aria-modal="true" aria-label="Respond to assigned task" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em' }}>Task response</div>
