@@ -76,7 +76,7 @@ Run this after any sprint that touches task, communication, proof, demo, or role
 | Step | Route | Persona | Pass condition |
 | --- | --- | --- | --- |
 | 1 | `/hospice` | Warm-path family | Above the fold answers what happens now, who owns it, what is waiting, and how proof will be known. Saving must not send email/SMS. |
-| 2 | `/?dashboard=1` | Family index | User sees one active estate/planning focus without duplicate attention clutter. |
+| 2 | `/?dashboard=1` | Family estate spine | User lands on one selected estate record with a next move, owner/waiting/proof signal, and an estate switcher only when multiple records exist. |
 | 3 | `/estate` | Family command center | Selected task shows next move, owner, waiting state, proof destination, output, and one primary workspace action. |
 | 4 | `/funeral-home/dashboard` | Director | Dashboard shows active cases, waiting responses, staff/workload signal, calls avoided, next case focus, and export trust. |
 | 5 | `/funeral-home/dashboard?demoStep=task` | Staff/operator | One task can be advanced through request family info, waiting, or proof without stacked panels. |
@@ -102,4 +102,4 @@ Run this after any sprint that touches task, communication, proof, demo, or role
 2. Warm -> red activation: convert a warm-path workspace into urgent/red mode without rebuilding the family record.
 3. Family event broadcast: make the event one-pager and recipient batch accessible from estate/funeral-home task work, with no live sends.
 4. Demo rail hardening: each step should open and scroll to the exact product moment, with visible confirmation when actions are demo-only.
-5. Mobile density pass: estate task spine and funeral-home case work should keep one pane active instead of stacking every support detail.
+5. Mobile density pass: estate operating spine, estate switcher, and funeral-home case work should keep one pane active instead of stacking every support detail.

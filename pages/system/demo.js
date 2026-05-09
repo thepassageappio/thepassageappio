@@ -246,7 +246,7 @@ const ecosystemPaths = [
   },
   {
     title: 'Family command center',
-    body: 'One next task, proof capture, people, messages, events, exports, and a readable activity trail.',
+    body: 'Estate operating spine first: one selected family record, one next move, proof destination, and an estate switcher when there are multiple records.',
     label: 'Open estate spine',
     href: '/?dashboard=1',
   },
@@ -281,6 +281,7 @@ const readinessChecks = [
   'System-admin nav rolls demo, vendor approval, vendor QA, reporting, and support intake under one Passage-only command center.',
   'Guided coach stays in dummy demo data and does not depend on real estates.',
   'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language and task authority guidance.',
+  'The family dashboard opens as an estate operating spine, not a detached index or portfolio dashboard.',
   'Import mapping, preview, case-summary export, and full-spine export remain the adoption-trust close.',
   'Demo notification states stay exact: prepared, requested, copied, failed, delivered, and sent are not interchangeable.',
 ];
