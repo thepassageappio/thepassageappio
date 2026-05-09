@@ -4692,8 +4692,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <style>{`
-        .home-shell { max-width: 1120px; margin: 0 auto; padding: 34px 28px 70px; }
-        .home-hero { min-height: calc(100vh - 174px); display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(340px, .78fr); gap: 44px; align-items: center; }
+        .home-shell { max-width: 1120px; margin: 0 auto; padding: 26px 28px 58px; }
+        .home-hero { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(340px, .78fr); gap: 44px; align-items: center; padding: 18px 0 34px; }
         .home-kicker { color:${C.sage}; font-size:11px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:14px; }
         .home-title { font-family: Georgia, serif; font-size: clamp(44px, 6vw, 76px); line-height: .98; color:${C.ink}; margin:0 0 18px; font-weight:400; letter-spacing:0; }
         .home-lede { color:${C.mid}; font-size:18px; line-height:1.62; max-width:660px; margin:0; }
@@ -4712,7 +4712,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-num { width:30px; height:30px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:${C.sageFaint}; color:${C.sageDark}; font-size:13px; font-weight:900; }
         .home-step b { display:block; color:${C.ink}; font-size:16px; margin-bottom:4px; }
         .home-step span { display:block; color:${C.mid}; font-size:13.5px; line-height:1.5; }
-        .home-band { border-top:1px solid ${C.border}; padding:38px 0 0; margin-top:22px; }
+        .home-band { border-top:1px solid ${C.border}; padding:28px 0 0; margin-top:0; }
         .home-band-grid { display:grid; grid-template-columns:minmax(0,.82fr) minmax(0,1fr); gap:36px; align-items:start; }
         .home-band h2 { font-family:Georgia,serif; font-size:clamp(30px,3.8vw,46px); line-height:1.04; margin:0 0 12px; color:${C.ink}; font-weight:400; }
         .home-band p { color:${C.mid}; font-size:15.5px; line-height:1.65; margin:0; }
@@ -4721,7 +4721,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-line-label { color:${C.sageDark}; font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; }
         .home-line-title { color:${C.ink}; font-size:19px; line-height:1.18; margin-bottom:5px; }
         .home-line-body { color:${C.mid}; font-size:13.5px; line-height:1.55; }
-        .partner-strip { margin-top:38px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:22px; padding:24px 26px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:22px; align-items:center; }
+        .partner-strip { margin-top:30px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:22px; padding:24px 26px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:22px; align-items:center; }
         .partner-strip h2 { font-family:Georgia,serif; font-size:clamp(26px,3vw,36px); line-height:1.08; margin:0 0 8px; color:${C.ink}; font-weight:400; }
         .partner-strip p { color:${C.mid}; font-size:14.5px; line-height:1.6; margin:0; max-width:700px; }
         @media (max-width: 720px) {

@@ -45,16 +45,22 @@ export default function PricingPage() {
 
   useEffect(() => {
     setParticipantDiscount(new URLSearchParams(window.location.search).get('participant') === '1');
+    if (!supabase?.auth) return undefined;
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user || null));
     return () => sub.subscription.unsubscribe();
   }, []);
 
   async function signIn() {
+    if (!supabase?.auth) {
+      setMessage('Sign-in is not configured in this environment.');
+      return;
+    }
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/pricing${participantDiscount ? '?participant=1' : ''}` } });
   }
 
   async function signOut() {
+    if (!supabase?.auth) return;
     await supabase.auth.signOut();
     setUser(null);
     setMessage('');
@@ -63,6 +69,10 @@ export default function PricingPage() {
 
   async function checkout(planId) {
     setSelectedPlan(planId);
+    if (!supabase?.auth) {
+      setMessage('Sign-in is not configured in this environment.');
+      return;
+    }
     if (!user) {
       setMessage(planId === 'urgent' ? 'Sign in once so Passage can open the urgent command center for you.' : 'Sign in once so Passage can attach the plan to your estate workspace.');
       return;

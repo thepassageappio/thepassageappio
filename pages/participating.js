@@ -195,6 +195,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const [savedPulse, setSavedPulse] = useState(false);
   const [proofWarning, setProofWarning] = useState('');
   const [pendingAction, setPendingAction] = useState('');
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const noteChange = (value) => {
     onNotes(value);
     setSavedPulse(false);
@@ -230,14 +231,14 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <strong style={{ color: C.ink }}>Your scope:</strong> one assigned responsibility. {estate?.coordinator_name || 'The coordinator'} sees your update; the broader estate stays private.
         </div>
       )}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px', marginBottom: 9 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
-          <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em' }}>{contract.label}</div>
-          <div style={{ fontSize: 11, color: C.mid, fontWeight: 800 }}>{statusLabel(itemStatus(item))}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(160px, .8fr)', gap: 8, marginBottom: 9 }}>
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
+          <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{contract.label}</div>
+          <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.38, fontWeight: 800, marginTop: 3 }}>{contract.action}</div>
         </div>
-        <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.42, fontWeight: 800 }}>{contract.action}</div>
-        <div style={{ background: statusBg, borderLeft: `4px solid ${statusTone}`, borderRadius: 10, padding: '7px 9px', fontSize: 12, color: C.mid, lineHeight: 1.35, marginTop: 7 }}>
-          <strong style={{ color: C.ink }}>Next expected update:</strong> {expectedUpdate}
+        <div style={{ background: statusBg, border: `1px solid ${statusTone}33`, borderRadius: 12, padding: '9px 10px' }}>
+          <div style={{ fontSize: 10, color: statusTone, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting point</div>
+          <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.38, marginTop: 3 }}>{expectedUpdate}</div>
         </div>
       </div>
       {!handled && (
@@ -251,43 +252,48 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
             <button onClick={() => setPendingAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2 }}>I need help</button>
             <button onClick={() => setPendingAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2 }}>Can't handle</button>
           </div>
-          <details style={{ borderTop: `1px solid ${C.border}`, marginTop: 10, paddingTop: 9 }}>
-            <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 12.2, fontWeight: 900 }}>Details, proof, and visibility</summary>
-            <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 8 }}>
-              <strong style={{ color: C.ink }}>Proof:</strong> {workspace.proofDestination}<br />
-              <strong style={{ color: C.ink }}>Output/request:</strong> {workspace.output.label}. {workspace.output.body}<br />
-              {workspace.guidance?.why && <><strong style={{ color: C.ink }}>Why this matters:</strong> {workspace.guidance.why}<br /></>}
-              <strong style={{ color: C.ink }}>Visibility:</strong> you only see this responsibility; the coordinator sees the update in the family record.
-              {itemDescription(item) && <div style={{ marginTop: 6 }}>{itemDescription(item)}</div>}
-            </div>
-          </details>
-          {pendingAction && (
-            <div onClick={() => { setPendingAction(''); setProofWarning(''); }} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+          <button onClick={() => setDetailsOpen(true)} style={{ border: 'none', background: 'transparent', color: C.sage, fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, padding: '9px 0 0', cursor: 'pointer' }}>Open details, proof, and visibility</button>
+          {(pendingAction || detailsOpen) && (
+            <div onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
               <div role="dialog" aria-modal="true" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em' }}>Task response</div>
-                    <div style={{ fontSize: 21, color: C.ink, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>{actionLabel(pendingAction)}</div>
+                    <div style={{ fontSize: 21, color: C.ink, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>{pendingAction ? actionLabel(pendingAction) : itemTitle(item)}</div>
                   </div>
-                  <button onClick={() => { setPendingAction(''); setProofWarning(''); }} aria-label="Close response" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
+                  <button onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} aria-label="Close response" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                 </div>
-                <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder={taskActionPlaceholder(pendingAction === 'save_note' ? 'handled' : pendingAction, item, 'participant') || 'Add proof, what is waiting, or what help you need'} style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 112 : 92, marginTop: 12, padding: '10px 11px', borderRadius: 11, border: `1px solid ${proofWarning ? C.rose : C.border}`, background: C.bg, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
-                <div style={{ fontSize: 11.5, color: proofWarning ? C.rose : C.soft, fontWeight: proofWarning ? 800 : 400, marginTop: 6 }}>
-                  {proofWarning || 'This update goes back to the coordinator and stays attached to the family record.'}
+                <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+                  <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: 11, color: C.mid, fontSize: 12.5, lineHeight: 1.48 }}>
+                    <strong style={{ color: C.ink }}>Proof:</strong> {workspace.proofDestination}<br />
+                    <strong style={{ color: C.ink }}>Output/request:</strong> {workspace.output.label}. {workspace.output.body}<br />
+                    {workspace.guidance?.why && <><strong style={{ color: C.ink }}>Why this matters:</strong> {workspace.guidance.why}<br /></>}
+                    <strong style={{ color: C.ink }}>Visibility:</strong> you only see this responsibility; the coordinator sees the update in the family record.
+                    {itemDescription(item) && <div style={{ marginTop: 6 }}>{itemDescription(item)}</div>}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                  <button onClick={() => {
-                    if (pendingAction === 'save_note') {
-                      onAction('save_note');
-                      setSavedPulse(true);
-                      setPendingAction('');
-                      setTimeout(() => setSavedPulse(false), 1800);
-                      return;
-                    }
-                    submitAction(pendingAction);
-                  }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 900 }}>Send update</button>
-                  <button onClick={() => { setPendingAction(''); setProofWarning(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Cancel</button>
-                </div>
+                {pendingAction && (
+                  <>
+                    <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder={taskActionPlaceholder(pendingAction === 'save_note' ? 'handled' : pendingAction, item, 'participant') || 'Add proof, what is waiting, or what help you need'} style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 112 : 92, marginTop: 12, padding: '10px 11px', borderRadius: 11, border: `1px solid ${proofWarning ? C.rose : C.border}`, background: C.bg, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
+                    <div style={{ fontSize: 11.5, color: proofWarning ? C.rose : C.soft, fontWeight: proofWarning ? 800 : 400, marginTop: 6 }}>
+                      {proofWarning || 'This update goes back to the coordinator and stays attached to the family record.'}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                      <button onClick={() => {
+                        if (pendingAction === 'save_note') {
+                          onAction('save_note');
+                          setSavedPulse(true);
+                          setPendingAction('');
+                          setDetailsOpen(false);
+                          setTimeout(() => setSavedPulse(false), 1800);
+                          return;
+                        }
+                        submitAction(pendingAction);
+                      }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 900 }}>Send update</button>
+                      <button onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Cancel</button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

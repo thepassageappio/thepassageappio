@@ -86,6 +86,7 @@ export default function SystemAdminPage() {
   const [metrics, setMetrics] = useState(null);
   const [metricsError, setMetricsError] = useState('');
   const [metricsLoading, setMetricsLoading] = useState(false);
+  const [adminView, setAdminView] = useState('operations');
 
   useEffect(() => {
     if (!supabase) {
@@ -188,7 +189,30 @@ export default function SystemAdminPage() {
 
         {!loading && admin && (
           <>
-            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14, marginTop: 22 }}>
+            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginTop: 20, alignItems: 'stretch' }}>
+              <Panel compact>
+                <div style={eyebrow}>Today</div>
+                <h2 style={h2}>Route the work. Keep the proof.</h2>
+                <p style={lead}>System admin should be a control room: demos, vendor approval, support intake, metrics export, and trust review. Not another dashboard wall.</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
+                  {[
+                    ['operations', 'Operations'],
+                    ['metrics', 'Metrics'],
+                    ['trust', 'Trust'],
+                  ].map(([key, label]) => (
+                    <button key={key} onClick={() => setAdminView(key)} style={adminView === key ? selectedTab : tabButton}>{label}</button>
+                  ))}
+                </div>
+              </Panel>
+              <Panel compact tone="sage">
+                <div style={eyebrow}>Data honesty</div>
+                <h2 style={h2}>No fake dashboards.</h2>
+                <p style={lead}>Internal numbers stay labeled as real, estimated, demo-only, or unavailable. Export the source before pretending it is insight.</p>
+              </Panel>
+            </section>
+
+            {adminView === 'operations' && (
+            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12, marginTop: 16 }}>
               {adminModules.map((module) => (
                 <Link key={module.title} href={module.href} style={{ ...cardLink, opacity: module.status === 'Planned' || module.status === 'Roadmap' ? .78 : 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
@@ -199,18 +223,24 @@ export default function SystemAdminPage() {
                 </Link>
               ))}
             </section>
+            )}
 
-            <section id="business-health" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(280px, .9fr)', gap: 18, marginTop: 22, alignItems: 'start' }}>
-              <Panel>
+            {adminView === 'metrics' && (
+            <section id="business-health" style={{ marginTop: 16 }}>
+              <Panel compact>
                 <div style={eyebrow}>Business health dashboard</div>
-                <h2 style={h2}>Internal metrics spine.</h2>
-                <p style={lead}>This will act as the rough CRM and operating console until Passage grows into a dedicated reporting stack. Every metric needs a raw CSV export and a source-table label.</p>
-                <button onClick={downloadMetricsCsv} style={primaryButton}>Export raw metrics CSV</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'start', flexWrap: 'wrap' }}>
+                  <div>
+                    <h2 style={h2}>Internal metrics spine.</h2>
+                    <p style={lead}>Show only the operating truth first. Raw CSV remains the source of record.</p>
+                  </div>
+                  <button onClick={downloadMetricsCsv} style={{ ...primaryButton, marginTop: 0 }}>Export raw metrics CSV</button>
+                </div>
                 {metricsLoading && <div style={{ ...smallText, marginTop: 12 }}>Loading live metrics...</div>}
                 {metricsError && <div style={{ ...smallText, marginTop: 12, color: C.rose }}>{metricsError}</div>}
                 {metrics?.metrics?.length > 0 ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 9, marginTop: 14 }}>
-                    {metrics.metrics.map((item) => (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 9, marginTop: 14 }}>
+                    {metrics.metrics.slice(0, 8).map((item) => (
                       <div key={item.label} style={item.status === 'real' ? metricCard : unavailableMetricCard}>
                         <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: item.status === 'real' ? C.sage : C.amber, marginBottom: 5 }}>{item.status}</div>
                         <div style={{ fontSize: 24, lineHeight: 1.05 }}>{item.value == null ? 'N/A' : item.value}</div>
@@ -220,8 +250,8 @@ export default function SystemAdminPage() {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 9, marginTop: 14 }}>
-                    {reportingMetrics.map((metric) => <div key={metric} style={metricCard}>{metric}</div>)}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 9, marginTop: 14 }}>
+                    {reportingMetrics.slice(0, 8).map((metric) => <div key={metric} style={metricCard}>{metric}</div>)}
                   </div>
                 )}
                 {metrics?.leads && (
@@ -245,15 +275,12 @@ export default function SystemAdminPage() {
                   </div>
                 )}
               </Panel>
-              <Panel>
-                <div style={eyebrow}>Data honesty</div>
-                <h2 style={h2}>No fake dashboards.</h2>
-                <p style={lead}>Internal numbers must be labeled as real, estimated, demo-only, or unavailable. ARR/MRR/churn should not appear as real until subscriptions and accounts are writing correctly.</p>
-              </Panel>
             </section>
+            )}
 
-            <section id="trust-layer" style={{ marginTop: 22 }}>
-              <Panel>
+            {adminView === 'trust' && (
+            <section id="trust-layer" style={{ marginTop: 16 }}>
+              <Panel compact>
                 <div style={eyebrow}>FAQ, support, terms, and privacy</div>
                 <h2 style={h2}>Public trust layer is queued behind owner/legal review.</h2>
                 <p style={lead}>The FAQ should explain vendor applications, support requests, feature requests, bug reports, billing disputes, urgent-path limits, and data ownership. Terms and Privacy need owner/counsel approval before production legal claims change.</p>
@@ -266,6 +293,7 @@ export default function SystemAdminPage() {
                 </div>
               </Panel>
             </section>
+            )}
           </>
         )}
       </section>
@@ -274,8 +302,8 @@ export default function SystemAdminPage() {
   );
 }
 
-function Panel({ children }) {
-  return <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.05)', marginTop: 18 }}>{children}</div>;
+function Panel({ children, compact = false, tone = 'default' }) {
+  return <div style={{ background: tone === 'sage' ? C.sageFaint : C.card, border: '1px solid ' + (tone === 'sage' ? '#c8deca' : C.border), borderRadius: 18, padding: compact ? 18 : 22, boxShadow: '0 4px 20px rgba(0,0,0,.04)', marginTop: compact ? 0 : 18 }}>{children}</div>;
 }
 
 function MetricRow({ label, value }) {
@@ -295,7 +323,9 @@ const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth:
 const smallText = { color: C.mid, fontSize: 14, lineHeight: 1.5, marginTop: 8 };
 const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', marginTop: 16 };
 const secondaryLink = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, display: 'inline-flex', alignItems: 'center', textDecoration: 'none', marginTop: 16 };
-const cardLink = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, color: C.ink, textDecoration: 'none', boxShadow: '0 4px 20px rgba(0,0,0,.04)' };
+const cardLink = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16, color: C.ink, textDecoration: 'none', boxShadow: '0 4px 20px rgba(0,0,0,.035)' };
+const tabButton = { border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, minHeight: 38, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
+const selectedTab = { ...tabButton, border: '1px solid ' + C.sage, background: C.sage, color: '#fff' };
 const livePill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' };
 const plannedPill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' };
 const metricCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.sage, fontWeight: 900, fontSize: 14 };
