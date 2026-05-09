@@ -1,28 +1,31 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
-import { recordStatusEvent } from '../../lib/taskStatus';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  : null;
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
 async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail, provider, providerMessageId, providerEventId }) {
   if (!workflowId) return { recorded: false };
-  return recordStatusEvent({
-    workflowId,
-    taskId,
-    actionId,
-    status,
-    actor,
-    channel,
-    recipient,
-    detail,
-    provider,
-    providerMessageId,
-    providerEventId,
-  });
+  try {
+    const { recordStatusEvent } = await import('../../lib/taskStatus');
+    return recordStatusEvent({
+      workflowId,
+      taskId,
+      actionId,
+      status,
+      actor,
+      channel,
+      recipient,
+      detail,
+      provider,
+      providerMessageId,
+      providerEventId,
+    });
+  } catch (_err) {
+    return { recorded: false };
+  }
 }
 
 async function sendFallbackEmail({ toEmail, toName, taskTitle, workflowId, taskId, actionId, deceasedName, coordinatorName, actionType, messageText, confirmUrl, triggerToken, reason }) {
@@ -100,6 +103,36 @@ export default async function handler(req, res) {
 
   const { to, toName, toEmail, recipientEmail, taskTitle, taskId, actionId, deceasedName, coordinatorName, workflowId, actionType, events, messageText, confirmUrl, triggerToken } = req.body;
   if (!to) return res.status(400).json({ error: 'Missing phone number' });
+
+  const dryRun = req.body?.dryRun === true || req.body?.dryRun === '1' || req.query?.dryRun === '1';
+  if (dryRun) {
+    const phone = to.startsWith('+') ? to : '+1' + to.replace(/\D/g, '');
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+    const estateId = workflowId ? encodeURIComponent(workflowId) : '';
+    const taskRef = taskId ? '&task=' + encodeURIComponent(taskId) : '';
+    const detailUrl = workflowId
+      ? (actionType === 'trigger'
+        ? siteUrl + '/estate?id=' + estateId
+        : siteUrl + '/participating?estate=' + estateId + taskRef)
+      : siteUrl + '/participating';
+    const preview = messageText || (
+      actionType === 'invite'
+        ? 'Passage: You are a confirmation contact. Please check your secure Passage link.'
+        : actionType === 'trigger'
+          ? 'Passage: estate plan active. View details: ' + detailUrl
+          : 'Passage: ' + (coordinatorName || 'the family') + ' asked you to help with ' + (taskTitle || 'an estate task') + '. Open: ' + detailUrl
+    );
+    return res.status(200).json({
+      success: true,
+      dryRun: true,
+      skipped: true,
+      channel: 'sms',
+      recipient: phone,
+      messagePreview: String(preview).replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim().slice(0, 240),
+      actionType: actionType || 'assignment',
+      message: 'Dry run only. No SMS was sent, no provider was called, no fallback email was sent, and no production record was changed.',
+    });
+  }
 
   const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
   const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;

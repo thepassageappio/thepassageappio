@@ -2,10 +2,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  : null;
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const SITE_ORIGIN = (() => {
@@ -36,7 +35,7 @@ function safeSameOriginUrl(value) {
 }
 
 async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail, provider, providerMessageId, providerEventId }) {
-  if (!workflowId) return;
+  if (!workflowId || !supabase) return;
   const now = new Date().toISOString();
   const taskUpdates = {
     status,
@@ -98,6 +97,24 @@ export default async function handler(req, res) {
   } = req.body;
 
   if (!to) return res.status(400).json({ error: 'Missing recipient' });
+
+  const dryRun = req.body?.dryRun === true || req.body?.dryRun === '1' || req.query?.dryRun === '1';
+  const previewSubject = subject ||
+    (actionType === 'trigger' ? (deceasedName || 'your loved one') + "'s estate plan has been activated" :
+     actionType === 'invite' ? 'You have been designated as a confirmation contact' :
+    'You have been asked to help - ' + (deceasedName || 'your loved one'));
+  if (dryRun) {
+    return res.status(200).json({
+      success: true,
+      dryRun: true,
+      skipped: true,
+      channel: 'email',
+      recipient: to,
+      subject: previewSubject,
+      actionType: actionType || 'assignment',
+      message: 'Dry run only. No email was sent, no provider was called, and no production record was changed.',
+    });
+  }
 
   const KEY = process.env.RESEND_API_KEY;
   if (!KEY) return res.status(200).json({ success: true, skipped: true });

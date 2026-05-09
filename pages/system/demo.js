@@ -286,12 +286,14 @@ const readinessChecks = [
   'First-day launch rails exist for family, funeral-home partner, employee, vendor, participant, and future hospice/assisted-care setup patterns.',
   'Import mapping, preview, case-summary export, and full-spine export remain the adoption-trust close.',
   'Demo notification states stay exact: prepared, requested, copied, failed, delivered, and sent are not interchangeable.',
+  'Email and SMS delivery APIs support authenticated dry runs for QA. Dry run means no provider call, no fallback send, and no production record change.',
 ];
 
 const productionReadiness = [
   ['Mission lock', 'Strong', 'Passage is now the family continuity and orchestration layer across green, warm, red, funeral-home, vendor, announcement, participant, and aftercare surfaces.'],
   ['Orchestration believability', 'Medium-high', 'The demo now has the spine: owner, request, waiting, proof, output, lifecycle state, and reporting. Keep tightening until every task feels authoritative.'],
   ['Funeral-home founder-led sales', 'Ready', 'Pitch and demo the coordination layer now: first-day setup, import/create, assign owner, record proof, and export back out. Founder should guide onboarding.'],
+  ['Notification QA', 'Dry-run ready', 'Email/SMS endpoints can be exercised without contacting a real recipient or changing production records. Live sends still require explicit controlled approval.'],
   ['Hospice discovery', 'Ready for conversations', 'Pitch the upstream family coordination bridge, not hospice software. Use discovery to validate care-team setup, family communication, and funeral-home handoff.'],
   ['Unassisted paid rollout', 'Not yet', 'Needs delivery monitoring, support operations, more task outputs, billing/admin cleanup, and messy real CSV import QA before self-serve live usage.'],
 ];
