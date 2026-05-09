@@ -402,6 +402,16 @@ function taskWorkspaceSaveLabel(mode) {
   return 'Save task update';
 }
 
+function taskActionPrimaryLabel(action) {
+  if (!action) return 'Save task update';
+  if (action.status === 'choose') return 'Save owner';
+  if (action.status === 'handled') return 'Mark done and save proof';
+  if (action.status === 'waiting') return 'Save waiting update';
+  if (action.status === 'blocked') return 'Save help request';
+  if (action.mode) return taskWorkspaceSaveLabel(action.mode);
+  return taskActionCopy(action.status).save;
+}
+
 function taskWorkspaceProofLabel(mode) {
   if (mode === 'obituary') return 'Obituary draft';
   if (mode === 'message') return 'Message draft';
@@ -3045,9 +3055,14 @@ export default function EstatePage() {
               var promptText = textValue(pendingTaskAction.prompt || copy.prompt, 'Record what happened, who owns it, and what proof should be saved.');
               return (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this task' : 'Save this update'}</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this task' : pendingTaskAction.status === 'handled' ? 'Mark done and save proof' : 'Save this update'}</div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{displayTaskTitle(pendingTaskAction.task)}</div>
                   <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{promptText}</div>
+                  {pendingTaskAction.status === 'handled' && (
+                    <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '9px 10px', color: SAGE, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45, marginTop: 10 }}>
+                      This closes the task. Add the proof, reference, file, or short note the family should be able to trust later.
+                    </div>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 12 }}>
                     <div style={{ background: assignedEmailForSpine ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (assignedEmailForSpine ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 12, padding: '9px 10px' }}>
                       <div style={{ fontSize: 10.5, fontWeight: 900, color: assignedEmailForSpine ? SAGE : AMBER, letterSpacing: '.11em', textTransform: 'uppercase' }}>1. Owner</div>
@@ -3292,7 +3307,7 @@ export default function EstatePage() {
                   updateTaskFromCommand(pendingTaskAction.task, pendingTaskAction.status, detailForSave, textValue(pendingTaskAction.prompt, ''), noteForSave);
                 }}
                 style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>
-                {pendingTaskAction.status === 'choose' ? 'Save owner' : pendingTaskAction.mode ? taskWorkspaceSaveLabel(pendingTaskAction.mode) : taskActionCopy(pendingTaskAction.status).save}
+                {taskActionPrimaryLabel(pendingTaskAction)}
               </button>
               <button
                 onClick={function() {
