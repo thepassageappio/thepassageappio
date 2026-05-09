@@ -1,35 +1,43 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseBrowser';
-import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
+import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 
-const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#9a9288', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#eef5ef', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#a97832', amberFaint: '#fbf5e8' };
+const C = {
+  bg: '#f6f3ee',
+  card: '#fffdf9',
+  ink: '#1a1916',
+  mid: '#6a6560',
+  soft: '#9a9288',
+  border: '#e4ddd4',
+  sage: '#6b8f71',
+  sageDark: '#4a6e50',
+  sageFaint: '#eef5ef',
+  sageLight: '#c8deca',
+  rose: '#c47a7a',
+  roseFaint: '#fdf3f3',
+  amber: '#a97832',
+  amberFaint: '#fbf5e8',
+};
 
-const needs = [
-  ['Fewer repeated calls', 'Immediate operational relief.', 'Families can see what is waiting, who owns it, and what your staff already handled.'],
-  ['Cleaner first intake', 'Better facts before the arrangement meeting.', 'A family can arrive with the funeral prep summary instead of scattered notes and missing details.'],
-  ['Act on behalf', 'Visible help without taking over the family.', 'Directors can mark partner-ready work in progress, request family info, or close it with a visible audit trail.'],
-  ['Better handoffs', 'One case story for every staff handoff.', 'Staff see the case story: service details, family contact, proof, waiting items, and blocked tasks.'],
+const operatingLoop = [
+  ['Create or import', 'Start with the family contact, case reference, location, and service context.'],
+  ['Assign ownership', 'Directors, staff, participants, vendors, and family helpers each see the work meant for them.'],
+  ['Move one task', 'Every item has a next action, waiting state, proof request, and visible owner.'],
+  ['Export the record', 'Case data, proof, dates, and tasks can leave Passage when the work needs to move.'],
 ];
 
-const workflow = [
-  ['Create case', 'Add an at-need, pre-need, or prepaid case with the family contact and service reference.'],
-  ['Guide family', 'Share the family command center or use it during arrangement calls.'],
-  ['Move work', 'Handle certificates, service details, obituary review, cemetery, and provider coordination.'],
-  ['Show proof', 'Families see sent, waiting, confirmed, handled, and needs-family-info states.'],
-];
-
-const stackFit = [
-  ['Keep your case system', 'Passage does not replace Passare, Gather, SRS, Tribute, QuickBooks, websites, forms, contracts, or compliance records.'],
-  ['Bring case data in', 'Use CSV import now for family contacts, case references, service dates, and known event timing. Adapter mappings can follow pilot feedback.'],
-  ['Coordinate the humans', 'Family replies, staff ownership, participant requests, vendor updates, and proof stay tied to the case task.'],
-  ['Export when needed', 'The funeral home keeps data portability and can move cases, tasks, messages, vendors, proof, and lifecycle dates back into trusted systems.'],
+const metrics = [
+  ['Waiting items', 'What needs family, staff, or partner response'],
+  ['Calls avoided', 'Repeated status calls reduced by visible state'],
+  ['Staff queue', 'Each employee sees the work they own'],
+  ['Proof trail', 'Sent, waiting, confirmed, handled, and exported'],
 ];
 
 const tiers = [
-  ['Pilot', '$99.99/mo', 'For one location testing Passage with real cases.', '10 active cases, co-branded family view, partner dashboard'],
-  ['Local', '$249.99/mo', 'For a busy independent home.', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
-  ['Group', '$349.99/mo', 'For multi-location teams.', 'Locations, reporting, lead capture, priority onboarding'],
+  ['Pilot', '$99.99/mo', '$0 for 3 months', '10 active cases, co-branded family view, partner dashboard'],
+  ['Local', '$249.99/mo', '', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
+  ['Group', '$349.99/mo', '', 'Locations, reporting, lead capture, priority onboarding'],
 ];
 
 function planForTier(index) {
@@ -44,17 +52,11 @@ export default function FuneralHomePage() {
   const [user, setUser] = useState(null);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
-  const [activeNeed, setActiveNeed] = useState(0);
 
   useEffect(() => {
     if (!supabase?.auth) return;
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user || null));
   }, []);
-
-  async function signIn() {
-    if (!supabase?.auth) return;
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/funeral-home/dashboard' } });
-  }
 
   async function signOut() {
     if (!supabase?.auth) return;
@@ -91,132 +93,170 @@ export default function FuneralHomePage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
+    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
+      <style>{`
+        .fh-shell, .fh-shell * { box-sizing:border-box; }
+        .fh-shell { max-width:1120px; margin:0 auto; padding:26px 28px 70px; }
+        .fh-hero { min-height:calc(100vh - 180px); display:grid; grid-template-columns:minmax(0,1.02fr) minmax(340px,.72fr); gap:42px; align-items:center; }
+        .fh-kicker { color:${C.sage}; font-size:11px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:14px; }
+        .fh-title { font-size:clamp(44px,5.8vw,74px); line-height:.98; margin:0 0 18px; font-weight:400; letter-spacing:0; }
+        .fh-lede { color:${C.mid}; font-size:18px; line-height:1.62; max-width:680px; margin:0; }
+        .fh-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:28px; }
+        .fh-button { min-height:54px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; padding:0 20px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; }
+        .fh-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
+        .fh-secondary { background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
+        .fh-note { color:${C.soft}; font-size:13px; line-height:1.55; margin-top:14px; }
+        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:24px; padding:24px; box-shadow:0 22px 70px rgba(55,45,35,.08); }
+        .fh-panel h2 { font-size:30px; line-height:1.08; margin:0 0 14px; font-weight:400; }
+        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:18px; padding:16px; margin-bottom:12px; }
+        .fh-case-title { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:12px; }
+        .fh-case-title b { font-size:19px; line-height:1.18; }
+        .fh-pill { border-radius:999px; padding:5px 9px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:11px; font-weight:900; white-space:nowrap; }
+        .fh-row { display:grid; grid-template-columns:118px minmax(0,1fr); gap:12px; padding:10px 0; border-top:1px solid ${C.sageLight}; }
+        .fh-row-label { color:${C.sageDark}; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:900; }
+        .fh-row-value { color:${C.mid}; font-size:13.5px; line-height:1.45; }
+        .fh-band { border-top:1px solid ${C.border}; padding-top:38px; margin-top:24px; }
+        .fh-band-grid { display:grid; grid-template-columns:minmax(0,.82fr) minmax(0,1fr); gap:38px; align-items:start; }
+        .fh-band h2 { font-size:clamp(31px,3.8vw,46px); line-height:1.04; margin:0 0 12px; font-weight:400; }
+        .fh-band p { color:${C.mid}; font-size:15.5px; line-height:1.65; margin:0; }
+        .fh-loop { display:grid; grid-template-columns:34px minmax(0,1fr); gap:13px; padding:15px 0; border-bottom:1px solid ${C.border}; }
+        .fh-loop:last-child { border-bottom:none; }
+        .fh-num { width:32px; height:32px; border-radius:50%; background:${C.sageFaint}; color:${C.sageDark}; display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; }
+        .fh-loop b { display:block; color:${C.ink}; font-size:18px; margin-bottom:4px; }
+        .fh-loop span { color:${C.mid}; font-size:13.8px; line-height:1.55; }
+        .fh-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:30px; }
+        .fh-metric { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; }
+        .fh-metric b { display:block; color:${C.ink}; font-size:17px; margin-bottom:6px; }
+        .fh-metric span { color:${C.mid}; font-size:13px; line-height:1.48; }
+        .fh-pilot { margin-top:36px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:24px; padding:24px; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.74fr); gap:24px; align-items:center; }
+        .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid ${C.sageLight}; }
+        .fh-plan:last-child { border-bottom:none; }
+        .fh-plan-name { color:${C.ink}; font-size:17px; }
+        .fh-plan-detail { color:${C.mid}; font-size:12.5px; line-height:1.45; margin-top:3px; }
+        @media (max-width:760px) {
+          .fh-shell { padding:18px 18px 54px; }
+          .fh-hero, .fh-band-grid, .fh-pilot { grid-template-columns:1fr; min-height:auto; }
+          .fh-hero { gap:22px; }
+          .fh-actions { flex-direction:column; }
+          .fh-button { width:100%; }
+          .fh-row { grid-template-columns:1fr; gap:4px; }
+          .fh-metrics { grid-template-columns:1fr; }
+        }
+      `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '12px 22px 32px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 12, alignItems: 'stretch', marginBottom: 10 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: '20px 22px' }}>
-            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 9 }}>For funeral homes</div>
-            <h1 style={{ fontSize: 'clamp(31px, 4.1vw, 50px)', lineHeight: .98, margin: '0 0 10px', fontWeight: 400 }}>
-              A quieter family command center for every case.
-            </h1>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.55, maxWidth: 720, margin: '0 0 14px' }}>
-              Passage helps directors reduce phone-tag, collect cleaner family information, and show families what is being handled without adding another complicated system.
+      <section className="fh-shell">
+        <div className="fh-hero">
+          <div>
+            <div className="fh-kicker">For funeral homes</div>
+            <h1 className="fh-title">A calmer family layer on top of the work you already do.</h1>
+            <p className="fh-lede">
+              Passage gives families one shared command center while your team keeps cases moving: fewer repeated calls, clearer owners, visible proof, and clean export back to your existing workflow.
             </p>
-            <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
-              <Link href="/funeral-home/dashboard" style={{ background: C.sage, color: '#fff', borderRadius: 12, padding: '11px 16px', textDecoration: 'none', fontWeight: 900, fontSize: 13 }}>Open partner dashboard</Link>
+            <div className="fh-actions">
+              <Link href="/funeral-home/dashboard" className="fh-button fh-primary">Open partner workspace</Link>
+              <Link href="/contact?category=Funeral%20home%20walkthrough" className="fh-button fh-secondary">Book a pilot walkthrough</Link>
             </div>
-            {error && <div style={{ marginTop: 12, background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
+            <div className="fh-note">Passage does not replace your case system. It coordinates the humans around it.</div>
+            {error && <div style={{ marginTop: 14, background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
           </div>
 
-          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 22, padding: 20, display: 'grid', alignContent: 'center', gap: 9 }}>
-            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Why this fits the job</div>
-            <div style={{ fontSize: 25, lineHeight: 1.08 }}>Families need care. Staff need fewer loose ends.</div>
-            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.52, margin: 0 }}>
-              Funeral service is communication-heavy, staff-constrained, and full of paperwork handoffs. Passage keeps the family-facing work visible without asking directors to become software administrators.
-            </p>
-          </div>
-        </div>
-
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 12, marginBottom: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 12 }}>
-          <div style={{ display: 'grid', gap: 6 }}>
-            {needs.map(([title], index) => (
-              <button key={title} onClick={() => setActiveNeed(index)} style={{ textAlign: 'left', border: `1px solid ${activeNeed === index ? C.sage : C.border}`, background: activeNeed === index ? C.sageFaint : C.bg, borderRadius: 12, padding: '9px 11px', color: activeNeed === index ? C.sage : C.mid, cursor: 'pointer', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900 }}>
-                {title}
-              </button>
-            ))}
-          </div>
-          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: '14px 16px', display: 'grid', alignContent: 'center' }}>
-            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>{needs[activeNeed][0]}</div>
-            <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.25, marginBottom: 4 }}>{needs[activeNeed][1]}</div>
-            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5 }}>{needs[activeNeed][2]}</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 12, marginBottom: 10 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16 }}>
-            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Partner workflow</div>
-            <div style={{ display: 'grid', gap: 9 }}>
-              {workflow.map(([title, body], i) => (
-                <div key={title} style={{ display: 'grid', gridTemplateColumns: '30px minmax(0,1fr)', gap: 10, alignItems: 'start' }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 999, background: C.sageFaint, border: `1px solid ${C.sage}22`, color: C.sage, display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 900 }}>{i + 1}</div>
-                  <div>
-                    <div style={{ fontSize: 16, lineHeight: 1.2 }}>{title}</div>
-                    <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 2 }}>{body}</div>
-                  </div>
-                </div>
-              ))}
+          <div className="fh-panel">
+            <div className="fh-kicker">Monday morning view</div>
+            <h2>What needs attention, without another status call.</h2>
+            <div className="fh-case">
+              <div className="fh-case-title">
+                <b>Price family arrangement</b>
+                <span className="fh-pill">Waiting on family</span>
+              </div>
+              <div className="fh-row">
+                <div className="fh-row-label">Owner</div>
+                <div className="fh-row-value">Maria, arranger</div>
+              </div>
+              <div className="fh-row">
+                <div className="fh-row-label">Next</div>
+                <div className="fh-row-value">Confirm cemetery plot details and approve the family update.</div>
+              </div>
+              <div className="fh-row">
+                <div className="fh-row-label">Proof</div>
+                <div className="fh-row-value">Hospital release saved. Family message prepared. CSV export ready.</div>
+              </div>
             </div>
-          </div>
-
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16 }}>
-            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>How funeral homes pay</div>
-            <div style={{ display: 'grid', gap: 8 }}>
-              {tiers.map(([name, price, body, detail], i) => {
-                const planId = planForTier(i);
-                return (
-                  <div key={name} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'center', background: i === 0 ? C.roseFaint : C.sageFaint, border: `1px solid ${i === 0 ? C.rose : C.sage}22`, borderRadius: 14, padding: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 17 }}>
-                        {name}{' '}
-                        {i === 0 ? (
-                          <>
-                            <span style={{ color: C.soft, fontSize: 13, fontWeight: 900, textDecoration: 'line-through' }}>{price}</span>{' '}
-                            <span style={{ color: C.rose, fontSize: 13, fontWeight: 900 }}>$0 for 3 months</span>
-                          </>
-                        ) : (
-                          <span style={{ color: C.sage, fontSize: 13, fontWeight: 900 }}>{price}</span>
-                        )}
-                      </div>
-                      <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginTop: 2 }}>{body}</div>
-                      <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{detail}</div>
-                    </div>
-                    <Link
-                      href={contactHref(planId)}
-                      onClick={(event) => {
-                        if (!user) return;
-                        event.preventDefault();
-                        startCheckout(planId);
-                      }}
-                      style={{ background: i === 0 ? C.rose : C.sage, color: '#fff', border: 'none', borderRadius: 10, padding: '8px 10px', fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12, textDecoration: 'none' }}>
-                      {busy === planId ? '...' : 'Start'}
-                    </Link>
-                  </div>
-                );
-              })}
+            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55 }}>
+              Directors see the floor. Staff see their queue. Families see only what helps them move through the next step.
             </div>
           </div>
         </div>
 
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 10 }}>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Where Passage fits</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 14, alignItems: 'start' }}>
+        <section className="fh-band">
+          <div className="fh-band-grid">
             <div>
-              <div style={{ fontSize: 24, lineHeight: 1.1 }}>Above the funeral-home stack, not instead of it.</div>
-              <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '8px 0 0' }}>
-                Most homes already have a case system, accounting, website, forms, and vendor tools. The missing layer is the operational truth still living in calls, texts, whiteboards, and staff memory.
+              <div className="fh-kicker">Operating loop</div>
+              <h2>Set up once. Reuse the spine on every case.</h2>
+              <p>
+                Locations, employees, roles, family records, tasks, messages, proof, and reporting all point to the same case story. Passage sits above Passare, Gather, SRS, Tribute, QuickBooks, websites, forms, and contracts.
               </p>
             </div>
-            <div style={{ display: 'grid', gap: 8 }}>
-              {stackFit.map(([title, body]) => (
-                <div key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px' }}>
-                  <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{title}</div>
-                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>{body}</div>
+            <div>
+              {operatingLoop.map(([title, body], index) => (
+                <div className="fh-loop" key={title}>
+                  <span className="fh-num">{index + 1}</span>
+                  <span>
+                    <b>{title}</b>
+                    <span>{body}</span>
+                  </span>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: 22, lineHeight: 1.18 }}>Built to fit your current work.</div>
-            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.58, marginTop: 3 }}>
-              Your staff can import a case list, create a new family workspace, act on behalf of the family, share one status view, and export the record when the work needs to move.
-            </div>
+          <div className="fh-metrics">
+            {metrics.map(([title, body]) => (
+              <div className="fh-metric" key={title}>
+                <b>{title}</b>
+                <span>{body}</span>
+              </div>
+            ))}
           </div>
-          <Link href="/contact" style={{ color: C.sage, border: `1px solid ${C.border}`, background: C.card, borderRadius: 12, padding: '10px 14px', textDecoration: 'none', fontSize: 13, fontWeight: 900 }}>Talk to Passage</Link>
-        </div>
+        </section>
+
+        <section className="fh-pilot">
+          <div>
+            <div className="fh-kicker">Pilot path</div>
+            <h2 style={{ fontSize: 'clamp(28px,3.3vw,40px)', lineHeight: 1.06, margin: '0 0 10px', fontWeight: 400 }}>Start with a few real cases, not a software migration.</h2>
+            <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.65, margin: 0 }}>
+              We help you set up the organization, employees, roles, and first cases. Your staff can create from the UI or import a CSV when the pilot is ready.
+            </p>
+          </div>
+          <div>
+            {tiers.map(([name, price, pilot, detail], index) => {
+              const planId = planForTier(index);
+              return (
+                <div className="fh-plan" key={name}>
+                  <div>
+                    <div className="fh-plan-name">
+                      {name}{' '}
+                      <span style={{ color: index === 0 ? C.rose : C.sageDark, fontSize: 13, fontWeight: 900 }}>
+                        {pilot || price}
+                      </span>
+                      {pilot && <span style={{ color: C.soft, fontSize: 12, textDecoration: 'line-through', marginLeft: 6 }}>{price}</span>}
+                    </div>
+                    <div className="fh-plan-detail">{detail}</div>
+                  </div>
+                  <Link
+                    href={contactHref(planId)}
+                    onClick={(event) => {
+                      if (!user) return;
+                      event.preventDefault();
+                      startCheckout(planId);
+                    }}
+                    style={{ background: index === 0 ? C.rose : C.sage, color: '#fff', borderRadius: 11, padding: '9px 12px', fontWeight: 900, fontSize: 12, textDecoration: 'none' }}
+                  >
+                    {busy === planId ? '...' : 'Start'}
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       </section>
       <SiteFooter />
     </main>

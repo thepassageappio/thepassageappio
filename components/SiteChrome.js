@@ -16,6 +16,7 @@ export const CHROME_COLORS = {
 
 const LINKS = [
   ['Mission', '/mission'],
+  ['Our story', '/story'],
   ['Resources', '/resources'],
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
@@ -147,10 +148,16 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   const router = useRouter();
   const path = router?.pathname || '';
   const dashboardHref = '/?dashboard=1';
-  const estateActive = isActivePath(path, '/estate') || router?.query?.dashboard === '1';
+  const [hydrated, setHydrated] = useState(false);
+  const activePath = hydrated ? path : '';
+  const estateActive = isActivePath(activePath, '/estate') || (hydrated && router?.query?.dashboard === '1');
   const controlled = typeof user !== 'undefined';
   const [localUser, setLocalUser] = useState(null);
   const currentUser = controlled ? user : localUser;
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
     if (controlled || !chromeSupabase) return undefined;
@@ -186,8 +193,8 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   }
 
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
-  const demoTourActive = router?.query?.demoTour === 'funeral-home' && showSystemAdminLinks;
-  const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(path, router?.query?.demoStep)) : null;
+  const demoTourActive = hydrated && router?.query?.demoTour === 'funeral-home' && showSystemAdminLinks;
+  const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(activePath, router?.query?.demoStep)) : null;
   const activeStyle = {
     background: CHROME_COLORS.sage,
     color: '#fff',
@@ -221,9 +228,9 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
       `}</style>
       <Link href="/" onClick={handleHomeClick} style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 26, fontWeight: 700 }}>Passage</Link>
       <div className="passage-nav-wrap" style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(path, href) ? activeStyle : navLink}>{label}</Link>)}
+        {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
-          <Link href="/system/admin" style={(isActivePath(path, '/system') || isActivePath(path, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
+          <Link href="/system/admin" style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
         <Link href={dashboardHref} onClick={handleDashboardClick} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>
         <span style={{ width: 104, display: 'inline-flex', justifyContent: 'flex-end' }}>

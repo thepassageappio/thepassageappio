@@ -4692,159 +4692,131 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <style>{`
+        .home-shell { max-width: 1120px; margin: 0 auto; padding: 34px 28px 70px; }
+        .home-hero { min-height: calc(100vh - 174px); display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(340px, .78fr); gap: 44px; align-items: center; }
+        .home-kicker { color:${C.sage}; font-size:11px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:14px; }
+        .home-title { font-family: Georgia, serif; font-size: clamp(44px, 6vw, 76px); line-height: .98; color:${C.ink}; margin:0 0 18px; font-weight:400; letter-spacing:0; }
+        .home-lede { color:${C.mid}; font-size:18px; line-height:1.62; max-width:660px; margin:0; }
+        .home-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:28px; }
+        .home-action { min-height:54px; border-radius:14px; padding:0 20px; font-family:inherit; font-size:15px; font-weight:900; cursor:pointer; }
+        .home-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
+        .home-secondary { background:${C.bgCard}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
+        .home-tertiary { background:transparent; color:${C.mid}; border:1px solid ${C.border}; }
+        .home-note { color:${C.soft}; font-size:13px; line-height:1.55; margin-top:14px; }
+        .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 22px 70px rgba(55,45,35,.08); padding:24px; }
+        .home-panel-head { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; border-bottom:1px solid ${C.border}; padding-bottom:18px; margin-bottom:18px; }
+        .home-panel-title { font-size:24px; line-height:1.12; color:${C.ink}; margin:0; font-weight:400; }
+        .home-pill { background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; border-radius:999px; padding:6px 10px; font-size:11.5px; font-weight:900; white-space:nowrap; }
+        .home-step { display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; align-items:start; padding:14px 0; border-bottom:1px solid ${C.border}; }
+        .home-step:last-child { border-bottom:none; }
+        .home-num { width:30px; height:30px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:${C.sageFaint}; color:${C.sageDark}; font-size:13px; font-weight:900; }
+        .home-step b { display:block; color:${C.ink}; font-size:16px; margin-bottom:4px; }
+        .home-step span { display:block; color:${C.mid}; font-size:13.5px; line-height:1.5; }
+        .home-band { border-top:1px solid ${C.border}; padding:38px 0 0; margin-top:22px; }
+        .home-band-grid { display:grid; grid-template-columns:minmax(0,.82fr) minmax(0,1fr); gap:36px; align-items:start; }
+        .home-band h2 { font-family:Georgia,serif; font-size:clamp(30px,3.8vw,46px); line-height:1.04; margin:0 0 12px; color:${C.ink}; font-weight:400; }
+        .home-band p { color:${C.mid}; font-size:15.5px; line-height:1.65; margin:0; }
+        .home-line { display:grid; grid-template-columns:128px minmax(0,1fr); gap:16px; padding:16px 0; border-bottom:1px solid ${C.border}; }
+        .home-line:last-child { border-bottom:none; }
+        .home-line-label { color:${C.sageDark}; font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; }
+        .home-line-title { color:${C.ink}; font-size:19px; line-height:1.18; margin-bottom:5px; }
+        .home-line-body { color:${C.mid}; font-size:13.5px; line-height:1.55; }
+        .partner-strip { margin-top:38px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:22px; padding:24px 26px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:22px; align-items:center; }
+        .partner-strip h2 { font-family:Georgia,serif; font-size:clamp(26px,3vw,36px); line-height:1.08; margin:0 0 8px; color:${C.ink}; font-weight:400; }
+        .partner-strip p { color:${C.mid}; font-size:14.5px; line-height:1.6; margin:0; max-width:700px; }
         @media (max-width: 720px) {
-          .home-proof-grid { grid-template-columns: 1fr !important; }
-          .home-spine-preview { grid-template-columns: 1fr !important; }
+          .home-shell { padding: 22px 18px 50px; }
+          .home-hero, .home-band-grid, .partner-strip { grid-template-columns:1fr; }
+          .home-hero { min-height:auto; gap:22px; }
+          .home-actions { flex-direction:column; }
+          .home-action { width:100%; }
+          .home-panel { padding:20px; }
+          .home-panel-head { display:block; }
+          .home-pill { display:inline-flex; margin-top:12px; }
+          .home-line { grid-template-columns:1fr; gap:6px; }
         }
       `}</style>
       <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} onDashboard={onDashboard} />
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '26px 24px 24px', display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .78fr)', gap: 24, alignItems: 'center', opacity: 1, transform: 'none', transition: 'all .7s ease' }}>
-        <div>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 10 }}>One calm place for transition</div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(34px, 4.6vw, 54px)', lineHeight: 1.03, color: C.ink, margin: '0 0 12px', fontWeight: 400 }}>
-            When someone dies, your family needs one clear next step.
-          </h1>
-          <p style={{ fontSize: 15.5, color: C.mid, lineHeight: 1.55, maxWidth: 620, margin: '0 0 16px' }}>
-            Passage helps families see what matters first, who owns it, and what is already handled, without forcing anyone to manage everything while grieving.
-          </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-            <button onClick={() => window.location.href = '/urgent'} style={{ background: C.rose, color: '#fff', border: 'none', borderRadius: 13, padding: '13px 22px', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 196 }}>
-              Someone just passed
-              <span style={{ display: 'block', fontSize: 11.5, opacity: .86, fontWeight: 500, marginTop: 4 }}>Start with what matters now</span>
-            </button>
-            <button onClick={() => window.location.href = '/hospice'} style={{ background: C.sageFaint, color: C.sage, border: `1.5px solid ${C.sageLight}`, borderRadius: 13, padding: '13px 20px', fontSize: 14.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 190 }}>
-              Preparing during care
-              <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 500, marginTop: 4 }}>Hospice or serious illness</span>
-            </button>
-            <button onClick={onPlan} style={{ background: C.bgCard, color: C.ink, border: `1.5px solid ${C.border}`, borderRadius: 13, padding: '13px 22px', fontSize: 14.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 166 }}>
-              Plan ahead
-              <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 500, marginTop: 4 }}>Prepare your family</span>
-            </button>
-          </div>
-          <div style={{ color: C.soft, fontSize: 12.5, lineHeight: 1.6 }}>
-            Free to start. No credit card required.
-          </div>
-        </div>
-
-        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, boxShadow: '0 20px 54px rgba(55,45,35,.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: 'uppercase', letterSpacing: '.14em' }}>First 24 hours</div>
-            <div style={{ fontSize: 11.5, fontWeight: 800, color: C.sage, background: C.sageFaint, borderRadius: 8, padding: '4px 10px' }}>Approval first</div>
-          </div>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: 19, color: C.ink, lineHeight: 1.2, marginBottom: 10 }}>You're on track. Start here.</div>
-          <div style={{ border: `1px solid ${C.rose}30`, background: C.roseFaint, borderRadius: 13, padding: 13, marginBottom: 10 }}>
-            <div style={{ fontSize: 11.5, color: C.rose, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.11em', marginBottom: 7 }}>Start here</div>
-            <div style={{ fontSize: 17, color: C.ink, fontWeight: 800, marginBottom: 6 }}>Funeral arrangements</div>
-            <div style={{ fontSize: 13.5, color: C.mid, lineHeight: 1.55 }}>Choose who will call. Passage prepares the script, text, email, and next step.</div>
-          </div>
-          {['Notify immediate family', 'Secure home, pets, and vehicle'].map(title => (
-            <div key={title} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderTop: `1px solid ${C.border}`, color: C.mid, fontSize: 13.5 }}>
-              <span style={{ minWidth: 0 }}>{title}</span>
-              <span style={{ color: C.soft, flexShrink: 0 }}>Waiting</span>
-            </div>
-          ))}
-          <div style={{ marginTop: 10, padding: '11px 13px', background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 11, fontSize: 12.5, color: C.sage, lineHeight: 1.45 }}>
-            Passage prepares the work. Your family reviews and approves before anything is sent.
-          </div>
-        </div>
-      </section>
-
-      <ProductSpinePreview />
-
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '12px 24px 48px' }}>
-        <div style={{ maxWidth: 720, marginBottom: 18 }}>
-          <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>How Passage works</div>
-          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 3.4vw, 38px)', lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400, color: C.ink }}>One spine before, during, and after.</h2>
-          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.65, margin: 0 }}>Each estate keeps its own people, wishes, documents, tasks, messages, proof, and activity history together so families and partners are not chasing scattered updates.</p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 14 }}>
-          {[
-            { label: 'Before', title: 'Plan before it is needed', body: 'People, wishes, documents, obituary notes, memories, and trusted contacts live inside each estate file.' },
-            { label: 'During care', title: 'Prepare the handoff', body: 'Hospice, caregiver, family coordinator, and funeral-home context stay together before the red path begins.' },
-            { label: 'At death', title: 'One clear task spine', body: 'Every urgent item has an owner, message, proof requirement, waiting state, and audit trail.' },
-            { label: 'After', title: 'Keep the long tail organized', body: 'Benefits, banks, insurance, government, property, and digital accounts stay visible after the service.' },
-          ].map(function(item) {
-            return (
-              <div key={item.label} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
-                <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 8 }}>{item.label}</div>
-                <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, lineHeight: 1.15, color: C.ink, marginBottom: 8 }}>{item.title}</div>
-                <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6 }}>{item.body}</div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 48px' }}>
-        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 18, padding: '24px 26px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, .8fr)', gap: 24, alignItems: 'center', boxShadow: '0 16px 44px rgba(55,45,35,.06)' }}>
+      <div className="home-shell">
+        <section className="home-hero">
           <div>
-            <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>For funeral homes</div>
-            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(30px, 4vw, 44px)', lineHeight: 1.05, margin: '0 0 12px', fontWeight: 400, color: C.ink }}>A quieter family command center for every case.</h2>
-            <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.7, margin: 0 }}>Passage sits on top of the funeral home workflow: create a case, guide the family, delegate tasks, act on behalf, show proof, and export the data back out.</p>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-              <a href="/funeral-home" style={{ background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>See funeral-home workflow</a>
-              <a href="/contact?category=Funeral%20home%20walkthrough" style={{ background: C.bgCard, color: C.sage, textDecoration: 'none', border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: '12px 16px', fontSize: 13.5, fontWeight: 800 }}>Book guided walkthrough</a>
+            <div className="home-kicker">Passage</div>
+            <h1 className="home-title">A calm operating system for the hardest family handoffs.</h1>
+            <p className="home-lede">
+              Passage keeps the next step, the owner, the waiting point, and the proof in one shared family record, from preparation through death, funeral coordination, and the long tail after.
+            </p>
+            <div className="home-actions">
+              <button onClick={() => window.location.href = '/urgent'} className="home-action home-primary">Start urgent path</button>
+              <button onClick={() => window.location.href = '/hospice'} className="home-action home-secondary">Prepare during care</button>
+              <button onClick={onPlan} className="home-action home-tertiary">Plan ahead</button>
             </div>
+            <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
           </div>
-          <div style={{ display: 'grid', gap: 9 }}>
+
+          <div className="home-panel" aria-label="Passage coordination preview">
+            <div className="home-panel-head">
+              <h2 className="home-panel-title">One next move. One shared truth.</h2>
+              <span className="home-pill">Family-first</span>
+            </div>
             {[
-              ['Create case', 'Family gets a calm home base'],
-              ['Move work', 'Staff, family, and helpers see ownership'],
-              ['Show proof', 'Every send, wait, and completion is logged'],
-              ['Export', 'CSV keeps their existing system in control'],
+              ['1', 'Stabilize', 'Confirm the setting, the decision-maker, and the one action that cannot wait.'],
+              ['2', 'Coordinate', 'Assign the owner, prepare the message or script, and show what is waiting.'],
+              ['3', 'Prove', 'Record the reply, upload proof, and carry the same context to the next handoff.'],
             ].map(function(row) {
               return (
-                <div key={row[0]} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: '11px 12px' }}>
-                  <div style={{ color: C.sage, fontSize: 12, fontWeight: 900 }}>{row[0]}</div>
-                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>{row[1]}</div>
+                <div className="home-step" key={row[1]}>
+                  <span className="home-num">{row[0]}</span>
+                  <span>
+                    <b>{row[1]}</b>
+                    <span>{row[2]}</span>
+                  </span>
                 </div>
               );
             })}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 48px' }}>
-        <div className="home-proof-grid" style={{ background: C.bgDark, color: '#fff', borderRadius: 18, padding: '24px 26px', display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(0, 1fr)', gap: 18, alignItems: 'center' }}>
+        <section className="home-band">
+          <div className="home-band-grid">
+            <div>
+              <div className="home-kicker">How it works</div>
+              <h2>Families do not experience institutions as separate products.</h2>
+              <p>Hospice, funeral homes, vendors, attorneys, participants, and executors rotate in and out. Passage keeps the family record continuous.</p>
+            </div>
+            <div>
+              {[
+                ['Green path', 'Plan before crisis', 'Wishes, contacts, documents, roles, and preferences are organized while there is still room to breathe.'],
+                ['Warm path', 'Prepare during care', 'Hospice or serious illness becomes an earlier activation point for the same family record.'],
+                ['Red path', 'Move through the first hours', 'The experience narrows to one clear action, one owner, and proof of what happened.'],
+                ['After path', 'Carry the long tail', 'Estate, notifications, remembrance, vendors, and reporting stay tied to the same source of truth.'],
+              ].map(function(row) {
+                return (
+                  <div className="home-line" key={row[0]}>
+                    <div className="home-line-label">{row[0]}</div>
+                    <div>
+                      <div className="home-line-title">{row[1]}</div>
+                      <div className="home-line-body">{row[2]}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="partner-strip">
           <div>
-            <div style={{ color: '#b9d2bd', fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>What Passage proves</div>
-            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(26px, 3.2vw, 36px)', lineHeight: 1.08, margin: 0, fontWeight: 400 }}>The work is visible, exportable, and measurable.</h2>
+            <div className="home-kicker" style={{ marginBottom: 8 }}>For providers</div>
+            <h2>Funeral homes get the first wedge. The family record remains the center.</h2>
+            <p>Passage sits above existing workflows: create or import cases, assign staff and participants, prepare outputs, track proof, and export back out without asking the family to start over.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 9 }}>
-            {[
-              ['Calls avoided', 'Every message, task owner, and update reduces repeat status calls.'],
-              ['Tasks completed', 'Handled, waiting, and help states roll into one estate audit trail.'],
-              ['Staff workload', 'Funeral-home reports can show tasks by case, employee, and location.'],
-              ['Data portability', 'CSV export keeps Passage from trapping a funeral home in a new system.'],
-            ].map(function(row) {
-              return (
-                <div key={row[0]} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.13)', borderRadius: 13, padding: '12px 13px' }}>
-                  <div style={{ color: '#fff', fontSize: 13, fontWeight: 900, marginBottom: 5 }}>{row[0]}</div>
-                  <div style={{ color: '#d8d0c7', fontSize: 12.5, lineHeight: 1.45 }}>{row[1]}</div>
-                </div>
-              );
-            })}
+          <div className="home-actions" style={{ marginTop: 0 }}>
+            <a href="/funeral-home" className="home-action home-primary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Funeral-home workflow</a>
+            <a href="/system/demo" className="home-action home-secondary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Guided demo</a>
           </div>
-        </div>
-      </section>
-
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 58px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 14 }}>
-          {[
-            { title: 'Approval first', body: 'Nothing is sent or shared until the family approves it.' },
-            { title: 'Role-based access', body: 'Families, participants, funeral-home staff, vendors, and Passage system admins do not see the same controls.' },
-            { title: 'Trust layer', body: 'FAQ, privacy, terms, data ownership, and support paths are visible before pilots.' },
-          ].map(function(item) {
-            return (
-              <div key={item.title} style={{ background: item.title === 'Trust layer' ? C.goldFaint : C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, padding: 18 }}>
-                <div style={{ fontFamily: 'Georgia, serif', color: C.ink, fontSize: 20, marginBottom: 8 }}>{item.title}</div>
-                <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6 }}>{item.body}</div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+        </section>
+      </div>
 
       <SiteFooter />
     </div>
