@@ -93,6 +93,9 @@ export default function SystemAdminPage() {
   const [metricsError, setMetricsError] = useState('');
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [adminView, setAdminView] = useState('operations');
+  const [dryRunDraft, setDryRunDraft] = useState({ email: '', phone: '', channel: 'email' });
+  const [dryRunResult, setDryRunResult] = useState(null);
+  const [dryRunLoading, setDryRunLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -137,6 +140,11 @@ export default function SystemAdminPage() {
     return () => { cancelled = true; };
   }, [admin]);
 
+  useEffect(() => {
+    if (!user) return;
+    setDryRunDraft(prev => ({ ...prev, email: prev.email || user.email || '' }));
+  }, [user]);
+
   async function signIn() {
     if (!supabase || typeof window === 'undefined') return;
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
@@ -165,6 +173,42 @@ export default function SystemAdminPage() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  }
+
+  async function runNotificationDryRun(channel) {
+    if (!supabase) return;
+    setDryRunLoading(true);
+    setDryRunResult(null);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const endpoint = channel === 'sms' ? '/api/sendSMS?dryRun=1' : '/api/sendEmail?dryRun=1';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        },
+        body: JSON.stringify({
+          dryRun: true,
+          to: channel === 'sms' ? dryRunDraft.phone : dryRunDraft.email,
+          toName: 'Passage QA',
+          toEmail: dryRunDraft.email,
+          subject: 'Passage dry-run routing check',
+          taskTitle: 'Confirm family handoff',
+          deceasedName: 'Demo family',
+          coordinatorName: user?.email || 'Passage admin',
+          actionType: 'assignment',
+          messageText: 'Passage dry run: no provider call, no message sent, no production record changed.',
+        }),
+      });
+      const json = await response.json().catch(() => ({}));
+      setDryRunResult({ ok: response.ok, channel, status: response.status, json });
+    } catch (err) {
+      setDryRunResult({ ok: false, channel, status: 0, json: { error: err.message || 'Dry run failed.' } });
+    } finally {
+      setDryRunLoading(false);
+    }
   }
 
   return (
@@ -298,6 +342,31 @@ export default function SystemAdminPage() {
                   <Link href="/contact" style={secondaryLink}>Contact intake</Link>
                 </div>
               </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Notification dry-run QA</div>
+                <h2 style={h2}>Preview routing without sending anything.</h2>
+                <p style={lead}>This calls the same delivery endpoints with dryRun enabled. The expected result says no provider was called, no fallback was sent, and no production record changed.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 14 }}>
+                  <label style={fieldLabel}>
+                    Email recipient
+                    <input value={dryRunDraft.email} onChange={event => setDryRunDraft(prev => ({ ...prev, email: event.target.value }))} style={inputStyle} placeholder="qa@example.com" />
+                  </label>
+                  <label style={fieldLabel}>
+                    SMS recipient
+                    <input value={dryRunDraft.phone} onChange={event => setDryRunDraft(prev => ({ ...prev, phone: event.target.value }))} style={inputStyle} placeholder="+1..." />
+                  </label>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                  <button onClick={() => runNotificationDryRun('email')} disabled={dryRunLoading || !dryRunDraft.email} style={{ ...primaryButton, marginTop: 0, opacity: dryRunLoading || !dryRunDraft.email ? .55 : 1 }}>Dry-run email</button>
+                  <button onClick={() => runNotificationDryRun('sms')} disabled={dryRunLoading || !dryRunDraft.phone} style={{ ...secondaryButton, opacity: dryRunLoading || !dryRunDraft.phone ? .55 : 1 }}>Dry-run SMS</button>
+                </div>
+                {dryRunResult && (
+                  <div style={{ background: dryRunResult.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (dryRunResult.ok ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12, marginTop: 12 }}>
+                    <div style={{ color: dryRunResult.ok ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{dryRunResult.ok ? 'Dry-run passed' : 'Dry-run failed'} - {dryRunResult.channel}</div>
+                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '8px 0 0', color: C.mid, fontSize: 12, lineHeight: 1.45, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>{JSON.stringify(dryRunResult.json, null, 2)}</pre>
+                  </div>
+                )}
+              </Panel>
             </section>
             )}
           </>
@@ -328,6 +397,7 @@ const h3 = { fontSize: 22, lineHeight: 1.15, fontWeight: 900 };
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth: 760 };
 const smallText = { color: C.mid, fontSize: 14, lineHeight: 1.5, marginTop: 8 };
 const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', marginTop: 16 };
+const secondaryButton = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
 const secondaryLink = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, display: 'inline-flex', alignItems: 'center', textDecoration: 'none', marginTop: 16 };
 const cardLink = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16, color: C.ink, textDecoration: 'none', boxShadow: '0 4px 20px rgba(0,0,0,.035)' };
 const tabButton = { border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, minHeight: 38, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
@@ -337,3 +407,5 @@ const plannedPill = { background: C.amberFaint, color: C.amber, border: '1px sol
 const metricCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.sage, fontWeight: 900, fontSize: 14 };
 const unavailableMetricCard = { background: C.amberFaint, border: '1px solid #ead8b8', borderRadius: 13, padding: 12, color: C.amber, fontWeight: 900, fontSize: 14 };
 const subPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
+const fieldLabel = { display: 'grid', gap: 5, color: C.soft, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 };
+const inputStyle = { border: '1px solid ' + C.border, background: C.bg, borderRadius: 12, padding: '11px 12px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 14 };
