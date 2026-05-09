@@ -1796,6 +1796,14 @@ export default function FuneralHomeDashboard() {
                 .slice()
                 .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')))
                 .slice(0, 3);
+              const lifecycleEvents = (item.serviceEvents || item.service_events || [])
+                .filter(event => event?.date)
+                .slice()
+                .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+              const todayKey = new Date().toISOString().slice(0, 10);
+              const nextLifecycleEvent = lifecycleEvents.find(event => String(event.date || '') >= todayKey) || lifecycleEvents[0] || null;
+              const nextLifecycleDate = nextLifecycleEvent ? new Date(String(nextLifecycleEvent.date).includes('T') ? nextLifecycleEvent.date : `${nextLifecycleEvent.date}T12:00:00`) : null;
+              const nextLifecycleLabel = nextLifecycleEvent ? (nextLifecycleEvent.name || nextLifecycleEvent.title || nextLifecycleEvent.event_type || 'Lifecycle date') : '';
               const detailTab = caseDetailTabs[item.id] || 'proof';
               const detailTabs = [
                 ['proof', 'Proof', proofCount + (item.activity?.length || 0)],
@@ -1838,6 +1846,11 @@ export default function FuneralHomeDashboard() {
                       <div style={{ background: C.card, borderLeft: `4px solid ${blocked ? C.rose : waitingCount ? C.amber : C.sage}`, borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.4, lineHeight: 1.45 }}>
                         <strong style={{ color: C.ink }}>Next expected update:</strong> {nextExpectedUpdate}
                       </div>
+                      {nextLifecycleEvent && (
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', marginTop: 8, color: C.mid, fontSize: 12.3, lineHeight: 1.45 }}>
+                          <strong style={{ color: C.ink }}>Next lifecycle date:</strong> {nextLifecycleLabel.replace(/_/g, ' ')}{nextLifecycleDate && !Number.isNaN(nextLifecycleDate.getTime()) ? ` - ${nextLifecycleDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}{nextLifecycleEvent.time ? ` at ${nextLifecycleEvent.time}` : ''}{nextLifecycleEvent.location_name ? `, ${nextLifecycleEvent.location_name}` : ''}
+                        </div>
+                      )}
                     </div>
                     <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13 }}>
                       <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 8 }}>Family-facing status</div>
