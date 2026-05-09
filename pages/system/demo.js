@@ -290,6 +290,7 @@ const readinessChecks = [
 
 const productionReadiness = [
   ['Mission lock', 'Strong', 'Passage is now the family continuity and orchestration layer across green, warm, red, funeral-home, vendor, announcement, participant, and aftercare surfaces.'],
+  ['Orchestration believability', 'Medium-high', 'The demo now has the spine: owner, request, waiting, proof, output, lifecycle state, and reporting. Keep tightening until every task feels authoritative.'],
   ['Founder-led demo', 'Ready', 'The nine-stop loop is coherent enough for controlled funeral-home and family beta conversations.'],
   ['Small pilot readiness', '2-4 sprints', 'Needs repeatable persona QA, sharper operator onboarding, and real delivery/error audit checks before a funeral home runs live families through it.'],
   ['Broader production readiness', '6-10 sprints', 'Needs instrumentation, support operations, delivery monitoring, stronger data repair tools, and more core task outputs before broader acquisition.'],

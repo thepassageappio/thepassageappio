@@ -83,6 +83,24 @@ function partnerCaseTypeLabel(item) {
     : 'At-need case';
 }
 
+function partnerLifecycleKey(item) {
+  const text = [
+    item?.setup_stage,
+    item?.mode,
+    item?.status,
+    item?.activation_status,
+    item?.case_type,
+    item?.type,
+  ].map(value => String(value || '').toLowerCase()).join(' ');
+  if (/after|aftercare|closed|completed/.test(text)) return 'after';
+  if (/hospice|warm|decline|care/.test(text)) return 'warm';
+  if (/preneed|pre-need|prepaid|planning|green/.test(text)) return 'green';
+  const serviceEvents = item?.serviceEvents || item?.service_events || [];
+  if (serviceEvents.length || /funeral|service|arrangement/.test(text)) return 'funeral';
+  if (item?.date_of_death || /triggered|activated|at_need|at-need|red/.test(text)) return 'red';
+  return 'funeral';
+}
+
 function importHeaderKey(value) {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 }
@@ -1043,6 +1061,16 @@ export default function FuneralHomeDashboard() {
     ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first task owner', assignmentsCoordinated > 0],
     ['6', 'Proof loop', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
   ];
+  const lifecycleRows = [
+    ['green', 'Planning', 'pre-need and prepaid cases', 'Family record begins before crisis.'],
+    ['warm', 'Warm / hospice', 'transition preparation', 'Contacts, dates, wishes, and handoff notes travel forward.'],
+    ['red', 'Death event', 'first-hour coordination', 'Immediate owners, calls, and proof become visible.'],
+    ['funeral', 'Service coordination', 'arrangements and family logistics', 'Staff, family, vendors, and participants work from one spine.'],
+    ['after', 'Aftercare', 'estate, remembrance, and continuity', 'Exports and status history keep the record useful after service.'],
+  ].map(([key, label, body, value]) => {
+    const count = cases.filter(item => partnerLifecycleKey(item) === key).length;
+    return { key, label, body, value, count, active: count > 0 };
+  });
   const partnerViewTabs = isDirectorRole
     ? [
       ['work', 'Cases', 'Move work'],
@@ -1204,6 +1232,30 @@ export default function FuneralHomeDashboard() {
         {partnerTrialExpired && (
           <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 14, padding: 16, color: C.rose, marginBottom: 12, lineHeight: 1.45 }}>
             This partner trial has ended. Existing cases stay visible; ask Passage to reactivate billing before creating new pilot cases.
+          </div>
+        )}
+
+        {user && !loading && data && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10 }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Continuity spine</div>
+                <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.2, marginTop: 3 }}>One family journey, multiple operating states.</div>
+              </div>
+              <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, maxWidth: 360 }}>Use this to orient cases without splitting Passage into separate products. The family record persists as institutions rotate in and out.</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
+              {lifecycleRows.map(step => (
+                <div key={step.key} style={{ background: step.active ? C.sageFaint : C.bg, border: `1px solid ${step.active ? C.sage + '24' : C.border}`, borderRadius: 12, padding: '10px 11px', minHeight: 96 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                    <div style={{ color: step.active ? C.sage : C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{step.label}</div>
+                    <span style={{ color: step.active ? '#fff' : C.soft, background: step.active ? C.sage : C.card, border: `1px solid ${step.active ? C.sage : C.border}`, borderRadius: 999, minWidth: 24, height: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900 }}>{step.count}</span>
+                  </div>
+                  <div style={{ color: C.ink, fontSize: 13, fontWeight: 900, lineHeight: 1.25, marginTop: 7 }}>{step.body}</div>
+                  <div style={{ color: C.mid, fontSize: 11.7, lineHeight: 1.4, marginTop: 4 }}>{step.value}</div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
