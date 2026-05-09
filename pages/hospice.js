@@ -102,6 +102,7 @@ export default function HospiceWarmPath() {
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 22 }}>
               <Link href="/urgent" style={primaryLink}>Death has occurred</Link>
               <Link href="/share?dn=Your%20loved%20one&cn=Your%20family" style={secondaryLink}>Prepare family update</Link>
+              <Link href="/packet" style={secondaryLink}>View continuity packets</Link>
               <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Open demo rail</Link>
             </div>
           </div>
@@ -197,6 +198,7 @@ export default function HospiceWarmPath() {
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
               <Link href="/funeral-home/dashboard?demoTour=funeral-home&demoStep=case" style={primaryLink}>Show funeral-home handoff</Link>
+              <Link href="/packet" style={secondaryLink}>Generate packet demo</Link>
               <Link href="/share?dn=Jack%20Taylor&cn=Taylor%20family" style={secondaryLink}>Prepare event one-pager</Link>
             </div>
           </div>

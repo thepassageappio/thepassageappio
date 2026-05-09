@@ -590,6 +590,7 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Link href="/hospice?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Open warm path</Link>
           <Link href="/share?dn=Jack%20Taylor&cn=Taylor%20family" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show event one-pager</Link>
+          <Link href="/packet?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show packet outputs</Link>
           <button onClick={() => demoAction('Demo: hospice preparation becomes a reviewed handoff packet. Nothing is shared until the family approves it.')} style={tinyButton}>Explain handoff</button>
         </div>
       </Panel>

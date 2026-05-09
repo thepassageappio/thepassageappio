@@ -297,6 +297,7 @@ Use plain language:
 - Store hospice/contact/date context in `orchestration_summary`.
 - Generate first warm-path task set.
 - Show warm lifecycle state on estate page.
+- Attach prepared continuity packets to the task spine instead of leaving them as standalone text.
 
 ### Sprint 3: Handoff Packet
 
@@ -309,6 +310,24 @@ Use plain language:
 - Generate event/date one-pager.
 - Support recipient batch prep with email/text/manual groups.
 - Add consent-aware send queue later; no automatic sends until approved.
+
+## Packet Outputs
+
+The first reusable packet primitive should produce these artifacts from the same family spine:
+
+- Hospice / warm-path handoff
+- Funeral-home arrangement packet
+- Executor / family summary
+- Government / institution notification packet
+- Family event one-pager
+
+Each packet must be:
+
+- Prepared for review.
+- Copyable and printable before automatic sending exists.
+- Built from family-owned context, not hidden institution notes.
+- Explicit about unknown dates and missing items.
+- Saved back to the relevant task/proof trail once the user approves or records it.
 
 ### Sprint 5: Hospice Partner Discovery
 
