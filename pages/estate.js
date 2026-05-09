@@ -2877,6 +2877,18 @@ export default function EstatePage() {
     updateOutcome(idx, { status: 'in_progress', outcome_status: 'help', notes: String(note).trim() });
   }
 
+  function clearPendingTaskAction() {
+    setPendingTaskAction(null);
+    setPendingTaskNote('');
+    setPendingTaskDraftText('');
+    setPendingTaskAttachment(null);
+    setPendingSavedPersonId('');
+    setPendingRecipientName('');
+    setPendingRecipientEmail('');
+    setPendingRecipientRole('');
+    setPendingRecipientPhone('');
+  }
+
   function startTaskUpdate(draft) {
     setPendingTaskAction(draft);
     setPendingTaskNote('');
@@ -2887,11 +2899,6 @@ export default function EstatePage() {
     setPendingRecipientPhone('');
     setPendingSavedPersonId('');
     setPendingTaskAttachment(null);
-    showToast('Opening task update panel...');
-    setTimeout(function() {
-      var panel = document.getElementById('task-update-panel');
-      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 80);
   }
 
   function taskActionFromCommand(task, action) {
@@ -3047,7 +3054,11 @@ export default function EstatePage() {
 
         {pendingTaskAction && (
           <TaskPanelBoundary resetKey={(pendingTaskAction.task?.id || '') + ':' + (pendingTaskAction.status || '') + ':' + (pendingTaskAction.mode || '')} title="Task panel recovered" detail="This task has one field Passage could not display safely.">
-          <div id="task-update-panel" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '20px 22px', marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
+          <div onClick={clearPendingTaskAction} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+          <div id="task-update-panel" role="dialog" aria-modal="true" onClick={function(e) { e.stopPropagation(); }} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 18, padding: '20px 22px', boxShadow: '0 24px 80px rgba(0,0,0,.22)' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+              <button onClick={clearPendingTaskAction} aria-label="Close task action" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 34, height: 34, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
+            </div>
             {(() => {
               var assigningOnly = pendingTaskAction.status === 'choose';
               var copy = taskActionCopy(pendingTaskAction.status);
@@ -3310,21 +3321,12 @@ export default function EstatePage() {
                 {taskActionPrimaryLabel(pendingTaskAction)}
               </button>
               <button
-                onClick={function() {
-                  setPendingTaskAction(null);
-                  setPendingTaskNote('');
-                  setPendingTaskDraftText('');
-                  setPendingTaskAttachment(null);
-                  setPendingSavedPersonId('');
-                  setPendingRecipientName('');
-                  setPendingRecipientEmail('');
-                  setPendingRecipientRole('');
-                  setPendingRecipientPhone('');
-                }}
+                onClick={clearPendingTaskAction}
                 style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
                 Cancel
               </button>
             </div>
+          </div>
           </div>
           </TaskPanelBoundary>
         )}
