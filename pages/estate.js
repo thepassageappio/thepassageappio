@@ -1656,6 +1656,23 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
                 <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
               </div>
+              {item && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 10 }}>
+                  {[
+                    ['What happens now', displayTaskNext(item)],
+                    ['Who owns it', owner],
+                    ['How we know', workspace?.proofDestination || proof],
+                    ['Where it reports', 'Family status and export'],
+                  ].map(function(row) {
+                    return (
+                      <div key={row[0]} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 11, padding: '8px 9px' }}>
+                        <div style={{ color: SAGE, fontSize: 9.8, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
+                        <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.35, marginTop: 4 }}>{row[1]}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {importance?.reason && (
                 <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 8 }}>
                   <strong style={{ color: INK }}>Why this is here:</strong> {importance.reason}
