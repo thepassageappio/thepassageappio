@@ -57,6 +57,13 @@ const DEMO_TOUR_STEPS = [
     id: 'overview',
     title: 'Start with the promise',
     body: 'Open with the funeral-home problem: fewer repeated calls, visible proof, and data that can leave Passage any time.',
+    href: '/hospice?demoTour=funeral-home&demoStep=warm',
+    cta: 'Next: warm path',
+  },
+  {
+    id: 'warm',
+    title: 'Show the hospice bridge',
+    body: 'Families may enter before the death event. Show the first-hour plan and permissioned funeral-home handoff before opening the partner dashboard.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
     cta: 'Next: team setup',
   },
@@ -122,6 +129,7 @@ function demoStepFor(path, queryStep) {
   const requested = String(queryStep || '');
   if (DEMO_TOUR_STEPS.some(step => step.id === requested)) return requested;
   if (path === '/funeral-home/dashboard') return 'dashboard';
+  if (path === '/hospice') return 'warm';
   if (path === '/estate') return 'task';
   if (path === '/participating') return 'participant';
   if (path === '/vendors/request') return 'vendor';

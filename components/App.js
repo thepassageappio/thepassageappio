@@ -4198,6 +4198,13 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             <div style={{ fontSize: 12, color: C.soft }}>Start with what matters now</div>
           </div>
           <div style={{ textAlign: 'center' }}>
+            <button onClick={() => window.location.href = '/hospice'}
+              style={{ display: 'block', background: C.sageFaint, color: C.sage, border: `1.5px solid ${C.sageLight}`, borderRadius: 14, padding: '16px 24px', fontSize: 14.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6, minWidth: 205 }}>
+              Preparing during care
+            </button>
+            <div style={{ fontSize: 12, color: C.soft }}>Hospice or serious illness</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
             <button onClick={onPlan}
               style={{ display: 'block', background: C.bgCard, color: C.mid, border: `1.5px solid ${C.border}`, borderRadius: 14, padding: '16px 24px', fontSize: 14.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6, minWidth: 180 }}>
               Plan ahead
@@ -4576,6 +4583,10 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               Someone just passed
               <span style={{ display: 'block', fontSize: 11.5, opacity: .86, fontWeight: 500, marginTop: 4 }}>Start with what matters now</span>
             </button>
+            <button onClick={() => window.location.href = '/hospice'} style={{ background: C.sageFaint, color: C.sage, border: `1.5px solid ${C.sageLight}`, borderRadius: 13, padding: '13px 20px', fontSize: 14.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 190 }}>
+              Preparing during care
+              <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 500, marginTop: 4 }}>Hospice or serious illness</span>
+            </button>
             <button onClick={onPlan} style={{ background: C.bgCard, color: C.ink, border: `1.5px solid ${C.border}`, borderRadius: 13, padding: '13px 22px', fontSize: 14.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minWidth: 166 }}>
               Plan ahead
               <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 500, marginTop: 4 }}>Prepare your family</span>
@@ -4620,7 +4631,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 14 }}>
           {[
             { label: 'Before', title: 'Plan before it is needed', body: 'People, wishes, documents, obituary notes, memories, and trusted contacts live inside each estate file.' },
-            { label: 'During', title: 'One clear task spine', body: 'Every urgent item has an owner, message, proof requirement, waiting state, and audit trail.' },
+            { label: 'During care', title: 'Prepare the handoff', body: 'Hospice, caregiver, family coordinator, and funeral-home context stay together before the red path begins.' },
+            { label: 'At death', title: 'One clear task spine', body: 'Every urgent item has an owner, message, proof requirement, waiting state, and audit trail.' },
             { label: 'After', title: 'Keep the long tail organized', body: 'Benefits, banks, insurance, government, property, and digital accounts stay visible after the service.' },
           ].map(function(item) {
             return (

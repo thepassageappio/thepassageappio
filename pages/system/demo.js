@@ -31,6 +31,14 @@ const demoSteps = [
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
   },
   {
+    id: 'warm',
+    kicker: 'Warm path',
+    title: 'Show the hospice-to-funeral-home handoff.',
+    point: 'A family may enter before death through hospice or serious illness. Passage preserves contacts, dates, preferences, and the first-hour plan so the funeral home does not start from zero.',
+    action: 'Say: "Passage follows the family. Planning, hospice preparation, urgent guidance, and the funeral-home case are different doors into the same coordination record."',
+    href: '/hospice?demoTour=funeral-home&demoStep=warm',
+  },
+  {
     id: 'team',
     kicker: 'Setup',
     title: 'Set up locations and staff.',
@@ -146,17 +154,25 @@ const demoMetrics = [
 ];
 
 const fullLoop = [
-  ['1', 'Create case', 'Director adds the family contact and starts the task spine.'],
-  ['2', 'Assign staff', 'A saved employee receives only the work they own.'],
-  ['3', 'Ask family once', 'Missing cemetery, obituary, policy, or service details are requested from the task.'],
-  ['4', 'Produce output', 'Passage prepares the arrangement packet, agency packet, or family message for review.'],
-  ['5', 'Record proof', 'Staff saves what happened, what is waiting, and the next expected update.'],
-  ['6', 'Show ROI', 'Director sees calls avoided, staff workload, waiting items, and exportable case data.'],
+  ['1', 'Family enters through the right door', 'Planning, hospice preparation, urgent death guidance, or funeral-home intake starts the same spine.'],
+  ['2', 'Create case', 'Director adds or receives the family contact and known lifecycle dates.'],
+  ['3', 'Assign staff', 'A saved employee receives only the work they own.'],
+  ['4', 'Ask family once', 'Missing cemetery, obituary, policy, or service details are requested from the task.'],
+  ['5', 'Produce output', 'Passage prepares the arrangement packet, agency packet, family message, or event one-pager for review.'],
+  ['6', 'Record proof and show ROI', 'Staff saves what happened, what is waiting, calls avoided, and exportable case data.'],
 ];
 
 const demoRail = [
   {
     n: '01',
+    title: 'Family prepares during care',
+    persona: 'Family / hospice-adjacent',
+    route: '/hospice?demoTour=funeral-home&demoStep=warm',
+    proof: 'Hospice contact, caregiver, family coordinator, known dates, when-it-happens plan, and funeral-home handoff packet.',
+    value: 'Shows Passage as continuity infrastructure before the funeral home ever starts a case.',
+  },
+  {
+    n: '02',
     title: 'Director sees the operating read',
     persona: 'Funeral-home owner/director',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
@@ -164,7 +180,7 @@ const demoRail = [
     value: 'Shows the buyer what gets quieter today.',
   },
   {
-    n: '02',
+    n: '03',
     title: 'Director opens staff work',
     persona: 'Director / location manager',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
@@ -172,7 +188,7 @@ const demoRail = [
     value: 'Shows delegation before assignment so owners are not typed from scratch.',
   },
   {
-    n: '03',
+    n: '04',
     title: 'Director creates or opens a case',
     persona: 'Arranger / coordinator',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
@@ -180,7 +196,7 @@ const demoRail = [
     value: 'Shows “add only what you know” without blocking urgent work.',
   },
   {
-    n: '04',
+    n: '05',
     title: 'Staff moves one task',
     persona: 'Funeral-home employee',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=task',
@@ -188,7 +204,7 @@ const demoRail = [
     value: 'Shows Passage doing work instead of showing a checklist.',
   },
   {
-    n: '05',
+    n: '06',
     title: 'Family or helper responds once',
     persona: 'Family participant',
     route: '/participating?demoTour=funeral-home&demoStep=participant',
@@ -196,7 +212,7 @@ const demoRail = [
     value: 'Shows a scoped slice of the same truth without funeral-home clutter.',
   },
   {
-    n: '06',
+    n: '07',
     title: 'Vendor handles scoped local support',
     persona: 'Vendor / service provider',
     route: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
@@ -204,7 +220,7 @@ const demoRail = [
     value: 'Shows vendors as task-native support, not a directory.',
   },
   {
-    n: '07',
+    n: '08',
     title: 'Director closes with reporting',
     persona: 'Owner/director',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
@@ -214,6 +230,12 @@ const demoRail = [
 ];
 
 const ecosystemPaths = [
+  {
+    title: 'Warm path',
+    body: 'Hospice or serious illness preparation: first-hour plan, family update list, and funeral-home handoff packet.',
+    label: 'Open warm path',
+    href: '/hospice?demoTour=funeral-home&demoStep=warm',
+  },
   {
     title: 'Family command center',
     body: 'One next task, proof capture, people, messages, events, exports, and a readable activity trail.',
@@ -296,6 +318,7 @@ function isSystemAdmin(user) {
 function studioStepFromQuery(value) {
   const clean = String(value || '').toLowerCase();
   if (clean === 'task') return 'tasks';
+  if (clean === 'hospice' || clean === 'during-care') return 'warm';
   if (clean === 'chat') return 'coordinate';
   if (clean === 'participant') return 'delegation';
   if (demoSteps.some(step => step.id === clean)) return clean;
@@ -540,6 +563,34 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
           <button onClick={() => demoAction('Demo: vendor accepts, updates progress, then marks complete. Family and funeral home see status without a sales directory.')} style={tinyButton}>
             Explain vendor loop
           </button>
+        </div>
+      </Panel>
+    );
+  }
+
+  if (activeStepId === 'warm') {
+    return (
+      <Panel>
+        <div style={eyebrow}>Demo screen</div>
+        <h2 style={h2}>Warm path continuity.</h2>
+        <p style={{ ...lead, marginBottom: 14 }}>Use this stop to show that Passage can start before the death event without becoming hospice software. The family owns the record, prepares the first-hour plan, and approves any handoff.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginBottom: 14 }}>
+          {[
+            ['Family enters during care', 'Hospice contact, caregiver, family coordinator, and preferred funeral home if known.'],
+            ['Passage prepares', 'First-hour plan, family update list, and funeral-home handoff packet.'],
+            ['Red path activates', 'When death occurs, the urgent path starts with existing context.'],
+            ['Funeral home receives context', 'Director sees dates, authority, preferences, blockers, and missing items after family approval.'],
+          ].map(([title, body]) => (
+            <div key={title} style={smallCard}>
+              <div style={{ fontSize: 17, fontWeight: 900 }}>{title}</div>
+              <div style={smallText}>{body}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link href="/hospice?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Open warm path</Link>
+          <Link href="/share?dn=Jack%20Taylor&cn=Taylor%20family" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show event one-pager</Link>
+          <button onClick={() => demoAction('Demo: hospice preparation becomes a reviewed handoff packet. Nothing is shared until the family approves it.')} style={tinyButton}>Explain handoff</button>
         </div>
       </Panel>
     );
