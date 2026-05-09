@@ -1619,7 +1619,16 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(210px, .65fr)', gap: 14, alignItems: 'stretch' }} className="passage-task-spine-facts">
             <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 18, padding: 18 }}>
-              <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 7 }}>
+                <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
+                {queue.length > 1 && (
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <span style={{ color: SOFT, fontSize: 11, fontWeight: 900, whiteSpace: 'nowrap' }}>{selectedIndex + 1} of {queue.length}</span>
+                    <button onClick={function() { select(selectedIndex - 1); }} disabled={selectedIndex === 0} aria-label="Previous task" style={{ border: '1px solid ' + BORDER, background: CARD, color: selectedIndex === 0 ? SOFT : MID, borderRadius: 999, width: 34, height: 34, fontFamily: 'inherit', fontWeight: 900, cursor: selectedIndex === 0 ? 'default' : 'pointer' }}>{'<'}</button>
+                    <button onClick={function() { select(selectedIndex + 1); }} disabled={selectedIndex >= queue.length - 1} aria-label="Next task" style={{ border: '1px solid ' + BORDER, background: CARD, color: selectedIndex >= queue.length - 1 ? SOFT : SAGE, borderRadius: 999, width: 34, height: 34, fontFamily: 'inherit', fontWeight: 900, cursor: selectedIndex >= queue.length - 1 ? 'default' : 'pointer' }}>{'>'}</button>
+                  </div>
+                )}
+              </div>
               <div style={{ color: INK, fontSize: 29, lineHeight: 1.08, fontWeight: 900 }}>{title}</div>
               <div style={{ color: MID, fontSize: 14.5, lineHeight: 1.55, marginTop: 10 }}>{item ? displayTaskNext(item) : 'No estate work needs attention right now.'}</div>
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
