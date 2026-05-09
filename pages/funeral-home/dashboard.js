@@ -1507,6 +1507,11 @@ export default function FuneralHomeDashboard() {
         {user && loading && <div style={{ color: C.soft }}>Loading partner cases...</div>}
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
+        {user && !loading && data?.demoData && (
+          <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 14, color: C.amber, marginBottom: 10, lineHeight: 1.45, fontWeight: 900 }}>
+            {data.demoLabel || 'Demo data is loaded for this walkthrough. No email, SMS, or production record is changed by demo actions.'}
+          </div>
+        )}
         {user && latestFamilyLink?.url && (
           <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 16, padding: 14, marginBottom: 14, boxShadow: '0 4px 18px rgba(0,0,0,.04)' }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Family handoff prepared</div>

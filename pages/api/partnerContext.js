@@ -98,6 +98,142 @@ function featureFlagsFor(membership, org, activationStatus) {
   };
 }
 
+function isDemoPartnerEmail(email) {
+  return ['demo@collinsffh.com', 'demo@collinsfuneralhome.com', 'maria@hvfg.demo'].includes(normalizeEmail(email));
+}
+
+function demoPartnerPayload(email, memberships = []) {
+  const organizationRow = memberships?.[0] || {
+    organization_id: 'demo-org-collins',
+    role: 'director',
+    status: 'active',
+    email,
+    organizations: { id: 'demo-org-collins', type: 'funeral_home', name: 'Collins Family Funeral Home', support_email: email },
+  };
+  const staff = [
+    { email, role: 'director', scope: 'all_cases', status: 'active' },
+    { email: 'maria@collinsffh.demo', role: 'location_manager', scope: 'main_location', status: 'active' },
+    { email: 'robert@collinsffh.demo', role: 'staff', scope: 'assigned_work', status: 'active' },
+  ];
+  const cases = [
+    {
+      id: 'demo-collins-price',
+      deceased_name: 'Eleanor Price',
+      estate_name: 'Price family',
+      coordinator_name: 'Michael Price',
+      coordinator_email: 'michael.price@example.com',
+      coordinator_phone: '845-555-0137',
+      date_of_death: '2026-05-09',
+      organization_case_reference: 'COL-1024',
+      setup_stage: 'active',
+      mode: 'red',
+      path: 'red',
+      status: 'active',
+      tasks: [
+        { id: 'demo-collins-task-1', workflow_id: 'demo-collins-price', title: 'Confirm cemetery plot details', description: 'Ask family for section, lot number, and deed photo before the arrangement meeting.', status: 'waiting', assigned_to_name: 'Robert Alvarez', assigned_to_email: 'robert@collinsffh.demo', created_at: '2026-05-08T13:00:00Z', last_action_at: '2026-05-08T14:30:00Z', proof_required: 'Family reply or cemetery record' },
+        { id: 'demo-collins-task-2', workflow_id: 'demo-collins-price', title: 'Prepare the funeral home meeting summary', description: 'Organize dates, family contact, service preferences, and open questions into one prepared packet.', status: 'assigned', assigned_to_name: 'Maria Collins', assigned_to_email: 'maria@collinsffh.demo', created_at: '2026-05-08T15:00:00Z', proof_required: 'Prepared packet' },
+        { id: 'demo-collins-task-3', workflow_id: 'demo-collins-price', title: 'Send obituary approval request', description: 'Send the family a clean approval request with the current obituary draft.', status: 'blocked', assigned_to_name: 'Robert Alvarez', assigned_to_email: 'robert@collinsffh.demo', created_at: '2026-05-08T10:00:00Z', proof_required: 'Family approval' },
+        { id: 'demo-collins-task-4', workflow_id: 'demo-collins-price', title: 'Record hospital release confirmation', description: 'Hospital release was confirmed and saved for transportation.', status: 'handled', assigned_to_name: 'Maria Collins', assigned_to_email: 'maria@collinsffh.demo', created_at: '2026-05-08T09:00:00Z', last_action_at: '2026-05-08T11:00:00Z', proof_required: 'Release confirmation' },
+      ],
+      blockedTasks: [{ id: 'demo-collins-task-3', status: 'blocked' }],
+      communications: [{ id: 'demo-collins-comm-1', status: 'sent' }, { id: 'demo-collins-comm-2', status: 'waiting' }],
+      waitingOnFamily: [{ id: 'demo-collins-waiting-1', title: 'Cemetery plot details' }],
+      vendorRequests: [{ id: 'demo-collins-vendor-1', task_title: 'Livestream support', status: 'accepted', requested_at: '2026-05-08T12:00:00Z', estimated_value: 650 }],
+      activity: [{ id: 'demo-collins-act-1', status: 'handled', detail: 'Hospital release saved.' }, { id: 'demo-collins-act-2', status: 'waiting', detail: 'Waiting for cemetery plot confirmation.' }],
+      serviceEvents: [{ id: 'demo-collins-service-1', name: 'Arrangement meeting', event_type: 'arrangement', date: '2026-05-12', time: '10:00 AM', location_name: 'Main location' }],
+      coordinationSpine: {
+        conversation: [],
+        proof: [{ id: 'demo-collins-proof-1', title: 'Hospital release saved', detail: 'Release confirmation recorded by Maria.', statusLabel: 'handled' }],
+        notifications: [{ id: 'demo-collins-note-1', title: 'Family update prepared', detail: 'Email route prepared; demo mode does not send.', statusLabel: 'prepared' }],
+        attentionItems: [
+          { id: 'demo-collins-attn-1', title: 'Family reply needed', detail: 'Cemetery plot details are waiting on Michael.', status: 'waiting', statusLabel: 'Waiting on family' },
+          { id: 'demo-collins-attn-2', title: 'Obituary approval blocked', detail: 'Draft needs one family decision before it can be sent.', status: 'blocked', statusLabel: 'Needs help' },
+        ],
+        latest: [{ id: 'demo-collins-latest-1', title: 'Hospital release saved', detail: 'Proof is visible to staff and family.', statusLabel: 'handled' }],
+      },
+    },
+    {
+      id: 'demo-collins-reed',
+      deceased_name: '',
+      estate_name: 'Thomas Reed planning file',
+      coordinator_name: 'Anna Reed',
+      coordinator_email: 'anna.reed@example.com',
+      organization_case_reference: 'COL-PN-220',
+      setup_stage: 'preneed',
+      mode: 'green',
+      path: 'green',
+      status: 'active',
+      tasks: [
+        { id: 'demo-collins-green-1', workflow_id: 'demo-collins-reed', title: 'Collect pre-need preferences', description: 'Capture wishes, contacts, documents, and activation people before it is urgent.', status: 'assigned', assigned_to_name: 'Maria Collins', assigned_to_email: 'maria@collinsffh.demo', created_at: '2026-05-07T09:00:00Z', proof_required: 'Preferences saved' },
+        { id: 'demo-collins-green-2', workflow_id: 'demo-collins-reed', title: 'Confirm activation contacts', description: 'Name who should be contacted when the family needs the plan activated.', status: 'waiting', assigned_to_name: 'Anna Reed', assigned_to_email: 'anna.reed@example.com', created_at: '2026-05-07T10:00:00Z', proof_required: 'Activation contact confirmed' },
+      ],
+      blockedTasks: [],
+      communications: [],
+      waitingOnFamily: [{ id: 'demo-collins-green-wait', title: 'Activation contacts' }],
+      vendorRequests: [],
+      activity: [],
+      serviceEvents: [],
+      coordinationSpine: { conversation: [], proof: [], notifications: [], attentionItems: [{ id: 'demo-collins-green-attn', title: 'Planning contact waiting', detail: 'Anna needs to confirm who can activate the plan.', status: 'waiting', statusLabel: 'Waiting on family' }], latest: [] },
+    },
+    {
+      id: 'demo-collins-after',
+      deceased_name: 'Marian Ellis',
+      estate_name: 'Ellis aftercare',
+      coordinator_name: 'Claire Ellis',
+      coordinator_email: 'claire.ellis@example.com',
+      organization_case_reference: 'COL-AF-031',
+      setup_stage: 'aftercare',
+      mode: 'after',
+      path: 'after',
+      status: 'active',
+      tasks: [
+        { id: 'demo-collins-after-1', workflow_id: 'demo-collins-after', title: 'Send aftercare document packet', description: 'Export certificates, service details, and proof summary for the executor.', status: 'handled', assigned_to_name: 'Robert Alvarez', assigned_to_email: 'robert@collinsffh.demo', created_at: '2026-05-05T09:00:00Z', last_action_at: '2026-05-06T12:00:00Z', proof_required: 'Packet delivered' },
+        { id: 'demo-collins-after-2', workflow_id: 'demo-collins-after', title: 'Confirm thank-you card recipient list', description: 'Family needs one clean list before printing.', status: 'waiting', assigned_to_name: 'Claire Ellis', assigned_to_email: 'claire.ellis@example.com', created_at: '2026-05-06T09:00:00Z', proof_required: 'Recipient list approved' },
+      ],
+      blockedTasks: [],
+      communications: [{ id: 'demo-collins-after-comm', status: 'delivered' }],
+      waitingOnFamily: [{ id: 'demo-collins-after-wait', title: 'Recipient list' }],
+      vendorRequests: [],
+      activity: [{ id: 'demo-collins-after-act', status: 'handled' }],
+      serviceEvents: [{ id: 'demo-collins-after-service', name: 'Memorial service', event_type: 'funeral', date: '2026-05-07', time: '11:00 AM', location_name: 'Collins Family Funeral Home' }],
+      coordinationSpine: { conversation: [], proof: [], notifications: [], attentionItems: [{ id: 'demo-collins-after-attn', title: 'Aftercare list waiting', detail: 'Thank-you card list needs family approval.', status: 'waiting', statusLabel: 'Waiting on family' }], latest: [] },
+    },
+  ];
+  const allTasks = cases.flatMap(item => item.tasks || []);
+  const handled = allTasks.filter(task => isHandledStatus(task.status)).length;
+  const waiting = allTasks.filter(task => isWaitingStatus(task.status)).length;
+  const blocked = allTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length;
+  return {
+    organizations: [organizationRow],
+    partnerPlan: { plan: 'pilot', status: 'demo' },
+    activationStatus: 'active_trial',
+    billingStatus: 'demo',
+    trialEndsAt: null,
+    featureFlags: { whiteLabelEnabled: true, marketplaceEnabled: true, canCreateCases: true, canViewReports: true, canManageBilling: false },
+    partnerContexts: [],
+    cases,
+    staff,
+    reports: {
+      activeCases: cases.length,
+      totalTasks: allTasks.length,
+      openTasks: allTasks.length - handled,
+      handledTasks: handled,
+      waitingTasks: waiting,
+      blockedTasks: blocked,
+      communicationsLogged: cases.reduce((sum, item) => sum + (item.communications || []).length, 0),
+      assignmentsCoordinated: allTasks.filter(task => task.assigned_to_email || task.assigned_to_name).length,
+      callsAvoided: 14,
+      avgTasksPerEstate: Math.round((allTasks.length / cases.length) * 10) / 10,
+      marketplace: { requests: 1, estimatedValue: 650, funeralHomeShare: 0, passageShare: 0 },
+      byLocation: [{ location: 'Main location', cases: 3, openTasks: allTasks.length - handled, handledTasks: handled, waitingTasks: waiting, blockedTasks: blocked, callsAvoided: 14, referralValue: 650, funeralHomeShare: 0 }],
+      byEmployee: staff.map(member => ({ email: member.email, role: member.role, scope: member.scope, assignedTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email)).length, openTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && !isHandledStatus(task.status)).length, handledTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && isHandledStatus(task.status)).length, waitingTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && isWaitingStatus(task.status)).length })),
+    },
+    isPassageAdmin: false,
+    demoData: true,
+    demoLabel: 'Demo data loaded for the Collins walkthrough. No email, SMS, or production record is changed by demo actions.',
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -116,7 +252,10 @@ export default async function handler(req, res) {
   if (memberError) return res.status(500).json({ error: memberError.message });
 
   const organizationIds = (memberships || []).map(m => m.organization_id).filter(Boolean);
-  if (organizationIds.length === 0) return res.status(200).json({ organizations: [], cases: [], isPassageAdmin: adminMode });
+  if (organizationIds.length === 0) {
+    if (isDemoPartnerEmail(email)) return res.status(200).json(demoPartnerPayload(email, memberships || []));
+    return res.status(200).json({ organizations: [], cases: [], isPassageAdmin: adminMode });
+  }
 
   let partnerRows = [];
   const { data: partnerData } = await admin
@@ -355,6 +494,10 @@ export default async function handler(req, res) {
     byLocation,
     byEmployee,
   };
+
+  if (cases.length === 0 && isDemoPartnerEmail(email)) {
+    return res.status(200).json(demoPartnerPayload(email, memberships || []));
+  }
 
   return res.status(200).json({
     organizations: memberships || [],
