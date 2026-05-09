@@ -10,6 +10,57 @@ import { taskWorkspaceFor } from '../lib/taskWorkspace';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
+const demoParticipantContext = {
+  email: 'demo-helper@passage.local',
+  discountEligible: true,
+  estates: [{
+    id: 'demo-participant-estate',
+    deceased_name: 'Eleanor Price',
+    name: 'Plan for Eleanor Price',
+    role: 'family helper',
+    coordinator_name: 'Michael Price',
+    coordinator_email: 'michael@example.com',
+    status: 'active',
+    activation_status: 'activated',
+    events: [
+      { id: 'demo-service', name: 'Arrangement meeting', event_type: 'arrangement', date: '2026-05-12', time: '10:00 AM', location_name: 'Hudson Valley Funeral Group' },
+    ],
+    tasks: [
+      {
+        id: 'demo-participant-task',
+        title: 'Send cemetery plot details',
+        description: 'Michael asked you for the cemetery section, lot number, and a photo of the deed if you have it.',
+        status: 'assigned',
+        notes: '',
+      },
+      {
+        id: 'demo-participant-task-waiting',
+        title: 'Confirm pallbearer names',
+        description: 'Reply with the names you know, or mark waiting if you need to ask the family.',
+        status: 'waiting',
+        notes: '',
+      },
+    ],
+    actions: [],
+    coordinationSpine: {
+      conversation: [],
+      proof: [],
+      notifications: [],
+      attentionItems: [],
+      latest: [
+        {
+          id: 'demo-latest-1',
+          layer: 'notification',
+          layerLabel: 'Notification',
+          title: 'Assignment sent',
+          detail: 'Passage notified the helper and linked this request to the estate task.',
+          at: '2026-05-08T14:00:00Z',
+          statusLabel: 'sent',
+        },
+      ],
+    },
+  }],
+};
 
 async function signIn(returnTo = '/participating') {
   await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + returnTo } });
@@ -258,6 +309,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
 
 export default function ParticipatingPage() {
   const router = useRouter();
+  const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1';
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -273,6 +325,13 @@ export default function ParticipatingPage() {
 
   useEffect(() => {
     if (!router.isReady) return;
+    if (demoMode) {
+      setUser({ email: demoParticipantContext.email });
+      setData(demoParticipantContext);
+      setExpandedEstateId('demo-participant-estate');
+      setLoading(false);
+      return undefined;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.access_token) load(session.access_token);
@@ -283,7 +342,7 @@ export default function ParticipatingPage() {
       if (session?.access_token) load(session.access_token);
     });
     return () => sub.subscription.unsubscribe();
-  }, [router.isReady, router.query.estate, router.query.task]);
+  }, [router.isReady, router.query.estate, router.query.task, demoMode]);
 
   async function load(token) {
     setLoading(true);
@@ -325,6 +384,35 @@ export default function ParticipatingPage() {
   }
 
   async function participantAction(kind, id, action) {
+    if (demoMode) {
+      const note = notesByItem[kind + ':' + id] || '';
+      if (taskActionRequiresNote(action) && !String(note || '').trim()) {
+        setActionNotice('Add a short proof, waiting, or help note first so the coordinator knows what changed.');
+        return;
+      }
+      const nextStatus = action === 'save_note' ? null : statusForParticipantAction(action);
+      setData(prev => ({
+        ...prev,
+        estates: (prev?.estates || []).map(estate => ({
+          ...estate,
+          tasks: (estate.tasks || []).map(item => item.id === id ? { ...item, status: nextStatus || item.status, notes: note || item.notes, last_action_at: new Date().toISOString() } : item),
+          coordinationSpine: {
+            ...(estate.coordinationSpine || { conversation: [], proof: [], notifications: [], attentionItems: [], latest: [] }),
+            latest: [{
+              id: 'demo-response-' + Date.now(),
+              layer: 'conversation',
+              layerLabel: 'Conversation',
+              title: action === 'save_note' ? 'Note saved' : actionConfirmation(action).replace(/\.$/, ''),
+              detail: note || 'Demo update saved locally. No production record changed.',
+              at: new Date().toISOString(),
+              statusLabel: nextStatus || 'saved',
+            }, ...((estate.coordinationSpine && estate.coordinationSpine.latest) || [])],
+          },
+        })),
+      }));
+      setActionNotice((action === 'handled' ? 'Handled. ' : 'Demo update saved. ') + 'The coordinator would see this update on the estate task spine.');
+      return;
+    }
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     if (!token) return;
@@ -425,7 +513,7 @@ export default function ParticipatingPage() {
           <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, margin: 0 }}>Open the estate, handle one task, and the coordinator sees your update.</p>
         </div>
 
-        {!user && (
+        {!user && !demoMode && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, maxWidth: 520 }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>Open the task someone sent you.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
@@ -439,6 +527,7 @@ export default function ParticipatingPage() {
           </div>
         )}
 
+        {demoMode && <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, color: C.amber, borderRadius: 14, padding: 13, marginBottom: 14, fontWeight: 900 }}>Demo participant view. Updates change this screen only; no email, SMS, or production record is changed.</div>}
         {user && loading && <div style={{ color: C.soft }}>Loading participating estates...</div>}
         {user && error && <div style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16 }}>{error}</div>}
 
