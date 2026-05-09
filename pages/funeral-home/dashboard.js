@@ -532,7 +532,7 @@ export default function FuneralHomeDashboard() {
   }));
   const orchestrationByCaseId = new Map(caseOrchestrationRows.map(row => [row.caseItem.id, row.orchestration]));
   const caseInbox = caseOrchestrationRows
-    .map(({ caseItem, orchestration }) => ({ caseItem, task: itemNextPartnerTask(caseItem, orchestration) }))
+    .map(({ caseItem, orchestration }) => ({ caseItem, task: itemNextPartnerTask(caseItem, orchestration), locationName: locationNameFor(caseItem) }))
     .filter(row => row.task)
     .slice(0, 4);
   const riskItems = caseOrchestrationRows.flatMap(({ caseItem }) => (caseItem.tasks || []).map(task => ({
@@ -1731,7 +1731,7 @@ function PartnerDirectorFocus({ riskItems, inboxItems, caseItems, isMultiLocatio
             onClick={firstInbox ? () => onOpenCase(firstInbox.caseId) : null}
           />
           <FocusWidget
-            label={isMultiLocation && firstCase ? locationNameFor(firstCase.caseItem) : 'Next case'}
+            label={isMultiLocation && firstCase ? (firstCase.locationName || 'Next case') : 'Next case'}
             count={caseItems.length}
             tone={C.sage}
             bg={C.sageFaint}
