@@ -1619,28 +1619,28 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         </div>
       </div>
 
-      <div className="passage-task-trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
+      <div className="passage-task-trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
         {[
           ['Who can see this', 'The coordinator sees the family record. Assigned helpers see only the work appropriate to their role.'],
           ['What stays protected', 'Proof, documents, and sensitive notes stay attached to the estate record until an approved action uses them.'],
           ['How Passage knows', 'Every action is tied to an owner, status, timestamp, message, and proof destination before it becomes reporting.'],
         ].map(function(row) {
           return (
-            <div key={row[0]} style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '10px 12px' }}>
+            <div key={row[0]} style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '8px 10px' }}>
               <div style={{ color: SAGE, fontSize: 10.3, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
-              <div style={{ color: MID, fontSize: 12.1, lineHeight: 1.45, marginTop: 4 }}>{row[1]}</div>
+              <div style={{ color: MID, fontSize: 11.6, lineHeight: 1.35, marginTop: 3 }}>{row[1]}</div>
             </div>
           );
         })}
       </div>
 
-      <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, .58fr) minmax(0, 1.42fr)', gap: 20, alignItems: 'stretch' }}>
+      <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(170px, .36fr) minmax(0, 1.64fr)', gap: 16, alignItems: 'stretch' }}>
         <aside className="passage-task-spine-queue" style={{ borderRight: '1px solid ' + BORDER, paddingRight: 16 }}>
           <div style={{ fontSize: 11, color: SOFT, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 9 }}>Open work</div>
           {queue.length === 0 ? (
             <div style={{ color: SAGE, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 11, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45 }}>Nothing open. The estate is quiet right now.</div>
           ) : (
-            <div style={{ maxHeight: 610, overflowY: 'auto', paddingRight: 4 }}>
+            <div style={{ maxHeight: 410, overflowY: 'auto', paddingRight: 4 }}>
           {queue.map(function(entry, index) {
             var selected = index === selectedIndex;
             var entryOwner = entry.kind === 'task' ? taskSpineOwner(entry.item) : textValue(entry.item.owner_label, 'Needs owner');
@@ -1658,7 +1658,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         </aside>
 
         <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(210px, .65fr)', gap: 14, alignItems: 'stretch' }} className="passage-task-spine-facts">
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(190px, .42fr)', gap: 12, alignItems: 'stretch' }} className="passage-task-spine-facts">
             <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 18, padding: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 7 }}>
                 <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1679,17 +1679,11 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                 <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
               </div>
               {item && (
-                <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.6, lineHeight: 1.5, marginTop: 10 }}>
-                  <strong style={{ color: INK }}>Authority path:</strong> Passage keeps this work in one line: owner asks, recipient responds, proof is recorded, status reports back. If the family is overwhelmed, mark needs help instead of leaving the task ambiguous.
-                </div>
-              )}
-              {item && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 8, marginTop: 10 }}>
                   {[
                     ['What happens now', displayTaskNext(item)],
                     ['Who owns it', owner],
                     ['How we know', workspace?.proofDestination || proof],
-                    ['Where it reports', 'Family status and export'],
                   ].map(function(row) {
                     return (
                       <div key={row[0]} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 11, padding: '8px 9px' }}>
@@ -1700,24 +1694,23 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                   })}
                 </div>
               )}
-              {importance?.reason && (
-                <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 8 }}>
-                  <strong style={{ color: INK }}>Why this is here:</strong> {importance.reason}
-                </div>
-              )}
-              {workspace?.guidance && (
-                <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, color: MID, fontSize: 12.4, lineHeight: 1.5 }}>
-                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Why this matters now</div>
-                  <div><strong style={{ color: INK }}>Meaning:</strong> {workspace.guidance.why}</div>
-                  <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>Usually handled by:</strong> {workspace.guidance.usualOwner}</div>
-                  <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>If overwhelmed:</strong> {workspace.guidance.overwhelmed}</div>
-                </div>
-              )}
-              {workspace?.output?.body && (
-                <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 12, marginTop: 13, color: MID, fontSize: 12.8, lineHeight: 1.55 }}>
-                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 4 }}>Passage prepares</div>
-                  <strong style={{ color: INK }}>{workspace.output.label}:</strong> {workspace.output.body}
-                </div>
+              {(importance?.reason || workspace?.guidance || workspace?.output?.body) && (
+                <details style={{ borderTop: '1px solid ' + BORDER, marginTop: 12, paddingTop: 10 }}>
+                  <summary style={{ cursor: 'pointer', color: SAGE, fontSize: 12.2, fontWeight: 900 }}>Why this matters and what Passage prepares</summary>
+                  <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.5, marginTop: 9 }}>
+                    {importance?.reason && <div><strong style={{ color: INK }}>Why this is here:</strong> {importance.reason}</div>}
+                    {workspace?.guidance && (
+                      <div style={{ marginTop: importance?.reason ? 7 : 0 }}>
+                        <strong style={{ color: INK }}>Usually handled by:</strong> {workspace.guidance.usualOwner}<br />
+                        <strong style={{ color: INK }}>If overwhelmed:</strong> {workspace.guidance.overwhelmed}
+                      </div>
+                    )}
+                    {workspace?.output?.body && (
+                      <div style={{ marginTop: 7 }}><strong style={{ color: INK }}>{workspace.output.label}:</strong> {workspace.output.body}</div>
+                    )}
+                    <div style={{ marginTop: 7 }}><strong style={{ color: INK }}>Authority path:</strong> owner asks, recipient responds, proof is recorded, status reports back.</div>
+                  </div>
+                </details>
               )}
             </div>
             <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 18, padding: 15 }}>
@@ -3103,7 +3096,7 @@ export default function EstatePage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 22px 88px' }}>
+      <div style={{ maxWidth: 1040, margin: '0 auto', padding: '32px 22px 88px' }}>
 
         <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: '16px 18px', marginBottom: 24 }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: SAGE, marginBottom: 3 }}>Everything is still on track.</div>
