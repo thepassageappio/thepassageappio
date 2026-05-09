@@ -1878,7 +1878,6 @@ export default function FuneralHomeDashboard() {
                     const output = taskOutputFor(nextPartnerTask, context);
                     const draft = taskRequestDraftFor(nextPartnerTask, context);
                     const proofDestination = taskProofDestination(nextPartnerTask, context);
-                    const actionOpen = taskDraft?.task?.id === nextPartnerTask.id;
                     const assignOpen = assignmentDraft.taskId === nextPartnerTask.id;
                     const assignmentOptions = [];
                     const seenAssignees = new Set();
@@ -2013,61 +2012,6 @@ export default function FuneralHomeDashboard() {
                             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                               <button disabled={updating === nextPartnerTask.id + 'assign'} onClick={() => assignTaskOwner(nextPartnerTask)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === nextPartnerTask.id + 'assign' ? 'Saving...' : 'Save owner and proof'}</button>
                               <button onClick={() => setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' })} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
-                            </div>
-                          </div>
-                          </div>
-                        )}
-                        {actionOpen && (
-                          <div onClick={() => { setTaskDraft(null); setTaskDraftNote(''); }} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-                          <div role="dialog" aria-modal="true" onClick={event => event.stopPropagation()} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
-                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{taskDraft.label}</div>
-                              <button onClick={() => { setTaskDraft(null); setTaskDraftNote(''); }} aria-label="Close task action" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
-                            </div>
-                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>{taskDraft.prompt}</div>
-                            <textarea
-                              value={taskDraftNote}
-                              onChange={(e) => setTaskDraftNote(e.target.value)}
-                              placeholder={taskActionPlaceholder(taskDraft.status, nextPartnerTask, 'funeral_home')}
-                              style={{ width: '100%', boxSizing: 'border-box', minHeight: 112, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink, marginTop: 9 }}
-                            />
-                            <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.45, marginTop: 6 }}>{proofDestination}</div>
-                            {taskDraft.status === 'handled' && (
-                              <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
-                                Passage prepared this output for review. Copy it for the arrangement file, then save proof when it is ready for the family status trail.
-                              </div>
-                            )}
-                            {taskDraft.status === 'blocked' && (
-                              <div style={{ background: C.card, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
-                                This request is saved as a waiting family item. Copy it for email/text when you are demoing; Passage does not send live messages here.
-                              </div>
-                            )}
-                            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
-                              {taskDraft.status === 'handled' && (
-                                <button
-                                  disabled={!taskDraftNote.trim()}
-                                  onClick={() => copyText(taskDraftNote.trim(), 'Prepared output copied.', 'task_output_' + taskDraft.task.id)}
-                                  style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
-                                  {copiedKey === 'task_output_' + taskDraft.task.id ? 'Copied' : 'Copy prepared output'}
-                                </button>
-                              )}
-                              {taskDraft.status === 'blocked' && (
-                                <button
-                                  disabled={!taskDraftNote.trim()}
-                                  onClick={() => copyText(taskDraftNote.trim(), 'Family request copied.', 'task_request_' + taskDraft.task.id)}
-                                  style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
-                                  {copiedKey === 'task_request_' + taskDraft.task.id ? 'Copied' : 'Copy family request'}
-                                </button>
-                              )}
-                              <button
-                                disabled={!taskDraftNote.trim() || updating === nextPartnerTask.id + taskDraft.status || updating === nextPartnerTask.id + 'handle_for_family'}
-                                onClick={() => taskDraft.status === 'handled'
-                                  ? handleForFamily(nextPartnerTask, `${org?.name || 'Funeral home'} completed ${sharedTaskTitle(nextPartnerTask)}: ${taskDraftNote.trim()}`)
-                                  : updateTask(nextPartnerTask, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'requested family information' : 'updated waiting status'} for ${sharedTaskTitle(nextPartnerTask)}: ${taskDraftNote.trim()}. ${proofDestination}`)}
-                                style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
-                                {taskDraft.status === 'handled' ? 'Save proof and close task' : taskDraft.status === 'blocked' ? 'Save family request' : 'Save waiting update'}
-                              </button>
-                              <button onClick={() => { setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
                             </div>
                           </div>
                           </div>
@@ -2220,39 +2164,9 @@ export default function FuneralHomeDashboard() {
                       </div>
                       {task.playbook?.funeralHomeEligible && !['handled', 'completed', 'done'].includes(task.status || '') && (
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
-                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Mark waiting</button>
-                          <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Record proof', prompt: taskActionPrompt('handled', task, 'funeral_home'), draft, output }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Record proof'}</button>
-                        </div>
-                      )}
-                      {taskDraft?.task?.id === task.id && (
-                        <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12 }}>
-                          <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Tell Passage what to track</div>
-                          <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900, marginBottom: 4 }}>{taskDraft.label}</div>
-                          <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginBottom: 8 }}>{taskDraft.prompt}</div>
-                          {taskDraft.output && (
-                            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', marginBottom: 8 }}>
-                              <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Output being updated</div>
-                              <div style={{ color: C.ink, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{taskDraft.output.label}</div>
-                            </div>
-                          )}
-                          <textarea
-                            value={taskDraftNote}
-                            onChange={(e) => setTaskDraftNote(e.target.value)}
-                            placeholder={taskActionPlaceholder(taskDraft.status, task, 'funeral_home')}
-                            style={{ width: '100%', boxSizing: 'border-box', minHeight: 70, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink }}
-                          />
-                          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
-                            <button
-                              disabled={!taskDraftNote.trim() || updating === task.id + taskDraft.status || updating === task.id + 'handle_for_family'}
-                              onClick={() => taskDraft.status === 'handled'
-                                ? handleForFamily(task, `${org?.name || 'Funeral home'} completed ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}`)
-                                : updateTask(task, taskDraft.status, `${org?.name || 'Funeral home'} ${taskDraft.status === 'blocked' ? 'requested family information' : 'started this on behalf of the family'} for ${sharedTaskTitle(task)}: ${taskDraftNote.trim()}. ${proofDestination}`)}
-                              style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
-                              {taskDraft.status === 'handled' ? 'Save proof and close' : taskDraft.status === 'blocked' ? 'Save family request' : 'Save waiting update'}
-                            </button>
-                            <button onClick={() => { setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
-                          </div>
+                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Mark waiting</button>
+                          <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Record proof', prompt: taskActionPrompt('handled', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Handling...' : 'Record proof'}</button>
                         </div>
                       )}
                       {['handled', 'completed', 'done'].includes(task.status || '') && (
@@ -2271,6 +2185,20 @@ export default function FuneralHomeDashboard() {
             })}
           </div>
           </>
+        )}
+        {user && taskDraft?.task && (
+          <PartnerTaskActionDialog
+            taskDraft={taskDraft}
+            taskDraftNote={taskDraftNote}
+            setTaskDraftNote={setTaskDraftNote}
+            copiedKey={copiedKey}
+            updating={updating}
+            orgName={org?.name || 'Funeral home'}
+            onCopyText={copyText}
+            onClose={() => { setTaskDraft(null); setTaskDraftNote(''); }}
+            onHandleForFamily={handleForFamily}
+            onUpdateTask={updateTask}
+          />
         )}
       </section>
       <SiteFooter />
@@ -2437,6 +2365,91 @@ function FocusWidget({ label, count, tone, bg, title, body, cta, onClick }) {
       <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>{body}</div>
       {cta && <div style={{ color: tone, fontSize: 12, fontWeight: 900, marginTop: 10 }}>{cta}</div>}
     </button>
+  );
+}
+
+function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, copiedKey, updating, orgName, onCopyText, onClose, onHandleForFamily, onUpdateTask }) {
+  const task = taskDraft?.task;
+  if (!task) return null;
+  const proofDestination = taskDraft.proofDestination || taskProofDestination(task, { surface: 'case spine proof' });
+  const isSaving = updating === task.id + taskDraft.status || updating === task.id + 'handle_for_family';
+  const canSave = !!String(taskDraftNote || '').trim() && !isSaving;
+  const note = String(taskDraftNote || '').trim();
+  const copyKey = taskDraft.status === 'blocked' ? 'task_request_' + task.id : 'task_output_' + task.id;
+  const copyLabel = taskDraft.status === 'blocked' ? 'Copy family request' : 'Copy prepared output';
+  const copiedLabel = taskDraft.status === 'blocked' ? 'Family request copied.' : 'Prepared output copied.';
+  const saveLabel = taskDraft.status === 'handled'
+    ? 'Save proof and close task'
+    : taskDraft.status === 'blocked'
+      ? 'Save family request'
+      : 'Save waiting update';
+
+  function saveTaskAction() {
+    if (!canSave) return;
+    if (taskDraft.status === 'handled') {
+      onHandleForFamily(task, `${orgName} completed ${sharedTaskTitle(task)}: ${note}`);
+      return;
+    }
+    onUpdateTask(
+      task,
+      taskDraft.status,
+      `${orgName} ${taskDraft.status === 'blocked' ? 'requested family information' : 'updated waiting status'} for ${sharedTaskTitle(task)}: ${note}. ${proofDestination}`
+    );
+  }
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+      <div role="dialog" aria-modal="true" onClick={event => event.stopPropagation()} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+          <div>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{taskDraft.label}</div>
+            <div style={{ color: C.ink, fontSize: 17, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>{sharedTaskTitle(task)}</div>
+          </div>
+          <button onClick={onClose} aria-label="Close task action" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
+        </div>
+        <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 6 }}>{taskDraft.prompt}</div>
+        {taskDraft.output && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
+            <strong style={{ color: C.ink }}>{taskDraft.output.label}</strong>
+            <div>{taskDraft.output.body}</div>
+          </div>
+        )}
+        <textarea
+          value={taskDraftNote}
+          onChange={(e) => setTaskDraftNote(e.target.value)}
+          placeholder={taskActionPlaceholder(taskDraft.status, task, 'funeral_home')}
+          style={{ width: '100%', boxSizing: 'border-box', minHeight: 112, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink, marginTop: 9 }}
+        />
+        <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.45, marginTop: 6 }}>{proofDestination}</div>
+        {taskDraft.status === 'handled' && (
+          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
+            Passage prepared this output for review. Copy it for the arrangement file, then save proof when it is ready for the family status trail.
+          </div>
+        )}
+        {taskDraft.status === 'blocked' && (
+          <div style={{ background: C.card, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
+            This request is saved as a waiting family item. Copy it for email/text when you are demoing; Passage does not send live messages here.
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
+          {(taskDraft.status === 'handled' || taskDraft.status === 'blocked') && (
+            <button
+              disabled={!note}
+              onClick={() => onCopyText(note, copiedLabel, copyKey)}
+              style={{ border: `1px solid ${taskDraft.status === 'blocked' ? C.amber + '44' : C.sage + '33'}`, background: C.card, color: taskDraft.status === 'blocked' ? C.amber : C.sage, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: note ? 'pointer' : 'not-allowed', opacity: note ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+              {copiedKey === copyKey ? 'Copied' : copyLabel}
+            </button>
+          )}
+          <button
+            disabled={!canSave}
+            onClick={saveTaskAction}
+            style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+            {isSaving ? 'Saving...' : saveLabel}
+          </button>
+          <button onClick={onClose} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
