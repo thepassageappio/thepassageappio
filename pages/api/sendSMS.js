@@ -118,7 +118,6 @@ export default async function handler(req, res) {
       provider: 'twilio',
       status: 'failed',
       error_message: message,
-      sent_at: new Date().toISOString(),
     }]).then(() => {}, () => {});
     await recordTaskStatus({
       workflowId,
@@ -215,7 +214,6 @@ export default async function handler(req, res) {
         provider: 'twilio',
         status: 'failed',
         error_message: data.message || JSON.stringify(data),
-        sent_at: new Date().toISOString(),
       }]);
       await recordTaskStatus({
         workflowId,
