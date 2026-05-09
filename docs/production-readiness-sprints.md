@@ -63,3 +63,16 @@ Acceptance:
 - Founder can demo funeral-home pilot loop end to end without caveats beyond known pilot constraints.
 - Hospice and senior living are positioned as discovery/next wedge, not sold as production-ready modules.
 - Remaining work is prioritized into production pilot blockers vs broader scale work.
+
+## Follow-On Loop - Outputs, Delivery Safety, Instrumentation
+
+Goal: make the pilot feel operationally real without widening scope.
+
+Shipped:
+- Continuity packet outputs now show packet status, approval boundary, proof path, copy, print/PDF, and downloadable text artifacts.
+- Email and SMS delivery routes now support authenticated dry runs for QA. Dry runs return preview payloads and do not call Resend, Twilio, fallback email, or production record mutations.
+
+Next:
+- Add controlled live-send QA only after owner approval, using approved test recipients and clear production logging.
+- Add instrumentation around case creation, task movement, participant acceptance, packet download, export, and vendor response.
+- Turn pilot readiness into a small internal checklist per partner: setup complete, first case loaded, first owner assigned, first proof saved, first export downloaded, first notification dry-run verified.

@@ -54,6 +54,12 @@ const adminModules = [
     status: 'Intake live',
   },
   {
+    title: 'Notification dry-run QA',
+    body: 'Email and SMS endpoints can be exercised with dryRun so QA can inspect routing without sending or mutating records.',
+    href: '/system/demo',
+    status: 'Live scaffold',
+  },
+  {
     title: 'Business health dashboard',
     body: 'ARR, MRR, churn, pilots, engagement, marketplace value, customer health, and raw exports.',
     href: '/system/admin#business-health',
