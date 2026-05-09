@@ -232,6 +232,18 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>
             {estate?.coordinator_name || 'The coordinator'} will see your response. You are not responsible for the whole estate.
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
+            {[
+              ['What happens now', contract.action],
+              ['Who owns it', 'You own this assigned task'],
+              ['How we know', workspace.proofDestination],
+            ].map(([label, body]) => (
+              <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
+                <div style={{ color: C.sage, fontSize: 9.8, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35, marginTop: 4 }}>{body}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 13px', marginBottom: 9 }}>
