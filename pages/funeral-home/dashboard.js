@@ -1996,6 +1996,8 @@ export default function FuneralHomeDashboard() {
                               <strong style={{ color: C.ink }}>Why now:</strong> {guidance.why}
                               <br />
                               <strong style={{ color: C.ink }}>Expected timing:</strong> {guidance.timing}
+                              <br />
+                              <strong style={{ color: C.ink }}>Visibility:</strong> family-facing status and proof are shared; internal staff notes stay operational.
                             </div>
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 11 }}>

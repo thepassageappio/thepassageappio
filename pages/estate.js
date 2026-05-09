@@ -1704,6 +1704,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               <SpineFact label="Recipient / contact" value={recipient} tone={recipient.includes('Add recipient') ? 'warn' : 'good'} />
               <SpineFact label="Status truth" value={status} tone={blockedCount ? 'warn' : 'good'} />
               <SpineFact label="Proof destination" value={proof} />
+              <SpineFact label="Visibility" value="Estate roles and assigned helpers see task updates appropriate to their role." />
               <SpineFact label="Last actor / time" value={lastTime ? lastActor + ' - ' + lastTime : lastActor} />
             </div>
           </div>
