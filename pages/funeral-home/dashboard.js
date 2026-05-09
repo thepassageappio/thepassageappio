@@ -1460,7 +1460,20 @@ export default function FuneralHomeDashboard() {
                               style={{ width: '100%', boxSizing: 'border-box', minHeight: 112, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink, marginTop: 9 }}
                             />
                             <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.45, marginTop: 6 }}>{proofDestination}</div>
+                            {taskDraft.status === 'blocked' && (
+                              <div style={{ background: C.card, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
+                                This request is saved as a waiting family item. Copy it for email/text when you are demoing; Passage does not send live messages here.
+                              </div>
+                            )}
                             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
+                              {taskDraft.status === 'blocked' && (
+                                <button
+                                  disabled={!taskDraftNote.trim()}
+                                  onClick={() => copyText(taskDraftNote.trim(), 'Family request copied.')}
+                                  style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+                                  Copy family request
+                                </button>
+                              )}
                               <button
                                 disabled={!taskDraftNote.trim() || updating === nextPartnerTask.id + taskDraft.status || updating === nextPartnerTask.id + 'handle_for_family'}
                                 onClick={() => taskDraft.status === 'handled'
