@@ -32,6 +32,55 @@ var PLATFORMS = [
   { id: "sms", label: "Text message", color: SAGE, bgColor: SAGE_FAINT, limit: 300 },
 ];
 
+function cleanCell(value) {
+  var text = String(value || "").replace(/\r/g, " ").replace(/\n/g, " ").trim();
+  if (/^[=+\-@]/.test(text)) text = "'" + text;
+  return text;
+}
+
+function csvEscape(value) {
+  var text = cleanCell(value);
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
+function parseRecipients(raw) {
+  var seen = {};
+  return String(raw || "")
+    .split(/\n+/)
+    .map(function(line) {
+      var text = line.trim();
+      if (!text) return null;
+      var emailMatch = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+      var phoneMatch = text.match(/(?:\+?1[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}/);
+      var email = emailMatch ? emailMatch[0].toLowerCase() : "";
+      var phone = phoneMatch ? phoneMatch[0].replace(/[^\d+]/g, "") : "";
+      var name = text
+        .replace(emailMatch ? emailMatch[0] : "", "")
+        .replace(phoneMatch ? phoneMatch[0] : "", "")
+        .replace(/[<>,;|]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (!name) name = email || phone || "Recipient";
+      var key = email || phone || name.toLowerCase();
+      if (seen[key]) return null;
+      seen[key] = true;
+      return { name: name, email: email, phone: phone, raw: text };
+    })
+    .filter(Boolean);
+}
+
+function downloadText(filename, text) {
+  var blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function buildTexts(dn, cn, events) {
   var dn2 = dn || "your loved one";
   var cn2 = cn || "the family";
@@ -169,6 +218,7 @@ export default function SharePage() {
   var s8 = useState(null); var copied = s8[0]; var setCopied = s8[1];
   var s9 = useState(false); var loaded = s9[0]; var setLoaded = s9[1];
   var s10 = useState(""); var toastMsg = s10[0]; var setToastMsg = s10[1];
+  var s11 = useState(""); var recipientsText = s11[0]; var setRecipientsText = s11[1];
 
   useEffect(function() {
     var params = new URLSearchParams(window.location.search);
@@ -300,7 +350,46 @@ export default function SharePage() {
     return <div style={outer}><div style={nav}><div style={{ width: 22, height: 22, borderRadius: "50%", background: "radial-gradient(circle, " + SAGE_LIGHT + ", " + SAGE + "70)" }} /><span style={{ fontSize: 16, color: INK }}>Passage</span></div><div style={{ padding: 40, color: SOFT, textAlign: "center" }}>Loading...</div><SiteFooter /></div>;
   }
 
+  function recipientRows() {
+    return parseRecipients(recipientsText);
+  }
+
+  function copyText(value, label) {
+    navigator.clipboard.writeText(value || "").then(function() {
+      setCopied(label);
+      setToastMsg(label + " copied.");
+      setTimeout(function() { setCopied(null); setToastMsg(""); }, 2400);
+    }).catch(function() {
+      setToastMsg("Copy failed. Select the text and copy it manually.");
+      setTimeout(function() { setToastMsg(""); }, 3000);
+    });
+  }
+
+  function exportRecipientCsv() {
+    var rows = recipientRows();
+    var csv = [
+      ["name", "email", "phone", "channel", "announcement_subject", "email_body", "sms_body"].map(csvEscape).join(",")
+    ].concat(rows.map(function(r) {
+      var channel = r.email ? "email" : r.phone ? "sms" : "manual";
+      return [
+        r.name,
+        r.email,
+        r.phone,
+        channel,
+        "Service details for " + (wf && wf.deceased_name ? wf.deceased_name : "our loved one"),
+        texts && texts.email ? texts.email : "",
+        texts && texts.sms ? texts.sms : "",
+      ].map(csvEscape).join(",");
+    })).join(NL);
+    downloadText("passage-announcement-recipients.csv", csv);
+    setToastMsg("Recipient CSV prepared. Nothing was sent.");
+    setTimeout(function() { setToastMsg(""); }, 3000);
+  }
+
   var dn = wf ? (wf.deceased_name || "your loved one") : "your loved one";
+  var parsedRecipients = recipientRows();
+  var recipientEmails = parsedRecipients.filter(function(r) { return r.email; }).map(function(r) { return r.email; });
+  var recipientPhones = parsedRecipients.filter(function(r) { return r.phone; }).map(function(r) { return r.phone; });
 
   return (
     <div style={outer}>
@@ -345,6 +434,36 @@ export default function SharePage() {
                 <div style={{ whiteSpace: "pre-wrap", background: SUBTLE, borderRadius: 11, padding: 12, color: MID, fontSize: 12.5, lineHeight: 1.55, maxHeight: 240, overflow: "auto" }}>{texts.onePager}</div>
               </div>
             )}
+
+            <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Announcement list</div>
+                  <div style={{ fontSize: 16, color: INK, fontWeight: 700, marginTop: 2 }}>One message for many people.</div>
+                  <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Paste names with emails or phone numbers. Passage prepares the batch, recipient CSV, and copy blocks. This page does not send real email or SMS.</div>
+                </div>
+                <div style={{ flexShrink: 0, background: SAGE_FAINT, border: "1px solid " + SAGE_LIGHT, borderRadius: 11, padding: "8px 10px", color: SAGE, fontSize: 12, fontWeight: 800, textAlign: "center", whiteSpace: "nowrap" }}>
+                  {parsedRecipients.length} people
+                </div>
+              </div>
+              <textarea
+                value={recipientsText}
+                onChange={function(e) { setRecipientsText(e.target.value); }}
+                rows={4}
+                placeholder={"Jane Doe jane@example.com\nMichael Smith 555-555-1212\nAunt Linda linda@example.com"}
+                style={{ width: "100%", padding: "12px", borderRadius: 11, border: "1.5px solid " + BORDER, fontFamily: "Georgia, serif", fontSize: 13, color: INK, lineHeight: 1.55, resize: "vertical", boxSizing: "border-box", background: SUBTLE }}
+              />
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
+                <div style={{ background: SAGE_FAINT, border: "1px solid " + SAGE_LIGHT, borderRadius: 10, padding: "8px 10px", fontSize: 12, color: SAGE, fontWeight: 800 }}>{recipientEmails.length} email</div>
+                <div style={{ background: GOLD_FAINT, border: "1px solid " + GOLD + "35", borderRadius: 10, padding: "8px 10px", fontSize: 12, color: GOLD, fontWeight: 800 }}>{recipientPhones.length} text</div>
+                <div style={{ background: SUBTLE, border: "1px solid " + BORDER, borderRadius: 10, padding: "8px 10px", fontSize: 12, color: MID, fontWeight: 800 }}>{parsedRecipients.length - recipientEmails.length - recipientPhones.length} manual</div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                <button disabled={!parsedRecipients.length} onClick={exportRecipientCsv} style={{ border: "1px solid " + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: parsedRecipients.length ? "pointer" : "not-allowed", opacity: parsedRecipients.length ? 1 : 0.5 }}>Export recipient CSV</button>
+                <button disabled={!recipientEmails.length} onClick={function() { copyText(recipientEmails.join(", "), "Email list"); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: recipientEmails.length ? "pointer" : "not-allowed", opacity: recipientEmails.length ? 1 : 0.5 }}>Copy email list</button>
+                <button disabled={!recipientPhones.length} onClick={function() { copyText(recipientPhones.join(", "), "Text list"); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: recipientPhones.length ? "pointer" : "not-allowed", opacity: recipientPhones.length ? 1 : 0.5 }}>Copy text list</button>
+              </div>
+            </div>
 
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 500, color: SOFT, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Your announcement</div>
@@ -406,6 +525,19 @@ export default function SharePage() {
               <div style={{ fontSize: 22, color: INK, marginBottom: 6 }}>Share on each platform</div>
               <div style={{ fontSize: 13, color: MID }}>Your announcement is saved. Tap each platform to share.</div>
             </div>
+
+            {parsedRecipients.length > 0 && (
+              <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 }}>Recipient batch</div>
+                <div style={{ fontSize: 15, color: INK, fontWeight: 700, marginBottom: 6 }}>{parsedRecipients.length} people prepared. Nothing was sent.</div>
+                <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginBottom: 10 }}>Use this for the practical "tell 300 people once" use case: copy the email list, copy the text list, or export the CSV for review before any real delivery system is enabled.</div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button onClick={exportRecipientCsv} style={{ border: "1px solid " + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: "pointer" }}>Export CSV</button>
+                  <button disabled={!recipientEmails.length} onClick={function() { copyText(recipientEmails.join(", "), "Email list"); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: recipientEmails.length ? "pointer" : "not-allowed", opacity: recipientEmails.length ? 1 : 0.5 }}>Copy {recipientEmails.length} emails</button>
+                  <button disabled={!recipientPhones.length} onClick={function() { copyText(recipientPhones.join(", "), "Text list"); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: recipientPhones.length ? "pointer" : "not-allowed", opacity: recipientPhones.length ? 1 : 0.5 }}>Copy {recipientPhones.length} texts</button>
+                </div>
+              </div>
+            )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
               {PLATFORMS.map(function(p) {
