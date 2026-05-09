@@ -26,6 +26,15 @@
 
 ## Next
 
+- Demo-Ready Continuity Spine Sprint:
+  - P0: add task authority language to task workspaces so every priority task explains why it matters, usual owner, timing, next step, Passage output, and what to do when overwhelmed.
+  - P0: make the red-path first three minutes read as stabilize -> coordinate -> organize, with authority before dashboard complexity.
+  - P0: harden role separation: family sees one calm next action; director sees risk/ROI; staff sees assigned work; participant sees one delegated action; vendor sees scoped request/response.
+  - P0: keep notification and announcement truth strict: prepared, copied, failed, skipped, delivered, and sent must remain separate states.
+  - P0: make the guided demo tell Green -> Warm -> Red -> Funeral Home -> After in under 12 minutes with DEMO DATA boundaries and no real sends.
+  - P1: productize more Tier 1 outputs through existing task packets before introducing new persistent packet schema.
+  - P1: add visible trust affordances around permissions, audit/proof, export ownership, document visibility, and human support.
+  - Owner gates: do not apply a `document_packets` production schema, materially rewrite legal/privacy claims, send real email/SMS, change pricing, or make irreversible production data changes without approval.
 - Operational Calm hardening sprint, only where it supports task-spine demo readiness:
   - P0: remove remaining card soup and normalize visual hierarchy across estate, red path, participant, funeral-home, and vendor surfaces.
   - P0: make the red path first 3 minutes feel like guided family incident response: situation -> immediate authority guidance -> coordination activation.

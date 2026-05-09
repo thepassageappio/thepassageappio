@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
-import { taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
+import { taskGuidanceFor, taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../../lib/taskOrchestration';
 
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
@@ -1911,6 +1911,7 @@ export default function FuneralHomeDashboard() {
                   {isExpanded && nextPartnerTask && (() => {
                     const context = { caseName: item?.deceased_name || item?.estate_name || item?.name, coordinatorName: item?.coordinator_name, surface: 'case spine proof' };
                     const output = taskOutputFor(nextPartnerTask, context);
+                    const guidance = taskGuidanceFor(nextPartnerTask, { ...context, owner: nextOwner });
                     const draft = taskRequestDraftFor(nextPartnerTask, context);
                     const proofDestination = taskProofDestination(nextPartnerTask, context);
                     const assignOpen = assignmentDraft.taskId === nextPartnerTask.id;
@@ -1991,6 +1992,11 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Action workspace</div>
                             <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(nextPartnerTask)}</div>
                             <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>Choose the next operational move. Passage keeps the owner, request, proof, and family-visible status on this task.</div>
+                            <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
+                              <strong style={{ color: C.ink }}>Why now:</strong> {guidance.why}
+                              <br />
+                              <strong style={{ color: C.ink }}>Expected timing:</strong> {guidance.timing}
+                            </div>
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 11 }}>
                             <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Prepared output</div>

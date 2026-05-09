@@ -39,6 +39,22 @@ Every persona must be a different slice of the same truth:
 | Small pilot | 2-4 focused sprints | Needs repeatable persona QA, pilot operator onboarding, delivery/error audit checks, and mobile density review. |
 | Broader production | 6-10 focused sprints | Needs observability, support operations, data repair tools, deeper outputs, and legal/trust finalization before broader acquisition. |
 
+## Most Important Remaining Work
+
+These are the remaining gaps to keep Passage aligned with the mission: a calm authoritative coordination layer for families, with institutions rotating through one persistent family record.
+
+1. Task authority layer: every task must explain what it is, why it matters, who usually handles it, whether it needs attention now, what happens next, what Passage can prepare, and how to ask for help when the family is overwhelmed.
+2. Red-path first three minutes: the urgent flow should stabilize first, then coordinate, then organize. Avoid making grieving users configure software before they see the next safe action.
+3. Family/operator separation: family views should be emotionally paced and dramatically simpler; director and staff views should be operational, workload-aware, and proof-focused.
+4. Trust posture: make privacy, permissions, audit trail, who-can-see-what, document visibility, export ownership, and human support easier to find without turning core workspaces into policy pages.
+5. Role clarity: director, staff, family coordinator, invited participant, vendor, and demo/admin surfaces should each show their own work queue and proof obligation.
+6. Output generation: keep deepening useful prepared outputs now, then add persistent packet storage, PDF generation, and packet email only after owner approval for schema and live-send behavior.
+7. Notification truth: assignment and participant onboarding should route attention with clear delivery/skipped/failed states, but never imply an email or SMS was sent unless a provider actually accepted it.
+8. Linear demo loop: demo data and guided steps must tell Green -> Warm -> Red -> Funeral Home -> After with visible DEMO DATA boundaries and no hidden operator narration.
+9. Pilot instrumentation: track waiting age, owner latency, proof completion, failed notification attempts, delivered notification attempts, tasks closed, outputs prepared, exports generated, and calls avoided.
+
+Owner approval is still required before production SQL, material legal/privacy changes, pricing changes, real email/SMS sends, or irreversible production data changes.
+
 ## Repeatable Pilot QA Run
 
 Run this after any sprint that touches task, communication, proof, demo, or role-specific surfaces.

@@ -1684,6 +1684,14 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                   <strong style={{ color: INK }}>Why this is here:</strong> {importance.reason}
                 </div>
               )}
+              {workspace?.guidance && (
+                <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, color: MID, fontSize: 12.4, lineHeight: 1.5 }}>
+                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Why this matters now</div>
+                  <div><strong style={{ color: INK }}>Meaning:</strong> {workspace.guidance.why}</div>
+                  <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>Usually handled by:</strong> {workspace.guidance.usualOwner}</div>
+                  <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>If overwhelmed:</strong> {workspace.guidance.overwhelmed}</div>
+                </div>
+              )}
               {workspace?.output?.body && (
                 <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 12, marginTop: 13, color: MID, fontSize: 12.8, lineHeight: 1.55 }}>
                   <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 4 }}>Passage prepares</div>
