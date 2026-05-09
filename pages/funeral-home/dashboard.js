@@ -279,7 +279,7 @@ export default function FuneralHomeDashboard() {
         } : prev);
         setTaskDraft(null);
         setTaskDraftNote('');
-        setNotice(json.confirmation || 'Handled for the family. The family can see exactly what your team recorded.');
+        setNotice(json.confirmation || 'Proof saved. The family-facing status trail can show this without sending a live email.');
         await load(token);
       }
     } finally {

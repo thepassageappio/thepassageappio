@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   const user = userData?.user;
   if (userError || !user?.email) return res.status(401).json({ error: 'Session could not be verified.' });
 
-    const { taskId, note } = req.body || {};
+    const { taskId, note, sendFamilyEmail } = req.body || {};
     if (!taskId) return res.status(400).json({ error: 'Missing task.' });
     const cleanNote = String(note || '').trim();
     if (!cleanNote) return res.status(400).json({ error: 'Add what was handled before notifying the family.' });
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     });
 
     let emailSent = false;
-    if (workflow.coordinator_email && process.env.RESEND_API_KEY) {
+    if (sendFamilyEmail === true && workflow.coordinator_email && process.env.RESEND_API_KEY) {
       const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
       const html = `
         <div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px">
@@ -129,6 +129,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       emailSent,
+      notificationQueued: sendFamilyEmail === true,
       statusResult,
       status: 'handled',
       confirmation: taskActionConfirmation('handled', task, 'funeral_home'),
