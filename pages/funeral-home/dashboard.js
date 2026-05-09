@@ -1383,7 +1383,8 @@ export default function FuneralHomeDashboard() {
                               </div>
                             ) : (
                               <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '9px 10px', color: C.amber, fontSize: 12.2, lineHeight: 1.45, marginTop: 10 }}>
-                                No staff or case contacts are saved yet. Add employees in Staff work or invite the family coordinator before assigning.
+                                <div>No staff or case contacts are saved yet.</div>
+                                <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Open Staff work</button>
                               </div>
                             )}
                             {(!assignmentDraft.email || !assignmentOptions.some(option => option.email === assignmentDraft.email)) && (
