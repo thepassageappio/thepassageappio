@@ -83,7 +83,7 @@ const demoSteps = [
     kicker: 'Local support',
     title: 'Request trusted help inside the task.',
     point: 'Vendors are task-native: no directory, no browsing, just trusted help where it belongs.',
-    action: 'Show sent, viewed, accepted, in progress, completed. Passage stays in the transaction trail.',
+    action: 'Show requested, viewed, accepted, in progress, completed, or declined. Passage stays in the transaction trail.',
     href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
   },
   {
