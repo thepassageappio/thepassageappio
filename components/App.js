@@ -3832,8 +3832,11 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             {/* Red path active plans */}
             {redWorkflows.length > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-                <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink, marginBottom: 4 }}>Active estate command centers</div>
-                <div style={{ fontSize: 12, color: C.mid, marginBottom: 13 }}>Each estate has its own tasks, owners, documents, obituary, and activity history. Open the estate you want to manage.</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink }}>Active estate command centers</div>
+                  <span style={{ fontSize: 11, color: C.rose, fontWeight: 900 }}>{redWorkflows.length} active</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))", gap: 8 }}>
                 {redWorkflows.slice(0, 3).map((wf) => {
                   const wfId = wf.id;
                   const wfName = wf.name;
@@ -3842,8 +3845,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   return (
                     <div key={wfId} style={{ marginBottom: 7 }}>
                       <button onClick={() => onOpenPlan(wf)}
-                        style={{ width: "100%", background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 12, padding: "13px 14px", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        style={{ width: "100%", height: "100%", background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 12, padding: "12px 13px", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
                             <div style={{ fontSize: 11, color: C.mid, marginTop: 2 }}>
@@ -3856,31 +3859,28 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                               const pct = required > 0 ? Math.round((s.completed / required) * 100) : 0;
                               return (
                                 <div style={{ marginTop: 7 }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <span style={{ fontSize: 10.5, color: C.mid }}>{s.completed} of {required} required tasks handled</span>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                                    <span style={{ fontSize: 10.5, color: C.mid }}>{s.completed}/{required} handled</span>
                                     <span style={{ fontSize: 10.5, fontWeight: 700, color: pct > 0 ? C.sage : C.soft }}>{pct}% ready</span>
                                   </div>
                                   <div style={{ height: 4, borderRadius: 2, background: C.border, overflow: 'hidden' }}>
                                     <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? C.sage : C.rose, borderRadius: 2, transition: 'width 0.3s' }} />
                                   </div>
-                                  {s.assigned > 0 && <div style={{ fontSize: 10, color: C.soft, marginTop: 3 }}>{s.assigned} task{s.assigned > 1 ? 's' : ''} assigned</div>}
                                 </div>
                               );
                             })()}
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                            <span style={{ fontSize: 10.5, color: C.rose, fontWeight: 700, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 7, padding: "2px 9px" }}>Active</span>
-                            <span style={{ color: C.mid, fontSize: 14 }}>→</span>
-                          </div>
+                          <span style={{ fontSize: 11, color: C.rose, fontWeight: 900 }}>Open</span>
                         </div>
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); handleArchive(wfId); }}
                         style={{ width: "100%", padding: "6px", fontSize: 11, color: C.soft, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
-                        {archiving === wfId ? "Archiving..." : "Archive plan"}
+                        {archiving === wfId ? "Archiving..." : "Archive"}
                       </button>
                     </div>
                   );
                 })}
+                </div>
                 {redWorkflows.length > 3 && (
                   <details style={{ marginTop: 8 }}>
                     <summary style={{ cursor: "pointer", color: C.rose, fontSize: 12, fontWeight: 800, background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 10, padding: "9px 11px" }}>
@@ -3909,67 +3909,36 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink, marginBottom: 2 }}>Planning file</div>
-                    <div style={{ fontSize: 11.5, color: C.mid }}>Plan ahead in one estate workspace: wishes, people, and assignments.</div>
                   </div>
                   {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: "none", borderRadius: 10, padding: "8px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>Add planning file</button>}
                 </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 250px), 1fr))", gap: 8 }}>
                 {greenWorkflows.slice(0, 2).map((wf) => {
                   const wfId = wf.id;
                   const wfName = wf.name;
                   const wfStatus = wf.status;
                   const confirmCount = safeArray(wf.confirmed_by).length;
                   const reqCount = wf.confirmation_count || 2;
-                  const triggerUrl = typeof window !== 'undefined' ? `${window.location.origin}/confirm?token=${wf.trigger_token}` : '';
                   return (
                     <div key={wfId} style={{ marginBottom: 7 }}>
                       <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "13px 14px" }}>
                         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
-                            <div style={{ fontSize: 11, color: C.mid, marginTop: 3 }}>Next: add trusted people, confirm wishes, then assign what should happen later.</div>
+                            <div style={{ fontSize: 11, color: C.mid, marginTop: 3 }}>{confirmCount}/{reqCount} confirmations</div>
                           </div>
                           <span style={{ fontSize: 10.5, color: wfStatus === 'ready' ? C.sage : C.amber, fontWeight: 700, background: wfStatus === 'ready' ? C.sageFaint : C.goldFaint, border: `1px solid ${wfStatus === 'ready' ? C.sageLight : C.gold}30`, borderRadius: 7, padding: "2px 9px" }}>
                             {wfStatus === 'triggered' ? '🔔 Activated' : wfStatus === 'ready' ? '✓ Ready' : '⏳ Draft'}
                           </span>
                         </div>
-                        <button onClick={() => onOpenPlan(wf)} style={{ width: "100%", border: "none", borderRadius: 10, padding: "10px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5, marginBottom: 9 }}>
+                        <button onClick={() => onOpenPlan(wf)} style={{ width: "100%", border: "none", borderRadius: 10, padding: "10px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>
                           Open planning workspace
                         </button>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7, marginBottom: 9 }}>
-                          {[
-                            { l: "1. Wishes", v: "Save choices" },
-                            { l: "2. People", v: "Add contacts" },
-                            { l: "3. Assignments", v: "Route work" },
-                          ].map(step => (
-                            <div key={step.l} style={{ background: C.bgCard, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "8px 9px" }}>
-                              <div style={{ fontSize: 9.5, color: C.sage, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{step.l}</div>
-                              <div style={{ fontSize: 11.5, color: C.ink, fontWeight: 800, marginTop: 3 }}>{step.v}</div>
-                            </div>
-                          ))}
-                        </div>
-                        {wfStatus === 'ready' && (
-                          <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.55, marginBottom: 8 }}>
-                            <strong>{confirmCount} of {reqCount}</strong> confirmations received.
-                            {confirmCount < reqCount && " Waiting for second person to confirm."}
-                          </div>
-                        )}
-                        {wfStatus === 'ready' && triggerUrl && (
-                          <div style={{ background: C.bgSubtle, borderRadius: 9, padding: "9px 12px", marginBottom: 8 }}>
-                            <div style={{ fontSize: 10.5, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Confirmation link</div>
-                            <div style={{ fontSize: 11, color: C.mid, wordBreak: "break-all", marginBottom: 6 }}>{triggerUrl}</div>
-                            <button onClick={() => navigator.clipboard.writeText(triggerUrl).then(() => alert('Link copied!'))}
-                              style={{ fontSize: 11, color: C.sage, fontWeight: 700, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 11px", cursor: "pointer", fontFamily: "inherit" }}>
-                              Copy link
-                            </button>
-                          </div>
-                        )}
-                        <div style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10, fontSize: 11.5, color: C.mid, lineHeight: 1.45 }}>
-                          This index only points you to the next estate workspace. The estate holds the files, messages, proof, and status.
-                        </div>
                       </div>
                     </div>
                   );
                 })}
+                </div>
                 {greenWorkflows.length > 2 && (
                   <details style={{ marginBottom: 8 }}>
                     <summary style={{ cursor: "pointer", color: C.sage, fontSize: 12, fontWeight: 800, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, padding: "9px 11px" }}>
