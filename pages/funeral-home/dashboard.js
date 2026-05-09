@@ -161,6 +161,7 @@ export default function FuneralHomeDashboard() {
   const [staffDraft, setStaffDraft] = useState({ email: '', role: 'staff' });
   const [importDraft, setImportDraft] = useState(null);
   const [exportRange, setExportRange] = useState({ from: '', to: '' });
+  const [copiedKey, setCopiedKey] = useState('');
   const casePanelRef = useRef(null);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
@@ -705,11 +706,11 @@ export default function FuneralHomeDashboard() {
     await load(token);
   }
 
-  async function copyText(value, label = 'Copied.') {
+  async function copyText(value, label = 'Copied.', key = '') {
     if (!value) return;
     const text = String(value);
     try {
-      if (navigator?.clipboard?.writeText) {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
       } else {
         const input = document.createElement('textarea');
@@ -725,6 +726,10 @@ export default function FuneralHomeDashboard() {
         document.body.removeChild(input);
       }
       setNotice(label);
+      if (key) {
+        setCopiedKey(key);
+        window.setTimeout(() => setCopiedKey(current => current === key ? '' : current), 2200);
+      }
     } catch {
       try {
         const input = document.createElement('textarea');
@@ -739,6 +744,10 @@ export default function FuneralHomeDashboard() {
         document.execCommand('copy');
         document.body.removeChild(input);
         setNotice(label);
+        if (key) {
+          setCopiedKey(key);
+          window.setTimeout(() => setCopiedKey(current => current === key ? '' : current), 2200);
+        }
       } catch {
         setError('Could not copy automatically. Select the prepared text and copy it manually.');
       }
@@ -1947,7 +1956,7 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Prepared output</div>
                             <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900, marginTop: 4 }}>{output.label}</div>
                             <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 4 }}>{output.body}</div>
-                            <button onClick={() => copyText(packetText, 'Prepared output copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 9 }}>Copy prepared output</button>
+                            <button onClick={() => copyText(packetText, 'Prepared output copied.', 'partner_output_' + item.id)} style={{ border: `1px solid ${C.sage}33`, background: copiedKey === 'partner_output_' + item.id ? C.sage : C.card, color: copiedKey === 'partner_output_' + item.id ? '#fff' : C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 9 }}>{copiedKey === 'partner_output_' + item.id ? 'Copied' : 'Copy prepared output'}</button>
                           </div>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 8, marginTop: 10 }}>
@@ -2037,17 +2046,17 @@ export default function FuneralHomeDashboard() {
                               {taskDraft.status === 'handled' && (
                                 <button
                                   disabled={!taskDraftNote.trim()}
-                                  onClick={() => copyText(taskDraftNote.trim(), 'Prepared output copied.')}
+                                  onClick={() => copyText(taskDraftNote.trim(), 'Prepared output copied.', 'task_output_' + taskDraft.task.id)}
                                   style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
-                                  Copy prepared output
+                                  {copiedKey === 'task_output_' + taskDraft.task.id ? 'Copied' : 'Copy prepared output'}
                                 </button>
                               )}
                               {taskDraft.status === 'blocked' && (
                                 <button
                                   disabled={!taskDraftNote.trim()}
-                                  onClick={() => copyText(taskDraftNote.trim(), 'Family request copied.')}
+                                  onClick={() => copyText(taskDraftNote.trim(), 'Family request copied.', 'task_request_' + taskDraft.task.id)}
                                   style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
-                                  Copy family request
+                                  {copiedKey === 'task_request_' + taskDraft.task.id ? 'Copied' : 'Copy family request'}
                                 </button>
                               )}
                               <button
