@@ -15,6 +15,8 @@ export default function AcceptInvitePage() {
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState('');
+  const [emailLogin, setEmailLogin] = useState('');
+  const [magicSent, setMagicSent] = useState(false);
   const inviteToken = String(router.query.token || router.query.invite || router.query.invite_token || '').trim();
 
   useEffect(() => {
@@ -61,6 +63,17 @@ export default function AcceptInvitePage() {
     });
   }
 
+  async function sendMagicLink() {
+    if (!emailLogin || !inviteToken) return;
+    setError('');
+    const { error } = await supabase.auth.signInWithOtp({
+      email: emailLogin,
+      options: { emailRedirectTo: `${SITE_URL}/accept?token=${encodeURIComponent(inviteToken)}` },
+    });
+    if (error) setError(error.message);
+    else setMagicSent(true);
+  }
+
   async function acceptInvite(accessToken = token) {
     if (!accessToken || accepting) return;
     setAccepting(true);
@@ -92,7 +105,7 @@ export default function AcceptInvitePage() {
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 28, boxShadow: '0 14px 42px rgba(55,45,35,.06)' }}>
           <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>Passage invite</div>
           <h1 style={{ fontSize: 34, lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400 }}>You have been asked to help.</h1>
-          <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65, maxWidth: 680, margin: '0 0 20px' }}>Sign in with the email that received this invite. Passage will show only the estate work connected to you.</p>
+          <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65, maxWidth: 680, margin: '0 0 20px' }}>Sign in with the email that received this invite. Passage will show one responsibility at a time, keep the rest of the estate private, and send your response back to the coordinator.</p>
 
           {loading && <div style={{ color: C.soft }}>Checking invite...</div>}
           {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 15, color: C.rose, marginBottom: 16 }}>{error}</div>}
@@ -114,7 +127,15 @@ export default function AcceptInvitePage() {
           )}
 
           {!user && (
-            <button disabled={!inviteToken || loading} onClick={signIn} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 14, minHeight: 52, padding: '0 22px', fontFamily: 'Georgia,serif', fontSize: 16, fontWeight: 900, cursor: loading ? 'default' : 'pointer', opacity: loading ? .6 : 1 }}>Sign in to accept invite</button>
+            <div style={{ maxWidth: 540 }}>
+              <button disabled={!inviteToken || loading} onClick={signIn} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 14, minHeight: 52, padding: '0 22px', fontFamily: 'Georgia,serif', fontSize: 16, fontWeight: 900, cursor: loading ? 'default' : 'pointer', opacity: loading ? .6 : 1 }}>Continue with Google</button>
+              <div style={{ height: 12 }} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center' }}>
+                <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter the invited email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif' }} />
+                <button disabled={!emailLogin || !inviteToken} onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, borderRadius: 13, minHeight: 48, padding: '0 16px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: emailLogin ? 'pointer' : 'not-allowed', opacity: emailLogin ? 1 : .55 }}>Email link</button>
+              </div>
+              {magicSent && <p style={{ color: C.sage, fontSize: 13, lineHeight: 1.6, marginBottom: 0 }}>Check your email for a secure sign-in link. It will bring you back to this invite.</p>}
+            </div>
           )}
           {user && (
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
