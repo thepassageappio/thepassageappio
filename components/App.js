@@ -3719,8 +3719,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 </div>
               </div>
               {activeWorkflows.length > 1 && (
-                <div style={{ display: "flex", gap: 7, overflowX: "auto", paddingBottom: 4, marginBottom: 12 }}>
-                  {activeWorkflows.slice(0, 8).map(wf => {
+                <div style={{ display: "flex", gap: 7, flexWrap: "wrap", paddingBottom: 2, marginBottom: 12 }}>
+                  {activeWorkflows.slice(0, 6).map(wf => {
                     const selected = String(wf.id) === String(selectedDashboardEstate?.id);
                     const stats = taskStatsByWorkflow[wf.id] || {};
                     return (
@@ -3732,6 +3732,11 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                       </button>
                     );
                   })}
+                  {activeWorkflows.length > 6 && (
+                    <span style={{ flex: "0 0 auto", border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.soft, borderRadius: 999, padding: "7px 10px", fontSize: 11.5, fontWeight: 800 }}>
+                      {activeWorkflows.length - 6} more in estate list
+                    </span>
+                  )}
                 </div>
               )}
               {selectedDashboardTask ? (
@@ -3763,7 +3768,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 </div>
               )}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
-                {[{l:"This estate",v:selectedDashboardEstate?.path === 'green' ? 'Planning' : 'Active'},{l:"Tasks handled",v:selectedDashboardStats.required ? `${selectedDashboardStats.completed || 0}/${selectedDashboardStats.required}` : "0"},{l:"All estates",v:activeWorkflows.length}].map(i => (
+                {[{l:"This estate",v:selectedDashboardEstate?.path === 'green' ? 'Planning' : 'Active'},{l:"Tasks handled",v:selectedDashboardStats.required ? `${selectedDashboardStats.completed || 0}/${selectedDashboardStats.required}` : "0"},{l:"Estate records",v:activeWorkflows.length}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 10, padding: "10px 11px" }}>
                     <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{i.v}</div>
@@ -3798,9 +3803,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-                <button onClick={() => onOpenPlan(selectedDashboardEstate)} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Open estate workspace</button>
+                <button onClick={() => onOpenPlan(selectedDashboardEstate)} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>{selectedDashboardEstate?.path === 'green' ? 'Open planning workspace' : 'Continue this estate'}</button>
                 {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: `1px solid ${C.sageLight}`, borderRadius: 11, padding: "10px 13px", background: C.sageFaint, color: C.sage, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Add planning estate</button>}
-                <button onClick={() => window.location.href = '/urgent'} style={{ border: `1px solid ${C.rose}30`, borderRadius: 11, padding: "10px 13px", background: C.roseFaint, color: C.rose, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Start urgent path</button>
               </div>
             </div>
             <details style={{ background: C.bgCard, borderRadius: 14, padding: 0, border: `1px solid ${C.border}`, marginBottom: 12 }}>
