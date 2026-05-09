@@ -95,6 +95,57 @@ function cell(row, index, key) {
   return idx == null ? '' : String(row[idx] || '').trim();
 }
 
+function timelineAnchorsForRow(row, index) {
+  return [
+    ['pronouncement', 'Official pronouncement', cell(row, index, 'pronouncement_date'), 'Imported official death pronouncement timing.'],
+    ['release', 'Release / pickup', cell(row, index, 'release_date'), 'Imported release, pickup, removal, or transfer timing.'],
+    ['arrangement', 'Arrangement meeting', cell(row, index, 'arrangement_date'), 'Imported arrangement meeting timing.'],
+    ['visitation', 'Wake / visitation', cell(row, index, 'visitation_date'), 'Imported wake, visitation, calling hours, or shiva timing.'],
+    ['funeral', 'Funeral / memorial service', cell(row, index, 'funeral_date'), 'Imported funeral, memorial, or service timing.'],
+    ['burial', 'Burial / committal', cell(row, index, 'burial_date'), 'Imported burial, committal, cremation, or cemetery timing.'],
+    ['shiva', 'Shiva / mourning period', cell(row, index, 'shiva_date'), 'Imported shiva or mourning-period timing.'],
+    ['reception', 'Reception / gathering', cell(row, index, 'reception_date'), 'Imported reception or family gathering timing.'],
+    ['obituary_deadline', 'Obituary deadline', cell(row, index, 'obituary_deadline'), 'Imported obituary submission or publication deadline.'],
+  ].filter(item => item[2]).map(item => ({ event_type: item[0], name: item[1], date: item[2], notes: item[3] }));
+}
+
+function missingTimelineForRow(row, index) {
+  return [
+    !cell(row, index, 'date_of_death') ? 'date of death' : '',
+    !cell(row, index, 'arrangement_date') ? 'arrangement meeting date' : '',
+    !cell(row, index, 'funeral_date') ? 'funeral or memorial date' : '',
+    !cell(row, index, 'burial_date') ? 'burial, cremation, or cemetery date' : '',
+    !cell(row, index, 'obituary_deadline') ? 'obituary deadline' : '',
+  ].filter(Boolean);
+}
+
+function validateImportRows(parsed, index) {
+  const errors = [];
+  const preview = [];
+  for (let r = 1; r < parsed.length; r += 1) {
+    const row = parsed[r];
+    const deceasedName = cell(row, index, 'deceased_name');
+    const contactName = cell(row, index, 'primary_contact_name');
+    const contactEmail = cell(row, index, 'primary_contact_email');
+    if (!deceasedName || !contactName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail || '')) {
+      errors.push(`Row ${r + 1}: add person who died, family contact, and a valid family contact email.`);
+      continue;
+    }
+    preview.push({
+      row: r + 1,
+      caseName: deceasedName,
+      familyContact: contactName,
+      familyEmail: contactEmail,
+      reference: cell(row, index, 'case_reference') || '',
+      sourceSystem: cell(row, index, 'source_system') || 'csv_import',
+      dateOfDeath: cell(row, index, 'date_of_death') || '',
+      eventCount: timelineAnchorsForRow(row, index).length,
+      missingTimeline: missingTimelineForRow(row, index),
+    });
+  }
+  return { errors, preview };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -104,7 +155,7 @@ export default async function handler(req, res) {
   const user = userData?.user;
   if (userError || !user?.email) return res.status(401).json({ error: 'Session could not be verified.' });
 
-  const { csv, funeralHomeName, mapping } = req.body || {};
+  const { csv, funeralHomeName, mapping, previewOnly } = req.body || {};
   if (!csv || typeof csv !== 'string') return res.status(400).json({ error: 'Upload the Passage CSV template first.' });
 
   const parsed = parseCsv(csv);
@@ -115,6 +166,22 @@ export default async function handler(req, res) {
   const required = ['deceased_name', 'primary_contact_name', 'primary_contact_email'];
   const missing = required.filter(h => index[h] == null);
   if (missing.length) return res.status(400).json({ error: `Missing required case field: ${missing.join(', ')}. Passage accepts its template plus common exports such as decedent name, family contact, contact email, case number, and service date.` });
+
+  const validation = validateImportRows(parsed, index);
+  if (previewOnly) {
+    return res.status(200).json({
+      success: validation.errors.length === 0,
+      previewOnly: true,
+      readyRows: validation.preview.length,
+      errorRows: validation.errors.length,
+      errors: validation.errors,
+      preview: validation.preview.slice(0, 10),
+      totalRows: parsed.length - 1,
+    });
+  }
+  if (validation.errors.length) {
+    return res.status(400).json({ error: validation.errors[0], errors: validation.errors });
+  }
 
   const email = user.email.toLowerCase();
   let { data: membership } = await admin
@@ -152,17 +219,7 @@ export default async function handler(req, res) {
     if (!deceasedName || !contactName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail || '')) {
       return res.status(400).json({ error: `Row ${r + 1} is missing deceased_name, primary_contact_name, or a valid primary_contact_email.` });
     }
-    const timelineAnchors = [
-      ['pronouncement', 'Official pronouncement', cell(row, index, 'pronouncement_date'), 'Imported official death pronouncement timing.'],
-      ['release', 'Release / pickup', cell(row, index, 'release_date'), 'Imported release, pickup, removal, or transfer timing.'],
-      ['arrangement', 'Arrangement meeting', cell(row, index, 'arrangement_date'), 'Imported arrangement meeting timing.'],
-      ['visitation', 'Wake / visitation', cell(row, index, 'visitation_date'), 'Imported wake, visitation, calling hours, or shiva timing.'],
-      ['funeral', 'Funeral / memorial service', cell(row, index, 'funeral_date'), 'Imported funeral, memorial, or service timing.'],
-      ['burial', 'Burial / committal', cell(row, index, 'burial_date'), 'Imported burial, committal, cremation, or cemetery timing.'],
-      ['shiva', 'Shiva / mourning period', cell(row, index, 'shiva_date'), 'Imported shiva or mourning-period timing.'],
-      ['reception', 'Reception / gathering', cell(row, index, 'reception_date'), 'Imported reception or family gathering timing.'],
-      ['obituary_deadline', 'Obituary deadline', cell(row, index, 'obituary_deadline'), 'Imported obituary submission or publication deadline.'],
-    ].filter(item => item[2]).map(item => ({ event_type: item[0], name: item[1], date: item[2], notes: item[3] }));
+    const timelineAnchors = timelineAnchorsForRow(row, index);
 
     const { data: workflow, error: workflowError } = await admin.from('workflows').insert([{
       user_id: user.id,
@@ -186,13 +243,7 @@ export default async function handler(req, res) {
         partner_setup_stage: 'partner_csv_imported',
         source_system: cell(row, index, 'source_system') || 'csv_import',
         timeline_anchors: timelineAnchors,
-        missing_timeline_watch: [
-          !cell(row, index, 'date_of_death') ? 'date of death' : '',
-          !cell(row, index, 'arrangement_date') ? 'arrangement meeting date' : '',
-          !cell(row, index, 'funeral_date') ? 'funeral or memorial date' : '',
-          !cell(row, index, 'burial_date') ? 'burial, cremation, or cemetery date' : '',
-          !cell(row, index, 'obituary_deadline') ? 'obituary deadline' : '',
-        ].filter(Boolean),
+        missing_timeline_watch: missingTimelineForRow(row, index),
       },
       created_at: now,
       updated_at: now,

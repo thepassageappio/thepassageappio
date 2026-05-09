@@ -589,19 +589,55 @@ export default function FuneralHomeDashboard() {
       headers,
       rows: rows.slice(1, 4),
       mapping: suggestedImportMapping(headers),
+      preview: null,
+      errors: [],
     });
     setShowTools(true);
     setNotice('Review the column mapping, then import. Nothing is saved until you confirm.');
   }
 
-  async function submitMappedImport() {
-    if (!token || !importDraft?.csv) return;
-    const requiredMissing = IMPORT_FIELDS
+  function requiredImportFieldsMissing() {
+    if (!importDraft?.mapping) return [];
+    return IMPORT_FIELDS
       .filter(([, , required]) => required)
       .filter(([key]) => !importDraft.mapping?.[key])
       .map(([, label]) => label);
+  }
+
+  async function previewMappedImport() {
+    if (!token || !importDraft?.csv) return;
+    const requiredMissing = requiredImportFieldsMissing();
     if (requiredMissing.length) {
       setError(`Map required fields first: ${requiredMissing.join(', ')}.`);
+      return;
+    }
+    setUpdating('partner_import_preview');
+    setError('');
+    setNotice('');
+    const res = await fetch('/api/partnerImport', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ csv: importDraft.csv, mapping: importDraft.mapping, funeralHomeName: org?.name || '', previewOnly: true }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setUpdating('');
+    setImportDraft(prev => ({ ...prev, preview: json.preview || [], errors: json.errors || [], readyRows: json.readyRows || 0, totalRows: json.totalRows || 0, errorRows: json.errorRows || 0 }));
+    if (!res.ok || json.errors?.length) {
+      setError(json.error || json.errors?.[0] || 'Fix the import rows before saving.');
+      return;
+    }
+    setNotice(`Preview ready: ${json.readyRows} case${json.readyRows === 1 ? '' : 's'} can be imported.`);
+  }
+
+  async function submitMappedImport() {
+    if (!token || !importDraft?.csv) return;
+    const requiredMissing = requiredImportFieldsMissing();
+    if (requiredMissing.length) {
+      setError(`Map required fields first: ${requiredMissing.join(', ')}.`);
+      return;
+    }
+    if (!importDraft.preview) {
+      await previewMappedImport();
       return;
     }
     setUpdating('partner_import');
@@ -1108,7 +1144,7 @@ export default function FuneralHomeDashboard() {
                       {label}{required ? ' *' : ''}
                       <select
                         value={importDraft.mapping?.[key] || ''}
-                        onChange={event => setImportDraft(prev => ({ ...prev, mapping: { ...(prev?.mapping || {}), [key]: event.target.value } }))}
+                        onChange={event => setImportDraft(prev => ({ ...prev, preview: null, errors: [], mapping: { ...(prev?.mapping || {}), [key]: event.target.value } }))}
                         style={inputStyle}>
                         <option value="">Do not import</option>
                         {importDraft.headers.map(header => (
@@ -1121,8 +1157,27 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 10 }}>
                   Required fields create the family case. Date fields feed the orchestration spine so Passage can rank work around pronouncement, arrangement, service, burial, reception, and obituary timing.
                 </div>
+                {importDraft.preview && (
+                  <div style={{ background: C.card, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 10, marginTop: 10 }}>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Import preview</div>
+                    <div style={{ color: C.ink, fontSize: 14.5, lineHeight: 1.35, marginTop: 3 }}>{importDraft.readyRows || 0} ready of {importDraft.totalRows || 0} rows. {importDraft.errorRows ? `${importDraft.errorRows} need fixes.` : 'No row errors found.'}</div>
+                    <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
+                      {(importDraft.preview || []).slice(0, 4).map(row => (
+                        <div key={row.row} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12.2, lineHeight: 1.4 }}>
+                          <strong style={{ color: C.ink }}>Row {row.row}: {row.caseName}</strong> - {row.familyContact} ({row.familyEmail}){row.reference ? ` - Ref ${row.reference}` : ''}. {row.eventCount} lifecycle date{row.eventCount === 1 ? '' : 's'} mapped.
+                        </div>
+                      ))}
+                    </div>
+                    {importDraft.errors?.length > 0 && (
+                      <div style={{ color: C.rose, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>
+                        {importDraft.errors.slice(0, 3).join(' ')}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-                  <button onClick={submitMappedImport} disabled={updating === 'partner_import'} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_import' ? 'wait' : 'pointer' }}>{updating === 'partner_import' ? 'Importing...' : 'Import mapped cases'}</button>
+                  <button onClick={previewMappedImport} disabled={updating === 'partner_import_preview'} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_import_preview' ? 'wait' : 'pointer' }}>{updating === 'partner_import_preview' ? 'Checking...' : 'Preview mapped cases'}</button>
+                  <button onClick={submitMappedImport} disabled={updating === 'partner_import' || !importDraft.preview || importDraft.errors?.length > 0} style={{ border: 'none', background: !importDraft.preview || importDraft.errors?.length > 0 ? C.border : C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_import' ? 'wait' : !importDraft.preview || importDraft.errors?.length > 0 ? 'not-allowed' : 'pointer' }}>{updating === 'partner_import' ? 'Importing...' : 'Import after preview'}</button>
                   <button onClick={() => setImportDraft(null)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
                 </div>
               </div>
