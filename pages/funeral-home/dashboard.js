@@ -942,9 +942,9 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8 }}>
                   <div>
                     <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Add employee</div>
-                    <div style={{ color: C.mid, fontSize: 12.5, marginTop: 3 }}>Saved employees become assignable on case work.</div>
+                    <div style={{ color: C.mid, fontSize: 12.5, marginTop: 3 }}>Save the employee first, then assign case work from the task spine.</div>
                   </div>
-                  <div style={{ color: C.mid, fontSize: 11.8 }}>No message is sent.</div>
+                  <div style={{ color: C.mid, fontSize: 11.8 }}>Invite delivery is separate.</div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, alignItems: 'center' }}>
                   <input value={staffDraft.email} onChange={event => setStaffDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="employee@funeralhome.com" style={inputStyle} />
@@ -954,8 +954,9 @@ export default function FuneralHomeDashboard() {
                     <option value="director">Director</option>
                     <option value="admin">Admin</option>
                   </select>
-                  <button disabled={updating === 'partner_staff'} style={{ border: 'none', background: updating === 'partner_staff' ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_staff' ? 'wait' : 'pointer' }}>{updating === 'partner_staff' ? 'Saving...' : 'Save staff'}</button>
+                  <button disabled={updating === 'partner_staff'} style={{ border: 'none', background: updating === 'partner_staff' ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_staff' ? 'wait' : 'pointer' }}>{updating === 'partner_staff' ? 'Saving...' : 'Save as assignable staff'}</button>
                 </div>
+                <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>Next sprint: send staff invite, employee signs in, and lands on My assigned work.</div>
               </form>
             )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 12 }}>
