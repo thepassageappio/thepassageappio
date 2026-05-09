@@ -99,7 +99,7 @@ const DEMO_TOUR_STEPS = [
     id: 'chat',
     title: 'Coordinate the people',
     body: 'Use the mock chats to show family, cemetery, clergy, and funeral-home staff in one tracked coordination trail.',
-    href: '/vendors/admin?demoTour=funeral-home&demoStep=vendor',
+    href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
     cta: 'Next: vendor loop',
   },
   {
@@ -240,6 +240,11 @@ function DemoCoach({ step }) {
     window.dispatchEvent(new CustomEvent('passage-demo-step', { detail: { from: step.id, target } }));
   }
 
+  function exitDemo() {
+    if (typeof window === 'undefined') return;
+    window.location.assign('/system/demo');
+  }
+
   return (
     <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 80, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
@@ -247,7 +252,7 @@ function DemoCoach({ step }) {
           <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage demo guide</div>
           <div style={{ fontSize: 22, lineHeight: 1.15, marginTop: 6 }}>{step.title}</div>
         </div>
-        <Link href={step.href === '/system/demo' ? '/system/demo' : '/system/demo?demoTour=funeral-home'} style={{ color: '#d8d0c7', textDecoration: 'none', fontSize: 12 }}>Exit</Link>
+        <button onClick={exitDemo} style={{ border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#d8d0c7', borderRadius: 999, minWidth: 58, minHeight: 32, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>Exit</button>
       </div>
       <p style={{ color: '#d8d0c7', fontSize: 14, lineHeight: 1.55, margin: '10px 0 14px' }}>{step.body}</p>
       <Link onClick={handleAdvance} href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
