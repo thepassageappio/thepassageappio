@@ -52,10 +52,10 @@ const demoParticipantContext = {
           id: 'demo-latest-1',
           layer: 'notification',
           layerLabel: 'Notification',
-          title: 'Assignment sent',
-          detail: 'Passage notified the helper and linked this request to the estate task.',
+          title: 'Assignment prepared',
+          detail: 'Passage linked this request to the estate task. Demo mode does not send email or SMS.',
           at: '2026-05-08T14:00:00Z',
-          statusLabel: 'sent',
+          statusLabel: 'prepared',
         },
       ],
     },
@@ -230,7 +230,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>Why you are here</div>
           <div style={{ fontSize: 13, color: C.ink, fontWeight: 900, lineHeight: 1.4 }}>You have one responsibility for {(estate?.deceased_name || estate?.name || 'this family')}'s estate.</div>
           <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>
-            {estate?.coordinator_name || 'The coordinator'} will see your response. You are not responsible for the whole estate.
+            {estate?.coordinator_name || 'The coordinator'} will see your response. {workspace.guidance?.overwhelmed || 'You are not responsible for the whole estate.'}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
             {[
@@ -256,6 +256,11 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <strong style={{ color: C.ink }}>Next expected update:</strong> {expectedUpdate}
         </div>
         <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 7 }}>{contract.serviceLine}</div>
+        {workspace.guidance?.why && (
+          <div style={{ fontSize: 12.2, color: C.mid, lineHeight: 1.45, marginTop: 7 }}>
+            <strong style={{ color: C.ink }}>Why this matters:</strong> {workspace.guidance.why}
+          </div>
+        )}
         <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.45, marginTop: 5 }}>{contract.authority}</div>
         <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>{contract.payer}</div>
       </div>
