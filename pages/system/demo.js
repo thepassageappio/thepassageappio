@@ -367,9 +367,18 @@ export default function SystemDemo() {
   const [notice, setNotice] = useState('');
   const [demoStaffRows, setDemoStaffRows] = useState(staff);
   const [demoCaseRows, setDemoCaseRows] = useState(cases);
-  const demoMode = router.query.demo === '1' || router.query.demoTour === 'funeral-home';
+  const [urlDemoMode, setUrlDemoMode] = useState(false);
+  const demoMode = urlDemoMode || router.query.demo === '1' || router.query.demoTour === 'funeral-home';
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('demo') === '1' || params.get('demoTour') === 'funeral-home') {
+        setUrlDemoMode(true);
+        setUser({ email: 'steventurrisi@gmail.com' });
+        return undefined;
+      }
+    }
     if (router.isReady && demoMode) {
       setUser({ email: 'steventurrisi@gmail.com' });
       return undefined;

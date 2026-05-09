@@ -224,6 +224,96 @@ const demoPartnerContext = {
   reports: {},
 };
 
+function exportCsvCell(value) {
+  let text = value == null ? '' : String(value);
+  const trimmed = text.replace(/^\s+/, '');
+  if (/^[=+\-@]/.test(trimmed)) text = "'" + text;
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function buildDemoPartnerExport(data, view = 'spine') {
+  const cases = data?.cases || [];
+  const summaryView = view === 'cases';
+  const rows = summaryView
+    ? [['Case', 'Case type', 'Reference', 'Family contact', 'Family email', 'Location', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Next move', 'Updated at']]
+    : [['Case', 'Record type', 'Case type', 'Reference', 'Family contact', 'Family email', 'Location', 'Task / request', 'Owner', 'Status', 'Waiting on', 'Proof / reporting']];
+
+  for (const item of cases) {
+    const tasks = [...(item.partnerTasks || []), ...(item.tasks || [])];
+    const handled = tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const waiting = tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned', 'blocked'].includes(String(task.status || '').toLowerCase()));
+    const open = tasks.filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const caseName = item.estateName || item.deceasedName || item.familyName || item.name || 'Demo family';
+
+    if (summaryView) {
+      rows.push([
+        caseName,
+        item.caseType || item.mode || 'At-need',
+        item.caseReference || item.reference || '',
+        item.coordinatorName || item.primaryContactName || '',
+        item.coordinatorEmail || item.primaryContactEmail || '',
+        item.location || item.locationName || 'Main location',
+        open.length,
+        waiting.length,
+        handled.length,
+        item.nextTask?.title || open[0]?.title || 'No open task',
+        item.updated_at || item.updatedAt || '',
+      ]);
+      continue;
+    }
+
+    if (!tasks.length) {
+      rows.push([caseName, 'case', item.caseType || 'At-need', item.caseReference || '', item.coordinatorName || '', item.coordinatorEmail || '', item.location || 'Main location', 'No open task', '', item.status || '', '', '']);
+    }
+    for (const task of tasks) {
+      rows.push([
+        caseName,
+        'task',
+        item.caseType || item.mode || 'At-need',
+        item.caseReference || item.reference || '',
+        item.coordinatorName || item.primaryContactName || '',
+        item.coordinatorEmail || item.primaryContactEmail || '',
+        item.location || item.locationName || 'Main location',
+        task.title,
+        task.assigned_to_name || task.assigned_to_email || task.owner || '',
+        task.status || '',
+        task.waiting_on || task.playbook?.waitingOn || '',
+        task.proof_required || task.playbook?.proofRequired || 'Status, proof, and export trail',
+      ]);
+    }
+    for (const request of item.vendorRequests || []) {
+      rows.push([
+        caseName,
+        'vendor_request',
+        item.caseType || item.mode || 'At-need',
+        item.caseReference || item.reference || '',
+        item.coordinatorName || item.primaryContactName || '',
+        item.coordinatorEmail || item.primaryContactEmail || '',
+        item.location || item.locationName || 'Main location',
+        request.task_title || request.title || 'Vendor request',
+        request.vendorName || request.business_name || '',
+        request.status || '',
+        request.waiting_on || 'Vendor response',
+        'Viewed/responded timestamps and status report back to the case',
+      ]);
+    }
+  }
+
+  return rows.map(row => row.map(exportCsvCell).join(',')).join('\n');
+}
+
+function downloadCsvFile(csv, filename) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function FuneralHomeDashboard() {
   const router = useRouter();
   const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1';
@@ -668,6 +758,15 @@ export default function FuneralHomeDashboard() {
   async function downloadExport(view = 'spine') {
     if (!token) return;
     setError('');
+    if (demoMode) {
+      const summaryView = view === 'cases';
+      downloadCsvFile(
+        buildDemoPartnerExport(data, view),
+        summaryView ? 'passage-demo-case-summary.csv' : 'passage-demo-full-spine.csv'
+      );
+      setNotice(`${summaryView ? 'Case summary' : 'Full spine'} demo CSV downloaded locally. No Supabase, email, or production record was touched.`);
+      return;
+    }
     const res = await fetch('/api/partnerExport' + exportQuery(view), { headers: { Authorization: 'Bearer ' + token } });
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
@@ -687,6 +786,10 @@ export default function FuneralHomeDashboard() {
 
   async function emailExport(view = 'spine') {
     if (!token) return;
+    if (demoMode) {
+      setNotice(`${view === 'cases' ? 'Case summary' : 'Full spine'} demo email skipped. Use Download to show the CSV without sending email.`);
+      return;
+    }
     const updateKey = view === 'cases' ? 'email_case_export' : 'email_export';
     setUpdating(updateKey);
     setError('');
