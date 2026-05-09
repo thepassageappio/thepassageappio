@@ -110,6 +110,12 @@ export default async function handler(req, res) {
     demoType,
     demoLogoUrl,
     demoPrimaryColor,
+    arrangementDate,
+    visitationDate,
+    funeralDate,
+    burialDate,
+    receptionDate,
+    obituaryDeadline,
   } = req.body || {};
 
   const normalizedCaseType = ['immediate', 'preneed', 'prepaid'].includes(caseType) ? caseType : 'immediate';
@@ -131,6 +137,14 @@ export default async function handler(req, res) {
       .maybeSingle();
 
     const now = new Date().toISOString();
+    const timelineAnchors = [
+      ['arrangement', 'Arrangement meeting', arrangementDate, 'Known arrangement meeting date.'],
+      ['visitation', 'Wake / visitation', visitationDate, 'Known wake, visitation, calling hours, or shiva date.'],
+      ['funeral', 'Funeral / memorial service', funeralDate, 'Known funeral or memorial service date.'],
+      ['burial', 'Burial / committal', burialDate, 'Known burial, committal, cremation, or cemetery date.'],
+      ['reception', 'Reception / gathering', receptionDate, 'Known reception or family gathering date.'],
+      ['obituary_deadline', 'Obituary deadline', obituaryDeadline, 'Known obituary submission or publication deadline.'],
+    ].filter(item => item[2]).map(item => ({ event_type: item[0], name: item[1], date: item[2], notes: item[3] }));
     let organizationId = membership?.organization_id || null;
     let organizationName = membership?.organizations?.name || String(funeralHomeName || '').trim() || `${coordinatorName || email}'s Funeral Home`;
     if (!organizationId) {
@@ -188,12 +202,34 @@ export default async function handler(req, res) {
       orchestration_summary: {
         partner_case_type: normalizedCaseType,
         partner_setup_stage: `partner_${normalizedCaseType}_created`,
+        timeline_anchors: timelineAnchors,
+        missing_timeline_watch: normalizedCaseType === 'immediate' ? [
+          !arrangementDate ? 'arrangement meeting date' : '',
+          !visitationDate ? 'wake / visitation date' : '',
+          !funeralDate ? 'funeral or memorial date' : '',
+          !burialDate ? 'burial / cremation date' : '',
+          !obituaryDeadline ? 'obituary deadline' : '',
+        ].filter(Boolean) : [],
         demo_type: demo ? (demoType || 'local') : null,
       },
       created_at: now,
       updated_at: now,
     }]).select('id').single();
     if (workflowError) throw workflowError;
+
+    if (timelineAnchors.length) {
+      await admin.from('estate_events').insert(timelineAnchors.map(anchor => ({
+        estate_id: workflow.id,
+        event_type: anchor.event_type,
+        name: anchor.name,
+        title: anchor.name,
+        date: anchor.date,
+        notes: anchor.notes,
+        description: anchor.notes,
+        actor: email,
+        created_at: now,
+      }))).then(() => {}, () => {});
+    }
 
     const sourceTasks = normalizedCaseType === 'immediate' ? PARTNER_TASKS : PRENEED_TASKS;
     const rows = sourceTasks.map(([title, description], index) => {

@@ -147,7 +147,7 @@ export default async function handler(req, res) {
 
   const { data: workflows, error: workflowError } = await admin
     .from('workflows')
-    .select('id,name,deceased_name,estate_name,coordinator_name,coordinator_email,coordinator_phone,status,activation_status,organization_id,organization_case_reference,mode,setup_stage,created_at,updated_at')
+    .select('id,name,deceased_name,estate_name,coordinator_name,coordinator_email,coordinator_phone,status,activation_status,organization_id,organization_case_reference,mode,setup_stage,date_of_death,orchestration_summary,created_at,updated_at')
     .in('organization_id', organizationIds)
     .neq('status', 'archived')
     .order('updated_at', { ascending: false })
@@ -171,6 +171,7 @@ export default async function handler(req, res) {
   let communications = [];
   let vendorRequests = [];
   let familyParticipants = [];
+  let serviceEvents = [];
   if (workflowIds.length > 0) {
     const { data: taskData } = await admin
       .from('tasks')
@@ -220,6 +221,13 @@ export default async function handler(req, res) {
         break;
       }
     }
+    const { data: serviceEventData } = await admin
+      .from('estate_events')
+      .select('id,estate_id,event_type,name,title,date,time,location_name,location_address,notes,description')
+      .in('estate_id', workflowIds)
+      .not('date', 'is', null)
+      .limit(160);
+    serviceEvents = serviceEventData || [];
   }
 
   const cases = visibleWorkflows.map(w => {
@@ -228,6 +236,7 @@ export default async function handler(req, res) {
     const caseCommunications = communications.filter(c => c.workflow_id === w.id);
     const caseVendorRequests = vendorRequests.filter(v => v.workflow_id === w.id);
     const caseFamilyParticipants = familyParticipants.filter(p => p.workflow_id === w.id);
+    const caseServiceEvents = serviceEvents.filter(e => e.estate_id === w.id);
     const partnerTasks = caseTasks.filter(t => t.playbook?.funeralHomeEligible);
     const coordinationSpine = buildCoordinationSpine({
       tasks: caseTasks,
@@ -244,6 +253,7 @@ export default async function handler(req, res) {
       communications: caseCommunications.slice(0, 8),
       vendorRequests: caseVendorRequests.slice(0, 8),
       familyParticipants: caseFamilyParticipants.slice(0, 8),
+      serviceEvents: caseServiceEvents,
       partnerTasks,
       nextPartnerTask: selectNextTask(partnerTasks.length ? partnerTasks : caseTasks, 'funeral_home'),
       coordinationSpine,

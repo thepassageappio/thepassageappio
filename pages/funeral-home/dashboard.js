@@ -80,6 +80,12 @@ export default function FuneralHomeDashboard() {
     coordinatorEmail: '',
     coordinatorPhone: '',
     caseReference: '',
+    arrangementDate: '',
+    visitationDate: '',
+    funeralDate: '',
+    burialDate: '',
+    receptionDate: '',
+    obituaryDeadline: '',
   });
 
   useEffect(() => {
@@ -433,7 +439,7 @@ export default function FuneralHomeDashboard() {
         : 'Case created. Family access was not prepared yet; use the family view or coordinator email to complete the handoff.');
     }
     setShowNewCase(false);
-    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '' });
+    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', receptionDate: '', obituaryDeadline: '' });
     await load(token);
   }
 
@@ -1223,6 +1229,27 @@ export default function FuneralHomeDashboard() {
                 </label>
               )}
             </div>
+            {caseForm.caseType === 'immediate' && (
+              <details style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.bg, padding: '9px 10px', marginTop: 10 }}>
+                <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>Known dates, if available</summary>
+                <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, margin: '7px 0 9px' }}>Skip anything unknown. Passage will keep missing service dates visible only when they become the next thing needed.</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+                  {[
+                    ['arrangementDate', 'Arrangement meeting'],
+                    ['visitationDate', 'Wake / visitation'],
+                    ['funeralDate', 'Funeral / memorial'],
+                    ['burialDate', 'Burial / cremation'],
+                    ['receptionDate', 'Reception'],
+                    ['obituaryDeadline', 'Obituary deadline'],
+                  ].map(([key, label]) => (
+                    <label key={key} style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                      {label}
+                      <input type="date" value={caseForm[key]} onChange={e => setCaseForm(prev => ({ ...prev, [key]: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+                    </label>
+                  ))}
+                </div>
+              </details>
+            )}
             <button disabled={creating || !caseForm.personName.trim()} style={{ marginTop: 10, width: '100%', border: 'none', borderRadius: 12, background: creating || !caseForm.personName.trim() ? C.border : C.sage, color: '#fff', padding: '11px 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: creating || !caseForm.personName.trim() ? 'not-allowed' : 'pointer' }}>
               {creating ? 'Creating case...' : caseForm.caseType === 'immediate' ? 'Create at-need case' : 'Create pre-need case'}
             </button>
