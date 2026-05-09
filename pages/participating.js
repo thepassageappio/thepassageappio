@@ -725,10 +725,14 @@ export default function ParticipatingPage() {
 
             {!(router.query.estate || router.query.task) && (
               <aside style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, alignSelf: 'start' }}>
-                <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>Planning for your own family?</div>
-                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7 }}>Participants are often the people who understand the value first. Passage can offer a quieter path to set up their own family plan.</p>
-                {data.discountEligible && <div style={{ background: C.sageFaint, color: C.sage, borderRadius: 12, padding: 12, fontSize: 13, fontWeight: 800, marginBottom: 12 }}>Participant discount eligible</div>}
-                <Link href="/pricing?participant=1" style={{ display: 'block', textAlign: 'center', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', textDecoration: 'none', fontWeight: 800 }}>See participant pricing</Link>
+                <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>Your role stays scoped.</div>
+                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7, marginBottom: 12 }}>Passage only shows the responsibilities assigned to you. The coordinator keeps the full family record, approvals, and broader estate history.</p>
+                <details style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 12px', background: C.bg }}>
+                  <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Later: plan for your own family</summary>
+                  <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.6, margin: '10px 0' }}>Participants often understand the value after helping once. This can wait until your assigned work is handled.</p>
+                  {data.discountEligible && <div style={{ background: C.sageFaint, color: C.sage, borderRadius: 12, padding: 10, fontSize: 12.5, fontWeight: 800, marginBottom: 10 }}>Participant discount eligible</div>}
+                  <Link href="/pricing?participant=1" style={{ display: 'block', textAlign: 'center', background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 12px', textDecoration: 'none', fontWeight: 800, fontSize: 13 }}>See planning options</Link>
+                </details>
               </aside>
             )}
           </div>
