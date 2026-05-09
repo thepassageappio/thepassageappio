@@ -3556,12 +3556,41 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
       context: { estateName: wf.name || 'this estate', requesterName: userData?.first_name || user?.email || 'Passage' },
     })];
   }));
-  const attentionItems = activeWorkflows.flatMap(wf => {
+  const normalizeAttentionKey = (value) => String(value || 'task')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\b(a|an|the|of|and|or|to|for)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const attentionCandidates = activeWorkflows.flatMap(wf => {
     const orchestration = estateOrchestrationByWorkflow.get(wf.id);
     const next = orchestration?.nextTask;
     if (!next) return [];
     return [{ ...next, workflow: wf, nextAction: orchestration.nextAction, workspace: next.workspace, assignedTo: next.assignedTo || next.assigned_to_name || '', assignedEmail: next.assignedEmail || next.assigned_to_email || '' }];
-  }).sort((a, b) => (a.dueDays ?? a.due_days_after_trigger ?? 0) - (b.dueDays ?? b.due_days_after_trigger ?? 0)).slice(0, 5);
+  }).sort((a, b) => (a.dueDays ?? a.due_days_after_trigger ?? 0) - (b.dueDays ?? b.due_days_after_trigger ?? 0));
+  const attentionGroups = Array.from(attentionCandidates.reduce((groups, item) => {
+    const key = `${item.workflow?.path || 'estate'}:${normalizeAttentionKey(item.title) || item.id}`;
+    const current = groups.get(key) || { key, first: item, items: [], estateNames: new Set() };
+    current.items.push(item);
+    if (item.workflow?.name) current.estateNames.add(item.workflow.name);
+    if ((item.dueDays ?? item.due_days_after_trigger ?? 0) < (current.first.dueDays ?? current.first.due_days_after_trigger ?? 0)) {
+      current.first = item;
+    }
+    groups.set(key, current);
+    return groups;
+  }, new Map()).values()).sort((a, b) => {
+    const aNeedsOwner = a.items.some(item => !(item.assignedTo || item.assignedEmail)) ? 0 : 1;
+    const bNeedsOwner = b.items.some(item => !(item.assignedTo || item.assignedEmail)) ? 0 : 1;
+    if (aNeedsOwner !== bNeedsOwner) return aNeedsOwner - bNeedsOwner;
+    return (a.first.dueDays ?? a.first.due_days_after_trigger ?? 0) - (b.first.dueDays ?? b.first.due_days_after_trigger ?? 0);
+  });
+  const attentionItems = attentionGroups.slice(0, 3).map(group => ({
+    ...group.first,
+    groupCount: group.items.length,
+    groupedEstateNames: Array.from(group.estateNames).slice(0, 3),
+    groupedItems: group.items,
+  }));
+  const hiddenAttentionGroupCount = Math.max(0, attentionGroups.length - attentionItems.length);
   const totalRequired = taskStatValues.reduce((sum, s) => sum + (s.required || 0), 0);
   const totalHandled = taskStatValues.reduce((sum, s) => sum + (s.completed || 0), 0);
   const portfolioReady = totalRequired > 0 ? Math.round((totalHandled / totalRequired) * 100) : 0;
@@ -3696,6 +3725,9 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                     const ownerLabel = item.assignedTo || item.assignedEmail || 'No owner yet';
                     const statusTone = item.assignedTo ? C.sage : C.amber;
                     const statusBg = item.assignedTo ? C.sageFaint : C.goldFaint;
+                    const groupedEstateText = item.groupCount > 1
+                      ? `${item.groupCount} estates need this${item.groupedEstateNames?.length ? `: ${item.groupedEstateNames.join(', ')}${item.groupCount > item.groupedEstateNames.length ? ', ...' : ''}` : ''}`
+                      : (item.workflow.name || "Estate");
                     return (
                     <button key={`${item.workflow.id}-${item.id}`} type="button" onClick={openAttentionItem}
                       style={{ width: "100%", textAlign: "left", background: C.bgCard, border: `1px solid ${item.workflow.path === 'green' ? C.sageLight : C.rose + '25'}`, borderLeft: `5px solid ${item.workflow.path === 'green' ? C.sage : C.rose}`, borderRadius: 14, padding: "13px 14px", cursor: "pointer", fontFamily: "inherit" }}>
@@ -3707,7 +3739,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                           </div>
                           <div style={{ fontSize: 15.5, fontWeight: 900, color: C.ink, lineHeight: 1.25 }}>{item.title}</div>
                           <div style={{ fontSize: 12, color: C.mid, marginTop: 4 }}>
-                            {item.workflow.name || "Estate"}
+                            {groupedEstateText}
                           </div>
                           <div style={{ marginTop: 9, background: blockers.length ? C.goldFaint : C.sageFaint, border: `1px solid ${blockers.length ? C.gold + '44' : C.sageLight}`, borderRadius: 11, padding: "9px 10px", fontSize: 12, color: blockers.length ? C.amber : C.mid, lineHeight: 1.45 }}>
                             <strong style={{ color: C.ink }}>Next expected update:</strong> {nextReason}
@@ -3724,6 +3756,11 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                       </div>
                     </button>
                   );})}
+                  {hiddenAttentionGroupCount > 0 && (
+                    <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px", fontSize: 12, color: C.mid, lineHeight: 1.45 }}>
+                      +{hiddenAttentionGroupCount} more attention group{hiddenAttentionGroupCount === 1 ? '' : 's'}
+                    </div>
+                  )}
                 </div>
               )}
 
