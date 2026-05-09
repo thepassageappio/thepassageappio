@@ -41,9 +41,9 @@ const demoSteps = [
   {
     id: 'team',
     kicker: 'Setup',
-    title: 'Set up locations and staff.',
-    point: 'Directors, arrangers, coordinators, and location admins each see the work relevant to them.',
-    action: 'Show how work can be routed by location and role without turning family helpers into funeral-home staff.',
+    title: 'Show first-day pilot setup.',
+    point: 'A signed pilot owner should know what to do in minute one: confirm workspace, set locations/case scope, add employees and roles, then import CSV or create the first case fresh.',
+    action: 'Show the launch rail, the import-vs-create branches, employee setup, and the uniform owner dropdown reused across estate tasks.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
   },
   {
@@ -155,10 +155,10 @@ const demoMetrics = [
 
 const fullLoop = [
   ['1', 'Family enters through the right door', 'Planning, hospice preparation, urgent death guidance, or funeral-home intake starts the same spine.'],
-  ['2', 'Create case', 'Director adds or receives the family contact and known lifecycle dates.'],
-  ['3', 'Assign staff', 'A saved employee receives only the work they own.'],
-  ['4', 'Ask family once', 'Missing cemetery, obituary, policy, or service details are requested from the task.'],
-  ['5', 'Produce output', 'Passage prepares the arrangement packet, agency packet, family message, or event one-pager for review.'],
+  ['2', 'Set up once', 'Partner confirms workspace, locations/case scope, employees, roles, and preferred support before work gets assigned.'],
+  ['3', 'Load cases two ways', 'Import existing cases by CSV with preview, or create the first family case fresh in UI.'],
+  ['4', 'Assign the first owner', 'A saved employee, family coordinator, participant, vendor, clergy, or cemetery contact receives only the work they own.'],
+  ['5', 'Ask family once', 'Missing cemetery, obituary, policy, or service details are requested from the task.'],
   ['6', 'Record proof and show ROI', 'Staff saves what happened, what is waiting, calls avoided, and exportable case data.'],
 ];
 
@@ -181,11 +181,11 @@ const demoRail = [
   },
   {
     n: '03',
-    title: 'Director opens staff work',
+    title: 'Director completes first-day setup',
     persona: 'Director / location manager',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
-    proof: 'Saved employees, assigned work, role scope, and staff queues by case.',
-    value: 'Shows delegation before assignment so owners are not typed from scratch.',
+    proof: 'Workspace, locations/case scope, employees, roles, import-vs-create branches, and reusable owner dropdown.',
+    value: 'Shows what a signed pilot does in minute one without needing operator narration.',
   },
   {
     n: '04',
@@ -283,6 +283,7 @@ const readinessChecks = [
   'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language and task authority guidance.',
   'The family dashboard opens as an estate operating spine, not a detached index or portfolio dashboard.',
   'Warm path, announcements, packets, vendors, and funeral-home work all attach to one family record instead of becoming separate product islands.',
+  'First-day launch rails exist for family, funeral-home partner, employee, vendor, participant, and future hospice/assisted-care setup patterns.',
   'Import mapping, preview, case-summary export, and full-spine export remain the adoption-trust close.',
   'Demo notification states stay exact: prepared, requested, copied, failed, delivered, and sent are not interchangeable.',
 ];
@@ -656,8 +657,22 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
     return (
       <Panel>
         <div style={eyebrow}>Demo screen</div>
-        <h2 style={h2}>Locations and employees.</h2>
-        <p style={{ ...lead, marginBottom: 14 }}>Show that directors, coordinators, and aftercare staff can receive different work without creating separate family-helper experiences.</p>
+        <h2 style={h2}>First-day pilot setup.</h2>
+        <p style={{ ...lead, marginBottom: 14 }}>Show the signed-in owner what to do first: confirm the workspace, set location/case scope, add employees and roles, then either import existing cases by CSV or create the first family case fresh in the UI.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 9, marginBottom: 14 }}>
+          {[
+            ['Workspace', 'Partner record and operating spine are active.'],
+            ['Locations', 'Case/import data becomes the location filter and reporting scope.'],
+            ['Employees', 'Roles make people assignable before work is delegated.'],
+            ['Cases', 'Import CSV with preview or create a first case fresh.'],
+            ['Proof loop', 'Every first action closes back to status and reporting.'],
+          ].map(([title, body]) => (
+            <div key={title} style={smallCard}>
+              <div style={{ fontSize: 16, fontWeight: 900 }}>{title}</div>
+              <div style={smallText}>{body}</div>
+            </div>
+          ))}
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
           {staffRows.map(([role, body], index) => (
             <div key={role + index} style={smallCard}>
