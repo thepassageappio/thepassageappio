@@ -1380,7 +1380,8 @@ export default function FuneralHomeDashboard() {
     if (router.query.demoTour !== 'funeral-home') return;
     const step = typeof router.query.demoStep === 'string' ? router.query.demoStep : '';
     if (!step || loading) return;
-    if (['dashboard', 'team', 'export'].includes(step)) setShowPilotGuide(true);
+    if (['team', 'export'].includes(step)) setShowPilotGuide(true);
+    if (step === 'dashboard') setShowPilotGuide(false);
     if (step === 'export') setShowTools(true);
     focusPartnerDemoStep(step);
   }, [router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
