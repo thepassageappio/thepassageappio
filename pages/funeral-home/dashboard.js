@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
@@ -44,6 +45,7 @@ const miniPill = { background: C.sageFaint, color: C.sage, borderRadius: 999, pa
 const inputStyle = { border: `1.5px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 12.5, minWidth: 0 };
 
 export default function FuneralHomeDashboard() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [token, setToken] = useState('');
   const [data, setData] = useState(null);
@@ -374,6 +376,66 @@ export default function FuneralHomeDashboard() {
         setNotice('Case work is open. If the case is filtered out, switch to All locations.');
       }
     }, 80);
+  }
+
+  function scrollPartnerDemoTarget(id) {
+    window.setTimeout(() => {
+      const panel = document.getElementById(id);
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
+  function focusPartnerDemoStep(step) {
+    const clean = String(step || '').toLowerCase();
+    if (!clean) return;
+
+    if (clean === 'team') {
+      setActivePartnerView('staff');
+      setNotice('Demo step: staff setup and assignment queues.');
+      scrollPartnerDemoTarget('partner-staff-section');
+      return;
+    }
+
+    if (clean === 'case') {
+      openCasePanel('immediate');
+      setNotice('Demo step: create an at-need case with only the known details.');
+      scrollPartnerDemoTarget('partner-case-form');
+      return;
+    }
+
+    if (clean === 'dashboard') {
+      setActivePartnerView('work');
+      setNotice('Demo step: director sees active cases, waiting items, and ROI.');
+      scrollPartnerDemoTarget('partner-today-section');
+      return;
+    }
+
+    if (clean === 'task') {
+      if (firstOpenCase?.id) {
+        openPartnerWork(firstOpenCase.id);
+        scrollPartnerDemoTarget('partner-action-workspace-' + firstOpenCase.id);
+      } else {
+        setNotice('Demo step: create a case first, then Passage opens the task spine.');
+        openCasePanel('immediate');
+      }
+      return;
+    }
+
+    if (clean === 'chat') {
+      if (firstOpenCase?.id) {
+        openPartnerWork(firstOpenCase.id);
+        setNotice('Demo step: communication, proof, and notifications stay attached to the selected case.');
+        scrollPartnerDemoTarget('partner-coordination-spine-' + firstOpenCase.id);
+      }
+      return;
+    }
+
+    if (clean === 'export') {
+      setActivePartnerView('reports');
+      setShowTools(true);
+      setNotice('Demo step: close with reporting, CSV export, and adoption trust.');
+      scrollPartnerDemoTarget('partner-reports-section');
+    }
   }
 
   async function downloadExport() {
@@ -715,6 +777,21 @@ export default function FuneralHomeDashboard() {
     ['Coordinate support', totalVendorRequests, 'vendor requests without a directory'],
   ];
 
+  useEffect(() => {
+    function handleDemoStep(event) {
+      focusPartnerDemoStep(event.detail?.target || event.detail?.step);
+    }
+    window.addEventListener('passage-demo-step', handleDemoStep);
+    return () => window.removeEventListener('passage-demo-step', handleDemoStep);
+  }, [firstOpenCase?.id, data]);
+
+  useEffect(() => {
+    if (router.query.demoTour !== 'funeral-home') return;
+    const step = typeof router.query.demoStep === 'string' ? router.query.demoStep : '';
+    if (!step || loading) return;
+    focusPartnerDemoStep(step);
+  }, [router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
+
   function money(value) {
     return `$${Math.round(Number(value || 0)).toLocaleString()}`;
   }
@@ -869,7 +946,7 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && (
-          <div style={{ background: C.card, color: C.ink, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+          <div id="partner-today-section" style={{ background: C.card, color: C.ink, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 9 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today</div>
@@ -976,7 +1053,7 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && activePartnerView === 'staff' && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
+          <div id="partner-staff-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Staff operating spine</div>
@@ -1124,7 +1201,7 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && activePartnerView === 'reports' && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
+          <div id="partner-reports-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>ROI and operations</div>
@@ -1188,7 +1265,7 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && showNewCase && (
-          <form ref={casePanelRef} onSubmit={createCase} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12, scrollMarginTop: 92 }}>
+          <form id="partner-case-form" ref={casePanelRef} onSubmit={createCase} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12, scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{caseForm.caseType === 'immediate' ? 'New at-need case' : caseForm.caseType === 'prepaid' ? 'New prepaid case' : 'New pre-need case'}</div>
@@ -1478,7 +1555,7 @@ export default function FuneralHomeDashboard() {
                       openTasks: item.tasks || [],
                     });
                     return (
-                      <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)' }}>
+                      <div id={'partner-action-workspace-' + item.id} style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(230px, .65fr)', gap: 12, alignItems: 'stretch' }}>
                           <div>
                             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Action workspace</div>
@@ -1597,7 +1674,7 @@ export default function FuneralHomeDashboard() {
                     );
                   })()}
                   {isExpanded && (
-                    <details style={{ border: `1px solid ${C.border}`, borderRadius: 13, background: C.bg, marginTop: 10, overflow: 'hidden' }}>
+                    <details id={'partner-coordination-spine-' + item.id} style={{ border: `1px solid ${C.border}`, borderRadius: 13, background: C.bg, marginTop: 10, overflow: 'hidden', scrollMarginTop: 92 }}>
                       <summary style={{ cursor: 'pointer', padding: '10px 12px', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>
                         Supporting details: progress, proof, family access, vendors, and task queue
                       </summary>
