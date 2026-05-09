@@ -48,6 +48,7 @@ export default function VendorRequestPage() {
   const [updating, setUpdating] = useState('');
   const [estimatedValue, setEstimatedValue] = useState('');
   const [finalValue, setFinalValue] = useState('');
+  const [pendingVendorAction, setPendingVendorAction] = useState('');
 
   useEffect(() => {
     if (!supabase) {
@@ -130,6 +131,7 @@ export default function VendorRequestPage() {
       const next = applyVendorRequestTransition(request, action, { estimatedValue, finalValue });
       setRequest(next);
       setNotice(noticeForAction(action, true));
+      setPendingVendorAction('');
       return;
     }
     setUpdating(action);
@@ -148,6 +150,7 @@ export default function VendorRequestPage() {
     }
     setRequest(json.request);
     setNotice(noticeForAction(action, false));
+    setPendingVendorAction('');
   }
 
   const familyName = request?.workflows?.deceased_name || request?.workflows?.estate_name || request?.workflows?.name || 'Family case';
@@ -234,22 +237,6 @@ export default function VendorRequestPage() {
               </div>
             </details>
 
-            <details style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14, marginBottom: 14 }}>
-              <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 13, fontWeight: 900 }}>Estimate or final value</summary>
-              <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5, marginTop: 0 }}>Record an estimate only when useful. The family should feel supported, not sold to.</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-                <label style={labelStyle}>Estimated value<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
-                <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
-              </div>
-              {(request.platform_fee_amount || request.funeral_home_share_amount || request.passage_share_amount) && (
-                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9, fontSize: 12.5, color: C.mid }}>
-                  {request.platform_fee_amount && <span>Tracked platform fee: <strong>{money(request.platform_fee_amount)}</strong></span>}
-                  {request.funeral_home_share_amount && <span>Funeral home share: <strong>{money(request.funeral_home_share_amount)}</strong></span>}
-                  {request.passage_share_amount && <span>Passage share: <strong>{money(request.passage_share_amount)}</strong></span>}
-                </div>
-              )}
-            </details>
-
             {notice && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 12, padding: 10, marginBottom: 10, fontWeight: 800 }}>{notice}</div>}
             {demoMode && request.local_demo_action_at && (
               <div style={{ color: C.mid, fontSize: 12.5, margin: '-2px 0 10px' }}>
@@ -257,11 +244,40 @@ export default function VendorRequestPage() {
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button onClick={() => update('accepted')} disabled={!!updating} style={buttonStyle(C.sage)}>{updating === 'accepted' ? 'Updating...' : 'Accept request'}</button>
-              <button onClick={() => update('in_progress')} disabled={!!updating} style={buttonStyle(C.amber)}>{updating === 'in_progress' ? 'Updating...' : 'Mark in progress'}</button>
-              <button onClick={() => update('completed')} disabled={!!updating} style={buttonStyle(C.sage)}>{updating === 'completed' ? 'Updating...' : 'Mark completed'}</button>
-              <button onClick={() => update('declined')} disabled={!!updating} style={{ ...buttonStyle('#fff'), color: C.rose, border: '1px solid ' + C.rose + '55' }}>Decline</button>
+              <button onClick={() => setPendingVendorAction('accepted')} disabled={!!updating} style={buttonStyle(C.sage)}>Accept request</button>
+              <button onClick={() => setPendingVendorAction('in_progress')} disabled={!!updating} style={buttonStyle(C.amber)}>Mark in progress</button>
+              <button onClick={() => setPendingVendorAction('completed')} disabled={!!updating} style={buttonStyle(C.sage)}>Mark completed</button>
+              <button onClick={() => setPendingVendorAction('declined')} disabled={!!updating} style={{ ...buttonStyle('#fff'), color: C.rose, border: '1px solid ' + C.rose + '55' }}>Decline</button>
             </div>
+            {pendingVendorAction && (
+              <div onClick={() => setPendingVendorAction('')} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+                <div role="dialog" aria-modal="true" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+                    <div>
+                      <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor response</div>
+                      <div style={{ color: C.ink, fontSize: 23, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{labelForStatus(pendingVendorAction)}</div>
+                    </div>
+                    <button onClick={() => setPendingVendorAction('')} aria-label="Close vendor response" style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
+                  </div>
+                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and task. Record value only when it helps the funeral home and family understand the request; keep it supportive, not salesy.</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+                    <label style={labelStyle}>Estimated value<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
+                    <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
+                  </div>
+                  {(request.platform_fee_amount || request.funeral_home_share_amount || request.passage_share_amount) && (
+                    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9, fontSize: 12.5, color: C.mid }}>
+                      {request.platform_fee_amount && <span>Tracked platform fee: <strong>{money(request.platform_fee_amount)}</strong></span>}
+                      {request.funeral_home_share_amount && <span>Funeral home share: <strong>{money(request.funeral_home_share_amount)}</strong></span>}
+                      {request.passage_share_amount && <span>Passage share: <strong>{money(request.passage_share_amount)}</strong></span>}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+                    <button onClick={() => update(pendingVendorAction)} disabled={!!updating} style={buttonStyle(pendingVendorAction === 'declined' ? C.rose : C.sage)}>{updating ? 'Updating...' : 'Save response'}</button>
+                    <button onClick={() => setPendingVendorAction('')} style={{ ...buttonStyle('#fff'), color: C.mid, border: '1px solid ' + C.border }}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            )}
             </div>
           </div>
         )}
