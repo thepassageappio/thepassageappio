@@ -10,6 +10,7 @@ import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import VendorSupport from '../components/VendorSupport';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
 import { taskWorkspaceFor } from '../lib/taskWorkspace';
+import { orchestrateTasks, taskImportance } from '../lib/taskOrchestration';
 
 // ── TOKENS ────────────────────────────────────────────────────────────────────
 var BG = '#f6f3ee';
@@ -424,13 +425,15 @@ function taskWorkspaceProofLabel(mode) {
 
 function displayTaskNext(item) {
   var title = displayTaskTitle(item).toLowerCase();
+  var importance = taskImportance(item || {});
   if (title.indexOf('trusted contacts') >= 0) return 'Choose who should be notified and keep their links working.';
   if (title.indexOf('funeral home meeting') >= 0) return 'Open the prep form, save the facts, then export the summary.';
   if (title.indexOf('release') >= 0) return 'Record who confirmed release, or mark it waiting if the facility has not answered.';
   if (title.indexOf('pronouncement') >= 0) return 'Record who pronounced death and when, or mark it waiting.';
   if (title.indexOf('prepayment') >= 0) return 'Add the policy, prepaid funeral, Medicaid, or insurance detail you have.';
   if (title.indexOf('wishes') >= 0) return 'Add the wishes you know now; blanks are okay.';
-  return 'Open this item to assign, update, or record proof.';
+  if (importance && importance.rank <= 2) return importance.reason;
+  return 'Assign it, record what happened, or leave it waiting with a clear owner.';
 }
 
 function statusText(status) {
@@ -1523,11 +1526,25 @@ function SpineFact({ label, value, tone }) {
   );
 }
 
-function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, estateId, estateName, coordinatorName, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, estateId, estate, estateName, coordinatorName, serviceEvents, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+  var orchestrationContext = {
+    estate: estate || {},
+    deathDate: estate?.date_of_death || '',
+    serviceEvents: serviceEvents || [],
+    estateName: estateName || 'this estate',
+    coordinatorName: coordinatorName || 'the coordinator',
+    surface: 'the task proof trail'
+  };
+  var orchestrated = orchestrateTasks({
+    tasks: tasks || [],
+    role: 'family',
+    context: orchestrationContext
+  });
+  var rankedTasks = orchestrated.tasks || tasks || [];
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
-  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
+  var openTasks = rankedTasks.filter(function(t) { return !isHandledStatus(t.status); });
   var queue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
-  var allQueue = (tasks || []).map(function(task) { return { kind: 'task', item: task }; }).concat((outcomes || []).map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
+  var allQueue = rankedTasks.map(function(task) { return { kind: 'task', item: task }; }).concat((outcomes || []).map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
   var initialIndex = initialTaskId ? queue.findIndex(function(entry) { return String(entry.item?.id || '') === String(initialTaskId); }) : 0;
   var selectedState = useState(Math.max(initialIndex, 0));
   var selectedIndex = selectedState[0];
@@ -1545,7 +1562,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
   var current = queue[selectedIndex] || allQueue[0] || null;
   var item = current?.item || null;
   var playbook = item ? getTaskPlaybook(item.title || item.name || '') : {};
-  var workspace = item ? taskWorkspaceFor(Object.assign({}, item, { playbook: playbook }), { estateName: estateName || 'this estate', coordinatorName: coordinatorName || 'the coordinator', surface: 'the task proof trail' }) : null;
+  var workspace = item ? taskWorkspaceFor(Object.assign({}, item, { playbook: playbook }), orchestrationContext) : null;
   var title = item ? displayTaskTitle(item) : 'Nothing needs action right now';
   var owner = item ? taskSpineOwner(item) : 'No owner needed';
   var recipient = item ? taskSpineRecipient(item) : 'No recipient needed';
@@ -1564,6 +1581,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
   var expectedUpdate = item
     ? (recent.find(function(row) { return row.taskId && String(row.taskId) === String(item.id) && row.expectedUpdate; })?.expectedUpdate || (missingOwner ? 'Assign an owner so Passage knows who should respond next.' : waitingCount ? 'Next update appears here when the owner, family, or recipient responds.' : 'Save proof when this is handled so everyone sees the same truth.'))
     : 'No one needs to do anything right now.';
+  var importance = item ? taskImportance(item, orchestrationContext) : null;
   var statusTone = blockedCount ? ROSE : waitingCount ? AMBER : SAGE;
   var statusBg = blockedCount ? ROSE_FAINT : waitingCount ? AMBER_FAINT : SAGE_FAINT;
 
@@ -1605,8 +1623,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
             var selected = index === selectedIndex;
             var entryOwner = entry.kind === 'task' ? taskSpineOwner(entry.item) : textValue(entry.item.owner_label, 'Needs owner');
             var entryStatus = taskSpineStatus(entry.item);
+            var entryImportance = taskImportance(entry.item, orchestrationContext);
             return (
-              <button key={entry.kind + '_' + (entry.item.id || index)} onClick={function() { select(index); }} style={{ width: '100%', textAlign: 'left', border: 'none', borderLeft: '4px solid ' + (selected ? SAGE : 'transparent'), background: selected ? SAGE_FAINT : 'transparent', padding: '10px 10px 10px 11px', marginBottom: 5, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button key={entry.kind + '_' + (entry.item.id || index)} title={entryImportance.label + ': ' + entryImportance.reason} onClick={function() { select(index); }} style={{ width: '100%', textAlign: 'left', border: 'none', borderLeft: '4px solid ' + (selected ? SAGE : 'transparent'), background: selected ? SAGE_FAINT : 'transparent', padding: '10px 10px 10px 11px', marginBottom: 5, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <div style={{ color: selected ? INK : MID, fontSize: 12.7, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(entry.item)}</div>
                 <div style={{ color: entryOwner === 'Needs owner' || entryOwner === 'Unassigned' ? AMBER : SOFT, fontSize: 11.2, lineHeight: 1.35, marginTop: 4 }}>{entryOwner} · {entryStatus}</div>
               </button>
@@ -1620,7 +1639,10 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(210px, .65fr)', gap: 14, alignItems: 'stretch' }} className="passage-task-spine-facts">
             <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 18, padding: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 7 }}>
-                <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
+                <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
+                  {importance && <span style={{ background: importance.rank <= 1 ? ROSE_FAINT : importance.rank <= 2 ? AMBER_FAINT : SUBTLE, color: importance.rank <= 1 ? ROSE : importance.rank <= 2 ? AMBER : MID, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, fontWeight: 900 }}>{importance.label}</span>}
+                </div>
                 {queue.length > 1 && (
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <span style={{ color: SOFT, fontSize: 11, fontWeight: 900, whiteSpace: 'nowrap' }}>{selectedIndex + 1} of {queue.length}</span>
@@ -1634,6 +1656,11 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
                 <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
               </div>
+              {importance?.reason && (
+                <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 8 }}>
+                  <strong style={{ color: INK }}>Why this is here:</strong> {importance.reason}
+                </div>
+              )}
               {workspace?.output?.body && (
                 <div style={{ borderTop: '1px solid ' + BORDER, paddingTop: 12, marginTop: 13, color: MID, fontSize: 12.8, lineHeight: 1.55 }}>
                   <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 4 }}>Passage prepares</div>
@@ -3061,8 +3088,10 @@ export default function EstatePage() {
             coordinationSpine={coordinationSpine}
             initialTaskId={initialTaskId}
             estateId={estateId}
+            estate={estate}
             estateName={name}
             coordinatorName={coordinatorName}
+            serviceEvents={serviceEvents}
             onOpenOutcome={openOutcomeFromCommand}
             onAssignOutcome={assignOutcomeFromCommand}
             onOutcomeHandled={proofOutcomeFromCommand}

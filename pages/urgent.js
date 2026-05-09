@@ -830,8 +830,40 @@ export default function UrgentPage() {
                   <input value={context.hospitalOrHospiceContact} onChange={e => updateContext('hospitalOrHospiceContact', e.target.value)} placeholder="Contact or facility" />
                 </div>
                   <div className="field compact">
+                    <label>Pronouncement date</label>
+                    <input value={context.pronouncementDate || ''} onChange={e => updateContext('pronouncementDate', e.target.value)} type="date" />
+                  </div>
+                  <div className="field compact">
+                    <label>Release / pickup date</label>
+                    <input value={context.releaseDate || ''} onChange={e => updateContext('releaseDate', e.target.value)} type="date" />
+                  </div>
+                  <div className="field compact">
+                    <label>Arrangement meeting date</label>
+                    <input value={context.arrangementDate || ''} onChange={e => updateContext('arrangementDate', e.target.value)} type="date" />
+                  </div>
+                  <div className="field compact">
                     <label>Cemetery / burial place</label>
                     <input value={context.cemeteryName} onChange={e => updateContext('cemeteryName', e.target.value)} placeholder="Name, if known" />
+                  </div>
+                  <div className="field compact">
+                    <label>Wake / visitation / shiva date</label>
+                    <input value={context.visitationDate || context.shivaDate || ''} onChange={e => { updateContext('visitationDate', e.target.value); updateContext('shivaDate', e.target.value); }} type="date" />
+                  </div>
+                  <div className="field compact">
+                    <label>Funeral / memorial date</label>
+                    <input value={context.funeralDate || ''} onChange={e => updateContext('funeralDate', e.target.value)} type="date" />
+                  </div>
+                  <div className="field compact">
+                    <label>Burial / cremation date</label>
+                    <input value={context.burialDate || ''} onChange={e => updateContext('burialDate', e.target.value)} type="date" />
+                  </div>
+                  <div className="field compact">
+                    <label>Reception / gathering date</label>
+                    <input value={context.receptionDate || ''} onChange={e => updateContext('receptionDate', e.target.value)} type="date" />
+                  </div>
+                  <div className="field compact">
+                    <label>Obituary deadline</label>
+                    <input value={context.obituaryDeadline || ''} onChange={e => updateContext('obituaryDeadline', e.target.value)} type="date" />
                   </div>
                   <div className="field compact">
                     <label>Faith tradition</label>

@@ -562,7 +562,7 @@ export default function FuneralHomeDashboard() {
     orchestration: orchestrateTasks({
       tasks: item.tasks || [],
       role: 'funeral_home',
-      context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, surface: 'case work' },
+      context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'case work' },
     }),
   }));
   const orchestrationByCaseId = new Map(caseOrchestrationRows.map(row => [row.caseItem.id, row.orchestration]));
@@ -1333,7 +1333,7 @@ export default function FuneralHomeDashboard() {
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
               const familyParticipants = item.familyParticipants || [];
-              const orchestration = orchestrationByCaseId.get(item.id) || orchestrateTasks({ tasks: item.tasks || [], role: 'funeral_home', context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, surface: 'case work' } });
+              const orchestration = orchestrationByCaseId.get(item.id) || orchestrateTasks({ tasks: item.tasks || [], role: 'funeral_home', context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'case work' } });
               const topTasks = (partnerTasks.length ? partnerTasks : orchestration.tasks.length ? orchestration.tasks : item.tasks).slice(0, 3);
               const nextPartnerTask = itemNextPartnerTask(item, orchestration);
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');

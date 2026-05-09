@@ -156,7 +156,35 @@ function cleanContext(raw) {
     authorityName: clean(input.authorityName),
     hospitalOrHospiceContact: clean(input.hospitalOrHospiceContact),
     medicalRecordsLocation: clean(input.medicalRecordsLocation),
+    pronouncementDate: clean(input.pronouncementDate),
+    releaseDate: clean(input.releaseDate),
+    arrangementDate: clean(input.arrangementDate),
+    visitationDate: clean(input.visitationDate),
+    funeralDate: clean(input.funeralDate),
+    burialDate: clean(input.burialDate),
+    shivaDate: clean(input.shivaDate),
+    receptionDate: clean(input.receptionDate),
+    obituaryDeadline: clean(input.obituaryDeadline),
   };
+}
+
+function timelineAnchorsForContext(context) {
+  return [
+    ['pronouncement', 'Official pronouncement', context.pronouncementDate, 'Official death pronouncement date if known.'],
+    ['release', 'Release / pickup', context.releaseDate, 'Hospital, facility, hospice, or pickup timing if known.'],
+    ['arrangement', 'Arrangement meeting', context.arrangementDate, 'Funeral home arrangement meeting date if known.'],
+    ['visitation', 'Wake / visitation', context.visitationDate, 'Wake, visitation, or calling hours if known.'],
+    ['funeral', 'Funeral / memorial service', context.funeralDate, 'Funeral or memorial service date if known.'],
+    ['burial', 'Burial / committal', context.burialDate, 'Burial, committal, cremation, or cemetery appointment if known.'],
+    ['shiva', 'Shiva / mourning period', context.shivaDate, 'Shiva or mourning-period start date if known.'],
+    ['reception', 'Reception / gathering', context.receptionDate, 'Reception or family gathering date if known.'],
+    ['obituary_deadline', 'Obituary deadline', context.obituaryDeadline, 'Obituary submission or publication deadline if known.'],
+  ].filter(item => item[2]).map(item => ({
+    event_type: item[0],
+    name: item[1],
+    date: item[2],
+    notes: item[3],
+  }));
 }
 
 function safeTaskCategory(category) {
@@ -524,6 +552,7 @@ export default async function handler(req, res) {
     orchestration_summary: {
       ...(existing?.orchestration_summary || {}),
       chaplain_context: context,
+      timeline_anchors: timelineAnchorsForContext(context),
       trusted_advisors: {
         funeral_home: context.funeralHomeName || null,
         cemetery: context.cemeteryName || null,
@@ -627,6 +656,31 @@ export default async function handler(req, res) {
     } else {
       const { error: outcomeInsertError } = await admin.from('outcomes').insert([outcome]);
       if (outcomeInsertError) return res.status(500).json({ error: outcomeInsertError.message || 'Could not create urgent outcomes.' });
+    }
+  }
+
+  const timelineAnchors = timelineAnchorsForContext(context);
+  if (timelineAnchors.length) {
+    const eventTypes = timelineAnchors.map(item => item.event_type);
+    const { data: existingEvents } = await admin
+      .from('estate_events')
+      .select('id,event_type')
+      .eq('estate_id', workflow.id)
+      .in('event_type', eventTypes);
+    for (const anchor of timelineAnchors) {
+      const existingEvent = (existingEvents || []).find(item => item.event_type === anchor.event_type);
+      const row = {
+        estate_id: workflow.id,
+        event_type: anchor.event_type,
+        name: anchor.name,
+        title: anchor.name,
+        date: anchor.date,
+        notes: anchor.notes,
+        description: anchor.notes,
+        actor: coordinatorName,
+      };
+      if (existingEvent?.id) await admin.from('estate_events').update(row).eq('id', existingEvent.id);
+      else await admin.from('estate_events').insert([row]);
     }
   }
 
