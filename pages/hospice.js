@@ -110,6 +110,7 @@ export default function HospiceWarmPath() {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
+  const [showDepth, setShowDepth] = useState(false);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -176,6 +177,12 @@ export default function HospiceWarmPath() {
           .warm-spine-grid {
             grid-template-columns: 1fr !important;
           }
+          .mobile-context {
+            display: none !important;
+          }
+          .warm-depth-panel {
+            grid-template-columns: 1fr !important;
+          }
         }
       `}</style>
       <SiteHeader />
@@ -197,7 +204,7 @@ export default function HospiceWarmPath() {
               <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Open demo rail</Link>
             </div>
           </div>
-          <div style={{ ...heroCard, background: C.sageFaint, borderColor: '#c8deca' }}>
+          <div className="mobile-context" style={{ ...heroCard, background: C.sageFaint, borderColor: '#c8deca' }}>
             <div style={eyebrow}>The handoff promise</div>
             <h2 style={{ fontSize: 31, lineHeight: 1.12, margin: '10px 0 12px', fontWeight: 400 }}>
               Same record. Different door.
@@ -212,7 +219,7 @@ export default function HospiceWarmPath() {
             </div>
           </div>
         </div>
-        <div className="warm-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 14 }}>
+        <div className="warm-spine-grid mobile-context" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 14 }}>
           {warmSpine.map(([label, value]) => (
             <div key={label} style={spineBox}>
               <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
@@ -224,7 +231,7 @@ export default function HospiceWarmPath() {
 
       <section id="start-warm-workspace" style={section}>
         <div className="warm-two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .95fr) minmax(0, 1.05fr)', gap: 16, alignItems: 'stretch' }}>
-          <div style={panel}>
+          <div className="mobile-context" style={panel}>
             <div style={eyebrow}>Saved warm-path workspace</div>
             <h2 style={h2}>Start with what the family knows now.</h2>
             <p style={lead}>This creates a real family record with the first care-preparation tasks. It does not send email or SMS. It keeps unknown dates visible until they are available.</p>
@@ -274,6 +281,21 @@ export default function HospiceWarmPath() {
         </div>
       </section>
 
+      <section style={{ ...section, paddingTop: 0 }}>
+        <div className="warm-depth-panel" style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center' }}>
+          <div>
+            <div style={eyebrow}>Continuity depth</div>
+            <h2 style={{ ...h2, fontSize: 28, marginBottom: 6 }}>Keep the first visit focused.</h2>
+            <p style={lead}>Hospice, senior living, and funeral-home handoffs share one spine. The deeper roadmap stays available without overwhelming the family or a first-day pilot operator.</p>
+          </div>
+          <button onClick={() => setShowDepth(prev => !prev)} style={showMoreButton}>
+            {showDepth ? 'Hide roadmap' : 'Show roadmap'}
+          </button>
+        </div>
+      </section>
+
+      {showDepth && (
+        <>
       <section style={section}>
         <div style={sectionHeader}>
           <div style={eyebrow}>Lifecycle spine</div>
@@ -397,6 +419,8 @@ export default function HospiceWarmPath() {
           </div>
         </div>
       </section>
+        </>
+      )}
       <SiteFooter />
     </main>
   );
@@ -433,3 +457,4 @@ const dateRow = { display: 'flex', justifyContent: 'space-between', gap: 12, ali
 const handoffRow = { display: 'grid', gridTemplateColumns: '160px minmax(0, 1fr)', gap: 12, background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: '12px 13px', color: C.mid };
 const smallCard = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 16 };
 const spineBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: '13px 14px' };
+const showMoreButton = { border: '1px solid #c8deca', minHeight: 46, borderRadius: 13, background: C.sageFaint, color: C.sage, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' };

@@ -260,6 +260,13 @@ export default function SharePage() {
       setTexts(dflt);
       setMaster("It is with deep sadness that we share the passing of " + dname + ".");
       setWf({ deceased_name: dname, coordinator_name: cname });
+      if (params.get("demo") === "1" || dn || cn) {
+        setRecipientsText([
+          "Alex Morgan alex@example.com",
+          "Maria Chen maria@example.com",
+          "Jordan Lee 555-010-1212",
+        ].join(NL));
+      }
       setLoaded(true);
     }
   }, []);
