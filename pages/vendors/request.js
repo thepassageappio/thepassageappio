@@ -208,9 +208,9 @@ export default function VendorRequestPage() {
             <div style={{ padding: 22, borderBottom: '1px solid ' + C.border, background: C.card }}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Demo scoped vendor request' : 'Scoped local support request'}</div>
               <h1 style={{ fontSize: 'clamp(30px, 5vw, 44px)', lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
-              <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Demo request. Button clicks update local screen state only.' : 'One scoped request connected to a family case.'}</p>
+              <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Demo request. Button clicks update local screen state only.' : 'One scoped request connected to the family record.'}</p>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 12 }}>
-                <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After accepting:</strong> the family and funeral home will be notified that you are working on it.
+                <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After accepting:</strong> the family and funeral home see the request status on the same coordination spine.
               </div>
             </div>
             {demoMode && (

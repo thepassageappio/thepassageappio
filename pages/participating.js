@@ -53,7 +53,7 @@ const demoParticipantContext = {
           layer: 'notification',
           layerLabel: 'Notification',
           title: 'Assignment prepared',
-          detail: 'Passage linked this request to the estate task. Demo mode does not send email or SMS.',
+          detail: 'Passage linked this request to the family record. Demo mode does not send email or SMS.',
           at: '2026-05-08T14:00:00Z',
           statusLabel: 'prepared',
         },
@@ -230,7 +230,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>Why you are here</div>
           <div style={{ fontSize: 13, color: C.ink, fontWeight: 900, lineHeight: 1.4 }}>You have one responsibility for {(estate?.deceased_name || estate?.name || 'this family')}'s estate.</div>
           <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>
-            {estate?.coordinator_name || 'The coordinator'} will see your response. {workspace.guidance?.overwhelmed || 'You are not responsible for the whole estate.'}
+            {estate?.coordinator_name || 'The coordinator'} will see your response on the family record. {workspace.guidance?.overwhelmed || 'You are not responsible for the whole estate.'}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
             {[
@@ -273,6 +273,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
           <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>Where your update goes</div>
           <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{workspace.proofDestination}</div>
+          <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, marginTop: 4 }}>You only see your assigned responsibility; the family record keeps the broader coordination history.</div>
         </div>
       </div>
       {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
@@ -299,7 +300,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
                 </div>
                 <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder={taskActionPlaceholder(pendingAction === 'save_note' ? 'handled' : pendingAction, item, 'participant') || 'Add proof, what is waiting, or what help you need'} style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 112 : 92, marginTop: 12, padding: '10px 11px', borderRadius: 11, border: `1px solid ${proofWarning ? C.rose : C.border}`, background: C.bg, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
                 <div style={{ fontSize: 11.5, color: proofWarning ? C.rose : C.soft, fontWeight: proofWarning ? 800 : 400, marginTop: 6 }}>
-                  {proofWarning || 'This update goes back to the coordinator and stays attached to this task.'}
+                  {proofWarning || 'This update goes back to the coordinator and stays attached to the family record.'}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                   <button onClick={() => {
@@ -427,7 +428,7 @@ export default function ParticipatingPage() {
           },
         })),
       }));
-      setActionNotice((action === 'handled' ? 'Handled. ' : 'Demo update saved. ') + 'The coordinator would see this update on the estate task spine.');
+      setActionNotice((action === 'handled' ? 'Handled. ' : 'Demo update saved. ') + 'The coordinator would see this update on the family record spine.');
       return;
     }
     const { data: sessionData } = await supabase.auth.getSession();
@@ -527,7 +528,7 @@ export default function ParticipatingPage() {
         <div style={{ maxWidth: 760, marginBottom: 24 }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Participating in an estate</div>
           <h1 style={{ fontSize: 32, lineHeight: 1.1, margin: '0 0 8px', fontWeight: 400 }}>Your Passage assignments.</h1>
-          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, margin: 0 }}>Open the estate, handle one task, and the coordinator sees your update.</p>
+          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, margin: 0 }}>Handle one scoped task. Passage attaches your update to the family record without showing you the whole workspace.</p>
         </div>
 
         {!user && !demoMode && (
