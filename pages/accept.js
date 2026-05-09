@@ -6,6 +6,19 @@ import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
+const DEMO_INVITE = {
+  estate: {
+    name: 'Marian Ellis family coordination',
+    coordinatorName: 'Hudson Valley Funeral Group',
+  },
+  task: {
+    title: 'Confirm cemetery plot details',
+    description: 'Reply with the section, lot number, or deed photo. Passage will send the update back to the funeral home and keep the rest of the estate private.',
+  },
+  participant: {
+    emailHint: 'family.helper@example.com',
+  },
+};
 
 export default function AcceptInvitePage() {
   const router = useRouter();
@@ -49,6 +62,12 @@ export default function AcceptInvitePage() {
       setLoading(false);
       return;
     }
+    if (inviteToken === 'demo') {
+      setPreview(DEMO_INVITE);
+      setError('');
+      setLoading(false);
+      return;
+    }
     const res = await fetch('/api/invitePreview?token=' + encodeURIComponent(inviteToken));
     const json = await res.json().catch(() => ({}));
     if (!res.ok) setError(json.error || 'Could not load this invite.');
@@ -76,6 +95,10 @@ export default function AcceptInvitePage() {
 
   async function acceptInvite(accessToken = token) {
     if (!accessToken || accepting) return;
+    if (inviteToken === 'demo') {
+      router.replace('/participating?demo=1');
+      return;
+    }
     setAccepting(true);
     setError('');
     const res = await fetch('/api/acceptParticipantInvite', {
