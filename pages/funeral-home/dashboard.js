@@ -10,6 +10,48 @@ import { orchestrateTasks, taskImportance } from '../../lib/taskOrchestration';
 
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
+const IMPORT_FIELDS = [
+  ['deceased_name', 'Person who died', true],
+  ['primary_contact_name', 'Family contact name', true],
+  ['primary_contact_email', 'Family contact email', true],
+  ['primary_contact_phone', 'Family contact phone', false],
+  ['case_reference', 'Case reference', false],
+  ['source_system', 'Source system', false],
+  ['date_of_death', 'Date of death', false],
+  ['pronouncement_date', 'Pronouncement date', false],
+  ['release_date', 'Release / pickup date', false],
+  ['arrangement_date', 'Arrangement meeting date', false],
+  ['visitation_date', 'Wake / visitation date', false],
+  ['funeral_date', 'Funeral / memorial date', false],
+  ['burial_date', 'Burial / committal date', false],
+  ['shiva_date', 'Shiva / mourning date', false],
+  ['reception_date', 'Reception date', false],
+  ['obituary_deadline', 'Obituary deadline', false],
+  ['service_details', 'Service details', false],
+  ['notes', 'Notes', false],
+];
+
+const IMPORT_ALIASES = {
+  deceased_name: ['deceased_name', 'decedent_name', 'decedent', 'person_who_died', 'person_name', 'case_name', 'name'],
+  primary_contact_name: ['primary_contact_name', 'family_contact', 'family_contact_name', 'informant_name', 'next_of_kin_name', 'coordinator_name', 'contact_name'],
+  primary_contact_email: ['primary_contact_email', 'family_email', 'family_contact_email', 'informant_email', 'next_of_kin_email', 'coordinator_email', 'contact_email', 'email'],
+  primary_contact_phone: ['primary_contact_phone', 'phone', 'family_phone', 'family_contact_phone', 'informant_phone', 'next_of_kin_phone', 'coordinator_phone', 'contact_phone'],
+  date_of_death: ['date_of_death', 'death_date', 'dod'],
+  case_reference: ['case_reference', 'case_id', 'case_number', 'contract_number', 'record_id', 'reference'],
+  source_system: ['source_system', 'system', 'export_source', 'case_management_system'],
+  pronouncement_date: ['pronouncement_date', 'official_pronouncement', 'pronouncement'],
+  release_date: ['release_date', 'pickup_date', 'removal_date', 'transfer_date'],
+  arrangement_date: ['arrangement_date', 'arrangement_meeting', 'arrangements_date'],
+  visitation_date: ['visitation_date', 'wake_date', 'calling_hours_date'],
+  funeral_date: ['funeral_date', 'service_date', 'memorial_date'],
+  burial_date: ['burial_date', 'committal_date', 'cemetery_date', 'cremation_date'],
+  shiva_date: ['shiva_date', 'mourning_date', 'mourning_period_date'],
+  reception_date: ['reception_date', 'gathering_date'],
+  obituary_deadline: ['obituary_deadline', 'obituary_due_date', 'publication_deadline'],
+  service_details: ['service_details', 'service_notes', 'arrangement_notes', 'service_summary'],
+  notes: ['notes', 'case_notes', 'internal_notes'],
+};
+
 function statusLabel(value) {
   if (value === 'handled' || value === 'completed' || value === 'done') return 'Handled';
   if (value === 'acknowledged') return 'Confirmed';
@@ -39,6 +81,51 @@ function partnerCaseTypeLabel(item) {
   return stage.includes('preneed') || stage.includes('prepaid') || mode === 'green'
     ? 'Pre-need / prepaid case'
     : 'At-need case';
+}
+
+function importHeaderKey(value) {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+function parseImportCsv(text) {
+  const rows = [];
+  let cell = '';
+  let row = [];
+  let quoted = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    const next = text[i + 1];
+    if (char === '"' && quoted && next === '"') {
+      cell += '"';
+      i += 1;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === ',' && !quoted) {
+      row.push(cell.trim());
+      cell = '';
+    } else if ((char === '\n' || char === '\r') && !quoted) {
+      if (char === '\r' && next === '\n') i += 1;
+      row.push(cell.trim());
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += char;
+    }
+  }
+  row.push(cell.trim());
+  if (row.some(Boolean)) rows.push(row);
+  return rows;
+}
+
+function suggestedImportMapping(headers) {
+  const normalized = new Map(headers.map(header => [importHeaderKey(header), header]));
+  const mapping = {};
+  for (const [field, aliases] of Object.entries(IMPORT_ALIASES)) {
+    const match = aliases.map(importHeaderKey).find(alias => normalized.has(alias));
+    if (match) mapping[field] = normalized.get(match);
+  }
+  return mapping;
 }
 
 const miniPill = { background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 };
@@ -72,6 +159,7 @@ export default function FuneralHomeDashboard() {
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
   const [showStaffSetup, setShowStaffSetup] = useState(false);
   const [staffDraft, setStaffDraft] = useState({ email: '', role: 'staff' });
+  const [importDraft, setImportDraft] = useState(null);
   const casePanelRef = useRef(null);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
@@ -488,6 +576,53 @@ export default function FuneralHomeDashboard() {
     setUpdating('');
   }
 
+  function prepareImportDraft(csv, fileName = 'case export') {
+    const rows = parseImportCsv(csv);
+    if (rows.length < 2) {
+      setError('CSV needs a header row and at least one case row.');
+      return;
+    }
+    const headers = rows[0].filter(Boolean);
+    setImportDraft({
+      csv,
+      fileName,
+      headers,
+      rows: rows.slice(1, 4),
+      mapping: suggestedImportMapping(headers),
+    });
+    setShowTools(true);
+    setNotice('Review the column mapping, then import. Nothing is saved until you confirm.');
+  }
+
+  async function submitMappedImport() {
+    if (!token || !importDraft?.csv) return;
+    const requiredMissing = IMPORT_FIELDS
+      .filter(([, , required]) => required)
+      .filter(([key]) => !importDraft.mapping?.[key])
+      .map(([, label]) => label);
+    if (requiredMissing.length) {
+      setError(`Map required fields first: ${requiredMissing.join(', ')}.`);
+      return;
+    }
+    setUpdating('partner_import');
+    setError('');
+    setNotice('');
+    const res = await fetch('/api/partnerImport', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ csv: importDraft.csv, mapping: importDraft.mapping, funeralHomeName: org?.name || '' }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setUpdating('');
+    if (!res.ok) {
+      setError(json.error || 'Could not import this CSV.');
+      return;
+    }
+    setImportDraft(null);
+    setNotice(`Imported ${json.imported} case${json.imported === 1 ? '' : 's'} into Passage.`);
+    await load(token);
+  }
+
   async function createCase(e) {
     e.preventDefault();
     if (!token) return;
@@ -873,18 +1008,8 @@ export default function FuneralHomeDashboard() {
               setError('');
               setNotice('');
               const csv = await file.text();
-              const res = await fetch('/api/partnerImport', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-                body: JSON.stringify({ csv, funeralHomeName: org?.name || '' }),
-              });
-              const json = await res.json().catch(() => ({}));
               event.target.value = '';
-              if (!res.ok) setError(json.error || 'Could not import this CSV.');
-              else {
-                setNotice(`Imported ${json.imported} case${json.imported === 1 ? '' : 's'} into Passage.`);
-                await load(token);
-              }
+              prepareImportDraft(csv, file.name);
             }}
           />
         )}
@@ -958,7 +1083,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner tools</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Import, export, billing, and partner controls live here.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Bring case data in, coordinate the family work here, and export the record back out when your existing system needs it.</div>
               </div>
               <button onClick={() => setShowTools(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
             </div>
@@ -967,6 +1092,52 @@ export default function FuneralHomeDashboard() {
               <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Download template</a>
               <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV to me'}</button>
               <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{partnerPlan?.plan ? `Billing: ${partnerPlan.plan}` : 'Start pilot billing'}</button>
+            </div>
+            {importDraft && (
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, marginTop: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Map import columns</div>
+                    <div style={{ color: C.ink, fontSize: 16, lineHeight: 1.25, marginTop: 3 }}>{importDraft.fileName}</div>
+                  </div>
+                  <div style={{ color: C.mid, fontSize: 12.3 }}>{importDraft.headers.length} columns detected</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
+                  {IMPORT_FIELDS.map(([key, label, required]) => (
+                    <label key={key} style={{ display: 'grid', gap: 4, color: required && !importDraft.mapping?.[key] ? C.rose : C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                      {label}{required ? ' *' : ''}
+                      <select
+                        value={importDraft.mapping?.[key] || ''}
+                        onChange={event => setImportDraft(prev => ({ ...prev, mapping: { ...(prev?.mapping || {}), [key]: event.target.value } }))}
+                        style={inputStyle}>
+                        <option value="">Do not import</option>
+                        {importDraft.headers.map(header => (
+                          <option key={`${key}_${header}`} value={header}>{header}</option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+                <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 10 }}>
+                  Required fields create the family case. Date fields feed the orchestration spine so Passage can rank work around pronouncement, arrangement, service, burial, reception, and obituary timing.
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                  <button onClick={submitMappedImport} disabled={updating === 'partner_import'} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_import' ? 'wait' : 'pointer' }}>{updating === 'partner_import' ? 'Importing...' : 'Import mapped cases'}</button>
+                  <button onClick={() => setImportDraft(null)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
+                </div>
+              </div>
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
+              {[
+                ['Import accepts', 'Passage template plus common case-system names such as decedent, family contact, case number, service date, funeral date, burial date, and obituary deadline.'],
+                ['Export includes', 'Cases, contacts, lifecycle dates, task status, owners, messages, vendor requests, proof requirements, and payment/reporting fields where present.'],
+                ['Pilot posture', 'CSV bridge now. Direct adapters should be mapped after we see each home’s actual Passare, Gather, SRS, Tribute, or local export shape.'],
+              ].map(([title, body]) => (
+                <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 11px' }}>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
+                  <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>{body}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -1238,7 +1409,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>ROI and operations</div>
-                <div style={{ fontSize: 24, marginTop: 3 }}>Show where Passage is saving work.</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>Show where Passage saves work and keeps data portable.</div>
               </div>
               <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '9px 12px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export report CSV</button>
             </div>
@@ -1266,6 +1437,13 @@ export default function FuneralHomeDashboard() {
                 columns={['Employee', 'Role', 'Open', 'Handled', 'Waiting']}
                 rows={(reports.byEmployee || []).map(row => [row.email || 'Unassigned', roleLabel(row.role), row.openTasks, row.handledTasks, row.waitingTasks])}
               />
+            </div>
+            <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, marginTop: 12 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Stack fit</div>
+              <div style={{ color: C.ink, fontSize: 16, lineHeight: 1.25, marginTop: 4 }}>Passage is the coordination layer above the case system.</div>
+              <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginTop: 4 }}>
+                Import gets the case started without duplicate setup. Export returns the operational proof: task state, family communication, lifecycle dates, vendor requests, and who handled what.
+              </div>
             </div>
           </div>
         )}
@@ -1486,6 +1664,7 @@ export default function FuneralHomeDashboard() {
               const conversationCount = item.coordinationSpine?.conversation?.length || 0;
               const proofCount = item.coordinationSpine?.proof?.length || 0;
               const notificationCount = item.coordinationSpine?.notifications?.length || 0;
+              const familyUpdateHref = `/share?wid=${encodeURIComponent(item.id)}&dn=${encodeURIComponent(item.deceased_name || item.estate_name || item.name || 'Family case')}&cn=${encodeURIComponent(item.coordinator_name || 'the family')}`;
               const timelineEvents = (item.serviceEvents || item.service_events || [])
                 .filter(event => event?.date)
                 .slice()
@@ -1501,6 +1680,7 @@ export default function FuneralHomeDashboard() {
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Hide work' : 'Show work'}</button>
                       <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 12px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close case work' : 'Open case work'}</button>
+                      <Link href={familyUpdateHref} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Generate family update</Link>
                       <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '9px 12px', textDecoration: 'none', fontSize: 13, fontWeight: 800 }}>Print family summary</Link>
                     </div>
                   </div>

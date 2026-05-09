@@ -30,14 +30,14 @@ async function getPartnerData(token) {
 
   const { data: workflows, error: workflowError } = await admin
     .from('workflows')
-    .select('id,name,estate_name,deceased_name,coordinator_name,coordinator_email,coordinator_phone,organization_case_reference,mode,setup_stage,status,updated_at')
+    .select('id,name,estate_name,deceased_name,date_of_death,coordinator_name,coordinator_email,coordinator_phone,organization_case_reference,mode,setup_stage,status,orchestration_summary,updated_at')
     .in('organization_id', organizationIds)
     .neq('status', 'archived')
     .order('updated_at', { ascending: false });
   if (workflowError) throw workflowError;
 
   const workflowIds = (workflows || []).map(w => w.id);
-  const [{ data: tasks }, { data: communications }, { data: vendorRequests }] = workflowIds.length
+  const [{ data: tasks }, { data: communications }, { data: vendorRequests }, { data: events }] = workflowIds.length
     ? await Promise.all([
       admin
         .from('tasks')
@@ -54,8 +54,13 @@ async function getPartnerData(token) {
         .select('workflow_id,task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,platform_fee_amount,funeral_home_share_amount,passage_share_amount,payment_collection_status,vendors(business_name,contact_email,contact_phone,category)')
         .in('workflow_id', workflowIds)
         .order('requested_at', { ascending: false }),
+      admin
+        .from('estate_events')
+        .select('estate_id,event_type,title,name,date,created_at')
+        .in('estate_id', workflowIds)
+        .order('created_at', { ascending: false }),
     ])
-    : [{ data: [] }, { data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
 
   const taskRows = [];
   for (const workflow of workflows || []) {
@@ -69,6 +74,8 @@ async function getPartnerData(token) {
     for (const communication of caseMessages) taskRows.push({ workflow, communication });
     const caseVendorRequests = (vendorRequests || []).filter(v => v.workflow_id === workflow.id);
     for (const vendorRequest of caseVendorRequests) taskRows.push({ workflow, vendorRequest });
+    const caseEvents = (events || []).filter(e => e.estate_id === workflow.id);
+    for (const event of caseEvents) taskRows.push({ workflow, event });
   }
 
   return {
@@ -91,10 +98,14 @@ function buildCsv(rows) {
     'Case',
     'Record type',
     'Case type',
+    'Source system',
     'Reference',
     'Family contact',
     'Family email',
     'Family phone',
+    'Date of death',
+    'Event type',
+    'Event date',
     'Task',
     'Assigned participant',
     'Status',
@@ -119,15 +130,19 @@ function buildCsv(rows) {
     'Payment status',
   ];
   const lines = [header.map(csvCell).join(',')];
-  for (const { workflow, task, communication, vendorRequest } of rows) {
+  for (const { workflow, task, communication, vendorRequest, event } of rows) {
     lines.push([
       workflow.estate_name || workflow.deceased_name || workflow.name,
-      vendorRequest ? 'vendor_request' : communication ? 'communication' : 'task',
+      event ? 'lifecycle_event' : vendorRequest ? 'vendor_request' : communication ? 'communication' : 'task',
       workflowCaseType(workflow),
+      workflow.orchestration_summary?.source_system || 'Passage',
       workflow.organization_case_reference,
       workflow.coordinator_name,
       workflow.coordinator_email,
       workflow.coordinator_phone,
+      workflow.date_of_death,
+      event?.event_type,
+      event?.date,
       task?.title,
       task?.assigned_to_name || task?.assigned_to_email,
       vendorRequest?.status || communication?.status || task?.status || workflow.status,

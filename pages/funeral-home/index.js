@@ -19,6 +19,13 @@ const workflow = [
   ['Show proof', 'Families see sent, waiting, confirmed, handled, and needs-family-info states.'],
 ];
 
+const stackFit = [
+  ['Keep your case system', 'Passage does not replace Passare, Gather, SRS, Tribute, QuickBooks, websites, forms, contracts, or compliance records.'],
+  ['Bring case data in', 'Use CSV import now for family contacts, case references, service dates, and known event timing. Adapter mappings can follow pilot feedback.'],
+  ['Coordinate the humans', 'Family replies, staff ownership, participant requests, vendor updates, and proof stay tied to the case task.'],
+  ['Export when needed', 'The funeral home keeps data portability and can move cases, tasks, messages, vendors, proof, and lifecycle dates back into trusted systems.'],
+];
+
 const tiers = [
   ['Pilot', '$99.99/mo', 'For one location testing Passage with real cases.', '10 active cases, co-branded family view, partner dashboard'],
   ['Local', '$249.99/mo', 'For a busy independent home.', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
@@ -40,14 +47,17 @@ export default function FuneralHomePage() {
   const [activeNeed, setActiveNeed] = useState(0);
 
   useEffect(() => {
+    if (!supabase?.auth) return;
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user || null));
   }, []);
 
   async function signIn() {
+    if (!supabase?.auth) return;
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/funeral-home/dashboard' } });
   }
 
   async function signOut() {
+    if (!supabase?.auth) return;
     await supabase.auth.signOut();
     setUser(null);
   }
@@ -59,6 +69,11 @@ export default function FuneralHomePage() {
       return;
     }
     setBusy(planId);
+    if (!supabase?.auth) {
+      setError('Sign-in is not configured in this environment.');
+      setBusy('');
+      return;
+    }
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     const res = await fetch('/api/checkout', {
@@ -173,11 +188,31 @@ export default function FuneralHomePage() {
           </div>
         </div>
 
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 10 }}>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Where Passage fits</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 14, alignItems: 'start' }}>
+            <div>
+              <div style={{ fontSize: 24, lineHeight: 1.1 }}>Above the funeral-home stack, not instead of it.</div>
+              <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '8px 0 0' }}>
+                Most homes already have a case system, accounting, website, forms, and vendor tools. The missing layer is the operational truth still living in calls, texts, whiteboards, and staff memory.
+              </p>
+            </div>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {stackFit.map(([title, body]) => (
+                <div key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px' }}>
+                  <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{title}</div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>{body}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: 22, lineHeight: 1.18 }}>Built to fit your current work.</div>
             <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.58, marginTop: 3 }}>
-              Your staff can create a case, share a family status view, act on behalf of the family, and export the record when the work needs to move.
+              Your staff can import a case list, create a new family workspace, act on behalf of the family, share one status view, and export the record when the work needs to move.
             </div>
           </div>
           <Link href="/contact" style={{ color: C.sage, border: `1px solid ${C.border}`, background: C.card, borderRadius: 12, padding: '10px 14px', textDecoration: 'none', fontSize: 13, fontWeight: 900 }}>Talk to Passage</Link>
