@@ -280,8 +280,9 @@ const readinessChecks = [
   'Demo studio is separate from the partner funeral-home dashboard.',
   'System-admin nav rolls demo, vendor approval, vendor QA, reporting, and support intake under one Passage-only command center.',
   'Guided coach stays in dummy demo data and does not depend on real estates.',
-  'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language.',
+  'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language and task authority guidance.',
   'Import mapping, preview, case-summary export, and full-spine export remain the adoption-trust close.',
+  'Demo notification states stay exact: prepared, requested, copied, failed, delivered, and sent are not interchangeable.',
 ];
 
 const productionReadiness = [
@@ -292,11 +293,11 @@ const productionReadiness = [
 ];
 
 const nextSprintQueue = [
-  ['Persona QA', 'Run red, warm, participant, director, staff, vendor, and system-admin scripts end to end with pass/fail notes.'],
-  ['Delivery truth', 'Keep prepared, requested, sent, delivered, waiting, failed, and handled states exact across UI, exports, and events.'],
-  ['Pilot operator path', 'Make the director first-day workflow unmistakable: create/open case, move one task, request family info, export summary.'],
-  ['Output depth', 'Turn more high-frequency tasks into packet/script/request outputs, not status-only buttons.'],
-  ['Observability', 'Track owner latency, waiting aging, calls avoided, failed sends, vendor response time, and proof completion.'],
+  ['Task authority', 'Every priority task should explain why it matters, usual owner, timing, next step, Passage output, and the overwhelmed fallback.'],
+  ['Red first minutes', 'Make urgent flow stabilize first, coordinate second, and organize third so families do not feel like they are configuring software.'],
+  ['Role separation', 'Keep family, director, staff, participant, vendor, and demo/admin views visibly different while sharing the same spine.'],
+  ['Output depth', 'Turn more high-frequency tasks into packet/script/request outputs before introducing persistent packet storage or PDF email.'],
+  ['Trust and observability', 'Surface visibility boundaries, delivery truth, owner latency, waiting age, failed sends, outputs prepared, exports generated, and proof completion.'],
 ];
 
 const valueStory = [
