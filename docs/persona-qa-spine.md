@@ -68,6 +68,7 @@ These are the remaining gaps to keep Passage aligned with the mission: a calm au
 9. Pilot instrumentation: track waiting age, owner latency, proof completion, failed notification attempts, delivered notification attempts, tasks closed, outputs prepared, exports generated, and calls avoided.
 10. No-silo output surfaces: announcements, event one-pagers, packets, vendor requests, and partner exports must read as prepared artifacts from the family record, not standalone tools.
 11. Onboarding as spine handoff: participant invites and employee setup must land people on the exact work they own, show what they can see, and create proof without requiring them to understand every Passage module.
+12. First-day pilot setup: funeral homes, vendors, future hospice locations, assisted-care teams, employees, participants, and red/green family members all need a role-specific launch rail that answers: who am I, what can I see, what do I set up once, what is my first real action, and how does proof return to the family record.
 
 Owner approval is still required before production SQL, material legal/privacy changes, pricing changes, real email/SMS sends, or irreversible production data changes.
 
@@ -81,7 +82,7 @@ Run this after any sprint that touches task, communication, proof, demo, or role
 | 2 | `/?dashboard=1` | Family estate spine | User lands on one selected estate record with a next move, owner/waiting/proof signal, and an estate switcher only when multiple records exist. |
 | 3 | `/estate` | Family command center | Selected task shows next move, owner, waiting state, proof destination, output, and one primary workspace action. |
 | 4 | `/funeral-home/dashboard` | Director | Dashboard shows active cases, waiting responses, staff/workload signal, calls avoided, next case focus, and export trust. |
-| 5 | `/funeral-home/dashboard?staff=1` | Staff/operator onboarding | Employee lands on My work / assigned-first mode with case context, service timing, and direct waiting/request/proof actions. |
+| 5 | `/funeral-home/dashboard?staff=1` | Staff/operator onboarding | Employee lands on My work / assigned-first mode with case context, service timing, role scope, and direct waiting/request/proof actions. |
 | 6 | `/participating?demo=1` | Participant/helper onboarding | Participant sees only assigned work, understands why they are there, and can accept, mark waiting, handle, or ask for help without seeing the whole estate. |
 | 7 | `/vendors/request?demo=1` | Vendor | Vendor sees scoped request, owner/waiting/proof loop, and demo actions do not touch live records. |
 | 8 | `/share?dn=Eleanor%20Price&cn=Price%20family` | Family coordinator | Event one-pager and copy outputs are framed as family-record artifacts and prepared/saved only; nothing claims sent/published without a provider send. |
@@ -105,3 +106,4 @@ Run this after any sprint that touches task, communication, proof, demo, or role
 3. Family event broadcast: make the event one-pager and recipient batch accessible from estate/funeral-home task work, with no live sends.
 4. Demo rail hardening: each step should open and scroll to the exact product moment, with visible confirmation when actions are demo-only.
 5. Mobile density pass: estate operating spine, estate switcher, and funeral-home case work should keep one pane active instead of stacking every support detail.
+6. First-day pilot launch rail: make every B2B partner start from a guided setup path with two case-loading branches: import existing records by CSV or create the first family record fresh in UI.

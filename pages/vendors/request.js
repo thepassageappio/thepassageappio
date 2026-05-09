@@ -198,7 +198,7 @@ export default function VendorRequestPage() {
             <div style={cardStyle}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
               <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{user ? 'No approved vendor profile yet.' : 'Sign in to manage vendor requests.'}</h1>
-              <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first, Passage system admin approves them, then the approved contact email can sign in here to manage the business and respond to task-native requests.'}</p>
+              <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first, Passage system admin approves them, then the approved contact email can sign in here to respond to scoped task requests. Vendors do not browse families or cases.'}</p>
               {!user && <button onClick={() => supabase?.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } })} style={buttonStyle(C.sage)}>Sign in</button>}
             </div>
           )
@@ -361,7 +361,10 @@ function VendorDashboard({ vendor, requests }) {
     <div style={cardStyle}>
       <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Approved vendor portal</div>
       <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendor.business_name}</h1>
-      <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests from families or funeral homes appear here when Passage recommends you inside a task.</p>
+      <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests appear only when Passage recommends you inside a relevant family task. Responding updates the same family record; this is not a public marketplace inbox.</p>
+      <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginBottom: 14 }}>
+        <strong style={{ color: C.ink }}>Vendor scope:</strong> see the request, urgency, family-facing context, and response status. The family record keeps approvals, proof, and broader coordination.
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, margin: '16px 0' }}>
         <Info label="Category" value={vendorCategoryLabel(vendor.category)} />
@@ -380,7 +383,7 @@ function VendorDashboard({ vendor, requests }) {
       <details style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13 }}>
         <summary style={{ cursor: 'pointer', fontWeight: 900, fontSize: 18 }}>Incoming requests ({requests.length})</summary>
         <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
-          {!requests.length && <div style={{ color: C.mid }}>No requests yet. When one arrives, you can view it, quote it, accept it, or mark it completed from here.</div>}
+          {!requests.length && <div style={{ color: C.mid }}>No requests yet. When one arrives, you can view it, ask for details, accept it, mark in progress, or mark completed from here.</div>}
           {requests.map((request) => {
             const familyName = request.workflows?.deceased_name || request.workflows?.estate_name || request.workflows?.name || 'Family case';
             return (

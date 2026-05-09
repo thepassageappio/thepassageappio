@@ -1027,6 +1027,22 @@ export default function FuneralHomeDashboard() {
     ['3', 'Ask or assign', assignmentsCoordinated ? `${assignmentsCoordinated} assigned` : familyRequestsOpen ? `${familyRequestsOpen} family request${familyRequestsOpen === 1 ? '' : 's'}` : 'Choose owner'],
     ['4', 'Export proof', callsAvoided ? `${callsAvoided} calls avoided` : 'After proof is saved'],
   ];
+  const partnerSetupRows = [
+    ['Cases', cases.length ? `${cases.length} active` : 'Create/import first case', cases.length > 0],
+    ['Locations', locations.length > 1 ? `${locations.length} from case data` : 'Main location until imports add scope', locations.length > 0],
+    ['Employees', partnerStaff.length ? `${partnerStaff.length} saved` : 'Add assignable staff', partnerStaff.length > 0],
+    ['Roles', roleLabel(currentRole), !!currentRole],
+    ['Assignments', assignmentsCoordinated ? `${assignmentsCoordinated} task owner${assignmentsCoordinated === 1 ? '' : 's'}` : 'Use the owner dropdown', assignmentsCoordinated > 0],
+    ['Local support', vendorPrefs.preferred?.length ? `${vendorPrefs.preferred.length} preferred` : 'Choose approved vendors', (vendorPrefs.preferred || []).length > 0],
+  ];
+  const pilotLaunchRows = [
+    ['1', 'Workspace', org?.name ? `${org.name} is active` : 'Create partner workspace', !!org?.name],
+    ['2', 'Locations', isMultiLocation ? `${locations.length} visible` : 'Main location ready; CSV can add more', locations.length > 0],
+    ['3', 'Employees', partnerStaff.length ? `${partnerStaff.length} assignable` : 'Add director, manager, staff', partnerStaff.length > 0],
+    ['4', 'Cases', cases.length ? `${cases.length} case${cases.length === 1 ? '' : 's'} loaded` : 'Import CSV or create fresh', cases.length > 0],
+    ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first task owner', assignmentsCoordinated > 0],
+    ['6', 'Proof loop', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
+  ];
   const partnerViewTabs = isDirectorRole
     ? [
       ['work', 'Cases', 'Move work'],
@@ -1188,6 +1204,53 @@ export default function FuneralHomeDashboard() {
         {partnerTrialExpired && (
           <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 14, padding: 16, color: C.rose, marginBottom: 12, lineHeight: 1.45 }}>
             This partner trial has ended. Existing cases stay visible; ask Passage to reactivate billing before creating new pilot cases.
+          </div>
+        )}
+
+        {user && !loading && data && isDirectorRole && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>First-day pilot launch</div>
+                <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.16, marginTop: 4 }}>Set up the operating spine, then load cases one of two ways.</div>
+                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>After setup, every estate task reuses the same locations, saved employees, roles, family contacts, and preferred local support. Nobody should retype the same owner list case by case.</div>
+              </div>
+              <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, maxWidth: 250 }}>Pilot-safe: imports preview first, invite messages are copied only, and no email or SMS is sent automatically.</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 12 }}>
+              {pilotLaunchRows.map(([n, title, body, done]) => (
+                <div key={title} style={{ background: done ? C.sageFaint : C.bg, border: `1px solid ${done ? C.sage + '22' : C.border}`, borderRadius: 12, padding: '10px 11px', display: 'grid', gridTemplateColumns: '24px minmax(0,1fr)', gap: 8, alignItems: 'start', minHeight: 72 }}>
+                  <span style={{ width: 22, height: 22, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: done ? C.sage : C.card, color: done ? '#fff' : C.soft, fontSize: 11, fontWeight: 900 }}>{n}</span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</span>
+                    <span style={{ display: 'block', color: C.mid, fontSize: 11.8, lineHeight: 1.35, marginTop: 3 }}>{body}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginTop: 12 }}>
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12 }}>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Path A: import existing cases</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Download the template, map columns, preview rows, then import. Location names from the file become the location filter and reporting scope.</div>
+                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 10 }}>
+                  <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', textDecoration: 'none', fontSize: 11.8, fontWeight: 900 }}>Download template</a>
+                  <button onClick={() => { setShowTools(true); document.getElementById('partner-csv-upload')?.click(); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Upload CSV</button>
+                </div>
+              </div>
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12 }}>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Path B: start fresh in UI</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Create one case, add the family coordinator, save known dates, then assign the next task from the owner dropdown.</div>
+                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 10 }}>
+                  <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Create at-need case</button>
+                  <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Create pre-need case</button>
+                </div>
+              </div>
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12 }}>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Then assign work</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Add employees once. Directors, location managers, staff, family coordinators, and participants appear in the same assignment dropdown inside each estate task.</div>
+                <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer', marginTop: 10 }}>Open employee setup</button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1369,6 +1432,31 @@ export default function FuneralHomeDashboard() {
                 ))}
               </div>
             )}
+            {isDirectorRole && (
+              <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Partner setup path</div>
+                    <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>Set up once, then reuse the same cases, locations, staff, roles, and vendors from every estate task assignment.</div>
+                  </div>
+                  <div style={{ color: C.soft, fontSize: 11.5, fontWeight: 900 }}>Locations come from case/import data today.</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 10 }}>
+                  {partnerSetupRows.map(([label, value, done]) => (
+                    <div key={label} style={{ background: done ? C.sageFaint : C.card, border: `1px solid ${done ? C.sage + '22' : C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 64 }}>
+                      <div style={{ color: done ? C.sage : C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                      <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.3, marginTop: 5, fontWeight: 900 }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                  <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Create case</button>
+                  <button onClick={() => { setShowTools(true); setImportDraft(null); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Import locations</button>
+                  <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Set up employees</button>
+                  <button onClick={() => setActivePartnerView('reports')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Check reporting</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1464,7 +1552,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Employee setup</div>
-                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Add staff once, then assign tasks from the case spine. Employees land on My work, not the director dashboard.</div>
+                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Add staff once with a role, then assign tasks from the case spine. Employees land on My work, not the director dashboard.</div>
                   </div>
                   <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
                 </div>
@@ -1478,13 +1566,13 @@ export default function FuneralHomeDashboard() {
                         </div>
                         <button type="button" onClick={() => setShowStaffSetup(false)} aria-label="Close staff setup" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                       </div>
-                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee first, then directors can assign case work from the task spine. The handoff should tell them exactly what they own, what proof to save, and where family-visible status updates come from.</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee first, then directors can assign case work from the task spine. Roles control the starting view; location scope is read from the case/import filter until dedicated location permissions are added.</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginBottom: 10 }}>
                         {[
-                          ['1', 'Save employee'],
-                          ['2', 'Assign case task'],
-                          ['3', 'Staff opens My work'],
-                          ['4', 'Proof updates the family record'],
+                          ['1', 'Save employee role'],
+                          ['2', 'Filter by location if needed'],
+                          ['3', 'Assign from dropdown'],
+                          ['4', 'Proof updates family record'],
                         ].map(([n, label]) => (
                           <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 7, alignItems: 'center' }}>
                             <span style={{ width: 22, height: 22, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900 }}>{n}</span>
@@ -1501,7 +1589,7 @@ export default function FuneralHomeDashboard() {
                           <option value="admin">Admin</option>
                         </select>
                       </div>
-                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>For demos, copy the invite message. It is a prepared handoff only; no email or SMS is sent automatically.</div>
+                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>For demos, copy the invite message. It is a prepared handoff only; no email or SMS is sent automatically. Saved employees appear in the same owner dropdown on every case task.</div>
                       {latestStaffInvite && (
                         <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
                           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Staff handoff ready</div>
@@ -2090,7 +2178,7 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Assign owner</div>
                               <button onClick={() => setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' })} aria-label="Close assignment" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                             </div>
-                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>Saved staff and case contacts appear first.</div>
+                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>Saved employees, roles, family coordinators, and participants appear here as the uniform owner list for this estate task. Location context stays attached to the case.</div>
                             {assignmentOptions.length > 0 ? (
                               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, 1fr) auto', gap: 8, marginTop: 10, alignItems: 'center' }}>
                                 <select
@@ -2106,7 +2194,7 @@ export default function FuneralHomeDashboard() {
                               </div>
                             ) : (
                               <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '9px 10px', color: C.amber, fontSize: 12.2, lineHeight: 1.45, marginTop: 10 }}>
-                                <div>No staff or case contacts are saved yet.</div>
+                                <div>No employees or case contacts are saved yet.</div>
                                 <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Open Staff work</button>
                               </div>
                             )}

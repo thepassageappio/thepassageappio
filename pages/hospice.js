@@ -82,6 +82,14 @@ const warmSpine = [
   ['How we know', 'Saved contacts, reviewed plan, known dates, and handoff packet proof.'],
 ];
 
+const hospicePilotSetup = [
+  ['1', 'Location or care team', 'Start with the agency, facility, or home-care team that families already know.'],
+  ['2', 'Care contacts', 'Save the on-call line, social worker, chaplain, primary caregiver, and family coordinator.'],
+  ['3', 'Family workspaces', 'Create one family record at a time or import a small pilot list when approved.'],
+  ['4', 'Warm tasks', 'Assign practical prep: first-hour plan, funeral-home choice, documents, visitors, and family updates.'],
+  ['5', 'Handoff', 'When death occurs, the same record moves to red path and funeral-home coordination.'],
+];
+
 export default function HospiceWarmPath() {
   const [user, setUser] = useState(null);
   const [form, setForm] = useState({
@@ -280,6 +288,28 @@ export default function HospiceWarmPath() {
               <p style={smallText}>{body}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section style={section}>
+        <div style={panel}>
+          <div style={eyebrow}>Future hospice pilot setup</div>
+          <h2 style={h2}>A hospice location should start with care-team setup, not a blank dashboard.</h2>
+          <p style={lead}>This is the same Passage spine as funeral-home onboarding, shifted upstream: set the location or care-team context once, add people once, then every family workspace reuses those roles and handoff paths.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginTop: 16 }}>
+            {hospicePilotSetup.map(([n, title, body]) => (
+              <div key={title} style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, display: 'grid', gridTemplateColumns: '26px minmax(0,1fr)', gap: 9, alignItems: 'start' }}>
+                <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</span>
+                <span>
+                  <span style={{ display: 'block', color: C.ink, fontSize: 14, fontWeight: 900 }}>{title}</span>
+                  <span style={{ display: 'block', color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 3 }}>{body}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+          <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 12 }}>
+            Hospice and assisted-care setup should reuse the same SaaS pattern as funeral homes: organization, locations or care teams, employees and roles, family records, assigned tasks, communication, proof, and reporting. The product stays family-first; providers rotate through the persistent record.
+          </div>
         </div>
       </section>
 

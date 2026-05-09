@@ -10,6 +10,13 @@ export default function VendorOnboard() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const setupPath = [
+    ['1', 'Apply', 'Business, category, service area, support windows, and contact identity.'],
+    ['2', 'Review', 'Passage admin approves before any family task visibility.'],
+    ['3', 'Portal', 'Approved contact signs in to see only scoped requests.'],
+    ['4', 'Respond', 'Ask for details, accept, mark in progress, complete, or decline.'],
+    ['5', 'Proof', 'Status returns to the family record and funeral-home coordination spine.'],
+  ];
 
   function update(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -44,6 +51,21 @@ export default function VendorOnboard() {
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>Trusted local support</div>
             <h1 style={{ fontSize: 'clamp(36px, 6vw, 72px)', lineHeight: 1.03, margin: 0, fontWeight: 400 }}>Help families at the moment your work matters most.</h1>
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.7, marginTop: 16 }}>Passage only suggests partners inside the task where they can help. No directory, no bidding wall, no hard sell.</p>
+            <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 13, marginTop: 18 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor setup path</div>
+              <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>A support partner becomes useful only when they can close a family task with visible status and proof.</div>
+              <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
+                {setupPath.map(([n, title, body]) => (
+                  <div key={title} style={{ display: 'grid', gridTemplateColumns: '25px minmax(0,1fr)', gap: 8, alignItems: 'start', background: C.card, border: '1px solid ' + C.border, borderRadius: 11, padding: '8px 9px' }}>
+                    <span style={{ width: 22, height: 22, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</span>
+                    <span>
+                      <span style={{ display: 'block', color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</span>
+                      <span style={{ display: 'block', color: C.mid, fontSize: 11.8, lineHeight: 1.35, marginTop: 2 }}>{body}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div style={{ display: 'grid', gap: 9, marginTop: 20 }}>
               {['Families see your help only when it fits the next step.', 'You receive a request by email and update it from a private Passage link.', 'Passage tracks the booking value so future payments and funeral-home partner share can stay inside the system.', 'Funeral homes can choose preferred local partners.'].map((item) => (
                 <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', color: C.mid, lineHeight: 1.5 }}>{item}</div>
