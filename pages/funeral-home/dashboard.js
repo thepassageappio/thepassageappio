@@ -82,10 +82,13 @@ export default function FuneralHomeDashboard() {
     coordinatorEmail: '',
     coordinatorPhone: '',
     caseReference: '',
+    pronouncementDate: '',
+    releaseDate: '',
     arrangementDate: '',
     visitationDate: '',
     funeralDate: '',
     burialDate: '',
+    shivaDate: '',
     receptionDate: '',
     obituaryDeadline: '',
   });
@@ -104,6 +107,11 @@ export default function FuneralHomeDashboard() {
   }, []);
 
   useEffect(() => {
+    if (!supabase?.auth) {
+      setError('Supabase browser auth is not configured in this environment.');
+      setLoading(false);
+      return;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       setToken(session?.access_token || '');
@@ -132,6 +140,10 @@ export default function FuneralHomeDashboard() {
   }
 
   async function signIn() {
+    if (!supabase?.auth) {
+      setError('Supabase browser auth is not configured in this environment.');
+      return;
+    }
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/funeral-home/dashboard' } });
   }
 
@@ -144,6 +156,11 @@ export default function FuneralHomeDashboard() {
     setSigningIn(true);
     setError('');
     setNotice('');
+    if (!supabase?.auth) {
+      setError('Supabase browser auth is not configured in this environment.');
+      setSigningIn(false);
+      return;
+    }
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: partnerEmail.trim(),
@@ -167,6 +184,7 @@ export default function FuneralHomeDashboard() {
   }
 
   async function signOut() {
+    if (!supabase?.auth) return;
     await supabase.auth.signOut();
     setUser(null);
     setToken('');
@@ -501,7 +519,7 @@ export default function FuneralHomeDashboard() {
         : 'Case created. Family access was not prepared yet; use the family view or coordinator email to complete the handoff.');
     }
     setShowNewCase(false);
-    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', receptionDate: '', obituaryDeadline: '' });
+    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
     await load(token);
   }
 
@@ -1324,13 +1342,16 @@ export default function FuneralHomeDashboard() {
             {caseForm.caseType === 'immediate' && (
               <details style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.bg, padding: '9px 10px', marginTop: 10 }}>
                 <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>Known dates, if available</summary>
-                <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, margin: '7px 0 9px' }}>Skip anything unknown. Passage will keep missing service dates visible only when they become the next thing needed.</div>
+                <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, margin: '7px 0 9px' }}>Skip anything unknown. Passage will keep missing event dates visible only when they become urgent or needed for a family update.</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
                   {[
+                    ['pronouncementDate', 'Official pronouncement'],
+                    ['releaseDate', 'Release / pickup'],
                     ['arrangementDate', 'Arrangement meeting'],
                     ['visitationDate', 'Wake / visitation'],
                     ['funeralDate', 'Funeral / memorial'],
                     ['burialDate', 'Burial / cremation'],
+                    ['shivaDate', 'Shiva / mourning'],
                     ['receptionDate', 'Reception'],
                     ['obituaryDeadline', 'Obituary deadline'],
                   ].map(([key, label]) => (
@@ -1465,6 +1486,11 @@ export default function FuneralHomeDashboard() {
               const conversationCount = item.coordinationSpine?.conversation?.length || 0;
               const proofCount = item.coordinationSpine?.proof?.length || 0;
               const notificationCount = item.coordinationSpine?.notifications?.length || 0;
+              const timelineEvents = (item.serviceEvents || item.service_events || [])
+                .filter(event => event?.date)
+                .slice()
+                .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')))
+                .slice(0, 3);
               return (
                 <div id={'partner-case-' + item.id} key={item.id} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 18, padding: 18, scrollMarginTop: 92 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
@@ -1521,6 +1547,11 @@ export default function FuneralHomeDashboard() {
                     {waitingFamily.length > 0 && <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{waitingFamily.length} waiting on family</span>}
                     {blocked > 0 && <span style={{ background: C.roseFaint, color: C.rose, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{blocked} need help</span>}
                     {vendorRequests.length > 0 && <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{vendorRequests.length} local help requests</span>}
+                    {timelineEvents.length > 0
+                      ? timelineEvents.map(event => (
+                        <span key={`${event.event_type || event.name || event.title}_${event.date}`} style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{event.name || event.title || event.event_type || 'Event'}: {new Date(String(event.date).includes('T') ? event.date : `${event.date}T12:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                      ))
+                      : <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Event dates unknown</span>}
                     <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{conversationCount} convo / {proofCount} proof / {notificationCount} alerts</span>
                   </div>
                   {isExpanded && nextPartnerTask && (() => {
@@ -1577,6 +1608,23 @@ export default function FuneralHomeDashboard() {
                       locationName: itemLocation,
                       openTasks: item.tasks || [],
                     });
+                    const coordinationRows = [
+                      {
+                        label: 'Conversation',
+                        count: conversationCount,
+                        body: item.coordinationSpine?.conversation?.[0]?.title || item.coordinationSpine?.conversation?.[0]?.detail || 'Human request or reply stays on this task.',
+                      },
+                      {
+                        label: 'Proof',
+                        count: proofCount,
+                        body: item.coordinationSpine?.proof?.[0]?.title || item.coordinationSpine?.proof?.[0]?.detail || 'Outcome, actor, timestamp, note, and file live separately from chat.',
+                      },
+                      {
+                        label: 'Notification',
+                        count: notificationCount,
+                        body: item.coordinationSpine?.notifications?.[0]?.title || item.coordinationSpine?.notifications?.[0]?.detail || 'Email, SMS, and in-app delivery route attention without becoming the work.',
+                      },
+                    ];
                     return (
                       <div id={'partner-action-workspace-' + item.id} style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(230px, .65fr)', gap: 12, alignItems: 'stretch' }}>
@@ -1591,6 +1639,17 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 4 }}>{output.body}</div>
                             <button onClick={() => copyText(packetText, 'Prepared output copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 9 }}>Copy prepared output</button>
                           </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 8, marginTop: 10 }}>
+                          {coordinationRows.map(row => (
+                            <div key={row.label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                                <span style={{ color: C.soft, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row.label}</span>
+                                <span style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{row.count}</span>
+                              </div>
+                              <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.4, marginTop: 5 }}>{row.body}</div>
+                            </div>
+                          ))}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))', gap: 8, marginTop: 12 }}>
                           <button onClick={() => { setAssignmentDraft({ taskId: nextPartnerTask.id, name: nextPartnerTask.assigned_to_name || firstAssignee?.name || '', email: nextPartnerTask.assigned_to_email || firstAssignee?.email || '', role: nextPartnerTask.playbook?.partnerOwnerRole || firstAssignee?.role || 'staff', phone: '' }); setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Assign owner<br /><span style={{ color: C.mid, fontWeight: 500 }}>staff or case contact</span></button>

@@ -70,6 +70,7 @@ export default async function handler(req, res) {
     { data: tasks },
     { data: events },
     { data: serviceEvents },
+    { data: serviceTimelineEvents },
     { data: people },
     { data: actions },
     { data: announcements },
@@ -81,6 +82,7 @@ export default async function handler(req, res) {
     admin.from('tasks').select('*').eq('workflow_id', id).order('created_at', { ascending: true }),
     admin.from('estate_events').select('*').eq('estate_id', id).order('created_at', { ascending: false }).limit(8),
     admin.from('workflow_events').select('*').eq('workflow_id', id).order('date', { ascending: true }),
+    admin.from('estate_events').select('id,estate_id,event_type,name,title,date,time,location_name,location_address,notes,description').eq('estate_id', id).not('date', 'is', null).order('date', { ascending: true }).limit(80),
     admin.from('people').select('*').eq('estate_id', id).order('created_at', { ascending: true }),
     admin.from('workflow_actions').select('*').eq('workflow_id', id).order('sort_order', { ascending: true }),
     admin.from('announcements').select('*').eq('estate_id', id).order('created_at', { ascending: false }).limit(10),
@@ -101,12 +103,22 @@ export default async function handler(req, res) {
     role: 'family',
   });
 
+  const seenServiceEvents = new Set();
+  const mergedServiceEvents = [...(serviceEvents || []), ...(serviceTimelineEvents || [])]
+    .filter(event => {
+      const key = [event.event_type || event.type || event.name || event.title, event.date || '', event.time || '', event.location_name || ''].join('|');
+      if (seenServiceEvents.has(key)) return false;
+      seenServiceEvents.add(key);
+      return true;
+    })
+    .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+
   return res.status(200).json({
     estate,
     outcomes: outcomes || [],
     tasks: tasks || [],
     events: events || [],
-    serviceEvents: serviceEvents || [],
+    serviceEvents: mergedServiceEvents,
     people: people || [],
     actions: actions || [],
     announcements: announcements || [],

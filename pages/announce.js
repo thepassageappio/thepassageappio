@@ -149,8 +149,20 @@ export default function AnnouncePage() {
 
   useEffect(function() {
     if (!estateId) return;
-    sb.from('workflow_events').select('*').eq('workflow_id', estateId).order('date', { ascending: true }).then(function(r) {
-      setServiceEvents(r.data || []);
+    Promise.all([
+      sb.from('workflow_events').select('*').eq('workflow_id', estateId).order('date', { ascending: true }),
+      sb.from('estate_events').select('*').eq('estate_id', estateId).not('date', 'is', null).order('date', { ascending: true }),
+    ]).then(function(results) {
+      var workflowEvents = results[0].data || [];
+      var estateEvents = results[1].data || [];
+      var seen = {};
+      var merged = workflowEvents.concat(estateEvents).filter(function(event) {
+        var key = [event.event_type || event.type || event.name || event.title, event.date || '', event.time || '', event.location_name || ''].join('|');
+        if (seen[key]) return false;
+        seen[key] = true;
+        return true;
+      }).sort(function(a, b) { return String(a.date || '').localeCompare(String(b.date || '')); });
+      setServiceEvents(merged);
     });
   }, [estateId]);
 
@@ -165,12 +177,27 @@ export default function AnnouncePage() {
   function serviceDetailsBlock() {
     if (!serviceEvents || serviceEvents.length === 0) return '';
     var lines = serviceEvents.filter(function(e) { return e.date || e.time || e.location_name; }).map(function(e) {
-      var label = (e.name || e.event_type || 'Service detail').replace(/_/g, ' ');
+      var label = eventLabel(e);
       var when = [e.date, e.time].filter(Boolean).join(' at ');
       var where = [e.location_name, e.location_address].filter(Boolean).join(', ');
       return label + ': ' + [when, where].filter(Boolean).join(' - ');
     });
     return lines.length ? '\n\nService details:\n' + lines.join('\n') : '';
+  }
+
+  function eventLabel(e) {
+    var type = String(e.event_type || e.type || '').toLowerCase();
+    if (type === 'pronouncement') return 'Official pronouncement';
+    if (type === 'release') return 'Release / pickup';
+    if (type === 'arrangement') return 'Arrangement meeting';
+    if (type === 'visitation' || type === 'wake') return 'Wake / visitation';
+    if (type === 'funeral' || type === 'service') return 'Funeral / memorial service';
+    if (type === 'burial' || type === 'committal') return 'Burial / committal';
+    if (type === 'cremation' || type === 'crematorium') return 'Cremation / crematorium';
+    if (type === 'shiva') return 'Shiva / mourning period';
+    if (type === 'reception') return 'Reception / gathering';
+    if (type === 'obituary_deadline') return 'Obituary deadline';
+    return String(e.name || e.title || e.event_type || 'Service detail').replace(/_/g, ' ');
   }
 
   async function saveDraft() {

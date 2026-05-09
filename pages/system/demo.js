@@ -153,6 +153,65 @@ const fullLoop = [
   ['6', 'Show ROI', 'Director sees calls avoided, staff workload, waiting items, and exportable case data.'],
 ];
 
+const demoRail = [
+  {
+    n: '01',
+    title: 'Director sees the operating read',
+    persona: 'Funeral-home owner/director',
+    route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
+    proof: 'Active cases, waiting responses, blocked items, calls avoided, and the single director focus.',
+    value: 'Shows the buyer what gets quieter today.',
+  },
+  {
+    n: '02',
+    title: 'Director opens staff work',
+    persona: 'Director / location manager',
+    route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
+    proof: 'Saved employees, assigned work, role scope, and staff queues by case.',
+    value: 'Shows delegation before assignment so owners are not typed from scratch.',
+  },
+  {
+    n: '03',
+    title: 'Director creates or opens a case',
+    persona: 'Arranger / coordinator',
+    route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
+    proof: 'At-need, pre-need, and prepaid case types with dates captured when known.',
+    value: 'Shows “add only what you know” without blocking urgent work.',
+  },
+  {
+    n: '04',
+    title: 'Staff moves one task',
+    persona: 'Funeral-home employee',
+    route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=task',
+    proof: 'Owner, next action, prepared output, waiting state, and proof destination are on one task.',
+    value: 'Shows Passage doing work instead of showing a checklist.',
+  },
+  {
+    n: '05',
+    title: 'Family or helper responds once',
+    persona: 'Family participant',
+    route: '/participating?demoTour=funeral-home&demoStep=participant',
+    proof: 'Assigned work only: accept, waiting, handled, or ask for help.',
+    value: 'Shows a scoped slice of the same truth without funeral-home clutter.',
+  },
+  {
+    n: '06',
+    title: 'Vendor handles scoped local support',
+    persona: 'Vendor / service provider',
+    route: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
+    proof: 'Viewed, accepted, in progress, completed, or declined stays tied to the task.',
+    value: 'Shows vendors as task-native support, not a directory.',
+  },
+  {
+    n: '07',
+    title: 'Director closes with reporting',
+    persona: 'Owner/director',
+    route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
+    proof: 'CSV export, staff workload, calls avoided, waiting items, and family-visible proof.',
+    value: 'Shows ROI and data portability for the B2B close.',
+  },
+];
+
 const ecosystemPaths = [
   {
     title: 'Family command center',
@@ -385,6 +444,26 @@ export default function SystemDemo() {
                 addDemoFamily={addDemoFamily}
               />
             </section>
+
+            <Panel style={{ marginTop: 22 }}>
+              <div style={eyebrow}>Runnable demo rail</div>
+              <h2 style={h2}>One story, seven product moments.</h2>
+              <p style={{ ...lead, maxWidth: 820 }}>Use this as the operator-safe spine for demos. Every stop opens the actual product surface that should prove the claim, with dummy-safe links where the flow touches participants or vendors.</p>
+              <div style={{ display: 'grid', gap: 9, marginTop: 14 }}>
+                {demoRail.map(step => (
+                  <div key={step.n} style={{ display: 'grid', gridTemplateColumns: '44px minmax(0,1fr) auto', gap: 12, alignItems: 'center', background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 12 }}>
+                    <span style={{ width: 34, height: 34, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontWeight: 900 }}>{step.n}</span>
+                    <span style={{ minWidth: 0 }}>
+                      <strong style={{ color: C.ink, fontSize: 16 }}>{step.title}</strong>
+                      <span style={{ display: 'block', color: C.soft, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900, marginTop: 2 }}>{step.persona}</span>
+                      <span style={{ display: 'block', color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}><strong>Show:</strong> {step.proof}</span>
+                      <span style={{ display: 'block', color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 2 }}><strong>Why it matters:</strong> {step.value}</span>
+                    </span>
+                    <Link href={step.route} style={{ ...tinyPill, textDecoration: 'none', whiteSpace: 'nowrap' }}>Open step</Link>
+                  </div>
+                ))}
+              </div>
+            </Panel>
 
             <details style={{ marginTop: 22 }}>
               <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>Demo appendix: product map, readiness checks, and close</summary>
@@ -624,8 +703,8 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
   );
 }
 
-function Panel({ children }) {
-  return <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>{children}</div>;
+function Panel({ children, style }) {
+  return <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.05)', ...(style || {}) }}>{children}</div>;
 }
 
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };

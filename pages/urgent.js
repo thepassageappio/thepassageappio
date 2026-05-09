@@ -399,6 +399,7 @@ export default function UrgentPage() {
   }, []);
 
   useEffect(() => {
+    if (!supabase?.auth) return;
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.user?.email) setCoordinatorEmail(prev => prev || session.user.email);
@@ -454,6 +455,7 @@ export default function UrgentPage() {
       localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, context, outcomes, people, proofByOutcome }));
     } catch {}
     try {
+      if (!supabase?.auth) throw new Error('Passage sign-in is not configured in this environment.');
       const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/urgent' } });
       if (error) throw error;
     } catch (error) {
@@ -494,6 +496,7 @@ export default function UrgentPage() {
     }
     setSavingEstate(true);
     try {
+      if (!supabase?.auth) throw new Error('Passage sign-in is not configured in this environment.');
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
       const accessToken = sessionData?.session?.access_token;

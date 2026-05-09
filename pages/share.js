@@ -24,6 +24,7 @@ var TWITTER = "#000000";
 var IG = "#E1306C";
 
 var PLATFORMS = [
+  { id: "email", label: "Email", color: SAGE, bgColor: SAGE_FAINT, limit: 5000 },
   { id: "facebook", label: "Facebook", color: BLUE, bgColor: BLUE_FAINT, limit: 63206 },
   { id: "linkedin", label: "LinkedIn", color: LI_BLUE, bgColor: "#f0f4ff", limit: 3000 },
   { id: "twitter", label: "X / Twitter", color: TWITTER, bgColor: "#f0f0f0", limit: 280 },
@@ -41,10 +42,25 @@ function buildTexts(dn, cn, events) {
     return t ? dt + " at " + t : dt;
   }
 
+  function labelFor(e) {
+    var type = String(e.event_type || e.type || "").toLowerCase();
+    if (type === "pronouncement") return "Official pronouncement";
+    if (type === "release") return "Release / pickup";
+    if (type === "arrangement") return "Arrangement meeting";
+    if (type === "visitation" || type === "wake") return "Wake / visitation";
+    if (type === "funeral" || type === "service") return "Funeral / memorial service";
+    if (type === "burial" || type === "committal") return "Burial / committal";
+    if (type === "cremation" || type === "crematorium") return "Cremation / crematorium";
+    if (type === "shiva") return "Shiva / mourning period";
+    if (type === "reception") return "Reception / gathering";
+    if (type === "obituary_deadline") return "Obituary deadline";
+    return e.name || e.title || "Service detail";
+  }
+
   var lines = [];
   if (events) {
     events.forEach(function(e) {
-      var label = e.event_type === "visitation" ? "Visitation" : e.event_type === "funeral" ? "Funeral Service" : e.event_type === "burial" ? "Burial" : e.event_type === "reception" ? "Reception" : "Service";
+      var label = labelFor(e);
       if (e.date) {
         lines.push(label + ": " + fmtDate(e.date, e.time) + (e.location_name ? " at " + e.location_name : "") + (e.location_address ? " — " + e.location_address : ""));
       }
@@ -52,6 +68,10 @@ function buildTexts(dn, cn, events) {
   }
 
   var serviceBlock = lines.length > 0 ? NL + NL + lines.join(NL) : "";
+
+  var onePager = buildEventOnePager(dn2, cn2, events);
+
+  var email = onePager;
 
   var facebook = [
     "It is with deep sadness that we share the passing of " + dn2 + ". " + dn2 + " was deeply loved and will be forever in our hearts." + serviceBlock,
@@ -70,11 +90,57 @@ function buildTexts(dn, cn, events) {
 
   var instagram = ["Forever in our hearts.", dn2 + " — loved beyond measure, missed beyond words." + serviceBlock, "#InMemory #ForeverLoved"].join(NL + NL);
 
-  var funeral = events && events.find(function(e) { return e.event_type === "funeral"; });
+  var funeral = events && events.find(function(e) { return e.event_type === "funeral" || e.event_type === "service"; });
   var smsService = funeral && funeral.date ? " The service is " + fmtDate(funeral.date, funeral.time) + (funeral.location_name ? " at " + funeral.location_name : "") + "." : "";
   var sms = "Hi, this is " + cn2 + ". We wanted to let you know that " + dn2 + " has passed away." + smsService + " Our family is grateful for your love and support.";
 
-  return { facebook: facebook, linkedin: linkedin, twitter: twitter, instagram: instagram, sms: sms };
+  return { email: email, facebook: facebook, linkedin: linkedin, twitter: twitter, instagram: instagram, sms: sms, onePager: onePager };
+}
+
+function formatEventDate(d, t) {
+  if (!d) return "";
+  var dt = new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  return t ? dt + " at " + t : dt;
+}
+
+function readableEventLabel(e) {
+  var type = String(e.event_type || e.type || "").toLowerCase();
+  if (type === "pronouncement") return "Official pronouncement";
+  if (type === "release") return "Release / pickup";
+  if (type === "arrangement") return "Arrangement meeting";
+  if (type === "visitation" || type === "wake") return "Wake / visitation";
+  if (type === "funeral" || type === "service") return "Funeral / memorial service";
+  if (type === "burial" || type === "committal") return "Burial / committal";
+  if (type === "cremation" || type === "crematorium") return "Cremation / crematorium";
+  if (type === "shiva") return "Shiva / mourning period";
+  if (type === "reception") return "Reception / gathering";
+  if (type === "obituary_deadline") return "Obituary deadline";
+  return e.name || e.title || "Service detail";
+}
+
+function buildEventOnePager(dn, cn, events) {
+  var dname = dn || "your loved one";
+  var family = cn || "the family";
+  var eventLines = (events || []).filter(function(e) { return e.date || e.time || e.location_name || e.location_address || e.notes || e.description; }).map(function(e) {
+    var when = [formatEventDate(e.date, e.time), e.location_name, e.location_address].filter(Boolean).join(" - ");
+    var detail = e.notes || e.description || "";
+    return readableEventLabel(e) + (when ? ": " + when : "") + (detail ? NL + "  " + detail : "");
+  });
+  var intro = [
+    "We are sharing the current service and gathering details for " + dname + ".",
+    "These details may be updated as the family and funeral home confirm final arrangements.",
+    "Thank you for supporting " + family + " with patience, care, and love.",
+  ].join(" ");
+  return [
+    "Service and gathering details for " + dname,
+    "",
+    intro,
+    "",
+    eventLines.length ? eventLines.join(NL + NL) : "Service dates, locations, and times are still being confirmed.",
+    "",
+    "With love,",
+    family,
+  ].join(NL);
 }
 
 function Inp(props) {
@@ -114,8 +180,19 @@ export default function SharePage() {
       sb.from("workflows").select("*").eq("id", wid).single().then(function(r) {
         var data = r.data || { deceased_name: dn, coordinator_name: cn, id: wid };
         setWf(data);
-        sb.from("workflow_events").select("*").eq("workflow_id", wid).order("date").then(function(r2) {
-          var evts = r2.data || [];
+        Promise.all([
+          sb.from("workflow_events").select("*").eq("workflow_id", wid).order("date"),
+          sb.from("estate_events").select("*").eq("estate_id", wid).not("date", "is", null).order("date"),
+        ]).then(function(results) {
+          var workflowEvents = results[0].data || [];
+          var estateEvents = results[1].data || [];
+          var seen = {};
+          var evts = workflowEvents.concat(estateEvents).filter(function(event) {
+            var key = [event.event_type || event.type || event.name || event.title, event.date || "", event.time || "", event.location_name || ""].join("|");
+            if (seen[key]) return false;
+            seen[key] = true;
+            return true;
+          }).sort(function(a, b) { return String(a.date || "").localeCompare(String(b.date || "")); });
           setEvents(evts);
           var dname = data.deceased_name || dn || "your loved one";
           var cname = data.coordinator_name || cn || "the family";
@@ -145,11 +222,13 @@ export default function SharePage() {
     var dflt = buildTexts(dn2, wf ? (wf.coordinator_name || "") : "", evts);
     var svcAppend = dflt.facebook.indexOf("Service") > -1 ? NL + NL + dflt.facebook.split(NL + NL).slice(1).join(NL + NL) : "";
     setTexts({
+      email: dflt.email,
       facebook: master + svcAppend,
       linkedin: master,
       twitter: short,
       instagram: master.slice(0, 200) + (master.length > 200 ? "..." : "") + NL + NL + "#InMemory #ForeverLoved",
       sms: master.slice(0, 280),
+      onePager: dflt.onePager,
     });
     setToastMsg("All platforms updated from your text.");
     setTimeout(function() { setToastMsg(""); }, 3000);
@@ -173,11 +252,13 @@ export default function SharePage() {
           payload: {
             workflowId: wid,
             masterText: master,
+            emailText: texts.email,
             facebookText: texts.facebook,
             linkedinText: texts.linkedin,
             twitterText: texts.twitter,
             instagramText: texts.instagram,
             smsText: texts.sms,
+            onePagerText: texts.onePager,
           },
         }),
       }).then(function() {
@@ -196,7 +277,9 @@ export default function SharePage() {
   function share(platformId) {
     var txt = texts ? (texts[platformId] || "") : "";
     var url = typeof window !== "undefined" ? window.location.origin : "https://www.thepassageapp.io";
-    if (platformId === "facebook") {
+    if (platformId === "email") {
+      window.location.href = "mailto:?subject=" + encodeURIComponent("Service details for " + (wf && wf.deceased_name ? wf.deceased_name : "our loved one")) + "&body=" + encodeURIComponent(txt);
+    } else if (platformId === "facebook") {
       window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url) + "&quote=" + encodeURIComponent(txt.slice(0, 500)), "_blank", "width=600,height=500");
     } else if (platformId === "linkedin") {
       window.open("https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(url) + "&summary=" + encodeURIComponent(txt.slice(0, 700)), "_blank", "width=600,height=500");
@@ -245,6 +328,21 @@ export default function SharePage() {
             {events.length === 0 && (
               <div style={{ background: GOLD_FAINT, border: "1px solid " + GOLD + "40", borderRadius: 11, padding: "11px 14px", fontSize: 12, color: GOLD, marginBottom: 16, lineHeight: 1.55 }}>
                 Add service details (date, time, location) from the task list and they will appear in your announcements automatically.
+              </div>
+            )}
+
+            {texts && texts.onePager && (
+              <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Passage prepared one-pager</div>
+                    <div style={{ fontSize: 16, color: INK, fontWeight: 700, marginTop: 2 }}>Service details to send once.</div>
+                  </div>
+                  <button onClick={function() { navigator.clipboard.writeText(texts.onePager); setCopied("onePager"); setTimeout(function() { setCopied(null); }, 2200); }} style={{ border: "1px solid " + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 700, cursor: "pointer" }}>
+                    {copied === "onePager" ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <div style={{ whiteSpace: "pre-wrap", background: SUBTLE, borderRadius: 11, padding: 12, color: MID, fontSize: 12.5, lineHeight: 1.55, maxHeight: 240, overflow: "auto" }}>{texts.onePager}</div>
               </div>
             )}
 
@@ -319,7 +417,7 @@ export default function SharePage() {
                   <button key={p.id} onClick={function() { share(p.id); }}
                     style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 13, border: "1.5px solid " + (isCopied ? SAGE_LIGHT : BORDER), background: isCopied ? SAGE_FAINT : CARD, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
                     <div style={{ width: 38, height: 38, borderRadius: 10, background: p.bgColor, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13, fontWeight: 900, color: p.color, fontFamily: "sans-serif" }}>
-                      {p.id === "facebook" ? "f" : p.id === "linkedin" ? "in" : p.id === "twitter" ? "X" : p.id === "instagram" ? "Ig" : "SMS"}
+                      {p.id === "email" ? "Email" : p.id === "facebook" ? "f" : p.id === "linkedin" ? "in" : p.id === "twitter" ? "X" : p.id === "instagram" ? "Ig" : "SMS"}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 13.5, fontWeight: 600, color: INK }}>{lbl}</div>

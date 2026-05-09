@@ -110,10 +110,13 @@ export default async function handler(req, res) {
     demoType,
     demoLogoUrl,
     demoPrimaryColor,
+    pronouncementDate,
+    releaseDate,
     arrangementDate,
     visitationDate,
     funeralDate,
     burialDate,
+    shivaDate,
     receptionDate,
     obituaryDeadline,
   } = req.body || {};
@@ -138,10 +141,13 @@ export default async function handler(req, res) {
 
     const now = new Date().toISOString();
     const timelineAnchors = [
+      ['pronouncement', 'Official pronouncement', pronouncementDate, 'Official death pronouncement date if known.'],
+      ['release', 'Release / pickup', releaseDate, 'Hospital, facility, hospice, or pickup timing if known.'],
       ['arrangement', 'Arrangement meeting', arrangementDate, 'Known arrangement meeting date.'],
       ['visitation', 'Wake / visitation', visitationDate, 'Known wake, visitation, calling hours, or shiva date.'],
       ['funeral', 'Funeral / memorial service', funeralDate, 'Known funeral or memorial service date.'],
       ['burial', 'Burial / committal', burialDate, 'Known burial, committal, cremation, or cemetery date.'],
+      ['shiva', 'Shiva / mourning period', shivaDate, 'Known shiva or mourning-period start date.'],
       ['reception', 'Reception / gathering', receptionDate, 'Known reception or family gathering date.'],
       ['obituary_deadline', 'Obituary deadline', obituaryDeadline, 'Known obituary submission or publication deadline.'],
     ].filter(item => item[2]).map(item => ({ event_type: item[0], name: item[1], date: item[2], notes: item[3] }));
@@ -204,10 +210,13 @@ export default async function handler(req, res) {
         partner_setup_stage: `partner_${normalizedCaseType}_created`,
         timeline_anchors: timelineAnchors,
         missing_timeline_watch: normalizedCaseType === 'immediate' ? [
+          !pronouncementDate ? 'official pronouncement date' : '',
+          !releaseDate ? 'release or pickup date' : '',
           !arrangementDate ? 'arrangement meeting date' : '',
           !visitationDate ? 'wake / visitation date' : '',
           !funeralDate ? 'funeral or memorial date' : '',
           !burialDate ? 'burial / cremation date' : '',
+          !shivaDate ? 'shiva or mourning-period date' : '',
           !obituaryDeadline ? 'obituary deadline' : '',
         ].filter(Boolean) : [],
         demo_type: demo ? (demoType || 'local') : null,
