@@ -54,7 +54,7 @@ export default async function handler(req, res) {
   }
 
   return res.status(200).json({
-    inviteStatus: participant.invite_status || 'sent',
+    inviteStatus: participant.invite_status || 'prepared',
     estate: workflow ? {
       id: workflow.id,
       name: workflow.deceased_name || workflow.estate_name || workflow.name || 'this estate',

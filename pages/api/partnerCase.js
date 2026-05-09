@@ -51,7 +51,7 @@ async function createFamilyParticipantLink({ workflowId, taskId, familyName, fam
       name: String(familyName || email).trim(),
       phone: familyPhone || null,
       role: 'family_coordinator',
-      invite_status: 'sent',
+      invite_status: 'prepared',
       invite_token: inviteToken,
       task_id: taskId || null,
       created_at: now,
@@ -61,7 +61,7 @@ async function createFamilyParticipantLink({ workflowId, taskId, familyName, fam
       workflow_id: workflowId,
       email,
       role: 'family_coordinator',
-      invite_status: 'sent',
+      invite_status: 'prepared',
       invite_token: inviteToken,
       task_id: taskId || null,
       created_at: now,
@@ -70,7 +70,7 @@ async function createFamilyParticipantLink({ workflowId, taskId, familyName, fam
     {
       workflow_id: workflowId,
       email,
-      invite_status: 'sent',
+      invite_status: 'prepared',
       invite_token: inviteToken,
       created_at: now,
       updated_at: now,
@@ -304,7 +304,7 @@ export default async function handler(req, res) {
         actor: `${organizationName} demo staff`,
         channel: 'email',
         recipient: coordinatorEmail || email,
-        detail: `${second.title} sent to the family. Waiting for confirmation.`,
+        detail: `${second.title} prepared for the family. Waiting for confirmation.`,
       });
       await recordStatusEvent({
         workflowId: workflow.id,
@@ -324,7 +324,6 @@ export default async function handler(req, res) {
         provider: 'demo',
         provider_id: `demo-${randomUUID()}`,
         status: 'waiting',
-        sent_at: now,
         created_at: now,
       }]).then(() => {}, () => {});
     }
