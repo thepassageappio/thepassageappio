@@ -79,6 +79,43 @@ export default function PacketDemo() {
     window.setTimeout(() => setNotice(''), 2500);
   }
 
+  function packetStatus(packet) {
+    const body = String(packet?.text || '');
+    const missing = (body.match(/not added yet|not recorded yet|pending|unknown|not known yet|not supplied/gi) || []).length;
+    return {
+      missing,
+      label: missing ? 'Needs review' : 'Ready for review',
+      detail: missing ? `${missing} missing or pending field${missing === 1 ? '' : 's'} should be checked before sharing.` : 'No obvious placeholder fields found. Human approval is still required.',
+    };
+  }
+
+  function downloadActive() {
+    if (typeof window === 'undefined' || !active?.text) return;
+    const status = packetStatus(active);
+    const fileName = `${String(active.title || 'passage-packet').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'passage-packet'}.txt`;
+    const content = [
+      active.title,
+      sourceLabel,
+      status.label + ' - ' + status.detail,
+      'Prepared by Passage. Review before sharing outside the family record.',
+      '',
+      active.text,
+    ].join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setNotice('Packet downloaded as a reviewable text file.');
+    window.setTimeout(() => setNotice(''), 2500);
+  }
+
+  const activeStatus = packetStatus(active);
+
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia, serif' }}>
       <style>{`
@@ -143,8 +180,24 @@ export default function PacketDemo() {
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button onClick={copyActive} style={primaryButton}>Copy packet</button>
+                <button onClick={downloadActive} style={secondaryButton}>Download .txt</button>
                 <button onClick={() => window.print()} style={secondaryButton}>Print / save PDF</button>
               </div>
+            </div>
+            <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginBottom: 18 }}>
+              {[
+                ['Packet status', activeStatus.label, activeStatus.missing ? C.amberFaint : C.sageFaint],
+                ['Approval boundary', 'Review before sharing', C.sageFaint],
+                ['Proof path', 'Copy, print, or download only', C.sageFaint],
+              ].map(([label, value, bg]) => (
+                <div key={label} style={{ background: bg, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px' }}>
+                  <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                  <div style={{ color: C.ink, fontSize: 13, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+            <div className="no-print" style={{ background: activeStatus.missing ? C.amberFaint : C.sageFaint, border: '1px solid ' + (activeStatus.missing ? '#edd7b1' : '#c8deca'), borderRadius: 13, padding: '10px 12px', color: activeStatus.missing ? C.amber : C.sage, fontSize: 12.5, fontWeight: 900, lineHeight: 1.45, marginBottom: 18 }}>
+              {activeStatus.detail} Nothing leaves Passage from this page automatically.
             </div>
             <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', color: C.ink, fontSize: 16, lineHeight: 1.62, margin: 0 }}>{active.text}</pre>
           </article>
