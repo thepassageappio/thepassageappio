@@ -625,6 +625,10 @@ export default function UrgentPage() {
         .authority-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:9px; }
         .authority-options button { border:1px solid ${C.sageLight}; background:${C.card}; color:${C.sageDark}; border-radius:999px; padding:8px 10px; cursor:pointer; font-weight:800; font-size:12px; }
         .authority-options button.active { background:${C.sage}; color:white; border-color:${C.sage}; }
+        .save-panel { border:1px solid ${C.sageLight}; background:${C.sageFaint}; border-radius:16px; padding:12px; margin-bottom:16px; }
+        .save-panel-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+        .save-panel-title { color:${C.sageDark}; font-size:11px; letter-spacing:.13em; text-transform:uppercase; font-weight:900; }
+        .save-panel-copy { color:${C.mid}; font-size:13px; line-height:1.45; margin-top:4px; max-width:560px; }
         details.later-details { border:1px solid ${C.border}; background:${C.card}; border-radius:14px; padding:11px 12px; margin-bottom:16px; }
         details.later-details summary { cursor:pointer; color:${C.sageDark}; font-size:12px; font-weight:850; }
         .phase-rail { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0 0 14px; }
@@ -843,9 +847,15 @@ export default function UrgentPage() {
               </div>
               <div className="context-help" style={{ marginTop: 8 }}>{authorityMessage(context.authorityStatus)}</div>
             </div>
-            <details className="later-details">
-              <summary>Save this command center when you are ready</summary>
-              <div className="save-strip" style={{ marginTop: 10, marginBottom: 0 }}>
+            <div className="save-panel">
+              <div className="save-panel-head">
+                <div>
+                  <div className="save-panel-title">Keep this command center</div>
+                  <div className="save-panel-copy">Save when you want Passage to carry the next step, owner, notes, and proof into a private estate workspace.</div>
+                </div>
+                <div style={{ color: C.sageDark, fontSize: 12, fontWeight: 800 }}>No messages send from this step.</div>
+              </div>
+              <div className="save-strip" style={{ marginTop: 0, marginBottom: 0, background: C.card }}>
                 <div className="field compact">
                   <label>Name of the person who passed</label>
                   <input value={deceasedName} onChange={e => setDeceasedName(e.target.value)} placeholder="Their name" />
@@ -860,7 +870,7 @@ export default function UrgentPage() {
                 <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the command center, owners, notes, and proof.</div>
                 {saveError && <div className="save-error">{saveError}</div>}
               </div>
-            </details>
+            </div>
             <details className="later-details">
               <summary>Add optional details if you already know them</summary>
               <div className="context-grid" style={{ marginTop: 10, marginBottom: 0 }}>

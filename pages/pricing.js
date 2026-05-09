@@ -129,6 +129,9 @@ export default function PricingPage() {
           .pricing-group-tabs button {
             flex: 1 0 auto;
           }
+          .pricing-readiness-grid {
+            grid-template-columns: 1fr !important;
+          }
         }
       `}</style>
       <section className="pricing-page-section" style={{ maxWidth: 1060, margin: '0 auto', padding: '12px 22px 36px' }}>
@@ -153,6 +156,19 @@ export default function PricingPage() {
             <strong style={{ color: C.sage }}>Sign in once to checkout.</strong> Use the sign-in button above. Passage saves the plan to your estate workspace.
           </div>
         )}
+
+        <div className="pricing-readiness-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 12 }}>
+          {[
+            ['After checkout', 'Passage opens the right estate workspace so the next step, owner, and proof stay together.'],
+            ['Nothing sends yet', 'Invites, packets, emails, and texts stay in review until someone chooses the exact action.'],
+            ['Start small', 'Begin with one family record. Add people, documents, and provider handoffs only when they matter.'],
+          ].map(([label, body]) => (
+            <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13, minHeight: 92 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>{label}</div>
+              <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>{body}</div>
+            </div>
+          ))}
+        </div>
 
         {participantDiscount && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: 13, marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.5 }}>
