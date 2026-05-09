@@ -52,6 +52,8 @@ export default function PassageApp({ Component, pageProps }) {
         <title>Passage | One calm place for life-to-death transitions</title>
         <meta name="description" content={DESCRIPTION} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Passage" />
         <meta property="og:title" content="Passage | One calm place for life-to-death transitions" />
