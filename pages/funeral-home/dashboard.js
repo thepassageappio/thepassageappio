@@ -7,6 +7,7 @@ import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 import { taskGuidanceFor, taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../../lib/taskOrchestration';
+import { trackEvent } from '../../lib/trackEvent';
 
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
@@ -906,6 +907,7 @@ export default function FuneralHomeDashboard() {
 
   async function createCase(e) {
     e.preventDefault();
+    trackEvent('partner_case_create_submitted', { demoMode, caseType: caseForm.caseType, hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
     if (!token) return;
     if (demoMode) {
       const now = new Date().toISOString();
@@ -958,6 +960,7 @@ export default function FuneralHomeDashboard() {
         ? 'Demo case created locally. Family handoff link is prepared for the walkthrough; no production record, email, or SMS was created.'
         : 'Demo case created locally. Add a family email in a real case before preparing the family handoff link.');
       setShowNewCase(false);
+      trackEvent('partner_case_created_demo', { caseType: caseForm.caseType, hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
       setExpandedCaseId(id);
       setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
       return;
@@ -972,9 +975,11 @@ export default function FuneralHomeDashboard() {
     const json = await res.json().catch(() => ({}));
     setCreating(false);
     if (!res.ok) {
+      trackEvent('partner_case_create_failed', { caseType: caseForm.caseType, message: json.error || 'Could not create this family case.' });
       setError(json.error || 'Could not create this family case.');
       return;
     }
+    trackEvent('partner_case_created', { workflowId: json.workflowId, caseType: caseForm.caseType, familyParticipantCreated: Boolean(json.familyParticipant?.created) });
     if (json.familyParticipant?.created && json.familyParticipant?.inviteToken) {
       const familyUrl = `${window.location.origin}/accept?token=${json.familyParticipant.inviteToken}`;
       setLatestFamilyLink({

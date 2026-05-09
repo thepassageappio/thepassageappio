@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import { supabase } from '../lib/supabaseBrowser';
 import { buildContinuityPackets, demoContinuityInput } from '../lib/continuityPackets';
+import { trackEvent } from '../lib/trackEvent';
 
 const C = {
   bg: '#f6f3ee',
@@ -70,6 +71,7 @@ export default function PacketDemo() {
   }, [router.isReady, router.query.id, demoPackets]);
 
   async function copyActive() {
+    trackEvent('packet_copied', { packetId: active?.id, sourceLabel });
     try {
       await navigator.clipboard.writeText(active.text);
       setNotice('Packet copied.');
@@ -91,6 +93,7 @@ export default function PacketDemo() {
 
   function downloadActive() {
     if (typeof window === 'undefined' || !active?.text) return;
+    trackEvent('packet_downloaded', { packetId: active.id, sourceLabel });
     const status = packetStatus(active);
     const fileName = `${String(active.title || 'passage-packet').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'passage-packet'}.txt`;
     const content = [
@@ -181,7 +184,7 @@ export default function PacketDemo() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button onClick={copyActive} style={primaryButton}>Copy packet</button>
                 <button onClick={downloadActive} style={secondaryButton}>Download .txt</button>
-                <button onClick={() => window.print()} style={secondaryButton}>Print / save PDF</button>
+                <button onClick={() => { trackEvent('packet_print_clicked', { packetId: active?.id, sourceLabel }); window.print(); }} style={secondaryButton}>Print / save PDF</button>
               </div>
             </div>
             <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginBottom: 18 }}>

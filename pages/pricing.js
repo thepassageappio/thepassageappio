@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
+import { trackEvent } from '../lib/trackEvent';
 
 const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 
@@ -52,6 +53,7 @@ export default function PricingPage() {
   }, []);
 
   async function signIn() {
+    trackEvent('pricing_sign_in_clicked', { participantDiscount });
     if (!supabase?.auth) {
       setMessage('Sign-in is not configured in this environment.');
       return;
@@ -68,12 +70,14 @@ export default function PricingPage() {
   }
 
   async function checkout(planId) {
+    trackEvent('checkout_clicked', { planId, participantDiscount, signedIn: Boolean(user) });
     setSelectedPlan(planId);
     if (!supabase?.auth) {
       setMessage('Sign-in is not configured in this environment.');
       return;
     }
     if (!user) {
+      trackEvent('checkout_requires_sign_in', { planId, participantDiscount });
       setMessage(planId === 'urgent' ? 'Sign in once so Passage can open the urgent command center for you.' : 'Sign in once so Passage can attach the plan to your estate workspace.');
       return;
     }
@@ -91,8 +95,10 @@ export default function PricingPage() {
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Checkout could not be started.');
+      trackEvent('checkout_started', { planId, participantDiscount });
       window.location.href = data.url;
     } catch (err) {
+      trackEvent('checkout_failed', { planId, message: err.message || 'Checkout could not be started.' });
       setMessage(err.message || 'Checkout could not be started.');
     } finally {
       setBusy('');

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteFooter } from '../components/SiteChrome';
+import { trackEvent } from '../lib/trackEvent';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = {
@@ -490,6 +491,7 @@ export default function UrgentPage() {
   }, []);
 
   const openCommandCenter = async () => {
+    trackEvent('urgent_command_center_clicked', { signedIn: Boolean(user), situation: selectedSituation || context.deathContext || '', hasName: Boolean(deceasedName.trim()) });
     setSaveError('');
     if (!deceasedName.trim()) {
       setSaveError('Add their name so Passage can save this as a real estate command center.');
@@ -500,6 +502,7 @@ export default function UrgentPage() {
       return;
     }
     if (!user) {
+      trackEvent('urgent_requires_sign_in', { situation: selectedSituation || context.deathContext || '' });
       await signIn();
       return;
     }
@@ -534,6 +537,7 @@ export default function UrgentPage() {
       if (!response.ok || !json.estateId) {
         throw new Error(json.error || 'Passage could not save this yet. Please try again.');
       }
+      trackEvent('urgent_estate_created', { estateId: json.estateId, situation: selectedSituation || context.deathContext || '', outcomes: outcomes.length });
       try { window.sessionStorage.setItem('passage_last_estate_id', json.estateId); } catch {}
       setSavingEstate(false);
       setHandoff(true);
@@ -541,6 +545,7 @@ export default function UrgentPage() {
         window.location.assign('/estate?id=' + encodeURIComponent(json.estateId) + '&from=urgent');
       }, 650);
     } catch (error) {
+      trackEvent('urgent_estate_create_failed', { message: error?.message || 'unknown', situation: selectedSituation || context.deathContext || '' });
       setSavingEstate(false);
       setHandoff(false);
       setSaveError(error?.message || 'Passage could not save this command center yet. Please try again.');
