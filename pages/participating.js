@@ -217,77 +217,50 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     return found ? found[1] : 'Send update';
   };
   return (
-    <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, borderLeft: `5px solid ${statusTone}`, background: primary ? C.card : C.card, borderRadius: 16, padding: primary ? 20 : 16, marginTop: 14, color: C.mid, fontSize: 15, lineHeight: 1.55, boxShadow: primary ? '0 4px 20px rgba(0,0,0,.05)' : 'none' }}>
+    <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, borderLeft: `5px solid ${statusTone}`, background: C.card, borderRadius: 16, padding: primary ? 15 : 13, marginTop: 12, color: C.mid, fontSize: 14, lineHeight: 1.45, boxShadow: primary ? '0 4px 18px rgba(0,0,0,.04)' : 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 10 }}>
         <div>
-          <div style={{ fontSize: primary ? 22 : 17, color: C.ink, fontWeight: 800, lineHeight: 1.3 }}>{itemTitle(item)}</div>
+          <div style={{ fontSize: primary ? 20 : 16, color: C.ink, fontWeight: 800, lineHeight: 1.25 }}>{itemTitle(item)}</div>
           {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Your next responsibility</div>}
         </div>
         <span style={{ fontSize: 11, fontWeight: 900, color: statusTone, background: statusBg, borderRadius: 999, padding: '5px 9px', flexShrink: 0 }}>{statusLabel(itemStatus(item))}</span>
       </div>
       {primary && (
-        <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 13px', marginBottom: 10 }}>
-          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>Why you are here</div>
-          <div style={{ fontSize: 13, color: C.ink, fontWeight: 900, lineHeight: 1.4 }}>You have one responsibility for {(estate?.deceased_name || estate?.name || 'this family')}'s estate.</div>
-          <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>
-            {estate?.coordinator_name || 'The coordinator'} will see your response on the family record. {workspace.guidance?.overwhelmed || 'You are not responsible for the whole estate.'}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
-            {[
-              ['What happens now', contract.action],
-              ['Who owns it', 'You own this assigned task'],
-              ['How we know', workspace.proofDestination],
-            ].map(([label, body]) => (
-              <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
-                <div style={{ color: C.sage, fontSize: 9.8, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-                <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35, marginTop: 4 }}>{body}</div>
-              </div>
-            ))}
-          </div>
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 11px', marginBottom: 9, color: C.mid, fontSize: 12.2, lineHeight: 1.4 }}>
+          <strong style={{ color: C.ink }}>Your scope:</strong> one assigned responsibility. {estate?.coordinator_name || 'The coordinator'} sees your update; the broader estate stays private.
         </div>
       )}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 13px', marginBottom: 9 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', marginBottom: 6 }}>
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px', marginBottom: 9 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
           <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em' }}>{contract.label}</div>
           <div style={{ fontSize: 11, color: C.mid, fontWeight: 800 }}>{statusLabel(itemStatus(item))}</div>
         </div>
-        <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.5, fontWeight: 800 }}>{contract.action}</div>
-        <div style={{ background: statusBg, borderLeft: `4px solid ${statusTone}`, borderRadius: 10, padding: '8px 9px', fontSize: 12.2, color: C.mid, lineHeight: 1.45, marginTop: 8 }}>
+        <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.42, fontWeight: 800 }}>{contract.action}</div>
+        <div style={{ background: statusBg, borderLeft: `4px solid ${statusTone}`, borderRadius: 10, padding: '7px 9px', fontSize: 12, color: C.mid, lineHeight: 1.35, marginTop: 7 }}>
           <strong style={{ color: C.ink }}>Next expected update:</strong> {expectedUpdate}
         </div>
-        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5, marginTop: 7 }}>{contract.serviceLine}</div>
-        {workspace.guidance?.why && (
-          <div style={{ fontSize: 12.2, color: C.mid, lineHeight: 1.45, marginTop: 7 }}>
-            <strong style={{ color: C.ink }}>Why this matters:</strong> {workspace.guidance.why}
-          </div>
-        )}
-        <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.45, marginTop: 5 }}>{contract.authority}</div>
-        <div style={{ fontSize: 12, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>{contract.payer}</div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8, marginBottom: 8 }}>
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
-          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>Output or request</div>
-          <div style={{ color: C.ink, fontSize: 12.8, fontWeight: 900, lineHeight: 1.35, marginTop: 4 }}>{workspace.output.label}</div>
-          <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{workspace.output.body}</div>
-        </div>
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
-          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>Where your update goes</div>
-          <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>{workspace.proofDestination}</div>
-          <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, marginTop: 4 }}>You only see your assigned responsibility; the family record keeps the broader coordination history.</div>
-        </div>
-      </div>
-      {itemDescription(item) && <div style={{ marginBottom: 8 }}>{itemDescription(item)}</div>}
       {!handled && (
         <>
           {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
-          <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 7, marginTop: 8 }}>
             {actionSet(kind).map(([action, label]) => (
-              <button key={action} onClick={() => setPendingAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{label}</button>
+              <button key={action} onClick={() => setPendingAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2, fontWeight: 800 }}>{label}</button>
             ))}
-            <button onClick={() => setPendingAction('save_note')} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800 }}>Save note</button>
-            <button onClick={() => setPendingAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I need help</button>
-            <button onClick={() => setPendingAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>I can't handle this</button>
+            <button onClick={() => setPendingAction('save_note')} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800, fontSize: 12.2 }}>Save note</button>
+            <button onClick={() => setPendingAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2 }}>I need help</button>
+            <button onClick={() => setPendingAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2 }}>Can't handle</button>
           </div>
+          <details style={{ borderTop: `1px solid ${C.border}`, marginTop: 10, paddingTop: 9 }}>
+            <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 12.2, fontWeight: 900 }}>Details, proof, and visibility</summary>
+            <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 8 }}>
+              <strong style={{ color: C.ink }}>Proof:</strong> {workspace.proofDestination}<br />
+              <strong style={{ color: C.ink }}>Output/request:</strong> {workspace.output.label}. {workspace.output.body}<br />
+              {workspace.guidance?.why && <><strong style={{ color: C.ink }}>Why this matters:</strong> {workspace.guidance.why}<br /></>}
+              <strong style={{ color: C.ink }}>Visibility:</strong> you only see this responsibility; the coordinator sees the update in the family record.
+              {itemDescription(item) && <div style={{ marginTop: 6 }}>{itemDescription(item)}</div>}
+            </div>
+          </details>
           {pendingAction && (
             <div onClick={() => { setPendingAction(''); setProofWarning(''); }} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
               <div role="dialog" aria-modal="true" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
@@ -625,7 +598,7 @@ export default function ParticipatingPage() {
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
                   const expanded = expandedEstateId === estate.id;
                   const focusedInvite = Boolean(router.query.estate || router.query.task);
-                  const showOpenList = showOtherOpen[estate.id] || focusedInvite;
+                  const showOpenList = showOtherOpen[estate.id];
                   return (
                 <div key={estate.id} style={{ background: C.card, border: `1px solid ${expanded ? C.sage : C.border}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: expanded ? '0 14px 38px rgba(55,45,35,.05)' : 'none' }}>
                   <button onClick={() => setExpandedEstateId(expanded ? '' : estate.id)} style={{ width: '100%', background: 'none', border: 'none', padding: 20, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
@@ -657,11 +630,6 @@ export default function ParticipatingPage() {
                           </div>
                         ))}
                       </div>
-                      {primaryItem && (
-                        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 12px', color: C.mid, fontSize: 12.4, lineHeight: 1.55, marginBottom: 10 }}>
-                          <strong style={{ color: C.ink }}>Your scope:</strong> you are helping with this assigned responsibility only. Passage keeps the broader estate private and records your update as proof for the coordinator.
-                        </div>
-                      )}
                       {primaryItem && (
                         <ParticipantItem
                           item={primaryItem}
