@@ -537,6 +537,19 @@ export default function ParticipatingPage() {
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
               Sign in with the email that received the Passage invite. Passage will show one responsibility at a time, keep the rest of the estate private, and record proof for the coordinator.
             </p>
+            <div style={{ display: 'grid', gap: 8, margin: '14px 0 16px' }}>
+              {[
+                ['1', 'Open the invite sent to your email.'],
+                ['2', 'See the one task you were asked to help with.'],
+                ['3', 'Accept, ask for details, mark waiting, or record proof.'],
+                ['4', 'The coordinator sees your update in the family record.'],
+              ].map(([step, text]) => (
+                <div key={step} style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr)', gap: 8, alignItems: 'center', color: C.mid, fontSize: 12.8, lineHeight: 1.45 }}>
+                  <span style={{ width: 28, height: 28, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{step}</span>
+                  <span>{text}</span>
+                </div>
+              ))}
+            </div>
             <button onClick={() => signIn(router.asPath || '/participating')} style={{ border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
             <div style={{ height: 12 }} />
             <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
@@ -556,7 +569,7 @@ export default function ParticipatingPage() {
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
                   <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>Your next responsibility</div>
                   <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>
-                    Accept it, ask for details, or record what happened. Your update goes back to the coordinator.
+                    Accept it, ask for details, or record what happened. Your update goes back to the coordinator, and you can stop after this responsibility is handled.
                   </div>
                 </div>
               )}
@@ -644,6 +657,11 @@ export default function ParticipatingPage() {
                           </div>
                         ))}
                       </div>
+                      {primaryItem && (
+                        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 12px', color: C.mid, fontSize: 12.4, lineHeight: 1.55, marginBottom: 10 }}>
+                          <strong style={{ color: C.ink }}>Your scope:</strong> you are helping with this assigned responsibility only. Passage keeps the broader estate private and records your update as proof for the coordinator.
+                        </div>
+                      )}
                       {primaryItem && (
                         <ParticipantItem
                           item={primaryItem}

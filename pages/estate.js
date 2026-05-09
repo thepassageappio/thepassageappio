@@ -1603,6 +1603,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           .passage-task-spine-queue { border-right: none !important; border-bottom: 1px solid ${BORDER} !important; padding-right: 0 !important; padding-bottom: 14px !important; }
           .passage-task-spine-facts { grid-template-columns: 1fr !important; }
           .passage-task-spine-actions { grid-template-columns: 1fr !important; }
+          .passage-task-trust-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 18 }}>
@@ -1616,6 +1617,21 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           <div style={{ color: INK, fontSize: 20, lineHeight: 1.1, fontWeight: 900, marginTop: 4 }}>{handledCount} handled</div>
           <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{waitingCount} waiting · {blockedCount} blocked</div>
         </div>
+      </div>
+
+      <div className="passage-task-trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
+        {[
+          ['Who can see this', 'The coordinator sees the family record. Assigned helpers see only the work appropriate to their role.'],
+          ['What stays protected', 'Proof, documents, and sensitive notes stay attached to the estate record until an approved action uses them.'],
+          ['How Passage knows', 'Every action is tied to an owner, status, timestamp, message, and proof destination before it becomes reporting.'],
+        ].map(function(row) {
+          return (
+            <div key={row[0]} style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '10px 12px' }}>
+              <div style={{ color: SAGE, fontSize: 10.3, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
+              <div style={{ color: MID, fontSize: 12.1, lineHeight: 1.45, marginTop: 4 }}>{row[1]}</div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, .58fr) minmax(0, 1.42fr)', gap: 20, alignItems: 'stretch' }}>
@@ -1662,6 +1678,11 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
                 <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
               </div>
+              {item && (
+                <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.6, lineHeight: 1.5, marginTop: 10 }}>
+                  <strong style={{ color: INK }}>Authority path:</strong> Passage keeps this work in one line: owner asks, recipient responds, proof is recorded, status reports back. If the family is overwhelmed, mark needs help instead of leaving the task ambiguous.
+                </div>
+              )}
               {item && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 10 }}>
                   {[

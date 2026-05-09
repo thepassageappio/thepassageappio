@@ -49,26 +49,30 @@ Before shipping a UI or workflow change, check:
 | Gate | Status | Meaning |
 | --- | --- | --- |
 | Mission lock | Strong | Passage is now consistently presented as family continuity infrastructure, with institutions rotating through the family record. |
+| Orchestration believability | Medium-high | The product now has the right spine; the next bar is whether tasks feel authoritative, trusted, and useful enough for a Monday-morning pilot. |
 | Founder-led demo | Ready | The nine-stop loop is coherent enough for controlled funeral-home and family beta conversations. |
 | Small pilot | 2-4 focused sprints | Needs repeatable persona QA, pilot operator onboarding, delivery/error audit checks, and mobile density review. |
 | Broader production | 6-10 focused sprints | Needs observability, support operations, data repair tools, deeper outputs, and legal/trust finalization before broader acquisition. |
 
 ## Most Important Remaining Work
 
-These are the remaining gaps to keep Passage aligned with the mission: a calm authoritative coordination layer for families, with institutions rotating through one persistent family record.
+These are the remaining gaps to keep Passage aligned with the mission: a calm authoritative coordination layer for families, with institutions rotating through one persistent family record. The current goal is not to "finish the product"; it is to make the orchestration feel real and trustworthy enough that a pilot funeral home believes Passage reduces chaos.
 
-1. Task authority layer: every task must explain what it is, why it matters, who usually handles it, whether it needs attention now, what happens next, what Passage can prepare, and how to ask for help when the family is overwhelmed.
-2. Red-path first three minutes: the urgent flow should stabilize first, then coordinate, then organize. Avoid making grieving users configure software before they see the next safe action.
-3. Family/operator separation: family views should be emotionally paced and dramatically simpler; director and staff views should be operational, workload-aware, and proof-focused.
+1. Orchestration believability: every task must feel like guided coordination, not a checklist row. It should show authority, owner, request, expected response, proof, waiting state, and what happens next.
+2. Task authority layer: every task must explain what it is, why it matters, who usually handles it, whether it needs attention now, what Passage can prepare, and how to ask for help when the family is overwhelmed.
+3. Red-path first three minutes: the urgent flow should stabilize first, then coordinate, then organize. Avoid making grieving users configure software before they see the next safe action.
 4. Trust posture: make privacy, permissions, audit trail, who-can-see-what, document visibility, export ownership, and human support easier to find without turning core workspaces into policy pages.
-5. Role clarity: director, staff, family coordinator, invited participant, vendor, and demo/admin surfaces should each show their own work queue and proof obligation.
-6. Output generation: keep deepening useful prepared outputs now, then add persistent packet storage, PDF generation, and packet email only after owner approval for schema and live-send behavior.
-7. Notification truth: assignment and participant onboarding should route attention with clear delivery/skipped/failed states, but never imply an email or SMS was sent unless a provider actually accepted it.
-8. Linear demo loop: demo data and guided steps must tell Green -> Warm -> Red -> Funeral Home -> After with visible DEMO DATA boundaries and no hidden operator narration.
-9. Pilot instrumentation: track waiting age, owner latency, proof completion, failed notification attempts, delivered notification attempts, tasks closed, outputs prepared, exports generated, and calls avoided.
-10. No-silo output surfaces: announcements, event one-pagers, packets, vendor requests, and partner exports must read as prepared artifacts from the family record, not standalone tools.
-11. Onboarding as spine handoff: participant invites and employee setup must land people on the exact work they own, show what they can see, and create proof without requiring them to understand every Passage module.
-12. First-day pilot setup: funeral homes, vendors, future hospice locations, assisted-care teams, employees, participants, and red/green family members all need a role-specific launch rail that answers: who am I, what can I see, what do I set up once, what is my first real action, and how does proof return to the family record.
+5. Participant simplicity: invited helpers should feel asked to help, not invited into software. One role, one action, one proof path, one coordinator update.
+6. Family/operator separation: family views should be emotionally paced and dramatically simpler; director and staff views should be operational, workload-aware, and proof-focused.
+7. Role clarity: director, staff, family coordinator, invited participant, vendor, and demo/admin surfaces should each show their own work queue and proof obligation.
+8. Output generation: keep deepening useful prepared outputs now, then add persistent packet storage, PDF generation, and packet email only after owner approval for schema and live-send behavior.
+9. Notification truth: assignment and participant onboarding should route attention with clear delivery/skipped/failed states, but never imply an email or SMS was sent unless a provider actually accepted it.
+10. Timeline orientation: families understand journeys better than task databases, so major surfaces should increasingly show where they are across Green -> Warm -> Red -> Funeral -> After.
+11. Linear demo loop: demo data and guided steps must tell Green -> Warm -> Red -> Funeral Home -> After with visible DEMO DATA boundaries and no hidden operator narration.
+12. Pilot instrumentation: track waiting age, owner latency, proof completion, failed notification attempts, delivered notification attempts, tasks closed, outputs prepared, exports generated, and calls avoided.
+13. No-silo output surfaces: announcements, event one-pagers, packets, vendor requests, and partner exports must read as prepared artifacts from the family record, not standalone tools.
+14. Onboarding as spine handoff: participant invites and employee setup must land people on the exact work they own, show what they can see, and create proof without requiring them to understand every Passage module.
+15. First-day pilot setup: funeral homes, vendors, future hospice locations, assisted-care teams, employees, participants, and red/green family members all need a role-specific launch rail that answers: who am I, what can I see, what do I set up once, what is my first real action, and how does proof return to the family record.
 
 Owner approval is still required before production SQL, material legal/privacy changes, pricing changes, real email/SMS sends, or irreversible production data changes.
 
