@@ -3657,7 +3657,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             )}
 
             {hasAnyEstate && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 12, alignItems: "stretch", marginBottom: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 12 }}>
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "16px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
                 <div>
