@@ -722,7 +722,7 @@ export default function UrgentPage() {
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '12px 13px', marginBottom: 14 }}>
               <div style={{ color: C.sageDark, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>First-day family setup</div>
               <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>
-                You do not set up everything now. Passage starts with the event setting, decision-maker, one owner, and proof. People, documents, funeral-home handoff, and participants come after the first safe action.
+                You do not set up everything now. Passage starts with the event setting, decision-maker, one owner, and proof. Nothing here sends an email, text, or outside request until you choose a specific action. People, documents, funeral-home handoff, and participants come after the first safe action.
               </div>
             </div>
             <div className="triage">
