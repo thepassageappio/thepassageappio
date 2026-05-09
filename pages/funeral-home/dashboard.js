@@ -1188,8 +1188,15 @@ export default function FuneralHomeDashboard() {
     if (router.query.demoTour !== 'funeral-home') return;
     const step = typeof router.query.demoStep === 'string' ? router.query.demoStep : '';
     if (!step || loading) return;
+    if (['dashboard', 'team', 'export'].includes(step)) setShowPilotGuide(true);
+    if (step === 'export') setShowTools(true);
     focusPartnerDemoStep(step);
   }, [router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
+
+  useEffect(() => {
+    if (loading || !data || !isDirectorRole) return;
+    if (cases.length === 0 || partnerStaff.length <= 1) setShowPilotGuide(true);
+  }, [loading, data, isDirectorRole, cases.length, partnerStaff.length]);
 
   useEffect(() => {
     if (loading || !data || isDirectorRole || activePartnerView !== 'work') return;
@@ -1361,6 +1368,23 @@ export default function FuneralHomeDashboard() {
                   </span>
                 </div>
               ))}
+            </div>
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12, marginTop: 12 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>First pilot day</div>
+              <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.25, fontWeight: 900, marginTop: 4 }}>A director should be able to do four things before lunch.</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 10 }}>
+                {[
+                  ['Set the floor', 'Confirm locations, staff roles, and the first case source.'],
+                  ['Load work', 'Import a CSV with preview or create one at-need case by hand.'],
+                  ['Assign owner', 'Use the saved owner list so staff, family, vendors, and participants stay scoped.'],
+                  ['Show proof', 'Record waiting/proof and export a case summary back to the existing system.'],
+                ].map(([title, body]) => (
+                  <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                    <div style={{ color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</div>
+                    <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
+                  </div>
+                ))}
+              </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginTop: 12 }}>
               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12 }}>

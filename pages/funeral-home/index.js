@@ -34,6 +34,13 @@ const metrics = [
   ['Proof trail', 'Sent, waiting, confirmed, handled, and exported'],
 ];
 
+const pilotDay = [
+  ['Confirm setup', 'Organization, locations, director/admin, staff roles, and preferred local support.'],
+  ['Load cases', 'Start fresh in the UI or import a CSV from the system they already use.'],
+  ['Move one task', 'Assign the next owner, ask the family once, and record waiting or proof.'],
+  ['Export back out', 'Send a case-summary CSV or full-spine export when the existing system needs the record.'],
+];
+
 const tiers = [
   ['Pilot', '$99.99/mo', '$0 for 3 months', '10 active cases, co-branded family view, partner dashboard'],
   ['Local', '$249.99/mo', '', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
@@ -128,6 +135,11 @@ export default function FuneralHomePage() {
         .fh-metric { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; }
         .fh-metric b { display:block; color:${C.ink}; font-size:17px; margin-bottom:6px; }
         .fh-metric span { color:${C.mid}; font-size:13px; line-height:1.48; }
+        .fh-day { margin-top:36px; background:${C.card}; border:1px solid ${C.border}; border-radius:24px; padding:24px; }
+        .fh-day-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:16px; }
+        .fh-day-card { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:16px; padding:15px; }
+        .fh-day-card b { display:block; color:${C.ink}; font-size:17px; margin-bottom:6px; }
+        .fh-day-card span { color:${C.mid}; font-size:13px; line-height:1.5; }
         .fh-pilot { margin-top:36px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:24px; padding:24px; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.74fr); gap:24px; align-items:center; }
         .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid ${C.sageLight}; }
         .fh-plan:last-child { border-bottom:none; }
@@ -140,7 +152,7 @@ export default function FuneralHomePage() {
           .fh-actions { flex-direction:column; }
           .fh-button { width:100%; }
           .fh-row { grid-template-columns:1fr; gap:4px; }
-          .fh-metrics { grid-template-columns:1fr; }
+          .fh-metrics, .fh-day-grid { grid-template-columns:1fr; }
         }
       `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
@@ -211,6 +223,22 @@ export default function FuneralHomePage() {
           <div className="fh-metrics">
             {metrics.map(([title, body]) => (
               <div className="fh-metric" key={title}>
+                <b>{title}</b>
+                <span>{body}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="fh-day">
+          <div className="fh-kicker">Day-one pilot</div>
+          <h2 style={{ fontSize: 'clamp(30px,3.5vw,44px)', lineHeight: 1.05, margin: '0 0 10px', fontWeight: 400 }}>A signed home should know exactly what to do first.</h2>
+          <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0, maxWidth: 760 }}>
+            Passage is built for a controlled pilot: set up the partner workspace, load a few real cases, move one family-facing task, and prove the record can leave Passage cleanly.
+          </p>
+          <div className="fh-day-grid">
+            {pilotDay.map(([title, body]) => (
+              <div className="fh-day-card" key={title}>
                 <b>{title}</b>
                 <span>{body}</span>
               </div>

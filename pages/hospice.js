@@ -282,6 +282,32 @@ export default function HospiceWarmPath() {
       </section>
 
       <section style={{ ...section, paddingTop: 0 }}>
+        <div style={{ ...panel, background: C.amberFaint, borderColor: '#ead4ac' }}>
+          <div style={{ ...eyebrow, color: C.amber }}>For hospice conversations</div>
+          <h2 style={{ ...h2, fontSize: 30 }}>Explore the coordination bridge, not hospice software.</h2>
+          <p style={lead}>
+            Passage is not replacing the EMR, clinical charting, medication workflows, or nurse documentation. The first hospice conversation should test one practical promise: families enter earlier, contacts and wishes are organized before crisis, and the funeral-home handoff starts with context instead of zero.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10, marginTop: 14 }}>
+            {[
+              ['What we solve', 'Family communication, roles, first-hour preparation, visitor/helper coordination, and downstream handoff.'],
+              ['What we avoid', 'Clinical documentation, medical advice, symptom tracking, medication administration, or EMR replacement.'],
+              ['Pilot question', 'Does a persistent family record reduce repeated questions and make death-event handoff calmer?'],
+            ].map(([title, body]) => (
+              <div key={title} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 13, padding: 12 }}>
+                <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{title}</div>
+                <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 4 }}>{body}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+            <Link href="/contact?category=Hospice%20discovery%20conversation" style={primaryLink}>Discuss hospice discovery</Link>
+            <Link href="/funeral-home" style={secondaryLink}>Show funeral-home coordination</Link>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ ...section, paddingTop: 0 }}>
         <div className="warm-depth-panel" style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center' }}>
           <div>
             <div style={eyebrow}>Continuity depth</div>

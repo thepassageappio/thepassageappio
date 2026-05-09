@@ -291,9 +291,15 @@ const readinessChecks = [
 const productionReadiness = [
   ['Mission lock', 'Strong', 'Passage is now the family continuity and orchestration layer across green, warm, red, funeral-home, vendor, announcement, participant, and aftercare surfaces.'],
   ['Orchestration believability', 'Medium-high', 'The demo now has the spine: owner, request, waiting, proof, output, lifecycle state, and reporting. Keep tightening until every task feels authoritative.'],
-  ['Founder-led demo', 'Ready', 'The nine-stop loop is coherent enough for controlled funeral-home and family beta conversations.'],
-  ['Small pilot readiness', '2-4 sprints', 'Needs repeatable persona QA, sharper operator onboarding, and real delivery/error audit checks before a funeral home runs live families through it.'],
-  ['Broader production readiness', '6-10 sprints', 'Needs instrumentation, support operations, delivery monitoring, stronger data repair tools, and more core task outputs before broader acquisition.'],
+  ['Funeral-home founder-led sales', 'Ready', 'Pitch and demo the coordination layer now: first-day setup, import/create, assign owner, record proof, and export back out. Founder should guide onboarding.'],
+  ['Hospice discovery', 'Ready for conversations', 'Pitch the upstream family coordination bridge, not hospice software. Use discovery to validate care-team setup, family communication, and funeral-home handoff.'],
+  ['Unassisted paid rollout', 'Not yet', 'Needs delivery monitoring, support operations, more task outputs, billing/admin cleanup, and messy real CSV import QA before self-serve live usage.'],
+];
+
+const salesReadiness = [
+  ['Sell now', 'Progressive independent funeral homes', 'Founder-led pilot with 3-10 cases, CSV bridge, staff setup, family task handoff, proof, and export.'],
+  ['Discover now', 'Hospice and senior living', 'Validate family coordination burden, warm-path setup, and handoff value without entering clinical workflow.'],
+  ['Do not sell yet', 'Self-serve enterprise rollout', 'Wait for support playbooks, instrumentation, live delivery audit, deeper outputs, and admin tooling.'],
 ];
 
 const nextSprintQueue = [
@@ -573,8 +579,18 @@ export default function SystemDemo() {
                   </div>
                 </Panel>
                 <Panel>
+                  <div style={eyebrow}>Sales readiness</div>
+                  <h2 style={h2}>What to sell, discover, and avoid.</h2>
+                  <div style={{ display: 'grid', gap: 9, marginBottom: 12 }}>
+                    {salesReadiness.map(([label, audience, body]) => (
+                      <div key={label} style={{ ...smallCard, background: label === 'Sell now' ? C.sageFaint : label === 'Do not sell yet' ? C.roseFaint : C.bg }}>
+                        <strong style={{ color: C.ink }}>{label}: {audience}</strong>
+                        <div style={smallText}>{body}</div>
+                      </div>
+                    ))}
+                  </div>
                   <div style={eyebrow}>Next sprint queue</div>
-                  <h2 style={h2}>What still closes the loop.</h2>
+                  <h2 style={{ ...h2, fontSize: 28 }}>What still closes the loop.</h2>
                   <div style={{ display: 'grid', gap: 9 }}>
                     {nextSprintQueue.map(([label, body]) => (
                       <div key={label} style={{ borderTop: '1px solid ' + C.border, paddingTop: 9 }}>
