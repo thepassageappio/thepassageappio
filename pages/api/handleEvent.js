@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { internalHeaders, verifyDeliveryRequest } from '../../lib/deliveryAuth';
+import { recordStatusEvent } from '../../lib/taskStatus';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
 
   const { type, payload } = req.body;
   if (!type) return res.status(400).json({ error: 'Missing event type' });
-  if (['death_confirmed', 'task_assigned', 'invite_sent'].includes(type)) {
+  if (['death_confirmed', 'task_assigned', 'invite_sent', 'task_completed'].includes(type)) {
     const auth = await verifyDeliveryRequest(req);
     if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
   }
@@ -34,6 +35,9 @@ export default async function handler(req, res) {
         break;
       case 'invite_sent':
         result = await handleInviteSent(payload);
+        break;
+      case 'task_completed':
+        result = await handleTaskCompleted(payload);
         break;
       case 'task_created':
         result = { queued: true };
@@ -295,4 +299,33 @@ async function handleInviteSent(payload) {
   });
 
   return { sent: true, confirmUrl };
+}
+
+async function handleTaskCompleted(payload) {
+  const {
+    workflowId,
+    taskId,
+    actionId,
+    taskTitle,
+    actor,
+    channel,
+    recipient,
+    detail,
+    proofNote,
+  } = payload || {};
+  if (!workflowId) throw new Error('Missing workflowId');
+
+  return recordStatusEvent({
+    workflowId,
+    taskId,
+    actionId,
+    status: 'done',
+    actor: actor || 'Passage',
+    channel: channel || 'record',
+    recipient: recipient || null,
+    detail: detail || proofNote || ((taskTitle || 'Task') + ' was handled.'),
+    eventType: 'task_completed',
+    eventTitle: 'Proof recorded',
+    eventDescription: detail || proofNote || ((taskTitle || 'Task') + ' was handled.'),
+  });
 }

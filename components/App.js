@@ -3738,14 +3738,12 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             </div>
 
             {/* Subscription */}
-            <div style={{ background: C.bgCard, borderRadius: 18, padding: "15px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.soft, fontWeight: 600, marginBottom: 3 }}>Current Plan</div>
-                  <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: pd.color }}>{pd.label}</div>
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: pd.color }}>{pd.price}</div>
-              </div>
+            <details style={{ background: C.bgCard, borderRadius: 14, padding: 0, border: `1px solid ${C.border}`, marginBottom: 0 }}>
+              <summary style={{ cursor: "pointer", listStyle: "none", padding: "12px 14px", fontFamily: "Georgia, serif", fontSize: 14, color: C.mid, display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <span>Plan and billing</span>
+                <span style={{ color: pd.color, fontWeight: 800 }}>{pd.label} · {usedGreenSeats}/{estateSeatLimit} seats</span>
+              </summary>
+              <div style={{ padding: "0 14px 14px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: plan === 'free' ? 10 : 0 }}>
                 {[{l:"Status",v:isPaidPlan ? 'Active' : 'Free'},{l:"Estate Seats",v:`${usedGreenSeats}/${estateSeatLimit} used`},{l:"Renewal",v:pd.renewal}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 9, padding: "9px 11px" }}>
@@ -3766,7 +3764,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   </div>
                   <div style={{ border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 11, background: C.sageFaint }}>
                     <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 4 }}>Upgrade when ready</div>
-                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.4, marginBottom: 9 }}>Choose estate seats on pricing. Start planning from the estate slot below.</div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.4, marginBottom: 9 }}>Choose estate seats on pricing. Your next action stays above.</div>
                     <button onClick={() => window.location.href = '/pricing'} style={{ width: "100%", padding: "11px", background: C.sage, color: "#fff", border: "none", borderRadius: 11, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
                       Upgrade now →
                     </button>
@@ -3789,7 +3787,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   ))}
                 </div>
               )}
-            </div>
+              </div>
+            </details>
             </div>
             )}
 
@@ -3867,15 +3866,15 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               </div>
             )}
 
-            {/* Green path estate slots */}
+            {/* Green path estate file */}
             {hasAnyEstate && estateSeatLimit > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 16, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
                   <div>
-                    <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink, marginBottom: 2 }}>Planning estates</div>
-                    <div style={{ fontSize: 11.5, color: C.mid }}>{usedGreenSeats} of {estateSeatLimit} slots in use. Open one estate file at a time.</div>
+                    <div style={{ fontFamily: "Georgia, serif", fontSize: 16, color: C.ink, marginBottom: 2 }}>Planning file</div>
+                    <div style={{ fontSize: 11.5, color: C.mid }}>Plan ahead in one estate workspace: wishes, people, and assignments.</div>
                   </div>
-                  {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: "none", borderRadius: 10, padding: "8px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>Set up</button>}
+                  {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: "none", borderRadius: 10, padding: "8px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>Add planning file</button>}
                 </div>
                 {greenWorkflows.slice(0, 2).map((wf) => {
                   const wfId = wf.id;
@@ -3890,15 +3889,27 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
-                            <div style={{ fontSize: 11, color: C.mid, marginTop: 3 }}>Open this estate before editing wishes, documents, obituary, memories, or people.</div>
+                            <div style={{ fontSize: 11, color: C.mid, marginTop: 3 }}>Next: add trusted people, confirm wishes, then assign what should happen later.</div>
                           </div>
                           <span style={{ fontSize: 10.5, color: wfStatus === 'ready' ? C.sage : C.amber, fontWeight: 700, background: wfStatus === 'ready' ? C.sageFaint : C.goldFaint, border: `1px solid ${wfStatus === 'ready' ? C.sageLight : C.gold}30`, borderRadius: 7, padding: "2px 9px" }}>
                             {wfStatus === 'triggered' ? '🔔 Activated' : wfStatus === 'ready' ? '✓ Ready' : '⏳ Draft'}
                           </span>
                         </div>
                         <button onClick={() => onOpenPlan(wf)} style={{ width: "100%", border: "none", borderRadius: 10, padding: "10px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5, marginBottom: 9 }}>
-                          Open estate workspace
+                          Open planning workspace
                         </button>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7, marginBottom: 9 }}>
+                          {[
+                            { l: "1. Wishes", v: "Save choices" },
+                            { l: "2. People", v: "Add contacts" },
+                            { l: "3. Assignments", v: "Route work" },
+                          ].map(step => (
+                            <div key={step.l} style={{ background: C.bgCard, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "8px 9px" }}>
+                              <div style={{ fontSize: 9.5, color: C.sage, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{step.l}</div>
+                              <div style={{ fontSize: 11.5, color: C.ink, fontWeight: 800, marginTop: 3 }}>{step.v}</div>
+                            </div>
+                          ))}
+                        </div>
                         {wfStatus === 'ready' && (
                           <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.55, marginBottom: 8 }}>
                             <strong>{confirmCount} of {reqCount}</strong> confirmations received.
@@ -3916,7 +3927,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                           </div>
                         )}
                         <div style={{ borderTop: `1px solid ${C.sageLight}`, paddingTop: 10, marginTop: 10, fontSize: 11.5, color: C.mid, lineHeight: 1.45 }}>
-                          Wishes, documents, obituary, people, memories, messages, and proof live inside this estate workspace so nothing floats loose on the index.
+                          This index only points you to the next estate workspace. The estate holds the files, messages, proof, and status.
                         </div>
                       </div>
                     </div>
