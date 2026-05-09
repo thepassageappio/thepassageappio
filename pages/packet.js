@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
+import { supabase } from '../lib/supabaseBrowser';
 import { buildContinuityPackets, demoContinuityInput } from '../lib/continuityPackets';
 
 const C = {
@@ -17,10 +19,55 @@ const C = {
 };
 
 export default function PacketDemo() {
-  const packets = useMemo(() => buildContinuityPackets(demoContinuityInput()), []);
+  const router = useRouter();
+  const demoPackets = useMemo(() => buildContinuityPackets(demoContinuityInput()), []);
+  const [packets, setPackets] = useState(demoPackets);
   const [activeId, setActiveId] = useState(packets[0]?.id || '');
   const [notice, setNotice] = useState('');
+  const [sourceLabel, setSourceLabel] = useState('Demo packet set');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const active = packets.find(packet => packet.id === activeId) || packets[0];
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const id = String(router.query.id || '').trim();
+    if (!id) {
+      setPackets(demoPackets);
+      setSourceLabel('Demo packet set');
+      setError('');
+      return;
+    }
+    let cancelled = false;
+    async function loadPackets() {
+      setLoading(true);
+      setError('');
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!token) throw new Error('Sign in to generate packets from this case.');
+        const res = await fetch('/api/continuityPackets?id=' + encodeURIComponent(id), { headers: { Authorization: 'Bearer ' + token } });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || 'Could not generate packets from this case.');
+        if (cancelled) return;
+        const nextPackets = Array.isArray(json.packets) && json.packets.length ? json.packets : demoPackets;
+        setPackets(nextPackets);
+        setActiveId(nextPackets[0]?.id || '');
+        setSourceLabel(json.source === 'case' ? 'Generated from case spine' : 'Demo packet set');
+      } catch (err) {
+        if (!cancelled) {
+          setPackets(demoPackets);
+          setActiveId(demoPackets[0]?.id || '');
+          setSourceLabel('Demo packet set');
+          setError(err.message || 'Could not load packets.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    loadPackets();
+    return () => { cancelled = true; };
+  }, [router.isReady, router.query.id, demoPackets]);
 
   async function copyActive() {
     try {
@@ -53,10 +100,12 @@ export default function PacketDemo() {
             <div style={eyebrow}>Continuity packet demo</div>
             <h1 style={{ fontSize: 'clamp(36px, 5vw, 60px)', lineHeight: 1.02, margin: '8px 0 10px', fontWeight: 400 }}>Outputs from the same family spine.</h1>
             <p style={lead}>These are demo-safe artifacts. In product, the same packet generator should use the estate, lifecycle dates, tasks, owners, communication, proof, and permissions already on the spine.</p>
+            <div style={{ display: 'inline-flex', marginTop: 12, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 10px', fontSize: 12, fontWeight: 900 }}>{loading ? 'Generating...' : sourceLabel}</div>
           </div>
           <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Back to demo rail</Link>
         </div>
 
+        {error && <div className="no-print" style={{ background: C.amberFaint, color: C.amber, border: '1px solid #edd7b1', borderRadius: 12, padding: '10px 14px', marginBottom: 12 }}>{error} Showing demo packets instead.</div>}
         {notice && <div className="no-print" style={{ background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 14px', marginBottom: 12, display: 'inline-flex' }}>{notice}</div>}
 
         <div className="packet-grid" style={{ display: 'grid', gridTemplateColumns: '310px minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>
