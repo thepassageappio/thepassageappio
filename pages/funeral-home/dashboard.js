@@ -177,6 +177,7 @@ export default function FuneralHomeDashboard() {
   const [latestStaffInvite, setLatestStaffInvite] = useState(null);
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
   const [showStaffSetup, setShowStaffSetup] = useState(false);
+  const [showPilotGuide, setShowPilotGuide] = useState(false);
   const [staffDraft, setStaffDraft] = useState({ email: '', role: 'staff' });
   const [importDraft, setImportDraft] = useState(null);
   const [exportRange, setExportRange] = useState({ from: '', to: '' });
@@ -1236,30 +1237,30 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 14, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 12, alignItems: 'center' }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Continuity spine</div>
-                <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.2, marginTop: 3 }}>One family journey, multiple operating states.</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Operating spine</div>
+                <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.18, marginTop: 3 }}>Move today's cases. Keep setup and lifecycle visible, not dominant.</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>Cases, employees, locations, family requests, proof, and exports all return to the same record.</div>
               </div>
-              <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, maxWidth: 360 }}>Use this to orient cases without splitting Passage into separate products. The family record persists as institutions rotate in and out.</div>
+              <button onClick={() => setShowPilotGuide(prev => !prev)} style={{ border: `1px solid ${C.sage}33`, background: showPilotGuide ? C.sage : C.sageFaint, color: showPilotGuide ? '#fff' : C.sage, borderRadius: 12, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{showPilotGuide ? 'Hide setup' : 'Setup guide'}</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 8, marginTop: 10 }}>
               {lifecycleRows.map(step => (
-                <div key={step.key} style={{ background: step.active ? C.sageFaint : C.bg, border: `1px solid ${step.active ? C.sage + '24' : C.border}`, borderRadius: 12, padding: '10px 11px', minHeight: 96 }}>
+                <div key={step.key} style={{ background: step.active ? C.sageFaint : C.bg, border: `1px solid ${step.active ? C.sage + '24' : C.border}`, borderRadius: 12, padding: '8px 10px', minHeight: 62 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
                     <div style={{ color: step.active ? C.sage : C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{step.label}</div>
                     <span style={{ color: step.active ? '#fff' : C.soft, background: step.active ? C.sage : C.card, border: `1px solid ${step.active ? C.sage : C.border}`, borderRadius: 999, minWidth: 24, height: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900 }}>{step.count}</span>
                   </div>
-                  <div style={{ color: C.ink, fontSize: 13, fontWeight: 900, lineHeight: 1.25, marginTop: 7 }}>{step.body}</div>
-                  <div style={{ color: C.mid, fontSize: 11.7, lineHeight: 1.4, marginTop: 4 }}>{step.value}</div>
+                  <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.3, marginTop: 4 }}>{step.body}</div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {user && !loading && data && isDirectorRole && (
+        {user && !loading && data && isDirectorRole && showPilotGuide && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
@@ -1471,7 +1472,7 @@ export default function FuneralHomeDashboard() {
               </div>
             )}
             {funeralHomeShare > 0 && <div style={{ color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 9, fontWeight: 900 }}>Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</div>}
-            {isDirectorRole && (
+            {isDirectorRole && showPilotGuide && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
                 {pilotFirstDayRows.map(([n, label, value]) => (
                   <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', display: 'grid', gridTemplateColumns: '24px minmax(0, 1fr)', gap: 8, alignItems: 'start' }}>
@@ -1484,7 +1485,7 @@ export default function FuneralHomeDashboard() {
                 ))}
               </div>
             )}
-            {isDirectorRole && (
+            {isDirectorRole && showPilotGuide && (
               <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <div>
@@ -1526,7 +1527,7 @@ export default function FuneralHomeDashboard() {
           </HelpOverlay>
         )}
 
-        {user && !loading && data && activePartnerView === 'work' && (
+        {false && user && !loading && data && activePartnerView === 'work' && (
           <PartnerDirectorFocus
             riskItems={riskItems}
             inboxItems={spineInbox}
@@ -1552,62 +1553,19 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Staff operating spine</div>
-                <div style={{ fontSize: 24, marginTop: 3 }}>Directors manage the whole floor. Employees work their queue.</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>{isDirectorRole ? 'Assign the next owner, then get out of the way.' : 'Your assigned queue comes first.'}</div>
               </div>
-              <div style={{ color: C.mid, fontSize: 12.5 }}>Each employee sees the work they own.</div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
-              {staffWorkloads.map(member => {
-                const staffSignInUrl = staffHandoffUrl(member.email);
-                return (
-                <div key={`${member.email || member.label}_${member.role}`} style={{ background: member.blocked ? C.roseFaint : member.open ? C.sageFaint : C.bg, border: `1px solid ${member.blocked ? C.rose + '44' : member.open ? C.sage + '22' : C.border}`, borderRadius: 14, padding: 13 }}>
-                  <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{member.label}</div>
-                  <div style={{ color: member.blocked ? C.rose : C.sage, fontSize: 11.5, fontWeight: 900, marginTop: 3 }}>{roleLabel(member.role)} - {member.scope === 'all_cases' ? 'Can see cases and reports' : member.scope === 'director_attention' ? 'Needs assignment' : 'Assigned work first'}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 10 }}>
-                    {[
-                      ['Open', member.open || 0],
-                      ['Handled', member.handled || 0],
-                      ['Waiting', member.waiting || 0],
-                    ].map(([label, value]) => (
-                      <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '7px 8px' }}>
-                        <div style={{ color: C.soft, fontSize: 9, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 900 }}>{label}</div>
-                        <div style={{ fontSize: 17 }}>{value}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {member.blocked > 0 && <div style={{ color: C.rose, fontSize: 12, fontWeight: 900, marginTop: 8 }}>{member.blocked} blocked item{member.blocked === 1 ? '' : 's'}</div>}
-                  {member.email && (
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 9 }}>
-                      <button onClick={() => copyText(staffSignInUrl, 'Staff sign-in link copied.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '7px 9px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Copy link</button>
-                      <button onClick={() => copyText(staffInviteMessage(member), 'Staff invite message copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Copy invite message</button>
-                    </div>
-                  )}
-                  {member.nextTask && (
-                    <button onClick={() => openPartnerWork(member.nextTask.caseId)} style={{ width: '100%', textAlign: 'left', border: `1px solid ${member.blocked ? C.rose + '44' : C.sage + '33'}`, background: C.card, color: C.ink, borderRadius: 11, padding: '9px 10px', marginTop: 9, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Next today</div>
-                        {member.nextTask.importance && (() => {
-                          const tone = importanceStyle(member.nextTask.importance);
-                          return <span style={{ background: tone.bg, border: `1px solid ${tone.border}`, color: tone.color, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 }}>{member.nextTask.importance.label}</span>;
-                        })()}
-                      </div>
-                      <div style={{ fontSize: 13.5, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>{sharedTaskTitle(member.nextTask)}</div>
-                      <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35, marginTop: 3 }}>{member.nextTask.caseName} - {statusLabel(member.nextTask.status)}</div>
-                      {member.nextTask.importance?.reason && <div style={{ color: C.soft, fontSize: 11.2, lineHeight: 1.35, marginTop: 3 }}>{member.nextTask.importance.reason}</div>}
-                    </button>
-                  )}
-                </div>
-              );})}
+              {isDirectorRole && <button onClick={() => setShowStaffSetup(prev => !prev)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{showStaffSetup ? 'Hide setup' : 'Add employee'}</button>}
             </div>
             {isDirectorRole && (
               <>
-                <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                {showStaffSetup && <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Employee setup</div>
                     <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Add staff once with a role, then assign tasks from the case spine. Employees land on My work, not the director dashboard.</div>
                   </div>
                   <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
-                </div>
+                </div>}
                 {showStaffSetup && (
                   <div onClick={() => setShowStaffSetup(false)} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
                     <form onSubmit={addPartnerStaff} onClick={event => event.stopPropagation()} role="dialog" aria-modal="true" style={{ width: 'min(680px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
