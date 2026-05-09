@@ -1023,6 +1023,17 @@ export default function FuneralHomeDashboard() {
     ['3', 'Ask or assign', assignmentsCoordinated ? `${assignmentsCoordinated} assigned` : familyRequestsOpen ? `${familyRequestsOpen} family request${familyRequestsOpen === 1 ? '' : 's'}` : 'Choose owner'],
     ['4', 'Export proof', callsAvoided ? `${callsAvoided} calls avoided` : 'After proof is saved'],
   ];
+  const partnerViewTabs = isDirectorRole
+    ? [
+      ['work', 'Cases', 'Move work'],
+      ['staff', 'Staff', 'Assign work'],
+      ['reports', 'Reports', 'ROI'],
+    ]
+    : [
+      ['staff', 'My work', 'Assigned first'],
+      ['work', 'Cases', 'Case context'],
+      ['reports', 'Reports', 'Proof trail'],
+    ];
 
   useEffect(() => {
     function handleDemoStep(event) {
@@ -1038,6 +1049,11 @@ export default function FuneralHomeDashboard() {
     if (!step || loading) return;
     focusPartnerDemoStep(step);
   }, [router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
+
+  useEffect(() => {
+    if (loading || !data || isDirectorRole || activePartnerView !== 'work') return;
+    setActivePartnerView('staff');
+  }, [loading, data, isDirectorRole, activePartnerView]);
 
   function money(value) {
     return `$${Math.round(Number(value || 0)).toLocaleString()}`;
@@ -1378,11 +1394,7 @@ export default function FuneralHomeDashboard() {
 
         {user && !loading && data && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 8, marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {[
-              ['work', 'Cases', 'Move work'],
-              ['staff', 'Staff', 'Assign work'],
-              ['reports', 'Reports', 'ROI'],
-            ].map(([key, title, body]) => (
+            {partnerViewTabs.map(([key, title, body]) => (
               <button key={key} onClick={() => setActivePartnerView(key)} style={{ flex: '1 1 150px', textAlign: 'left', border: `1px solid ${activePartnerView === key ? C.sage : C.border}`, background: activePartnerView === key ? C.sage : C.bg, color: activePartnerView === key ? '#fff' : C.ink, borderRadius: 12, padding: '10px 12px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
                 <div style={{ fontSize: 14, fontWeight: 900 }}>{title}</div>
                 <div style={{ fontSize: 11, opacity: .78, marginTop: 2 }}>{body}</div>
@@ -1506,7 +1518,12 @@ export default function FuneralHomeDashboard() {
                 </div>
                 <div style={{ color: C.mid, fontSize: 12.5 }}>Each task keeps estate context, status, proof, and audit together.</div>
               </div>
-              {firstStaffTask && (
+              {firstStaffTask && (() => {
+                const output = taskOutputFor(firstStaffTask, { surface: 'staff work queue', caseName: firstStaffTask.caseName });
+                const draft = taskRequestDraftFor(firstStaffTask, { surface: 'staff work queue', caseName: firstStaffTask.caseName });
+                const proofDestination = taskProofDestination(firstStaffTask, { surface: 'staff work queue' });
+                const packetText = taskPreparedPacketFor(firstStaffTask, { surface: 'staff work queue', caseName: firstStaffTask.caseName });
+                return (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12, marginBottom: 10 }}>
                   <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>Right now</div>
                   <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.22, marginTop: 4 }}>{sharedTaskTitle(firstStaffTask)}</div>
@@ -1514,11 +1531,16 @@ export default function FuneralHomeDashboard() {
                     Case: {firstStaffTask.caseName} - Service/context: {firstStaffTask.locationName}. Family status: {statusLabel(firstStaffTask.status)}.
                   </div>
                   <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
-                    <strong style={{ color: C.ink }}>Proof to save:</strong> {taskProofDestination(firstStaffTask, { surface: 'staff work queue' })}
+                    <strong style={{ color: C.ink }}>Proof to save:</strong> {proofDestination}
                   </div>
-                  <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Do this now</button>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark waiting</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Need family info</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Record proof', prompt: taskActionPrompt('handled', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Record proof</button>
+                  </div>
+                  <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open full case context</button>
                 </div>
-              )}
+              );})()}
               {assignedWorkQueue.length === 0 ? (
                 <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 13 }}>
                   No assigned work is waiting.
