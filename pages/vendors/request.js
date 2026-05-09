@@ -9,7 +9,7 @@ const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '
 const SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
 
 const demoRequest = {
-  status: 'sent',
+  status: 'requested',
   task_title: 'Livestream support for Friday service',
   urgency: 'planned',
   requested_at: '2026-05-06T14:20:00Z',
@@ -166,7 +166,24 @@ export default function VendorRequestPage() {
         ? 'Accepted. The family and funeral home can see you are working on it.'
         : request?.status === 'declined'
           ? 'Declined. Passage will keep the request visible so another option can be found.'
-          : 'Waiting for your response. Accept, ask for details, or decline if you cannot help.';
+        : 'Waiting for your response. Accept, ask for details, or decline if you cannot help.';
+  const ownerLabel = request?.status === 'requested'
+    ? vendorName
+    : request?.status === 'declined'
+      ? 'Passage coordinator'
+      : vendorName;
+  const waitingLabel = request?.status === 'completed'
+    ? 'Nothing. Proof is saved.'
+    : request?.status === 'declined'
+      ? 'Another support option'
+      : request?.status === 'accepted' || request?.status === 'in_progress'
+        ? 'Completion update from vendor'
+        : 'Vendor response';
+  const proofLabel = request?.status === 'completed'
+    ? 'Completion timestamp and value stay on the request.'
+    : request?.status === 'declined'
+      ? 'Decline reason/status stays visible for replacement.'
+      : 'Viewed/responded timestamps and status changes report back to the case.';
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -220,6 +237,13 @@ export default function VendorRequestPage() {
                 <Info label="Status" value={requestStatus} />
               </div>
             </div>
+
+            <VendorRequestLoop
+              next={request?.status === 'requested' ? 'Respond to the scoped request.' : nextExpected}
+              owner={ownerLabel}
+              waiting={waitingLabel}
+              proof={proofLabel}
+            />
 
             <details style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 14, marginBottom: 14 }}>
               <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 13, fontWeight: 900 }}>Status and proof trail</summary>
@@ -380,6 +404,17 @@ function Info({ label, value }) {
     <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 12, padding: 11 }}>
       <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
       <div style={{ fontSize: 15, marginTop: 4 }}>{value || 'Not provided'}</div>
+    </div>
+  );
+}
+
+function VendorRequestLoop({ next, owner, waiting, proof }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, margin: '0 0 14px' }}>
+      <Info label="What happens now" value={next} />
+      <Info label="Who owns it" value={owner} />
+      <Info label="Waiting on" value={waiting} />
+      <Info label="Proof / reporting" value={proof} />
     </div>
   );
 }
