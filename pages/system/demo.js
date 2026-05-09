@@ -213,10 +213,10 @@ const demoRail = [
   },
   {
     n: '07',
-    title: 'Family prepares the public update',
+    title: 'Family prepares the next update',
     persona: 'Family coordinator',
     route: '/share?dn=Eleanor%20Price&cn=Price%20family&demoTour=funeral-home&demoStep=announcement',
-    proof: 'One-pager, platform-specific copy, recipient parsing, email/text lists, and CSV export. Nothing sends automatically.',
+    proof: 'Family-record one-pager, platform-specific copy, recipient parsing, email/text lists, and CSV export. Nothing sends automatically.',
     value: 'Shows the practical "tell many people once" output without turning Passage into generic chat or a blast tool.',
   },
   {
@@ -282,6 +282,7 @@ const readinessChecks = [
   'Guided coach stays in dummy demo data and does not depend on real estates.',
   'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language and task authority guidance.',
   'The family dashboard opens as an estate operating spine, not a detached index or portfolio dashboard.',
+  'Warm path, announcements, packets, vendors, and funeral-home work all attach to one family record instead of becoming separate product islands.',
   'Import mapping, preview, case-summary export, and full-spine export remain the adoption-trust close.',
   'Demo notification states stay exact: prepared, requested, copied, failed, delivered, and sent are not interchangeable.',
 ];
@@ -643,7 +644,7 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Link href="/hospice?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Open warm path</Link>
-          <Link href="/share?dn=Jack%20Taylor&cn=Taylor%20family" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show event one-pager</Link>
+          <Link href="/share?dn=Jack%20Taylor&cn=Taylor%20family" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show family-record one-pager</Link>
           <Link href="/packet?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show packet outputs</Link>
           <button onClick={() => demoAction('Demo: hospice preparation becomes a reviewed handoff packet. Nothing is shared until the family approves it.')} style={tinyButton}>Explain handoff</button>
         </div>

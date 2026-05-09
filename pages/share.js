@@ -396,7 +396,7 @@ export default function SharePage() {
       <div style={nav}>
         <div style={{ width: 22, height: 22, borderRadius: "50%", background: "radial-gradient(circle, " + SAGE_LIGHT + ", " + SAGE + "70)" }} />
         <span style={{ fontSize: 16, color: INK }}>Passage</span>
-        <span style={{ fontSize: 12, color: SOFT, marginLeft: 8 }}>Share the news</span>
+        <span style={{ fontSize: 12, color: SOFT, marginLeft: 8 }}>Family record output</span>
       </div>
 
       {toastMsg && (
@@ -410,13 +410,13 @@ export default function SharePage() {
         {step === "compose" && (
           <>
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 22, color: INK, marginBottom: 6 }}>Share the news about {dn}</div>
-              <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>Write your announcement once. Passage formats it for every platform.</div>
+              <div style={{ fontSize: 22, color: INK, marginBottom: 6 }}>Prepare the family update about {dn}</div>
+              <div style={{ fontSize: 13, color: MID, lineHeight: 1.6 }}>This is an output from the family record: confirmed dates flow in, the coordinator reviews the words, and nothing is sent automatically.</div>
             </div>
 
             {events.length === 0 && (
               <div style={{ background: GOLD_FAINT, border: "1px solid " + GOLD + "40", borderRadius: 11, padding: "11px 14px", fontSize: 12, color: GOLD, marginBottom: 16, lineHeight: 1.55 }}>
-                Add service details (date, time, location) from the task list and they will appear in your announcements automatically.
+                Add service details (date, time, location) from the estate task spine and they will appear in this one-pager automatically.
               </div>
             )}
 
@@ -424,8 +424,8 @@ export default function SharePage() {
               <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Passage prepared one-pager</div>
-                    <div style={{ fontSize: 16, color: INK, fontWeight: 700, marginTop: 2 }}>Service details to send once.</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Family record one-pager</div>
+                    <div style={{ fontSize: 16, color: INK, fontWeight: 700, marginTop: 2 }}>Service details prepared for review.</div>
                   </div>
                   <button onClick={function() { navigator.clipboard.writeText(texts.onePager); setCopied("onePager"); setTimeout(function() { setCopied(null); }, 2200); }} style={{ border: "1px solid " + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 700, cursor: "pointer" }}>
                     {copied === "onePager" ? "Copied" : "Copy"}
@@ -438,9 +438,9 @@ export default function SharePage() {
             <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Announcement list</div>
-                  <div style={{ fontSize: 16, color: INK, fontWeight: 700, marginTop: 2 }}>One message for many people.</div>
-                  <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Paste names with emails or phone numbers. Passage prepares the batch, recipient CSV, and copy blocks. This page does not send real email or SMS.</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Coordinator update list</div>
+                  <div style={{ fontSize: 16, color: INK, fontWeight: 700, marginTop: 2 }}>One reviewed update for many people.</div>
+                  <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Paste names with emails or phone numbers. Passage prepares the batch, recipient CSV, and copy blocks as proof-ready outputs on the same family record. This page does not send real email or SMS.</div>
                 </div>
                 <div style={{ flexShrink: 0, background: SAGE_FAINT, border: "1px solid " + SAGE_LIGHT, borderRadius: 11, padding: "8px 10px", color: SAGE, fontSize: 12, fontWeight: 800, textAlign: "center", whiteSpace: "nowrap" }}>
                   {parsedRecipients.length} people
@@ -466,7 +466,7 @@ export default function SharePage() {
             </div>
 
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: SOFT, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Your announcement</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: SOFT, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Coordinator-approved text</div>
               <textarea
                 value={master}
                 onChange={function(e) { setMaster(e.target.value); }}
@@ -513,7 +513,7 @@ export default function SharePage() {
                 Cancel
               </button>
               <button onClick={save} disabled={saving || !master.trim()} style={{ flex: 1, padding: "11px", borderRadius: 12, border: "none", background: saving ? SOFT : SAGE, color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
-                {saving ? "Saving..." : "Save and share"}
+                {saving ? "Saving..." : "Save prepared output"}
               </button>
             </div>
           </>
@@ -522,15 +522,15 @@ export default function SharePage() {
         {step === "share" && (
           <>
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 22, color: INK, marginBottom: 6 }}>Share on each platform</div>
-              <div style={{ fontSize: 13, color: MID }}>Your announcement is saved. Tap each platform to share.</div>
+              <div style={{ fontSize: 22, color: INK, marginBottom: 6 }}>Prepared outputs are ready.</div>
+              <div style={{ fontSize: 13, color: MID }}>The family update is saved to the record. Copy or export only when the coordinator is ready.</div>
             </div>
 
             {parsedRecipients.length > 0 && (
               <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 14 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 }}>Recipient batch</div>
                 <div style={{ fontSize: 15, color: INK, fontWeight: 700, marginBottom: 6 }}>{parsedRecipients.length} people prepared. Nothing was sent.</div>
-                <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginBottom: 10 }}>Use this for the practical "tell 300 people once" use case: copy the email list, copy the text list, or export the CSV for review before any real delivery system is enabled.</div>
+                <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginBottom: 10 }}>Use this for the practical "tell many people once" handoff: copy the email list, copy the text list, or export the CSV for review before any real delivery system is enabled.</div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button onClick={exportRecipientCsv} style={{ border: "1px solid " + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: "pointer" }}>Export CSV</button>
                   <button disabled={!recipientEmails.length} onClick={function() { copyText(recipientEmails.join(", "), "Email list"); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: recipientEmails.length ? "pointer" : "not-allowed", opacity: recipientEmails.length ? 1 : 0.5 }}>Copy {recipientEmails.length} emails</button>
@@ -562,7 +562,7 @@ export default function SharePage() {
             </div>
 
             <div style={{ background: SAGE_FAINT, border: "1px solid " + SAGE_LIGHT, borderRadius: 11, padding: "12px 14px", fontSize: 12, color: MID, marginBottom: 18, lineHeight: 1.55 }}>
-              Your announcement is saved. You can return here anytime to share again or update the text.
+              This output is saved as family-record proof. Return here anytime to update the text, copy a channel version, or export the recipient batch.
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>

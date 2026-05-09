@@ -65,7 +65,7 @@ function Shell({ step, total, onBack, children }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle, ' + SAGE_LIGHT + ', ' + SAGE + '70)' }} />
           <span style={{ fontSize: 14, color: INK }}>Passage</span>
-          <span style={{ fontSize: 12, color: SOFT, marginLeft: 4 }}>Announce</span>
+          <span style={{ fontSize: 12, color: SOFT, marginLeft: 4 }}>Family update</span>
         </div>
         {step > 0 && step < 4 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -306,12 +306,12 @@ export default function AnnouncePage() {
         </div>
         <div style={{ fontSize: 15, color: MID, lineHeight: 1.75, maxWidth: 380, margin: '0 auto 36px' }}>
           {channel === 'copy'
-            ? 'Paste and send it however you would like. You can come back to prepare another version for a different audience.'
-            : 'Your message is saved to the estate. Nothing was sent automatically. You are in control of when and how this reaches people.'}
+          ? 'Paste it wherever the coordinator chooses. You can come back to prepare another version for a different audience.'
+            : 'Your message is saved to the family record. Nothing was sent automatically. You are in control of when and how this reaches people.'}
         </div>
         <div style={{ maxWidth: 380, margin: '0 auto' }}>
           <PrimaryBtn onClick={returnToEstate}>
-            Return to estate
+            Return to family record
           </PrimaryBtn>
           <GhostBtn onClick={function() { setDone(false); setStep(1); setAudience(null); setTone(null); setMessage(''); setChannel(null); }}>
             Prepare another message
@@ -324,9 +324,9 @@ export default function AnnouncePage() {
   // Step 1 — Who do you want to tell first
   if (step === 1) return (
     <Shell step={1} total={3}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Who do you want to tell first?</div>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Who should receive the next update?</div>
       <div style={{ fontSize: 14, color: SOFT, marginBottom: 24, lineHeight: 1.6 }}>
-        Start with the people who should hear directly. You can prepare a separate message for each group.
+        Start with the people who should hear directly. Passage prepares the message as an estate-spine output; it does not send without explicit action.
       </div>
       {AUDIENCES.map(function(a) {
         return <Option key={a.id} label={a.label} sub={a.sub} selected={audience === a.id} onClick={function() { setAudience(a.id); }} />;
@@ -340,9 +340,9 @@ export default function AnnouncePage() {
   // Step 2 — Draft the message
   if (step === 2) return (
     <Shell step={2} total={3} onBack={back}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Prepare your message</div>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Prepare the family update</div>
       <div style={{ fontSize: 14, color: SOFT, marginBottom: 24, lineHeight: 1.6 }}>
-        Choose a tone to start. Edit the message until it feels right.
+        Choose a tone to start. Service details from the family record can be added before anyone receives it.
       </div>
 
       <div style={{ marginBottom: 16 }}>
@@ -385,7 +385,7 @@ export default function AnnouncePage() {
   // Step 3 — Preview + safety layer
   if (step === 3) return (
     <Shell step={3} total={3} onBack={back}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Review before sending</div>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Review before this leaves the record</div>
 
       <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER + '40', borderRadius: 12, padding: '13px 16px', marginBottom: 20, fontSize: 14, color: AMBER, lineHeight: 1.55, fontWeight: 600 }}>
         Nothing will be sent until you confirm below.
@@ -407,7 +407,7 @@ export default function AnnouncePage() {
           {selectedAudience ? selectedAudience.label : audience}
         </div>
         <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '11px 14px', fontSize: 13, color: SAGE, fontWeight: 700, lineHeight: 1.55, marginTop: 8 }}>
-          Draft saved for {audienceLabel || 'the selected audience'}.
+          Draft saved to the family record for {audienceLabel || 'the selected audience'}.
         </div>
       </div>
 
@@ -442,7 +442,7 @@ export default function AnnouncePage() {
         })}
         {channel && channel !== 'copy' && (
           <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER + '35', borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: AMBER, fontWeight: 700, lineHeight: 1.5, marginTop: 8 }}>
-            Selected: {channelLabel}. No hidden recipient list.
+            Selected: {channelLabel}. No hidden recipient list, and no provider send happens from this review screen.
           </div>
         )}
       </div>
@@ -454,10 +454,10 @@ export default function AnnouncePage() {
       ) : null}
 
       <PrimaryBtn onClick={send} disabled={!channel || channel === 'social_pending' || sending}>
-        {sending ? 'Saving...' : channel === 'copy' ? 'Copy message' : 'Save draft to estate'}
+        {sending ? 'Saving...' : channel === 'copy' ? 'Copy message' : 'Save output to record'}
       </PrimaryBtn>
       <GhostBtn onClick={saveDraft}>Save as draft</GhostBtn>
-      <GhostBtn onClick={returnToEstate}>Back to estate</GhostBtn>
+      <GhostBtn onClick={returnToEstate}>Back to family record</GhostBtn>
       <GhostBtn onClick={function() { setStep(2); }}>Edit message</GhostBtn>
     </Shell>
   );
