@@ -16,12 +16,24 @@ async function loadRequest(token) {
 }
 
 async function notifyOwner(request, title, detail) {
-  if (!process.env.RESEND_API_KEY) return;
   const recipients = Array.from(new Set([
     request.workflows?.coordinator_email,
   ].filter(Boolean)));
-  if (!recipients.length) return;
-  await fetch('https://api.resend.com/emails', {
+  if (!recipients.length) return { status: 'skipped', reason: 'No coordinator email.' };
+  if (!process.env.RESEND_API_KEY) {
+    await admin.from('notification_log').insert([{
+      workflow_id: request.workflow_id,
+      channel: 'email',
+      recipient_email: recipients[0],
+      recipient_name: request.workflows?.coordinator_name || recipients[0],
+      subject: title,
+      provider: 'resend',
+      status: 'skipped',
+      error_message: 'RESEND_API_KEY is not configured.',
+    }]).then(() => {}, () => {});
+    return { status: 'skipped', reason: 'Resend is not configured.' };
+  }
+  const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -31,6 +43,20 @@ async function notifyOwner(request, title, detail) {
       html: `<div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e4ddd4;border-radius:16px;padding:24px"><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800">Passage local support</div><h1 style="font-weight:400;color:#1a1916;font-size:24px;line-height:1.25">${title}</h1><p style="color:#6a6560;line-height:1.7">${detail}</p><p style="color:#6b8f71;font-weight:800">We are tracking this in Passage.</p></div></div>`,
     }),
   }).catch(() => null);
+  const json = response ? await response.json().catch(() => ({})) : {};
+  await admin.from('notification_log').insert([{
+    workflow_id: request.workflow_id,
+    channel: 'email',
+    recipient_email: recipients[0],
+    recipient_name: request.workflows?.coordinator_name || recipients[0],
+    subject: title,
+    provider: 'resend',
+    provider_id: response?.ok ? json.id || null : null,
+    status: response?.ok ? 'sent' : 'failed',
+    sent_at: response?.ok ? new Date().toISOString() : null,
+    error_message: response?.ok ? null : (json?.message || json?.error || 'Vendor update notification failed.'),
+  }]).then(() => {}, () => {});
+  return { status: response?.ok ? 'sent' : 'failed' };
 }
 
 export default async function handler(req, res) {
