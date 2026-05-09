@@ -143,6 +143,8 @@ export default async function handler(req, res) {
     tasks,
     doneTasks,
     pendingTasks,
+    waitingTasks,
+    blockedTasks,
     estateParticipants,
     vendors,
     activeVendors,
@@ -153,6 +155,8 @@ export default async function handler(req, res) {
     funeralHomePartners,
     organizations,
     notifications,
+    failedNotifications,
+    deliveredNotifications,
     leads,
     recentLeads,
   ] = await Promise.all([
@@ -162,6 +166,8 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'tasks'),
     countRows(auth.admin, 'tasks', [{ op: 'eq', column: 'status', value: 'done' }]),
     countRows(auth.admin, 'tasks', [{ op: 'eq', column: 'status', value: 'pending' }]),
+    countRows(auth.admin, 'tasks', [{ op: 'in', column: 'status', value: ['pending', 'waiting', 'sent', 'assigned'] }]),
+    countRows(auth.admin, 'tasks', [{ op: 'in', column: 'status', value: ['blocked', 'failed', 'needs_review'] }]),
     countRows(auth.admin, 'estate_participants'),
     countRows(auth.admin, 'vendors'),
     countRows(auth.admin, 'vendors', [{ op: 'eq', column: 'status', value: 'active' }]),
@@ -172,6 +178,8 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'funeral_home_partners'),
     countRows(auth.admin, 'organizations'),
     countRows(auth.admin, 'notification_log'),
+    countRows(auth.admin, 'notification_log', [{ op: 'eq', column: 'status', value: 'failed' }]),
+    countRows(auth.admin, 'notification_log', [{ op: 'eq', column: 'status', value: 'delivered' }]),
     countRows(auth.admin, 'leads'),
     fetchRecentLeads(auth.admin),
   ]);
@@ -184,6 +192,8 @@ export default async function handler(req, res) {
     metric('Total tasks', tasks),
     metric('Done tasks', doneTasks),
     metric('Pending / waiting tasks', pendingTasks),
+    metric('Open waiting tasks', waitingTasks),
+    metric('Blocked / needs-review tasks', blockedTasks),
     metric('Estate participants', estateParticipants),
     metric('Vendors', vendors),
     metric('Active vendors', activeVendors),
@@ -194,6 +204,8 @@ export default async function handler(req, res) {
     metric('Funeral-home partners', funeralHomePartners),
     metric('Organizations', organizations),
     metric('Notifications logged', notifications),
+    metric('Failed notifications', failedNotifications),
+    metric('Delivered notifications', deliveredNotifications),
     metric('Leads and support inquiries', leads),
   ];
 
