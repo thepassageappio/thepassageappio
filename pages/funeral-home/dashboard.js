@@ -766,7 +766,11 @@ export default function FuneralHomeDashboard() {
     return [
       `You have been added to Passage as ${role}.`,
       '',
-      'Sign in with this email to see your assigned case work first. Passage keeps the case context, family requests, proof, and status updates in one place.',
+      'Your first screen is My work: assigned case tasks, service timing, what is waiting, and the proof field. You only need to move the work you own.',
+      '',
+      'When something is handled, waiting, or needs family input, record that update in Passage so the family record and director view stay aligned.',
+      '',
+      'No email or SMS is sent from this copied message until your team chooses to send it.',
       '',
       link,
     ].join('\n');
@@ -1460,7 +1464,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Employee setup</div>
-                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Add staff once. Assignment dropdowns use the saved roster.</div>
+                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Add staff once, then assign tasks from the case spine. Employees land on My work, not the director dashboard.</div>
                   </div>
                   <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
                 </div>
@@ -1474,7 +1478,20 @@ export default function FuneralHomeDashboard() {
                         </div>
                         <button type="button" onClick={() => setShowStaffSetup(false)} aria-label="Close staff setup" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                       </div>
-                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee first, then directors can assign case work from the task spine. Invite delivery remains approval-first.</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee first, then directors can assign case work from the task spine. The handoff should tell them exactly what they own, what proof to save, and where family-visible status updates come from.</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginBottom: 10 }}>
+                        {[
+                          ['1', 'Save employee'],
+                          ['2', 'Assign case task'],
+                          ['3', 'Staff opens My work'],
+                          ['4', 'Proof updates the family record'],
+                        ].map(([n, label]) => (
+                          <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 7, alignItems: 'center' }}>
+                            <span style={{ width: 22, height: 22, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900 }}>{n}</span>
+                            <span style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.25, fontWeight: 800 }}>{label}</span>
+                          </div>
+                        ))}
+                      </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, alignItems: 'center' }}>
                         <input value={staffDraft.email} onChange={event => setStaffDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="employee@funeralhome.com" style={inputStyle} />
                         <select value={staffDraft.role} onChange={event => setStaffDraft(prev => ({ ...prev, role: event.target.value }))} style={inputStyle}>
@@ -1484,11 +1501,11 @@ export default function FuneralHomeDashboard() {
                           <option value="admin">Admin</option>
                         </select>
                       </div>
-                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>For demos, copy the invite message. No email or SMS is sent automatically.</div>
+                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>For demos, copy the invite message. It is a prepared handoff only; no email or SMS is sent automatically.</div>
                       {latestStaffInvite && (
                         <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
                           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Staff handoff ready</div>
-                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 4 }}>{latestStaffInvite.email} can now be assigned work. Copy the invite message when you are ready; Passage will not send it automatically.</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 4 }}>{latestStaffInvite.email} can now be assigned work. The copied handoff points them to My work with scope, case context, waiting state, and proof. Passage will not send it automatically.</div>
                           <button type="button" onClick={() => copyText(staffInviteMessage(latestStaffInvite), 'Staff invite message copied.')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Copy invite message</button>
                         </div>
                       )}
