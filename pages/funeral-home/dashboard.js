@@ -86,7 +86,10 @@ export default function FuneralHomeDashboard() {
     if (params.get('staff') === '1') {
       setActivePartnerView('staff');
       const emailHint = params.get('email');
-      if (emailHint) setNotice(`Staff sign-in opened for ${emailHint}.`);
+      if (emailHint) {
+        setPartnerEmail(emailHint);
+        setNotice(`Staff sign-in opened for ${emailHint}.`);
+      }
     }
   }, []);
 
