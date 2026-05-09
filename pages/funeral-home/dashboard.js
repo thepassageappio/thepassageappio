@@ -707,11 +707,41 @@ export default function FuneralHomeDashboard() {
 
   async function copyText(value, label = 'Copied.') {
     if (!value) return;
+    const text = String(value);
     try {
-      await navigator.clipboard.writeText(value);
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const input = document.createElement('textarea');
+        input.value = text;
+        input.setAttribute('readonly', '');
+        input.style.position = 'fixed';
+        input.style.left = '-9999px';
+        input.style.top = '0';
+        document.body.appendChild(input);
+        input.focus();
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+      }
       setNotice(label);
     } catch {
-      setError('Could not copy automatically. Select the link and copy it manually.');
+      try {
+        const input = document.createElement('textarea');
+        input.value = text;
+        input.setAttribute('readonly', '');
+        input.style.position = 'fixed';
+        input.style.left = '-9999px';
+        input.style.top = '0';
+        document.body.appendChild(input);
+        input.focus();
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        setNotice(label);
+      } catch {
+        setError('Could not copy automatically. Select the prepared text and copy it manually.');
+      }
     }
   }
 
