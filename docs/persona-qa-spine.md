@@ -17,6 +17,20 @@ Every persona must be a different slice of the same truth:
 - Vendor sees only the scoped request, urgency, and response loop.
 - Passage admin sees demo readiness, imports, exports, vendor approvals, and support intake.
 
+## Decision Consistency Rule
+
+Every product decision must make sense across the whole spine, not only the page being edited.
+
+Before shipping a UI or workflow change, check:
+
+1. Family view: does it reduce anxiety and show one next move?
+2. Participant view: does it keep the role scoped to one responsibility?
+3. Funeral-home director view: does it improve workload, risk, and reporting clarity?
+4. Funeral-home staff view: does it show assigned work, case context, and proof?
+5. Vendor view: does it stay task-native and avoid marketplace browsing?
+6. Demo/admin view: does it still tell the Green -> Warm -> Red -> Funeral -> After story truthfully?
+7. Lifecycle spine: does it preserve handoff continuity instead of creating a separate product island?
+
 ## Persona QA Scores
 
 | Persona | Current Score | What Works | Remaining Demo Risk |

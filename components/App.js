@@ -3785,8 +3785,8 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "16px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 900, marginBottom: 5 }}>Estate operating queue</div>
-                  <div style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink, lineHeight: 1.18 }}>The next thing Passage needs from someone.</div>
+                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 900, marginBottom: 5 }}>Portfolio review</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink, lineHeight: 1.18 }}>Other attention across your estates.</div>
                 </div>
                 {totalRequired > 0 && (
                   <div style={{ minWidth: 92, textAlign: "right", background: C.bgSubtle, borderRadius: 12, padding: "8px 10px" }}>
