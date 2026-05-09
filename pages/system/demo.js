@@ -27,7 +27,7 @@ const demoSteps = [
     kicker: 'Open',
     title: 'Show Passage as the coordination layer.',
     point: 'Start with the pain: fewer repeated calls, clearer ownership, and a family-facing record the funeral home can trust.',
-    action: 'Say: "This is not replacing your case system. It sits on top, reduces calls, and exports cleanly."',
+    action: 'Say: "This is not replacing your case system. It sits on top, imports what you already have, reduces calls, and exports cleanly."',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
   },
   {
@@ -82,8 +82,8 @@ const demoSteps = [
     id: 'export',
     kicker: 'Close',
     title: 'End with ROI and portability.',
-    point: 'Calls avoided, waiting items, active cases, CSV export, and the family-facing audit trail are the adoption story.',
-    action: 'Say: "You can use Passage without trapping your data here."',
+    point: 'Calls avoided, waiting items, active cases, import mapping, case-summary export, full-spine export, date ranges, and the family-facing audit trail are the adoption story.',
+    action: 'Say: "You can use Passage without trapping your data here. Bring case data in, coordinate the family work, then export the record back out."',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
   },
 ];
@@ -141,6 +141,7 @@ const demoMetrics = [
   ['Calls avoided', '38'],
   ['Hours saved', '5 hr'],
   ['CSV exports', '5'],
+  ['Import mappings', '3'],
   ['Avg next update', '18 hrs'],
 ];
 
@@ -207,8 +208,8 @@ const demoRail = [
     title: 'Director closes with reporting',
     persona: 'Owner/director',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
-    proof: 'CSV export, staff workload, calls avoided, waiting items, and family-visible proof.',
-    value: 'Shows ROI and data portability for the B2B close.',
+    proof: 'Import mapping, case-summary CSV, full-spine CSV, date ranges, staff workload, calls avoided, and family-visible proof.',
+    value: 'Shows ROI and data portability for the B2B close without promising a rip-and-replace migration.',
   },
 ];
 
@@ -250,7 +251,7 @@ const readinessChecks = [
   'System-admin nav rolls demo, vendor approval, vendor QA, reporting, and support intake under one Passage-only command center.',
   'Guided coach stays in dummy demo data and does not depend on real estates.',
   'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language.',
-  'CSV export remains the adoption-trust close.',
+  'Import mapping, preview, case-summary export, and full-spine export remain the adoption-trust close.',
 ];
 
 const valueStory = [
@@ -277,7 +278,7 @@ const valueStory = [
 ];
 
 const tomorrowWorkflow = [
-  'Create or import a case with the family contact.',
+  'Create a case or import mapped case data with the family contact and known lifecycle dates.',
   'Move the single next task: handle it, assign it, or mark what is waiting.',
   'Use messages to coordinate family, staff, cemetery, clergy, or vendor context.',
   'Watch the activity trail instead of answering another "where are we?" call.',
@@ -690,6 +691,19 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
           </div>
         ))}
       </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginBottom: 16 }}>
+        {[
+          ['Import mapping', 'Upload a case export, map columns, preview rows, then import only after review.'],
+          ['Case summary CSV', 'Clean handoff for existing case systems: contacts, dates, references, counts, status.'],
+          ['Full spine CSV', 'Operational proof export: tasks, messages, vendors, proof requirements, and activity.'],
+          ['Date range reports', 'Weekly, monthly, or last-30-day exports for directors and location managers.'],
+        ].map(([title, body]) => (
+          <div key={title} style={smallCard}>
+            <div style={{ fontSize: 17, fontWeight: 900 }}>{title}</div>
+            <div style={smallText}>{body}</div>
+          </div>
+        ))}
+      </div>
       <div style={{ display: 'grid', gap: 10 }}>
         {tomorrowWorkflow.map((item, index) => (
           <div key={item} style={{ display: 'grid', gridTemplateColumns: '30px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
@@ -698,7 +712,7 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
           </div>
         ))}
       </div>
-      <button onClick={() => demoAction('Demo: CSV export shows Passage can sit on top of the funeral home system without locking data in.')} style={{ ...tinyButton, marginTop: 14 }}>Show export close</button>
+      <button onClick={() => demoAction('Demo: mapped import plus summary/full-spine exports show Passage can sit on top of the funeral home system without locking data in.')} style={{ ...tinyButton, marginTop: 14 }}>Show portability close</button>
     </Panel>
   );
 }
