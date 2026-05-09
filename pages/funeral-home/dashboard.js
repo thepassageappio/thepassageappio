@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
-import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
+import { SiteHeader, SiteFooter, SpineTrustStrip } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 import { taskGuidanceFor, taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
@@ -1537,6 +1537,21 @@ export default function FuneralHomeDashboard() {
               <button onClick={() => setShowPilotGuide(prev => !prev)} style={{ border: `1px solid ${C.sage}33`, background: showPilotGuide ? C.sage : C.sageFaint, color: showPilotGuide ? '#fff' : C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 12 }}>{showPilotGuide ? 'Hide setup' : 'Setup'}</button>
               <button onClick={() => setShowTools(prev => !prev)} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12 }}>{showTools ? 'Hide tools' : 'Tools'}</button>
             </div>
+          </div>
+        )}
+
+        {user && !loading && data && (
+          <div style={{ marginBottom: 10 }}>
+            <SpineTrustStrip
+              compact
+              eyebrow="Partner proof boundary"
+              title="Act on behalf of the family without trapping the record."
+              rows={[
+                ['Family sees', 'Status, approved updates, waiting points, and proof.'],
+                ['Staff sees', 'Assigned case work, owner, next action, and proof requirement.'],
+                ['Export keeps', 'Tasks, dates, owners, messages, vendor status, and proof trail.'],
+              ]}
+            />
           </div>
         )}
 

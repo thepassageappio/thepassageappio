@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
-import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
+import { SiteFooter, SiteHeader, SpineTrustStrip } from '../../components/SiteChrome';
 import { money } from '../../lib/vendorEconomics';
 import { vendorCategoryLabel } from '../../lib/vendors';
 
@@ -226,17 +226,17 @@ export default function VendorRequestPage() {
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 12 }}>
                 <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After accepting:</strong> the family and funeral home see the request status on the same coordination record.
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8, marginTop: 10 }}>
-                {[
-                  ['You can see', 'The request, timing, family/case label, and response status.'],
-                  ['You cannot see', 'Private family notes, unrelated tasks, or the full estate workspace.'],
-                  ['They can see', 'Whether you viewed, accepted, declined, completed, or need details.'],
-                ].map(([title, body]) => (
-                  <div key={title} style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 11, padding: '9px 10px' }}>
-                    <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
-                    <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
-                  </div>
-                ))}
+              <div style={{ marginTop: 12 }}>
+                <SpineTrustStrip
+                  compact
+                  eyebrow="Scoped request"
+                  title="One request, not a family file."
+                  rows={[
+                    ['Vendor sees', 'Request, timing, family/case label, and response status.'],
+                    ['Kept private', 'Private notes, unrelated tasks, and the estate workspace.'],
+                    ['Case sees', 'Viewed, accepted, declined, completed, or needs details.'],
+                  ]}
+                />
               </div>
             </div>
             {demoMode && (

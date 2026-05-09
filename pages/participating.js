@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
-import { SiteHeader, SiteFooter } from '../components/SiteChrome';
+import { SiteHeader, SiteFooter, SpineTrustStrip } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
@@ -754,21 +754,17 @@ export default function ParticipatingPage() {
             </div>
 
             {!(router.query.estate || router.query.task) && (
-              <aside style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, alignSelf: 'start' }}>
-                <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>You only see your part.</div>
-                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7, marginBottom: 12 }}>Passage shows the responsibility assigned to you, the coordinator, and any service details needed to answer. The family record, approvals, private notes, and broader history stay with the coordinator.</p>
-                <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
-                  {[
-                    ['Visible to you', 'Your task, coordinator, service context, and your saved updates.'],
-                    ['Visible to coordinator', 'Your response, proof note, waiting state, and timestamp.'],
-                    ['Not shown here', 'The full estate workspace, private family notes, and unrelated tasks.'],
-                  ].map(([title, body]) => (
-                    <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-                      <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
-                      <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>{body}</div>
-                    </div>
-                  ))}
-                </div>
+              <aside style={{ alignSelf: 'start', display: 'grid', gap: 12 }}>
+                <SpineTrustStrip
+                  compact
+                  eyebrow="Scoped help"
+                  title="You only see your part."
+                  rows={[
+                    ['Visible to you', 'Your task, coordinator, service context, and saved updates.'],
+                    ['Coordinator sees', 'Your response, proof note, waiting state, and timestamp.'],
+                    ['Kept private', 'The full estate workspace, private notes, and unrelated tasks.'],
+                  ]}
+                />
                 <details style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 12px', background: C.bg }}>
                   <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Later: plan for your own family</summary>
                   <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.6, margin: '10px 0' }}>Participants often understand the value after helping once. This can wait until your assigned work is handled.</p>

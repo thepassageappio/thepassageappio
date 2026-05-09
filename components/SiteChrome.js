@@ -14,6 +14,31 @@ export const CHROME_COLORS = {
   sageFaint: '#f0f5f1',
 };
 
+export function SpineTrustStrip({ eyebrow = 'Shared record', title = 'What stays controlled', rows = [], compact = false }) {
+  const safeRows = rows.slice(0, compact ? 3 : 4);
+  return (
+    <div style={{ background: CHROME_COLORS.card, border: '1px solid ' + CHROME_COLORS.border, borderRadius: compact ? 14 : 16, padding: compact ? 11 : 13, color: CHROME_COLORS.mid }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', marginBottom: safeRows.length ? 8 : 0 }}>
+        <div>
+          <div style={{ color: CHROME_COLORS.sage, fontSize: 10, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>{eyebrow}</div>
+          <div style={{ color: CHROME_COLORS.ink, fontSize: compact ? 14 : 16, lineHeight: 1.25, fontWeight: 900, marginTop: 2 }}>{title}</div>
+        </div>
+        <span style={{ border: '1px solid #c8deca', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, fontWeight: 900, whiteSpace: 'nowrap' }}>Proof-first</span>
+      </div>
+      {safeRows.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 7 }}>
+          {safeRows.map(([label, body]) => (
+            <div key={label} style={{ background: CHROME_COLORS.sageFaint, border: '1px solid ' + CHROME_COLORS.border, borderRadius: 11, padding: '8px 9px' }}>
+              <div style={{ color: CHROME_COLORS.sage, fontSize: 9.8, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+              <div style={{ color: CHROME_COLORS.mid, fontSize: compact ? 11.5 : 12, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const LINKS = [
   ['Mission', '/mission'],
   ['Our story', '/story'],
