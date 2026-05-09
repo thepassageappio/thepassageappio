@@ -63,6 +63,7 @@ const demoParticipantContext = {
 };
 
 async function signIn(returnTo = '/participating') {
+  if (!supabase?.auth) return;
   await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + returnTo } });
 }
 
@@ -348,6 +349,11 @@ export default function ParticipatingPage() {
       setLoading(false);
       return undefined;
     }
+    if (!supabase?.auth) {
+      setLoading(false);
+      setError('Sign-in is not configured in this environment. Use the demo participant view to inspect the flow.');
+      return undefined;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.access_token) load(session.access_token);
@@ -357,7 +363,7 @@ export default function ParticipatingPage() {
       setUser(session?.user || null);
       if (session?.access_token) load(session.access_token);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => sub?.subscription?.unsubscribe?.();
   }, [router.isReady, router.query.estate, router.query.task, demoMode]);
 
   async function load(token) {
@@ -427,6 +433,10 @@ export default function ParticipatingPage() {
         })),
       }));
       setActionNotice((action === 'handled' ? 'Handled. ' : 'Demo update saved. ') + 'The coordinator would see this update on the family record spine.');
+      return;
+    }
+    if (!supabase?.auth) {
+      setActionNotice('Sign-in is not configured in this environment. Demo mode can preview this update without saving.');
       return;
     }
     const { data: sessionData } = await supabase.auth.getSession();
@@ -506,6 +516,7 @@ export default function ParticipatingPage() {
   }
 
   async function signOut() {
+    if (!supabase?.auth) return;
     await supabase.auth.signOut();
     setUser(null);
     setData(null);
@@ -513,6 +524,10 @@ export default function ParticipatingPage() {
 
   async function sendMagicLink() {
     if (!emailLogin) return;
+    if (!supabase?.auth) {
+      setError('Sign-in is not configured in this environment.');
+      return;
+    }
     const { error } = await supabase.auth.signInWithOtp({ email: emailLogin, options: { emailRedirectTo: SITE_URL + (router.asPath || '/participating') } });
     if (error) setError(error.message);
     else setMagicSent(true);
@@ -606,6 +621,7 @@ export default function ParticipatingPage() {
                       : 'If someone invited you with a different email, sign in with that address. When you are assigned a task, it will appear here.'}
                   </p>
                   <button onClick={async () => {
+                    if (!supabase?.auth) return;
                     const { data: sessionData } = await supabase.auth.getSession();
                     if (sessionData?.session?.access_token) await load(sessionData.session.access_token);
                   }} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 14px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', marginRight: 8 }}>Check again</button>
