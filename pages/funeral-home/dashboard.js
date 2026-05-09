@@ -1460,12 +1460,25 @@ export default function FuneralHomeDashboard() {
                               style={{ width: '100%', boxSizing: 'border-box', minHeight: 112, border: `1.5px solid ${C.border}`, borderRadius: 10, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, background: C.card, color: C.ink, marginTop: 9 }}
                             />
                             <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.45, marginTop: 6 }}>{proofDestination}</div>
+                            {taskDraft.status === 'handled' && (
+                              <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
+                                Passage prepared this output for review. Copy it for the arrangement file, then save proof when it is ready for the family status trail.
+                              </div>
+                            )}
                             {taskDraft.status === 'blocked' && (
                               <div style={{ background: C.card, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
                                 This request is saved as a waiting family item. Copy it for email/text when you are demoing; Passage does not send live messages here.
                               </div>
                             )}
                             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
+                              {taskDraft.status === 'handled' && (
+                                <button
+                                  disabled={!taskDraftNote.trim()}
+                                  onClick={() => copyText(taskDraftNote.trim(), 'Prepared output copied.')}
+                                  style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: taskDraftNote.trim() ? 'pointer' : 'not-allowed', opacity: taskDraftNote.trim() ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+                                  Copy prepared output
+                                </button>
+                              )}
                               {taskDraft.status === 'blocked' && (
                                 <button
                                   disabled={!taskDraftNote.trim()}
