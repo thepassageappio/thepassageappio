@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
-import { taskOutputFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
+import { taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 import { orchestrateTasks } from '../../lib/taskOrchestration';
 
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
@@ -1384,12 +1384,16 @@ export default function FuneralHomeDashboard() {
                       role: option?.role || '',
                       phone: option?.phone || '',
                     }));
-                    const packetText = [
-                      `${output.label} prepared for ${item?.deceased_name || item?.estate_name || item?.name || 'this case'}.`,
-                      `Known context: coordinator ${item.coordinator_name || 'family coordinator'}${item.coordinator_email ? ` (${item.coordinator_email})` : ''}.`,
-                      'Include service preferences, cemetery/clergy contacts, prepaid policy details, documents received, and open questions.',
-                      'Family-facing status: the funeral home is preparing the meeting summary and will confirm missing items before the arrangement meeting.',
-                    ].join('\n');
+                    const packetText = taskPreparedPacketFor(nextPartnerTask, {
+                      caseName: item?.deceased_name || item?.estate_name || item?.name || 'this case',
+                      coordinatorName: item.coordinator_name,
+                      coordinatorEmail: item.coordinator_email,
+                      coordinatorPhone: item.coordinator_phone,
+                      funeralHomeName: org?.name,
+                      caseReference: item.organization_case_reference || item.case_reference,
+                      locationName: itemLocation,
+                      openTasks: item.tasks || [],
+                    });
                     return (
                       <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(230px, .65fr)', gap: 12, alignItems: 'stretch' }}>
