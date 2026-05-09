@@ -27,6 +27,7 @@ var ROSE_FAINT = '#fdf3f3';
 var AMBER = '#b07d2e';
 var AMBER_FAINT = '#fdf8ee';
 var AMBER_BORDER = 'rgba(176,125,46,0.3)';
+var SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
 var PLAYBOOKS = {
   details: {
