@@ -19,9 +19,9 @@ const C = {
 };
 
 const lifecycle = [
-  ['1', 'Preparing during care', 'Record the people, hospice/on-call contact, likely dates, and the first-hour plan.'],
-  ['2', 'Death occurs', 'Start red-path guidance from what the family already knows.'],
-  ['3', 'Funeral-home handoff', 'Share a reviewed packet with contacts, dates, preferences, blockers, and proof needs.'],
+  ['1', 'Preparing during care', 'Start the family record with people, hospice/on-call contact, likely dates, and the first-hour plan.'],
+  ['2', 'Death occurs', 'Start red-path guidance from the same family record instead of asking the family to rebuild context.'],
+  ['3', 'Funeral-home handoff', 'Invite the funeral home into the record with contacts, dates, preferences, blockers, and proof needs.'],
   ['4', 'Aftercare continues', 'Estate, benefits, accounts, family updates, grief support, and anniversaries stay in one record.'],
 ];
 
@@ -179,7 +179,7 @@ export default function HospiceWarmPath() {
               When hospice or serious illness is already part of the journey.
             </h1>
             <p style={lead}>
-              Passage keeps the family from starting over at each handoff. Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.
+              Passage starts the family record before the crisis moment. Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 22 }}>
               <a href="#start-warm-workspace" style={primaryLink}>Start warm-path workspace</a>
@@ -195,7 +195,7 @@ export default function HospiceWarmPath() {
               Same record. Different door.
             </h2>
             <p style={lead}>
-              A family may enter through planning, hospice preparation, urgent death guidance, or a funeral home. Passage should carry the context forward instead of making them rebuild it.
+              A family may enter through planning, hospice preparation, urgent death guidance, or a funeral home. Passage carries one record forward instead of creating separate product islands.
             </p>
             <div style={{ display: 'grid', gap: 9, marginTop: 18 }}>
               {['Family owns permissions', 'Nothing shares without approval', 'Unknown dates become visible tasks'].map(item => (
@@ -219,7 +219,7 @@ export default function HospiceWarmPath() {
           <div style={panel}>
             <div style={eyebrow}>Saved warm-path workspace</div>
             <h2 style={h2}>Start with what the family knows now.</h2>
-            <p style={lead}>This creates a real Passage workspace with the first care-preparation tasks. It does not send email or SMS. It keeps unknown dates visible until they are available.</p>
+            <p style={lead}>This creates a real family record with the first care-preparation tasks. It does not send email or SMS. It keeps unknown dates visible until they are available.</p>
             <div style={{ display: 'grid', gap: 9, marginTop: 16 }}>
               {[
                 'Name the family coordinator',
