@@ -160,6 +160,7 @@ export default function FuneralHomeDashboard() {
   const [showStaffSetup, setShowStaffSetup] = useState(false);
   const [staffDraft, setStaffDraft] = useState({ email: '', role: 'staff' });
   const [importDraft, setImportDraft] = useState(null);
+  const [exportRange, setExportRange] = useState({ from: '', to: '' });
   const casePanelRef = useRef(null);
   const [caseForm, setCaseForm] = useState({
     funeralHomeName: '',
@@ -544,10 +545,19 @@ export default function FuneralHomeDashboard() {
     }
   }
 
-  async function downloadExport() {
+  function exportQuery(view = 'spine') {
+    const params = new URLSearchParams();
+    if (view === 'cases') params.set('view', 'cases');
+    if (exportRange.from) params.set('from', exportRange.from);
+    if (exportRange.to) params.set('to', exportRange.to);
+    const text = params.toString();
+    return text ? `?${text}` : '';
+  }
+
+  async function downloadExport(view = 'spine') {
     if (!token) return;
     setError('');
-    const res = await fetch('/api/partnerExport', { headers: { Authorization: 'Bearer ' + token } });
+    const res = await fetch('/api/partnerExport' + exportQuery(view), { headers: { Authorization: 'Bearer ' + token } });
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       setError(json.error || 'Could not export partner cases.');
@@ -557,22 +567,23 @@ export default function FuneralHomeDashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'passage-partner-cases.csv';
+    a.download = view === 'cases' ? 'passage-partner-case-summary.csv' : 'passage-partner-full-spine.csv';
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
   }
 
-  async function emailExport() {
+  async function emailExport(view = 'spine') {
     if (!token) return;
-    setUpdating('email_export');
+    const updateKey = view === 'cases' ? 'email_case_export' : 'email_export';
+    setUpdating(updateKey);
     setError('');
     setNotice('');
-    const res = await fetch('/api/partnerExport', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+    const res = await fetch('/api/partnerExport' + exportQuery(view), { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ view, from: exportRange.from, to: exportRange.to }) });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) setError(json.error || 'Could not email the CSV export.');
-    else setNotice(`CSV export sent to ${json.emailedTo || user?.email || 'your email'}.`);
+    else setNotice(`${view === 'cases' ? 'Case summary' : 'Full spine'} CSV export sent to ${json.emailedTo || user?.email || 'your email'}.`);
     setUpdating('');
   }
 
@@ -1026,7 +1037,7 @@ export default function FuneralHomeDashboard() {
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New at-need case</button>}
             {user && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New pre-need case</button>}
-            {user && <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export cases</button>}
+            {user && <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export cases</button>}
             {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'More tools'}</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
@@ -1126,8 +1137,32 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 12 }}>
               <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Upload CSV</button>
               <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Download template</a>
-              <button onClick={emailExport} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_export' ? 'Sending...' : 'Email CSV to me'}</button>
+              <button onClick={() => downloadExport('spine')} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Download full spine</button>
+              <button onClick={() => emailExport('cases')} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_case_export' ? 'Sending...' : 'Email case summary'}</button>
               <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{partnerPlan?.plan ? `Billing: ${partnerPlan.plan}` : 'Start pilot billing'}</button>
+            </div>
+            <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 11, marginTop: 10 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Export date range</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8, marginTop: 8 }}>
+                <label style={{ display: 'grid', gap: 4, color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                  Updated from
+                  <input type="date" value={exportRange.from} onChange={event => setExportRange(prev => ({ ...prev, from: event.target.value }))} style={inputStyle} />
+                </label>
+                <label style={{ display: 'grid', gap: 4, color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                  Updated to
+                  <input type="date" value={exportRange.to} onChange={event => setExportRange(prev => ({ ...prev, to: event.target.value }))} style={inputStyle} />
+                </label>
+                <div style={{ display: 'flex', alignItems: 'end', gap: 8, flexWrap: 'wrap' }}>
+                  <button onClick={() => setExportRange({ from: '', to: '' })} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>All dates</button>
+                  <button onClick={() => {
+                    const to = new Date();
+                    const from = new Date();
+                    from.setDate(to.getDate() - 30);
+                    setExportRange({ from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) });
+                  }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Last 30 days</button>
+                </div>
+              </div>
+              <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 7 }}>Range filters by case updated date so weekly/monthly reports stay predictable for directors and location managers.</div>
             </div>
             {importDraft && (
               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, marginTop: 12 }}>
@@ -1185,7 +1220,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
               {[
                 ['Import accepts', 'Passage template plus common case-system names such as decedent, family contact, case number, service date, funeral date, burial date, and obituary deadline.'],
-                ['Export includes', 'Cases, contacts, lifecycle dates, task status, owners, messages, vendor requests, proof requirements, and payment/reporting fields where present.'],
+                ['Export includes', 'Case summary CSV for existing systems plus full-spine CSV for tasks, owners, messages, vendor requests, proof requirements, and payment/reporting fields where present.'],
                 ['Pilot posture', 'CSV bridge now. Direct adapters should be mapped after we see each home’s actual Passare, Gather, SRS, Tribute, or local export shape.'],
               ].map(([title, body]) => (
                 <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 11px' }}>
@@ -1466,7 +1501,10 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>ROI and operations</div>
                 <div style={{ fontSize: 24, marginTop: 3 }}>Show where Passage saves work and keeps data portable.</div>
               </div>
-              <button onClick={downloadExport} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '9px 12px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export report CSV</button>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '9px 12px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export case summary</button>
+                <button onClick={() => downloadExport('spine')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 12px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Export full spine</button>
+              </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8, marginBottom: 12 }}>
               {[

@@ -13,7 +13,21 @@ function csvCell(value) {
   return `"${text.replace(/"/g, '""')}"`;
 }
 
-async function getPartnerData(token) {
+function dateRangeFromRequest(req) {
+  const source = req.method === 'POST' ? { ...req.query, ...(req.body || {}) } : req.query || {};
+  const from = source.from || source.dateFrom || '';
+  const to = source.to || source.dateTo || '';
+  const filters = {};
+  if (from && !Number.isNaN(new Date(from).getTime())) filters.from = new Date(from).toISOString();
+  if (to && !Number.isNaN(new Date(to).getTime())) {
+    const end = new Date(to);
+    end.setHours(23, 59, 59, 999);
+    filters.to = end.toISOString();
+  }
+  return filters;
+}
+
+async function getPartnerData(token, dateRange = {}) {
   const { data: userData, error: userError } = await authClient.auth.getUser(token);
   const user = userData?.user;
   if (userError || !user?.email) throw Object.assign(new Error('Session could not be verified.'), { status: 401 });
@@ -28,12 +42,14 @@ async function getPartnerData(token) {
   const organizationIds = (memberships || []).map(m => m.organization_id).filter(Boolean);
   if (!organizationIds.length) return { user, rows: [], orgName: 'Passage partner' };
 
-  const { data: workflows, error: workflowError } = await admin
+  let workflowQuery = admin
     .from('workflows')
     .select('id,name,estate_name,deceased_name,date_of_death,coordinator_name,coordinator_email,coordinator_phone,organization_case_reference,mode,setup_stage,status,orchestration_summary,updated_at')
     .in('organization_id', organizationIds)
-    .neq('status', 'archived')
-    .order('updated_at', { ascending: false });
+    .neq('status', 'archived');
+  if (dateRange.from) workflowQuery = workflowQuery.gte('updated_at', dateRange.from);
+  if (dateRange.to) workflowQuery = workflowQuery.lte('updated_at', dateRange.to);
+  const { data: workflows, error: workflowError } = await workflowQuery.order('updated_at', { ascending: false });
   if (workflowError) throw workflowError;
 
   const workflowIds = (workflows || []).map(w => w.id);
@@ -82,6 +98,9 @@ async function getPartnerData(token) {
     user,
     orgName: memberships?.[0]?.organizations?.name || 'Passage partner',
     rows: taskRows,
+    workflows: workflows || [],
+    tasks: tasks || [],
+    events: events || [],
   };
 }
 
@@ -170,15 +189,92 @@ function buildCsv(rows) {
   return lines.join('\n');
 }
 
+function firstEventDate(events, workflowId, types) {
+  const wanted = new Set(types);
+  return (events || []).find(event => event.estate_id === workflowId && wanted.has(event.event_type))?.date || '';
+}
+
+function buildCaseSummaryCsv(workflows, tasks, events) {
+  const header = [
+    'Case',
+    'Case type',
+    'Source system',
+    'Reference',
+    'Family contact',
+    'Family email',
+    'Family phone',
+    'Date of death',
+    'Pronouncement date',
+    'Release / pickup date',
+    'Arrangement date',
+    'Visitation / wake date',
+    'Funeral / memorial date',
+    'Burial / committal date',
+    'Shiva / mourning date',
+    'Reception date',
+    'Obituary deadline',
+    'Open tasks',
+    'Waiting tasks',
+    'Needs help tasks',
+    'Handled tasks',
+    'Last task action',
+    'Case status',
+    'Updated at',
+  ];
+  const lines = [header.map(csvCell).join(',')];
+  for (const workflow of workflows || []) {
+    const caseTasks = (tasks || []).filter(task => task.workflow_id === workflow.id);
+    const openTasks = caseTasks.filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const waitingTasks = caseTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
+    const needsHelpTasks = caseTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
+    const handledTasks = caseTasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const lastAction = caseTasks
+      .map(task => task.last_action_at)
+      .filter(Boolean)
+      .sort()
+      .pop() || '';
+    lines.push([
+      workflow.estate_name || workflow.deceased_name || workflow.name,
+      workflowCaseType(workflow),
+      workflow.orchestration_summary?.source_system || 'Passage',
+      workflow.organization_case_reference,
+      workflow.coordinator_name,
+      workflow.coordinator_email,
+      workflow.coordinator_phone,
+      workflow.date_of_death,
+      firstEventDate(events, workflow.id, ['pronouncement']),
+      firstEventDate(events, workflow.id, ['release']),
+      firstEventDate(events, workflow.id, ['arrangement']),
+      firstEventDate(events, workflow.id, ['visitation']),
+      firstEventDate(events, workflow.id, ['funeral']),
+      firstEventDate(events, workflow.id, ['burial']),
+      firstEventDate(events, workflow.id, ['shiva']),
+      firstEventDate(events, workflow.id, ['reception']),
+      firstEventDate(events, workflow.id, ['obituary_deadline']),
+      openTasks.length,
+      waitingTasks.length,
+      needsHelpTasks.length,
+      handledTasks.length,
+      lastAction,
+      workflow.status,
+      workflow.updated_at,
+    ].map(csvCell).join(','));
+  }
+  return lines.join('\n');
+}
+
 export default async function handler(req, res) {
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return res.status(401).json({ error: 'Please sign in first.' });
 
   try {
-    const { user, rows, orgName } = await getPartnerData(token);
-    const csv = buildCsv(rows);
-    const filename = `passage-${orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'partner'}-cases.csv`;
+    const dateRange = dateRangeFromRequest(req);
+    const { user, rows, orgName, workflows, tasks, events } = await getPartnerData(token, dateRange);
+    const view = String(req.query.view || req.body?.view || '').toLowerCase();
+    const summaryView = view === 'cases' || view === 'summary';
+    const csv = summaryView ? buildCaseSummaryCsv(workflows, tasks, events) : buildCsv(rows);
+    const filename = `passage-${orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'partner'}-${summaryView ? 'case-summary' : 'full-spine'}.csv`;
 
     if (req.method === 'POST' || req.query.email === '1') {
       const key = process.env.RESEND_API_KEY;
@@ -190,8 +286,10 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           from,
           to: [user.email],
-          subject: 'Your Passage funeral home case export',
-          html: `<p>Your Passage case export is attached.</p><p>This includes cases, family contacts, task status, and last action details.</p>`,
+          subject: summaryView ? 'Your Passage funeral home case summary export' : 'Your Passage funeral home full spine export',
+          html: summaryView
+            ? `<p>Your Passage case summary export is attached.</p><p>This includes case contacts, references, lifecycle dates, and task counts.</p>`
+            : `<p>Your Passage full spine export is attached.</p><p>This includes cases, family contacts, task status, messages, vendor requests, proof requirements, and last action details.</p>`,
           attachments: [{ filename, content: Buffer.from(csv, 'utf8').toString('base64') }],
         }),
       });
