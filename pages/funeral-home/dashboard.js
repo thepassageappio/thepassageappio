@@ -832,7 +832,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Case load, waiting items, risk, and follow-up avoided.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Cases, waiting replies, risk, and follow-up avoided.</div>
               </div>
               <button onClick={() => setShowDirectorHelp(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>How Passage coordinates</button>
             </div>
@@ -855,7 +855,7 @@ export default function FuneralHomeDashboard() {
               </div>
             )}
             <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 9 }}>
-              CSV export is always available. Passage can sit on top of your existing system without trapping case data here.
+              CSV export is available for existing case systems.
               {funeralHomeShare > 0 && <strong style={{ color: C.sage }}> Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</strong>}
             </div>
           </div>
@@ -1700,9 +1700,9 @@ function PartnerDirectorFocus({ riskItems, inboxItems, caseItems, isMultiLocatio
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
         <div>
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director focus</div>
-          <div style={{ fontSize: 22, marginTop: 3 }}>One operating layer for risk, replies, and next case work.</div>
+          <div style={{ fontSize: 22, marginTop: 3 }}>Risk, replies, and next case work.</div>
         </div>
-        <div style={{ color: C.mid, fontSize: 12.5 }}>{riskItems.length} at risk / {inboxItems.length} updates / {caseItems.length} next cases</div>
+        <div style={{ color: C.mid, fontSize: 12.5 }}>{riskItems.length} at risk · {inboxItems.length} updates · {caseItems.length} next cases</div>
       </div>
       {empty ? (
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.sage, fontSize: 13, fontWeight: 800 }}>
@@ -1791,10 +1791,10 @@ function PartnerAttentionInbox({ items, onOpenCase }) {
     <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 18 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10 }}>
         <div>
-          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>3. Attention inbox</div>
-          <div style={{ fontSize: 21, marginTop: 3 }}>Open these when someone is waiting or a status changed.</div>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Attention inbox</div>
+          <div style={{ fontSize: 21, marginTop: 3 }}>Replies and status changes.</div>
         </div>
-        <div style={{ color: C.mid, fontSize: 12.5 }}>Family replies, staff updates, vendor responses, and proof events.</div>
+        <div style={{ color: C.mid, fontSize: 12.5 }}>Messages, proof, and notification delivery stay attached to the case.</div>
       </div>
       {items.length === 0 ? (
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.sage, fontSize: 13 }}>
