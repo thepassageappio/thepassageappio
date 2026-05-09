@@ -81,6 +81,16 @@ export default function FuneralHomeDashboard() {
   });
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search || '');
+    if (params.get('staff') === '1') {
+      setActivePartnerView('staff');
+      const emailHint = params.get('email');
+      if (emailHint) setNotice(`Staff sign-in opened for ${emailHint}.`);
+    }
+  }, []);
+
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       setToken(session?.access_token || '');
