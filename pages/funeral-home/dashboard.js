@@ -1542,6 +1542,20 @@ export default function FuneralHomeDashboard() {
                 {isDirectorRole ? 'Move this' : firstStaffTask ? 'Do this now' : 'Open staff'}
               </button>
             </div>
+            {isDirectorRole && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(128px, 1fr))', gap: 7, marginTop: 9 }}>
+                {[
+                  ['Waiting on family', () => firstOpenCase?.id && openPartnerWork(firstOpenCase.id)],
+                  ['Reassign work', () => setActivePartnerView('staff')],
+                  ['Record proof', () => firstOpenCase?.id && openPartnerWork(firstOpenCase.id)],
+                  ['Export case data', () => downloadExport('cases')],
+                ].map(([label, action]) => (
+                  <button key={label} onClick={action} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 11, minHeight: 40, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             {showTools && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 8 }}>
                 {detailGlanceItems.map(([label, value]) => (

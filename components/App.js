@@ -3622,6 +3622,20 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
   const availableGreenSeats = Math.max(0, estateSeatLimit - usedGreenSeats);
   const isPaidPlan = plan !== 'free' && userData?.plan_status === 'active';
   const backEstateId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('backEstate') : '';
+  const selectedEstateState = selectedDashboardEstate?.path === 'green'
+    ? 'Planning before it is needed'
+    : selectedDashboardTask?.assignedTo
+      ? 'Someone owns the next step'
+      : selectedDashboardTask
+        ? 'One thing needs an owner'
+        : 'Nothing urgent is waiting';
+  const selectedEstateStateBody = selectedDashboardEstate?.path === 'green'
+    ? 'Keep wishes, people, documents, and future instructions in one family record.'
+    : selectedDashboardTask?.assignedTo
+      ? `${selectedDashboardTask.assignedTo} owns the next move. Passage keeps the waiting point and proof attached to this estate.`
+      : selectedDashboardTask
+        ? 'Assign this before opening more work. A clear owner lowers family confusion.'
+        : 'Open the workspace only if you need documents, people, messages, or history.';
 
   const saveWishes = async () => {
     if (!user) {
@@ -3717,6 +3731,11 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   <div style={{ fontFamily: "Georgia, serif", fontSize: 23, color: C.ink, lineHeight: 1.15 }}>{selectedDashboardEstate?.name || "Select an estate"}</div>
                   <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>One next move, one owner, one proof trail. Switch estates only when you need a different family record.</div>
                 </div>
+              </div>
+              <div style={{ background: selectedDashboardEstate?.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${selectedDashboardEstate?.path === 'green' ? C.sageLight : C.rose + '30'}`, borderRadius: 13, padding: "11px 12px", marginBottom: 12 }}>
+                <div style={{ fontSize: 9.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900, marginBottom: 4 }}>Current state</div>
+                <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 800 }}>{selectedEstateState}</div>
+                <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>{selectedEstateStateBody}</div>
               </div>
               {activeWorkflows.length > 1 && (
                 <div style={{ display: "flex", gap: 7, flexWrap: "wrap", paddingBottom: 2, marginBottom: 12 }}>

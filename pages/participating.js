@@ -512,9 +512,9 @@ export default function ParticipatingPage() {
 
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 28px 56px' }}>
         <div style={{ maxWidth: 760, marginBottom: 24 }}>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Participating in an estate</div>
-          <h1 style={{ fontSize: 32, lineHeight: 1.1, margin: '0 0 8px', fontWeight: 400 }}>Your Passage assignments.</h1>
-          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, margin: 0 }}>Handle one scoped task. Passage attaches your update to the family record without showing you the whole workspace.</p>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Asked to help</div>
+          <h1 style={{ fontSize: 32, lineHeight: 1.1, margin: '0 0 8px', fontWeight: 400 }}>One thing the family asked you to handle.</h1>
+          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, margin: 0 }}>Accept it, say what is waiting, or record what happened. Passage sends the update back without opening the full family workspace.</p>
         </div>
 
         {!user && !demoMode && (
@@ -553,7 +553,7 @@ export default function ParticipatingPage() {
             <div>
               {(router.query.estate || router.query.task) && (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
-                  <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>Your next responsibility</div>
+                  <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>The one thing to answer first</div>
                   <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>
                     Accept it, ask for details, or record what happened. Your update goes back to the coordinator, and you can stop after this responsibility is handled.
                   </div>
@@ -633,13 +633,13 @@ export default function ParticipatingPage() {
                     <div style={{ padding: '0 20px 20px' }}>
                       <div className="participant-estate-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
                         {[
-                          ['Your next task', primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
-                          ['Open for you', openItems.length],
-                          ['Updates', estate.coordinationSpine?.latest?.length || 0],
+                          ['Asked of you', primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
+                          ['Still waiting', openItems.length],
+                          ['Saved updates', estate.coordinationSpine?.latest?.length || 0],
                         ].map(([label, value]) => (
                           <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
                             <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-                            <div style={{ fontSize: label === 'Your next task' ? 12.5 : 18, color: C.ink, marginTop: 3, lineHeight: 1.25, fontWeight: 800 }}>{value}</div>
+                            <div style={{ fontSize: label === 'Asked of you' ? 12.5 : 18, color: C.ink, marginTop: 3, lineHeight: 1.25, fontWeight: 800 }}>{value}</div>
                           </div>
                         ))}
                       </div>
@@ -724,8 +724,20 @@ export default function ParticipatingPage() {
 
             {!(router.query.estate || router.query.task) && (
               <aside style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, alignSelf: 'start' }}>
-                <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>Your role stays scoped.</div>
-                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7, marginBottom: 12 }}>Passage only shows the responsibilities assigned to you. The coordinator keeps the full family record, approvals, and broader estate history.</p>
+                <div style={{ fontSize: 20, lineHeight: 1.25, marginBottom: 8 }}>You only see your part.</div>
+                <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.7, marginBottom: 12 }}>Passage shows the responsibility assigned to you, the coordinator, and any service details needed to answer. The family record, approvals, private notes, and broader history stay with the coordinator.</p>
+                <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+                  {[
+                    ['Visible to you', 'Your task, coordinator, service context, and your saved updates.'],
+                    ['Visible to coordinator', 'Your response, proof note, waiting state, and timestamp.'],
+                    ['Not shown here', 'The full estate workspace, private family notes, and unrelated tasks.'],
+                  ].map(([title, body]) => (
+                    <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
+                      <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
+                      <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>{body}</div>
+                    </div>
+                  ))}
+                </div>
                 <details style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 12px', background: C.bg }}>
                   <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Later: plan for your own family</summary>
                   <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.6, margin: '10px 0' }}>Participants often understand the value after helping once. This can wait until your assigned work is handled.</p>

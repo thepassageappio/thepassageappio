@@ -67,7 +67,7 @@ export default function VendorOnboard() {
               </div>
             </div>
             <div style={{ display: 'grid', gap: 9, marginTop: 20 }}>
-              {['Families see your help only when it fits the next step.', 'You receive a request by email and update it from a private Passage link.', 'Passage tracks the booking value so future payments and funeral-home partner share can stay inside the system.', 'Funeral homes can choose preferred local partners.'].map((item) => (
+              {['Families see your help only when it fits the next step.', 'You receive one scoped request and do not browse family records.', 'Passage tracks viewed, accepted, waiting, completed, and declined states so nobody has to guess.', 'Funeral homes can choose preferred local partners for the families they serve.'].map((item) => (
                 <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', color: C.mid, lineHeight: 1.5 }}>{item}</div>
               ))}
             </div>
