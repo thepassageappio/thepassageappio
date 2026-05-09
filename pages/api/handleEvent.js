@@ -272,11 +272,10 @@ async function handleShareTriggered(payload) {
     twitter_text: twitterText,
     instagram_text: instagramText,
     sms_text: smsText,
-    published_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }], { onConflict: 'workflow_id' });
 
-  return { saved: true };
+  return { saved: true, published: false };
 }
 
 async function handleInviteSent(payload) {

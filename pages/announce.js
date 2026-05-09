@@ -258,7 +258,7 @@ export default function AnnouncePage() {
       return;
     }
 
-    // SMS or email — save as approved, fire via handleEvent
+    // SMS or email - save as approved and persist the prepared output.
     if (estateId) {
       await sb.from('announcements').insert([{
         estate_id: estateId,
