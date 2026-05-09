@@ -284,6 +284,21 @@ const readinessChecks = [
   'Import mapping, preview, case-summary export, and full-spine export remain the adoption-trust close.',
 ];
 
+const productionReadiness = [
+  ['Mission lock', 'Strong', 'Passage is now the family continuity and orchestration layer across green, warm, red, funeral-home, vendor, announcement, participant, and aftercare surfaces.'],
+  ['Founder-led demo', 'Ready', 'The nine-stop loop is coherent enough for controlled funeral-home and family beta conversations.'],
+  ['Small pilot readiness', '2-4 sprints', 'Needs repeatable persona QA, sharper operator onboarding, and real delivery/error audit checks before a funeral home runs live families through it.'],
+  ['Broader production readiness', '6-10 sprints', 'Needs instrumentation, support operations, delivery monitoring, stronger data repair tools, and more core task outputs before broader acquisition.'],
+];
+
+const nextSprintQueue = [
+  ['Persona QA', 'Run red, warm, participant, director, staff, vendor, and system-admin scripts end to end with pass/fail notes.'],
+  ['Delivery truth', 'Keep prepared, requested, sent, delivered, waiting, failed, and handled states exact across UI, exports, and events.'],
+  ['Pilot operator path', 'Make the director first-day workflow unmistakable: create/open case, move one task, request family info, export summary.'],
+  ['Output depth', 'Turn more high-frequency tasks into packet/script/request outputs, not status-only buttons.'],
+  ['Observability', 'Track owner latency, waiting aging, calls avoided, failed sends, vendor response time, and proof completion.'],
+];
+
 const valueStory = [
   {
     title: 'For funeral directors',
@@ -523,6 +538,35 @@ export default function SystemDemo() {
                       <div key={check} style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr)', gap: 9, alignItems: 'start', color: C.mid, lineHeight: 1.45 }}>
                         <span style={{ color: C.sage, fontWeight: 900 }}>OK</span>
                         <span>{check}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+              </section>
+              <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, .8fr)', gap: 22, marginTop: 16, alignItems: 'start' }}>
+                <Panel>
+                  <div style={eyebrow}>Production readiness</div>
+                  <h2 style={h2}>Where Passage is now.</h2>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {productionReadiness.map(([label, status, body]) => (
+                      <div key={label} style={{ ...smallCard, display: 'grid', gridTemplateColumns: '130px minmax(0, 1fr)', gap: 12 }}>
+                        <div>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                          <div style={{ color: status === 'Strong' || status === 'Ready' ? C.sage : C.amber, fontWeight: 900, marginTop: 4 }}>{status}</div>
+                        </div>
+                        <div style={smallText}>{body}</div>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+                <Panel>
+                  <div style={eyebrow}>Next sprint queue</div>
+                  <h2 style={h2}>What still closes the loop.</h2>
+                  <div style={{ display: 'grid', gap: 9 }}>
+                    {nextSprintQueue.map(([label, body]) => (
+                      <div key={label} style={{ borderTop: '1px solid ' + C.border, paddingTop: 9 }}>
+                        <strong style={{ color: C.ink }}>{label}</strong>
+                        <div style={smallText}>{body}</div>
                       </div>
                     ))}
                   </div>
