@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 
@@ -232,7 +233,17 @@ function isSystemAdmin(user) {
   return SYSTEM_ADMIN_EMAILS.includes(normalizeEmail(user?.email));
 }
 
+function studioStepFromQuery(value) {
+  const clean = String(value || '').toLowerCase();
+  if (clean === 'task') return 'tasks';
+  if (clean === 'chat') return 'coordinate';
+  if (clean === 'participant') return 'delegation';
+  if (demoSteps.some(step => step.id === clean)) return clean;
+  return '';
+}
+
 export default function SystemDemo() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [selectedStep, setSelectedStep] = useState('overview');
   const [selectedChat, setSelectedChat] = useState(0);
@@ -246,6 +257,12 @@ export default function SystemDemo() {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
     return () => data.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const routedStep = studioStepFromQuery(router.query.demoStep);
+    if (routedStep) setSelectedStep(routedStep);
+  }, [router.isReady, router.query.demoStep]);
 
   const activeStep = useMemo(() => demoSteps.find(step => step.id === selectedStep) || demoSteps[0], [selectedStep]);
   const currentIndex = demoSteps.findIndex(step => step.id === activeStep.id);
