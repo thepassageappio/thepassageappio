@@ -153,6 +153,7 @@ export default function FuneralHomeDashboard() {
   const [taskDraftNote, setTaskDraftNote] = useState('');
   const [assignmentDraft, setAssignmentDraft] = useState({ taskId: '', name: '', email: '', role: '', phone: '' });
   const [activePartnerView, setActivePartnerView] = useState('work');
+  const [caseDetailTabs, setCaseDetailTabs] = useState({});
   const [showAllCases, setShowAllCases] = useState(false);
   const [latestFamilyLink, setLatestFamilyLink] = useState(null);
   const [latestStaffInvite, setLatestStaffInvite] = useState(null);
@@ -1795,6 +1796,13 @@ export default function FuneralHomeDashboard() {
                 .slice()
                 .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')))
                 .slice(0, 3);
+              const detailTab = caseDetailTabs[item.id] || 'proof';
+              const detailTabs = [
+                ['proof', 'Proof', proofCount + (item.activity?.length || 0)],
+                ['family', 'Family', familyParticipants.length],
+                ['local', 'Local help', vendorRequests.length],
+                ['tasks', 'Tasks', topTasks.length],
+              ];
               const missingTimeline = Array.isArray(item.orchestration_summary?.missing_timeline_watch)
                 ? item.orchestration_summary.missing_timeline_watch.filter(Boolean).slice(0, 2)
                 : [];
@@ -2015,10 +2023,20 @@ export default function FuneralHomeDashboard() {
                   {isExpanded && (
                     <details id={'partner-coordination-spine-' + item.id} style={{ border: `1px solid ${C.border}`, borderRadius: 13, background: C.bg, marginTop: 10, overflow: 'hidden', scrollMarginTop: 92 }}>
                       <summary style={{ cursor: 'pointer', padding: '10px 12px', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>
-                        Supporting details: progress, proof, family access, vendors, and task queue
+                        Supporting details
                       </summary>
                       <div style={{ padding: '0 12px 12px' }}>
-                  {orchestration.progress.length > 0 && (
+                  <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', paddingTop: 9 }}>
+                    {detailTabs.map(([key, label, count]) => (
+                      <button
+                        key={key}
+                        onClick={() => setCaseDetailTabs(prev => ({ ...prev, [item.id]: key }))}
+                        style={{ border: `1px solid ${detailTab === key ? C.sage : C.border}`, background: detailTab === key ? C.sage : C.card, color: detailTab === key ? '#fff' : C.mid, borderRadius: 999, padding: '7px 10px', fontFamily: 'Georgia,serif', fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
+                        {label} <span style={{ opacity: .72 }}>{count}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {detailTab === 'proof' && orchestration.progress.length > 0 && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7, marginTop: 9 }}>
                       {orchestration.progress.slice(0, 5).map(row => (
                         <div key={row.category} style={{ background: C.bg, border: `1px solid ${row.needsHelp ? C.rose + '44' : row.waiting ? C.amber + '33' : C.border}`, borderRadius: 11, padding: '8px 9px' }}>
@@ -2034,7 +2052,7 @@ export default function FuneralHomeDashboard() {
                       ))}
                     </div>
                   )}
-                  {isExpanded && item.activity?.length > 0 && (
+                  {detailTab === 'proof' && item.activity?.length > 0 && (
                     <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Recent proof</div>
                       {item.activity.slice(0, 3).map(event => (
@@ -2045,6 +2063,7 @@ export default function FuneralHomeDashboard() {
                       ))}
                     </div>
                   )}
+                  {detailTab === 'proof' && (
                   <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 7 }}>Family status view</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
@@ -2061,7 +2080,8 @@ export default function FuneralHomeDashboard() {
                     </div>
                     <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>Share this status instead of answering another "where are we?" call.</div>
                   </div>
-                  {familyParticipants.length > 0 && (
+                  )}
+                  {detailTab === 'family' && familyParticipants.length > 0 && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Family access handoff</div>
                       {familyParticipants.slice(0, 3).map(participant => {
@@ -2083,7 +2103,10 @@ export default function FuneralHomeDashboard() {
                       <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>Family access link ready.</div>
                     </div>
                   )}
-                  {isExpanded && item.coordinationSpine?.latest?.length > 0 && (
+                  {detailTab === 'family' && familyParticipants.length === 0 && (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No family access handoff is saved for this case yet.</div>
+                  )}
+                  {detailTab === 'proof' && item.coordinationSpine?.latest?.length > 0 && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Conversation, proof, and notifications</div>
                       {item.coordinationSpine.latest.slice(0, 5).map(message => (
@@ -2097,7 +2120,10 @@ export default function FuneralHomeDashboard() {
                       ))}
                     </div>
                   )}
-                  {isExpanded && vendorRequests.length > 0 && (
+                  {detailTab === 'proof' && orchestration.progress.length === 0 && item.activity?.length === 0 && item.coordinationSpine?.latest?.length === 0 && (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No proof or coordination events are recorded yet.</div>
+                  )}
+                  {detailTab === 'local' && vendorRequests.length > 0 && (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>Local support requests</div>
                       {vendorRequests.slice(0, 3).map(request => (
@@ -2115,7 +2141,13 @@ export default function FuneralHomeDashboard() {
                       ))}
                     </div>
                   )}
-                  {isExpanded && topTasks.map(task => (
+                  {detailTab === 'local' && vendorRequests.length === 0 && (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No task-linked local support requests are open for this case.</div>
+                  )}
+                  {detailTab === 'tasks' && topTasks.length === 0 && (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No partner-ready task details are open right now.</div>
+                  )}
+                  {detailTab === 'tasks' && topTasks.map(task => (
                     <div key={task.id} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 11, marginTop: 11 }}>
                       {(() => {
                         const context = { caseName: item?.deceased_name || item?.estate_name || item?.name, coordinatorName: item?.coordinator_name, surface: 'Recent proof' };
