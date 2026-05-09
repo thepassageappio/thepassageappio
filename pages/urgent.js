@@ -598,6 +598,11 @@ export default function UrgentPage() {
         .triage-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
         .triage-choice { border:1px solid ${C.border}; background:${C.bg}; color:${C.ink}; border-radius:12px; padding:11px 12px; text-align:left; cursor:pointer; font-weight:800; }
         .triage-choice.active { background:${C.sageFaint}; border-color:${C.sage}; color:${C.sageDark}; }
+        .crisis-sequence { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:0 0 14px; }
+        .crisis-step { background:${C.card}; border:1px solid ${C.border}; border-radius:14px; padding:12px; }
+        .crisis-step.active { background:${C.roseFaint}; border-color:rgba(184,107,111,.35); }
+        .crisis-step b { display:block; color:${C.ink}; font-size:14px; margin-bottom:4px; }
+        .crisis-step span { display:block; color:${C.mid}; font-size:12.2px; line-height:1.4; }
         .next-preview { display:grid; gap:7px; margin-top:10px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:11px 12px; }
         .next-preview-title { color:${C.sageDark}; font-size:11px; letter-spacing:.13em; text-transform:uppercase; font-weight:900; }
         .next-preview div:not(.next-preview-title) { color:${C.mid}; font-size:13px; line-height:1.4; }
@@ -667,7 +672,7 @@ export default function UrgentPage() {
           .grid { grid-template-columns: 1fr; }
           .save-strip { grid-template-columns: 1fr; }
           .context-grid { grid-template-columns:1fr; }
-          .triage-grid, .authority-options, .phase-rail { grid-template-columns:1fr; }
+          .triage-grid, .authority-options, .phase-rail, .crisis-sequence { grid-template-columns:1fr; }
           .save-command { width:100%; }
           .primary-card { padding: 22px; }
           .field.two { grid-template-columns: 1fr; }
@@ -702,6 +707,18 @@ export default function UrgentPage() {
         <section className="grid grid-single">
           <div className="card primary-card">
             {paidSuccess && <div className="paid-success">You're in the right place. We'll guide you step by step.</div>}
+            <div className="crisis-sequence" aria-label="Urgent path sequence">
+              {[
+                ['Stabilize', 'Confirm the setting and official authority before anything else moves.'],
+                ['Coordinate', 'Name one owner for the next practical step and keep the family from repeating calls.'],
+                ['Organize', 'Save the command center when you are ready so proof, roles, and next steps persist.'],
+              ].map(([label, body], index) => (
+                <div key={label} className={`crisis-step ${index === 0 && !selectedSituation ? 'active' : index === 1 && selectedSituation && primary && !primary.owner ? 'active' : index === 2 && selectedSituation && primary?.owner ? 'active' : ''}`}>
+                  <b>{label}</b>
+                  <span>{body}</span>
+                </div>
+              ))}
+            </div>
             <div className="triage">
               <div className="triage-head">
                 <div>
