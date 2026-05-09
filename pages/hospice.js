@@ -75,6 +75,13 @@ const handoff = [
   ['What is missing', 'The next items the funeral home or family should ask for'],
 ];
 
+const warmSpine = [
+  ['What happens now', 'Save the care contacts and first-hour plan before the crisis moment.'],
+  ['Who owns it', 'A family coordinator, with Passage keeping the handoff organized.'],
+  ['What is waiting', 'Unknown dates, funeral-home choice, and family approvals stay visible.'],
+  ['How we know', 'Saved contacts, reviewed plan, known dates, and handoff packet proof.'],
+];
+
 export default function HospiceWarmPath() {
   const [user, setUser] = useState(null);
   const [form, setForm] = useState({
@@ -157,7 +164,8 @@ export default function HospiceWarmPath() {
           .warm-task-row,
           .warm-handoff-row,
           .warm-contact-grid,
-          .warm-date-grid {
+          .warm-date-grid,
+          .warm-spine-grid {
             grid-template-columns: 1fr !important;
           }
         }
@@ -195,6 +203,14 @@ export default function HospiceWarmPath() {
               ))}
             </div>
           </div>
+        </div>
+        <div className="warm-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 14 }}>
+          {warmSpine.map(([label, value]) => (
+            <div key={label} style={spineBox}>
+              <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+              <div style={{ color: C.ink, fontSize: 14, lineHeight: 1.45, marginTop: 5 }}>{value}</div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -386,3 +402,4 @@ const miniBox = { background: C.card, border: '1px solid ' + C.border, borderRad
 const dateRow = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', background: C.bg, border: '1px solid ' + C.border, borderRadius: 12, padding: '10px 12px', color: C.mid };
 const handoffRow = { display: 'grid', gridTemplateColumns: '160px minmax(0, 1fr)', gap: 12, background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: '12px 13px', color: C.mid };
 const smallCard = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 16 };
+const spineBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: '13px 14px' };
