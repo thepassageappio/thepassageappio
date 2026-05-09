@@ -21,14 +21,39 @@ Every persona must be a different slice of the same truth:
 
 | Persona | Current Score | What Works | Remaining Demo Risk |
 | --- | ---: | --- | --- |
-| Warm path family / hospice-adjacent | 8.6 | Clear continuity story; now saves a real workspace and known lifecycle dates. | Needs smoother transition from warm workspace to red activation and funeral-home handoff approval. |
-| Red path family | 8.8 | Urgent triage, one-next-action framing, task explanations. | Still needs fewer visible modules after activation on small screens. |
+| Warm path family / hospice-adjacent | 8.8 | Clear continuity story; saves a real workspace, known lifecycle dates, and now shows the spine above the fold. | Needs smoother transition from warm workspace to red activation and funeral-home handoff approval. |
+| Red path family | 8.8 | Urgent triage, one-next-action framing, task explanations. | Still needs fewer visible modules after activation on small screens and a more explicit hospice-to-red conversion. |
 | Green path planner | 8.4 | Calm setup and planning file direction. | Payoff needs to feel more like "my family is protected" and less like data entry. |
-| Funeral-home director | 8.9 | Dashboard, risk/attention, case work, packets, import/export, calls avoided. | Demo needs one guided linear story that proves time saved without explanation. |
-| Funeral-home employee | 8.2 | Staff setup and assigned-work concepts exist. | My Work should be the default daily surface with service date/context pinned. |
-| Participant/helper | 8.6 | Demo mode, scoped task, note/proof, waiting/help responses. | First-time invite landing still needs stronger "why you are here" and single action focus. |
-| Vendor | 8.5 | Scoped request, urgency, accept/in-progress/complete/decline loop. | Quote/scheduling/payment next steps are intentionally thin and need future structure. |
-| Demo operator | 8.7 | Demo studio, live product links, warm path, packets, vendor demo. | Demo steps must always open the exact product moment and avoid dead buttons. |
+| Funeral-home director | 9.0 | Dashboard, risk/attention, one-pane case work, packets, import/export, calls avoided, and next lifecycle date. | Needs first-day pilot path to be unmistakable without Codex/operator narration. |
+| Funeral-home employee | 8.3 | Staff setup, assigned-work concepts, action dialogs, output/proof language. | My Work should be the default daily surface with service date/context pinned. |
+| Participant/helper | 8.7 | Demo mode, scoped task, note/proof, waiting/help responses, loop state. | First-time invite landing still needs stronger "why you are here" and single action focus. |
+| Vendor | 8.7 | Scoped request, urgency, request/view/accept/in-progress/complete/decline loop, visible handoff spine. | Quote/scheduling/payment next steps are intentionally thin and need future structure. |
+| Demo operator | 9.0 | Demo studio, live product links, warm path, packets, vendor demo, production-readiness level set. | Needs scripted screenshot/mobile QA so demos are not dependent on memory. |
+
+## Current Readiness Level
+
+| Gate | Status | Meaning |
+| --- | --- | --- |
+| Mission lock | Strong | Passage is now consistently presented as family continuity infrastructure, with institutions rotating through the family record. |
+| Founder-led demo | Ready | The nine-stop loop is coherent enough for controlled funeral-home and family beta conversations. |
+| Small pilot | 2-4 focused sprints | Needs repeatable persona QA, pilot operator onboarding, delivery/error audit checks, and mobile density review. |
+| Broader production | 6-10 focused sprints | Needs observability, support operations, data repair tools, deeper outputs, and legal/trust finalization before broader acquisition. |
+
+## Repeatable Pilot QA Run
+
+Run this after any sprint that touches task, communication, proof, demo, or role-specific surfaces.
+
+| Step | Route | Persona | Pass condition |
+| --- | --- | --- | --- |
+| 1 | `/hospice` | Warm-path family | Above the fold answers what happens now, who owns it, what is waiting, and how proof will be known. Saving must not send email/SMS. |
+| 2 | `/?dashboard=1` | Family index | User sees one active estate/planning focus without duplicate attention clutter. |
+| 3 | `/estate` | Family command center | Selected task shows next move, owner, waiting state, proof destination, output, and one primary workspace action. |
+| 4 | `/funeral-home/dashboard` | Director | Dashboard shows active cases, waiting responses, staff/workload signal, calls avoided, next case focus, and export trust. |
+| 5 | `/funeral-home/dashboard?demoStep=task` | Staff/operator | One task can be advanced through request family info, waiting, or proof without stacked panels. |
+| 6 | `/participating?demo=1` | Participant/helper | Participant sees only assigned work and can accept, mark waiting, handle, or ask for help. |
+| 7 | `/vendors/request?demo=1` | Vendor | Vendor sees scoped request, owner/waiting/proof loop, and demo actions do not touch live records. |
+| 8 | `/share?dn=Eleanor%20Price&cn=Price%20family` | Family coordinator | Event one-pager and copy outputs are prepared/saved only; nothing claims sent/published without a provider send. |
+| 9 | `/system/demo` | Demo operator | Nine product moments, readiness level set, and next sprint queue match current product behavior. |
 
 ## P0 QA Checklist
 
