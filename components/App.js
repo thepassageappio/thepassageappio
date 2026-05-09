@@ -3712,15 +3712,10 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                           <div style={{ marginTop: 9, background: blockers.length ? C.goldFaint : C.sageFaint, border: `1px solid ${blockers.length ? C.gold + '44' : C.sageLight}`, borderRadius: 11, padding: "9px 10px", fontSize: 12, color: blockers.length ? C.amber : C.mid, lineHeight: 1.45 }}>
                             <strong style={{ color: C.ink }}>Next expected update:</strong> {nextReason}
                           </div>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 7, marginTop: 9 }}>
-                            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 7 }}>
-                              <div style={{ fontSize: 9.5, color: C.soft, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>Output</div>
-                              <div style={{ fontSize: 11.8, color: C.ink, lineHeight: 1.35, fontWeight: 800 }}>{workspace.output?.label || 'Task output and proof trail'}</div>
-                            </div>
-                            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 7 }}>
-                              <div style={{ fontSize: 9.5, color: C.soft, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>Proof</div>
-                              <div style={{ fontSize: 11.8, color: C.mid, lineHeight: 1.35 }}>{workspace.proofDestination}</div>
-                            </div>
+                          <div style={{ marginTop: 8, fontSize: 11.5, color: C.mid, lineHeight: 1.4 }}>
+                            <strong style={{ color: C.ink }}>{workspace.output?.label || 'Task output'}</strong>
+                            <span style={{ color: C.soft }}> · Proof: </span>
+                            {workspace.proofDestination}
                           </div>
                         </div>
                         <span style={{ fontSize: 11.5, fontWeight: 900, color: item.assignedTo ? C.sage : C.rose, whiteSpace: "nowrap", alignSelf: "center" }}>
