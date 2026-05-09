@@ -1763,6 +1763,9 @@ export default function FuneralHomeDashboard() {
                 .slice()
                 .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')))
                 .slice(0, 3);
+              const missingTimeline = Array.isArray(item.orchestration_summary?.missing_timeline_watch)
+                ? item.orchestration_summary.missing_timeline_watch.filter(Boolean).slice(0, 2)
+                : [];
               return (
                 <div id={'partner-case-' + item.id} key={item.id} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 18, padding: 18, scrollMarginTop: 92 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
@@ -1825,6 +1828,9 @@ export default function FuneralHomeDashboard() {
                         <span key={`${event.event_type || event.name || event.title}_${event.date}`} style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{event.name || event.title || event.event_type || 'Event'}: {new Date(String(event.date).includes('T') ? event.date : `${event.date}T12:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                       ))
                       : <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Event dates unknown</span>}
+                    {missingTimeline.map(label => (
+                      <span key={`missing_${label}`} style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Add when known: {label}</span>
+                    ))}
                     <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{conversationCount} convo / {proofCount} proof / {notificationCount} alerts</span>
                   </div>
                   {isExpanded && nextPartnerTask && (() => {
