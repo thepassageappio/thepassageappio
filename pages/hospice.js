@@ -85,6 +85,12 @@ export default function HospiceWarmPath() {
     hospicePhone: '',
     funeralHomeName: '',
     expectedWindow: '',
+    pronouncementDate: '',
+    arrangementDate: '',
+    serviceDate: '',
+    burialDate: '',
+    shivaDate: '',
+    receptionDate: '',
   });
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState('');
@@ -150,7 +156,8 @@ export default function HospiceWarmPath() {
           }
           .warm-task-row,
           .warm-handoff-row,
-          .warm-contact-grid {
+          .warm-contact-grid,
+          .warm-date-grid {
             grid-template-columns: 1fr !important;
           }
         }
@@ -220,6 +227,20 @@ export default function HospiceWarmPath() {
               </div>
               <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={inputStyle} />
               <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if the family knows it" style={inputStyle} />
+              <details style={{ border: '1px solid ' + C.border, borderRadius: 13, background: C.bg, padding: 12 }}>
+                <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 14 }}>Known dates, if any</summary>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, margin: '7px 0 10px' }}>
+                  Add only what the family actually knows. Unknown dates stay visible as tasks instead of blocking the workspace.
+                </div>
+                <div className="warm-date-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+                  <WarmDate label="Pronouncement" value={form.pronouncementDate} onChange={value => updateField('pronouncementDate', value)} />
+                  <WarmDate label="Arrangement meeting" value={form.arrangementDate} onChange={value => updateField('arrangementDate', value)} />
+                  <WarmDate label="Funeral / memorial" value={form.serviceDate} onChange={value => updateField('serviceDate', value)} />
+                  <WarmDate label="Burial / committal" value={form.burialDate} onChange={value => updateField('burialDate', value)} />
+                  <WarmDate label="Shiva / mourning" value={form.shivaDate} onChange={value => updateField('shivaDate', value)} />
+                  <WarmDate label="Reception / gathering" value={form.receptionDate} onChange={value => updateField('receptionDate', value)} />
+                </div>
+              </details>
               {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{error}</div>}
               {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{notice}</div>}
               {!user && <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>Sign in once so Passage can save this to your family command center.</div>}
@@ -332,6 +353,15 @@ export default function HospiceWarmPath() {
       </section>
       <SiteFooter />
     </main>
+  );
+}
+
+function WarmDate({ label, value, onChange }) {
+  return (
+    <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>
+      {label}
+      <input type="date" value={value} onChange={event => onChange(event.target.value)} style={inputStyle} />
+    </label>
   );
 }
 

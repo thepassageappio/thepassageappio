@@ -105,6 +105,39 @@ function buildWarmPathTasks(context = {}) {
   });
 }
 
+function dateOnly(value) {
+  const text = clean(value);
+  if (!text) return '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : '';
+}
+
+function timelineAnchorsForContext(context = {}) {
+  return [
+    ['pronouncement', 'Official pronouncement', dateOnly(context.pronouncement_date), 'Known only if the family already has it.'],
+    ['arrangement', 'Arrangement meeting', dateOnly(context.arrangement_date), 'Planning date captured before the funeral-home handoff.'],
+    ['funeral', 'Funeral / memorial service', dateOnly(context.service_date), 'Service or memorial date if already known.'],
+    ['burial', 'Burial / committal', dateOnly(context.burial_date), 'Burial, committal, cemetery, or cremation date if already known.'],
+    ['shiva', 'Shiva / mourning period', dateOnly(context.shiva_date), 'Shiva or mourning-period date if already known.'],
+    ['reception', 'Reception / gathering', dateOnly(context.reception_date), 'Reception or family gathering date if already known.'],
+  ].filter(item => item[2]).map(item => ({
+    event_type: item[0],
+    name: item[1],
+    date: item[2],
+    notes: item[3],
+  }));
+}
+
+function missingTimelineWatch(context = {}) {
+  return [
+    !dateOnly(context.date_of_death) ? 'Date of death when it occurs' : '',
+    !dateOnly(context.pronouncement_date) ? 'Pronouncement time and source' : '',
+    'Removal or transfer time',
+    !dateOnly(context.arrangement_date) ? 'Arrangement meeting date' : '',
+    !dateOnly(context.service_date) ? 'Service or memorial date' : '',
+    !dateOnly(context.burial_date) ? 'Burial, committal, cemetery, or cremation date' : '',
+  ].filter(Boolean);
+}
+
 async function getUser(req) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return { user: null, token: '' };
@@ -140,8 +173,16 @@ export default async function handler(req, res) {
     disposition_preference: clean(req.body?.dispositionPreference),
     service_preference: clean(req.body?.servicePreference),
     expected_window: clean(req.body?.expectedWindow),
+    date_of_death: dateOnly(req.body?.dateOfDeath),
+    pronouncement_date: dateOnly(req.body?.pronouncementDate),
+    arrangement_date: dateOnly(req.body?.arrangementDate),
+    service_date: dateOnly(req.body?.serviceDate),
+    burial_date: dateOnly(req.body?.burialDate),
+    shiva_date: dateOnly(req.body?.shivaDate),
+    reception_date: dateOnly(req.body?.receptionDate),
     notes: clean(req.body?.notes),
   };
+  const timelineAnchors = timelineAnchorsForContext(warmContext);
 
   try {
     const { data: existing } = await admin
@@ -173,14 +214,8 @@ export default async function handler(req, res) {
         lifecycle_phase: 'hospice_preparation',
         warm_path_context: warmContext,
         hospice_context: warmContext,
-        timeline_anchors: [],
-        missing_timeline_watch: [
-          'Date of death when it occurs',
-          'Pronouncement time and source',
-          'Removal or transfer time',
-          'Arrangement meeting date',
-          'Service or memorial date',
-        ],
+        timeline_anchors: timelineAnchors,
+        missing_timeline_watch: missingTimelineWatch(warmContext),
         trusted_advisors: {
           ...(existing?.orchestration_summary?.trusted_advisors || {}),
           hospice_or_care_team: warmContext.hospice_contact || warmContext.hospice_agency || null,
@@ -210,6 +245,30 @@ export default async function handler(req, res) {
     }));
     const { error: taskError } = await admin.from('tasks').upsert(tasks, { onConflict: 'workflow_id,title', ignoreDuplicates: false });
     if (taskError) return res.status(500).json({ error: taskError.message || 'Could not save warm-path tasks.' });
+
+    if (timelineAnchors.length) {
+      const eventTypes = timelineAnchors.map(item => item.event_type);
+      const { data: existingEvents } = await admin
+        .from('estate_events')
+        .select('id,event_type')
+        .eq('estate_id', workflow.id)
+        .in('event_type', eventTypes);
+      for (const anchor of timelineAnchors) {
+        const existingEvent = (existingEvents || []).find(item => item.event_type === anchor.event_type);
+        const row = {
+          estate_id: workflow.id,
+          event_type: anchor.event_type,
+          name: anchor.name,
+          title: anchor.name,
+          date: anchor.date,
+          notes: anchor.notes,
+          description: anchor.notes,
+          actor: coordinatorName,
+        };
+        if (existingEvent?.id) await admin.from('estate_events').update(row).eq('id', existingEvent.id).then(() => {}, () => {});
+        else await admin.from('estate_events').insert([row]).then(() => {}, () => {});
+      }
+    }
 
     await admin.from('estate_events').insert([{
       estate_id: workflow.id,
