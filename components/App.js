@@ -4742,7 +4742,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <section className="home-hero">
           <div>
             <div className="home-kicker">Passage</div>
-            <h1 className="home-title">A calm operating system for the hardest family handoffs.</h1>
+            <h1 className="home-title">One calm place for the hardest family handoffs.</h1>
             <p className="home-lede">
               Passage keeps the next step, the owner, the waiting point, and the proof in one shared family record, from preparation through death, funeral coordination, and the long tail after.
             </p>
@@ -4781,8 +4781,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <div className="home-band-grid">
             <div>
               <div className="home-kicker">How it works</div>
-              <h2>Families do not experience institutions as separate products.</h2>
-              <p>Hospice, funeral homes, vendors, attorneys, participants, and executors rotate in and out. Passage keeps the family record continuous.</p>
+              <h2>Families should not have to start over at every door.</h2>
+              <p>Care teams, funeral homes, vendors, attorneys, helpers, and executors may all be involved. Passage keeps the family record continuous.</p>
             </div>
             <div>
               {[
@@ -4808,8 +4808,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         <section className="partner-strip">
           <div>
             <div className="home-kicker" style={{ marginBottom: 8 }}>For providers</div>
-            <h2>Funeral homes get the first wedge. The family record remains the center.</h2>
-            <p>Passage sits above existing workflows: create or import cases, assign staff and participants, prepare outputs, track proof, and export back out without asking the family to start over.</p>
+            <h2>A clearer way to keep families and staff aligned.</h2>
+            <p>Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to the tools they already use.</p>
           </div>
           <div className="home-actions" style={{ marginTop: 0 }}>
             <a href="/funeral-home" className="home-action home-primary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Funeral-home workflow</a>

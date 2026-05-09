@@ -361,13 +361,18 @@ export default function SystemDemo() {
   const [notice, setNotice] = useState('');
   const [demoStaffRows, setDemoStaffRows] = useState(staff);
   const [demoCaseRows, setDemoCaseRows] = useState(cases);
+  const demoMode = router.query.demo === '1' || router.query.demoTour === 'funeral-home';
 
   useEffect(() => {
+    if (router.isReady && demoMode) {
+      setUser({ email: 'steventurrisi@gmail.com' });
+      return undefined;
+    }
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
     const { data } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [router.isReady, demoMode]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -431,7 +436,7 @@ export default function SystemDemo() {
 
         {user && admin && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(280px, .85fr)', gap: 22, alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 22, alignItems: 'start' }}>
               <Panel>
                 <div style={eyebrow}>System admin sales demo</div>
                 <h1 style={{ ...h1, maxWidth: 720 }}>A guided walkthrough for funeral-home directors.</h1>
@@ -469,7 +474,7 @@ export default function SystemDemo() {
 
             {notice && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 14, padding: 14, marginTop: 16, fontWeight: 900 }}>{notice}</div>}
 
-            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 22, marginTop: 22, alignItems: 'start' }}>
+            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 22, marginTop: 22, alignItems: 'start' }}>
               <Panel>
                 <div style={eyebrow}>{activeStep.kicker}</div>
                 <h2 style={h2}>{activeStep.title}</h2>
@@ -497,29 +502,32 @@ export default function SystemDemo() {
               />
             </section>
 
-            <Panel style={{ marginTop: 22 }}>
-              <div style={eyebrow}>Runnable demo rail</div>
-              <h2 style={h2}>One story, nine product moments.</h2>
-              <p style={{ ...lead, maxWidth: 820 }}>Use this as the operator-safe spine for demos. Every stop opens the actual product surface that should prove the claim, with dummy-safe links where the flow touches participants or vendors.</p>
-              <div style={{ display: 'grid', gap: 9, marginTop: 14 }}>
+            <details style={{ marginTop: 22 }}>
+              <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>Show full demo rail: nine product moments</summary>
+              <Panel style={{ marginTop: 12 }}>
+                <div style={eyebrow}>Runnable demo rail</div>
+                <h2 style={h2}>One story, nine product moments.</h2>
+                <p style={{ ...lead, maxWidth: 820 }}>Use this as the operator-safe spine for demos. Every stop opens the actual product surface that should prove the claim, with dummy-safe links where the flow touches participants or vendors.</p>
+                <div style={{ display: 'grid', gap: 9, marginTop: 14 }}>
                 {demoRail.map(step => (
-                  <div key={step.n} style={{ display: 'grid', gridTemplateColumns: '44px minmax(0,1fr) auto', gap: 12, alignItems: 'center', background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 12 }}>
+                  <div key={step.n} style={{ display: 'grid', gridTemplateColumns: '44px minmax(0,1fr)', gap: 12, alignItems: 'center', background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 12 }}>
                     <span style={{ width: 34, height: 34, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontWeight: 900 }}>{step.n}</span>
                     <span style={{ minWidth: 0 }}>
                       <strong style={{ color: C.ink, fontSize: 16 }}>{step.title}</strong>
                       <span style={{ display: 'block', color: C.soft, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900, marginTop: 2 }}>{step.persona}</span>
                       <span style={{ display: 'block', color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}><strong>Show:</strong> {step.proof}</span>
                       <span style={{ display: 'block', color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 2 }}><strong>Why it matters:</strong> {step.value}</span>
+                      <Link href={step.route} style={{ ...tinyPill, textDecoration: 'none', display: 'inline-flex', marginTop: 8 }}>Open step</Link>
                     </span>
-                    <Link href={step.route} style={{ ...tinyPill, textDecoration: 'none', whiteSpace: 'nowrap' }}>Open step</Link>
                   </div>
                 ))}
-              </div>
-            </Panel>
+                </div>
+              </Panel>
+            </details>
 
             <details style={{ marginTop: 22 }}>
               <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>Demo appendix: product map, readiness checks, and close</summary>
-              <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(280px, .75fr)', gap: 22, marginTop: 16, alignItems: 'start' }}>
+              <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 22, marginTop: 16, alignItems: 'start' }}>
                 <Panel>
                   <div style={eyebrow}>Connected product map</div>
                   <h2 style={h2}>Every demo stop points to the same task spine.</h2>
@@ -548,13 +556,13 @@ export default function SystemDemo() {
                   </div>
                 </Panel>
               </section>
-              <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, .8fr)', gap: 22, marginTop: 16, alignItems: 'start' }}>
+              <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 22, marginTop: 16, alignItems: 'start' }}>
                 <Panel>
                   <div style={eyebrow}>Production readiness</div>
                   <h2 style={h2}>Where Passage is now.</h2>
                   <div style={{ display: 'grid', gap: 10 }}>
                     {productionReadiness.map(([label, status, body]) => (
-                      <div key={label} style={{ ...smallCard, display: 'grid', gridTemplateColumns: '130px minmax(0, 1fr)', gap: 12 }}>
+                      <div key={label} style={{ ...smallCard, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 130px), 1fr))', gap: 12 }}>
                         <div>
                           <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                           <div style={{ color: status === 'Strong' || status === 'Ready' ? C.sage : C.amber, fontWeight: 900, marginTop: 4 }}>{status}</div>

@@ -188,6 +188,15 @@ const nextPreview = {
   past: ['We confirm what is already done', 'We organize the next open step', 'Passage tracks owners, notes, and proof from here'],
 };
 
+const situationLabels = {
+  unexpected: 'At home and unexpected',
+  hospice: 'Under hospice care',
+  hospital: 'In a hospital',
+  facility: 'In a care facility',
+  home_expected: 'Expected at home',
+  past: 'Past the first official steps',
+};
+
 function authorityMessage(status) {
   if (status === 'self') return 'Okay. You will be the person providers and funeral homes look to for decisions.';
   if (status === 'someone_else') return 'Okay. Passage will guide what you can do now and when to involve them.';
@@ -707,24 +716,36 @@ export default function UrgentPage() {
         <section className="grid grid-single">
           <div className="card primary-card">
             {paidSuccess && <div className="paid-success">You're in the right place. We'll guide you step by step.</div>}
-            <div className="crisis-sequence" aria-label="Urgent path sequence">
-              {[
-                ['Stabilize', 'Confirm the setting and official authority before anything else moves.'],
-                ['Coordinate', 'Name one owner for the next practical step and keep the family from repeating calls.'],
-                ['Organize', 'Save the command center when you are ready so proof, roles, and next steps persist.'],
-              ].map(([label, body], index) => (
-                <div key={label} className={`crisis-step ${index === 0 && !selectedSituation ? 'active' : index === 1 && selectedSituation && primary && !primary.owner ? 'active' : index === 2 && selectedSituation && primary?.owner ? 'active' : ''}`}>
-                  <b>{label}</b>
-                  <span>{body}</span>
+            {!selectedSituation ? (
+              <>
+                <div className="crisis-sequence" aria-label="Urgent path sequence">
+                  {[
+                    ['Stabilize', 'Confirm the setting and official authority before anything else moves.'],
+                    ['Coordinate', 'Name one owner for the next practical step and keep the family from repeating calls.'],
+                    ['Organize', 'Save the command center when you are ready so proof, roles, and next steps persist.'],
+                  ].map(([label, body], index) => (
+                    <div key={label} className={`crisis-step ${index === 0 ? 'active' : ''}`}>
+                      <b>{label}</b>
+                      <span>{body}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '12px 13px', marginBottom: 14 }}>
-              <div style={{ color: C.sageDark, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>First-day family setup</div>
-              <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>
-                You do not set up everything now. Passage starts with the event setting, decision-maker, one owner, and proof. Nothing here sends an email, text, or outside request until you choose a specific action. People, documents, funeral-home handoff, and participants come after the first safe action.
+                <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '12px 13px', marginBottom: 14 }}>
+                  <div style={{ color: C.sageDark, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>First-day family setup</div>
+                  <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>
+                    You do not set up everything now. Passage starts with the event setting, decision-maker, one owner, and proof. Nothing here sends an email, text, or outside request until you choose a specific action.
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '12px 13px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ color: C.sageDark, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Current urgent path</div>
+                  <div style={{ color: C.ink, fontSize: 16, fontWeight: 800, marginTop: 3 }}>{situationLabels[context.deathContext] || 'Urgent coordination'}</div>
+                </div>
+                <button className="ghost" onClick={() => updateContext('deathContext', '')}>Change situation</button>
               </div>
-            </div>
+            )}
             <div className="triage">
               <div className="triage-head">
                 <div>
@@ -733,21 +754,23 @@ export default function UrgentPage() {
                   <div className="triage-note">{contextVoice}</div>
                 </div>
               </div>
-              <div className="triage-grid">
-                {[
-                  ['unexpected', 'Yes, at home and unexpected'],
-                  ['hospice', 'Yes, under hospice care'],
-                  ['hospital', 'Yes, in a hospital'],
-                  ['facility', 'Yes, in a care facility'],
-                  ['home_expected', 'Yes, expected at home'],
-                  ['past', 'No, we are past the first official steps'],
-                ].map(([value, label]) => (
-                  <button key={value} className={`triage-choice ${context.deathContext === value ? 'active' : ''}`} onClick={() => updateContext('deathContext', value)}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-              {context.deathContext && (
+              {!selectedSituation && (
+                <div className="triage-grid">
+                  {[
+                    ['unexpected', 'Yes, at home and unexpected'],
+                    ['hospice', 'Yes, under hospice care'],
+                    ['hospital', 'Yes, in a hospital'],
+                    ['facility', 'Yes, in a care facility'],
+                    ['home_expected', 'Yes, expected at home'],
+                    ['past', 'No, we are past the first official steps'],
+                  ].map(([value, label]) => (
+                    <button key={value} className={`triage-choice ${context.deathContext === value ? 'active' : ''}`} onClick={() => updateContext('deathContext', value)}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {context.deathContext && !selectedSituation && (
                 <div className="next-preview">
                   <div className="next-preview-title">What usually happens next</div>
                   {(nextPreview[context.deathContext] || []).map((item, index) => (
@@ -756,7 +779,7 @@ export default function UrgentPage() {
                   <div>Passage will guide one step at a time.</div>
                 </div>
               )}
-              {context.deathContext === 'unexpected' && (
+              {context.deathContext === 'unexpected' && !selectedSituation && (
                 <div className="urgent-alert">
                   <strong>If this was unexpected at home, call 911 now.</strong> A death must be officially pronounced by a medical professional before anything else can happen. Emergency services or a medical examiner will handle this.
                   <div className="stack" style={{ marginTop: 10 }}>
@@ -778,7 +801,7 @@ export default function UrgentPage() {
                   )}
                 </div>
               )}
-              {context.deathContext === 'past' && (
+              {context.deathContext === 'past' && !selectedSituation && (
                 <div className="urgent-alert" style={{ background: C.sageFaint, borderColor: C.sageLight }}>
                   <strong>Understood. Let's get you organized from here.</strong> Confirm what has already happened, then Passage will focus on the next open step.
                 </div>
@@ -802,8 +825,8 @@ export default function UrgentPage() {
               })}
             </div>
             <div className="authority-strip">
-              <div className="context-title">Who can make decisions right now?</div>
-              <div className="context-help">Release, medical, and funeral decisions need a clear person. If you are not sure, Passage will keep that visible before anything is sent.</div>
+              <div className="context-title">Decision authority</div>
+              <div className="context-help">This affects release, medical, and funeral decisions. Choose what is true now; Passage will keep uncertainty visible.</div>
               <div className="authority-options">
                 {[
                   ['self', 'I can decide'],

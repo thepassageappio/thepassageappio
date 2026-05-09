@@ -149,8 +149,84 @@ function suggestedImportMapping(headers) {
 const miniPill = { background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 };
 const inputStyle = { border: `1.5px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 12.5, minWidth: 0 };
 
+const demoPartnerContext = {
+  organizations: [{
+    role: 'director',
+    organizations: {
+      id: 'demo-org-hvfg',
+      name: 'Hudson Valley Funeral Group',
+      plan: 'pilot',
+      marketplace_enabled: true,
+    },
+  }],
+  activationStatus: 'active',
+  partnerPlan: { name: 'Pilot', status: 'demo' },
+  isPassageAdmin: true,
+  staff: [
+    { email: 'maria@hvfg.demo', role: 'director', scope: 'all_cases', status: 'active' },
+    { email: 'robert@hvfg.demo', role: 'staff', scope: 'assigned', status: 'active' },
+    { email: 'lena@hvfg.demo', role: 'location_manager', scope: 'main_location', status: 'active' },
+  ],
+  cases: [
+    {
+      id: 'demo-case-price',
+      deceased_name: 'Eleanor Price',
+      estate_name: 'Price family',
+      coordinator_name: 'Michael Price',
+      coordinator_email: 'michael@example.com',
+      coordinator_phone: '845-555-0137',
+      date_of_death: '2026-05-09',
+      organization_case_reference: 'HV-1024',
+      setup_stage: 'active',
+      mode: 'red',
+      status: 'active',
+      tasks: [
+        { id: 'demo-task-1', title: 'Confirm cemetery plot details', description: 'Ask family for section, lot number, and deed photo before the arrangement meeting.', status: 'waiting', assigned_to_name: 'Robert Alvarez', assigned_to_email: 'robert@hvfg.demo', created_at: '2026-05-08T13:00:00Z', last_action_at: '2026-05-08T14:30:00Z', proof_required: 'Family reply or cemetery record' },
+        { id: 'demo-task-2', title: 'Prepare the funeral home meeting summary', description: 'Organize dates, family contact, service preferences, and open questions into one prepared packet.', status: 'assigned', assigned_to_name: 'Maria Ellis', assigned_to_email: 'maria@hvfg.demo', created_at: '2026-05-08T15:00:00Z', proof_required: 'Prepared packet' },
+        { id: 'demo-task-3', title: 'Send obituary approval request', description: 'Send the family a clean approval request with the current obituary draft.', status: 'blocked', assigned_to_name: 'Lena Ortiz', assigned_to_email: 'lena@hvfg.demo', created_at: '2026-05-08T10:00:00Z', proof_required: 'Family approval' },
+        { id: 'demo-task-4', title: 'Record hospital release confirmation', description: 'Hospital release was confirmed and saved for transportation.', status: 'handled', assigned_to_name: 'Maria Ellis', assigned_to_email: 'maria@hvfg.demo', created_at: '2026-05-08T09:00:00Z', last_action_at: '2026-05-08T11:00:00Z' },
+      ],
+      blockedTasks: [{ id: 'demo-task-3' }],
+      communications: [{ id: 'c1', status: 'sent' }, { id: 'c2', status: 'waiting' }],
+      waitingOnFamily: [{ id: 'wf1', title: 'Cemetery plot details' }],
+      vendorRequests: [{ id: 'vr1', task_title: 'Livestream support', status: 'accepted', requested_at: '2026-05-08T12:00:00Z', estimated_value: 650 }],
+      activity: [{ id: 'a1', status: 'handled' }, { id: 'a2', status: 'waiting' }],
+      serviceEvents: [{ id: 'svc1', name: 'Arrangement meeting', date: '2026-05-12', time: '10:00 AM', location_name: 'Main location' }],
+      coordinationSpine: {
+        attentionItems: [
+          { id: 'attn1', title: 'Family reply needed', detail: 'Cemetery plot details are waiting on Michael.', status: 'waiting', statusLabel: 'Waiting on family' },
+          { id: 'attn2', title: 'Obituary approval blocked', detail: 'Draft needs one family decision before it can be sent.', status: 'blocked', statusLabel: 'Needs help' },
+        ],
+      },
+    },
+    {
+      id: 'demo-case-green',
+      deceased_name: 'Thomas Reed',
+      estate_name: 'Reed planning file',
+      coordinator_name: 'Anna Reed',
+      coordinator_email: 'anna@example.com',
+      organization_case_reference: 'MULTI-002',
+      setup_stage: 'preneed',
+      mode: 'green',
+      status: 'active',
+      tasks: [
+        { id: 'demo-green-1', title: 'Collect pre-need preferences', status: 'assigned', assigned_to_name: 'Lena Ortiz', assigned_to_email: 'lena@hvfg.demo', created_at: '2026-05-07T09:00:00Z' },
+      ],
+      blockedTasks: [],
+      communications: [],
+      waitingOnFamily: [],
+      vendorRequests: [],
+      activity: [],
+      serviceEvents: [],
+      coordinationSpine: { attentionItems: [] },
+    },
+  ],
+  reports: {},
+};
+
 export default function FuneralHomeDashboard() {
   const router = useRouter();
+  const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1';
   const [user, setUser] = useState(null);
   const [token, setToken] = useState('');
   const [data, setData] = useState(null);
@@ -217,6 +293,20 @@ export default function FuneralHomeDashboard() {
   }, []);
 
   useEffect(() => {
+    if (!router.isReady) return;
+    if (demoMode) {
+      setUser({ id: 'demo-partner-user', email: 'maria@hvfg.demo' });
+      setToken('demo-token');
+      setData(demoPartnerContext);
+      setPartnerEmail('maria@hvfg.demo');
+      setVendorPrefs({
+        vendors: [{ id: 'demo-vendor', business_name: 'Hudson Valley Livestream', category: 'livestream', status: 'active' }],
+        preferred: [{ vendor_id: 'demo-vendor', category: 'livestream', active: true }],
+        marketplaceEnabled: true,
+      });
+      setLoading(false);
+      return;
+    }
     if (!supabase?.auth) {
       setError('Supabase browser auth is not configured in this environment.');
       setLoading(false);
@@ -231,7 +321,7 @@ export default function FuneralHomeDashboard() {
       }
       else setLoading(false);
     });
-  }, []);
+  }, [router.isReady, demoMode]);
 
   async function load(token) {
     setLoading(true);
@@ -935,8 +1025,10 @@ export default function FuneralHomeDashboard() {
     .filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()))
     .filter(task => isDirectorRole || String(task.assigned_to_email || '').toLowerCase() === currentUserEmail || String(task.last_actor || '').toLowerCase() === currentUserEmail)
     .sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))
-    .slice(0, 6);
+    .slice(0, 5);
   const firstStaffTask = assignedWorkQueue[0] || null;
+  const staffQueuePreview = assignedWorkQueue.slice(firstStaffTask ? 1 : 0, firstStaffTask ? 3 : 4);
+  const staffQueueHiddenCount = Math.max(0, assignedWorkQueue.length - (firstStaffTask ? 3 : 4));
   const staffRoster = (partnerStaff.length ? partnerStaff : [{ email: user?.email, role: currentRole || 'director', scope: isDirectorRole ? 'all_cases' : 'assigned' }])
     .map(member => ({
       email: String(member.email || '').toLowerCase(),
@@ -1651,18 +1743,17 @@ export default function FuneralHomeDashboard() {
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
-                  {assignedWorkQueue.map(task => {
+                  {staffQueuePreview.map(task => {
                     const blocked = ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase());
                     const waiting = ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase());
                     const tone = blocked ? C.rose : waiting ? C.amber : C.sage;
                     const guidance = taskGuidanceFor(task, { owner: task.assigned_to_name || task.assigned_to_email || 'staff', surface: 'staff work queue' });
                     return (
-                    <div key={`${task.caseId}_${task.id}`} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '44' : C.border}`, borderLeft: `5px solid ${tone}`, borderRadius: 13, padding: 13, display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center' }}>
+                    <div key={`${task.caseId}_${task.id}`} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '44' : C.border}`, borderLeft: `5px solid ${tone}`, borderRadius: 13, padding: 13, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
                       <div>
                         <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{task.caseName} - {task.locationName}</div>
                         <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3, lineHeight: 1.25 }}>{sharedTaskTitle(task)}</div>
                         <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{task.assigned_to_name || task.assigned_to_email || task.last_actor || 'Unassigned'}</strong> - {statusLabel(task.status)}</div>
-                        <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 4 }}><strong style={{ color: C.ink }}>Context:</strong> Service/location: {task.locationName}. Family-facing status: {statusLabel(task.status)}.</div>
                         <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '7px 8px', marginTop: 8, color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
                           <strong style={{ color: C.ink }}>Expected update:</strong> {taskExpectedUpdate(task, 'funeral_home')}
                         </div>
@@ -1672,9 +1763,22 @@ export default function FuneralHomeDashboard() {
                           <strong style={{ color: C.ink }}>Proof:</strong> {taskProofDestination(task, { surface: 'staff work queue' })}
                         </div>
                       </div>
-                      <button onClick={() => openPartnerWork(task.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open work</button>
+                      <button onClick={() => openPartnerWork(task.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}>Open work</button>
                     </div>
                   );})}
+                  {staffQueueHiddenCount > 0 && (
+                    <details style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 11px', color: C.mid, fontSize: 12.5 }}>
+                      <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>Show {staffQueueHiddenCount} more assigned item{staffQueueHiddenCount === 1 ? '' : 's'}</summary>
+                      <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+                        {assignedWorkQueue.slice(firstStaffTask ? 3 : 4).map(task => (
+                          <button key={`${task.caseId}_${task.id}_hidden`} onClick={() => openPartnerWork(task.caseId)} style={{ textAlign: 'left', border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+                            <strong style={{ color: C.ink }}>{sharedTaskTitle(task)}</strong>
+                            <span style={{ display: 'block', marginTop: 3 }}>{task.caseName} - {statusLabel(task.status)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
             </div>
@@ -1728,7 +1832,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data?.organizations?.length > 0 && vendorPrefs.vendors.length > 0 && (
+        {user && !loading && data?.organizations?.length > 0 && vendorPrefs.vendors.length > 0 && (showTools || activePartnerView === 'reports') && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
@@ -1979,7 +2083,7 @@ export default function FuneralHomeDashboard() {
                       <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close case work' : 'Open case work'}</button>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(240px, .75fr)', gap: 12, alignItems: 'stretch', marginTop: 13 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 12, alignItems: 'stretch', marginTop: 13 }}>
                     <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 14 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
                         <div>
@@ -2011,7 +2115,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                     <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13 }}>
                       <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 8 }}>Family-facing status</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 7 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 84px), 1fr))', gap: 7 }}>
                         {[['Done', handledCount, C.sage], ['Waiting', waitingCount + blocked, waitingCount + blocked ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
                           <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
                             <div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
@@ -2125,7 +2229,7 @@ export default function FuneralHomeDashboard() {
                     ];
                     return (
                       <div id={'partner-action-workspace-' + item.id} style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(230px, .65fr)', gap: 12, alignItems: 'stretch' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 12, alignItems: 'stretch' }}>
                           <div>
                             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Action workspace</div>
                             <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(nextPartnerTask)}</div>
@@ -2145,31 +2249,34 @@ export default function FuneralHomeDashboard() {
                             <button onClick={() => copyText(packetText, 'Prepared output copied.', 'partner_output_' + item.id)} style={{ border: `1px solid ${C.sage}33`, background: copiedKey === 'partner_output_' + item.id ? C.sage : C.card, color: copiedKey === 'partner_output_' + item.id ? '#fff' : C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 9 }}>{copiedKey === 'partner_output_' + item.id ? 'Copied' : 'Copy prepared output'}</button>
                           </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
-                          {loopRows.map(([label, body, tone]) => (
-                            <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 72 }}>
-                              <div style={{ color: tone, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-                              <div style={{ color: label === 'Owner' ? tone : C.mid, fontSize: 11.6, lineHeight: 1.35, marginTop: 5, fontWeight: label === 'Owner' ? 900 : 500 }}>{body}</div>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 8, marginTop: 10 }}>
-                          {coordinationRows.map(row => (
-                            <div key={row.label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                                <span style={{ color: C.soft, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row.label}</span>
-                                <span style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{row.count}</span>
-                              </div>
-                              <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.4, marginTop: 5 }}>{row.body}</div>
-                            </div>
-                          ))}
-                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))', gap: 8, marginTop: 12 }}>
                           <button onClick={() => { setAssignmentDraft({ taskId: nextPartnerTask.id, name: nextPartnerTask.assigned_to_name || firstAssignee?.name || '', email: nextPartnerTask.assigned_to_email || firstAssignee?.email || '', role: nextPartnerTask.playbook?.partnerOwnerRole || firstAssignee?.role || 'staff', phone: '' }); setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Assign owner<br /><span style={{ color: C.mid, fontWeight: 500 }}>staff or case contact</span></button>
                           <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'blocked', label: 'Family request', prompt: 'Write the missing detail needed from the family.', draft, output, proofDestination }); setTaskDraftNote(draft); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Request family info<br /><span style={{ color: C.mid, fontWeight: 500 }}>one request</span></button>
                           <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Prepared output', prompt: 'Review the output and save proof.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Record proof<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>close the loop</span></button>
                           <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'waiting', label: 'Waiting update', prompt: 'Write what is waiting and the next expected update.', draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${nextPartnerTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(nextPartnerTask)} can move forward. Next update expected tomorrow morning.`); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Mark waiting<br /><span style={{ color: C.soft, fontWeight: 500 }}>next update</span></button>
                         </div>
+                        <details style={{ border: `1px solid ${C.border}`, background: C.bg, borderRadius: 11, padding: '9px 10px', marginTop: 10 }}>
+                          <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 12.5 }}>Prepared routing, proof, and audit layers</summary>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
+                            {loopRows.map(([label, body, tone]) => (
+                              <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 72 }}>
+                                <div style={{ color: tone, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                                <div style={{ color: label === 'Owner' ? tone : C.mid, fontSize: 11.6, lineHeight: 1.35, marginTop: 5, fontWeight: label === 'Owner' ? 900 : 500 }}>{body}</div>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 8, marginTop: 10 }}>
+                            {coordinationRows.map(row => (
+                              <div key={row.label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                                  <span style={{ color: C.soft, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row.label}</span>
+                                  <span style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{row.count}</span>
+                                </div>
+                                <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.4, marginTop: 5 }}>{row.body}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
                         {assignOpen && (
                           <div onClick={() => setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' })} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
                           <div role="dialog" aria-modal="true" onClick={event => event.stopPropagation()} style={{ width: 'min(700px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
@@ -2179,7 +2286,7 @@ export default function FuneralHomeDashboard() {
                             </div>
                             <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>Saved employees, roles, family coordinators, and participants appear here as the uniform owner list for this estate task. Location context stays attached to the case.</div>
                             {assignmentOptions.length > 0 ? (
-                              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(190px, 1fr) auto', gap: 8, marginTop: 10, alignItems: 'center' }}>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8, marginTop: 10, alignItems: 'center' }}>
                                 <select
                                   value={assignmentDraft.email || ''}
                                   onChange={event => applyAssignee(assignmentOptions.find(option => option.email === event.target.value))}
@@ -2260,7 +2367,7 @@ export default function FuneralHomeDashboard() {
                   {detailTab === 'proof' && (
                   <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12, marginTop: 10 }}>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 7 }}>Family status view</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: 8 }}>
                       {[
                         ['Done', handledCount],
                         ['In progress', progressCount],
