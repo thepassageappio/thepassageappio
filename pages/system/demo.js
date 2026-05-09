@@ -27,6 +27,7 @@ const demoSteps = [
     title: 'Show Passage as the coordination layer.',
     point: 'Start with the pain: fewer repeated calls, clearer ownership, and a family-facing record the funeral home can trust.',
     action: 'Say: "This is not replacing your case system. It sits on top, reduces calls, and exports cleanly."',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
   },
   {
     id: 'team',
@@ -34,6 +35,7 @@ const demoSteps = [
     title: 'Set up locations and staff.',
     point: 'Directors, arrangers, coordinators, and location admins each see the work relevant to them.',
     action: 'Show how work can be routed by location and role without turning family helpers into funeral-home staff.',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
   },
   {
     id: 'case',
@@ -41,6 +43,7 @@ const demoSteps = [
     title: 'Create a family case in under a minute.',
     point: 'Add the family contact and a few known facts. Passage creates the command center and starts the task spine.',
     action: 'Show at-need versus pre-need. Emphasize "add only what you know."',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
   },
   {
     id: 'tasks',
@@ -48,6 +51,7 @@ const demoSteps = [
     title: 'Move one task, then show the proof.',
     point: 'Each task has a next action, an owner, a waiting state, and proof. Unknown never pretends to be done.',
     action: 'Use "Handle for family" only after recording what happened. Use "Need family info" when staff is blocked.',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=task',
   },
   {
     id: 'delegation',
@@ -55,6 +59,7 @@ const demoSteps = [
     title: 'Set up the employee, then assign the work.',
     point: 'Directors save staff profiles first; case tasks then assign from saved employees, family contacts, participants, clergy, cemetery contacts, or vendors.',
     action: 'Show Add employee in Staff work, then assign a task from the saved dropdown. Notifications remain approval-based.',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
   },
   {
     id: 'coordinate',
@@ -62,6 +67,7 @@ const demoSteps = [
     title: 'Coordinate without mixing messages, notifications, and proof.',
     point: 'Mock the real-life handoff: director asks family once, staff sees the work, cemetery/vendor gets a scoped request, and proof is recorded separately.',
     action: 'Say: "Notifications get attention. Conversation coordinates the work. Proof records what happened."',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=chat',
   },
   {
     id: 'vendor',
@@ -69,6 +75,7 @@ const demoSteps = [
     title: 'Request trusted help inside the task.',
     point: 'Vendors are task-native: no directory, no browsing, just trusted help where it belongs.',
     action: 'Show sent, viewed, accepted, in progress, completed. Passage stays in the transaction trail.',
+    href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
   },
   {
     id: 'export',
@@ -76,6 +83,7 @@ const demoSteps = [
     title: 'End with ROI and portability.',
     point: 'Calls avoided, waiting items, active cases, CSV export, and the family-facing audit trail are the adoption story.',
     action: 'Say: "You can use Passage without trapping your data here."',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
   },
 ];
 
@@ -148,27 +156,32 @@ const ecosystemPaths = [
   {
     title: 'Family command center',
     body: 'One next task, proof capture, people, messages, events, exports, and a readable activity trail.',
-    label: 'Dummy task spine',
+    label: 'Open estate spine',
+    href: '/?dashboard=1',
   },
   {
     title: 'Participant view',
     body: 'Assigned work only: accept it, mark waiting, record handled, or ask for help. No funeral-home admin clutter.',
-    label: 'Dummy helper flow',
+    label: 'Open helper view',
+    href: '/participating?demoTour=funeral-home&demoStep=participant',
   },
   {
     title: 'Funeral-home dashboard',
     body: 'Case inbox, staff work, waiting items, location metrics, calls avoided, and CSV export.',
-    label: 'Dummy partner view',
+    label: 'Open partner view',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
   },
   {
     title: 'Vendor page',
     body: 'Task-native request portal: viewed, accepted, in-progress, completed, and referral value tracking.',
-    label: 'Dummy vendor loop',
+    label: 'Open vendor loop',
+    href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
   },
   {
     title: 'Vendor admin',
     body: 'System-admin approval and vendor trust controls. Not visible to families or partner funeral homes.',
     label: 'System admin only',
+    href: '/vendors/admin?demoTour=funeral-home&demoStep=vendor',
   },
 ];
 
@@ -340,6 +353,7 @@ export default function SystemDemo() {
                 <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 16 }}>
                   <button onClick={() => setSelectedStep(previousStep.id)} style={secondaryButton} disabled={currentIndex === 0}>Back</button>
                   <button onClick={() => setSelectedStep(nextStep.id)} style={primaryButton} disabled={currentIndex === demoSteps.length - 1}>Next demo moment</button>
+                  <Link href={activeStep.href} style={secondaryLink}>Open this product moment</Link>
                 </div>
               </Panel>
 
@@ -368,7 +382,7 @@ export default function SystemDemo() {
                           <div style={{ fontSize: 18, fontWeight: 900 }}>{path.title}</div>
                           <div style={smallText}>{path.body}</div>
                         </div>
-                        <span style={tinyPill}>{path.label}</span>
+                        <Link href={path.href} style={{ ...tinyPill, textDecoration: 'none' }}>{path.label}</Link>
                       </div>
                     ))}
                   </div>
