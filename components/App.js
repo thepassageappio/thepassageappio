@@ -3770,6 +3770,33 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   </div>
                 ))}
               </div>
+              <div style={{ marginTop: 12, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: "11px 12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900 }}>Family first-day path</div>
+                    <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 3 }}>
+                      {selectedDashboardEstate?.path === 'green'
+                        ? "Set up once: wishes, trusted people, documents, future activator, and the first planning task."
+                        : "Stabilize first: one next action, one owner, what is waiting, and proof before closing anything."}
+                    </div>
+                  </div>
+                  <div style={{ color: C.soft, fontSize: 11.5, fontWeight: 800 }}>Same record across green, red, partner, and participant views.</div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))", gap: 7, marginTop: 9 }}>
+                  {[
+                    ["1", selectedDashboardEstate?.path === 'green' ? "Name steward" : "Stabilize"],
+                    ["2", "Add people"],
+                    ["3", selectedDashboardEstate?.path === 'green' ? "Save wishes/docs" : "Assign owner"],
+                    ["4", "Record proof"],
+                    ["5", "Invite only when ready"],
+                  ].map(([n, label]) => (
+                    <div key={label} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "8px 9px", display: "grid", gridTemplateColumns: "22px minmax(0,1fr)", gap: 7, alignItems: "center" }}>
+                      <span style={{ width: 21, height: 21, borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", background: selectedDashboardEstate?.path === 'green' ? C.sageFaint : C.roseFaint, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, fontSize: 10.5, fontWeight: 900 }}>{n}</span>
+                      <span style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.25, fontWeight: 800 }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
                 <button onClick={() => onOpenPlan(selectedDashboardEstate)} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Open estate workspace</button>
                 {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: `1px solid ${C.sageLight}`, borderRadius: 11, padding: "10px 13px", background: C.sageFaint, color: C.sage, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Add planning estate</button>}

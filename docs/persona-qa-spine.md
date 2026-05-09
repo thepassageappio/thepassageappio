@@ -80,7 +80,7 @@ Run this after any sprint that touches task, communication, proof, demo, or role
 | --- | --- | --- | --- |
 | 1 | `/hospice` | Warm-path family | Above the fold answers what happens now, who owns it, what is waiting, and how proof will be known. Saving continues the family record and must not send email/SMS. |
 | 2 | `/?dashboard=1` | Family estate spine | User lands on one selected estate record with a next move, owner/waiting/proof signal, and an estate switcher only when multiple records exist. |
-| 3 | `/estate` | Family command center | Selected task shows next move, owner, waiting state, proof destination, output, and one primary workspace action. |
+| 3 | `/estate` | Family command center | Selected task shows next move, owner, waiting state, proof destination, output, and one primary workspace action. Green/red family members should see what to set up once and what can wait. |
 | 4 | `/funeral-home/dashboard` | Director | Dashboard shows active cases, waiting responses, staff/workload signal, calls avoided, next case focus, and export trust. |
 | 5 | `/funeral-home/dashboard?staff=1` | Staff/operator onboarding | Employee lands on My work / assigned-first mode with case context, service timing, role scope, and direct waiting/request/proof actions. |
 | 6 | `/participating?demo=1` | Participant/helper onboarding | Participant sees only assigned work, understands why they are there, and can accept, mark waiting, handle, or ask for help without seeing the whole estate. |
