@@ -4921,6 +4921,10 @@ export default function App() {
   const [activePlan, setActivePlan] = useState(null); // workflow object for tasklist view
 
   useEffect(() => {
+    if (!supabase?.auth) {
+      setUser(null);
+      return undefined;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
@@ -4951,7 +4955,7 @@ export default function App() {
   }, [user]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    if (supabase?.auth) await supabase.auth.signOut();
     setUser(null);
     setActivePlan(null);
     setView("landing");

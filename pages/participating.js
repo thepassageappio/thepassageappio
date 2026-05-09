@@ -243,7 +243,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       {!handled && (
         <>
           {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 7, marginTop: 8 }}>
+          <div className="participant-action-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 7, marginTop: 8 }}>
             {actionSet(kind).map(([action, label]) => (
               <button key={action} onClick={() => setPendingAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2, fontWeight: 800 }}>{label}</button>
             ))}
@@ -495,6 +495,13 @@ export default function ParticipatingPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
+      <style>{`
+        @media (max-width: 760px) {
+          .participant-layout { grid-template-columns: 1fr !important; }
+          .participant-estate-summary { grid-template-columns: 1fr !important; }
+          .participant-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
+      `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
 
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 28px 56px' }}>
@@ -536,7 +543,7 @@ export default function ParticipatingPage() {
         {user && error && <div style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16 }}>{error}</div>}
 
         {user && !loading && data && (
-          <div style={{ display: 'grid', gridTemplateColumns: (router.query.estate || router.query.task) ? 'minmax(0, 760px)' : 'minmax(0, 1fr) minmax(280px, 360px)', gap: 18, alignItems: 'start' }}>
+          <div className="participant-layout" style={{ display: 'grid', gridTemplateColumns: (router.query.estate || router.query.task) ? 'minmax(0, 760px)' : 'minmax(0, 1fr) minmax(280px, 360px)', gap: 18, alignItems: 'start' }}>
             <div>
               {(router.query.estate || router.query.task) && (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
@@ -618,7 +625,7 @@ export default function ParticipatingPage() {
 
                   {expanded && (
                     <div style={{ padding: '0 20px 20px' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                      <div className="participant-estate-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
                         {[
                           ['Your next task', primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
                           ['Open for you', openItems.length],

@@ -21,6 +21,8 @@ Every persona must be a different slice of the same truth:
 
 Every product decision must make sense across the whole spine, not only the page being edited.
 
+Backend, schema, orchestration, import/export, notification, or task-spine work is not complete until the matching frontend persona surfaces are assessed. At minimum, run route smoke plus desktop and mobile visual QA for every persona affected by the change. If the backend creates richer truth, the frontend must translate it into the right amount of visible truth for that role instead of rendering every proof/detail panel at once.
+
 Before shipping a UI or workflow change, check:
 
 1. Family view: does it reduce anxiety and show one next move?
