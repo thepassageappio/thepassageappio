@@ -1513,6 +1513,9 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>
                     Case: {firstStaffTask.caseName} - Service/context: {firstStaffTask.locationName}. Family status: {statusLabel(firstStaffTask.status)}.
                   </div>
+                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
+                    <strong style={{ color: C.ink }}>Proof to save:</strong> {taskProofDestination(firstStaffTask, { surface: 'staff work queue' })}
+                  </div>
                   <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Do this now</button>
                 </div>
               )}
@@ -1526,6 +1529,7 @@ export default function FuneralHomeDashboard() {
                     const blocked = ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase());
                     const waiting = ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase());
                     const tone = blocked ? C.rose : waiting ? C.amber : C.sage;
+                    const guidance = taskGuidanceFor(task, { owner: task.assigned_to_name || task.assigned_to_email || 'staff', surface: 'staff work queue' });
                     return (
                     <div key={`${task.caseId}_${task.id}`} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '44' : C.border}`, borderLeft: `5px solid ${tone}`, borderRadius: 13, padding: 13, display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'center' }}>
                       <div>
@@ -1535,6 +1539,11 @@ export default function FuneralHomeDashboard() {
                         <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 4 }}><strong style={{ color: C.ink }}>Context:</strong> Service/location: {task.locationName}. Family-facing status: {statusLabel(task.status)}.</div>
                         <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '7px 8px', marginTop: 8, color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
                           <strong style={{ color: C.ink }}>Expected update:</strong> {taskExpectedUpdate(task, 'funeral_home')}
+                        </div>
+                        <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 7 }}>
+                          <strong style={{ color: C.ink }}>Why now:</strong> {guidance.why}
+                          <br />
+                          <strong style={{ color: C.ink }}>Proof:</strong> {taskProofDestination(task, { surface: 'staff work queue' })}
                         </div>
                       </div>
                       <button onClick={() => openPartnerWork(task.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open work</button>
