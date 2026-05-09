@@ -568,11 +568,17 @@ function participantSignal(item) {
 function proofRowsFor(actions, tasks, events) {
   var rows = [];
   (actions || []).forEach(function(a) {
+    var actionStatus = String(a.delivery_status || a.status || '').toLowerCase();
+    var actorLine = actionStatus === 'sent' || a.sent_at
+      ? 'Sent by ' + textValue(a.last_actor, 'Passage')
+      : a.last_actor
+        ? 'Updated by ' + textValue(a.last_actor, 'Passage')
+        : 'Prepared by Passage';
     rows.push({
       id: 'action_' + a.id,
       title: (a.action_type === 'sms' ? 'Text' : a.action_type === 'email' ? 'Email' : 'Message') + ' to ' + textValue(a.recipient_name || a.recipient_email || a.recipient_phone, 'recipient'),
       detail: [
-        a.last_actor || a.sent_at ? 'Sent by ' + textValue(a.last_actor, 'Passage') : 'Prepared by Passage',
+        actorLine,
         timeLabel(a.last_action_at || a.sent_at),
         'To: ' + textValue(a.recipient_name || a.recipient_email || a.recipient_phone, 'recipient'),
         'Channel: ' + ((a.channel || a.action_type || 'message') === 'sms' ? 'SMS' : 'email'),
