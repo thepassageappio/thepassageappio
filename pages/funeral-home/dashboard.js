@@ -6,7 +6,7 @@ import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 import { taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
-import { orchestrateTasks } from '../../lib/taskOrchestration';
+import { orchestrateTasks, taskImportance } from '../../lib/taskOrchestration';
 
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
@@ -666,11 +666,12 @@ export default function FuneralHomeDashboard() {
     caseName: item.deceased_name || item.estate_name || item.name || 'Family case',
     caseId: item.id,
     locationName: locationNameFor(item),
+    importance: taskImportance(task, { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'staff work' }),
   })));
   const assignedWorkQueue = allPartnerTasks
     .filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()))
     .filter(task => isDirectorRole || String(task.assigned_to_email || '').toLowerCase() === currentUserEmail || String(task.last_actor || '').toLowerCase() === currentUserEmail)
-    .sort((a, b) => partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))
+    .sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))
     .slice(0, 6);
   const firstStaffTask = assignedWorkQueue[0] || null;
   const staffRoster = (partnerStaff.length ? partnerStaff : [{ email: user?.email, role: currentRole || 'director', scope: isDirectorRole ? 'all_cases' : 'assigned' }])
@@ -695,7 +696,7 @@ export default function FuneralHomeDashboard() {
     const waitingRows = openRows.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
     const blockedRows = openRows.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
     const handledRows = rows.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
-    const nextTask = openRows.sort((a, b) => partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null;
+    const nextTask = openRows.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null;
     return { ...member, open: openRows.length, waiting: waitingRows.length, blocked: blockedRows.length, handled: handledRows.length, nextTask };
   }).concat(unassignedStaffTasks.length ? [{
     email: '',
@@ -706,7 +707,7 @@ export default function FuneralHomeDashboard() {
     waiting: unassignedStaffTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
     blocked: unassignedStaffTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
     handled: 0,
-    nextTask: unassignedStaffTasks.sort((a, b) => partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
+    nextTask: unassignedStaffTasks.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
   }] : []).sort((a, b) => (b.blocked - a.blocked) || (b.open - a.open) || (b.waiting - a.waiting));
   const focusedDisplayCases = showAllCases
     ? displayCases
@@ -807,6 +808,13 @@ export default function FuneralHomeDashboard() {
     if (['sent', 'waiting', 'pending', 'assigned'].includes(clean)) return 1;
     if (clean === 'acknowledged') return 2;
     return 3;
+  }
+
+  function importanceStyle(importance) {
+    const rank = importance?.rank ?? 9;
+    if (rank <= 0) return { bg: C.roseFaint, color: C.rose, border: C.rose + '44' };
+    if (rank <= 2) return { bg: C.amberFaint, color: C.amber, border: C.amber + '44' };
+    return { bg: C.sageFaint, color: C.sage, border: C.sage + '22' };
   }
 
   function itemNextPartnerTask(item, orchestration) {
@@ -1089,9 +1097,16 @@ export default function FuneralHomeDashboard() {
                   )}
                   {member.nextTask && (
                     <button onClick={() => openPartnerWork(member.nextTask.caseId)} style={{ width: '100%', textAlign: 'left', border: `1px solid ${member.blocked ? C.rose + '44' : C.sage + '33'}`, background: C.card, color: C.ink, borderRadius: 11, padding: '9px 10px', marginTop: 9, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
-                      <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Next today</div>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Next today</div>
+                        {member.nextTask.importance && (() => {
+                          const tone = importanceStyle(member.nextTask.importance);
+                          return <span style={{ background: tone.bg, border: `1px solid ${tone.border}`, color: tone.color, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 }}>{member.nextTask.importance.label}</span>;
+                        })()}
+                      </div>
                       <div style={{ fontSize: 13.5, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>{sharedTaskTitle(member.nextTask)}</div>
                       <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35, marginTop: 3 }}>{member.nextTask.caseName} - {statusLabel(member.nextTask.status)}</div>
+                      {member.nextTask.importance?.reason && <div style={{ color: C.soft, fontSize: 11.2, lineHeight: 1.35, marginTop: 3 }}>{member.nextTask.importance.reason}</div>}
                     </button>
                   )}
                 </div>
@@ -1440,6 +1455,8 @@ export default function FuneralHomeDashboard() {
               const orchestration = orchestrationByCaseId.get(item.id) || orchestrateTasks({ tasks: item.tasks || [], role: 'funeral_home', context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'case work' } });
               const topTasks = (partnerTasks.length ? partnerTasks : orchestration.tasks.length ? orchestration.tasks : item.tasks).slice(0, 3);
               const nextPartnerTask = itemNextPartnerTask(item, orchestration);
+              const nextImportance = nextPartnerTask ? (nextPartnerTask.orchestration?.importance || taskImportance(nextPartnerTask, { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'case work' })) : null;
+              const nextImportanceTone = importanceStyle(nextImportance);
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               const isExpanded = expandedCaseId === item.id;
               const itemLocation = locationNameFor(item);
@@ -1468,11 +1485,17 @@ export default function FuneralHomeDashboard() {
                           <div style={{ fontSize: 10.5, color: blocked ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Case spine next move</div>
                           <div style={{ fontSize: 19, lineHeight: 1.2, color: C.ink, fontWeight: 900 }}>{nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No partner-ready work is open'}</div>
                         </div>
+                        {nextImportance && <span style={{ background: nextImportanceTone.bg, border: `1px solid ${nextImportanceTone.border}`, color: nextImportanceTone.color, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextImportance.label}</span>}
                         <span style={{ background: C.card, color: nextOwner === 'Unassigned' ? C.amber : C.sage, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextOwner}</span>
                       </div>
                       <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55, marginTop: 8 }}>
                         {nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'Nothing needs partner action right now.'}
                       </div>
+                      {nextPartnerTask && nextImportance?.reason && (
+                        <div style={{ background: C.card, border: `1px solid ${nextImportanceTone.border}`, borderRadius: 11, padding: '8px 10px', marginTop: 8, color: C.mid, fontSize: 12.2, lineHeight: 1.45 }}>
+                          <strong style={{ color: C.ink }}>Why this is next:</strong> {nextImportance.reason}
+                        </div>
+                      )}
                       <div style={{ background: C.card, borderLeft: `4px solid ${blocked ? C.rose : waitingCount ? C.amber : C.sage}`, borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.4, lineHeight: 1.45 }}>
                         <strong style={{ color: C.ink }}>Next expected update:</strong> {nextExpectedUpdate}
                       </div>
