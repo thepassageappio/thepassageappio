@@ -515,6 +515,18 @@ export default function ParticipatingPage() {
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Asked to help</div>
           <h1 style={{ fontSize: 32, lineHeight: 1.1, margin: '0 0 8px', fontWeight: 400 }}>One thing the family asked you to handle.</h1>
           <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, margin: 0 }}>Accept it, say what is waiting, or record what happened. Passage sends the update back without opening the full family workspace.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 14 }}>
+            {[
+              ['See your part', 'Only your assigned responsibility appears first.'],
+              ['Answer once', 'Accept, mark waiting, ask for help, or record proof.'],
+              ['Coordinator sees it', 'Your update returns to the family record.'],
+            ].map(([title, body]) => (
+              <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px' }}>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
+                <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {!user && !demoMode && (

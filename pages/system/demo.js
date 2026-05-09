@@ -303,11 +303,17 @@ const salesReadiness = [
 ];
 
 const nextSprintQueue = [
-  ['Task authority', 'Every priority task should explain why it matters, usual owner, timing, next step, Passage output, and the overwhelmed fallback.'],
-  ['Red first minutes', 'Make urgent flow stabilize first, coordinate second, and organize third so families do not feel like they are configuring software.'],
-  ['Role separation', 'Keep family, director, staff, participant, vendor, and demo/admin views visibly different while sharing the same spine.'],
-  ['Output depth', 'Turn more high-frequency tasks into packet/script/request outputs before introducing persistent packet storage or PDF email.'],
-  ['Trust and observability', 'Surface visibility boundaries, delivery truth, owner latency, waiting age, failed sends, outputs prepared, exports generated, and proof completion.'],
+  ['Sprint 1: first-day setup', 'Signed pilot owner, employee, participant, vendor, red-path family, and green-path planner know what to do first without founder narration.'],
+  ['Sprint 2: action consistency', 'Case creation, task actions, participant updates, vendor responses, staff setup, and exports use the same bounded action pattern.'],
+  ['Sprint 3: trust and outputs', 'Permission visibility, proof destinations, prepared outputs, CSVs, family updates, and reporting all feel safe and explicit.'],
+  ['Sprint 4: full QA and grade', 'Walk every persona on desktop/mobile, smoke production, grade pilot readiness, and separate blockers from broader scale work.'],
+];
+
+const productionSprintPlan = [
+  ['Sprint 1: first-day setup', 'Workspace, locations/case source, employees, roles, import/create, first owner, first proof, first export.'],
+  ['Sprint 2: action/proof system', 'One action surface pattern, in-place results, proof capture, waiting state, and next expected update.'],
+  ['Sprint 3: trust/reporting', 'Who can see what, delivery boundaries, output packets, vendor status, support posture, and ROI explanation.'],
+  ['Sprint 4: visual QA', 'Founder demo loop, red/green/participant/vendor/partner/admin surfaces, mobile, production smoke, and readiness grade.'],
 ];
 
 const valueStory = [
@@ -485,6 +491,22 @@ export default function SystemDemo() {
                   </div>
                 </details>
               </Panel>
+
+              <Panel>
+                <div style={eyebrow}>Production-readiness loop</div>
+                <h2 style={{ ...h2, fontSize: 28 }}>Four sprints to pilot confidence.</h2>
+                <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+                  {productionSprintPlan.map(([label, body], index) => (
+                    <div key={label} style={{ display: 'grid', gridTemplateColumns: '28px minmax(0,1fr)', gap: 9, alignItems: 'start', background: C.bg, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px' }}>
+                      <span style={{ width: 24, height: 24, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 11 }}>{index + 1}</span>
+                      <span>
+                        <strong style={{ color: C.ink }}>{label}</strong>
+                        <span style={{ display: 'block', ...smallText }}>{body}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
             </div>
 
             {notice && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 14, padding: 14, marginTop: 16, fontWeight: 900 }}>{notice}</div>}
@@ -607,6 +629,20 @@ export default function SystemDemo() {
                         <div style={smallText}>{body}</div>
                       </div>
                     ))}
+                  </div>
+                  <div style={{ marginTop: 16, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 14 }}>
+                    <div style={eyebrow}>Production-readiness loop</div>
+                    <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
+                      {productionSprintPlan.map(([label, body], index) => (
+                        <div key={label} style={{ display: 'grid', gridTemplateColumns: '28px minmax(0,1fr)', gap: 9, alignItems: 'start', background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px' }}>
+                          <span style={{ width: 24, height: 24, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 11 }}>{index + 1}</span>
+                          <span>
+                            <strong style={{ color: C.ink }}>{label}</strong>
+                            <span style={{ display: 'block', ...smallText }}>{body}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </Panel>
               </section>

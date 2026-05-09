@@ -1326,6 +1326,20 @@ export default function FuneralHomeDashboard() {
     ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first task owner', assignmentsCoordinated > 0],
     ['6', 'Proof loop', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
   ];
+  const contractToProofRows = [
+    ['Contract signed', 'Passage admin activates the partner workspace and billing/trial metadata.'],
+    ['Workspace opened', 'Director confirms case source, locations, staff roles, and first-day expectations.'],
+    ['Cases loaded', 'Import a CSV preview or create the first at-need/pre-need case in the UI.'],
+    ['Owner assigned', 'Use saved employees, family contacts, participants, vendors, or clergy from the same owner pattern.'],
+    ['Proof recorded', 'Staff marks waiting, asks family once, or records the proof that closes the loop.'],
+  ];
+  const pilotReadyGates = [
+    ['Setup gate', org?.name && partnerStaff.length > 0, org?.name ? 'Workspace active' : 'Workspace not active'],
+    ['Case gate', cases.length > 0, cases.length ? `${cases.length} case${cases.length === 1 ? '' : 's'} loaded` : 'No cases loaded'],
+    ['Owner gate', assignmentsCoordinated > 0, assignmentsCoordinated ? `${assignmentsCoordinated} owner${assignmentsCoordinated === 1 ? '' : 's'} assigned` : 'First owner still needed'],
+    ['Proof gate', proofEventsLogged > 0 || totalHandled > 0, proofEventsLogged || totalHandled ? 'Proof/status exists' : 'Record first proof'],
+    ['Export gate', true, 'CSV export available'],
+  ];
   const lifecycleRows = [
     ['green', 'Planning', 'pre-need and prepaid cases', 'Family record begins before crisis.'],
     ['warm', 'Warm / hospice', 'transition preparation', 'Contacts, dates, wishes, and handoff notes travel forward.'],
@@ -1556,6 +1570,38 @@ export default function FuneralHomeDashboard() {
                     <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
                   </div>
                 ))}
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 10, marginTop: 12 }}>
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Contract to first proof</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>This is the day-one operating path. A director should not have to discover the product by clicking around.</div>
+                <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
+                  {contractToProofRows.map(([title, body], index) => (
+                    <div key={title} style={{ display: 'grid', gridTemplateColumns: '26px minmax(0,1fr)', gap: 8, alignItems: 'start', background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
+                      <span style={{ width: 22, height: 22, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900 }}>{index + 1}</span>
+                      <span>
+                        <span style={{ display: 'block', color: C.ink, fontSize: 12.8, fontWeight: 900 }}>{title}</span>
+                        <span style={{ display: 'block', color: C.mid, fontSize: 11.8, lineHeight: 1.35, marginTop: 2 }}>{body}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Pilot readiness gates</div>
+                <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
+                  {pilotReadyGates.map(([label, done, value]) => (
+                    <div key={label} style={{ display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'center', background: done ? C.sageFaint : C.amberFaint, border: `1px solid ${done ? C.sage + '22' : C.amber + '33'}`, borderRadius: 11, padding: '8px 9px' }}>
+                      <span style={{ width: 18, height: 18, borderRadius: 999, background: done ? C.sage : C.amber, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900 }}>{done ? 'OK' : '!'}</span>
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: 'block', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>{label}</span>
+                        <span style={{ display: 'block', color: C.mid, fontSize: 11.8, lineHeight: 1.35 }}>{value}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 10 }}>A pilot is ready to run when the director can create/import a case, assign one owner, record proof, and export the record without Passage staff doing the work for them.</div>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginTop: 12 }}>

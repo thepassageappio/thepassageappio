@@ -17,6 +17,12 @@ export default function VendorOnboard() {
     ['4', 'Respond', 'Ask for details, accept, mark in progress, complete, or decline.'],
     ['5', 'Proof', 'Status returns to the family record and funeral-home coordination spine.'],
   ];
+  const firstRequestPath = [
+    ['Receive', 'A request appears only when a family task needs your category and service area.'],
+    ['Decide', 'Accept, ask for details, or decline. The family never sees a browsing marketplace.'],
+    ['Update', 'Mark viewed, quoted, accepted, in progress, completed, or declined.'],
+    ['Close', 'Completion proof returns to the case so the coordinator knows what happened.'],
+  ];
 
   function update(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -70,6 +76,18 @@ export default function VendorOnboard() {
               {['Families see your help only when it fits the next step.', 'You receive one scoped request and do not browse family records.', 'Passage tracks viewed, accepted, waiting, completed, and declined states so nobody has to guess.', 'Funeral homes can choose preferred local partners for the families they serve.'].map((item) => (
                 <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', color: C.mid, lineHeight: 1.5 }}>{item}</div>
               ))}
+            </div>
+            <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 13, marginTop: 18 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Your first request</div>
+              <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>A vendor should not need training to understand Passage. The request explains the task, the family-facing deadline, what is private, and exactly which update is needed.</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 10 }}>
+                {firstRequestPath.map(([title, body]) => (
+                  <div key={title} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 11, padding: '9px 10px' }}>
+                    <div style={{ color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</div>
+                    <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.35, marginTop: 3 }}>{body}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <form onSubmit={submit} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22 }}>
