@@ -950,7 +950,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 9 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Live operating read.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Cases, waiting items, and staff follow-up.</div>
               </div>
               <button onClick={() => setShowDirectorHelp(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>?</button>
             </div>
@@ -1059,7 +1059,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Staff operating spine</div>
                 <div style={{ fontSize: 24, marginTop: 3 }}>Directors manage the whole floor. Employees work their queue.</div>
               </div>
-              <div style={{ color: C.mid, fontSize: 12.5 }}>Role scoping uses the same task proof and communication spine.</div>
+              <div style={{ color: C.mid, fontSize: 12.5 }}>Each employee sees the work they own.</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
               {staffWorkloads.map(member => {
