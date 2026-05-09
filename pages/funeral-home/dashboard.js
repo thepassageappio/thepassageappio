@@ -66,6 +66,7 @@ export default function FuneralHomeDashboard() {
   const [activePartnerView, setActivePartnerView] = useState('work');
   const [showAllCases, setShowAllCases] = useState(false);
   const [latestFamilyLink, setLatestFamilyLink] = useState(null);
+  const [latestStaffInvite, setLatestStaffInvite] = useState(null);
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
   const [staffDraft, setStaffDraft] = useState({ email: '', role: 'staff' });
   const casePanelRef = useRef(null);
@@ -341,6 +342,8 @@ export default function FuneralHomeDashboard() {
       if (!res.ok) {
         setError(json.error || 'Could not save this staff profile.');
       } else {
+        const savedMember = json.member || { email, role: staffDraft.role || 'staff' };
+        setLatestStaffInvite(savedMember);
         setNotice(json.confirmation || 'Staff profile saved.');
         setStaffDraft({ email: '', role: 'staff' });
         await load(token);
@@ -441,6 +444,23 @@ export default function FuneralHomeDashboard() {
     } catch {
       setError('Could not copy automatically. Select the link and copy it manually.');
     }
+  }
+
+  function staffHandoffUrl(email) {
+    return `${siteOrigin}/funeral-home/dashboard?staff=1${email ? `&email=${encodeURIComponent(email)}` : ''}`;
+  }
+
+  function staffInviteMessage(member) {
+    const email = member?.email || '';
+    const role = roleLabel(member?.role || 'staff');
+    const link = staffHandoffUrl(email);
+    return [
+      `You have been added to Passage as ${role}.`,
+      '',
+      'Sign in with this email to see your assigned case work first. Passage keeps the case context, family requests, proof, and status updates in one place.',
+      '',
+      link,
+    ].join('\n');
   }
 
   async function startPartnerCheckout(planId = 'partner_pilot') {
@@ -924,7 +944,7 @@ export default function FuneralHomeDashboard() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
               {staffWorkloads.map(member => {
-                const staffSignInUrl = `${siteOrigin}/funeral-home/dashboard?staff=1${member.email ? `&email=${encodeURIComponent(member.email)}` : ''}`;
+                const staffSignInUrl = staffHandoffUrl(member.email);
                 return (
                 <div key={`${member.email || member.label}_${member.role}`} style={{ background: member.blocked ? C.roseFaint : member.open ? C.sageFaint : C.bg, border: `1px solid ${member.blocked ? C.rose + '44' : member.open ? C.sage + '22' : C.border}`, borderRadius: 14, padding: 13 }}>
                   <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{member.label}</div>
@@ -943,7 +963,10 @@ export default function FuneralHomeDashboard() {
                   </div>
                   {member.blocked > 0 && <div style={{ color: C.rose, fontSize: 12, fontWeight: 900, marginTop: 8 }}>{member.blocked} blocked item{member.blocked === 1 ? '' : 's'}</div>}
                   {member.email && (
-                    <button onClick={() => copyText(staffSignInUrl, 'Staff sign-in link copied.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '7px 9px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 9 }}>Copy sign-in link</button>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 9 }}>
+                      <button onClick={() => copyText(staffSignInUrl, 'Staff sign-in link copied.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '7px 9px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Copy link</button>
+                      <button onClick={() => copyText(staffInviteMessage(member), 'Staff invite message copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Copy invite message</button>
+                    </div>
                   )}
                   {member.nextTask && (
                     <button onClick={() => openPartnerWork(member.nextTask.caseId)} style={{ width: '100%', textAlign: 'left', border: `1px solid ${member.blocked ? C.rose + '44' : C.sage + '33'}`, background: C.card, color: C.ink, borderRadius: 11, padding: '9px 10px', marginTop: 9, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
@@ -974,7 +997,14 @@ export default function FuneralHomeDashboard() {
                   </select>
                   <button disabled={updating === 'partner_staff'} style={{ border: 'none', background: updating === 'partner_staff' ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_staff' ? 'wait' : 'pointer' }}>{updating === 'partner_staff' ? 'Saving...' : 'Save as assignable staff'}</button>
                 </div>
-                <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>Next sprint: send staff invite, employee signs in, and lands on My assigned work.</div>
+                <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>For demos, copy the invite message. No email or SMS is sent automatically.</div>
+                {latestStaffInvite && (
+                  <div style={{ marginTop: 10, background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Staff handoff ready</div>
+                    <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 4 }}>{latestStaffInvite.email} can now be assigned work. Copy the invite message when you are ready; Passage will not send it automatically.</div>
+                    <button onClick={() => copyText(staffInviteMessage(latestStaffInvite), 'Staff invite message copied.')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Copy invite message</button>
+                  </div>
+                )}
               </form>
             )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 12 }}>
