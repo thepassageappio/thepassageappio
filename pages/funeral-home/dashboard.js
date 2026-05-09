@@ -1351,6 +1351,7 @@ export default function FuneralHomeDashboard() {
     ['Proof gate', proofEventsLogged > 0 || totalHandled > 0, proofEventsLogged || totalHandled ? 'Proof/status exists' : 'Record first proof'],
     ['Export gate', true, 'CSV export available'],
   ];
+  const needsFirstDaySetup = Boolean(isDirectorRole && (cases.length === 0 || partnerStaff.length <= 1 || assignmentsCoordinated === 0 || (proofEventsLogged === 0 && totalHandled === 0)));
   const lifecycleRows = [
     ['green', 'Planning', 'pre-need and prepaid cases', 'Family record begins before crisis.'],
     ['warm', 'Warm / hospice', 'transition preparation', 'Contacts, dates, wishes, and handoff notes travel forward.'],
@@ -1390,11 +1391,6 @@ export default function FuneralHomeDashboard() {
     if (step === 'export') setShowTools(true);
     focusPartnerDemoStep(step);
   }, [router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
-
-  useEffect(() => {
-    if (loading || !data || !isDirectorRole) return;
-    if (cases.length === 0 || partnerStaff.length <= 1) setShowPilotGuide(true);
-  }, [loading, data, isDirectorRole, cases.length, partnerStaff.length]);
 
   useEffect(() => {
     if (loading || !data || isDirectorRole || activePartnerView !== 'work') return;
@@ -1558,6 +1554,21 @@ export default function FuneralHomeDashboard() {
                 ['Export keeps', 'Tasks, dates, owners, messages, vendor status, and proof trail.'],
               ]}
             />
+          </div>
+        )}
+
+        {user && !loading && data && needsFirstDaySetup && !showPilotGuide && (
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 12, marginBottom: 10, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
+            <div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>First-day setup</div>
+              <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.25, fontWeight: 900, marginTop: 3 }}>{nextDirectorStep.label}: {nextDirectorStep.next}</div>
+              <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>The full guide stays tucked away. Start with one case, one owner, one proof event, then export.</div>
+            </div>
+            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowPilotGuide(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open guide</button>
+              <button onClick={() => openCasePanel('immediate')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create case</button>
+              <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add staff</button>
+            </div>
           </div>
         )}
 
