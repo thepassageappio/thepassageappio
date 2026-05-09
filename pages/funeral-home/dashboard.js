@@ -878,6 +878,33 @@ export default function FuneralHomeDashboard() {
                 </div>
               ))}
             </div>
+            <div style={{ marginTop: 10, background: isDirectorRole ? C.bg : C.sageFaint, border: `1px solid ${isDirectorRole ? C.border : C.sageLight}`, borderRadius: 13, padding: '11px 12px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
+              <div>
+                <div style={{ color: isDirectorRole ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Director focus today' : 'My work today'}</div>
+                <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>
+                  {isDirectorRole
+                    ? `${nextDirectorStep.label}: ${nextDirectorStep.next}`
+                    : firstStaffTask
+                      ? sharedTaskTitle(firstStaffTask)
+                      : 'No assigned work is waiting.'}
+                </div>
+                <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>
+                  {isDirectorRole
+                    ? 'Use this to show the owner exactly where Passage reduces calls and dropped follow-up.'
+                    : firstStaffTask
+                      ? `Case: ${firstStaffTask.caseName}. Status: ${statusLabel(firstStaffTask.status)}.`
+                      : 'When a director assigns work, it appears here first with case context and proof requirements.'}
+                </div>
+              </div>
+              <button onClick={() => {
+                if (!isDirectorRole && firstStaffTask?.caseId) openPartnerWork(firstStaffTask.caseId);
+                else if (nextDirectorStep.key === 'staff') setActivePartnerView('staff');
+                else if (nextDirectorStep.key === 'report') setActivePartnerView('reports');
+                else if (firstOpenCase?.id) openPartnerWork(firstOpenCase.id);
+              }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                {isDirectorRole ? 'Move this' : firstStaffTask ? 'Do this now' : 'Open staff'}
+              </button>
+            </div>
             {showTools && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 8 }}>
                 {detailGlanceItems.map(([label, value]) => (
