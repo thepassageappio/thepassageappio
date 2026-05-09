@@ -809,21 +809,24 @@ export default function UrgentPage() {
               </div>
               <div className="context-help" style={{ marginTop: 8 }}>{authorityMessage(context.authorityStatus)}</div>
             </div>
-            <div className="save-strip">
-              <div className="field compact">
-                <label>Name of the person who passed</label>
-                <input value={deceasedName} onChange={e => setDeceasedName(e.target.value)} placeholder="Their name" />
+            <details className="later-details">
+              <summary>Save this command center when you are ready</summary>
+              <div className="save-strip" style={{ marginTop: 10, marginBottom: 0 }}>
+                <div className="field compact">
+                  <label>Name of the person who passed</label>
+                  <input value={deceasedName} onChange={e => setDeceasedName(e.target.value)} placeholder="Their name" />
+                </div>
+                <div className="field compact">
+                  <label>Date</label>
+                  <input value={dateOfDeath} onChange={e => setDateOfDeath(e.target.value)} type="date" />
+                </div>
+                <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
+                  {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Keep this command center'}
+                </button>
+                <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the command center, owners, notes, and proof.</div>
+                {saveError && <div className="save-error">{saveError}</div>}
               </div>
-              <div className="field compact">
-                <label>Date</label>
-                <input value={dateOfDeath} onChange={e => setDateOfDeath(e.target.value)} type="date" />
-              </div>
-              <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
-                {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Keep this command center'}
-              </button>
-              <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the command center, owners, notes, and proof.</div>
-              {saveError && <div className="save-error">{saveError}</div>}
-            </div>
+            </details>
             <details className="later-details">
               <summary>Add optional details if you already know them</summary>
               <div className="context-grid" style={{ marginTop: 10, marginBottom: 0 }}>
