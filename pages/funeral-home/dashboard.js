@@ -413,6 +413,20 @@ export default function FuneralHomeDashboard() {
     });
   }, [router.isReady, demoMode]);
 
+  useEffect(() => {
+    if (!showNewCase || typeof window === 'undefined') return undefined;
+    const previousOverflow = document.body.style.overflow;
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') setShowNewCase(false);
+    }
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showNewCase]);
+
   async function load(token) {
     setLoading(true);
     const res = await fetch('/api/partnerContext', { headers: { Authorization: 'Bearer ' + token } });
@@ -887,6 +901,61 @@ export default function FuneralHomeDashboard() {
   async function createCase(e) {
     e.preventDefault();
     if (!token) return;
+    if (demoMode) {
+      const now = new Date().toISOString();
+      const id = 'demo-created-' + Date.now();
+      const caseName = caseForm.personName.trim() || 'Demo family';
+      const planning = caseForm.caseType === 'preneed' || caseForm.caseType === 'prepaid';
+      const demoCase = {
+        id,
+        deceased_name: planning ? '' : caseName,
+        estate_name: planning ? `${caseName} planning file` : `${caseName} family`,
+        coordinator_name: caseForm.coordinatorName || 'Family coordinator',
+        coordinator_email: caseForm.coordinatorEmail || 'family@example.com',
+        coordinator_phone: caseForm.coordinatorPhone || '',
+        date_of_death: planning ? '' : caseForm.dateOfDeath,
+        organization_case_reference: caseForm.caseReference || `DEMO-${String(Date.now()).slice(-4)}`,
+        setup_stage: planning ? caseForm.caseType : 'active',
+        mode: planning ? 'green' : 'red',
+        status: 'active',
+        updated_at: now,
+        tasks: [
+          {
+            id: id + '-task-1',
+            title: planning ? 'Collect pre-need preferences' : 'Prepare the funeral home meeting summary',
+            description: planning ? 'Capture wishes, contacts, and documents before the family needs them.' : 'Organize known facts, service preferences, family contact, and open questions into one prepared packet.',
+            status: 'assigned',
+            assigned_to_name: 'Maria Ellis',
+            assigned_to_email: 'maria@hvfg.demo',
+            created_at: now,
+            proof_required: 'Prepared packet',
+          },
+        ],
+        blockedTasks: [],
+        communications: [],
+        waitingOnFamily: [],
+        vendorRequests: [],
+        activity: [{ id: id + '-activity-1', status: 'assigned' }],
+        serviceEvents: [
+          caseForm.arrangementDate ? { id: id + '-arrangement', name: 'Arrangement meeting', date: caseForm.arrangementDate, location_name: 'Main location' } : null,
+          caseForm.funeralDate ? { id: id + '-funeral', name: 'Funeral / memorial', date: caseForm.funeralDate, location_name: 'Main location' } : null,
+        ].filter(Boolean),
+        coordinationSpine: { attentionItems: [] },
+      };
+      setData(prev => prev ? { ...prev, cases: [demoCase, ...(prev.cases || [])] } : prev);
+      setLatestFamilyLink(caseForm.coordinatorEmail ? {
+        workflowId: id,
+        email: caseForm.coordinatorEmail,
+        url: `${window.location.origin}/accept?token=demo-family-handoff`,
+      } : null);
+      setNotice(caseForm.coordinatorEmail
+        ? 'Demo case created locally. Family handoff link is prepared for the walkthrough; no production record, email, or SMS was created.'
+        : 'Demo case created locally. Add a family email in a real case before preparing the family handoff link.');
+      setShowNewCase(false);
+      setExpandedCaseId(id);
+      setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
+      return;
+    }
     setCreating(true);
     setError('');
     const res = await fetch('/api/partnerCase', {
@@ -2001,15 +2070,16 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && showNewCase && (
-          <form id="partner-case-form" ref={casePanelRef} onSubmit={createCase} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12, scrollMarginTop: 92 }}>
+          <div id="partner-case-form" onClick={() => setShowNewCase(false)} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+          <form ref={casePanelRef} role="dialog" aria-modal="true" aria-label="Create family case" onClick={event => event.stopPropagation()} onSubmit={createCase} style={{ width: 'min(920px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{caseForm.caseType === 'immediate' ? 'New at-need case' : caseForm.caseType === 'prepaid' ? 'New prepaid case' : 'New pre-need case'}</div>
                 <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{caseForm.caseType === 'immediate' ? 'A death has occurred. Start with the family contact and the next partner-ready work.' : 'This may be a living client or family preparing ahead. Start with a contact and the plan details you already know.'}</div>
               </div>
-              <button type="button" onClick={() => setShowNewCase(false)} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 9, padding: '6px 9px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Close</button>
+              <button type="button" onClick={() => setShowNewCase(false)} aria-label="Close case creation" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, cursor: 'pointer', fontFamily: 'Georgia,serif', fontWeight: 900 }}>x</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: 8, marginBottom: 10 }}>
               {[
                 ['immediate', 'At-need case', 'A death has occurred and the family needs coordination now.'],
                 ['preneed', 'Pre-need planning', 'A living client or family is preparing before it is urgent.'],
@@ -2021,7 +2091,7 @@ export default function FuneralHomeDashboard() {
                 </button>
               ))}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: 8 }}>
               {[
                 ['personName', caseForm.caseType === 'immediate' ? 'Person who died *' : 'Person / family name *'],
                 ['dateOfDeath', caseForm.caseType === 'immediate' ? 'Date of death' : 'Planning date'],
@@ -2046,7 +2116,7 @@ export default function FuneralHomeDashboard() {
               <details style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.bg, padding: '9px 10px', marginTop: 10 }}>
                 <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>Known dates, if available</summary>
                 <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, margin: '7px 0 9px' }}>Skip anything unknown. Passage will keep missing event dates visible only when they become urgent or needed for a family update.</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8 }}>
                   {[
                     ['pronouncementDate', 'Official pronouncement'],
                     ['releaseDate', 'Release / pickup'],
@@ -2070,6 +2140,7 @@ export default function FuneralHomeDashboard() {
               {creating ? 'Creating case...' : caseForm.caseType === 'immediate' ? 'Create at-need case' : 'Create pre-need case'}
             </button>
           </form>
+          </div>
         )}
 
         {user && !loading && data && data.organizations.length === 0 && !showNewCase && (
