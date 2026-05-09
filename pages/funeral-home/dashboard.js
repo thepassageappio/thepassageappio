@@ -525,6 +525,7 @@ export default function FuneralHomeDashboard() {
     ['Waiting for response', totalWaiting],
     ['Blocked items', totalBlocked],
     ['Estimated calls avoided', callsAvoided],
+    ['Estimated hours saved', timeSavedLabel],
   ];
   const detailGlanceItems = [
     ['Coordination time saved', timeSavedLabel],
@@ -888,6 +889,16 @@ export default function FuneralHomeDashboard() {
               </div>
             )}
             {funeralHomeShare > 0 && <div style={{ color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 9, fontWeight: 900 }}>Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</div>}
+          </div>
+        )}
+
+        {user && !loading && data && (
+          <div style={{ background: isDirectorRole ? C.sageFaint : C.amberFaint, border: `1px solid ${isDirectorRole ? C.sage : C.amber}33`, borderRadius: 14, padding: '11px 13px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ color: isDirectorRole ? C.sage : C.amber, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Director / manager view' : 'Employee view'}</div>
+              <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, marginTop: 2 }}>{isDirectorRole ? 'All cases, staff queues, location scope, reports, and delegation.' : 'Assigned work first. Case context stays attached to each task.'}</div>
+            </div>
+            <span style={{ color: isDirectorRole ? C.sage : C.amber, background: C.card, borderRadius: 999, padding: '5px 9px', fontSize: 11.5, fontWeight: 900 }}>{roleLabel(currentRole)}</span>
           </div>
         )}
 

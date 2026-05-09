@@ -130,8 +130,18 @@ const demoMetrics = [
   ['Waiting responses', '7'],
   ['Staff tasks today', '14'],
   ['Calls avoided', '38'],
+  ['Hours saved', '5 hr'],
   ['CSV exports', '5'],
   ['Avg next update', '18 hrs'],
+];
+
+const fullLoop = [
+  ['1', 'Create case', 'Director adds the family contact and starts the task spine.'],
+  ['2', 'Assign staff', 'A saved employee receives only the work they own.'],
+  ['3', 'Ask family once', 'Missing cemetery, obituary, policy, or service details are requested from the task.'],
+  ['4', 'Produce output', 'Passage prepares the arrangement packet, agency packet, or family message for review.'],
+  ['5', 'Record proof', 'Staff saves what happened, what is waiting, and the next expected update.'],
+  ['6', 'Show ROI', 'Director sees calls avoided, staff workload, waiting items, and exportable case data.'],
 ];
 
 const ecosystemPaths = [
@@ -287,6 +297,7 @@ export default function SystemDemo() {
                 <p style={{ ...lead, maxWidth: 760 }}>A clean, dummy-only walkthrough. Each step shows one screen and one sales point so the director is not overwhelmed.</p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
                   <button onClick={() => { setSelectedStep('overview'); demoAction('Guided demo started. Use Next demo moment to move through one screen at a time.'); }} style={primaryButton}>Start guided demo</button>
+                  <Link href="/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard" style={primaryLink}>Open live dashboard demo</Link>
                   <button onClick={() => demoAction('Demo reset: use the dummy cases, staff, messages, vendor loop, and export close below. No real estate data is touched.')} style={secondaryButton}>Reset dummy demo</button>
                 </div>
               </Panel>
@@ -389,7 +400,19 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
     return (
       <Panel>
         <div style={eyebrow}>Demo screen</div>
-        <h2 style={h2}>The one-sentence value story.</h2>
+        <h2 style={h2}>The 12-minute loop.</h2>
+        <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
+          {fullLoop.map(([n, title, body]) => (
+            <div key={n} style={{ display: 'grid', gridTemplateColumns: '32px minmax(0, 1fr)', gap: 10, background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 10 }}>
+              <span style={{ width: 32, height: 32, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{n}</span>
+              <span>
+                <strong style={{ color: C.ink }}>{title}</strong>
+                <span style={{ display: 'block', color: C.mid, fontSize: 13, lineHeight: 1.4, marginTop: 2 }}>{body}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <h2 style={{ ...h2, fontSize: 24 }}>The one-sentence value story.</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
           {valueStory.map((item) => (
             <div key={item.title} style={smallCard}>
