@@ -3405,6 +3405,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
   const [wishesData, setWishesData] = useState({});
   const [wishesToast, setWishesToast] = useState("");
   const [activeFileWorkflowId, setActiveFileWorkflowId] = useState(null);
+  const [selectedDashboardEstateId, setSelectedDashboardEstateId] = useState("");
 
   const [taskStats, setTaskStats] = useState({});
 
@@ -3538,6 +3539,15 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
   const greenWorkflows = workflowList.filter(w => w?.status !== 'archived' && w?.path === 'green');
   const activeWorkflows = workflowList.filter(w => w?.status !== 'archived');
   const hasAnyEstate = activeWorkflows.length > 0;
+  useEffect(() => {
+    if (!activeWorkflows.length) {
+      if (selectedDashboardEstateId) setSelectedDashboardEstateId("");
+      return;
+    }
+    if (!selectedDashboardEstateId || !activeWorkflows.some(wf => String(wf.id) === String(selectedDashboardEstateId))) {
+      setSelectedDashboardEstateId(String((redWorkflows[0] || greenWorkflows[0] || activeWorkflows[0]).id || ""));
+    }
+  }, [activeWorkflows.length, selectedDashboardEstateId]);
   const activeFileWorkflow = activeFileWorkflowId
     ? activeWorkflows.find(w => String(w.id) === String(activeFileWorkflowId))
     : null;
@@ -3594,6 +3604,19 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
   const totalRequired = taskStatValues.reduce((sum, s) => sum + (s.required || 0), 0);
   const totalHandled = taskStatValues.reduce((sum, s) => sum + (s.completed || 0), 0);
   const portfolioReady = totalRequired > 0 ? Math.round((totalHandled / totalRequired) * 100) : 0;
+  const selectedDashboardEstate = activeWorkflows.find(wf => String(wf.id) === String(selectedDashboardEstateId))
+    || redWorkflows[0]
+    || greenWorkflows[0]
+    || activeWorkflows[0]
+    || null;
+  const selectedDashboardStats = selectedDashboardEstate ? (taskStatsByWorkflow[selectedDashboardEstate.id] || {}) : {};
+  const selectedDashboardOrchestration = selectedDashboardEstate ? estateOrchestrationByWorkflow.get(selectedDashboardEstate.id) : null;
+  const selectedDashboardTask = selectedDashboardOrchestration?.nextTask || null;
+  const selectedDashboardWorkspace = selectedDashboardTask ? taskWorkspaceFor(selectedDashboardTask, {
+    persona: 'family',
+    estateName: selectedDashboardEstate?.name || 'this estate',
+    requesterName: userData?.first_name || user?.email || 'Passage',
+  }) : null;
   const estateSeatLimit = getEstateSeatLimit(userData);
   const usedGreenSeats = getUsedGreenSeatCount(workflows);
   const availableGreenSeats = Math.max(0, estateSeatLimit - usedGreenSeats);
@@ -3655,13 +3678,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
         ) : (
           <>
             <div style={{ marginBottom: 12 }}>
-              <Heading size={22}>My estate index{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
-              {redWorkflows.length > 0 ? (
+              <Heading size={22}>Estate operating spine{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
+              {false && redWorkflows.length > 0 ? (
                 <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 13, color: C.sage, fontWeight: 500 }}>
                   ✓ Estate plan active — assign tasks to notify people automatically
                 </div>
               ) : (
-                <Sub>Open an estate first. Everything lives inside that estate: tasks, people, documents, wishes, memories, and updates.</Sub>
+                <Sub>{hasAnyEstate ? "Work from one estate at a time. Switch estates only when you need a different family record." : "Open an estate first. Everything lives inside that estate: tasks, people, documents, wishes, memories, and updates."}</Sub>
               )}
             </div>
 
@@ -3686,6 +3709,69 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             )}
 
             {hasAnyEstate && (
+            <>
+            <div style={{ background: C.bgCard, borderRadius: 18, padding: "16px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 900, marginBottom: 5 }}>Estate operating spine</div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: 23, color: C.ink, lineHeight: 1.15 }}>{selectedDashboardEstate?.name || "Select an estate"}</div>
+                  <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>One next move, one owner, one proof trail. Switch estates only when you need a different family record.</div>
+                </div>
+                {activeWorkflows.length > 1 && (
+                  <select value={selectedDashboardEstate?.id || ""} onChange={event => setSelectedDashboardEstateId(event.target.value)} style={{ minWidth: 230, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, borderRadius: 11, padding: "10px 12px", fontFamily: "inherit", fontWeight: 800 }}>
+                    {activeWorkflows.map(wf => (
+                      <option key={wf.id} value={wf.id}>{wf.path === 'green' ? 'Planning' : 'Active'} - {wf.name || 'Estate'}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              {selectedDashboardTask ? (
+                <button type="button" onClick={() => onOpenPlan(selectedDashboardEstate, selectedDashboardTask.id, selectedDashboardTask.assignedTo ? 'open' : 'assign')} style={{ width: "100%", textAlign: "left", background: selectedDashboardEstate?.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${selectedDashboardEstate?.path === 'green' ? C.sageLight : C.rose + '30'}`, borderLeft: `5px solid ${selectedDashboardEstate?.path === 'green' ? C.sage : C.rose}`, borderRadius: 14, padding: "14px", cursor: "pointer", fontFamily: "inherit" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
+                    <div>
+                      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 7 }}>
+                        <span style={{ fontSize: 10, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, background: C.bgCard, borderRadius: 999, padding: "3px 8px", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{selectedDashboardEstate?.path === 'green' ? 'Planning' : 'Active estate'}</span>
+                        <span style={{ fontSize: 10.5, color: selectedDashboardTask.assignedTo ? C.sage : C.amber, background: C.bgCard, borderRadius: 999, padding: "3px 8px", fontWeight: 900 }}>{selectedDashboardTask.assignedTo || selectedDashboardTask.assignedEmail || 'Needs owner'}</span>
+                      </div>
+                      <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.22 }}>{selectedDashboardTask.title}</div>
+                      <div style={{ marginTop: 8, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 11, padding: "9px 10px", fontSize: 12, color: C.mid, lineHeight: 1.45 }}>
+                        <strong style={{ color: C.ink }}>Next expected update:</strong> {selectedDashboardOrchestration?.nextAction?.reason || 'Move this next.'}
+                      </div>
+                      <div style={{ marginTop: 8, fontSize: 11.5, color: C.mid, lineHeight: 1.4 }}>
+                        <strong style={{ color: C.ink }}>{selectedDashboardWorkspace?.output?.label || 'Task output'}</strong>
+                        <span style={{ color: C.soft }}> · Proof: </span>
+                        {selectedDashboardWorkspace?.proofDestination || 'Saved to the estate proof trail.'}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 11.5, fontWeight: 900, color: selectedDashboardTask.assignedTo ? C.sage : C.rose, whiteSpace: "nowrap", alignSelf: "center" }}>
+                      {selectedDashboardTask.assignedTo ? "Open ->" : "Assign ->"}
+                    </span>
+                  </div>
+                </button>
+              ) : (
+                <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "13px 14px", color: C.sage, fontSize: 13, lineHeight: 1.55 }}>
+                  This estate has no open next move right now. Open the workspace for details, documents, people, and audit history.
+                </div>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
+                {[{l:"This estate",v:selectedDashboardEstate?.path === 'green' ? 'Planning' : 'Active'},{l:"Tasks handled",v:selectedDashboardStats.required ? `${selectedDashboardStats.completed || 0}/${selectedDashboardStats.required}` : "0"},{l:"All estates",v:activeWorkflows.length}].map(i => (
+                  <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 10, padding: "10px 11px" }}>
+                    <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{i.v}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+                <button onClick={() => onOpenPlan(selectedDashboardEstate)} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Open estate workspace</button>
+                {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: `1px solid ${C.sageLight}`, borderRadius: 11, padding: "10px 13px", background: C.sageFaint, color: C.sage, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Add planning estate</button>}
+                <button onClick={() => window.location.href = '/urgent'} style={{ border: `1px solid ${C.rose}30`, borderRadius: 11, padding: "10px 13px", background: C.roseFaint, color: C.rose, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Start urgent path</button>
+              </div>
+            </div>
+            <details style={{ background: C.bgCard, borderRadius: 14, padding: 0, border: `1px solid ${C.border}`, marginBottom: 12 }}>
+              <summary style={{ cursor: "pointer", listStyle: "none", padding: "12px 14px", fontFamily: "Georgia, serif", fontSize: 14, color: C.mid, display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <span>All estate lists and plan details</span>
+                <span style={{ color: C.sage, fontWeight: 800 }}>{activeWorkflows.length} estate{activeWorkflows.length === 1 ? '' : 's'}</span>
+              </summary>
             <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 12 }}>
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "16px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
@@ -3827,10 +3913,12 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               </div>
             </details>
             </div>
+            </details>
+            </>
             )}
 
             {/* Red path active plans */}
-            {redWorkflows.length > 0 && (
+            {false && redWorkflows.length > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
                   <div style={{ fontFamily: "Georgia, serif", fontSize: 17, color: C.ink }}>Active estate command centers</div>
@@ -3904,7 +3992,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             )}
 
             {/* Green path estate file */}
-            {hasAnyEstate && estateSeatLimit > 0 && (
+            {false && hasAnyEstate && estateSeatLimit > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 16, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
                   <div>
