@@ -13,6 +13,38 @@ function normalizeStoredStatus(status) {
   return status;
 }
 
+function missingColumnFrom(error) {
+  const message = String(error?.message || error?.details || '');
+  const match = message.match(/'([^']+)'\s+column/i) || message.match(/column\s+"?([a-z0-9_]+)"?\s+.*does not exist/i);
+  return match?.[1] || '';
+}
+
+async function updateTaskWithSchemaFallback(task, updates) {
+  const skippedColumns = [];
+  let remaining = { ...updates };
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const { error } = await serviceSupabase
+      .from('tasks')
+      .update(remaining)
+      .eq('id', task.id)
+      .eq('workflow_id', task.workflow_id);
+
+    if (!error) return { skippedColumns };
+
+    const missingColumn = missingColumnFrom(error);
+    if (!missingColumn || !(missingColumn in remaining)) {
+      return { error };
+    }
+
+    skippedColumns.push(missingColumn);
+    const { [missingColumn]: _omitted, ...nextRemaining } = remaining;
+    remaining = nextRemaining;
+  }
+
+  return { error: new Error('Task update could not be saved after schema fallback.') };
+}
+
 async function userCanUpdateTask(auth, task) {
   if (auth.source === 'internal') return true;
   const email = auth.user?.email?.toLowerCase();
@@ -99,14 +131,14 @@ export default async function handler(req, res) {
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
   updates.updated_at = now;
 
-  const { error: updateError } = await serviceSupabase
-    .from('tasks')
-    .update(updates)
-    .eq('id', taskId)
-    .eq('workflow_id', task.workflow_id);
+  const { error: updateError, skippedColumns = [] } = await updateTaskWithSchemaFallback(task, updates);
   if (updateError) return res.status(500).json({ error: updateError.message });
 
-  const detailText = detail || `${task.title} - ${status.replace(/_/g, ' ')}`;
+  const noteText = typeof notes === 'string' && notes.trim() ? notes.trim() : '';
+  const detailText = [
+    detail || `${task.title} - ${status.replace(/_/g, ' ')}`,
+    noteText && skippedColumns.includes('notes') ? `Note: ${noteText}` : '',
+  ].filter(Boolean).join(' ');
   const result = await recordTaskCommunicationEvent({
     workflowId: task.workflow_id,
     taskId: isUuid(task.id) ? task.id : taskId,
@@ -132,5 +164,6 @@ export default async function handler(req, res) {
     },
     confirmation: taskActionConfirmation(status, task, auth.source === 'internal' ? 'system' : 'family'),
     eventDetail: detailText,
+    skippedColumns,
   });
 }
