@@ -1569,6 +1569,12 @@ export default function FuneralHomeDashboard() {
                       </div>
                     );
                   })()}
+                  {isExpanded && (
+                    <details style={{ border: `1px solid ${C.border}`, borderRadius: 13, background: C.bg, marginTop: 10, overflow: 'hidden' }}>
+                      <summary style={{ cursor: 'pointer', padding: '10px 12px', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>
+                        Supporting details: progress, proof, family access, vendors, and task queue
+                      </summary>
+                      <div style={{ padding: '0 12px 12px' }}>
                   {orchestration.progress.length > 0 && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7, marginTop: 9 }}>
                       {orchestration.progress.slice(0, 5).map(row => (
@@ -1751,6 +1757,9 @@ export default function FuneralHomeDashboard() {
                       })()}
                     </div>
                   ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               );
             })}
