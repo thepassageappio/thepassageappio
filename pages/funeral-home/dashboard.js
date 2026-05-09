@@ -910,7 +910,9 @@ export default function FuneralHomeDashboard() {
               <div style={{ color: C.mid, fontSize: 12.5 }}>Role scoping uses the same task proof and communication spine.</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10 }}>
-              {staffWorkloads.map(member => (
+              {staffWorkloads.map(member => {
+                const staffSignInUrl = `${siteOrigin}/funeral-home/dashboard?staff=1${member.email ? `&email=${encodeURIComponent(member.email)}` : ''}`;
+                return (
                 <div key={`${member.email || member.label}_${member.role}`} style={{ background: member.blocked ? C.roseFaint : member.open ? C.sageFaint : C.bg, border: `1px solid ${member.blocked ? C.rose + '44' : member.open ? C.sage + '22' : C.border}`, borderRadius: 14, padding: 13 }}>
                   <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{member.label}</div>
                   <div style={{ color: member.blocked ? C.rose : C.sage, fontSize: 11.5, fontWeight: 900, marginTop: 3 }}>{roleLabel(member.role)} - {member.scope === 'all_cases' ? 'Can see cases and reports' : member.scope === 'director_attention' ? 'Needs assignment' : 'Assigned work first'}</div>
@@ -927,6 +929,9 @@ export default function FuneralHomeDashboard() {
                     ))}
                   </div>
                   {member.blocked > 0 && <div style={{ color: C.rose, fontSize: 12, fontWeight: 900, marginTop: 8 }}>{member.blocked} blocked item{member.blocked === 1 ? '' : 's'}</div>}
+                  {member.email && (
+                    <button onClick={() => copyText(staffSignInUrl, 'Staff sign-in link copied.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '7px 9px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 9 }}>Copy sign-in link</button>
+                  )}
                   {member.nextTask && (
                     <button onClick={() => openPartnerWork(member.nextTask.caseId)} style={{ width: '100%', textAlign: 'left', border: `1px solid ${member.blocked ? C.rose + '44' : C.sage + '33'}`, background: C.card, color: C.ink, borderRadius: 11, padding: '9px 10px', marginTop: 9, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
                       <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Next today</div>
@@ -935,7 +940,7 @@ export default function FuneralHomeDashboard() {
                     </button>
                   )}
                 </div>
-              ))}
+              );})}
             </div>
             {isDirectorRole && (
               <form onSubmit={addPartnerStaff} style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12 }}>
