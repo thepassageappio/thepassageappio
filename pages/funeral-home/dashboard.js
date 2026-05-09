@@ -861,17 +861,17 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && (
-          <div style={{ background: C.card, color: C.ink, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+          <div style={{ background: C.card, color: C.ink, border: `1px solid ${C.border}`, borderRadius: 16, padding: 14, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 9 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today</div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Cases, waiting replies, risk, and follow-up avoided.</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>Live operating read.</div>
               </div>
-              <button onClick={() => setShowDirectorHelp(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>How Passage coordinates</button>
+              <button onClick={() => setShowDirectorHelp(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>?</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
               {glanceItems.map(([label, value]) => (
-                <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: '14px 16px', minHeight: 82 }} title={label === 'Estimated calls avoided' ? 'Based on messages sent and assignments coordinated through Passage.' : ''}>
+                <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 12px', minHeight: 58 }} title={label === 'Estimated calls avoided' ? 'Based on messages sent and assignments coordinated through Passage.' : ''}>
                   <div style={{ color: C.sage, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
                   <div style={{ color: C.ink, fontSize: 22, marginTop: 2 }}>{value}</div>
                 </div>
@@ -887,10 +887,7 @@ export default function FuneralHomeDashboard() {
                 ))}
               </div>
             )}
-            <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 9 }}>
-              CSV export is available for existing case systems.
-              {funeralHomeShare > 0 && <strong style={{ color: C.sage }}> Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</strong>}
-            </div>
+            {funeralHomeShare > 0 && <div style={{ color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 9, fontWeight: 900 }}>Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</div>}
           </div>
         )}
 
@@ -919,15 +916,15 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 12, marginBottom: 18, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 8, marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             {[
-              ['work', 'Case work', 'Move next tasks'],
-              ['staff', 'Staff work', 'Roles and assigned work'],
-              ['reports', 'Reports', 'ROI by location and employee'],
+              ['work', 'Cases', 'Move work'],
+              ['staff', 'Staff', 'Assign work'],
+              ['reports', 'Reports', 'ROI'],
             ].map(([key, title, body]) => (
-              <button key={key} onClick={() => setActivePartnerView(key)} style={{ flex: '1 1 190px', textAlign: 'left', border: `1px solid ${activePartnerView === key ? C.sage : C.border}`, background: activePartnerView === key ? C.sage : C.bg, color: activePartnerView === key ? '#fff' : C.ink, borderRadius: 14, padding: '12px 14px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
-                <div style={{ fontSize: 15, fontWeight: 900 }}>{title}</div>
-                <div style={{ fontSize: 11.5, opacity: .78, marginTop: 2 }}>{body}</div>
+              <button key={key} onClick={() => setActivePartnerView(key)} style={{ flex: '1 1 150px', textAlign: 'left', border: `1px solid ${activePartnerView === key ? C.sage : C.border}`, background: activePartnerView === key ? C.sage : C.bg, color: activePartnerView === key ? '#fff' : C.ink, borderRadius: 12, padding: '10px 12px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
+                <div style={{ fontSize: 14, fontWeight: 900 }}>{title}</div>
+                <div style={{ fontSize: 11, opacity: .78, marginTop: 2 }}>{body}</div>
               </button>
             ))}
           </div>
