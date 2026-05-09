@@ -1017,6 +1017,12 @@ export default function FuneralHomeDashboard() {
     ['Act for family', totalHandled, 'tasks handled with visible proof'],
     ['Coordinate support', totalVendorRequests, 'vendor requests without a directory'],
   ];
+  const pilotFirstDayRows = [
+    ['1', 'Create/open case', cases.length ? `${cases.length} active` : 'Start here'],
+    ['2', 'Move one task', firstOpenCase ? sharedTaskTitle(itemNextPartnerTask(firstOpenCase, orchestrationByCaseId.get(firstOpenCase.id)) || {}) : 'No case yet'],
+    ['3', 'Ask or assign', assignmentsCoordinated ? `${assignmentsCoordinated} assigned` : familyRequestsOpen ? `${familyRequestsOpen} family request${familyRequestsOpen === 1 ? '' : 's'}` : 'Choose owner'],
+    ['4', 'Export proof', callsAvoided ? `${callsAvoided} calls avoided` : 'After proof is saved'],
+  ];
 
   useEffect(() => {
     function handleDemoStep(event) {
@@ -1330,6 +1336,19 @@ export default function FuneralHomeDashboard() {
               </div>
             )}
             {funeralHomeShare > 0 && <div style={{ color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 9, fontWeight: 900 }}>Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</div>}
+            {isDirectorRole && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
+                {pilotFirstDayRows.map(([n, label, value]) => (
+                  <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', display: 'grid', gridTemplateColumns: '24px minmax(0, 1fr)', gap: 8, alignItems: 'start' }}>
+                    <span style={{ width: 22, height: 22, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</span>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', color: C.soft, fontSize: 9.5, letterSpacing: '.09em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</span>
+                      <span style={{ display: 'block', color: C.ink, fontSize: 12.2, lineHeight: 1.3, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
