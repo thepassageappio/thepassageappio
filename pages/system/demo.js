@@ -213,6 +213,14 @@ const demoRail = [
   },
   {
     n: '07',
+    title: 'Family prepares the public update',
+    persona: 'Family coordinator',
+    route: '/share?dn=Eleanor%20Price&cn=Price%20family&demoTour=funeral-home&demoStep=announcement',
+    proof: 'One-pager, platform-specific copy, recipient parsing, email/text lists, and CSV export. Nothing sends automatically.',
+    value: 'Shows the practical "tell many people once" output without turning Passage into generic chat or a blast tool.',
+  },
+  {
+    n: '08',
     title: 'Vendor handles scoped local support',
     persona: 'Vendor / service provider',
     route: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
@@ -220,7 +228,7 @@ const demoRail = [
     value: 'Shows vendors as task-native support, not a directory.',
   },
   {
-    n: '08',
+    n: '09',
     title: 'Director closes with reporting',
     persona: 'Owner/director',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
@@ -471,7 +479,7 @@ export default function SystemDemo() {
 
             <Panel style={{ marginTop: 22 }}>
               <div style={eyebrow}>Runnable demo rail</div>
-              <h2 style={h2}>One story, seven product moments.</h2>
+              <h2 style={h2}>One story, nine product moments.</h2>
               <p style={{ ...lead, maxWidth: 820 }}>Use this as the operator-safe spine for demos. Every stop opens the actual product surface that should prove the claim, with dummy-safe links where the flow touches participants or vendors.</p>
               <div style={{ display: 'grid', gap: 9, marginTop: 14 }}>
                 {demoRail.map(step => (
