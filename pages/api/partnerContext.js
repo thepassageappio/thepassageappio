@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { enrichTaskWithPlaybook, partnerTaskPriority } from '../../lib/taskPlaybooks';
 import { isPassageAdmin } from '../../lib/adminAccess';
 import { buildCoordinationSpine, selectNextTask } from '../../lib/communicationCenter';
+import { orchestrateTasks } from '../../lib/taskOrchestration';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -231,13 +232,24 @@ export default async function handler(req, res) {
   }
 
   const cases = visibleWorkflows.map(w => {
-    const caseTasks = tasks.filter(t => t.workflow_id === w.id);
+    const rawCaseTasks = tasks.filter(t => t.workflow_id === w.id);
     const caseStatusEvents = statusEvents.filter(e => e.workflow_id === w.id);
     const caseCommunications = communications.filter(c => c.workflow_id === w.id);
     const caseVendorRequests = vendorRequests.filter(v => v.workflow_id === w.id);
     const caseFamilyParticipants = familyParticipants.filter(p => p.workflow_id === w.id);
     const caseServiceEvents = serviceEvents.filter(e => e.estate_id === w.id);
+    const orchestration = orchestrateTasks({
+      tasks: rawCaseTasks,
+      role: 'funeral_home',
+      context: { workflow: w, estate: w, deathDate: w.date_of_death, serviceEvents: caseServiceEvents },
+    });
+    const caseTasks = orchestration.tasks;
     const partnerTasks = caseTasks.filter(t => t.playbook?.funeralHomeEligible);
+    const partnerOrchestration = orchestrateTasks({
+      tasks: partnerTasks.length ? partnerTasks : caseTasks,
+      role: 'funeral_home',
+      context: { workflow: w, estate: w, deathDate: w.date_of_death, serviceEvents: caseServiceEvents },
+    });
     const coordinationSpine = buildCoordinationSpine({
       tasks: caseTasks,
       statusEvents: caseStatusEvents,
@@ -255,7 +267,8 @@ export default async function handler(req, res) {
       familyParticipants: caseFamilyParticipants.slice(0, 8),
       serviceEvents: caseServiceEvents,
       partnerTasks,
-      nextPartnerTask: selectNextTask(partnerTasks.length ? partnerTasks : caseTasks, 'funeral_home'),
+      orchestration,
+      nextPartnerTask: partnerOrchestration.nextTask || selectNextTask(partnerTasks.length ? partnerTasks : caseTasks, 'funeral_home'),
       coordinationSpine,
       waitingOnFamily: caseTasks.filter(t => /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
       blockedTasks: caseTasks.filter(t => ['blocked', 'failed', 'needs_review'].includes(t.status || '')),
