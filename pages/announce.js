@@ -247,11 +247,10 @@ export default function AnnouncePage() {
           audience: audience,
           tone: tone,
           content: message,
-          status: 'sent',
+          status: 'draft',
           requires_review: addReviewer,
           reviewed_by: reviewerName || null,
           channel: channel,
-          sent_at: new Date().toISOString(),
         }]);
       }
       setSending(false);
@@ -270,11 +269,10 @@ export default function AnnouncePage() {
         requires_review: addReviewer,
         reviewed_by: reviewerName || null,
         channel: channel,
-        sent_at: new Date().toISOString(),
       }]);
     }
 
-    // Route through handleEvent
+    // Route through handleEvent only to persist the prepared announcement output.
     await fetch('/api/handleEvent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
