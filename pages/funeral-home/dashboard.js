@@ -1946,6 +1946,12 @@ export default function FuneralHomeDashboard() {
                         body: item.coordinationSpine?.notifications?.[0]?.title || item.coordinationSpine?.notifications?.[0]?.detail || 'Email, SMS, and in-app delivery route attention without becoming the work.',
                       },
                     ];
+                    const loopRows = [
+                      ['Owner', nextOwner, nextOwner === 'Unassigned' ? C.amber : C.sage],
+                      ['Request', draft, C.mid],
+                      ['Proof', output.label, C.sage],
+                      ['Report', 'Exports with case spine', C.mid],
+                    ];
                     return (
                       <div id={'partner-action-workspace-' + item.id} style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(230px, .65fr)', gap: 12, alignItems: 'stretch' }}>
@@ -1960,6 +1966,14 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 4 }}>{output.body}</div>
                             <button onClick={() => copyText(packetText, 'Prepared output copied.', 'partner_output_' + item.id)} style={{ border: `1px solid ${C.sage}33`, background: copiedKey === 'partner_output_' + item.id ? C.sage : C.card, color: copiedKey === 'partner_output_' + item.id ? '#fff' : C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 9 }}>{copiedKey === 'partner_output_' + item.id ? 'Copied' : 'Copy prepared output'}</button>
                           </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
+                          {loopRows.map(([label, body, tone]) => (
+                            <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 72 }}>
+                              <div style={{ color: tone, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                              <div style={{ color: label === 'Owner' ? tone : C.mid, fontSize: 11.6, lineHeight: 1.35, marginTop: 5, fontWeight: label === 'Owner' ? 900 : 500 }}>{body}</div>
+                            </div>
+                          ))}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: 8, marginTop: 10 }}>
                           {coordinationRows.map(row => (
