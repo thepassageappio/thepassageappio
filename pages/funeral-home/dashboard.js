@@ -1857,7 +1857,7 @@ export default function FuneralHomeDashboard() {
                     <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 14 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
                         <div>
-                          <div style={{ fontSize: 10.5, color: blocked ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Case spine next move</div>
+                          <div style={{ fontSize: 10.5, color: blocked ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Family record next move</div>
                           <div style={{ fontSize: 19, lineHeight: 1.2, color: C.ink, fontWeight: 900 }}>{nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No partner-ready work is open'}</div>
                         </div>
                         {nextImportance && <span style={{ background: nextImportanceTone.bg, border: `1px solid ${nextImportanceTone.border}`, color: nextImportanceTone.color, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextImportance.label}</span>}
@@ -1865,6 +1865,9 @@ export default function FuneralHomeDashboard() {
                       </div>
                       <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55, marginTop: 8 }}>
                         {nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'Nothing needs partner action right now.'}
+                      </div>
+                      <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 7 }}>
+                        Passage keeps this on the family continuity record. The funeral home is the current operating partner, not a separate case island.
                       </div>
                       {nextPartnerTask && nextImportance?.reason && (
                         <div style={{ background: C.card, border: `1px solid ${nextImportanceTone.border}`, borderRadius: 11, padding: '8px 10px', marginTop: 8, color: C.mid, fontSize: 12.2, lineHeight: 1.45 }}>
@@ -1890,7 +1893,7 @@ export default function FuneralHomeDashboard() {
                           </div>
                         ))}
                       </div>
-                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>This is what reduces the "where are we?" calls.</div>
+                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>This reduces the "where are we?" calls and keeps the family view aligned with staff work.</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
@@ -2000,7 +2003,7 @@ export default function FuneralHomeDashboard() {
                           <div>
                             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Action workspace</div>
                             <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(nextPartnerTask)}</div>
-                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>Choose the next operational move. Passage keeps the owner, request, proof, and family-visible status on this task.</div>
+                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>Choose the next operational move. Passage keeps the owner, request, proof, and family-visible status on the same family record.</div>
                             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
                               <strong style={{ color: C.ink }}>Why now:</strong> {guidance.why}
                               <br />
