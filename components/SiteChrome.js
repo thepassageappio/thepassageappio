@@ -52,9 +52,9 @@ const LINKS = [
 const navLink = {
   color: CHROME_COLORS.mid,
   textDecoration: 'none',
-  borderRadius: 12,
-  padding: '10px 12px',
-  minHeight: 44,
+  borderRadius: 11,
+  padding: '8px 10px',
+  minHeight: 38,
   display: 'inline-flex',
   alignItems: 'center',
 };
@@ -224,9 +224,9 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
     background: CHROME_COLORS.sage,
     color: '#fff',
     textDecoration: 'none',
-    borderRadius: 12,
-    padding: '10px 13px',
-    minHeight: 44,
+    borderRadius: 11,
+    padding: '8px 11px',
+    minHeight: 38,
     display: 'inline-flex',
     alignItems: 'center',
     fontWeight: 800,
@@ -235,15 +235,15 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
     color: CHROME_COLORS.mid,
     background: CHROME_COLORS.sageFaint,
     textDecoration: 'none',
-    borderRadius: 12,
-    padding: '10px 14px',
-    minHeight: 44,
+    borderRadius: 11,
+    padding: '8px 12px',
+    minHeight: 38,
     display: 'inline-flex',
     alignItems: 'center',
     fontWeight: 800,
   };
   return (
-    <nav style={{ maxWidth: 1180, margin: '0 auto', padding: '14px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 18 }}>
+    <nav style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
       <style>{`
         @media (max-width: 720px) {
           .passage-nav-secondary { display: none !important; }
@@ -251,19 +251,19 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
           .passage-nav-wrap a, .passage-nav-wrap button { min-height: 40px !important; padding: 8px 9px !important; }
         }
       `}</style>
-      <Link href="/" onClick={handleHomeClick} style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 26, fontWeight: 700 }}>Passage</Link>
-      <div className="passage-nav-wrap" style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      <Link href="/" onClick={handleHomeClick} style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
+      <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, fontSize: 13.5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
           <Link href="/system/admin" style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
         <Link href={dashboardHref} onClick={handleDashboardClick} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>
-        <span style={{ width: 104, display: 'inline-flex', justifyContent: 'flex-end' }}>
+        <span style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
-            <button onClick={signOutHandler} style={{ width: 100, minHeight: 44, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 12, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
+            <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
           )}
           {!currentUser && (
-            <button onClick={signInHandler} style={{ width: 100, minHeight: 44, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 12, padding: '8px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
+            <button onClick={signInHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
           )}
         </span>
       </div>
@@ -302,9 +302,9 @@ function DemoCoach({ step }) {
 
 export function SiteFooter() {
   return (
-    <footer style={{ maxWidth: 1180, margin: '0 auto', padding: '14px 28px 18px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap', fontSize: 13, color: CHROME_COLORS.soft }}>
+    <footer style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px 12px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', fontSize: 12, color: CHROME_COLORS.soft }}>
       <div>Passage coordinates life-to-death transitions with care.</div>
-      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         <Link href="/faq" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>FAQ</Link>
         <Link href="/trust" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Trust</Link>
         <Link href="/privacy" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Privacy</Link>
