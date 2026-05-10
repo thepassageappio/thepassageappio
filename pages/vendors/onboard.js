@@ -43,18 +43,18 @@ export default function VendorOnboard() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '22px 22px 46px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .82fr) minmax(320px, 1fr)', gap: 18, alignItems: 'start' }}>
-          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 26, boxShadow: '0 14px 42px rgba(55,45,35,.05)' }}>
-            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>Trusted local support</div>
-            <h1 style={{ fontSize: 'clamp(34px, 5vw, 60px)', lineHeight: 1.03, margin: 0, fontWeight: 400 }}>Help when a family actually needs you.</h1>
-            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.7, marginTop: 16 }}>Passage suggests local support only inside the task where it helps. No public directory, no bidding wall, no browsing family records.</p>
-            <div style={{ display: 'grid', gap: 9, marginTop: 20 }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '8px 22px 12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(340px, 1fr)', gap: 14, alignItems: 'start' }}>
+          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Trusted local support</div>
+            <h1 style={{ fontSize: 'clamp(30px, 4vw, 44px)', lineHeight: 1, margin: 0, fontWeight: 400 }}>Help when a family actually needs you.</h1>
+            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: '10px 0 0' }}>Passage suggests local support only inside the task where it helps. No public directory, no bidding wall, no browsing family records.</p>
+            <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
               {['Families see your help only when it fits the next step.', 'You receive one scoped request with the details needed to answer.', 'Your response updates the case so nobody has to chase status.'].map((item) => (
-                <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', color: C.mid, lineHeight: 1.5 }}>{item}</div>
+                <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 11, padding: '8px 10px', color: C.mid, fontSize: 12.5, lineHeight: 1.35 }}>{item}</div>
               ))}
             </div>
-            <details style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 13, marginTop: 18 }}>
+            <details style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: 10, marginTop: 10 }}>
               <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>How approval works</summary>
               <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
                 {setupPath.map(([title, body]) => (
@@ -66,9 +66,9 @@ export default function VendorOnboard() {
               </div>
             </details>
           </div>
-          <form onSubmit={submit} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22, boxShadow: '0 14px 42px rgba(55,45,35,.05)' }}>
-            <div style={{ fontSize: 24, lineHeight: 1.2, marginBottom: 6 }}>Apply as a support partner</div>
-            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 0 }}>We review every application manually before recommendations appear in tasks.</p>
+          <form onSubmit={submit} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
+            <div style={{ fontSize: 22, lineHeight: 1.15, marginBottom: 4 }}>Apply as a support partner</div>
+            <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.38, margin: '0 0 8px' }}>We review every application manually before recommendations appear in tasks.</p>
             <label style={labelStyle}>Business name<input value={form.businessName} onChange={(e) => update('businessName', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Category<select value={form.category} onChange={(e) => update('category', e.target.value)} style={inputStyle}>{Object.entries(VENDOR_CATEGORIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <label style={labelStyle}>ZIP codes served<input value={form.zipCodes} onChange={(e) => update('zipCodes', e.target.value)} placeholder="12508, 12601, 10512" style={inputStyle} /></label>
@@ -80,11 +80,11 @@ export default function VendorOnboard() {
             <label style={labelStyle}>Email<input value={form.email} onChange={(e) => update('email', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Phone<input value={form.phone} onChange={(e) => update('phone', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Website<input value={form.website} onChange={(e) => update('website', e.target.value)} style={inputStyle} /></label>
-            <label style={labelStyle}>How you help families<textarea value={form.description} onChange={(e) => update('description', e.target.value)} style={{ ...inputStyle, minHeight: 82, resize: 'vertical' }} /></label>
+            <label style={labelStyle}>How you help families<textarea value={form.description} onChange={(e) => update('description', e.target.value)} style={{ ...inputStyle, minHeight: 58, resize: 'vertical' }} /></label>
             {error && <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', color: C.rose, borderRadius: 11, padding: 10, marginBottom: 8 }}>{error}</div>}
             {message && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 11, padding: 10, marginBottom: 8, fontWeight: 800 }}>{message}</div>}
-            <button disabled={submitting} style={{ width: '100%', border: 'none', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', fontFamily: 'Georgia,serif', fontSize: 15, fontWeight: 900, cursor: submitting ? 'default' : 'pointer' }}>{submitting ? 'Submitting...' : 'Submit for review'}</button>
-            <Link href="/funeral-home" style={{ display: 'block', textAlign: 'center', color: C.sage, textDecoration: 'none', fontSize: 12.5, marginTop: 12, fontWeight: 800 }}>Funeral home partner information</Link>
+            <button disabled={submitting} style={{ width: '100%', border: 'none', background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 14px', fontFamily: 'Georgia,serif', fontSize: 14, fontWeight: 900, cursor: submitting ? 'default' : 'pointer' }}>{submitting ? 'Submitting...' : 'Submit for review'}</button>
+            <Link href="/funeral-home" style={{ display: 'block', textAlign: 'center', color: C.sage, textDecoration: 'none', fontSize: 12, marginTop: 9, fontWeight: 800 }}>Funeral home partner information</Link>
           </form>
         </div>
       </section>
@@ -93,6 +93,6 @@ export default function VendorOnboard() {
   );
 }
 
-const labelStyle = { display: 'grid', gap: 5, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 9 };
-const inputStyle = { border: '1px solid ' + C.border, borderRadius: 11, background: C.bg, padding: '10px 11px', fontFamily: 'Georgia,serif', fontSize: 14, color: C.ink, minWidth: 0 };
-const checkStyle = { display: 'flex', alignItems: 'center', gap: 7, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 11, padding: '10px 11px', color: C.mid, fontSize: 13, marginBottom: 9 };
+const labelStyle = { display: 'grid', gap: 4, fontSize: 9.8, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 7 };
+const inputStyle = { border: '1px solid ' + C.border, borderRadius: 10, background: C.bg, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink, minWidth: 0 };
+const checkStyle = { display: 'flex', alignItems: 'center', gap: 7, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 10, padding: '8px 10px', color: C.mid, fontSize: 12.5, marginBottom: 7 };

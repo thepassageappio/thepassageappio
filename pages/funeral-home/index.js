@@ -82,7 +82,7 @@ export default function FuneralHomePage() {
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <style>{`
         .fh-shell, .fh-shell * { box-sizing:border-box; }
-        .fh-shell { max-width:1040px; margin:0 auto; padding:4px 28px 12px; }
+        .fh-shell { max-width:1040px; margin:0 auto; padding:4px 28px 8px; }
         .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.62fr); gap:18px; align-items:center; padding:8px 0 10px; }
         .fh-kicker { color:${C.sage}; font-size:10px; letter-spacing:.17em; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
         .fh-title { font-size:clamp(33px,4vw,48px); line-height:.98; margin:0 0 9px; font-weight:400; letter-spacing:0; max-width:720px; }

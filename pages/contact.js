@@ -22,14 +22,14 @@ const categories = [
 
 function Field({ label, children }) {
   return (
-    <label style={{ display: 'block', marginBottom: 14 }}>
-      <div style={{ fontSize: 11, color: C.soft, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>{label}</div>
+    <label style={{ display: 'block', marginBottom: 9 }}>
+      <div style={{ fontSize: 10, color: C.soft, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 5 }}>{label}</div>
       {children}
     </label>
   );
 }
 
-const input = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 12, padding: '10px 13px', fontFamily: 'Georgia,serif', fontSize: 14, color: C.ink, outline: 'none', background: '#fff' };
+const input = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 11, padding: '8px 12px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink, outline: 'none', background: '#fff' };
 const SUPPORT_USER = 'thepassageappio';
 const SUPPORT_DOMAIN = 'gmail.com';
 
@@ -85,19 +85,19 @@ export default function ContactPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
 
-      <section style={{ maxWidth: 980, margin: '0 auto', padding: '12px 22px 36px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 18 }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '6px 22px 10px', display: 'grid', gridTemplateColumns: 'minmax(0,.9fr) minmax(360px,1fr)', gap: 16, alignItems: 'start' }}>
         <div>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Contact Passage</div>
-          <h1 style={{ fontSize: 'clamp(28px, 3.3vw, 36px)', lineHeight: 1.04, margin: '0 0 8px', fontWeight: 400 }}>How can we help right now?</h1>
-          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>Use this form for support, billing, bug reports, feature requests, urgent-flow feedback, partnership inquiries, or content requests. For emergencies, contact local emergency services or the appropriate funeral, medical, legal, or government office directly.</p>
-          <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 13, lineHeight: 1.55 }}>
-            <strong style={{ color: C.ink }}>Support email:</strong> <SupportEmail /><br />
-            <strong style={{ color: C.ink }}>Vendor applications:</strong> use the vendor form so it reaches the system-admin approval queue. <Link href="/vendors/onboard" style={{ color: C.sage, fontWeight: 900 }}>Apply as a vendor</Link><br />
-            <strong style={{ color: C.ink }}>Partnerships:</strong> funeral homes, attorneys, planners, and care teams can use the partner inquiry category.
+          <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Contact Passage</div>
+          <h1 style={{ fontSize: 'clamp(30px, 3.4vw, 44px)', lineHeight: .98, margin: '0 0 8px', fontWeight: 400 }}>How can we help right now?</h1>
+          <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: 0 }}>Use this for support, billing, bug reports, feature requests, urgent-flow feedback, partner inquiries, or content requests.</p>
+          <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px', color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
+            <strong style={{ color: C.ink }}>Emergencies:</strong> contact local emergency services or the appropriate funeral, medical, legal, or government office directly.<br />
+            <strong style={{ color: C.ink }}>Support:</strong> <SupportEmail /><br />
+            <strong style={{ color: C.ink }}>Vendors:</strong> use the approval flow. <Link href="/vendors/onboard" style={{ color: C.sage, fontWeight: 900 }}>Apply as a vendor</Link>
           </div>
         </div>
 
-        <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, boxShadow: '0 12px 40px rgba(55,45,35,.06)' }}>
+        <form onSubmit={submit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 17, padding: 14, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
           <Field label="Name">
             <input value={form.name} onChange={e => set('name', e.target.value)} style={input} placeholder="Your name" />
           </Field>
@@ -117,15 +117,20 @@ export default function ContactPage() {
             </select>
           </Field>
           <Field label="How can we help?">
-            <textarea required rows={5} value={form.message} onChange={e => set('message', e.target.value)} style={{ ...input, resize: 'vertical', lineHeight: 1.5 }} placeholder="Share enough detail for us to understand the issue or request." />
+            <textarea required rows={3} value={form.message} onChange={e => set('message', e.target.value)} style={{ ...input, resize: 'vertical', lineHeight: 1.35 }} placeholder="Share enough detail for us to understand the issue or request." />
           </Field>
-          <button disabled={state === 'sending'} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>
+          <button disabled={state === 'sending'} style={{ width: '100%', border: 'none', borderRadius: 12, padding: '11px 16px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>
             {state === 'sending' ? 'Sending...' : 'Submit inquiry'}
           </button>
           {state === 'sent' && <p style={{ color: C.sage, fontSize: 13, lineHeight: 1.6 }}>We received it. Thank you.</p>}
           {state === 'error' && <p style={{ color: C.rose, fontSize: 13, lineHeight: 1.6 }}>Something did not send. Please email <SupportEmail />.</p>}
         </form>
       </section>
+      <style jsx>{`
+        @media (max-width: 780px) {
+          section { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       <SiteFooter />
     </main>
   );
