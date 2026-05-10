@@ -351,6 +351,7 @@ export default function FuneralHomeDashboard() {
   const [creating, setCreating] = useState(false);
   const [taskDraft, setTaskDraft] = useState(null);
   const [taskDraftNote, setTaskDraftNote] = useState('');
+  const [outputPreview, setOutputPreview] = useState(null);
   const [assignmentDraft, setAssignmentDraft] = useState({ taskId: '', name: '', email: '', role: '', phone: '' });
   const [activePartnerView, setActivePartnerView] = useState('work');
   const [reportView, setReportView] = useState('overview');
@@ -2953,6 +2954,9 @@ export default function FuneralHomeDashboard() {
                       locationName: itemLocation,
                       openTasks: item.tasks || [],
                     });
+                    const packetPreviewLines = packetText.split('\n').filter(Boolean).slice(0, 10);
+                    const packetPurpose = output.label || 'Prepared case output';
+                    const packetUse = 'Review before copying. Use it as the staff call script, case-file note, or family-approved handoff; Passage does not send it automatically.';
                     const coordinationRows = [
                       {
                         label: 'Conversation',
@@ -2995,7 +2999,18 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Prepared output</div>
                             <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900, marginTop: 4 }}>{output.label}</div>
                             <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 4 }}>{output.body}</div>
-                            <button onClick={() => copyText(packetText, 'Prepared output copied.', 'partner_output_' + item.id)} style={{ border: `1px solid ${C.sage}33`, background: copiedKey === 'partner_output_' + item.id ? C.sage : C.card, color: copiedKey === 'partner_output_' + item.id ? '#fff' : C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 9 }}>{copiedKey === 'partner_output_' + item.id ? 'Copied' : 'Copy prepared output'}</button>
+                            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.5, lineHeight: 1.42, marginTop: 8 }}>
+                              <strong style={{ color: C.ink }}>Purpose:</strong> {packetUse}
+                            </div>
+                            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.2, lineHeight: 1.38, marginTop: 8, maxHeight: 116, overflow: 'hidden' }}>
+                              {packetPreviewLines.map((line, index) => (
+                                <div key={`${line}_${index}`} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{line}</div>
+                              ))}
+                            </div>
+                            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
+                              <button onClick={() => setOutputPreview({ title: packetPurpose, subtitle: sharedTaskTitle(nextPartnerTask), purpose: packetUse, text: packetText, copyKey: 'partner_output_' + item.id })} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Preview output</button>
+                              <button onClick={() => copyText(packetText, 'Prepared output copied.', 'partner_output_' + item.id)} style={{ border: `1px solid ${C.sage}33`, background: copiedKey === 'partner_output_' + item.id ? C.sage : C.card, color: copiedKey === 'partner_output_' + item.id ? '#fff' : C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{copiedKey === 'partner_output_' + item.id ? 'Copied' : 'Copy text'}</button>
+                            </div>
                           </div>
                         </div>
                         {taskClosed ? (
@@ -3281,6 +3296,14 @@ export default function FuneralHomeDashboard() {
             onUpdateTask={updateTask}
           />
         )}
+        {user && outputPreview && (
+          <PreparedOutputPreviewDialog
+            preview={outputPreview}
+            copiedKey={copiedKey}
+            onCopyText={copyText}
+            onClose={() => setOutputPreview(null)}
+          />
+        )}
       </section>
       <SiteFooter />
     </main>
@@ -3446,6 +3469,33 @@ function FocusWidget({ label, count, tone, bg, title, body, cta, onClick }) {
       <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>{body}</div>
       {cta && <div style={{ color: tone, fontSize: 12, fontWeight: 900, marginTop: 10 }}>{cta}</div>}
     </button>
+  );
+}
+
+function PreparedOutputPreviewDialog({ preview, copiedKey, onCopyText, onClose }) {
+  if (!preview) return null;
+  const copyKey = preview.copyKey || 'prepared_output_preview';
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 240, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+      <div role="dialog" aria-modal="true" aria-label="Prepared output preview" onClick={event => event.stopPropagation()} style={{ width: 'min(820px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Prepared output preview</div>
+            <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{preview.title || 'Passage prepared output'}</div>
+            {preview.subtitle && <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginTop: 4 }}>{preview.subtitle}</div>}
+          </div>
+          <button onClick={onClose} aria-label="Close prepared output preview" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
+        </div>
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: '10px 11px', color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginTop: 12 }}>
+          <strong style={{ color: C.ink }}>What this is for:</strong> {preview.purpose || 'Review this before copying it into a case file, staff note, or approved family handoff. Passage does not send it automatically.'}
+        </div>
+        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: '#fff', border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.55, margin: '12px 0 0' }}>{preview.text}</pre>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+          <button onClick={() => onCopyText(preview.text, 'Prepared output copied.', copyKey)} style={{ border: 'none', background: copiedKey === copyKey ? C.ink : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{copiedKey === copyKey ? 'Copied' : 'Copy reviewed output'}</button>
+          <button onClick={onClose} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Close</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
