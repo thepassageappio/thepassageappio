@@ -694,6 +694,8 @@ export default function FuneralHomeDashboard() {
 
   function openPartnerWork(caseId) {
     if (!caseId) return;
+    setShowPilotGuide(false);
+    setShowTools(false);
     setActivePartnerView('work');
     setSelectedLocation('all');
     setExpandedCaseId(caseId);
@@ -706,6 +708,37 @@ export default function FuneralHomeDashboard() {
         setNotice('Case work is open. If the case is filtered out, switch to All locations.');
       }
     }, 80);
+  }
+
+  function openPartnerPane(view, targetId, message) {
+    setShowPilotGuide(false);
+    setShowTools(false);
+    setActivePartnerView(view);
+    if (message) setNotice(message);
+    scrollPartnerDemoTarget(targetId);
+  }
+
+  function moveDirectorFocus() {
+    setShowPilotGuide(false);
+    setShowTools(false);
+    if (!isDirectorRole && firstStaffTask?.caseId) {
+      openPartnerWork(firstStaffTask.caseId);
+      return;
+    }
+    if (nextDirectorStep.key === 'staff') {
+      openPartnerPane('staff', 'partner-staff-section', 'Opening staff assignment so the next owner can be set.');
+      return;
+    }
+    if (nextDirectorStep.key === 'report') {
+      openPartnerPane('reports', 'partner-reports-section', 'Opening reports and export so proof can leave Passage cleanly.');
+      return;
+    }
+    if (firstOpenCase?.id) {
+      openPartnerWork(firstOpenCase.id);
+      return;
+    }
+    openCasePanel('immediate');
+    setNotice('Create the first case, then Passage will move the next task.');
   }
 
   function scrollPartnerDemoTarget(id) {
@@ -1613,7 +1646,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowPilotGuide(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open guide</button>
               <button onClick={() => openCasePanel('immediate')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create case</button>
-              <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add staff</button>
+              <button onClick={() => openPartnerPane('staff', 'partner-staff-section', 'Opening staff setup.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add staff</button>
             </div>
           </div>
         )}
@@ -1859,12 +1892,7 @@ export default function FuneralHomeDashboard() {
                       : 'When a director assigns work, it appears here first with case context and proof requirements.'}
                 </div>
               </div>
-              <button onClick={() => {
-                if (!isDirectorRole && firstStaffTask?.caseId) openPartnerWork(firstStaffTask.caseId);
-                else if (nextDirectorStep.key === 'staff') setActivePartnerView('staff');
-                else if (nextDirectorStep.key === 'report') setActivePartnerView('reports');
-                else if (firstOpenCase?.id) openPartnerWork(firstOpenCase.id);
-              }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <button onClick={moveDirectorFocus} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 {isDirectorRole ? 'Move this' : firstStaffTask ? 'Do this now' : 'Open staff'}
               </button>
             </div>
@@ -1872,7 +1900,7 @@ export default function FuneralHomeDashboard() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(128px, 1fr))', gap: 7, marginTop: 9 }}>
                 {[
                   ['Waiting on family', () => firstOpenCase?.id && openPartnerWork(firstOpenCase.id)],
-                  ['Reassign work', () => setActivePartnerView('staff')],
+                  ['Reassign work', () => openPartnerPane('staff', 'partner-staff-section', 'Opening staff assignment.')],
                   ['Record proof', () => firstOpenCase?.id && openPartnerWork(firstOpenCase.id)],
                   ['Export case data', () => downloadExport('cases')],
                 ].map(([label, action]) => (
@@ -1926,8 +1954,8 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                   <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Create case</button>
                   <button onClick={() => { setShowTools(true); setImportDraft(null); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Import locations</button>
-                  <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Set up employees</button>
-                  <button onClick={() => setActivePartnerView('reports')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Check reporting</button>
+                  <button onClick={() => openPartnerPane('staff', 'partner-staff-section', 'Opening employee setup.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Set up employees</button>
+                  <button onClick={() => openPartnerPane('reports', 'partner-reports-section', 'Opening reports.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Check reporting</button>
                 </div>
               </div>
             )}
