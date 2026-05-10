@@ -43,7 +43,7 @@ export default function PricingPage() {
   const [message, setMessage] = useState('');
   const [participantDiscount, setParticipantDiscount] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
-  const [activeGroup, setActiveGroup] = useState('individual');
+  const [activeChoice, setActiveChoice] = useState('urgent');
 
   useEffect(() => {
     setParticipantDiscount(new URLSearchParams(window.location.search).get('participant') === '1');
@@ -127,7 +127,13 @@ export default function PricingPage() {
     }
   }
 
-  const group = groups.find(g => g.key === activeGroup) || groups[0];
+  const activeGroup = groups.find(g => g.key === activeChoice) || groups[0];
+  const showingUrgent = activeChoice === 'urgent';
+  const readiness = [
+    ['After checkout', 'Passage opens the right workspace so next step, owner, and proof stay together.'],
+    ['Nothing sends yet', 'Invites, packets, emails, and texts stay in review until someone chooses the exact action.'],
+    ['Start small', 'Begin with one family record. Add people, documents, and provider handoffs when they matter.'],
+  ];
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -156,22 +162,71 @@ export default function PricingPage() {
           }
         }
       `}</style>
-      <section className="pricing-page-section" style={{ maxWidth: 1060, margin: '0 auto', padding: '12px 22px 36px' }}>
-        <div className="pricing-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .72fr) minmax(0, 1fr)', gap: 14, alignItems: 'stretch', marginBottom: 12 }}>
+      <section className="pricing-page-section" style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 22px 18px' }}>
+        <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 18, boxShadow: '0 16px 44px rgba(55,45,35,.05)', display: 'grid', gridTemplateColumns: 'minmax(0,.72fr) minmax(380px,1fr)', gap: 18, alignItems: 'stretch' }} className="pricing-hero-grid">
           <div style={{ alignSelf: 'center' }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Pricing</div>
-            <h1 style={{ fontSize: 'clamp(30px, 3.7vw, 42px)', lineHeight: 1.02, margin: '0 0 8px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.5, margin: 0 }}>Start with one trial estate. Upgrade when you are ready for full orchestration.</p>
+            <h1 style={{ fontSize: 'clamp(34px, 4.5vw, 56px)', lineHeight: .98, margin: '0 0 10px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
+            <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.5, margin: 0, maxWidth: 560 }}>Start urgent if someone just passed. Plan ahead by choosing the number of family records you need.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8, marginTop: 18 }}>
+              {[['urgent', 'Urgent help'], ...groups.map(g => [g.key, g.label])].map(([key, label]) => (
+                <button key={key} type="button" onClick={() => setActiveChoice(key)} style={{ border: `1px solid ${activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) + '55' : C.border}`, background: activeChoice === key ? (key === 'urgent' ? C.roseFaint : C.sageFaint) : C.bg, color: activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) : C.mid, borderRadius: 12, minHeight: 42, padding: '0 12px', fontFamily: 'Georgia,serif', fontSize: 13, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gap: 7, marginTop: 16 }}>
+              {readiness.map(([label, body]) => (
+                <div key={label} style={{ display: 'grid', gridTemplateColumns: '118px minmax(0,1fr)', gap: 9, color: C.mid, fontSize: 12.5, lineHeight: 1.35 }}>
+                  <strong style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</strong>
+                  <span>{body}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}45`, borderRadius: 22, padding: 20, boxShadow: '0 18px 48px rgba(80,45,45,.08)' }}>
-            <div style={{ fontSize: 12, color: C.rose, textTransform: 'uppercase', letterSpacing: '.18em', fontWeight: 900, marginBottom: 7 }}>Someone just passed</div>
-            <div style={{ fontSize: 'clamp(38px, 4.6vw, 54px)', lineHeight: .98, marginBottom: 8 }}>Get help now.</div>
-            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.45, marginBottom: 13 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
-            <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 14, padding: '17px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 18 }}>
-              {busy === 'urgent' ? 'Opening checkout...' : 'Get help now \u2192 $79'}
-            </button>
+          <div style={{ background: showingUrgent ? C.roseFaint : C.sageFaint, border: `1px solid ${(showingUrgent ? C.rose : C.sage)}35`, borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 300 }}>
+            {showingUrgent ? (
+              <>
+                <div style={{ fontSize: 12, color: C.rose, textTransform: 'uppercase', letterSpacing: '.18em', fontWeight: 900, marginBottom: 7 }}>Someone just passed</div>
+                <div style={{ fontSize: 'clamp(40px, 5vw, 58px)', lineHeight: .98, marginBottom: 9 }}>Get help now.</div>
+                <div style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, marginBottom: 16 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
+                <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ marginTop: 24, width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 14, padding: '17px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 18 }}>
+                  {busy === 'urgent' ? 'Opening checkout...' : 'Get help now \u2192 $79'}
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Planning ahead</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 13 }}>
+                  <div>
+                    <div style={{ fontSize: 30, lineHeight: 1.05 }}>{activeGroup.label}</div>
+                    <div style={{ color: C.sage, fontSize: 13, fontWeight: 900, marginTop: 4 }}>{activeGroup.seats}</div>
+                    <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.45, marginTop: 7 }}>{activeGroup.desc}</div>
+                  </div>
+                </div>
+                <div className="pricing-option-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10, marginTop: 24 }}>
+                  {activeGroup.options.map(([id, label, price, per]) => (
+                    <button key={id} disabled={busy === id} onClick={() => checkout(id)} style={{ textAlign: 'left', border: `1px solid ${selectedPlan === id ? C.sage : C.border}`, background: selectedPlan === id ? C.sageFaint : '#fff', borderRadius: 15, padding: 15, cursor: 'pointer', fontFamily: 'Georgia,serif', minHeight: 126 }}>
+                      <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 9 }}>{label}</div>
+                      {participantDiscount ? (
+                        <>
+                          <div style={{ color: C.soft, fontSize: 15, textDecoration: 'line-through', marginBottom: 4 }}>{price}</div>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 29, color: C.ink, fontWeight: 900, lineHeight: 1 }}>{discountedPrice(price, id)}</span>
+                            <span style={{ color: C.sage, fontSize: 12, fontWeight: 900 }}>{participantRateLabel(id)}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ fontSize: 31, color: C.ink, fontWeight: 900, lineHeight: 1 }}>{price}</div>
+                      )}
+                      <div style={{ color: C.mid, fontSize: 12, marginTop: 5 }}>{busy === id ? 'Opening checkout...' : per}</div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-        </div>
+        </section>
 
         {!user && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: '11px 13px', marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
@@ -179,65 +234,11 @@ export default function PricingPage() {
           </div>
         )}
 
-        <div className="pricing-readiness-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 12 }}>
-          {[
-            ['After checkout', 'Passage opens the right estate workspace so the next step, owner, and proof stay together.'],
-            ['Nothing sends yet', 'Invites, packets, emails, and texts stay in review until someone chooses the exact action.'],
-            ['Start small', 'Begin with one family record. Add people, documents, and provider handoffs only when they matter.'],
-          ].map(([label, body]) => (
-            <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13, minHeight: 92 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>{label}</div>
-              <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>{body}</div>
-            </div>
-          ))}
-        </div>
-
         {participantDiscount && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: 13, marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.5 }}>
             <strong style={{ color: C.sage }}>Participant pricing:</strong> monthly plans show the 25% participant rate; annual plans show the 20% participant rate.
           </div>
         )}
-
-        <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 16, boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 5 }}>Planning ahead</div>
-              <div style={{ fontSize: 22, lineHeight: 1.15 }}>Pick the number of estates.</div>
-            </div>
-            <div className="pricing-group-tabs" style={{ display: 'flex', gap: 6, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 4 }}>
-              {groups.map(g => (
-                <button key={g.key} onClick={() => setActiveGroup(g.key)} style={{ border: 'none', borderRadius: 10, padding: '8px 11px', background: activeGroup === g.key ? C.sage : 'transparent', color: activeGroup === g.key ? '#fff' : C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.5 }}>{g.label}</button>
-              ))}
-            </div>
-          </div>
-
-          <div className="pricing-plan-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.55fr) minmax(0,1fr)', gap: 12, alignItems: 'stretch' }}>
-            <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}25`, borderRadius: 15, padding: 14 }}>
-              <div style={{ fontSize: 21, fontWeight: 800 }}>{group.label}</div>
-              <div style={{ color: C.sage, fontSize: 12.5, fontWeight: 800, margin: '4px 0 8px' }}>{group.seats}</div>
-              <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.55 }}>{group.desc}</div>
-            </div>
-            <div className="pricing-option-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
-              {group.options.map(([id, label, price, per]) => (
-                <button key={id} disabled={busy === id} onClick={() => checkout(id)} style={{ textAlign: 'left', border: `1px solid ${selectedPlan === id ? C.sage : C.border}`, background: selectedPlan === id ? C.sageFaint : '#fff', borderRadius: 15, padding: 15, cursor: 'pointer', fontFamily: 'Georgia,serif', minHeight: 112 }}>
-                  <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 9 }}>{label}</div>
-                  {participantDiscount ? (
-                    <>
-                      <div style={{ color: C.soft, fontSize: 15, textDecoration: 'line-through', marginBottom: 4 }}>{price}</div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 29, color: C.ink, fontWeight: 900, lineHeight: 1 }}>{discountedPrice(price, id)}</span>
-                        <span style={{ color: C.sage, fontSize: 12, fontWeight: 900 }}>{participantRateLabel(id)}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div style={{ fontSize: 29, color: C.ink, fontWeight: 900, lineHeight: 1 }}>{price}</div>
-                  )}
-                  <div style={{ color: C.mid, fontSize: 12, marginTop: 5 }}>{busy === id ? 'Opening checkout...' : per}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
 
         <div style={{ marginTop: 12, background: C.card, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13, color: C.mid, fontSize: 13, lineHeight: 1.5 }}>
           Add-on estates become available after an active paid subscription. Urgent coordination stays separate at $79 per case.
