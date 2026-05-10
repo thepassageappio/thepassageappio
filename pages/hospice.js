@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
+import { calendlyUrl } from '../lib/scheduling';
 
 const C = {
   bg: '#f6f3ee',
@@ -204,6 +205,7 @@ export default function HospiceWarmPath() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
               <a href="#start-warm-workspace" style={primaryLink}>Start care-prep record</a>
               <Link href="/urgent" style={secondaryLink}>Death has occurred</Link>
+              <a href={calendlyUrl({ source: 'Hospice or care-facility discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Discuss care-team pilot</a>
             </div>
           </div>
           <div id="start-warm-workspace" style={{ ...panel, padding: 16 }}>
@@ -306,7 +308,7 @@ export default function HospiceWarmPath() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-            <Link href="/contact?category=Hospice%20discovery%20conversation" style={primaryLink}>Discuss hospice discovery</Link>
+            <a href={calendlyUrl({ source: 'Hospice or care-facility discovery' })} target="_blank" rel="noreferrer" style={primaryLink}>Discuss hospice discovery</a>
             <Link href="/funeral-home" style={secondaryLink}>Show funeral-home coordination</Link>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
+import { calendlyUrl } from '../../lib/scheduling';
 
 const C = {
   bg: '#f6f3ee',
@@ -31,7 +32,7 @@ function planForTier(index) {
 }
 
 function contactHref(planId) {
-  return '/contact?category=Funeral%20home%20pilot&plan=' + encodeURIComponent(planId);
+  return calendlyUrl({ source: `Funeral home pilot - ${planId}` });
 }
 
 export default function FuneralHomePage() {
@@ -130,7 +131,7 @@ export default function FuneralHomePage() {
             </p>
             <div className="fh-actions">
               <Link href="/funeral-home/dashboard" className="fh-button fh-primary">Open partner workspace</Link>
-              <Link href="/contact?category=Funeral%20home%20walkthrough" className="fh-button fh-secondary">Book a pilot walkthrough</Link>
+              <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" className="fh-button fh-secondary">Book a pilot walkthrough</a>
             </div>
             <div className="fh-note">Passage does not replace your case system. It coordinates the humans around it.</div>
             {error && <div style={{ marginTop: 14, background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}

@@ -151,6 +151,7 @@ export default function SystemAdminPage() {
   const [metrics, setMetrics] = useState(null);
   const [metricsError, setMetricsError] = useState('');
   const [metricsLoading, setMetricsLoading] = useState(false);
+  const [metricsRangeDays, setMetricsRangeDays] = useState(30);
   const [adminView, setAdminView] = useState('operations');
   const [activePersonaId, setActivePersonaId] = useState(personaProfiles[0].id);
   const [activeModuleTitle, setActiveModuleTitle] = useState(adminModules[0].title);
@@ -192,7 +193,7 @@ export default function SystemAdminPage() {
       setMetricsError('');
       const session = await supabase.auth.getSession();
       const token = session?.data?.session?.access_token || '';
-      const response = await fetch('/api/system/metrics', {
+      const response = await fetch('/api/system/metrics?days=' + encodeURIComponent(metricsRangeDays), {
         headers: token ? { Authorization: 'Bearer ' + token } : {},
       }).catch(() => null);
       if (cancelled) return;
@@ -207,7 +208,7 @@ export default function SystemAdminPage() {
     }
     loadMetrics();
     return () => { cancelled = true; };
-  }, [admin]);
+  }, [admin, metricsRangeDays]);
 
   useEffect(() => {
     if (!user) return;
@@ -229,7 +230,7 @@ export default function SystemAdminPage() {
     if (!supabase) return;
     const session = await supabase.auth.getSession();
     const token = session?.data?.session?.access_token || '';
-    const response = await fetch('/api/system/metrics?format=csv', {
+    const response = await fetch('/api/system/metrics?format=csv&days=' + encodeURIComponent(metricsRangeDays), {
       headers: token ? { Authorization: 'Bearer ' + token } : {},
     });
     if (!response.ok) return;
@@ -414,13 +415,18 @@ export default function SystemAdminPage() {
                     <h2 style={h2}>Internal metrics spine.</h2>
                     <p style={lead}>Show only the operating truth first. Raw CSV remains the source of record.</p>
                   </div>
-                  <button onClick={downloadMetricsCsv} style={{ ...primaryButton, marginTop: 0 }}>Export raw metrics CSV</button>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    {[7, 30, 90].map(days => (
+                      <button key={days} onClick={() => setMetricsRangeDays(days)} style={metricsRangeDays === days ? selectedTab : tabButton}>{days}d</button>
+                    ))}
+                    <button onClick={downloadMetricsCsv} style={{ ...primaryButton, marginTop: 0 }}>Export raw metrics CSV</button>
+                  </div>
                 </div>
                 {metricsLoading && <div style={{ ...smallText, marginTop: 12 }}>Loading live metrics...</div>}
                 {metricsError && <div style={{ ...smallText, marginTop: 12, color: C.rose }}>{metricsError}</div>}
                 {metrics?.metrics?.length > 0 ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginTop: 12 }}>
-                    {metrics.metrics.slice(0, 8).map((item) => (
+                    {metrics.metrics.slice(0, 12).map((item) => (
                       <div key={item.label} style={item.status === 'real' ? metricCard : unavailableMetricCard}>
                         <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: item.status === 'real' ? C.sage : C.amber, marginBottom: 5 }}>{item.status}</div>
                         <div style={{ fontSize: 24, lineHeight: 1.05 }}>{formatAdminMetricValue(item)}</div>
@@ -450,6 +456,36 @@ export default function SystemAdminPage() {
                         {(metrics.leads.recent || []).length ? metrics.leads.recent.slice(0, 6).map((item) => (
                           <MetricRow key={item.email + item.createdAt} label={(item.type || 'Inquiry') + (item.urgency ? ' - ' + item.urgency : '')} value={item.email || 'No email'} />
                         )) : <div style={smallText}>No recent inquiries yet.</div>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {metrics?.funnel && (
+                  <div style={{ marginTop: 18 }}>
+                    <div style={eyebrow}>Signup and onboarding funnel</div>
+                    <p style={{ ...smallText, marginTop: 4 }}>Use this to see who created an account, who completed onboarding, who paid, and who fell off inside the selected time window.</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10, marginTop: 10 }}>
+                      <div style={subPanel}>
+                        <h3 style={h3}>Recent accounts</h3>
+                        {(metrics.funnel.recent || []).length ? metrics.funnel.recent.slice(0, 8).map((item) => (
+                          <MetricRow
+                            key={(item.email || 'user') + item.createdAt}
+                            label={[
+                              item.onboardingCompleted ? 'Complete' : 'Incomplete',
+                              item.lastStage || 'No stage',
+                              item.planStatus || 'No plan',
+                            ].join(' - ')}
+                            value={item.email || 'No email'}
+                          />
+                        )) : <div style={smallText}>No accounts in this range.</div>}
+                      </div>
+                      <div style={subPanel}>
+                        <h3 style={h3}>Nurture queue</h3>
+                        {(metrics.funnel.recent || []).filter(item => !item.onboardingCompleted).length
+                          ? metrics.funnel.recent.filter(item => !item.onboardingCompleted).slice(0, 8).map((item) => (
+                            <MetricRow key={(item.email || 'user') + item.createdAt + 'nurture'} label={item.lastStage || 'Started, not completed'} value={item.email || 'No email'} />
+                          ))
+                          : <div style={smallText}>No incomplete onboarding in this range.</div>}
                       </div>
                     </div>
                   </div>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { VENDOR_CATEGORIES } from '../../lib/vendors';
 import SmartAddressInput from '../../components/SmartAddressInput';
+import { calendlyUrl } from '../../lib/scheduling';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 
@@ -104,6 +105,7 @@ export default function VendorOnboard() {
             {error && <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', color: C.rose, borderRadius: 11, padding: 10, marginBottom: 8 }}>{error}</div>}
             {message && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 11, padding: 10, marginBottom: 8, fontWeight: 800 }}>{message}</div>}
             <button disabled={submitting} style={{ width: '100%', border: 'none', background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 14px', fontFamily: 'Georgia,serif', fontSize: 14, fontWeight: 900, cursor: submitting ? 'default' : 'pointer' }}>{submitting ? 'Submitting...' : 'Submit for review'}</button>
+            <a href={calendlyUrl({ name: form.businessName, email: form.email, source: 'Vendor conversation' })} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', color: C.ink, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '9px 12px', textDecoration: 'none', fontSize: 12.5, marginTop: 8, fontWeight: 900 }}>Book a vendor conversation</a>
             <Link href="/funeral-home" style={{ display: 'block', textAlign: 'center', color: C.sage, textDecoration: 'none', fontSize: 12, marginTop: 9, fontWeight: 800 }}>Funeral home partner information</Link>
           </form>
         </div>

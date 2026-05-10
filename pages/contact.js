@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
+import { calendlyUrl, isMeetingCategory } from '../lib/scheduling';
 
 const C = {
   bg: '#f6f3ee', card: '#ffffff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890',
@@ -10,6 +11,9 @@ const C = {
 const categories = [
   'Urgent family support',
   'Planning-ahead question',
+  'Book a funeral-home demo',
+  'Vendor conversation',
+  'Hospice or care-facility conversation',
   'Funeral home / partner inquiry',
   'Local vendor interest',
   'Feature request',
@@ -44,6 +48,8 @@ function SupportEmail() {
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', category: categories[0], urgency: 'Normal', message: '' });
   const [state, setState] = useState('idle');
+  const meetingReady = isMeetingCategory(form.category);
+  const meetingHref = calendlyUrl({ name: form.name, email: form.email, source: form.category });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -53,9 +59,13 @@ export default function ContactPage() {
     if (!rawCategory && !plan) return;
     setForm(prev => {
       const category = rawCategory.includes('vendor')
-        ? 'Local vendor interest'
-        : rawCategory.includes('funeral') || rawCategory.includes('partner')
-          ? 'Funeral home / partner inquiry'
+        ? (rawCategory.includes('meeting') || rawCategory.includes('conversation') ? 'Vendor conversation' : 'Local vendor interest')
+        : rawCategory.includes('hospice') || rawCategory.includes('care')
+          ? 'Hospice or care-facility conversation'
+          : rawCategory.includes('demo') || rawCategory.includes('walkthrough')
+            ? 'Book a funeral-home demo'
+            : rawCategory.includes('funeral') || rawCategory.includes('partner')
+              ? 'Funeral home / partner inquiry'
           : prev.category;
       const planLine = plan ? `Interested plan: ${plan.replace(/_/g, ' ')}.` : '';
       const message = prev.message || planLine;
@@ -89,11 +99,17 @@ export default function ContactPage() {
         <div>
           <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Contact Passage</div>
           <h1 style={{ fontSize: 'clamp(30px, 3.4vw, 44px)', lineHeight: .98, margin: '0 0 8px', fontWeight: 400 }}>How can we help right now?</h1>
-          <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: 0 }}>Use this for support, billing, bug reports, feature requests, urgent-flow feedback, partner inquiries, or content requests.</p>
+          <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: 0 }}>Book demos and partner conversations immediately. Use the form for support, billing, bugs, feature requests, urgent-flow feedback, or anything that can wait for a written reply.</p>
           <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px', color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
             <strong style={{ color: C.ink }}>Emergencies:</strong> contact local emergency services or the appropriate funeral, medical, legal, or government office directly.<br />
             <strong style={{ color: C.ink }}>Support:</strong> <SupportEmail /><br />
             <strong style={{ color: C.ink }}>Vendors:</strong> use the approval flow. <Link href="/vendors/onboard" style={{ color: C.sage, fontWeight: 900 }}>Apply as a vendor</Link>
+          </div>
+          <div style={{ marginTop: 10, background: '#fffdf9', border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px' }}>
+            <div style={{ fontSize: 10, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 5 }}>Fastest path</div>
+            <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.18, marginBottom: 5 }}>Book a Passage discovery meeting.</div>
+            <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.42, margin: '0 0 9px' }}>For funeral-home demos, vendor conversations, hospice/care-facility discovery, or pilot walkthroughs, skip the inbox and choose a time.</p>
+            <a href={meetingHref} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 13px', fontWeight: 900, fontSize: 12.5 }}>Book on Calendly</a>
           </div>
         </div>
 
@@ -109,6 +125,12 @@ export default function ContactPage() {
               {categories.map(c => <option key={c}>{c}</option>)}
             </select>
           </Field>
+          {meetingReady && (
+            <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 10, color: C.mid, fontSize: 12.6, lineHeight: 1.42, marginBottom: 9 }}>
+              <strong style={{ color: C.ink }}>This is a meeting request.</strong> The fastest next step is Calendly. The form below is only for context you want to send before or after booking.
+              <a href={meetingHref} target="_blank" rel="noreferrer" style={{ display: 'flex', marginTop: 8, minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 13px', fontWeight: 900 }}>Book the meeting</a>
+            </div>
+          )}
           <Field label="Urgency">
             <select value={form.urgency} onChange={e => set('urgency', e.target.value)} style={input}>
               <option>Normal</option>
@@ -120,7 +142,7 @@ export default function ContactPage() {
             <textarea required rows={3} value={form.message} onChange={e => set('message', e.target.value)} style={{ ...input, resize: 'vertical', lineHeight: 1.35 }} placeholder="Share enough detail for us to understand the issue or request." />
           </Field>
           <button disabled={state === 'sending'} style={{ width: '100%', border: 'none', borderRadius: 12, padding: '11px 16px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>
-            {state === 'sending' ? 'Sending...' : 'Submit inquiry'}
+            {state === 'sending' ? 'Sending...' : meetingReady ? 'Send context instead' : 'Submit inquiry'}
           </button>
           {state === 'sent' && <p style={{ color: C.sage, fontSize: 13, lineHeight: 1.6 }}>We received it. Thank you.</p>}
           {state === 'error' && <p style={{ color: C.rose, fontSize: 13, lineHeight: 1.6 }}>Something did not send. Please email <SupportEmail />.</p>}

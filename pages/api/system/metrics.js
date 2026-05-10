@@ -70,6 +70,45 @@ async function fetchRecentLeads(admin) {
   }
 }
 
+function sinceFromQuery(days) {
+  const parsed = Math.max(1, Math.min(365, Number(days || 30) || 30));
+  const since = new Date(Date.now() - parsed * 24 * 60 * 60 * 1000).toISOString();
+  return { days: parsed, since };
+}
+
+function dateFilters(column, since) {
+  return since ? [{ op: 'gte', column, value: since }] : [];
+}
+
+async function fetchUserProfiles(admin) {
+  try {
+    const { data, error } = await admin
+      .from('users')
+      .select('id,email,onboarding_started,onboarding_completed,onboarding_last_stage,plan_status,created_at,updated_at,last_login_at')
+      .limit(10000);
+    if (error) return { rows: [], status: 'unavailable', source: 'users', error: error.message };
+    return { rows: data || [], status: 'real', source: 'users' };
+  } catch (error) {
+    return { rows: [], status: 'unavailable', source: 'users', error: error.message };
+  }
+}
+
+async function fetchAuthUsers(admin) {
+  try {
+    const users = [];
+    for (let page = 1; page <= 10; page += 1) {
+      const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+      if (error) return { rows: users, status: users.length ? 'partial' : 'unavailable', source: 'auth.users', error: error.message };
+      const batch = data?.users || [];
+      users.push(...batch);
+      if (batch.length < 1000) break;
+    }
+    return { rows: users, status: 'real', source: 'auth.users' };
+  } catch (error) {
+    return { rows: [], status: 'unavailable', source: 'auth.users', error: error.message };
+  }
+}
+
 async function fetchSubscriptionRows(admin) {
   try {
     const { data, error } = await admin
@@ -176,6 +215,45 @@ function summarizeLeads(rows = []) {
   };
 }
 
+function inRange(value, since) {
+  if (!since) return true;
+  const time = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(time) && time >= new Date(since).getTime();
+}
+
+function summarizeUserFunnel(profileResult, authResult, since) {
+  const profiles = profileResult.rows || [];
+  const authUsers = authResult.rows || [];
+  const profileById = new Map(profiles.map(row => [row.id, row]));
+  const allUsers = authUsers.length
+    ? authUsers.map(user => ({ ...profileById.get(user.id), authEmail: user.email, authCreatedAt: user.created_at, authLastSignInAt: user.last_sign_in_at }))
+    : profiles.map(row => ({ ...row, authEmail: row.email, authCreatedAt: row.created_at, authLastSignInAt: row.last_login_at }));
+  const rangeUsers = allUsers.filter(row => inRange(row.authCreatedAt || row.created_at, since));
+  const completed = allUsers.filter(row => row.onboarding_completed && inRange(row.updated_at || row.created_at || row.authCreatedAt, since));
+  const incomplete = allUsers.filter(row => !row.onboarding_completed && inRange(row.authCreatedAt || row.created_at || row.updated_at, since));
+  const paid = allUsers.filter(row => String(row.plan_status || '').toLowerCase() === 'active' && inRange(row.updated_at || row.created_at || row.authCreatedAt, since));
+  return {
+    status: authResult.status === 'real' || profileResult.status === 'real' ? 'real' : 'unavailable',
+    source: authUsers.length ? 'auth.users + users' : 'users',
+    error: authResult.error || profileResult.error || null,
+    newUsers: rangeUsers.length,
+    onboardingCompleted: completed.length,
+    onboardingIncomplete: incomplete.length,
+    paidUsers: paid.length,
+    recent: rangeUsers
+      .sort((a, b) => new Date(b.authCreatedAt || b.created_at || 0) - new Date(a.authCreatedAt || a.created_at || 0))
+      .slice(0, 12)
+      .map(row => ({
+        email: row.authEmail || row.email || '',
+        createdAt: row.authCreatedAt || row.created_at || '',
+        lastSignInAt: row.authLastSignInAt || row.last_login_at || '',
+        onboardingCompleted: Boolean(row.onboarding_completed),
+        lastStage: row.onboarding_last_stage || '',
+        planStatus: row.plan_status || '',
+      })),
+  };
+}
+
 function metric(label, result, unit = '') {
   return {
     label,
@@ -211,6 +289,7 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const auth = await requireSystemAdmin(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+  const range = sinceFromQuery(req.query.days);
 
   const [
     estates,
@@ -234,8 +313,11 @@ export default async function handler(req, res) {
     failedNotifications,
     deliveredNotifications,
     leads,
+    leadsInRange,
     recentLeads,
     subscriptionRows,
+    userProfiles,
+    authUsers,
   ] = await Promise.all([
     countRows(auth.admin, 'workflows'),
     countRows(auth.admin, 'workflows', [{ op: 'eq', column: 'path', value: 'red' }]),
@@ -258,17 +340,25 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'notification_log', [{ op: 'eq', column: 'status', value: 'failed' }]),
     countRows(auth.admin, 'notification_log', [{ op: 'eq', column: 'status', value: 'delivered' }]),
     countRows(auth.admin, 'leads'),
+    countRows(auth.admin, 'leads', dateFilters('created_at', range.since)),
     fetchRecentLeads(auth.admin),
     fetchSubscriptionRows(auth.admin),
+    fetchUserProfiles(auth.admin),
+    fetchAuthUsers(auth.admin),
   ]);
   const leadSummary = summarizeLeads(recentLeads.rows);
   const revenue = summarizeRevenue(subscriptionRows);
+  const userFunnel = summarizeUserFunnel(userProfiles, authUsers, range.since);
 
   const metrics = [
     metric('MRR', revenue.mrrCents, 'cents'),
     metric('ARR', revenue.arrCents, 'cents'),
     metric('Active subscriptions', revenue.activeSubscriptions),
     metric('Trials / pilots', revenue.trialSubscriptions),
+    metric(`New users (${range.days}d)`, { value: userFunnel.newUsers, status: userFunnel.status, source: userFunnel.source, error: userFunnel.error }),
+    metric(`Completed onboarding (${range.days}d)`, { value: userFunnel.onboardingCompleted, status: userFunnel.status, source: userFunnel.source, error: userFunnel.error }),
+    metric(`Incomplete onboarding (${range.days}d)`, { value: userFunnel.onboardingIncomplete, status: userFunnel.status, source: userFunnel.source, error: userFunnel.error }),
+    metric(`Paid users (${range.days}d)`, { value: userFunnel.paidUsers, status: userFunnel.status, source: userFunnel.source, error: userFunnel.error }),
     metric('Total estates', estates),
     metric('Urgent red-path estates', urgentEstates),
     metric('Planning green-path estates', planningEstates),
@@ -290,6 +380,7 @@ export default async function handler(req, res) {
     metric('Failed notifications', failedNotifications),
     metric('Delivered notifications', deliveredNotifications),
     metric('Leads and support inquiries', leads),
+    metric(`Leads (${range.days}d)`, leadsInRange),
   ];
 
   if (req.query.format === 'csv') {
@@ -301,7 +392,9 @@ export default async function handler(req, res) {
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
     owner: auth.user.email,
+    range,
     metrics,
+    funnel: userFunnel,
     leads: Object.assign({ error: recentLeads.error || null }, leadSummary),
   });
 }
