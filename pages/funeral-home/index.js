@@ -23,7 +23,7 @@ const C = {
 const tiers = [
   ['Pilot', '$99.99/mo', '$0 for 3 months', '10 active cases, co-branded family view, partner dashboard'],
   ['Local', '$249.99/mo', '', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
-  ['Group', '$349.99/mo', '', 'Locations, reporting, lead capture, priority onboarding'],
+  ['Group', '$349.99/mo', '', 'Locations, reporting, approved family handoffs, priority onboarding'],
 ];
 
 function planForTier(index) {
@@ -126,7 +126,7 @@ export default function FuneralHomePage() {
             <div className="fh-kicker">For funeral homes</div>
             <h1 className="fh-title">A calmer family layer on top of the work you already do.</h1>
             <p className="fh-lede">
-              Passage gives families one shared command center while your team keeps cases moving: fewer repeated calls, clearer owners, visible proof, and clean export back to your existing workflow.
+              Passage gives families one shared command center while your team keeps cases moving: fewer repeated calls, clearer owners, visible proof, approved handoffs, and clean export back to your existing workflow.
             </p>
             <div className="fh-actions">
               <Link href="/funeral-home/dashboard" className="fh-button fh-primary">Open partner workspace</Link>
@@ -166,7 +166,7 @@ export default function FuneralHomePage() {
         <section className="fh-proof">
           {[
             ['Fewer repeated calls', 'Families see what is waiting, who owns it, and what has already been handled.'],
-            ['Staff-owned work', 'Directors assign the next task once. Staff work from a clean queue with case context.'],
+            ['Warm family handoffs', 'When a family starts in Passage first, they can save your home or ask for help choosing. Nothing is sent without approval.'],
             ['Proof that travels', 'Updates, dates, messages, and proof can export back to the systems you already use.'],
           ].map(([title, body]) => (
             <div className="fh-proof-card" key={title}>
@@ -181,7 +181,7 @@ export default function FuneralHomePage() {
             <div className="fh-kicker">Pilot</div>
             <h2 style={{ fontSize: 'clamp(20px,2.2vw,25px)', lineHeight: 1.03, margin: '0 0 6px', fontWeight: 400 }}>Start with a few real cases.</h2>
             <p style={{ color: C.mid, fontSize: 12, lineHeight: 1.32, margin: 0 }}>
-              We help set up the workspace, load a small case set, move one family-facing task, and show the proof trail before you expand.
+              We help set up the workspace, load a small case set, move one family-facing task, and show how a family-approved handoff carries context into your case pane before you expand.
             </p>
           </div>
           <div>

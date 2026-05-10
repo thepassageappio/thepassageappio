@@ -150,7 +150,22 @@ function cleanContext(raw) {
     authorityStatus: clean(input.authorityStatus),
     emergencyCalled: clean(input.emergencyCalled),
     funeralHomeName: clean(input.funeralHomeName),
+    funeralHomeAddress: clean(input.funeralHomeAddress),
+    funeralHomeCity: clean(input.funeralHomeCity),
+    funeralHomeState: clean(input.funeralHomeState),
+    funeralHomeZip: clean(input.funeralHomeZip),
+    funeralHomeCountry: clean(input.funeralHomeCountry),
+    funeralHomeHandoffIntent: clean(input.funeralHomeHandoffIntent),
+    funeralHomeReferralCity: clean(input.funeralHomeReferralCity),
+    funeralHomeReferralState: clean(input.funeralHomeReferralState),
+    funeralHomeReferralZip: clean(input.funeralHomeReferralZip),
+    funeralHomeReferralNote: clean(input.funeralHomeReferralNote),
     cemeteryName: clean(input.cemeteryName),
+    cemeteryAddress: clean(input.cemeteryAddress),
+    cemeteryCity: clean(input.cemeteryCity),
+    cemeteryState: clean(input.cemeteryState),
+    cemeteryZip: clean(input.cemeteryZip),
+    cemeteryCountry: clean(input.cemeteryCountry),
     faithTradition: clean(input.faithTradition),
     clergyName: clean(input.clergyName),
     authorityName: clean(input.authorityName),
@@ -223,6 +238,30 @@ function conditionalTasksFor(context) {
   const tasks = [];
   let position = 7;
   const add = (...args) => tasks.push(task(...args));
+
+  if (context.funeralHomeHandoffIntent === 'request_help') {
+    add(
+      'Review funeral-home options before outreach',
+      'The family asked Passage to help identify a funeral home, but no funeral home should be contacted until the family approves the handoff.',
+      'service',
+      'urgent',
+      0,
+      position++,
+      'review funeral home options before outreach',
+      { automation_level: 'PARTNER_HANDOFF', execution_kind: 'record', waiting_on: 'family approval', funeral_home_eligible: true, proof_required: 'approved funeral-home handoff path saved' }
+    );
+  } else if (context.funeralHomeHandoffIntent === 'not_ready') {
+    add(
+      'Decide funeral-home handoff path',
+      'Keep the funeral-home decision visible without forcing the family to choose before they are ready.',
+      'service',
+      'high',
+      1,
+      position++,
+      'decide funeral home handoff path',
+      { automation_level: 'MANUAL', execution_kind: 'record', waiting_on: 'family preference', funeral_home_eligible: true, proof_required: 'funeral-home preference or not-ready status recorded' }
+    );
+  }
 
   if (context.pronouncementStatus !== 'confirmed') {
     add(
@@ -553,6 +592,30 @@ export default async function handler(req, res) {
       ...(existing?.orchestration_summary || {}),
       chaplain_context: context,
       timeline_anchors: timelineAnchorsForContext(context),
+      funeral_home_handoff: {
+        intent: context.funeralHomeHandoffIntent || (context.funeralHomeName ? 'known' : 'not_ready'),
+        source: 'direct_family_intake',
+        family_outreach_approved: false,
+        preferred_funeral_home: context.funeralHomeName ? {
+          name: context.funeralHomeName,
+          address: context.funeralHomeAddress || null,
+          city: context.funeralHomeCity || null,
+          state: context.funeralHomeState || null,
+          postal_code: context.funeralHomeZip || null,
+          country: context.funeralHomeCountry || null,
+        } : null,
+        requested_market: context.funeralHomeHandoffIntent === 'request_help' ? {
+          city: context.funeralHomeReferralCity || null,
+          state: context.funeralHomeReferralState || null,
+          postal_code: context.funeralHomeReferralZip || null,
+          note: context.funeralHomeReferralNote || null,
+        } : null,
+        proof: context.funeralHomeHandoffIntent === 'known'
+          ? 'Preferred funeral home saved; outreach still requires family approval.'
+          : context.funeralHomeHandoffIntent === 'request_help'
+            ? 'Family requested help choosing a funeral home; no outreach sent.'
+            : 'Funeral-home decision not ready yet.',
+      },
       trusted_advisors: {
         funeral_home: context.funeralHomeName ? {
           name: context.funeralHomeName,

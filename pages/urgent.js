@@ -261,6 +261,11 @@ const defaultContext = {
   funeralHomeState: '',
   funeralHomeZip: '',
   funeralHomeCountry: '',
+  funeralHomeHandoffIntent: '',
+  funeralHomeReferralCity: '',
+  funeralHomeReferralState: '',
+  funeralHomeReferralZip: '',
+  funeralHomeReferralNote: '',
   cemeteryName: '',
   cemeteryAddress: '',
   cemeteryCity: '',
@@ -644,6 +649,12 @@ export default function UrgentPage() {
         .authority-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:9px; }
         .authority-options button { border:1px solid ${C.sageLight}; background:${C.card}; color:${C.sageDark}; border-radius:999px; padding:8px 10px; cursor:pointer; font-weight:800; font-size:12px; }
         .authority-options button.active { background:${C.sage}; color:white; border-color:${C.sage}; }
+        .handoff-choice-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+        .handoff-choice { border:1px solid ${C.border}; background:${C.bg}; color:${C.ink}; border-radius:12px; padding:10px 11px; text-align:left; cursor:pointer; transition:background .12s ease,border-color .12s ease; }
+        .handoff-choice:hover { border-color:${C.sageLight}; background:${C.card}; }
+        .handoff-choice.active { border-color:${C.sage}; background:${C.sageFaint}; box-shadow:inset 0 0 0 1px ${C.sage}; }
+        .handoff-choice b { display:block; font-size:13px; margin-bottom:3px; color:${C.ink}; }
+        .handoff-choice span { display:block; font-size:11.8px; line-height:1.35; color:${C.mid}; }
         .save-panel { border:1px solid ${C.sageLight}; background:${C.sageFaint}; border-radius:16px; padding:12px; margin-bottom:16px; }
         .save-panel-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
         .save-panel-title { color:${C.sageDark}; font-size:11px; letter-spacing:.13em; text-transform:uppercase; font-weight:900; }
@@ -709,7 +720,7 @@ export default function UrgentPage() {
           .grid { grid-template-columns: 1fr; }
           .save-strip { grid-template-columns: 1fr; }
           .context-grid { grid-template-columns:1fr; }
-          .triage-grid, .authority-options, .phase-rail, .crisis-sequence { grid-template-columns:1fr; }
+          .triage-grid, .authority-options, .phase-rail, .crisis-sequence, .handoff-choice-grid { grid-template-columns:1fr; }
           .save-command { width:100%; }
           .primary-card { padding: 22px; }
           .field.two { grid-template-columns: 1fr; }
@@ -906,20 +917,57 @@ export default function UrgentPage() {
                     <option value="needed">Need to confirm</option>
                   </select>
                 </div>
-                <div className="field compact">
-                  <label>Funeral home</label>
-                  <input value={context.funeralHomeName} onChange={e => updateContext('funeralHomeName', e.target.value)} placeholder="Name, if known" />
+                <div className="field compact" style={{ gridColumn: '1 / -1' }}>
+                  <label>Funeral-home handoff</label>
+                  <div className="handoff-choice-grid">
+                    {[
+                      ['known', 'We have one', 'Save the funeral home the family already prefers.'],
+                      ['request_help', 'Help us choose', 'Keep this ready for a warm, approved handoff later.'],
+                      ['not_ready', 'Not ready yet', 'Keep the decision visible without forcing it now.'],
+                    ].map(([value, title, body]) => (
+                      <button
+                        type="button"
+                        key={value}
+                        className={context.funeralHomeHandoffIntent === value ? 'handoff-choice active' : 'handoff-choice'}
+                        onClick={() => updateContext('funeralHomeHandoffIntent', value)}
+                      >
+                        <b>{title}</b>
+                        <span>{body}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="context-help" style={{ marginTop: 8 }}>Nothing is sent. Passage saves the preference so the family record can hand off cleanly when approved.</div>
                 </div>
-                <div className="field compact">
-                  <SmartAddressInput compact label="Funeral home address" value={context.funeralHomeAddress || ''} onChange={(value, parsed = {}) => {
-                    updateContext('funeralHomeAddress', value);
-                    updateContext('funeralHomeCity', parsed.city || '');
-                    updateContext('funeralHomeState', parsed.state || '');
-                    updateContext('funeralHomeZip', parsed.postalCode || '');
-                    updateContext('funeralHomeCountry', parsed.country || '');
-                    if (parsed.placeName && !context.funeralHomeName) updateContext('funeralHomeName', parsed.placeName);
-                  }} colors={C} placeholder="Start typing the funeral home or address" />
-                </div>
+                {context.funeralHomeHandoffIntent === 'known' && (
+                  <>
+                    <div className="field compact">
+                      <label>Funeral home</label>
+                      <input value={context.funeralHomeName} onChange={e => updateContext('funeralHomeName', e.target.value)} placeholder="Name, if known" />
+                    </div>
+                    <div className="field compact">
+                      <SmartAddressInput compact label="Funeral home address" value={context.funeralHomeAddress || ''} onChange={(value, parsed = {}) => {
+                        updateContext('funeralHomeAddress', value);
+                        updateContext('funeralHomeCity', parsed.city || '');
+                        updateContext('funeralHomeState', parsed.state || '');
+                        updateContext('funeralHomeZip', parsed.postalCode || '');
+                        updateContext('funeralHomeCountry', parsed.country || '');
+                        if (parsed.placeName && !context.funeralHomeName) updateContext('funeralHomeName', parsed.placeName);
+                      }} colors={C} placeholder="Start typing the funeral home or address" />
+                    </div>
+                  </>
+                )}
+                {context.funeralHomeHandoffIntent === 'request_help' && (
+                  <>
+                    <div className="field compact">
+                      <label>Where should Passage look?</label>
+                      <input value={context.funeralHomeReferralZip} onChange={e => updateContext('funeralHomeReferralZip', e.target.value)} placeholder="ZIP or town" />
+                    </div>
+                    <div className="field compact">
+                      <label>Anything the home should know?</label>
+                      <input value={context.funeralHomeReferralNote} onChange={e => updateContext('funeralHomeReferralNote', e.target.value)} placeholder="Faith, budget, location, language, or family preference" />
+                    </div>
+                  </>
+                )}
                 <div className="field compact">
                   <label>Healthcare proxy / decision-maker</label>
                   <input value={context.authorityName} onChange={e => updateContext('authorityName', e.target.value)} placeholder="Name, if known" />
