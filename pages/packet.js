@@ -29,6 +29,9 @@ export default function PacketDemo() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const active = packets.find(packet => packet.id === activeId) || packets[0];
+  const asPath = String(router.asPath || '');
+  const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1' || asPath.includes('demoTour=funeral-home') || asPath.includes('demo=1');
+  const displaySourceLabel = !demoMode && sourceLabel === 'Demo packet set' ? 'Sample output set' : sourceLabel;
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -114,7 +117,7 @@ export default function PacketDemo() {
     const fileName = `${String(active.title || 'passage-packet').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'passage-packet'}.txt`;
     const content = [
       active.title,
-      sourceLabel,
+      displaySourceLabel,
       status.label + ' - ' + status.detail,
       'Prepared by Passage. Review before sharing outside the family record.',
       '',
@@ -150,15 +153,19 @@ export default function PacketDemo() {
         }
       `}</style>
       <SiteHeader />
-      <section className="packet-shell" style={{ maxWidth: 1180, margin: '0 auto', padding: '34px 28px 70px' }}>
+      <section className="packet-shell" style={{ maxWidth: 1180, margin: '0 auto', padding: '24px 28px 48px' }}>
         <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 18, alignItems: 'end', marginBottom: 20 }}>
           <div>
-            <div style={eyebrow}>Continuity packet demo</div>
-            <h1 style={{ fontSize: 'clamp(36px, 5vw, 60px)', lineHeight: 1.02, margin: '8px 0 10px', fontWeight: 400 }}>Outputs from the same family spine.</h1>
-            <p style={lead}>These are demo-safe artifacts. In product, the same packet generator should use the estate, lifecycle dates, tasks, owners, communication, proof, and permissions already on the spine.</p>
-            <div style={{ display: 'inline-flex', marginTop: 12, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 10px', fontSize: 12, fontWeight: 900 }}>{loading ? 'Generating...' : sourceLabel}</div>
+            <div style={eyebrow}>Passage outputs</div>
+            <h1 style={{ fontSize: 'clamp(34px, 4.4vw, 56px)', lineHeight: 1.02, margin: '8px 0 10px', fontWeight: 400 }}>Prepared outputs from the family record.</h1>
+            <p style={lead}>Every packet starts from the same spine: dates, owner, message, proof, and approval boundary. Nothing sends automatically; a person reviews the output before it leaves Passage.</p>
+            <div style={{ display: 'inline-flex', marginTop: 12, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 10px', fontSize: 12, fontWeight: 900 }}>{loading ? 'Generating...' : displaySourceLabel}</div>
           </div>
-          <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Back to demo rail</Link>
+          {demoMode ? (
+            <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Back to demo rail</Link>
+          ) : (
+            <Link href="/funeral-home" style={secondaryLink}>See provider workflow</Link>
+          )}
         </div>
 
         {error && <div className="no-print" style={{ background: C.amberFaint, color: C.amber, border: '1px solid #edd7b1', borderRadius: 12, padding: '10px 14px', marginBottom: 12 }}>{error} Showing demo packets instead.</div>}
@@ -186,8 +193,10 @@ export default function PacketDemo() {
                 <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>{packet.description}</div>
               </button>
             ))}
-            <div style={{ background: C.amberFaint, border: '1px solid #edd7b1', borderRadius: 14, padding: 13, color: C.amber, fontSize: 12.5, lineHeight: 1.5 }}>
-              Demo rule: this page prepares copyable outputs only. It does not send email/SMS or mutate production data.
+            <div style={{ background: demoMode ? C.amberFaint : C.sageFaint, border: '1px solid ' + (demoMode ? '#edd7b1' : '#c8deca'), borderRadius: 14, padding: 13, color: demoMode ? C.amber : C.sage, fontSize: 12.5, lineHeight: 1.5 }}>
+              {demoMode
+                ? 'Demo mode: this page prepares copyable outputs only. It does not send email/SMS or change production records.'
+                : 'Review boundary: copy, print, or download only after the family or coordinator approves the output.'}
             </div>
           </aside>
 
@@ -216,6 +225,19 @@ export default function PacketDemo() {
                 <button onClick={() => { trackEvent('packet_print_clicked', { packetId: active?.id, sourceLabel }); window.print(); }} style={secondaryButton}>Print / save PDF</button>
               </div>
             </div>
+            <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 145px), 1fr))', gap: 8, marginBottom: 14 }}>
+              {[
+                ['From', 'Family record'],
+                ['Uses', 'Dates + owners'],
+                ['Keeps', 'Proof path'],
+                ['Before sharing', 'Human review'],
+              ].map(([label, value]) => (
+                <div key={label} style={{ border: '1px solid ' + C.border, borderRadius: 12, padding: '8px 10px', background: C.card }}>
+                  <div style={{ color: C.sage, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                  <div style={{ color: C.ink, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{value}</div>
+                </div>
+              ))}
+            </div>
             <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginBottom: 18 }}>
               {[
                 ['Packet status', activeStatus.label, activeStatus.missing ? C.amberFaint : C.sageFaint],
@@ -233,7 +255,7 @@ export default function PacketDemo() {
             </div>
             <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', color: C.ink, fontSize: 16, lineHeight: 1.62, margin: 0 }}>{displayPacketText(active.text)}</pre>
             <footer style={{ borderTop: '1px solid ' + C.border, marginTop: 20, paddingTop: 10, color: C.soft, fontSize: 11.5, lineHeight: 1.45 }}>
-              Prepared by Passage. Review before sharing outside the family record. Powered by Passage | thepassageapp.io
+              Prepared by Passage. Review before sharing. Powered by Passage | thepassageapp.io
             </footer>
           </article>
         </div>
