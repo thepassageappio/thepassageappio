@@ -70,6 +70,76 @@ async function fetchRecentLeads(admin) {
   }
 }
 
+async function fetchSubscriptionRows(admin) {
+  try {
+    const { data, error } = await admin
+      .from('subscriptions')
+      .select('*')
+      .limit(10000);
+    if (error) return { rows: [], status: 'unavailable', source: 'subscriptions', error: error.message };
+    return { rows: data || [], status: 'real', source: 'subscriptions' };
+  } catch (error) {
+    return { rows: [], status: 'unavailable', source: 'subscriptions', error: error.message };
+  }
+}
+
+function centsFromRow(row) {
+  const keys = [
+    'mrr_cents',
+    'monthly_amount_cents',
+    'amount_cents',
+    'price_cents',
+    'unit_amount_cents',
+    'unit_amount',
+    'plan_amount_cents',
+  ];
+  for (const key of keys) {
+    const value = Number(row?.[key]);
+    if (Number.isFinite(value) && value > 0) return value;
+  }
+  const dollarKeys = ['mrr', 'monthly_amount', 'amount', 'price'];
+  for (const key of dollarKeys) {
+    const value = Number(row?.[key]);
+    if (Number.isFinite(value) && value > 0) return Math.round(value * 100);
+  }
+  return 0;
+}
+
+function intervalForRow(row) {
+  return String(row?.interval || row?.billing_interval || row?.plan_interval || row?.recurring_interval || '').toLowerCase();
+}
+
+function activeSubscription(row) {
+  const status = String(row?.status || row?.subscription_status || row?.plan_status || '').toLowerCase();
+  return ['active', 'trialing', 'paid', 'past_due'].includes(status);
+}
+
+function summarizeRevenue(subscriptionResult) {
+  if (subscriptionResult.status !== 'real') {
+    return {
+      mrrCents: { value: null, status: 'unavailable', source: subscriptionResult.source, error: subscriptionResult.error },
+      arrCents: { value: null, status: 'unavailable', source: subscriptionResult.source, error: subscriptionResult.error },
+      activeSubscriptions: { value: null, status: 'unavailable', source: subscriptionResult.source, error: subscriptionResult.error },
+      trialSubscriptions: { value: null, status: 'unavailable', source: subscriptionResult.source, error: subscriptionResult.error },
+    };
+  }
+  const activeRows = (subscriptionResult.rows || []).filter(activeSubscription);
+  const trialRows = (subscriptionResult.rows || []).filter(row => String(row?.status || row?.subscription_status || '').toLowerCase() === 'trialing');
+  const mrr = activeRows.reduce((sum, row) => {
+    const cents = centsFromRow(row);
+    const interval = intervalForRow(row);
+    if (interval.includes('year') || interval.includes('annual')) return sum + Math.round(cents / 12);
+    if (interval.includes('week')) return sum + Math.round(cents * 52 / 12);
+    return sum + cents;
+  }, 0);
+  return {
+    mrrCents: { value: mrr, status: 'real', source: 'subscriptions' },
+    arrCents: { value: mrr * 12, status: 'real', source: 'subscriptions' },
+    activeSubscriptions: { value: activeRows.length, status: 'real', source: 'subscriptions.status' },
+    trialSubscriptions: { value: trialRows.length, status: 'real', source: 'subscriptions.status' },
+  };
+}
+
 function parseLeadNotes(notes) {
   try {
     return notes ? JSON.parse(notes) : {};
@@ -117,6 +187,12 @@ function metric(label, result, unit = '') {
   };
 }
 
+function formatMetricValue(item) {
+  if (item.value == null) return '';
+  if (item.unit === 'cents') return '$' + (Number(item.value || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return item.value;
+}
+
 function csvEscape(value) {
   const text = value == null ? '' : String(value);
   return '"' + text.replace(/"/g, '""') + '"';
@@ -124,7 +200,7 @@ function csvEscape(value) {
 
 function toRawCsv(metrics, leadSummary) {
   const rows = [['section', 'label', 'value', 'unit', 'status', 'source', 'error']];
-  metrics.forEach((item) => rows.push(['metrics', item.label, item.value, item.unit, item.status, item.source, item.error]));
+  metrics.forEach((item) => rows.push(['metrics', item.label, formatMetricValue(item) || item.value, item.unit, item.status, item.source, item.error]));
   (leadSummary.byType || []).forEach((item) => rows.push(['lead_type', item.label, item.count, '', 'real', 'leads.notes.category', '']));
   (leadSummary.bySource || []).forEach((item) => rows.push(['lead_source', item.label, item.count, '', 'real', 'leads.source', '']));
   (leadSummary.recent || []).forEach((item) => rows.push(['recent_lead', item.type, item.email, item.urgency, 'real', item.source, item.createdAt]));
@@ -159,6 +235,7 @@ export default async function handler(req, res) {
     deliveredNotifications,
     leads,
     recentLeads,
+    subscriptionRows,
   ] = await Promise.all([
     countRows(auth.admin, 'workflows'),
     countRows(auth.admin, 'workflows', [{ op: 'eq', column: 'path', value: 'red' }]),
@@ -182,10 +259,16 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'notification_log', [{ op: 'eq', column: 'status', value: 'delivered' }]),
     countRows(auth.admin, 'leads'),
     fetchRecentLeads(auth.admin),
+    fetchSubscriptionRows(auth.admin),
   ]);
   const leadSummary = summarizeLeads(recentLeads.rows);
+  const revenue = summarizeRevenue(subscriptionRows);
 
   const metrics = [
+    metric('MRR', revenue.mrrCents, 'cents'),
+    metric('ARR', revenue.arrCents, 'cents'),
+    metric('Active subscriptions', revenue.activeSubscriptions),
+    metric('Trials / pilots', revenue.trialSubscriptions),
     metric('Total estates', estates),
     metric('Urgent red-path estates', urgentEstates),
     metric('Planning green-path estates', planningEstates),

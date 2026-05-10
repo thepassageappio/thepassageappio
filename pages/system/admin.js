@@ -86,6 +86,65 @@ const reportingMetrics = [
   'Raw CSV behind every report',
 ];
 
+const personaProfiles = [
+  {
+    id: 'red-family',
+    label: 'Red-path family',
+    role: 'Family coordinator in crisis',
+    href: '/urgent?demo=1&persona=red-family',
+    proof: 'First-hour guidance, no dashboard setup, save command center.',
+  },
+  {
+    id: 'green-family',
+    label: 'Green-path planner',
+    role: 'Planning user',
+    href: '/?persona=green-family',
+    proof: 'Homepage to planning flow, family record, estate switcher.',
+  },
+  {
+    id: 'warm-family',
+    label: 'Warm / hospice family',
+    role: 'Care-prep coordinator',
+    href: '/hospice?persona=warm-family',
+    proof: 'Family record before crisis, contacts, dates, handoff promise.',
+  },
+  {
+    id: 'participant',
+    label: 'Participant',
+    role: 'Invited helper',
+    href: '/participating?demo=1&persona=participant&demoTour=funeral-home&demoStep=participant',
+    proof: 'Scoped work only, action modal, no full estate workspace.',
+  },
+  {
+    id: 'fh-director',
+    label: 'Funeral-home director',
+    role: 'Owner / director',
+    href: '/funeral-home/dashboard?demo=1&persona=fh-director&demoTour=funeral-home&demoStep=dashboard',
+    proof: 'Cases, staff, reports, setup, assignment, export.',
+  },
+  {
+    id: 'fh-employee',
+    label: 'Funeral-home employee',
+    role: 'Staff queue',
+    href: '/funeral-home/dashboard?demo=1&persona=fh-employee&demoTour=funeral-home&demoStep=task&role=staff',
+    proof: 'Assigned work, owner dropdown, proof loop, lower admin clutter.',
+  },
+  {
+    id: 'vendor',
+    label: 'Vendor',
+    role: 'Scoped provider',
+    href: '/vendors/request?demo=1&persona=vendor&demoTour=funeral-home&demoStep=vendor',
+    proof: 'Request status, response loop, no family browsing.',
+  },
+  {
+    id: 'vendor-admin',
+    label: 'Vendor admin',
+    role: 'Passage approval queue',
+    href: '/vendors/admin?persona=vendor-admin',
+    proof: 'System-admin-only vendor approval and trust controls.',
+  },
+];
+
 export default function SystemAdminPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +152,7 @@ export default function SystemAdminPage() {
   const [metricsError, setMetricsError] = useState('');
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [adminView, setAdminView] = useState('operations');
+  const [activePersonaId, setActivePersonaId] = useState(personaProfiles[0].id);
   const [activeModuleTitle, setActiveModuleTitle] = useState(adminModules[0].title);
   const [dryRunDraft, setDryRunDraft] = useState({ email: '', phone: '', channel: 'email' });
   const [dryRunResult, setDryRunResult] = useState(null);
@@ -118,6 +178,10 @@ export default function SystemAdminPage() {
   const activeModule = useMemo(
     () => adminModules.find(module => module.title === activeModuleTitle) || adminModules[0],
     [activeModuleTitle]
+  );
+  const activePersona = useMemo(
+    () => personaProfiles.find(profile => profile.id === activePersonaId) || personaProfiles[0],
+    [activePersonaId]
   );
 
   useEffect(() => {
@@ -265,6 +329,7 @@ export default function SystemAdminPage() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
                   {[
                     ['operations', 'Operations'],
+                    ['personas', 'Personas'],
                     ['metrics', 'Metrics'],
                     ['trust', 'Trust'],
                   ].map(([key, label]) => (
@@ -298,6 +363,48 @@ export default function SystemAdminPage() {
             </Panel>
             )}
 
+            {adminView === 'personas' && (
+            <Panel compact>
+              <div style={eyebrow}>Persona QA cockpit</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(230px, .44fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
+                <div>
+                  <h2 style={h2}>View the product as each role.</h2>
+                  <p style={lead}>Demo-safe profile switching for QA. This does not impersonate real users, send messages, or mutate production records.</p>
+                  <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
+                    {personaProfiles.map((profile) => (
+                      <button key={profile.id} onClick={() => setActivePersonaId(profile.id)} style={activePersona.id === profile.id ? selectedToolButton : toolButton}>
+                        <span>
+                          <span style={{ display: 'block' }}>{profile.label}</span>
+                          <span style={{ display: 'block', fontSize: 11.5, color: activePersona.id === profile.id ? 'rgba(255,255,255,.78)' : C.soft, marginTop: 2 }}>{profile.role}</span>
+                        </span>
+                        <span style={activePersona.id === profile.id ? livePillOnGreen : livePill}>QA</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={previewPanel}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start', marginBottom: 10 }}>
+                    <div>
+                      <div style={eyebrow}>Selected role</div>
+                      <h2 style={{ ...h2, marginTop: 5 }}>{activePersona.label}</h2>
+                      <p style={{ ...smallText, marginTop: 3 }}>{activePersona.proof}</p>
+                    </div>
+                    <Link href={activePersona.href} target="_blank" style={{ ...primaryLink, flexShrink: 0 }}>Open full view</Link>
+                  </div>
+                  <iframe
+                    key={activePersona.href}
+                    src={activePersona.href}
+                    title={'Passage QA preview - ' + activePersona.label}
+                    style={{ width: '100%', height: 430, border: '1px solid ' + C.border, borderRadius: 14, background: C.bg }}
+                  />
+                </div>
+              </div>
+              <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                Production-safe boundary: this is a system-admin QA launcher into demo/role views. Real login-as-user impersonation would require explicit audit logging, scoped tokens, session expiry, and owner approval before implementation.
+              </div>
+            </Panel>
+            )}
+
             {adminView === 'metrics' && (
             <section id="business-health" style={{ marginTop: 16 }}>
               <Panel compact>
@@ -313,10 +420,10 @@ export default function SystemAdminPage() {
                 {metricsError && <div style={{ ...smallText, marginTop: 12, color: C.rose }}>{metricsError}</div>}
                 {metrics?.metrics?.length > 0 ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginTop: 12 }}>
-                    {metrics.metrics.slice(0, 6).map((item) => (
+                    {metrics.metrics.slice(0, 8).map((item) => (
                       <div key={item.label} style={item.status === 'real' ? metricCard : unavailableMetricCard}>
                         <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: item.status === 'real' ? C.sage : C.amber, marginBottom: 5 }}>{item.status}</div>
-                        <div style={{ fontSize: 24, lineHeight: 1.05 }}>{item.value == null ? 'N/A' : item.value}</div>
+                        <div style={{ fontSize: 24, lineHeight: 1.05 }}>{formatAdminMetricValue(item)}</div>
                         <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.35, marginTop: 5 }}>{item.label}</div>
                         <div style={{ fontSize: 10.5, color: C.soft, marginTop: 5 }}>Source: {item.source}</div>
                       </div>
@@ -413,6 +520,14 @@ function MetricRow({ label, value }) {
   );
 }
 
+function formatAdminMetricValue(item) {
+  if (item?.value == null) return 'N/A';
+  if (item?.unit === 'cents') {
+    return '$' + (Number(item.value || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  return item.value;
+}
+
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const h1 = { fontSize: 'clamp(34px, 5vw, 56px)', lineHeight: 1.04, margin: '8px 0 10px', fontWeight: 400, maxWidth: 820 };
 const h2 = { fontSize: 28, lineHeight: 1.12, margin: '8px 0 10px', fontWeight: 400 };
@@ -433,5 +548,6 @@ const plannedPill = { background: C.amberFaint, color: C.amber, border: '1px sol
 const metricCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.sage, fontWeight: 900, fontSize: 14 };
 const unavailableMetricCard = { background: C.amberFaint, border: '1px solid #ead8b8', borderRadius: 13, padding: 12, color: C.amber, fontWeight: 900, fontSize: 14 };
 const subPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
+const previewPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 16, padding: 14 };
 const fieldLabel = { display: 'grid', gap: 5, color: C.soft, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 };
 const inputStyle = { border: '1px solid ' + C.border, background: C.bg, borderRadius: 12, padding: '11px 12px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 14 };
