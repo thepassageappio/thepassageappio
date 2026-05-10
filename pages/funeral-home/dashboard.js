@@ -339,6 +339,11 @@ export default function FuneralHomeDashboard() {
   const [taskDraftNote, setTaskDraftNote] = useState('');
   const [assignmentDraft, setAssignmentDraft] = useState({ taskId: '', name: '', email: '', role: '', phone: '' });
   const [activePartnerView, setActivePartnerView] = useState('work');
+  const [reportView, setReportView] = useState('overview');
+  const [reportRange, setReportRange] = useState('30');
+  const [reportLocation, setReportLocation] = useState('all');
+  const [reportStaff, setReportStaff] = useState('all');
+  const [reportDates, setReportDates] = useState({ from: '', to: '' });
   const [caseDetailTabs, setCaseDetailTabs] = useState({});
   const [showAllCases, setShowAllCases] = useState(false);
   const [latestFamilyLink, setLatestFamilyLink] = useState(null);
@@ -1288,6 +1293,114 @@ export default function FuneralHomeDashboard() {
     handled: 0,
     nextTask: unassignedStaffTasks.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
   }] : []).sort((a, b) => (b.blocked - a.blocked) || (b.open - a.open) || (b.waiting - a.waiting));
+  const reportStaffOptions = staffRoster.filter(member => member.email);
+  const reportRangeLabel = reportRange === 'custom'
+    ? `${reportDates.from || 'Any start'} to ${reportDates.to || 'Any end'}`
+    : reportRange === 'all'
+      ? 'All available time'
+      : `Last ${reportRange} days`;
+  function reportDateValue(value) {
+    if (!value) return null;
+    const time = new Date(value).getTime();
+    return Number.isFinite(time) ? time : null;
+  }
+  function caseReportDate(item) {
+    return item.updated_at || item.updatedAt || item.last_action_at || item.created_at || item.date_of_death;
+  }
+  function taskReportDate(task, item) {
+    return task.last_action_at || task.updated_at || task.created_at || caseReportDate(item);
+  }
+  function reportDateInScope(value) {
+    if (reportRange === 'all') return true;
+    const time = reportDateValue(value);
+    if (!time) return true;
+    if (reportRange === 'custom') {
+      const from = reportDates.from ? new Date(reportDates.from + 'T00:00:00').getTime() : null;
+      const to = reportDates.to ? new Date(reportDates.to + 'T23:59:59').getTime() : null;
+      return (!from || time >= from) && (!to || time <= to);
+    }
+    const days = Number(reportRange || 30);
+    return time >= Date.now() - days * 24 * 60 * 60 * 1000;
+  }
+  function reportLocationInScope(item) {
+    return reportLocation === 'all' || locationNameFor(item) === reportLocation;
+  }
+  function reportStaffInScope(task) {
+    if (reportStaff === 'all') return true;
+    if (reportStaff === 'unassigned') return !task.assigned_to_email && !task.assigned_to_name;
+    return String(task.assigned_to_email || '').toLowerCase() === reportStaff;
+  }
+  const reportScopedCases = cases.filter(item => reportLocationInScope(item) && reportDateInScope(caseReportDate(item)));
+  const reportScopedTasks = cases.flatMap(item => (item.tasks || []).map(task => ({
+    ...task,
+    caseId: item.id,
+    caseName: item.deceased_name || item.estate_name || item.name || 'Family case',
+    locationName: locationNameFor(item),
+    reportDate: taskReportDate(task, item),
+  }))).filter(task => (reportLocation === 'all' || task.locationName === reportLocation) && reportStaffInScope(task) && reportDateInScope(task.reportDate));
+  const reportScopedMessages = cases.flatMap(item => (item.communications || []).map(message => ({
+    ...message,
+    locationName: locationNameFor(item),
+    reportDate: message.created_at || message.sent_at || message.updated_at || caseReportDate(item),
+  }))).filter(message => (reportLocation === 'all' || message.locationName === reportLocation) && reportDateInScope(message.reportDate));
+  const reportHandledTasks = reportScopedTasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+  const reportWaitingTasks = reportScopedTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
+  const reportBlockedTasks = reportScopedTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
+  const reportAssignments = reportScopedTasks.filter(task => task.assigned_to_email || task.assigned_to_name || task.owner_name || task.participant_id);
+  const reportCallsAvoided = reportScopedMessages.length + reportAssignments.length + totalVendorRequests;
+  const reportActiveDays = reportRange === 'all'
+    ? Math.max(1, new Set(reportScopedTasks.map(task => String(task.reportDate || '').slice(0, 10)).filter(Boolean)).size || 1)
+    : reportRange === 'custom'
+      ? Math.max(1, Math.round(((reportDateValue(reportDates.to) || Date.now()) - (reportDateValue(reportDates.from) || Date.now())) / 86400000) || 1)
+      : Math.max(1, Number(reportRange || 30));
+  const reportAvgTasksPerEstate = reportScopedCases.length ? Math.round((reportScopedTasks.length / reportScopedCases.length) * 10) / 10 : 0;
+  const reportTasksPerDay = Math.round((reportHandledTasks.length / reportActiveDays) * 10) / 10;
+  const reportLocations = reportLocation === 'all' ? locations : [reportLocation];
+  const reportLocationRows = reportLocations.map(location => {
+    const rows = cases.filter(item => locationNameFor(item) === location && reportDateInScope(caseReportDate(item)));
+    const tasks = reportScopedTasks.filter(task => task.locationName === location);
+    const handled = tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())).length;
+    const waiting = tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length;
+    const blocked = tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length;
+    const messages = reportScopedMessages.filter(message => message.locationName === location).length;
+    return [location, rows.length, tasks.length, handled, waiting + blocked, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
+  }).filter(row => row[1] || row[2]);
+  const reportEmployeeRows = (reportStaff === 'all' ? staffRoster : staffRoster.filter(member => member.email === reportStaff)).map(member => {
+    const tasks = reportScopedTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
+    return [
+      member.label || member.email,
+      roleLabel(member.role),
+      tasks.length,
+      tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())).length,
+      tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
+      tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+    ];
+  }).filter(row => row[2] || reportStaff !== 'all');
+  if ((reportStaff === 'all' || reportStaff === 'unassigned') && reportScopedTasks.some(task => !task.assigned_to_email && !task.assigned_to_name)) {
+    const tasks = reportScopedTasks.filter(task => !task.assigned_to_email && !task.assigned_to_name);
+    reportEmployeeRows.push(['Unassigned', 'Needs owner', tasks.length, 0, tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length, tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length]);
+  }
+  const reportTaskSummaryRows = Array.from(reportScopedTasks.reduce((map, task) => {
+    const title = sharedTaskTitle(task);
+    const row = map.get(title) || { title, total: 0, handled: 0, waiting: 0, blocked: 0 };
+    row.total += 1;
+    if (['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())) row.handled += 1;
+    if (['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())) row.waiting += 1;
+    if (['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())) row.blocked += 1;
+    map.set(title, row);
+    return map;
+  }, new Map()).values()).sort((a, b) => b.blocked - a.blocked || b.waiting - a.waiting || b.total - a.total).slice(0, 12).map(row => [row.title, row.total, row.handled, row.waiting, row.blocked]);
+  const reportCaseRows = reportScopedCases.map(item => {
+    const tasks = reportScopedTasks.filter(task => task.caseId === item.id);
+    return [
+      item.deceased_name || item.estate_name || item.name || 'Family case',
+      locationNameFor(item),
+      tasks.length,
+      tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())).length,
+      tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
+      tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+    ];
+  }).filter(row => row[2] || reportRange === 'all').slice(0, 18);
   const focusedDisplayCases = showAllCases
     ? displayCases
     : (expandedCaseId ? displayCases.filter(item => item.id === expandedCaseId) : displayCases.slice(0, 1));
@@ -1405,14 +1518,14 @@ export default function FuneralHomeDashboard() {
   });
   const partnerViewTabs = isDirectorRole
     ? [
-      ['work', 'Cases', 'Move work'],
-      ['staff', 'Staff', 'Assign work'],
-      ['reports', 'Reports', 'ROI'],
+      ['work', 'Command center', 'Cases and next moves'],
+      ['staff', 'Staff queue', 'Owners and assignments'],
+      ['reports', 'Reporting', 'ROI and operations'],
     ]
     : [
       ['staff', 'My work', 'Assigned first'],
-      ['work', 'Cases', 'Case context'],
-      ['reports', 'Reports', 'Proof trail'],
+      ['work', 'Case context', 'Family record'],
+      ['reports', 'Proof trail', 'Reports'],
     ];
 
   useEffect(() => {
@@ -1661,7 +1774,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data && needsFirstDaySetup && !showPilotGuide && (
+        {false && user && !loading && data && needsFirstDaySetup && !showPilotGuide && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 12, marginBottom: 10, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
             <div>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>First-day setup</div>
@@ -1879,7 +1992,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data && (
+        {false && user && !loading && data && (
           <div id="partner-today-section" style={{ background: C.card, color: C.ink, border: `1px solid ${C.border}`, borderBottom: 'none', borderRadius: '18px 18px 0 0', padding: 14, marginBottom: 0, boxShadow: '0 4px 20px rgba(0,0,0,.04)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 9 }}>
               <div>
@@ -2012,7 +2125,7 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderTop: `1px solid ${C.border}`, borderBottom: activePartnerView === 'work' ? 'none' : `1px solid ${C.border}`, borderRadius: activePartnerView === 'work' ? 0 : '0 0 18px 18px', padding: 8, marginBottom: activePartnerView === 'work' ? 0 : 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderBottom: activePartnerView === 'work' ? 'none' : `1px solid ${C.border}`, borderRadius: activePartnerView === 'work' ? '18px 18px 0 0' : 18, padding: 8, marginBottom: activePartnerView === 'work' ? 0 : 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
             {partnerViewTabs.map(([key, title, body]) => (
               <button key={key} onClick={() => setActivePartnerView(key)} style={{ flex: '1 1 150px', textAlign: 'left', border: `1px solid ${activePartnerView === key ? C.sage : C.border}`, background: activePartnerView === key ? C.sage : C.bg, color: activePartnerView === key ? '#fff' : C.ink, borderRadius: 12, padding: '10px 12px', cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
                 <div style={{ fontSize: 14, fontWeight: 900 }}>{title}</div>
@@ -2182,20 +2295,78 @@ export default function FuneralHomeDashboard() {
           <div id="partner-reports-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>ROI and operations</div>
-                <div style={{ fontSize: 24, marginTop: 3 }}>Show where Passage saves work and keeps data portable.</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Funeral-home reporting</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>See workload, response risk, and Passage value by time, location, staff, task, or case.</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Reporting reads the same task spine: owner, message, proof, status, and export. No separate dashboard language for families.</div>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '9px 12px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export case summary</button>
                 <button onClick={() => downloadExport('spine')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 12px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Export full spine</button>
               </div>
             </div>
+            <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, marginBottom: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, alignItems: 'end' }}>
+                <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                  Time range
+                  <select value={reportRange} onChange={event => setReportRange(event.target.value)} style={inputStyle}>
+                    <option value="7">Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="all">All available time</option>
+                    <option value="custom">Custom dates</option>
+                  </select>
+                </label>
+                {reportRange === 'custom' && (
+                  <>
+                    <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                      From
+                      <input type="date" value={reportDates.from} onChange={event => setReportDates(prev => ({ ...prev, from: event.target.value }))} style={inputStyle} />
+                    </label>
+                    <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                      To
+                      <input type="date" value={reportDates.to} onChange={event => setReportDates(prev => ({ ...prev, to: event.target.value }))} style={inputStyle} />
+                    </label>
+                  </>
+                )}
+                <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                  Location
+                  <select value={reportLocation} onChange={event => setReportLocation(event.target.value)} style={inputStyle}>
+                    <option value="all">All locations</option>
+                    {locations.map(location => <option key={location} value={location}>{location}</option>)}
+                  </select>
+                </label>
+                <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                  Staff
+                  <select value={reportStaff} onChange={event => setReportStaff(event.target.value)} style={inputStyle}>
+                    <option value="all">All staff</option>
+                    {reportStaffOptions.map(member => <option key={member.email} value={member.email}>{member.label || member.email}</option>)}
+                    <option value="unassigned">Unassigned work</option>
+                  </select>
+                </label>
+              </div>
+              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 10 }}>
+                {[
+                  ['overview', 'Overview'],
+                  ['locations', 'Locations'],
+                  ['staff', 'Staff'],
+                  ['tasks', 'Tasks'],
+                  ['cases', 'Cases'],
+                ].map(([key, label]) => (
+                  <button key={key} onClick={() => setReportView(key)} style={{ border: `1px solid ${reportView === key ? C.sage : C.border}`, background: reportView === key ? C.sage : C.card, color: reportView === key ? '#fff' : C.mid, borderRadius: 999, padding: '8px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div style={{ color: C.mid, fontSize: 12, marginTop: 8 }}>Scope: {reportRangeLabel}. {reportLocation === 'all' ? 'All locations' : reportLocation}. {reportStaff === 'all' ? 'All staff' : reportStaff === 'unassigned' ? 'Unassigned work' : reportStaff}.</div>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8, marginBottom: 12 }}>
               {[
-                ['Calls avoided', reports.callsAvoided ?? callsAvoided],
-                ['Avg tasks / estate', reports.avgTasksPerEstate ?? (cases.length ? Math.round((cases.reduce((sum, item) => sum + item.tasks.length, 0) / cases.length) * 10) / 10 : 0)],
-                ['Marketplace value', money(reports.marketplace?.estimatedValue ?? totalVendorValue)],
-                ['Partner share', money(reports.marketplace?.funeralHomeShare ?? funeralHomeShare)],
+                ['Calls avoided', reportCallsAvoided],
+                ['Messages sent', reportScopedMessages.length],
+                ['Tasks resolved', reportHandledTasks.length],
+                ['Avg tasks / estate', reports.avgTasksPerEstate ?? reportAvgTasksPerEstate],
+                ['Tasks / day', reportTasksPerDay],
+                ['Waiting + blocked', reportWaitingTasks.length + reportBlockedTasks.length],
               ].map(([label, value]) => (
                 <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
                   <div style={{ color: C.sage, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
@@ -2203,18 +2374,59 @@ export default function FuneralHomeDashboard() {
                 </div>
               ))}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+            {reportView === 'overview' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+                <ReportTable
+                  title="Efficiency summary"
+                  columns={['Metric', 'Value', 'Why it matters']}
+                  rows={[
+                    ['Calls avoided', reportCallsAvoided, 'Assignments, messages, and requests replace repeated status calls.'],
+                    ['Tasks resolved', reportHandledTasks.length, 'Shows work that moved from waiting to proof.'],
+                    ['Average tasks per estate', reportAvgTasksPerEstate, 'Helps price support load and compare case complexity.'],
+                    ['Tasks completed per day', reportTasksPerDay, 'Shows throughput for the selected range.'],
+                    ['Messages sent', reportScopedMessages.length, 'Measures family-facing coordination volume.'],
+                  ]}
+                />
+                <ReportTable
+                  title="ROI signals"
+                  columns={['Signal', 'Value', 'Source']}
+                  rows={[
+                    ['Estimated hours saved', reportCallsAvoided > 0 ? `${Math.max(1, Math.round((reportCallsAvoided * 8) / 60))} hr` : 'None yet', '8 minutes per avoided repeat call estimate'],
+                    ['Marketplace value', money(reports.marketplace?.estimatedValue ?? totalVendorValue), 'Task-linked local support requests'],
+                    ['Partner share', money(reports.marketplace?.funeralHomeShare ?? funeralHomeShare), 'Tracked only where value is present'],
+                    ['Portable proof', `${reportHandledTasks.length + reportScopedMessages.length} rows`, 'Exports back to existing case systems'],
+                  ]}
+                />
+              </div>
+            )}
+            {reportView === 'locations' && (
               <ReportTable
                 title="By location"
-                columns={['Location', 'Cases', 'Handled', 'Waiting', 'Calls']}
-                rows={(reports.byLocation || []).map(row => [row.location, row.cases, row.handledTasks, row.waitingTasks + row.blockedTasks, row.callsAvoided])}
+                columns={['Location', 'Cases', 'Tasks', 'Handled', 'Waiting / blocked', 'Calls avoided']}
+                rows={reportLocationRows}
               />
+            )}
+            {reportView === 'staff' && (
               <ReportTable
                 title="By employee"
-                columns={['Employee', 'Role', 'Open', 'Handled', 'Waiting']}
-                rows={(reports.byEmployee || []).map(row => [row.email || 'Unassigned', roleLabel(row.role), row.openTasks, row.handledTasks, row.waitingTasks])}
+                columns={['Employee', 'Role', 'Tasks', 'Handled', 'Waiting', 'Blocked']}
+                rows={reportEmployeeRows}
               />
-            </div>
+            )}
+            {reportView === 'tasks' && (
+              <ReportTable
+                title="By task type"
+                columns={['Task', 'Total', 'Handled', 'Waiting', 'Blocked']}
+                rows={reportTaskSummaryRows}
+              />
+            )}
+            {reportView === 'cases' && (
+              <ReportTable
+                title="By case / estate"
+                columns={['Case', 'Location', 'Tasks', 'Handled', 'Waiting', 'Blocked']}
+                rows={reportCaseRows}
+              />
+            )}
             <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, marginTop: 12 }}>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Stack fit</div>
               <div style={{ color: C.ink, fontSize: 16, lineHeight: 1.25, marginTop: 4 }}>Passage is the coordination layer above the case system.</div>
