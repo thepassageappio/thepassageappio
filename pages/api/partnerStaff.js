@@ -16,6 +16,15 @@ function normalizeRole(value) {
   return 'staff';
 }
 
+function cleanText(value) {
+  return String(value || '').trim();
+}
+
+function schemaColumnError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return error?.code === '42703' || message.includes('column') || message.includes('schema cache');
+}
+
 async function getAdminMembership(user) {
   const email = normalizeEmail(user?.email);
   if (!email) return null;
@@ -41,22 +50,44 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     const email = normalizeEmail(req.body?.email);
     const role = normalizeRole(req.body?.role);
+    const displayName = cleanText(req.body?.name || req.body?.displayName);
+    const locationScope = cleanText(req.body?.locationScope || req.body?.location_scope) || 'all';
+    const title = cleanText(req.body?.title);
     if (!email || !email.includes('@')) return res.status(400).json({ error: 'Add a valid employee email.' });
 
-    const row = {
+    const baseRow = {
       organization_id: membership.organization_id,
       email,
       role,
       status: 'active',
       updated_at: new Date().toISOString(),
     };
-    const { data, error } = await admin
-      .from('organization_members')
-      .upsert(row, { onConflict: 'organization_id,email' })
-      .select('organization_id,email,role,status')
-      .maybeSingle();
-    if (error) return res.status(500).json({ error: error.message });
-    return res.status(200).json({ member: data || row, confirmation: 'Staff profile saved. They can be assigned work from case tasks.' });
+    const extendedRow = {
+      ...baseRow,
+      display_name: displayName || null,
+      title: title || null,
+      location_scope: locationScope,
+    };
+    const attempts = [
+      { row: extendedRow, select: 'organization_id,email,role,status,display_name,title,location_scope' },
+      { row: baseRow, select: 'organization_id,email,role,status' },
+    ];
+    for (const attempt of attempts) {
+      const { data, error } = await admin
+        .from('organization_members')
+        .upsert(attempt.row, { onConflict: 'organization_id,email' })
+        .select(attempt.select)
+        .maybeSingle();
+      if (!error) {
+        return res.status(200).json({
+          member: { ...(data || attempt.row), display_name: data?.display_name || displayName || undefined, location_scope: data?.location_scope || locationScope },
+          confirmation: 'Employee saved. Copy the invite message when you are ready; Passage did not send email or SMS.',
+          persistedProfileFields: Boolean(data?.display_name || data?.location_scope),
+        });
+      }
+      if (!schemaColumnError(error)) return res.status(500).json({ error: error.message });
+    }
+    return res.status(500).json({ error: 'Could not save this employee.' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

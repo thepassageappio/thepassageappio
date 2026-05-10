@@ -365,7 +365,7 @@ export default function FuneralHomeDashboard() {
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
   const [showStaffSetup, setShowStaffSetup] = useState(false);
   const [showPilotGuide, setShowPilotGuide] = useState(false);
-  const [staffDraft, setStaffDraft] = useState({ email: '', role: 'staff' });
+  const [staffDraft, setStaffDraft] = useState({ name: '', email: '', role: 'staff', locationScope: 'all' });
   const [importDraft, setImportDraft] = useState(null);
   const [exportRange, setExportRange] = useState({ from: '', to: '' });
   const [copiedKey, setCopiedKey] = useState('');
@@ -688,10 +688,32 @@ export default function FuneralHomeDashboard() {
 
   async function addPartnerStaff(event) {
     event?.preventDefault?.();
-    if (!token) return;
     const email = String(staffDraft.email || '').trim().toLowerCase();
     if (!email || !email.includes('@')) {
       setError('Add a staff email before saving.');
+      return;
+    }
+    const savedMember = {
+      email,
+      role: staffDraft.role || 'staff',
+      display_name: staffDraft.name || email,
+      name: staffDraft.name || email,
+      location_scope: staffDraft.locationScope || 'all',
+      locationScope: staffDraft.locationScope || 'all',
+      status: 'active',
+      scope: /director|admin|manager|location/i.test(staffDraft.role || '') ? 'all_cases' : 'assigned_work',
+    };
+    if (demoMode || !token) {
+      setData(prev => prev ? {
+        ...prev,
+        staff: [
+          savedMember,
+          ...(prev.staff || []).filter(member => String(member.email || '').toLowerCase() !== email),
+        ],
+      } : prev);
+      setLatestStaffInvite(savedMember);
+      setNotice('Employee saved for this demo. Copy the invite message; no email or SMS was sent.');
+      setStaffDraft({ name: '', email: '', role: 'staff', locationScope: 'all' });
       return;
     }
     setUpdating('partner_staff');
@@ -701,16 +723,21 @@ export default function FuneralHomeDashboard() {
       const res = await fetch('/api/partnerStaff', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify({ email, role: staffDraft.role || 'staff' }),
+        body: JSON.stringify({
+          name: staffDraft.name,
+          email,
+          role: staffDraft.role || 'staff',
+          locationScope: staffDraft.locationScope || 'all',
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(json.error || 'Could not save this staff profile.');
       } else {
-        const savedMember = json.member || { email, role: staffDraft.role || 'staff' };
-        setLatestStaffInvite(savedMember);
+        const persistedMember = json.member || savedMember;
+        setLatestStaffInvite(persistedMember);
         setNotice(json.confirmation || 'Staff profile saved.');
-        setStaffDraft({ email: '', role: 'staff' });
+        setStaffDraft({ name: '', email: '', role: 'staff', locationScope: 'all' });
         await load(token);
       }
     } finally {
@@ -1126,9 +1153,14 @@ export default function FuneralHomeDashboard() {
   function staffInviteMessage(member) {
     const email = member?.email || '';
     const role = roleLabel(member?.role || 'staff');
+    const name = member?.display_name || member?.name || email;
+    const locationScope = member?.location_scope || member?.locationScope || 'All locations';
     const link = staffHandoffUrl(email);
     return [
+      `Hi ${name},`,
+      '',
       `You have been added to Passage as ${role}.`,
+      `Location scope: ${locationScope === 'all' ? 'All locations' : locationScope}.`,
       '',
       'Your first screen is My work: assigned case tasks, service timing, what is waiting, and the proof field. You only need to move the work you own.',
       '',
@@ -1286,15 +1318,17 @@ export default function FuneralHomeDashboard() {
   const staffRoster = (partnerStaff.length ? partnerStaff : [{ email: user?.email, role: currentRole || 'director', scope: isDirectorRole ? 'all_cases' : 'assigned' }])
     .map(member => ({
       email: String(member.email || '').toLowerCase(),
-      label: member.email || (isDirectorRole ? 'Director' : 'Staff member'),
+      label: member.display_name || member.name || member.email || (isDirectorRole ? 'Director' : 'Staff member'),
       role: member.role || (isDirectorRole ? 'director' : 'staff'),
       scope: member.scope || (isDirectorRole ? 'all_cases' : 'assigned'),
+      locationScope: member.location_scope || member.locationScope || 'all',
+      title: member.title || '',
     }));
   const staffRosterEmails = new Set(staffRoster.map(member => member.email).filter(Boolean));
   const assignedEmails = new Set(allPartnerTasks.map(task => String(task.assigned_to_email || '').toLowerCase()).filter(Boolean));
   assignedEmails.forEach(email => {
     if (!staffRosterEmails.has(email)) {
-      staffRoster.push({ email, label: email, role: 'assigned contact', scope: 'assigned' });
+      staffRoster.push({ email, label: email, role: 'assigned contact', scope: 'assigned', locationScope: 'case assignment', title: '' });
       staffRosterEmails.add(email);
     }
   });
@@ -1318,6 +1352,7 @@ export default function FuneralHomeDashboard() {
     handled: 0,
     nextTask: unassignedStaffTasks.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
   }] : []).sort((a, b) => (b.blocked - a.blocked) || (b.open - a.open) || (b.waiting - a.waiting));
+  const activeEmployeeRows = staffWorkloads.filter(member => member.email);
   const reportStaffOptions = staffRoster.filter(member => member.email);
   const reportRangeLabel = reportRange === 'custom'
     ? `${reportDates.from || 'Any start'} to ${reportDates.to || 'Any end'}`
@@ -1544,7 +1579,7 @@ export default function FuneralHomeDashboard() {
   const partnerViewTabs = isDirectorRole
     ? [
       ['work', 'Command center', 'Cases and next moves'],
-      ['staff', 'Staff queue', 'Owners and assignments'],
+      ['staff', 'Employees', 'Roles and assignments'],
       ['reports', 'Reporting', 'ROI and operations'],
     ]
     : [
@@ -1757,7 +1792,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
                     <button onClick={() => { setShowPilotGuide(false); openCasePanel('immediate'); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
                     <button onClick={() => { setShowPilotGuide(false); setShowTools(true); window.setTimeout(() => document.getElementById('partner-csv-upload')?.click(), 0); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Import CSV</button>
-                    <button onClick={() => { setShowPilotGuide(false); setActivePartnerView('staff'); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add employees</button>
+                    <button onClick={() => { setShowPilotGuide(false); setActivePartnerView('staff'); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add employees</button>
                   </div>
                 </div>
                 <div style={{ display: 'grid', gap: 8 }}>
@@ -2164,20 +2199,13 @@ export default function FuneralHomeDashboard() {
           <div id="partner-staff-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Staff operating spine</div>
-                <div style={{ fontSize: 24, marginTop: 3 }}>{isDirectorRole ? 'Assign the next owner, then get out of the way.' : 'Your assigned queue comes first.'}</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Employees and permissions</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>{isDirectorRole ? 'Set up people once, then assign from every case.' : 'Your assigned queue comes first.'}</div>
               </div>
-              {isDirectorRole && <button onClick={() => setShowStaffSetup(prev => !prev)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{showStaffSetup ? 'Hide setup' : 'Add employee'}</button>}
+              {isDirectorRole && <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>}
             </div>
             {isDirectorRole && (
               <>
-                {showStaffSetup && <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div>
-                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Employee setup</div>
-                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Add staff once with a role, then assign tasks from the case spine. Employees land on My work, not the director dashboard.</div>
-                  </div>
-                  <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
-                </div>}
                 {showStaffSetup && (
                   <div onClick={() => setShowStaffSetup(false)} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
                     <form onSubmit={addPartnerStaff} onClick={event => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Add employee" style={{ width: 'min(680px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
@@ -2188,13 +2216,13 @@ export default function FuneralHomeDashboard() {
                         </div>
                         <button type="button" onClick={() => setShowStaffSetup(false)} aria-label="Close staff setup" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                       </div>
-                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee first, then directors can assign case work from the task spine. Roles control the starting view; location scope is read from the case/import filter until dedicated location permissions are added.</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee, then copy the invite message. Nothing sends automatically. Once they create or sign into a Passage account with this email, their role controls where they land.</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginBottom: 10 }}>
                         {[
-                          ['1', 'Save employee role'],
-                          ['2', 'Filter by location if needed'],
-                          ['3', 'Assign from dropdown'],
-                          ['4', 'Proof updates family record'],
+                          ['1', 'Name and email'],
+                          ['2', 'Role and location'],
+                          ['3', 'Copy invite'],
+                          ['4', 'Assign from case'],
                         ].map(([n, label]) => (
                           <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 7, alignItems: 'center' }}>
                             <span style={{ width: 22, height: 22, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900 }}>{n}</span>
@@ -2203,15 +2231,20 @@ export default function FuneralHomeDashboard() {
                         ))}
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, alignItems: 'center' }}>
+                        <input value={staffDraft.name} onChange={event => setStaffDraft(prev => ({ ...prev, name: event.target.value }))} placeholder="Full name" style={inputStyle} />
                         <input value={staffDraft.email} onChange={event => setStaffDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="employee@funeralhome.com" style={inputStyle} />
                         <select value={staffDraft.role} onChange={event => setStaffDraft(prev => ({ ...prev, role: event.target.value }))} style={inputStyle}>
-                          <option value="staff">Staff</option>
-                          <option value="location_manager">Location manager</option>
                           <option value="director">Director</option>
+                          <option value="location_manager">Location manager</option>
+                          <option value="staff">Staff</option>
                           <option value="admin">Admin</option>
                         </select>
+                        <select value={staffDraft.locationScope} onChange={event => setStaffDraft(prev => ({ ...prev, locationScope: event.target.value }))} style={inputStyle}>
+                          <option value="all">All locations</option>
+                          {locations.map(location => <option key={location} value={location}>{location}</option>)}
+                        </select>
                       </div>
-                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>For demos, copy the invite message. It is a prepared handoff only; no email or SMS is sent automatically. Saved employees appear in the same owner dropdown on every case task.</div>
+                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>This prepares access and assignment. Email delivery is intentionally manual here: copy the invite message, or send it later from an approved notification flow.</div>
                       {latestStaffInvite && (
                         <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
                           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Staff handoff ready</div>
@@ -2228,6 +2261,43 @@ export default function FuneralHomeDashboard() {
                 )}
               </>
             )}
+            {isDirectorRole && (
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, marginTop: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 9 }}>
+                  <div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Active employees</div>
+                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Directors, location managers, and staff become the owner list inside every case task.</div>
+                  </div>
+                  <button onClick={() => setShowStaffSetup(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
+                </div>
+                {activeEmployeeRows.length === 0 ? (
+                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', color: C.mid, fontSize: 12.5 }}>No employees are saved yet. Add the funeral home director first, then add location managers and staff.</div>
+                ) : (
+                  <div style={{ display: 'grid', gap: 7 }}>
+                    {activeEmployeeRows.map(member => (
+                      <div key={member.email} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.2fr) minmax(120px,.7fr) minmax(120px,.7fr) auto', gap: 8, alignItems: 'center', background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ color: C.ink, fontSize: 13.2, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.label || member.email}</div>
+                          <div style={{ color: C.mid, fontSize: 11.7, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.email}</div>
+                        </div>
+                        <div>
+                          <div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Role</div>
+                          <div style={{ color: C.ink, fontSize: 12.2, fontWeight: 900 }}>{roleLabel(member.role)}</div>
+                        </div>
+                        <div>
+                          <div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Location</div>
+                          <div style={{ color: C.mid, fontSize: 12.2 }}>{member.locationScope === 'all' ? 'All locations' : member.locationScope || 'All locations'}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                          <button onClick={() => { setStaffDraft({ name: member.label === member.email ? '' : member.label || '', email: member.email || '', role: member.role || 'staff', locationScope: member.locationScope || 'all' }); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Edit</button>
+                          <button onClick={() => copyText(staffInviteMessage(member), 'Staff invite message copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Copy invite</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 12 }}>
               {roleCards.map(([title, body, status]) => (
                 <div key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
@@ -2237,6 +2307,24 @@ export default function FuneralHomeDashboard() {
                 </div>
               ))}
             </div>
+            {isDirectorRole && (
+              <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: 12 }}>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Role permissions</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 8 }}>
+                  {[
+                    ['Director', 'All cases, all locations, employee setup, reports, exports, and billing prompts.'],
+                    ['Location manager', 'Cases and reports for their location scope; can move work and assign staff.'],
+                    ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close tasks.'],
+                    ['Admin', 'Partner account setup and billing/admin prompts; use sparingly for owners.'],
+                  ].map(([title, body]) => (
+                    <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                      <div style={{ color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</div>
+                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={{ marginTop: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8 }}>
                 <div>
@@ -2821,13 +2909,18 @@ export default function FuneralHomeDashboard() {
                       seenAssignees.add(key);
                       assignmentOptions.push(option);
                     }
-                    (partnerStaff || []).forEach(member => addAssignee({
-                      type: 'staff',
-                      name: member.email || 'Staff member',
-                      email: member.email || '',
-                      role: member.role || 'staff',
-                      label: `${member.email || 'Staff member'} - ${roleLabel(member.role || 'staff')}`,
-                    }));
+                    (partnerStaff || []).forEach(member => {
+                      const memberName = member.display_name || member.name || member.email || 'Staff member';
+                      const memberLocation = member.location_scope || member.locationScope || '';
+                      addAssignee({
+                        type: 'staff',
+                        name: memberName,
+                        email: member.email || '',
+                        role: member.role || 'staff',
+                        phone: member.phone || '',
+                        label: `${memberName} - ${roleLabel(member.role || 'staff')}${memberLocation && memberLocation !== 'all' ? ` (${memberLocation})` : ''}`,
+                      });
+                    });
                     if (item.coordinator_email) addAssignee({
                       type: 'family',
                       name: item.coordinator_name || item.coordinator_email,

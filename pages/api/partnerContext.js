@@ -18,6 +18,28 @@ function isWaitingStatus(status) {
   return ['sent', 'waiting', 'pending', 'assigned', 'acknowledged'].includes(String(status || '').toLowerCase());
 }
 
+function schemaColumnError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return error?.code === '42703' || message.includes('column') || message.includes('schema cache');
+}
+
+async function selectOrganizationMembers(organizationIds) {
+  const selections = [
+    'organization_id, role, status, email, display_name, title, location_scope',
+    'organization_id, role, status, email',
+  ];
+  for (const selection of selections) {
+    const { data, error } = await admin
+      .from('organization_members')
+      .select(selection)
+      .in('organization_id', organizationIds)
+      .eq('status', 'active');
+    if (!error) return data || [];
+    if (!schemaColumnError(error)) return [];
+  }
+  return [];
+}
+
 function locationNameForWorkflow(workflow) {
   const ref = String(workflow?.organization_case_reference || workflow?.case_reference || '');
   if (/MULTI-002/i.test(ref)) return 'Poughkeepsie';
@@ -302,11 +324,7 @@ export default async function handler(req, res) {
     : (workflows || []).filter(w => !/^DEMO/i.test(w.organization_case_reference || '') && !/^Demo - /i.test(w.name || ''));
   const workflowIds = visibleWorkflows.map(w => w.id);
   let allMembers = memberships || [];
-  const { data: organizationMemberData } = await admin
-    .from('organization_members')
-    .select('organization_id, role, status, email')
-    .in('organization_id', organizationIds)
-    .eq('status', 'active');
+  const organizationMemberData = await selectOrganizationMembers(organizationIds);
   if (organizationMemberData?.length) allMembers = organizationMemberData;
 
   let tasks = [];
