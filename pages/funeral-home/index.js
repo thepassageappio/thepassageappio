@@ -82,34 +82,34 @@ export default function FuneralHomePage() {
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <style>{`
         .fh-shell, .fh-shell * { box-sizing:border-box; }
-        .fh-shell { max-width:1040px; margin:0 auto; padding:4px 28px 8px; }
-        .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.62fr); gap:18px; align-items:center; padding:8px 0 10px; }
-        .fh-kicker { color:${C.sage}; font-size:10px; letter-spacing:.17em; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
-        .fh-title { font-size:clamp(33px,4vw,48px); line-height:.98; margin:0 0 9px; font-weight:400; letter-spacing:0; max-width:720px; }
-        .fh-lede { color:${C.mid}; font-size:14px; line-height:1.42; max-width:650px; margin:0; }
-        .fh-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-        .fh-button { min-height:44px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; padding:0 14px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; font-size:13px; }
+        .fh-shell { max-width:980px; margin:0 auto; padding:0 28px 6px; }
+        .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,.55fr); gap:16px; align-items:center; padding:2px 0 8px; }
+        .fh-kicker { color:${C.sage}; font-size:9.5px; letter-spacing:.17em; text-transform:uppercase; font-weight:900; margin-bottom:6px; }
+        .fh-title { font-size:clamp(31px,3.15vw,40px); line-height:.98; margin:0 0 8px; font-weight:400; letter-spacing:0; max-width:560px; }
+        .fh-lede { color:${C.mid}; font-size:13.2px; line-height:1.36; max-width:540px; margin:0; }
+        .fh-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+        .fh-button { min-height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; padding:0 13px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; font-size:12.5px; }
         .fh-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
         .fh-secondary { background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
-        .fh-note { color:${C.soft}; font-size:11.5px; line-height:1.35; margin-top:8px; }
-        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:18px; padding:13px; box-shadow:0 12px 34px rgba(55,45,35,.07); }
-        .fh-panel h2 { font-size:21px; line-height:1.08; margin:0 0 9px; font-weight:400; }
-        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:10px; margin-bottom:8px; }
-        .fh-case-title { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:8px; }
-        .fh-case-title b { font-size:16px; line-height:1.14; }
-        .fh-pill { border-radius:999px; padding:4px 8px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:10.5px; font-weight:900; white-space:nowrap; }
-        .fh-row { display:grid; grid-template-columns:88px minmax(0,1fr); gap:9px; padding:5px 0; border-top:1px solid ${C.sageLight}; }
-        .fh-row-label { color:${C.sageDark}; font-size:9.5px; letter-spacing:.11em; text-transform:uppercase; font-weight:900; }
-        .fh-row-value { color:${C.mid}; font-size:12px; line-height:1.32; }
+        .fh-note { color:${C.soft}; font-size:11px; line-height:1.3; margin-top:7px; }
+        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:17px; padding:12px; box-shadow:0 12px 34px rgba(55,45,35,.06); }
+        .fh-panel h2 { font-size:19px; line-height:1.08; margin:0 0 8px; font-weight:400; }
+        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:13px; padding:9px; margin-bottom:7px; }
+        .fh-case-title { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; margin-bottom:7px; }
+        .fh-case-title b { font-size:15px; line-height:1.12; }
+        .fh-pill { border-radius:999px; padding:3px 7px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:10px; font-weight:900; white-space:nowrap; }
+        .fh-row { display:grid; grid-template-columns:76px minmax(0,1fr); gap:8px; padding:4px 0; border-top:1px solid ${C.sageLight}; }
+        .fh-row-label { color:${C.sageDark}; font-size:9px; letter-spacing:.11em; text-transform:uppercase; font-weight:900; }
+        .fh-row-value { color:${C.mid}; font-size:11.4px; line-height:1.25; }
         .fh-proof { border-top:1px solid ${C.border}; padding-top:8px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
-        .fh-proof-card { background:${C.card}; border:1px solid ${C.border}; border-radius:14px; padding:10px; min-height:82px; }
-        .fh-proof-card b { display:block; color:${C.ink}; font-size:14.5px; margin-bottom:5px; }
-        .fh-proof-card span { color:${C.mid}; font-size:12px; line-height:1.32; }
-        .fh-pilot { margin-top:8px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:18px; padding:12px; display:grid; grid-template-columns:minmax(0,.82fr) minmax(300px,1fr); gap:14px; align-items:center; }
-        .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:6px 0; border-bottom:1px solid ${C.sageLight}; }
+        .fh-proof-card { background:${C.card}; border:1px solid ${C.border}; border-radius:13px; padding:9px 10px; min-height:66px; }
+        .fh-proof-card b { display:block; color:${C.ink}; font-size:13.5px; margin-bottom:4px; }
+        .fh-proof-card span { color:${C.mid}; font-size:11.2px; line-height:1.26; }
+        .fh-pilot { margin-top:8px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:17px; padding:10px 12px; display:grid; grid-template-columns:minmax(0,.7fr) minmax(360px,1fr); gap:16px; align-items:center; }
+        .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:4px 0; border-bottom:1px solid ${C.sageLight}; }
         .fh-plan:last-child { border-bottom:none; }
-        .fh-plan-name { color:${C.ink}; font-size:14.5px; }
-        .fh-plan-detail { color:${C.mid}; font-size:11.5px; line-height:1.32; margin-top:2px; }
+        .fh-plan-name { color:${C.ink}; font-size:13.2px; }
+        .fh-plan-detail { color:${C.mid}; font-size:10.8px; line-height:1.25; margin-top:1px; }
         @media (max-width:760px) {
           .fh-shell { padding:12px 18px 42px; }
           .fh-hero, .fh-pilot, .fh-proof { grid-template-columns:1fr; min-height:auto; }
@@ -157,7 +157,7 @@ export default function FuneralHomePage() {
                 <div className="fh-row-value">Hospital release saved. Family message prepared. CSV export ready.</div>
               </div>
             </div>
-            <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55 }}>
+            <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.38 }}>
               Directors see the floor. Staff see their queue. Families see only what helps them move through the next step.
             </div>
           </div>
@@ -179,8 +179,8 @@ export default function FuneralHomePage() {
         <section className="fh-pilot">
           <div>
             <div className="fh-kicker">Pilot</div>
-            <h2 style={{ fontSize: 'clamp(22px,2.6vw,30px)', lineHeight: 1.04, margin: '0 0 7px', fontWeight: 400 }}>Start with a few real cases.</h2>
-            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.42, margin: 0 }}>
+            <h2 style={{ fontSize: 'clamp(20px,2.2vw,25px)', lineHeight: 1.03, margin: '0 0 6px', fontWeight: 400 }}>Start with a few real cases.</h2>
+            <p style={{ color: C.mid, fontSize: 12, lineHeight: 1.32, margin: 0 }}>
               We help set up the workspace, load a small case set, move one family-facing task, and show the proof trail before you expand.
             </p>
           </div>
@@ -206,7 +206,7 @@ export default function FuneralHomePage() {
                       event.preventDefault();
                       startCheckout(planId);
                     }}
-                    style={{ background: index === 0 ? C.rose : C.sage, color: '#fff', borderRadius: 11, padding: '9px 12px', fontWeight: 900, fontSize: 12, textDecoration: 'none' }}
+                    style={{ background: index === 0 ? C.rose : C.sage, color: '#fff', borderRadius: 10, padding: '7px 10px', fontWeight: 900, fontSize: 11.5, textDecoration: 'none' }}
                   >
                     {busy === planId ? '...' : 'Start'}
                   </Link>
