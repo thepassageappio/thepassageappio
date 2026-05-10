@@ -82,31 +82,31 @@ export default function FuneralHomePage() {
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <style>{`
         .fh-shell, .fh-shell * { box-sizing:border-box; }
-        .fh-shell { max-width:1040px; margin:0 auto; padding:18px 28px 54px; }
-        .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(330px,.64fr); gap:34px; align-items:center; padding:42px 0 30px; }
-        .fh-kicker { color:${C.sage}; font-size:11px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:14px; }
-        .fh-title { font-size:clamp(42px,5.3vw,68px); line-height:.98; margin:0 0 16px; font-weight:400; letter-spacing:0; max-width:760px; }
-        .fh-lede { color:${C.mid}; font-size:17px; line-height:1.58; max-width:650px; margin:0; }
-        .fh-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:24px; }
+        .fh-shell { max-width:1040px; margin:0 auto; padding:12px 28px 42px; }
+        .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(330px,.64fr); gap:28px; align-items:center; padding:28px 0 22px; }
+        .fh-kicker { color:${C.sage}; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:10px; }
+        .fh-title { font-size:clamp(40px,4.8vw,60px); line-height:.98; margin:0 0 12px; font-weight:400; letter-spacing:0; max-width:760px; }
+        .fh-lede { color:${C.mid}; font-size:16px; line-height:1.5; max-width:650px; margin:0; }
+        .fh-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
         .fh-button { min-height:52px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; padding:0 18px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; }
         .fh-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
         .fh-secondary { background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
-        .fh-note { color:${C.soft}; font-size:13px; line-height:1.55; margin-top:14px; }
-        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:22px; padding:20px; box-shadow:0 18px 54px rgba(55,45,35,.08); }
+        .fh-note { color:${C.soft}; font-size:12.5px; line-height:1.45; margin-top:10px; }
+        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:22px; padding:17px; box-shadow:0 18px 54px rgba(55,45,35,.08); }
         .fh-panel h2 { font-size:26px; line-height:1.1; margin:0 0 12px; font-weight:400; }
-        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:16px; padding:15px; margin-bottom:12px; }
+        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:16px; padding:13px; margin-bottom:10px; }
         .fh-case-title { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:12px; }
         .fh-case-title b { font-size:19px; line-height:1.18; }
         .fh-pill { border-radius:999px; padding:5px 9px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:11px; font-weight:900; white-space:nowrap; }
-        .fh-row { display:grid; grid-template-columns:118px minmax(0,1fr); gap:12px; padding:10px 0; border-top:1px solid ${C.sageLight}; }
+        .fh-row { display:grid; grid-template-columns:118px minmax(0,1fr); gap:12px; padding:8px 0; border-top:1px solid ${C.sageLight}; }
         .fh-row-label { color:${C.sageDark}; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:900; }
         .fh-row-value { color:${C.mid}; font-size:13.5px; line-height:1.45; }
-        .fh-proof { border-top:1px solid ${C.border}; padding-top:26px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
-        .fh-proof-card { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:15px; min-height:118px; }
+        .fh-proof { border-top:1px solid ${C.border}; padding-top:20px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .fh-proof-card { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:13px; min-height:104px; }
         .fh-proof-card b { display:block; color:${C.ink}; font-size:17px; margin-bottom:7px; }
         .fh-proof-card span { color:${C.mid}; font-size:13.5px; line-height:1.48; }
-        .fh-pilot { margin-top:22px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:22px; padding:20px; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.72fr); gap:22px; align-items:center; }
-        .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid ${C.sageLight}; }
+        .fh-pilot { margin-top:18px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:22px; padding:17px; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.72fr); gap:18px; align-items:center; }
+        .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:9px 0; border-bottom:1px solid ${C.sageLight}; }
         .fh-plan:last-child { border-bottom:none; }
         .fh-plan-name { color:${C.ink}; font-size:17px; }
         .fh-plan-detail { color:${C.mid}; font-size:12.5px; line-height:1.45; margin-top:3px; }

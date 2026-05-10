@@ -65,8 +65,10 @@ export default function PartnerCaseSummary() {
               <div style={{ color: C.mid, fontSize: 13, marginTop: 6 }}>{caseType}{workflow.organization_case_reference ? ` - ${workflow.organization_case_reference}` : ''}</div>
             </div>
             <div style={{ textAlign: 'right', color: C.mid, fontSize: 12, lineHeight: 1.55 }}>
+              <img src="/passage-icon-light-onbg.svg" alt="Passage" style={{ width: 34, height: 34, borderRadius: 9, display: 'inline-block', marginBottom: 6 }} /><br />
               Prepared {new Date().toLocaleDateString()}<br />
-              Powered by Passage
+              Powered by Passage<br />
+              thepassageapp.io
             </div>
           </header>
 
@@ -104,7 +106,7 @@ export default function PartnerCaseSummary() {
           </section>
 
           <footer style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12, color: C.soft, fontSize: 11.5, lineHeight: 1.5 }}>
-            Prepared with Passage. Based on standard funeral home intake information and the family coordination details available at the time this summary was created.
+            Prepared with Passage. Powered by Passage | thepassageapp.io. Based on standard funeral home intake information and the family coordination details available at the time this summary was created.
           </footer>
         </section>
       )}

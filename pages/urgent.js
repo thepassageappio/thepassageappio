@@ -576,10 +576,10 @@ export default function UrgentPage() {
       <style suppressHydrationWarning>{`
         * { box-sizing: border-box; }
         body { margin: 0; background: ${C.bg}; color: ${C.ink}; }
-        main { min-height: 100vh; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at 50% 0%, #fffaf1 0%, ${C.bg} 42%, #f4efe7 100%); }
+        main { min-height: 100vh; font-family: Georgia, serif; background: radial-gradient(circle at 50% 0%, #fffaf1 0%, ${C.bg} 42%, #f4efe7 100%); }
         .shell { max-width: 1120px; margin: 0 auto; padding: 16px 22px 40px; }
         .brand { display: inline-flex; align-items: center; gap: 10px; }
-        .brand-name { font-size: 25px; font-weight: 520; letter-spacing: 0; animation: wordGlow 4.6s ease-in-out infinite; }
+        .brand-name { font-size: 26px; font-weight: 700; color: ${C.ink}; letter-spacing: 0; animation: wordGlow 4.6s ease-in-out infinite; }
         .mark { position: relative; display: inline-flex; align-items: center; justify-content: center; }
         .halo { position: absolute; inset: -8px; border-radius: 50%; background: radial-gradient(circle, rgba(207,149,60,.26), rgba(207,149,60,0) 66%); animation: brandGlow 4.2s ease-in-out infinite; }
         .flame { transform-origin: 24px 25px; animation: flame 2.9s ease-in-out infinite; }
@@ -612,13 +612,14 @@ export default function UrgentPage() {
         .triage-title { font-family:Georgia,serif; font-size:22px; line-height:1.15; }
         .triage-note { color:${C.mid}; font-size:13px; line-height:1.5; margin-top:5px; }
         .triage-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
-        .triage-choice { border:1px solid ${C.border}; background:${C.bg}; color:${C.ink}; border-radius:12px; padding:11px 12px; text-align:left; cursor:pointer; font-weight:800; }
+        .triage-choice { border:1px solid ${C.border}; background:${C.bg}; color:${C.ink}; border-radius:12px; padding:11px 12px; text-align:left; cursor:pointer; font-weight:800; transition: background .12s ease, border-color .12s ease, transform .12s ease; }
+        .triage-choice:hover { border-color:${C.sageLight}; background:${C.card}; }
         .triage-choice.active { background:${C.sageFaint}; border-color:${C.sage}; color:${C.sageDark}; }
         .crisis-sequence { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:0 0 14px; }
         .crisis-step { background:${C.card}; border:1px solid ${C.border}; border-radius:14px; padding:12px; }
         .crisis-step.active { background:${C.roseFaint}; border-color:rgba(184,107,111,.35); }
-        .crisis-step b { display:block; color:${C.ink}; font-size:14px; margin-bottom:4px; }
-        .crisis-step span { display:block; color:${C.mid}; font-size:12.2px; line-height:1.4; }
+        .crisis-step b { display:block; color:${C.ink}; font-size:15px; margin-bottom:4px; }
+        .crisis-step span { display:block; color:${C.mid}; font-size:13px; line-height:1.4; }
         .next-preview { display:grid; gap:7px; margin-top:10px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:11px 12px; }
         .next-preview-title { color:${C.sageDark}; font-size:11px; letter-spacing:.13em; text-transform:uppercase; font-weight:900; }
         .next-preview div:not(.next-preview-title) { color:${C.mid}; font-size:13px; line-height:1.4; }
@@ -719,7 +720,7 @@ export default function UrgentPage() {
           <div className="kicker">Urgent Path</div>
           <h1>You do not have to hold every next step at once.</h1>
           <p className="lede">{reassurance} Passage will keep this focused: who owns the next action, what can wait, and what is already handled.</p>
-          <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '12px 14px', color: C.sageDark, fontSize: 14, lineHeight: 1.55, maxWidth: 720, margin: '14px auto 0' }}>
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '14px 16px', color: C.sageDark, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720, margin: '14px auto 0' }}>
             If you need to step away for a while, Passage will keep this organized. Come back to one next step, not a pile of decisions.
           </div>
         </section>
@@ -735,7 +736,7 @@ export default function UrgentPage() {
                     ['Coordinate', 'Name one owner for the next practical step and keep the family from repeating calls.'],
                     ['Organize', 'Save the command center when you are ready so proof, roles, and next steps persist.'],
                   ].map(([label, body], index) => (
-                    <div key={label} className={`crisis-step ${index === 0 ? 'active' : ''}`}>
+                    <div key={label} className={`crisis-step ${context.deathContext ? (index === 1 ? 'active' : '') : (index === 0 ? 'active' : '')}`}>
                       <b>{label}</b>
                       <span>{body}</span>
                     </div>

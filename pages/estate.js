@@ -2180,10 +2180,18 @@ export default function EstatePage() {
   var s28 = useState(false); var uploadingTaskAttachment = s28[0]; var setUploadingTaskAttachment = s28[1];
   var s29 = useState(''); var openedInitialTaskKey = s29[0]; var setOpenedInitialTaskKey = s29[1];
 
+  async function signInToEstate() {
+    if (!sb?.auth || typeof window === 'undefined') return;
+    await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+  }
+
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
     sb.auth.getSession().then(function(r) {
-      if (r.data && r.data.session) setUser(r.data.session.user);
+      if (r.data && r.data.session) {
+        setUser(r.data.session.user);
+        sb.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', r.data.session.user.id).then(function() {});
+      }
       var token = r.data && r.data.session ? r.data.session.access_token : '';
       return Promise.all([
         sb.from('workflows').select('*').eq('id', estateId).single(),
@@ -3074,13 +3082,31 @@ export default function EstatePage() {
   if (!estateId || !estate) return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
-      <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: INK, marginBottom: 8 }}>Estate not found</div>
-        <div style={{ fontSize: 14, color: SOFT, marginBottom: 28, textAlign: 'center', lineHeight: 1.6, maxWidth: 420 }}>This link may have expired, the estate may have been archived, or you may need to open the estate from your index.</div>
-        <button onClick={function() { window.location.href = '/?dashboard=1'; }}
-          style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: SAGE, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-          Open My estate
-        </button>
+      <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        {!user ? (
+          <div style={{ width: '100%', maxWidth: 520, textAlign: 'center', background: CARD, border: '1px solid ' + BORDER, borderRadius: 20, padding: '30px 28px', boxShadow: '0 18px 54px rgba(55,45,35,.06)' }}>
+            <div style={{ fontSize: 11, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 12 }}>Your family record</div>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, lineHeight: 1.12, color: INK, marginBottom: 10 }}>Sign in to open your record.</div>
+            <div style={{ fontSize: 15, color: MID, lineHeight: 1.65, margin: '0 auto 22px', maxWidth: 440 }}>Passage keeps next steps, owners, documents, and proof in one place. Sign in to continue where you left off.</div>
+            <button onClick={signInToEstate}
+              style={{ width: '100%', minHeight: 48, borderRadius: 13, border: 'none', background: INK, color: '#fff', fontSize: 15, fontWeight: 900, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 10 }}>
+              Sign in
+            </button>
+            <button onClick={function() { window.location.href = '/urgent'; }}
+              style={{ width: '100%', minHeight: 48, borderRadius: 13, border: '1px solid ' + ROSE + '33', background: ROSE_FAINT, color: ROSE, fontSize: 15, fontWeight: 900, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Someone just passed - get help now
+            </button>
+          </div>
+        ) : (
+          <div style={{ width: '100%', maxWidth: 520, textAlign: 'center', background: CARD, border: '1px solid ' + BORDER, borderRadius: 20, padding: '28px 26px' }}>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 24, color: INK, marginBottom: 8 }}>Record not found</div>
+            <div style={{ fontSize: 14, color: SOFT, marginBottom: 24, lineHeight: 1.6 }}>This link may have expired, the record may have been archived, or you may need to open it from your estate list.</div>
+            <button onClick={function() { window.location.href = '/?dashboard=1'; }}
+              style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: SAGE, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Open My estate
+            </button>
+          </div>
+        )}
       </div>
       <SiteFooter />
     </div>

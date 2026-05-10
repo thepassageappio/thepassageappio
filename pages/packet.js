@@ -44,6 +44,15 @@ export default function PacketDemo() {
       setLoading(true);
       setError('');
       try {
+        if (!supabase?.auth) {
+          if (!cancelled) {
+            setPackets(demoPackets);
+            setActiveId(demoPackets[0]?.id || '');
+            setSourceLabel('Demo packet set');
+            setError('');
+          }
+          return;
+        }
         const { data } = await supabase.auth.getSession();
         const token = data?.session?.access_token;
         if (!token) throw new Error('Sign in to generate packets from this case.');
@@ -176,6 +185,19 @@ export default function PacketDemo() {
           </aside>
 
           <article className="packet-sheet" style={{ background: '#fff', border: '1px solid ' + C.border, borderRadius: 20, padding: 26, boxShadow: '0 20px 58px rgba(55,45,35,.07)' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'center', borderBottom: '1px solid ' + C.border, paddingBottom: 14, marginBottom: 18 }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <img src="/passage-icon-light-onbg.svg" alt="Passage" style={{ width: 34, height: 34, borderRadius: 9 }} />
+                <div>
+                  <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.1 }}>Passage</div>
+                  <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35 }}>Family coordination spine</div>
+                </div>
+              </div>
+              <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.45, textAlign: 'right' }}>
+                Powered by Passage<br />
+                thepassageapp.io
+              </div>
+            </header>
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 18, flexWrap: 'wrap' }}>
               <div>
                 <div style={eyebrow}>Prepared output</div>
@@ -202,7 +224,10 @@ export default function PacketDemo() {
             <div className="no-print" style={{ background: activeStatus.missing ? C.amberFaint : C.sageFaint, border: '1px solid ' + (activeStatus.missing ? '#edd7b1' : '#c8deca'), borderRadius: 13, padding: '10px 12px', color: activeStatus.missing ? C.amber : C.sage, fontSize: 12.5, fontWeight: 900, lineHeight: 1.45, marginBottom: 18 }}>
               {activeStatus.detail} Nothing leaves Passage from this page automatically.
             </div>
-            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', color: C.ink, fontSize: 16, lineHeight: 1.62, margin: 0 }}>{active.text}</pre>
+            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', color: C.ink, fontSize: 16, lineHeight: 1.62, margin: 0 }}>{displayPacketText(active.text)}</pre>
+            <footer style={{ borderTop: '1px solid ' + C.border, marginTop: 20, paddingTop: 10, color: C.soft, fontSize: 11.5, lineHeight: 1.45 }}>
+              Prepared by Passage. Review before sharing outside the family record. Powered by Passage | thepassageapp.io
+            </footer>
           </article>
         </div>
       </section>
@@ -216,3 +241,7 @@ const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth:
 const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 12, minHeight: 44, padding: '0 15px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
 const secondaryButton = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 12, minHeight: 44, padding: '0 15px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
 const secondaryLink = { ...secondaryButton, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' };
+
+function displayPacketText(text) {
+  return String(text || '').replace(/^Passage\r?\nPowered by Passage \| thepassageapp\.io\r?\n/, '');
+}
