@@ -20,27 +20,6 @@ const C = {
   amberFaint: '#fbf5e8',
 };
 
-const operatingLoop = [
-  ['Create or import', 'Start with the family contact, case reference, location, and service context.'],
-  ['Assign ownership', 'Directors, staff, participants, vendors, and family helpers each see the work meant for them.'],
-  ['Move one task', 'Every item has a next action, waiting state, proof request, and visible owner.'],
-  ['Export the record', 'Case data, proof, dates, and tasks can leave Passage when the work needs to move.'],
-];
-
-const metrics = [
-  ['Waiting items', 'What needs family, staff, or partner response'],
-  ['Calls avoided', 'Repeated status calls reduced by visible state'],
-  ['Staff queue', 'Each employee sees the work they own'],
-  ['Proof trail', 'Sent, waiting, confirmed, handled, and exported'],
-];
-
-const pilotDay = [
-  ['Confirm setup', 'Organization, locations, director/admin, staff roles, and preferred local support.'],
-  ['Load cases', 'Start fresh in the UI or import a CSV from the system they already use.'],
-  ['Move one task', 'Assign the next owner, ask the family once, and record waiting or proof.'],
-  ['Export back out', 'Send a case-summary CSV or full-spine export when the existing system needs the record.'],
-];
-
 const tiers = [
   ['Pilot', '$99.99/mo', '$0 for 3 months', '10 active cases, co-branded family view, partner dashboard'],
   ['Local', '$249.99/mo', '', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
@@ -103,56 +82,41 @@ export default function FuneralHomePage() {
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <style>{`
         .fh-shell, .fh-shell * { box-sizing:border-box; }
-        .fh-shell { max-width:1120px; margin:0 auto; padding:26px 28px 70px; }
-        .fh-hero { min-height:calc(100vh - 180px); display:grid; grid-template-columns:minmax(0,1.02fr) minmax(340px,.72fr); gap:42px; align-items:center; }
+        .fh-shell { max-width:1040px; margin:0 auto; padding:18px 28px 54px; }
+        .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(330px,.64fr); gap:34px; align-items:center; padding:42px 0 30px; }
         .fh-kicker { color:${C.sage}; font-size:11px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:14px; }
-        .fh-title { font-size:clamp(44px,5.8vw,74px); line-height:.98; margin:0 0 18px; font-weight:400; letter-spacing:0; }
-        .fh-lede { color:${C.mid}; font-size:18px; line-height:1.62; max-width:680px; margin:0; }
-        .fh-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:28px; }
-        .fh-button { min-height:54px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; padding:0 20px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; }
+        .fh-title { font-size:clamp(42px,5.3vw,68px); line-height:.98; margin:0 0 16px; font-weight:400; letter-spacing:0; max-width:760px; }
+        .fh-lede { color:${C.mid}; font-size:17px; line-height:1.58; max-width:650px; margin:0; }
+        .fh-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:24px; }
+        .fh-button { min-height:52px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; padding:0 18px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; }
         .fh-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
         .fh-secondary { background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
         .fh-note { color:${C.soft}; font-size:13px; line-height:1.55; margin-top:14px; }
-        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:24px; padding:24px; box-shadow:0 22px 70px rgba(55,45,35,.08); }
-        .fh-panel h2 { font-size:30px; line-height:1.08; margin:0 0 14px; font-weight:400; }
-        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:18px; padding:16px; margin-bottom:12px; }
+        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:22px; padding:20px; box-shadow:0 18px 54px rgba(55,45,35,.08); }
+        .fh-panel h2 { font-size:26px; line-height:1.1; margin:0 0 12px; font-weight:400; }
+        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:16px; padding:15px; margin-bottom:12px; }
         .fh-case-title { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:12px; }
         .fh-case-title b { font-size:19px; line-height:1.18; }
         .fh-pill { border-radius:999px; padding:5px 9px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:11px; font-weight:900; white-space:nowrap; }
         .fh-row { display:grid; grid-template-columns:118px minmax(0,1fr); gap:12px; padding:10px 0; border-top:1px solid ${C.sageLight}; }
         .fh-row-label { color:${C.sageDark}; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:900; }
         .fh-row-value { color:${C.mid}; font-size:13.5px; line-height:1.45; }
-        .fh-band { border-top:1px solid ${C.border}; padding-top:38px; margin-top:24px; }
-        .fh-band-grid { display:grid; grid-template-columns:minmax(0,.82fr) minmax(0,1fr); gap:38px; align-items:start; }
-        .fh-band h2 { font-size:clamp(31px,3.8vw,46px); line-height:1.04; margin:0 0 12px; font-weight:400; }
-        .fh-band p { color:${C.mid}; font-size:15.5px; line-height:1.65; margin:0; }
-        .fh-loop { display:grid; grid-template-columns:34px minmax(0,1fr); gap:13px; padding:15px 0; border-bottom:1px solid ${C.border}; }
-        .fh-loop:last-child { border-bottom:none; }
-        .fh-num { width:32px; height:32px; border-radius:50%; background:${C.sageFaint}; color:${C.sageDark}; display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; }
-        .fh-loop b { display:block; color:${C.ink}; font-size:18px; margin-bottom:4px; }
-        .fh-loop span { color:${C.mid}; font-size:13.8px; line-height:1.55; }
-        .fh-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:30px; }
-        .fh-metric { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:16px; }
-        .fh-metric b { display:block; color:${C.ink}; font-size:17px; margin-bottom:6px; }
-        .fh-metric span { color:${C.mid}; font-size:13px; line-height:1.48; }
-        .fh-day { margin-top:36px; background:${C.card}; border:1px solid ${C.border}; border-radius:24px; padding:24px; }
-        .fh-day-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:16px; }
-        .fh-day-card { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:16px; padding:15px; }
-        .fh-day-card b { display:block; color:${C.ink}; font-size:17px; margin-bottom:6px; }
-        .fh-day-card span { color:${C.mid}; font-size:13px; line-height:1.5; }
-        .fh-pilot { margin-top:36px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:24px; padding:24px; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.74fr); gap:24px; align-items:center; }
+        .fh-proof { border-top:1px solid ${C.border}; padding-top:26px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .fh-proof-card { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:15px; min-height:118px; }
+        .fh-proof-card b { display:block; color:${C.ink}; font-size:17px; margin-bottom:7px; }
+        .fh-proof-card span { color:${C.mid}; font-size:13.5px; line-height:1.48; }
+        .fh-pilot { margin-top:22px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:22px; padding:20px; display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.72fr); gap:22px; align-items:center; }
         .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid ${C.sageLight}; }
         .fh-plan:last-child { border-bottom:none; }
         .fh-plan-name { color:${C.ink}; font-size:17px; }
         .fh-plan-detail { color:${C.mid}; font-size:12.5px; line-height:1.45; margin-top:3px; }
         @media (max-width:760px) {
           .fh-shell { padding:18px 18px 54px; }
-          .fh-hero, .fh-band-grid, .fh-pilot { grid-template-columns:1fr; min-height:auto; }
+          .fh-hero, .fh-pilot, .fh-proof { grid-template-columns:1fr; min-height:auto; }
           .fh-hero { gap:22px; }
           .fh-actions { flex-direction:column; }
           .fh-button { width:100%; }
           .fh-row { grid-template-columns:1fr; gap:4px; }
-          .fh-metrics, .fh-day-grid { grid-template-columns:1fr; }
         }
       `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
@@ -199,59 +163,25 @@ export default function FuneralHomePage() {
           </div>
         </div>
 
-        <section className="fh-band">
-          <div className="fh-band-grid">
-            <div>
-              <div className="fh-kicker">Operating loop</div>
-              <h2>Set up once. Reuse the spine on every case.</h2>
-              <p>
-                Locations, employees, roles, family records, tasks, messages, proof, and reporting all point to the same case story. Passage sits above Passare, Gather, SRS, Tribute, QuickBooks, websites, forms, and contracts.
-              </p>
+        <section className="fh-proof">
+          {[
+            ['Fewer repeated calls', 'Families see what is waiting, who owns it, and what has already been handled.'],
+            ['Staff-owned work', 'Directors assign the next task once. Staff work from a clean queue with case context.'],
+            ['Proof that travels', 'Updates, dates, messages, and proof can export back to the systems you already use.'],
+          ].map(([title, body]) => (
+            <div className="fh-proof-card" key={title}>
+              <b>{title}</b>
+              <span>{body}</span>
             </div>
-            <div>
-              {operatingLoop.map(([title, body], index) => (
-                <div className="fh-loop" key={title}>
-                  <span className="fh-num">{index + 1}</span>
-                  <span>
-                    <b>{title}</b>
-                    <span>{body}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="fh-metrics">
-            {metrics.map(([title, body]) => (
-              <div className="fh-metric" key={title}>
-                <b>{title}</b>
-                <span>{body}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="fh-day">
-          <div className="fh-kicker">Day-one pilot</div>
-          <h2 style={{ fontSize: 'clamp(30px,3.5vw,44px)', lineHeight: 1.05, margin: '0 0 10px', fontWeight: 400 }}>A signed home should know exactly what to do first.</h2>
-          <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0, maxWidth: 760 }}>
-            Passage is built for a controlled pilot: set up the partner workspace, load a few real cases, move one family-facing task, and prove the record can leave Passage cleanly.
-          </p>
-          <div className="fh-day-grid">
-            {pilotDay.map(([title, body]) => (
-              <div className="fh-day-card" key={title}>
-                <b>{title}</b>
-                <span>{body}</span>
-              </div>
-            ))}
-          </div>
+          ))}
         </section>
 
         <section className="fh-pilot">
           <div>
-            <div className="fh-kicker">Pilot path</div>
-            <h2 style={{ fontSize: 'clamp(28px,3.3vw,40px)', lineHeight: 1.06, margin: '0 0 10px', fontWeight: 400 }}>Start with a few real cases, not a software migration.</h2>
+            <div className="fh-kicker">Pilot</div>
+            <h2 style={{ fontSize: 'clamp(28px,3.3vw,40px)', lineHeight: 1.06, margin: '0 0 10px', fontWeight: 400 }}>Start with a few real cases.</h2>
             <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.65, margin: 0 }}>
-              We help you set up the organization, employees, roles, and first cases. Your staff can create from the UI or import a CSV when the pilot is ready.
+              We help set up the workspace, load a small case set, move one family-facing task, and show the proof trail before you expand.
             </p>
           </div>
           <div>
