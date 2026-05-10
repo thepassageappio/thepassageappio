@@ -1550,7 +1550,45 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data && (
+        {user && !loading && data && isDirectorRole && showPilotGuide && (
+          <HelpOverlay onClose={() => setShowPilotGuide(false)}>
+            <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(280px, 1.1fr)', gap: 18, alignItems: 'start' }}>
+                <div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>First-day pilot setup</div>
+                  <div style={{ color: C.ink, fontSize: 30, lineHeight: 1.08, marginTop: 6 }}>Set up once, then operate from the case pane.</div>
+                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '10px 0 0' }}>A signed home should not hunt around. Confirm the workspace, add employees, create or import cases, assign one owner, record proof, then export the record back out.</p>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+                    <button onClick={() => { setShowPilotGuide(false); openCasePanel('immediate'); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
+                    <button onClick={() => { setShowPilotGuide(false); setShowTools(true); window.setTimeout(() => document.getElementById('partner-csv-upload')?.click(), 0); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Import CSV</button>
+                    <button onClick={() => { setShowPilotGuide(false); setActivePartnerView('staff'); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add employees</button>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {pilotLaunchRows.map(([n, title, body, done]) => (
+                    <div key={title} style={{ background: done ? C.sageFaint : C.bg, border: `1px solid ${done ? C.sage + '22' : C.border}`, borderRadius: 13, padding: '11px 12px', display: 'grid', gridTemplateColumns: '26px minmax(0,1fr)', gap: 9, alignItems: 'start' }}>
+                      <span style={{ width: 22, height: 22, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: done ? C.sage : C.card, color: done ? '#fff' : C.soft, fontSize: 11, fontWeight: 900 }}>{n}</span>
+                      <span>
+                        <span style={{ display: 'block', color: C.ink, fontSize: 13.5, fontWeight: 900 }}>{title}</span>
+                        <span style={{ display: 'block', color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{body}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8, marginTop: 14 }}>
+                {contractToProofRows.map(([title, body], index) => (
+                  <div key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px' }}>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{index + 1}. {title}</div>
+                    <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.42, marginTop: 4 }}>{body}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </HelpOverlay>
+        )}
+
+        {false && user && !loading && data && (
           <div style={{ marginBottom: 10 }}>
             <SpineTrustStrip
               compact
@@ -1580,7 +1618,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data && isDirectorRole && showPilotGuide && (
+        {false && user && !loading && data && isDirectorRole && showPilotGuide && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
