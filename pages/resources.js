@@ -40,10 +40,10 @@ const audiences = [
 ];
 
 const spineSteps = [
-  ['1', 'A case or estate is created', 'The family or funeral home starts the shared workspace.'],
-  ['2', 'A task becomes the unit of truth', 'Owner, message, proof, waiting state, and status stay together.'],
-  ['3', 'The right person gets the right slice', 'Family, staff, vendor, or participant sees only what they need to act.'],
-  ['4', 'Updates become proof', 'Responses, notes, documents, and status changes are recorded without turning into noisy chat.'],
+  ['1', 'Record opens', 'Family or provider starts one shared workspace.'],
+  ['2', 'Task holds truth', 'Owner, message, proof, waiting state, and status stay together.'],
+  ['3', 'Right slice', 'Family, staff, vendor, or participant sees only what they need.'],
+  ['4', 'Proof travels', 'Responses, documents, and status changes stay attached.'],
 ];
 
 const trustNotes = [
@@ -71,8 +71,8 @@ export default function ResourcesPage() {
       id: 'spine',
       label: 'Spine',
       eyebrow: 'The spine',
-      title: 'One task keeps the owner, message, proof, and waiting point together.',
-      body: 'Everyone sees only the slice they need. The family record stays continuous as providers rotate in and out.',
+      title: 'One task. One owner. One proof trail.',
+      body: 'The family record stays continuous while providers, staff, and helpers rotate in and out.',
       href: '/mission',
       cta: 'Read the mission',
       rows: spineSteps,
@@ -106,41 +106,41 @@ export default function ResourcesPage() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <SiteHeader />
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '18px 28px 14px' }}>
-        <section style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,.82fr) minmax(360px,.9fr)', gap: 20, alignItems: 'stretch' }} className="resources-hero-grid">
+      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '12px 28px 10px' }}>
+        <section style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,.82fr) minmax(360px,.9fr)', gap: 18, alignItems: 'stretch' }} className="resources-hero-grid">
           <div>
             <div style={eyebrow}>Resources</div>
-            <h1 style={{ fontSize: 'clamp(36px, 4.4vw, 56px)', lineHeight: .98, margin: '0 0 11px', fontWeight: 400 }}>
+            <h1 style={{ fontSize: 'clamp(34px, 4vw, 50px)', lineHeight: .98, margin: '0 0 9px', fontWeight: 400 }}>
               Start with the question you are carrying.
             </h1>
-            <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.5, margin: 0, maxWidth: 610 }}>
+            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.42, margin: 0, maxWidth: 610 }}>
               Simple guides for families, funeral homes, invited helpers, and local support partners. Choose a path, then move from the same coordination spine.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8, marginTop: 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 7, marginTop: 14 }}>
               {panes.map((pane, index) => (
                 <button
                   key={pane.id}
                   type="button"
                   onClick={() => setActivePaneIndex(index)}
-                  style={{ border: `1px solid ${activePaneIndex === index ? pane.tone + '55' : C.border}`, background: activePaneIndex === index ? pane.bg : C.bg, color: activePaneIndex === index ? pane.tone : C.mid, borderRadius: 12, minHeight: 40, padding: '0 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}
+                  style={{ border: `1px solid ${activePaneIndex === index ? pane.tone + '55' : C.border}`, background: activePaneIndex === index ? pane.bg : C.bg, color: activePaneIndex === index ? pane.tone : C.mid, borderRadius: 11, minHeight: 37, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}
                 >
                   {pane.label}
                 </button>
               ))}
             </div>
           </div>
-          <div style={{ background: activePane.bg, border: `1px solid ${activePane.tone}22`, borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 330 }}>
+          <div style={{ background: activePane.bg, border: `1px solid ${activePane.tone}22`, borderRadius: 17, padding: 16, display: 'flex', flexDirection: 'column', minHeight: 290 }}>
             <div style={{ ...eyebrow, color: activePane.tone }}>{activePane.eyebrow}</div>
-            <h2 style={{ ...sectionTitle, fontSize: 'clamp(27px, 3vw, 38px)' }}>{activePane.title}</h2>
-            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: '9px 0 14px' }}>{activePane.body}</p>
+            <h2 style={{ ...sectionTitle, fontSize: 'clamp(24px, 2.6vw, 32px)' }}>{activePane.title}</h2>
+            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: '7px 0 11px' }}>{activePane.body}</p>
             {activePane.rows.length > 0 && (
-              <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: activePane.rows.length > 2 ? 'repeat(2, minmax(0,1fr))' : '1fr', gap: 7, marginBottom: 11 }}>
                 {activePane.rows.map(([number, title, body]) => (
-                  <div key={number + title} style={{ display: 'grid', gridTemplateColumns: '34px minmax(0,1fr)', gap: 9, alignItems: 'start', background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 10px' }}>
-                    <span style={{ width: 24, height: 24, borderRadius: '50%', background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12 }}>{number}</span>
+                  <div key={number + title} style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr)', gap: 7, alignItems: 'start', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
+                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 11, flexShrink: 0 }}>{number}</span>
                     <span>
-                      <strong style={{ display: 'block', fontSize: 13.5, lineHeight: 1.2 }}>{title}</strong>
-                      {body && <span style={{ display: 'block', color: C.mid, fontSize: 12.5, lineHeight: 1.35, marginTop: 3 }}>{body}</span>}
+                      <strong style={{ display: 'block', fontSize: 12.8, lineHeight: 1.15 }}>{title}</strong>
+                      {body && <span style={{ display: 'block', color: C.mid, fontSize: 11.8, lineHeight: 1.28, marginTop: 2 }}>{body}</span>}
                     </span>
                   </div>
                 ))}
