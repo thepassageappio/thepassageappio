@@ -45,8 +45,11 @@ const LINKS = [
   ['Resources', '/resources'],
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
-  ['My tasks', '/participating'],
   ['Funeral homes', '/funeral-home'],
+];
+
+const AUTH_LINKS = [
+  ['My tasks', '/participating'],
 ];
 
 const navLink = {
@@ -273,10 +276,11 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
       <Link href="/" onClick={handleHomeClick} style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
       <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, fontSize: 13.5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
+        {currentUser && AUTH_LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
           <Link href="/system/admin" style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
-        <Link href={dashboardHref} onClick={handleDashboardClick} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>
+        {currentUser && <Link href={dashboardHref} onClick={handleDashboardClick} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
         <span style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
             <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
