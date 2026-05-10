@@ -11,17 +11,9 @@ export default function VendorOnboard() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const setupPath = [
-    ['1', 'Apply', 'Business, category, service area, support windows, and contact identity.'],
-    ['2', 'Review', 'Passage admin approves before any family task visibility.'],
-    ['3', 'Portal', 'Approved contact signs in to see only scoped requests.'],
-    ['4', 'Respond', 'Ask for details, accept, mark in progress, complete, or decline.'],
-    ['5', 'Proof', 'Status returns to the family record and funeral-home coordination spine.'],
-  ];
-  const firstRequestPath = [
-    ['Receive', 'A request appears only when a family task needs your category and service area.'],
-    ['Decide', 'Accept, ask for details, or decline. The family never sees a browsing marketplace.'],
-    ['Update', 'Mark viewed, quoted, accepted, in progress, completed, or declined.'],
-    ['Close', 'Completion proof returns to the case so the coordinator knows what happened.'],
+    ['Apply', 'Tell us the work you do, where you serve families, and how quickly you can respond.'],
+    ['Review', 'Passage reviews each partner before any recommendation appears in a family task.'],
+    ['Respond', 'Approved partners receive scoped requests and send status back to the family record.'],
   ];
 
   function update(key, value) {
@@ -51,46 +43,30 @@ export default function VendorOnboard() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '20px 22px 46px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 18, alignItems: 'start' }}>
-          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 26 }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '22px 22px 46px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .82fr) minmax(320px, 1fr)', gap: 18, alignItems: 'start' }}>
+          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 26, boxShadow: '0 14px 42px rgba(55,45,35,.05)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>Trusted local support</div>
-            <h1 style={{ fontSize: 'clamp(36px, 6vw, 72px)', lineHeight: 1.03, margin: 0, fontWeight: 400 }}>Help families at the moment your work matters most.</h1>
-            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.7, marginTop: 16 }}>Passage only suggests partners inside the task where they can help. No directory, no bidding wall, no hard sell.</p>
-            <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 13, marginTop: 18 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor setup path</div>
-              <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>A support partner becomes useful only when they can close a family task with visible status and proof.</div>
-              <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
-                {setupPath.map(([n, title, body]) => (
-                  <div key={title} style={{ display: 'grid', gridTemplateColumns: '25px minmax(0,1fr)', gap: 8, alignItems: 'start', background: C.card, border: '1px solid ' + C.border, borderRadius: 11, padding: '8px 9px' }}>
-                    <span style={{ width: 22, height: 22, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</span>
-                    <span>
-                      <span style={{ display: 'block', color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</span>
-                      <span style={{ display: 'block', color: C.mid, fontSize: 11.8, lineHeight: 1.35, marginTop: 2 }}>{body}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <h1 style={{ fontSize: 'clamp(34px, 5vw, 60px)', lineHeight: 1.03, margin: 0, fontWeight: 400 }}>Help when a family actually needs you.</h1>
+            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.7, marginTop: 16 }}>Passage suggests local support only inside the task where it helps. No public directory, no bidding wall, no browsing family records.</p>
             <div style={{ display: 'grid', gap: 9, marginTop: 20 }}>
-              {['Families see your help only when it fits the next step.', 'You receive one scoped request and do not browse family records.', 'Passage tracks viewed, accepted, waiting, completed, and declined states so nobody has to guess.', 'Funeral homes can choose preferred local partners for the families they serve.'].map((item) => (
+              {['Families see your help only when it fits the next step.', 'You receive one scoped request with the details needed to answer.', 'Your response updates the case so nobody has to chase status.'].map((item) => (
                 <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', color: C.mid, lineHeight: 1.5 }}>{item}</div>
               ))}
             </div>
-            <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 13, marginTop: 18 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Your first request</div>
-              <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>A vendor should not need training to understand Passage. The request explains the task, the family-facing deadline, what is private, and exactly which update is needed.</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 10 }}>
-                {firstRequestPath.map(([title, body]) => (
+            <details style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 13, marginTop: 18 }}>
+              <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>How approval works</summary>
+              <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+                {setupPath.map(([title, body]) => (
                   <div key={title} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 11, padding: '9px 10px' }}>
                     <div style={{ color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</div>
-                    <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.35, marginTop: 3 }}>{body}</div>
+                    <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
                   </div>
                 ))}
               </div>
-            </div>
+            </details>
           </div>
-          <form onSubmit={submit} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22 }}>
+          <form onSubmit={submit} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22, boxShadow: '0 14px 42px rgba(55,45,35,.05)' }}>
             <div style={{ fontSize: 24, lineHeight: 1.2, marginBottom: 6 }}>Apply as a support partner</div>
             <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 0 }}>We review every application manually before recommendations appear in tasks.</p>
             <label style={labelStyle}>Business name<input value={form.businessName} onChange={(e) => update('businessName', e.target.value)} style={inputStyle} /></label>

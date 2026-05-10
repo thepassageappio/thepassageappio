@@ -186,22 +186,19 @@ export default function HospiceWarmPath() {
         }
       `}</style>
       <SiteHeader />
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '38px 28px 26px' }}>
-        <div className="warm-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, .72fr)', gap: 22, alignItems: 'stretch' }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '34px 28px 16px' }}>
+        <div className="warm-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .7fr)', gap: 16, alignItems: 'stretch' }}>
           <div style={heroCard}>
             <div style={eyebrow}>Preparing during care</div>
             <h1 style={{ fontSize: 'clamp(36px, 5vw, 64px)', lineHeight: 1.02, margin: '10px 0 14px', fontWeight: 400 }}>
-              When hospice or serious illness is already part of the journey.
+              Start the family record before the crisis moment.
             </h1>
             <p style={lead}>
-              Passage starts the family record before the crisis moment. Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.
+              Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 22 }}>
-              <a href="#start-warm-workspace" style={primaryLink}>Start warm-path workspace</a>
+              <a href="#start-warm-workspace" style={primaryLink}>Start care-prep record</a>
               <Link href="/urgent" style={primaryLink}>Death has occurred</Link>
-              <Link href="/share?dn=Your%20loved%20one&cn=Your%20family" style={secondaryLink}>Prepare family update</Link>
-              <Link href="/packet" style={secondaryLink}>View continuity packets</Link>
-              <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Open demo rail</Link>
             </div>
           </div>
           <div className="mobile-context" style={{ ...heroCard, background: C.sageFaint, borderColor: '#c8deca' }}>
@@ -219,50 +216,48 @@ export default function HospiceWarmPath() {
             </div>
           </div>
         </div>
-        <div className="warm-spine-grid mobile-context" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 14 }}>
+        {false && <div className="warm-spine-grid mobile-context" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 14 }}>
           {warmSpine.map(([label, value]) => (
             <div key={label} style={spineBox}>
               <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
               <div style={{ color: C.ink, fontSize: 14, lineHeight: 1.45, marginTop: 5 }}>{value}</div>
             </div>
           ))}
-        </div>
+        </div>}
       </section>
 
       <section id="start-warm-workspace" style={section}>
-        <div className="warm-two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .95fr) minmax(0, 1.05fr)', gap: 16, alignItems: 'stretch' }}>
-          <div className="mobile-context" style={panel}>
+        <div className="warm-two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .72fr) minmax(0, 1fr)', gap: 16, alignItems: 'stretch' }}>
+          <div className="mobile-context" style={{ ...panel, padding: 20 }}>
             <div style={eyebrow}>Saved warm-path workspace</div>
-            <h2 style={h2}>Start with what the family knows now.</h2>
-            <p style={lead}>This creates a real family record with the first care-preparation tasks. It does not send email or SMS. It keeps unknown dates visible until they are available.</p>
-            <div style={{ display: 'grid', gap: 9, marginTop: 16 }}>
+            <h2 style={{ ...h2, fontSize: 28 }}>Start with what the family knows now.</h2>
+            <p style={{ ...lead, fontSize: 14.5 }}>This creates a real family record. It does not send email or SMS. Unknown dates become visible tasks.</p>
+            <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
               {[
                 'Name the family coordinator',
                 'Record hospice/on-call contact',
                 'Prepare the first-hour plan',
-                'Record preferred funeral home or undecided status',
-                'Prepare family update list',
                 'Prepare funeral-home handoff packet',
               ].map(item => <div key={item} style={statusRow}>{item}</div>)}
             </div>
           </div>
-          <div style={panel}>
+          <div style={{ ...panel, padding: 20 }}>
             <div style={eyebrow}>Create workspace</div>
             <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
               <input value={form.lovedOneName} onChange={event => updateField('lovedOneName', event.target.value)} placeholder="Loved one's name" style={inputStyle} />
               <input value={form.coordinatorName} onChange={event => updateField('coordinatorName', event.target.value)} placeholder="Family coordinator name" style={inputStyle} />
               <input value={form.hospiceAgency} onChange={event => updateField('hospiceAgency', event.target.value)} placeholder="Hospice agency or care team, if known" style={inputStyle} />
-              <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 10 }}>
-                <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
-                <input value={form.hospicePhone} onChange={event => updateField('hospicePhone', event.target.value)} placeholder="Phone" style={inputStyle} />
-              </div>
-              <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={inputStyle} />
-              <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if the family knows it" style={inputStyle} />
               <details style={{ border: '1px solid ' + C.border, borderRadius: 13, background: C.bg, padding: 12 }}>
-                <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 14 }}>Known dates, if any</summary>
+                <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 14 }}>Add contacts, dates, and funeral-home preference</summary>
                 <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, margin: '7px 0 10px' }}>
                   Add only what the family actually knows. Unknown dates stay visible as tasks instead of blocking the workspace.
                 </div>
+                <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 10, marginBottom: 10 }}>
+                  <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
+                  <input value={form.hospicePhone} onChange={event => updateField('hospicePhone', event.target.value)} placeholder="Phone" style={inputStyle} />
+                </div>
+                <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={{ ...inputStyle, marginBottom: 10 }} />
+                <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if the family knows it" style={{ ...inputStyle, marginBottom: 10 }} />
                 <div className="warm-date-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
                   <WarmDate label="Pronouncement" value={form.pronouncementDate} onChange={value => updateField('pronouncementDate', value)} />
                   <WarmDate label="Arrangement meeting" value={form.arrangementDate} onChange={value => updateField('arrangementDate', value)} />
@@ -281,7 +276,7 @@ export default function HospiceWarmPath() {
         </div>
       </section>
 
-      <section style={{ ...section, paddingTop: 0 }}>
+      {false && <section style={{ ...section, paddingTop: 0 }}>
         <div style={{ ...panel, background: C.amberFaint, borderColor: '#ead4ac' }}>
           <div style={{ ...eyebrow, color: C.amber }}>For hospice conversations</div>
           <h2 style={{ ...h2, fontSize: 30 }}>Explore the coordination bridge, not hospice software.</h2>
@@ -305,17 +300,17 @@ export default function HospiceWarmPath() {
             <Link href="/funeral-home" style={secondaryLink}>Show funeral-home coordination</Link>
           </div>
         </div>
-      </section>
+      </section>}
 
       <section style={{ ...section, paddingTop: 0 }}>
-        <div className="warm-depth-panel" style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center' }}>
+        <div className="warm-depth-panel" style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center', padding: 18 }}>
           <div>
-            <div style={eyebrow}>Continuity depth</div>
-            <h2 style={{ ...h2, fontSize: 28, marginBottom: 6 }}>Keep the first visit focused.</h2>
-            <p style={lead}>Hospice, senior living, and funeral-home handoffs share one spine. The deeper roadmap stays available without overwhelming the family or a first-day pilot operator.</p>
+            <div style={eyebrow}>Care-team context</div>
+            <h2 style={{ ...h2, fontSize: 24, marginBottom: 6 }}>This is family coordination, not clinical software.</h2>
+            <p style={{ ...lead, fontSize: 14.5 }}>Passage keeps contacts, wishes, dates, tasks, permissions, and handoffs together without replacing medical records or care documentation.</p>
           </div>
           <button onClick={() => setShowDepth(prev => !prev)} style={showMoreButton}>
-            {showDepth ? 'Hide roadmap' : 'Show roadmap'}
+            {showDepth ? 'Hide details' : 'Show details'}
           </button>
         </div>
       </section>

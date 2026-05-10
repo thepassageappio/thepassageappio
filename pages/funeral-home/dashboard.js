@@ -437,7 +437,8 @@ export default function FuneralHomeDashboard() {
 
   async function load(token) {
     setLoading(true);
-    const res = await fetch('/api/partnerContext', { headers: { Authorization: 'Bearer ' + token } });
+    const demoMode = router.query.demo === '1' || router.query.demo === 'true';
+    const res = await fetch(demoMode && !token ? '/api/partnerContext?demo=1' : '/api/partnerContext', token ? { headers: { Authorization: 'Bearer ' + token } } : undefined);
     const json = await res.json().catch(() => ({}));
     if (!res.ok) setError(json.error || 'Could not load partner dashboard.');
     else setData(json);
@@ -1921,7 +1922,7 @@ export default function FuneralHomeDashboard() {
               </div>
             )}
             {funeralHomeShare > 0 && <div style={{ color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 9, fontWeight: 900 }}>Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</div>}
-            {isDirectorRole && showPilotGuide && (
+            {false && isDirectorRole && showPilotGuide && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
                 {pilotFirstDayRows.map(([n, label, value]) => (
                   <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', display: 'grid', gridTemplateColumns: '24px minmax(0, 1fr)', gap: 8, alignItems: 'start' }}>
@@ -1934,7 +1935,7 @@ export default function FuneralHomeDashboard() {
                 ))}
               </div>
             )}
-            {isDirectorRole && showPilotGuide && (
+            {false && isDirectorRole && showPilotGuide && (
               <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <div>
@@ -2453,23 +2454,23 @@ export default function FuneralHomeDashboard() {
                       <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close case work' : 'Open case work'}</button>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 12, alignItems: 'stretch', marginTop: 13 }}>
-                    <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 14 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'stretch', marginTop: 12 }}>
+                    <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
                         <div>
                           <div style={{ fontSize: 10.5, color: blocked ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Family record next move</div>
-                          <div style={{ fontSize: 19, lineHeight: 1.2, color: C.ink, fontWeight: 900 }}>{nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No partner-ready work is open'}</div>
+                          <div style={{ fontSize: 18, lineHeight: 1.2, color: C.ink, fontWeight: 900 }}>{nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No partner-ready work is open'}</div>
                         </div>
                         {nextImportance && <span style={{ background: nextImportanceTone.bg, border: `1px solid ${nextImportanceTone.border}`, color: nextImportanceTone.color, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextImportance.label}</span>}
                         <span style={{ background: C.card, color: nextOwner === 'Unassigned' ? C.amber : C.sage, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextOwner}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.55, marginTop: 8 }}>
+                      <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.45, marginTop: 7 }}>
                         {nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'Nothing needs partner action right now.'}
                       </div>
-                      <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 7 }}>
+                      {false && <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 7 }}>
                         Passage keeps this on the family continuity record. The funeral home is the current operating partner, not a separate case island.
-                      </div>
-                      {nextPartnerTask && nextImportance?.reason && (
+                      </div>}
+                      {false && nextPartnerTask && nextImportance?.reason && (
                         <div style={{ background: C.card, border: `1px solid ${nextImportanceTone.border}`, borderRadius: 11, padding: '8px 10px', marginTop: 8, color: C.mid, fontSize: 12.2, lineHeight: 1.45 }}>
                           <strong style={{ color: C.ink }}>Why this is next:</strong> {nextImportance.reason}
                         </div>
@@ -2477,13 +2478,13 @@ export default function FuneralHomeDashboard() {
                       <div style={{ background: C.card, borderLeft: `4px solid ${blocked ? C.rose : waitingCount ? C.amber : C.sage}`, borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.4, lineHeight: 1.45 }}>
                         <strong style={{ color: C.ink }}>Next expected update:</strong> {nextExpectedUpdate}
                       </div>
-                      {nextLifecycleEvent && (
+                      {false && nextLifecycleEvent && (
                         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', marginTop: 8, color: C.mid, fontSize: 12.3, lineHeight: 1.45 }}>
                           <strong style={{ color: C.ink }}>Next lifecycle date:</strong> {nextLifecycleLabel.replace(/_/g, ' ')}{nextLifecycleDate && !Number.isNaN(nextLifecycleDate.getTime()) ? ` - ${nextLifecycleDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}{nextLifecycleEvent.time ? ` at ${nextLifecycleEvent.time}` : ''}{nextLifecycleEvent.location_name ? `, ${nextLifecycleEvent.location_name}` : ''}
                         </div>
                       )}
                     </div>
-                    <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13 }}>
+                    {false && <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13 }}>
                       <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 8 }}>Family-facing status</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 84px), 1fr))', gap: 7 }}>
                         {[['Done', handledCount, C.sage], ['Waiting', waitingCount + blocked, waitingCount + blocked ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
@@ -2494,7 +2495,7 @@ export default function FuneralHomeDashboard() {
                         ))}
                       </div>
                       <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>This reduces the "where are we?" calls and keeps the family view aligned with staff work.</div>
-                    </div>
+                    </div>}
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{item.tasks.length} tasks</span>
@@ -2505,7 +2506,7 @@ export default function FuneralHomeDashboard() {
                     {blocked > 0 && <span style={{ background: C.roseFaint, color: C.rose, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{blocked} need help</span>}
                     {vendorRequests.length > 0 && <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{vendorRequests.length} local help requests</span>}
                     {timelineEvents.length > 0
-                      ? timelineEvents.map(event => (
+                      ? timelineEvents.slice(0, 1).map(event => (
                         <span key={`${event.event_type || event.name || event.title}_${event.date}`} style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{event.name || event.title || event.event_type || 'Event'}: {new Date(String(event.date).includes('T') ? event.date : `${event.date}T12:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                       ))
                       : <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Event dates unknown</span>}

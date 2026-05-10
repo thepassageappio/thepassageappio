@@ -236,6 +236,9 @@ function demoPartnerPayload(email, memberships = []) {
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.query.demo === '1' || req.query.demo === 'true') {
+    return res.status(200).json(demoPartnerPayload('demo@collinsffh.com', []));
+  }
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return res.status(401).json({ error: 'Please sign in first.' });
 
