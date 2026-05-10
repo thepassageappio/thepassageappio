@@ -4737,51 +4737,94 @@ function ProductSpinePreview() {
 }
 
 function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
+  const panes = [
+    {
+      id: 'spine',
+      label: 'Spine',
+      eyebrow: 'One shared truth',
+      title: 'One next move. One owner. One proof trail.',
+      body: 'Passage keeps attention on the work that matters now, then carries the same context through every handoff.',
+      cta: null,
+      rows: [
+        ['1', 'Stabilize', 'Confirm the setting, decision-maker, and one action that cannot wait.'],
+        ['2', 'Coordinate', 'Assign the owner, prepare the message or script, and show what is waiting.'],
+        ['3', 'Prove', 'Record the reply, upload proof, and carry the same context forward.'],
+      ],
+    },
+    {
+      id: 'journey',
+      label: 'Journey',
+      eyebrow: 'Before, during, after',
+      title: 'Families should not have to start over at every door.',
+      body: 'Care teams, funeral homes, vendors, attorneys, helpers, and executors may all rotate in. The family record remains continuous.',
+      cta: null,
+      rows: [
+        ['Green', 'Plan before crisis', 'Wishes, contacts, documents, roles, and preferences are organized early.'],
+        ['Warm', 'Prepare during care', 'Hospice or serious illness can become an earlier activation point.'],
+        ['Red', 'Move through the first hours', 'The experience narrows to one clear action, owner, and proof.'],
+        ['After', 'Carry the long tail', 'Estate, notifications, remembrance, vendors, and reporting stay tied together.'],
+      ],
+    },
+    {
+      id: 'providers',
+      label: 'Providers',
+      eyebrow: 'For care teams',
+      title: 'A clearer way to keep families and staff aligned.',
+      body: 'Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to existing tools.',
+      cta: { href: '/funeral-home', label: 'Funeral-home workflow' },
+      rows: [
+        ['Case', 'Create or import', 'Start fresh or bring cases in by CSV without changing the current case system.'],
+        ['Work', 'Assign the owner', 'Staff, family coordinators, and participants stay tied to the same task spine.'],
+        ['Proof', 'Close the loop', 'Proof, waiting states, and exports stay attached to the family record.'],
+      ],
+    },
+  ];
+  const s0 = useState(0); const activePaneIndex = s0[0]; const setActivePaneIndex = s0[1];
+  const activePane = panes[activePaneIndex] || panes[0];
+
+  useEffect(function() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    var timer = window.setInterval(function() {
+      setActivePaneIndex(function(current) { return (current + 1) % panes.length; });
+    }, 6500);
+    return function() { window.clearInterval(timer); };
+  }, []);
+
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <style>{`
-        .home-shell { max-width: 1120px; margin: 0 auto; padding: 18px 28px 42px; }
-        .home-hero { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(320px, .72fr); gap: 30px; align-items: center; padding: 4px 0 20px; }
+        .home-shell { max-width: 1180px; margin: 0 auto; padding: 18px 28px 24px; }
+        .home-hero { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(360px, .86fr); gap: 34px; align-items: center; min-height: calc(100vh - 164px); padding: 0; }
         .home-kicker { color:${C.sage}; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:10px; }
-        .home-title { font-family: Georgia, serif; font-size: clamp(40px, 5vw, 62px); line-height: .98; color:${C.ink}; margin:0 0 12px; font-weight:400; letter-spacing:0; }
-        .home-lede { color:${C.mid}; font-size:16px; line-height:1.5; max-width:640px; margin:0; }
+        .home-title { font-family: Georgia, serif; font-size: clamp(44px, 5.5vw, 76px); line-height: .98; color:${C.ink}; margin:0 0 18px; font-weight:400; letter-spacing:0; }
+        .home-lede { color:${C.mid}; font-size:17px; line-height:1.52; max-width:680px; margin:0; }
         .home-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
         .home-action { min-height:50px; border-radius:13px; padding:0 18px; font-family:inherit; font-size:14px; font-weight:900; cursor:pointer; }
         .home-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
         .home-secondary { background:${C.bgCard}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
         .home-tertiary { background:transparent; color:${C.mid}; border:1px solid ${C.border}; }
         .home-note { color:${C.soft}; font-size:12.5px; line-height:1.45; margin-top:10px; }
-        .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:20px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:17px; }
-        .home-panel-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; border-bottom:1px solid ${C.border}; padding-bottom:14px; margin-bottom:10px; }
-        .home-panel-title { font-size:22px; line-height:1.12; color:${C.ink}; margin:0; font-weight:400; }
-        .home-pill { background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; border-radius:999px; padding:6px 10px; font-size:11.5px; font-weight:900; white-space:nowrap; }
-        .home-step { display:grid; grid-template-columns:28px minmax(0,1fr); gap:10px; align-items:start; padding:9px 0; border-bottom:1px solid ${C.border}; }
+        .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:19px; min-height: 430px; display:flex; flex-direction:column; }
+        .home-panel-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:16px; }
+        .home-panel-tab { border:1px solid ${C.border}; background:${C.bg}; color:${C.mid}; border-radius:999px; min-height:36px; font-family:inherit; font-size:12px; font-weight:900; cursor:pointer; }
+        .home-panel-tab-active { border-color:${C.sageLight}; background:${C.sageFaint}; color:${C.sageDark}; }
+        .home-panel-head { border-bottom:1px solid ${C.border}; padding-bottom:14px; margin-bottom:10px; }
+        .home-panel-title { font-size:28px; line-height:1.1; color:${C.ink}; margin:0 0 8px; font-weight:400; }
+        .home-panel-body { color:${C.mid}; font-size:14px; line-height:1.55; margin:0; max-width:560px; }
+        .home-step { display:grid; grid-template-columns:48px minmax(0,1fr); gap:12px; align-items:start; padding:11px 0; border-bottom:1px solid ${C.border}; }
         .home-step:last-child { border-bottom:none; }
-        .home-num { width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:${C.sageFaint}; color:${C.sageDark}; font-size:12px; font-weight:900; }
+        .home-num { min-width:42px; height:28px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background:${C.sageFaint}; color:${C.sageDark}; font-size:12px; font-weight:900; padding:0 8px; }
         .home-step b { display:block; color:${C.ink}; font-size:16px; margin-bottom:4px; }
         .home-step span { display:block; color:${C.mid}; font-size:13.5px; line-height:1.5; }
-        .home-band { border-top:1px solid ${C.border}; padding:18px 0 0; margin-top:0; }
-        .home-band-grid { display:grid; grid-template-columns:minmax(0,.78fr) minmax(0,1fr); gap:28px; align-items:start; }
-        .home-band h2 { font-family:Georgia,serif; font-size:clamp(28px,3.4vw,40px); line-height:1.06; margin:0 0 10px; color:${C.ink}; font-weight:400; }
-        .home-band p { color:${C.mid}; font-size:14.5px; line-height:1.58; margin:0; }
-        .home-line { display:grid; grid-template-columns:118px minmax(0,1fr); gap:14px; padding:10px 0; border-bottom:1px solid ${C.border}; }
-        .home-line:last-child { border-bottom:none; }
-        .home-line-label { color:${C.sageDark}; font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; }
-        .home-line-title { color:${C.ink}; font-size:19px; line-height:1.18; margin-bottom:5px; }
-        .home-line-body { color:${C.mid}; font-size:13.5px; line-height:1.55; }
-        .partner-strip { margin-top:18px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:20px; padding:17px 20px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; }
-        .partner-strip h2 { font-family:Georgia,serif; font-size:clamp(24px,2.6vw,32px); line-height:1.08; margin:0 0 6px; color:${C.ink}; font-weight:400; }
-        .partner-strip p { color:${C.mid}; font-size:13.5px; line-height:1.55; margin:0; max-width:700px; }
+        .home-panel-cta { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; margin-top:auto; align-self:flex-start; min-height:42px; border-radius:12px; padding:0 14px; background:${C.ink}; color:white; font-size:13px; font-weight:900; }
         @media (max-width: 720px) {
           .home-shell { padding: 22px 18px 50px; }
-          .home-hero, .home-band-grid, .partner-strip { grid-template-columns:1fr; }
-          .home-hero { min-height:auto; gap:22px; }
+          .home-hero { grid-template-columns:1fr; min-height:auto; gap:22px; }
           .home-actions { flex-direction:column; }
           .home-action { width:100%; }
-          .home-panel { padding:20px; }
-          .home-panel-head { display:block; }
-          .home-pill { display:inline-flex; margin-top:12px; }
-          .home-line { grid-template-columns:1fr; gap:6px; }
+          .home-panel { padding:18px; min-height:auto; }
+          .home-panel-tabs { grid-template-columns:1fr; }
+          .home-step { grid-template-columns:42px minmax(0,1fr); }
         }
       `}</style>
       <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} onDashboard={onDashboard} />
@@ -4803,15 +4846,27 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           </div>
 
           <div className="home-panel" aria-label="Passage coordination preview">
-            <div className="home-panel-head">
-              <h2 className="home-panel-title">One next move. One shared truth.</h2>
-              <span className="home-pill">Family-first</span>
+            <div className="home-panel-tabs" role="tablist" aria-label="Homepage story panes">
+              {panes.map(function(pane, index) {
+                return (
+                  <button
+                    key={pane.id}
+                    type="button"
+                    onClick={function() { setActivePaneIndex(index); }}
+                    className={'home-panel-tab ' + (activePane.id === pane.id ? 'home-panel-tab-active' : '')}
+                    aria-selected={activePane.id === pane.id}
+                  >
+                    {pane.label}
+                  </button>
+                );
+              })}
             </div>
-            {[
-              ['1', 'Stabilize', 'Confirm the setting, the decision-maker, and the one action that cannot wait.'],
-              ['2', 'Coordinate', 'Assign the owner, prepare the message or script, and show what is waiting.'],
-              ['3', 'Prove', 'Record the reply, upload proof, and carry the same context to the next handoff.'],
-            ].map(function(row) {
+            <div className="home-panel-head">
+              <div className="home-kicker" style={{ marginBottom: 7 }}>{activePane.eyebrow}</div>
+              <h2 className="home-panel-title">{activePane.title}</h2>
+              <p className="home-panel-body">{activePane.body}</p>
+            </div>
+            {activePane.rows.map(function(row) {
               return (
                 <div className="home-step" key={row[1]}>
                   <span className="home-num">{row[0]}</span>
@@ -4822,46 +4877,9 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
                 </div>
               );
             })}
-          </div>
-        </section>
-
-        <section className="home-band">
-          <div className="home-band-grid">
-            <div>
-              <div className="home-kicker">How it works</div>
-              <h2>Families should not have to start over at every door.</h2>
-              <p>Care teams, funeral homes, vendors, attorneys, helpers, and executors may all be involved. Passage keeps the family record continuous.</p>
-            </div>
-            <div>
-              {[
-                ['Green path', 'Plan before crisis', 'Wishes, contacts, documents, roles, and preferences are organized while there is still room to breathe.'],
-                ['Warm path', 'Prepare during care', 'Hospice or serious illness becomes an earlier activation point for the same family record.'],
-                ['Red path', 'Move through the first hours', 'The experience narrows to one clear action, one owner, and proof of what happened.'],
-                ['After path', 'Carry the long tail', 'Estate, notifications, remembrance, vendors, and reporting stay tied to the same source of truth.'],
-              ].map(function(row) {
-                return (
-                  <div className="home-line" key={row[0]}>
-                    <div className="home-line-label">{row[0]}</div>
-                    <div>
-                      <div className="home-line-title">{row[1]}</div>
-                      <div className="home-line-body">{row[2]}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="partner-strip">
-          <div>
-            <div className="home-kicker" style={{ marginBottom: 8 }}>For providers</div>
-            <h2>A clearer way to keep families and staff aligned.</h2>
-            <p>Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to the tools they already use.</p>
-          </div>
-          <div className="home-actions" style={{ marginTop: 0 }}>
-            <a href="/funeral-home" className="home-action home-primary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Funeral-home workflow</a>
-            <a href="/system/demo" className="home-action home-secondary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Guided demo</a>
+            {activePane.cta && (
+              <a className="home-panel-cta" href={activePane.cta.href}>{activePane.cta.label}</a>
+            )}
           </div>
         </section>
       </div>
