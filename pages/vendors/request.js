@@ -218,7 +218,7 @@ export default function VendorRequestPage() {
           )
         )}
         {!loading && request && (
-          <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+          <div data-demo-anchor="demo-vendor-request" style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: 22, borderBottom: '1px solid ' + C.border, background: C.card }}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Demo scoped vendor request' : 'Scoped local support request'}</div>
               <h1 style={{ fontSize: 'clamp(30px, 5vw, 44px)', lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>

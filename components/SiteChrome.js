@@ -85,6 +85,7 @@ const DEMO_TOUR_STEPS = [
     body: 'Open with the funeral-home problem: fewer repeated calls, visible proof, and data that can leave Passage any time.',
     href: '/hospice?demoTour=funeral-home&demoStep=warm',
     cta: 'Next: warm path',
+    anchor: 'demo-page-primary',
   },
   {
     id: 'warm',
@@ -92,6 +93,7 @@ const DEMO_TOUR_STEPS = [
     body: 'Families may enter before the death event. Show the first-hour plan and permissioned funeral-home handoff before opening the partner dashboard.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
     cta: 'Next: team setup',
+    anchor: 'demo-warm-record',
   },
   {
     id: 'team',
@@ -99,6 +101,7 @@ const DEMO_TOUR_STEPS = [
     body: 'Explain directors, arrangers, coordinators, and location admins. This is where a home sees Passage as operational, not consumer-only.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
     cta: 'Next: create a case',
+    anchor: 'demo-partner-setup',
   },
   {
     id: 'case',
@@ -106,6 +109,7 @@ const DEMO_TOUR_STEPS = [
     body: 'Walk through at-need versus pre-need. Keep it simple: add the family contact, then Passage creates the command center.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
     cta: 'Next: dashboard value',
+    anchor: 'demo-case-create',
   },
   {
     id: 'dashboard',
@@ -113,6 +117,7 @@ const DEMO_TOUR_STEPS = [
     body: 'Point to active cases, waiting items, calls avoided, and the next partner work. This is the B2B value in under ten seconds.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=task',
     cta: 'Next: task spine',
+    anchor: 'demo-page-primary',
   },
   {
     id: 'task',
@@ -120,13 +125,23 @@ const DEMO_TOUR_STEPS = [
     body: 'Show one task at a time: what Passage handles, what staff handles, and how proof is recorded. No mystery status changes.',
     href: '/participating?demoTour=funeral-home&demoStep=participant',
     cta: 'Next: participant view',
+    anchor: 'demo-task-spine',
   },
   {
     id: 'participant',
     title: 'Participant acts',
     body: 'Show the helper view: one assigned responsibility, clear accept/waiting/handled buttons, and an update back to the coordinator.',
+    href: '/share?dn=Eleanor%20Price&cn=Price%20family&demoTour=funeral-home&demoStep=announcement',
+    cta: 'Next: family update',
+    anchor: 'demo-participant-work',
+  },
+  {
+    id: 'announcement',
+    title: 'Prepare one family update',
+    body: 'Show how a coordinator prepares one careful update, recipient list, and channel copy without sending anything automatically.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=chat',
     cta: 'Next: communication',
+    anchor: 'demo-family-update',
   },
   {
     id: 'chat',
@@ -134,6 +149,7 @@ const DEMO_TOUR_STEPS = [
     body: 'Use the mock chats to show family, cemetery, clergy, and funeral-home staff in one tracked coordination trail.',
     href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
     cta: 'Next: vendor loop',
+    anchor: 'demo-coordination',
   },
   {
     id: 'vendor',
@@ -141,6 +157,7 @@ const DEMO_TOUR_STEPS = [
     body: 'Vendors appear only when useful. The request has viewed, accepted, in-progress, and completed states inside Passage.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
     cta: 'Next: close the demo',
+    anchor: 'demo-vendor-request',
   },
   {
     id: 'export',
@@ -148,6 +165,7 @@ const DEMO_TOUR_STEPS = [
     body: 'Show CSV export, reporting, and the line that matters: Passage sits on top of their system without trapping data.',
     href: '/system/demo',
     cta: 'End walkthrough',
+    anchor: 'demo-reports',
   },
 ];
 
@@ -158,6 +176,7 @@ function demoStepFor(path, queryStep) {
   if (path === '/hospice') return 'warm';
   if (path === '/estate') return 'task';
   if (path === '/participating') return 'participant';
+  if (path === '/share') return 'announcement';
   if (path === '/vendors/request') return 'vendor';
   if (path === '/vendors/onboard' || path === '/vendors/admin') return 'vendor';
   return 'overview';
@@ -218,7 +237,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   }
 
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
-  const demoTourActive = hydrated && router?.query?.demoTour === 'funeral-home' && showSystemAdminLinks;
+  const demoTourActive = hydrated && router?.query?.demoTour === 'funeral-home';
   const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(activePath, router?.query?.demoStep)) : null;
   const activeStyle = {
     background: CHROME_COLORS.sage,
@@ -273,6 +292,61 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
 }
 
 function DemoCoach({ step }) {
+  const [targetRect, setTargetRect] = useState(null);
+  const [placement, setPlacement] = useState({ right: 24, bottom: 24 });
+
+  useEffect(() => {
+    let cancelled = false;
+    let attempts = 0;
+    function locate(shouldScroll = false) {
+      if (typeof window === 'undefined' || !step?.anchor) return;
+      const target = document.querySelector(`[data-demo-anchor="${step.anchor}"]`) || document.querySelector('[data-demo-anchor]');
+      if (!target) {
+        setTargetRect(null);
+        setPlacement({ right: 24, bottom: 24 });
+        if (!cancelled && attempts < 10) {
+          attempts += 1;
+          window.setTimeout(() => locate(true), 350);
+        }
+        return;
+      }
+      attempts = 0;
+      if (shouldScroll) target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      window.setTimeout(() => {
+        if (cancelled) return;
+        const rect = target.getBoundingClientRect();
+        const pad = 10;
+        const nextRect = {
+          top: Math.max(8, rect.top - pad),
+          left: Math.max(8, rect.left - pad),
+          width: Math.min(window.innerWidth - 16, rect.width + pad * 2),
+          height: Math.min(window.innerHeight - 16, rect.height + pad * 2),
+        };
+        setTargetRect(nextRect);
+        const coachWidth = Math.min(390, window.innerWidth - 32);
+        const placeRight = window.innerWidth - (nextRect.left + nextRect.width) > coachWidth + 34;
+        const placeLeft = nextRect.left > coachWidth + 34;
+        const top = Math.min(Math.max(16, nextRect.top), Math.max(16, window.innerHeight - 270));
+        if (placeRight) {
+          setPlacement({ left: nextRect.left + nextRect.width + 18, top });
+        } else if (placeLeft) {
+          setPlacement({ left: nextRect.left - coachWidth - 18, top });
+        } else {
+          setPlacement({ right: 18, bottom: 18 });
+        }
+      }, 260);
+    }
+    locate(true);
+    const updateOnly = () => locate(false);
+    window.addEventListener('resize', updateOnly);
+    window.addEventListener('scroll', updateOnly, { passive: true });
+    return () => {
+      cancelled = true;
+      window.removeEventListener('resize', updateOnly);
+      window.removeEventListener('scroll', updateOnly);
+    };
+  }, [step?.anchor, step?.id]);
+
   function handleAdvance() {
     if (typeof window === 'undefined') return;
     const match = String(step.href || '').match(/[?&]demoStep=([^&]+)/);
@@ -286,7 +360,14 @@ function DemoCoach({ step }) {
   }
 
   return (
-    <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 80, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
+    <>
+    {targetRect && (
+      <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 2147483600, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,25,22,.18)' }} />
+        <div style={{ position: 'absolute', top: targetRect.top, left: targetRect.left, width: targetRect.width, height: targetRect.height, border: '3px solid #6b8f71', borderRadius: 18, boxShadow: '0 0 0 9999px rgba(26,25,22,.18), 0 18px 50px rgba(0,0,0,.2)', background: 'rgba(240,245,241,.08)' }} />
+      </div>
+    )}
+    <div style={{ position: 'fixed', ...(placement.left != null ? { left: placement.left } : { right: placement.right ?? 24 }), ...(placement.top != null ? { top: placement.top } : { bottom: placement.bottom ?? 24 }), zIndex: 2147483601, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
         <div>
           <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage demo guide</div>
@@ -295,8 +376,12 @@ function DemoCoach({ step }) {
         <button onClick={exitDemo} style={{ border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#d8d0c7', borderRadius: 999, minWidth: 58, minHeight: 32, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>Exit</button>
       </div>
       <p style={{ color: '#d8d0c7', fontSize: 14, lineHeight: 1.55, margin: '10px 0 14px' }}>{step.body}</p>
-      <Link onClick={handleAdvance} href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ color: '#b9d2bd', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>{Math.max(1, DEMO_TOUR_STEPS.findIndex(item => item.id === step.id) + 1)} / {DEMO_TOUR_STEPS.length}</span>
+        <Link onClick={handleAdvance} href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
+      </div>
     </div>
+    </>
   );
 }
 

@@ -1624,9 +1624,12 @@ export default function FuneralHomeDashboard() {
     if (router.query.demoTour !== 'funeral-home') return;
     const step = typeof router.query.demoStep === 'string' ? router.query.demoStep : '';
     if (!step || loading) return;
-    if (['team', 'export'].includes(step)) setShowPilotGuide(true);
+    if (step === 'team') setShowPilotGuide(true);
     if (step === 'dashboard') setShowPilotGuide(false);
-    if (step === 'export') setShowTools(true);
+    if (step === 'export') {
+      setShowPilotGuide(false);
+      setShowTools(true);
+    }
     focusPartnerDemoStep(step);
   }, [router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
 
@@ -1675,7 +1678,7 @@ export default function FuneralHomeDashboard() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '24px 28px 50px' }}>
+      <section data-demo-anchor="demo-page-primary" style={{ maxWidth: 1120, margin: '0 auto', padding: '24px 28px 50px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
           <div>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Partner command center</div>
@@ -2220,7 +2223,7 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && activePartnerView === 'staff' && (
-          <div id="partner-staff-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
+          <div id="partner-staff-section" data-demo-anchor="demo-partner-setup" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Employees and permissions</div>
@@ -2429,7 +2432,7 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && activePartnerView === 'reports' && (
-          <div id="partner-reports-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
+          <div id="partner-reports-section" data-demo-anchor="demo-reports" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Funeral-home reporting</div>
@@ -2603,7 +2606,7 @@ export default function FuneralHomeDashboard() {
 
         {user && showNewCase && (
           <div id="partner-case-form" onClick={() => setShowNewCase(false)} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-          <form ref={casePanelRef} role="dialog" aria-modal="true" aria-label="Create family case" onClick={event => event.stopPropagation()} onSubmit={createCase} style={{ width: 'min(920px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+          <form ref={casePanelRef} data-demo-anchor="demo-case-create" role="dialog" aria-modal="true" aria-label="Create family case" onClick={event => event.stopPropagation()} onSubmit={createCase} style={{ width: 'min(920px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{caseForm.caseType === 'immediate' ? 'New at-need case' : 'New pre-need case'}</div>
@@ -3025,7 +3028,7 @@ export default function FuneralHomeDashboard() {
                       ['Report', 'Exports with case spine', C.mid],
                     ];
                     return (
-                      <div id={'partner-action-workspace-' + item.id} style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
+                      <div id={'partner-action-workspace-' + item.id} data-demo-anchor="demo-task-spine" style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 12, alignItems: 'stretch' }}>
                           <div>
                             <div style={{ color: taskClosed ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{taskClosed ? 'Closed on the spine' : 'Action workspace'}</div>
@@ -3136,7 +3139,7 @@ export default function FuneralHomeDashboard() {
                     );
                   })()}
                   {isExpanded && (
-                    <details id={'partner-coordination-spine-' + item.id} style={{ border: `1px solid ${C.border}`, borderRadius: 13, background: C.bg, marginTop: 10, overflow: 'hidden', scrollMarginTop: 92 }}>
+                    <details id={'partner-coordination-spine-' + item.id} data-demo-anchor="demo-coordination" style={{ border: `1px solid ${C.border}`, borderRadius: 13, background: C.bg, marginTop: 10, overflow: 'hidden', scrollMarginTop: 92 }}>
                       <summary style={{ cursor: 'pointer', padding: '10px 12px', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>
                         Supporting details
                       </summary>

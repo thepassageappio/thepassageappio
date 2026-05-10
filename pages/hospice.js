@@ -187,7 +187,7 @@ export default function HospiceWarmPath() {
       `}</style>
       <SiteHeader />
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '4px 28px 8px' }}>
-        <div className="warm-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .86fr) minmax(360px, 1fr)', gap: 14, alignItems: 'stretch' }}>
+        <div className="warm-hero-grid" data-demo-anchor="demo-warm-record" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .86fr) minmax(360px, 1fr)', gap: 14, alignItems: 'stretch' }}>
           <div style={heroCard}>
             <div style={eyebrow}>Preparing during care</div>
             <h1 style={{ fontSize: 'clamp(30px, 3.55vw, 42px)', lineHeight: 1.02, margin: '7px 0 9px', fontWeight: 400 }}>

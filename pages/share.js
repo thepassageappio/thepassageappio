@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase as sb } from "../lib/supabaseBrowser";
-import { SiteFooter } from "../components/SiteChrome";
+import { SiteFooter, SiteHeader } from "../components/SiteChrome";
 
 var NL = String.fromCharCode(10);
 
@@ -208,6 +208,7 @@ function Inp(props) {
 }
 
 export default function SharePage() {
+  var sDemo = useState(false); var demoMode = sDemo[0]; var setDemoMode = sDemo[1];
   var s1 = useState(null); var wf = s1[0]; var setWf = s1[1];
   var s2 = useState([]); var events = s2[0]; var setEvents = s2[1];
   var s3 = useState("facebook"); var tab = s3[0]; var setTab = s3[1];
@@ -219,6 +220,11 @@ export default function SharePage() {
   var s9 = useState(false); var loaded = s9[0]; var setLoaded = s9[1];
   var s10 = useState(""); var toastMsg = s10[0]; var setToastMsg = s10[1];
   var s11 = useState(""); var recipientsText = s11[0]; var setRecipientsText = s11[1];
+
+  useEffect(function() {
+    var params = new URLSearchParams(window.location.search);
+    setDemoMode(params.get("demoTour") === "funeral-home" || params.get("demo") === "1");
+  }, []);
 
   useEffect(function() {
     var params = new URLSearchParams(window.location.search);
@@ -400,11 +406,12 @@ export default function SharePage() {
 
   return (
     <div style={outer}>
-      <div style={nav}>
+      {demoMode && <SiteHeader />}
+      {!demoMode && <div style={nav}>
         <div style={{ width: 22, height: 22, borderRadius: "50%", background: "radial-gradient(circle, " + SAGE_LIGHT + ", " + SAGE + "70)" }} />
         <span style={{ fontSize: 16, color: INK }}>Passage</span>
         <span style={{ fontSize: 12, color: SOFT, marginLeft: 8 }}>Family record output</span>
-      </div>
+      </div>}
 
       {toastMsg && (
         <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: SAGE, color: "#fff", borderRadius: 12, padding: "11px 20px", fontSize: 13, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
@@ -442,7 +449,7 @@ export default function SharePage() {
               </div>
             )}
 
-            <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 16 }}>
+            <div data-demo-anchor="demo-family-update" style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Coordinator update list</div>

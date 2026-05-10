@@ -465,7 +465,7 @@ export default function SystemDemo() {
                 <h1 style={{ ...h1, maxWidth: 720 }}>A guided walkthrough for funeral-home directors.</h1>
                 <p style={{ ...lead, maxWidth: 760 }}>A clean, dummy-only walkthrough. Each step shows one screen and one sales point so the director is not overwhelmed.</p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-                  <button onClick={() => { setSelectedStep('overview'); demoAction('Guided demo started. Use Next demo moment to move through one screen at a time.'); }} style={primaryButton}>Start guided demo</button>
+                  <button onClick={() => router.push('/hospice?demoTour=funeral-home&demoStep=warm')} style={primaryButton}>Start guided product tour</button>
                   <Link href="/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard" style={primaryLink}>Open live dashboard demo</Link>
                   <button onClick={() => demoAction('Demo reset: use the dummy cases, staff, messages, vendor loop, and export close below. No real estate data is touched.')} style={secondaryButton}>Reset dummy demo</button>
                 </div>

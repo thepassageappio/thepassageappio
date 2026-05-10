@@ -654,7 +654,7 @@ export default function ParticipatingPage() {
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
                   const showOpenList = showOtherOpen[estate.id];
                   return (
-                <div key={estate.id} style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
+                <div key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
                   <div style={{ width: '100%', background: 'none', border: 'none', padding: '17px 20px 12px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
                   <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Participant operating spine</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
