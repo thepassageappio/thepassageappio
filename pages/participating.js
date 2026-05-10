@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
-import { SiteHeader, SiteFooter, SpineTrustStrip } from '../components/SiteChrome';
+import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
@@ -400,7 +399,7 @@ export default function ParticipatingPage() {
     else setData(json);
     if (json?.estates?.length) {
       const linkedEstate = router.query.estate;
-      setExpandedEstateId(prev => prev || linkedEstate || (json.estates.length === 1 ? json.estates[0].id : ''));
+      setExpandedEstateId(prev => linkedEstate || prev || json.estates[0].id);
     }
     setLoading(false);
   }
@@ -544,23 +543,11 @@ export default function ParticipatingPage() {
       `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
 
-      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 28px 56px' }}>
-        <div style={{ maxWidth: 760, marginBottom: 24 }}>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Asked to help</div>
-          <h1 style={{ fontSize: 32, lineHeight: 1.1, margin: '0 0 8px', fontWeight: 400 }}>One thing the family asked you to handle.</h1>
-          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, margin: 0 }}>Accept it, say what is waiting, or record what happened. Passage sends the update back without opening the full family workspace.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 14 }}>
-            {[
-              ['See your part', 'Only your assigned responsibility appears first.'],
-              ['Answer once', 'Accept, mark waiting, ask for help, or record proof.'],
-              ['Coordinator sees it', 'Your update returns to the family record.'],
-            ].map(([title, body]) => (
-              <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px' }}>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
-                <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
-              </div>
-            ))}
-          </div>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '22px 28px 36px' }}>
+        <div style={{ maxWidth: 760, marginBottom: 16 }}>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Participant task spine</div>
+          <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: '0 0 7px', fontWeight: 400 }}>One assigned task. One safe update.</h1>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: 0 }}>Work from one estate at a time. Switch only when the family asked you to help with a different record.</p>
         </div>
 
         {!user && !demoMode && (
@@ -603,7 +590,7 @@ export default function ParticipatingPage() {
         {user && error && <div style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16 }}>{error}</div>}
 
         {user && !loading && data && (
-          <div className="participant-layout" style={{ display: 'grid', gridTemplateColumns: (router.query.estate || router.query.task) ? 'minmax(0, 760px)' : 'minmax(0, 1fr) minmax(280px, 360px)', gap: 18, alignItems: 'start' }}>
+          <div className="participant-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 14, alignItems: 'start' }}>
             <div>
               {(router.query.estate || router.query.task) && (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
@@ -637,15 +624,15 @@ export default function ParticipatingPage() {
                 </div>
               ) : <>
                 {data.estates.length > 1 && !(router.query.estate || router.query.task) && (
-                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 12, marginBottom: 12 }}>
-                    <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Estate summary</div>
+                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 14, marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, color: C.sage, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Switch estate</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                       {data.estates.map(estate => {
                         const items = normalizeItems(estate);
                         const openCount = items.filter(item => !isHandled(itemStatus(item))).length;
                         const selected = expandedEstateId === estate.id;
                         return (
-                          <button key={estate.id} onClick={() => setExpandedEstateId(selected ? '' : estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 13 }}>
+                          <button key={estate.id} onClick={() => setExpandedEstateId(estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, minHeight: 38, padding: '0 13px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.8 }}>
                             {(estate.deceased_name || estate.name || 'Estate')} ({openCount} task{openCount === 1 ? '' : 's'})
                           </button>
                         );
@@ -656,6 +643,7 @@ export default function ParticipatingPage() {
                 {data.estates
                 .slice()
                 .filter(estate => !router.query.estate || estate.id === router.query.estate)
+                .filter(estate => router.query.estate || router.query.task || !expandedEstateId || estate.id === expandedEstateId)
                 .sort((a, b) => (a.id === router.query.estate ? -1 : b.id === router.query.estate ? 1 : 0))
                 .map(estate => {
                   const items = normalizeItems(estate).sort((a, b) => (a.id === router.query.task ? -1 : b.id === router.query.task ? 1 : 0));
@@ -664,12 +652,11 @@ export default function ParticipatingPage() {
                   const linkedItem = items.find(item => item.id === router.query.task);
                   const primaryItem = linkedItem || openItems[0] || handledItems[0];
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
-                  const expanded = expandedEstateId === estate.id;
-                  const focusedInvite = Boolean(router.query.estate || router.query.task);
                   const showOpenList = showOtherOpen[estate.id];
                   return (
-                <div key={estate.id} style={{ background: C.card, border: `1px solid ${expanded ? C.sage : C.border}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: expanded ? '0 14px 38px rgba(55,45,35,.05)' : 'none' }}>
-                  <button onClick={() => setExpandedEstateId(expanded ? '' : estate.id)} style={{ width: '100%', background: 'none', border: 'none', padding: 20, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
+                <div key={estate.id} style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
+                  <div style={{ width: '100%', background: 'none', border: 'none', padding: '17px 20px 12px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
+                  <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Participant operating spine</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.2, color: C.ink }}>{estate.deceased_name || estate.name || 'Estate plan'}</div>
@@ -682,9 +669,8 @@ export default function ParticipatingPage() {
                     </div>
                     <span style={{ background: estate.status === 'triggered' || estate.activation_status === 'activated' ? C.roseFaint : C.sageFaint, color: estate.status === 'triggered' ? C.rose : C.sage, borderRadius: 999, padding: '5px 10px', fontSize: 11, fontWeight: 800 }}>{estate.status || 'active'}</span>
                   </div>
-                  </button>
+                  </div>
 
-                  {expanded && (
                     <div style={{ padding: '0 20px 20px' }}>
                       <div className="participant-estate-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
                         {[
@@ -771,32 +757,10 @@ export default function ParticipatingPage() {
                         </div>
                       )}
                     </div>
-                  )}
                 </div>
               )})}
               </>}
             </div>
-
-            {!(router.query.estate || router.query.task) && (
-              <aside style={{ alignSelf: 'start', display: 'grid', gap: 12 }}>
-                <SpineTrustStrip
-                  compact
-                  eyebrow="Scoped help"
-                  title="You only see your part."
-                  rows={[
-                    ['Visible to you', 'Your task, coordinator, service context, and saved updates.'],
-                    ['Coordinator sees', 'Your response, proof note, waiting state, and timestamp.'],
-                    ['Kept private', 'The full estate workspace, private notes, and unrelated tasks.'],
-                  ]}
-                />
-                <details style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 12px', background: C.bg }}>
-                  <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Later: plan for your own family</summary>
-                  <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.6, margin: '10px 0' }}>Participants often understand the value after helping once. This can wait until your assigned work is handled.</p>
-                  {data.discountEligible && <div style={{ background: C.sageFaint, color: C.sage, borderRadius: 12, padding: 10, fontSize: 12.5, fontWeight: 800, marginBottom: 10 }}>Participant discount eligible</div>}
-                  <Link href="/pricing?participant=1" style={{ display: 'block', textAlign: 'center', background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 12px', textDecoration: 'none', fontWeight: 800, fontSize: 13 }}>See planning options</Link>
-                </details>
-              </aside>
-            )}
           </div>
         )}
       </section>
