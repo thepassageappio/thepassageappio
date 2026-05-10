@@ -59,7 +59,7 @@ const navLink = {
   alignItems: 'center',
 };
 
-const DEFAULT_SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
+const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();

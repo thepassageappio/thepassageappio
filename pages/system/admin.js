@@ -18,7 +18,7 @@ const C = {
   roseFaint: '#fdf3f3',
 };
 
-const SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
+const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
@@ -93,6 +93,7 @@ export default function SystemAdminPage() {
   const [metricsError, setMetricsError] = useState('');
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [adminView, setAdminView] = useState('operations');
+  const [activeModuleTitle, setActiveModuleTitle] = useState(adminModules[0].title);
   const [dryRunDraft, setDryRunDraft] = useState({ email: '', phone: '', channel: 'email' });
   const [dryRunResult, setDryRunResult] = useState(null);
   const [dryRunLoading, setDryRunLoading] = useState(false);
@@ -114,6 +115,10 @@ export default function SystemAdminPage() {
   }, []);
 
   const admin = useMemo(() => isSystemAdmin(user), [user]);
+  const activeModule = useMemo(
+    () => adminModules.find(module => module.title === activeModuleTitle) || adminModules[0],
+    [activeModuleTitle]
+  );
 
   useEffect(() => {
     if (!admin || !supabase) return undefined;
@@ -213,11 +218,16 @@ export default function SystemAdminPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
+      <style>{`
+        @media (max-width: 760px) {
+          .admin-spine-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       <SiteHeader user={user} onSignIn={signIn} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '28px' }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '22px 28px 36px' }}>
         <div style={eyebrow}>Passage system admin</div>
-        <h1 style={h1}>One command center for internal Passage operations.</h1>
-        <p style={lead}>This area is for Passage system admins only. It is separate from estate admins, funeral-home admins, vendor admins, and family coordinators.</p>
+        <h1 style={h1}>Internal operating spine.</h1>
+        <p style={lead}>Owner-only controls for demos, vendor approval, dry-run QA, metrics export, and trust review. Separate from family, funeral-home, vendor, and estate admin views.</p>
 
         {loading && <Panel>Checking system-admin access...</Panel>}
 
@@ -239,12 +249,20 @@ export default function SystemAdminPage() {
 
         {!loading && admin && (
           <>
-            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginTop: 20, alignItems: 'stretch' }}>
-              <Panel compact>
-                <div style={eyebrow}>Today</div>
-                <h2 style={h2}>Route the work. Keep the proof.</h2>
-                <p style={lead}>System admin should be a control room: demos, vendor approval, support intake, metrics export, and trust review. Not another dashboard wall.</p>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
+            <Panel compact>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .82fr) minmax(260px, .48fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
+                <div>
+                  <div style={eyebrow}>Today</div>
+                  <h2 style={h2}>One internal queue, one source of proof.</h2>
+                  <p style={lead}>Start with the operational question, then open the one tool needed. Nothing here should look like a customer dashboard.</p>
+                </div>
+                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 15, padding: 13 }}>
+                  <div style={eyebrow}>Owner access</div>
+                  <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.25, marginTop: 6 }}>Visible only to the Passage owner account.</div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>{user?.email}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
                   {[
                     ['operations', 'Operations'],
                     ['metrics', 'Metrics'],
@@ -252,27 +270,32 @@ export default function SystemAdminPage() {
                   ].map(([key, label]) => (
                     <button key={key} onClick={() => setAdminView(key)} style={adminView === key ? selectedTab : tabButton}>{label}</button>
                   ))}
-                </div>
-              </Panel>
-              <Panel compact tone="sage">
-                <div style={eyebrow}>Data honesty</div>
-                <h2 style={h2}>No fake dashboards.</h2>
-                <p style={lead}>Internal numbers stay labeled as real, estimated, demo-only, or unavailable. Export the source before pretending it is insight.</p>
-              </Panel>
-            </section>
+              </div>
+            </Panel>
 
             {adminView === 'operations' && (
-            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12, marginTop: 16 }}>
-              {adminModules.map((module) => (
-                <Link key={module.title} href={module.href} style={{ ...cardLink, opacity: module.status === 'Planned' || module.status === 'Roadmap' ? .78 : 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
-                    <h2 style={{ ...h3, margin: 0 }}>{module.title}</h2>
-                    <span style={module.status === 'Live' || module.status === 'Live demo' || module.status === 'Intake live' || module.status === 'Live scaffold' ? livePill : plannedPill}>{module.status}</span>
+            <Panel compact>
+              <div style={eyebrow}>Operations</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(210px, .42fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
+                <div style={{ display: 'grid', gap: 7 }}>
+                  {adminModules.map((module) => (
+                    <button key={module.title} onClick={() => setActiveModuleTitle(module.title)} style={activeModule.title === module.title ? selectedToolButton : toolButton}>
+                      <span>{module.title}</span>
+                      <span style={activeModule.title === module.title ? livePillOnGreen : module.status === 'Live' || module.status === 'Live demo' || module.status === 'Intake live' || module.status === 'Live scaffold' ? livePill : plannedPill}>{module.status}</span>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ background: activeModule.status === 'Roadmap' ? C.amberFaint : C.sageFaint, border: '1px solid ' + (activeModule.status === 'Roadmap' ? '#ead8b8' : '#c8deca'), borderRadius: 16, padding: 17 }}>
+                  <div style={eyebrow}>Selected tool</div>
+                  <h2 style={{ ...h2, marginTop: 6 }}>{activeModule.title}</h2>
+                  <p style={lead}>{activeModule.body}</p>
+                  <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 14 }}>
+                    <Link href={activeModule.href} style={primaryLink}>Open</Link>
+                    <span style={activeModule.status === 'Roadmap' ? plannedPill : livePill}>{activeModule.status}</span>
                   </div>
-                  <p style={{ ...smallText, marginBottom: 0 }}>{module.body}</p>
-                </Link>
-              ))}
-            </section>
+                </div>
+              </div>
+            </Panel>
             )}
 
             {adminView === 'metrics' && (
@@ -289,8 +312,8 @@ export default function SystemAdminPage() {
                 {metricsLoading && <div style={{ ...smallText, marginTop: 12 }}>Loading live metrics...</div>}
                 {metricsError && <div style={{ ...smallText, marginTop: 12, color: C.rose }}>{metricsError}</div>}
                 {metrics?.metrics?.length > 0 ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 9, marginTop: 14 }}>
-                    {metrics.metrics.slice(0, 8).map((item) => (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginTop: 12 }}>
+                    {metrics.metrics.slice(0, 6).map((item) => (
                       <div key={item.label} style={item.status === 'real' ? metricCard : unavailableMetricCard}>
                         <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: item.status === 'real' ? C.sage : C.amber, marginBottom: 5 }}>{item.status}</div>
                         <div style={{ fontSize: 24, lineHeight: 1.05 }}>{item.value == null ? 'N/A' : item.value}</div>
@@ -300,8 +323,8 @@ export default function SystemAdminPage() {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 9, marginTop: 14 }}>
-                    {reportingMetrics.slice(0, 8).map((metric) => <div key={metric} style={metricCard}>{metric}</div>)}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, marginTop: 12 }}>
+                    {reportingMetrics.slice(0, 6).map((metric) => <div key={metric} style={metricCard}>{metric}</div>)}
                   </div>
                 )}
                 {metrics?.leads && (
@@ -399,10 +422,13 @@ const smallText = { color: C.mid, fontSize: 14, lineHeight: 1.5, marginTop: 8 };
 const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', marginTop: 16 };
 const secondaryButton = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
 const secondaryLink = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, display: 'inline-flex', alignItems: 'center', textDecoration: 'none', marginTop: 16 };
-const cardLink = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16, color: C.ink, textDecoration: 'none', boxShadow: '0 4px 20px rgba(0,0,0,.035)' };
+const primaryLink = { border: 'none', background: C.sage, color: '#fff', borderRadius: 13, minHeight: 44, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' };
 const tabButton = { border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, minHeight: 38, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
 const selectedTab = { ...tabButton, border: '1px solid ' + C.sage, background: C.sage, color: '#fff' };
+const toolButton = { border: '1px solid ' + C.border, background: C.card, color: C.ink, borderRadius: 13, minHeight: 42, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', textAlign: 'left' };
+const selectedToolButton = { ...toolButton, border: '1px solid ' + C.sage, background: C.sage, color: '#fff' };
 const livePill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' };
+const livePillOnGreen = { background: 'rgba(255,255,255,.16)', color: '#fff', border: '1px solid rgba(255,255,255,.28)', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' };
 const plannedPill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' };
 const metricCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.sage, fontWeight: 900, fontSize: 14 };
 const unavailableMetricCard = { background: C.amberFaint, border: '1px solid #ead8b8', borderRadius: 13, padding: 12, color: C.amber, fontWeight: 900, fontSize: 14 };
