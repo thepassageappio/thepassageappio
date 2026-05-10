@@ -81,8 +81,22 @@ function partnerCaseTypeLabel(item) {
   const stage = String(item?.setup_stage || '');
   const mode = String(item?.mode || '');
   return stage.includes('preneed') || stage.includes('prepaid') || mode === 'green'
-    ? 'Pre-need / prepaid case'
+    ? 'Pre-need planning case'
     : 'At-need case';
+}
+
+function partnerFundingLabel(item) {
+  const financials = item?.orchestration_summary?.partner_financials || item?.partner_financials || {};
+  if (!financials?.is_prepaid) return '';
+  const total = financials.total_case_value || financials.prepaid_amount;
+  return total ? `Prepaid / funded: ${moneyDisplay(total)}` : 'Prepaid / funded';
+}
+
+function moneyDisplay(value) {
+  const raw = String(value || '').replace(/[$,]/g, '').trim();
+  const number = Number(raw);
+  if (!Number.isFinite(number) || number <= 0) return String(value || '');
+  return `$${Math.round(number).toLocaleString()}`;
 }
 
 function partnerLifecycleKey(item) {
@@ -96,7 +110,7 @@ function partnerLifecycleKey(item) {
   ].map(value => String(value || '').toLowerCase()).join(' ');
   if (/after|aftercare|closed|completed/.test(text)) return 'after';
   if (/hospice|warm|decline|care/.test(text)) return 'warm';
-  if (/preneed|pre-need|prepaid|planning|green/.test(text)) return 'green';
+  if (/preneed|pre-need|planning|green/.test(text)) return 'green';
   const serviceEvents = item?.serviceEvents || item?.service_events || [];
   if (serviceEvents.length || /funeral|service|arrangement/.test(text)) return 'funeral';
   if (item?.date_of_death || /triggered|activated|at_need|at-need|red/.test(text)) return 'red';
@@ -365,6 +379,9 @@ export default function FuneralHomeDashboard() {
     coordinatorEmail: '',
     coordinatorPhone: '',
     caseReference: '',
+    isPrepaid: false,
+    totalCaseValue: '',
+    prepaidAmount: '',
     pronouncementDate: '',
     releaseDate: '',
     arrangementDate: '',
@@ -958,7 +975,8 @@ export default function FuneralHomeDashboard() {
       const now = new Date().toISOString();
       const id = 'demo-created-' + Date.now();
       const caseName = caseForm.personName.trim() || 'Demo family';
-      const planning = caseForm.caseType === 'preneed' || caseForm.caseType === 'prepaid';
+      const normalizedCaseType = caseForm.caseType === 'immediate' ? 'immediate' : 'preneed';
+      const planning = normalizedCaseType === 'preneed';
       const demoCase = {
         id,
         deceased_name: planning ? '' : caseName,
@@ -968,8 +986,16 @@ export default function FuneralHomeDashboard() {
         coordinator_phone: caseForm.coordinatorPhone || '',
         date_of_death: planning ? '' : caseForm.dateOfDeath,
         organization_case_reference: caseForm.caseReference || `DEMO-${String(Date.now()).slice(-4)}`,
-        setup_stage: planning ? caseForm.caseType : 'active',
+        setup_stage: planning ? 'preneed' : 'active',
         mode: planning ? 'green' : 'red',
+        orchestration_summary: {
+          partner_case_type: normalizedCaseType,
+          partner_financials: {
+            is_prepaid: Boolean(caseForm.isPrepaid),
+            total_case_value: caseForm.totalCaseValue || null,
+            prepaid_amount: caseForm.prepaidAmount || null,
+          },
+        },
         status: 'active',
         updated_at: now,
         tasks: [
@@ -1005,9 +1031,9 @@ export default function FuneralHomeDashboard() {
         ? 'Demo case created locally. Family handoff link is prepared for the walkthrough; no production record, email, or SMS was created.'
         : 'Demo case created locally. Add a family email in a real case before preparing the family handoff link.');
       setShowNewCase(false);
-      trackEvent('partner_case_created_demo', { caseType: caseForm.caseType, hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
+      trackEvent('partner_case_created_demo', { caseType: normalizedCaseType, isPrepaid: Boolean(caseForm.isPrepaid), hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
       setExpandedCaseId(id);
-      setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
+      setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
       return;
     }
     setCreating(true);
@@ -1041,7 +1067,7 @@ export default function FuneralHomeDashboard() {
         : 'Case created. Family access was not prepared yet; use the family view or coordinator email to complete the handoff.');
     }
     setShowNewCase(false);
-    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
+    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
     await load(token);
   }
 
@@ -1191,14 +1217,13 @@ export default function FuneralHomeDashboard() {
   }
 
   function openCasePanel(caseType = 'immediate') {
-    setCaseForm(prev => ({ ...prev, caseType }));
+    const normalizedCaseType = caseType === 'prepaid' ? 'preneed' : caseType;
+    setCaseForm(prev => ({ ...prev, caseType: normalizedCaseType, isPrepaid: caseType === 'prepaid' ? true : prev.isPrepaid }));
     setShowNewCase(true);
     setShowTools(false);
-    setNotice(caseType === 'immediate'
+    setNotice(normalizedCaseType === 'immediate'
       ? 'Create an at-need case. Add only what you know.'
-      : caseType === 'prepaid'
-        ? 'Create a prepaid case. Add the family contact and policy reference if you have it.'
-        : 'Create a pre-need planning case. This can be for a living client or a family preparing ahead.');
+      : 'Create a pre-need planning case. Add prepaid or funded details only if they apply.');
     window.setTimeout(() => {
       casePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       casePanelRef.current?.querySelector('input')?.focus?.();
@@ -1507,7 +1532,7 @@ export default function FuneralHomeDashboard() {
   ];
   const needsFirstDaySetup = Boolean(isDirectorRole && (cases.length === 0 || partnerStaff.length <= 1 || assignmentsCoordinated === 0 || (proofEventsLogged === 0 && totalHandled === 0)));
   const lifecycleRows = [
-    ['green', 'Planning', 'pre-need and prepaid cases', 'Family record begins before crisis.'],
+    ['green', 'Planning', 'pre-need cases; prepaid is a funding detail', 'Family record begins before crisis.'],
     ['warm', 'Warm / hospice', 'transition preparation', 'Contacts, dates, wishes, and handoff notes travel forward.'],
     ['red', 'Death event', 'first-hour coordination', 'Immediate owners, calls, and proof become visible.'],
     ['funeral', 'Service coordination', 'arrangements and family logistics', 'Staff, family, vendors, and participants work from one spine.'],
@@ -2469,7 +2494,7 @@ export default function FuneralHomeDashboard() {
           <form ref={casePanelRef} role="dialog" aria-modal="true" aria-label="Create family case" onClick={event => event.stopPropagation()} onSubmit={createCase} style={{ width: 'min(920px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{caseForm.caseType === 'immediate' ? 'New at-need case' : caseForm.caseType === 'prepaid' ? 'New prepaid case' : 'New pre-need case'}</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{caseForm.caseType === 'immediate' ? 'New at-need case' : 'New pre-need case'}</div>
                 <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{caseForm.caseType === 'immediate' ? 'A death has occurred. Start with the family contact and the next partner-ready work.' : 'This may be a living client or family preparing ahead. Start with a contact and the plan details you already know.'}</div>
               </div>
               <button type="button" onClick={() => setShowNewCase(false)} aria-label="Close case creation" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, cursor: 'pointer', fontFamily: 'Georgia,serif', fontWeight: 900 }}>x</button>
@@ -2478,7 +2503,6 @@ export default function FuneralHomeDashboard() {
               {[
                 ['immediate', 'At-need case', 'A death has occurred and the family needs coordination now.'],
                 ['preneed', 'Pre-need planning', 'A living client or family is preparing before it is urgent.'],
-                ['prepaid', 'Prepaid plan', 'Track funding, policy, and family contacts for a paid arrangement.'],
               ].map(([value, title, body]) => (
                 <button key={value} type="button" onClick={() => setCaseForm(prev => ({ ...prev, caseType: value }))} style={{ textAlign: 'left', border: `1px solid ${caseForm.caseType === value ? C.sage : C.border}`, background: caseForm.caseType === value ? C.sageFaint : C.bg, borderRadius: 12, padding: 11, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
                   <div style={{ fontSize: 13, fontWeight: 900, color: C.ink }}>{title}</div>
@@ -2505,6 +2529,27 @@ export default function FuneralHomeDashboard() {
                   Funeral home name
                   <input value={caseForm.funeralHomeName} onChange={e => setCaseForm(prev => ({ ...prev, funeralHomeName: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
                 </label>
+              )}
+            </div>
+            <div style={{ background: C.sageFaint, border: `1px solid ${caseForm.isPrepaid ? C.sage : C.sage + '22'}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
+              <label style={{ display: 'flex', gap: 9, alignItems: 'flex-start', color: C.ink, fontSize: 13.5, fontWeight: 900, cursor: 'pointer' }}>
+                <input type="checkbox" checked={caseForm.isPrepaid} onChange={event => setCaseForm(prev => ({ ...prev, isPrepaid: event.target.checked }))} style={{ marginTop: 2, accentColor: C.sage }} />
+                <span>
+                  Prepaid or funded arrangement
+                  <span style={{ display: 'block', color: C.mid, fontSize: 12, lineHeight: 1.45, fontWeight: 500, marginTop: 3 }}>This is not a separate case type. It is a funding detail on the same family record.</span>
+                </span>
+              </label>
+              {caseForm.isPrepaid && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: 8, marginTop: 10 }}>
+                  <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                    Total case value
+                    <input inputMode="decimal" value={caseForm.totalCaseValue} onChange={e => setCaseForm(prev => ({ ...prev, totalCaseValue: e.target.value }))} placeholder="$" style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+                  </label>
+                  <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                    Prepaid / policy amount
+                    <input inputMode="decimal" value={caseForm.prepaidAmount} onChange={e => setCaseForm(prev => ({ ...prev, prepaidAmount: e.target.value }))} placeholder="$" style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+                  </label>
+                </div>
               )}
             </div>
             {caseForm.caseType === 'immediate' && (
@@ -2553,7 +2598,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ fontSize: 22, marginBottom: 8 }}>Start with one family case.</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, margin: '12px 0' }}>
               {[
-                ['1', 'Create case', 'At-need, pre-need, or prepaid.'],
+                ['1', 'Create case', 'At-need or pre-need. Add prepaid as a funding detail when relevant.'],
                 ['2', 'Add family', 'Name the coordinator and best contact.'],
                 ['3', 'Send first communication', 'Use Passage to show progress and reduce repeated calls.'],
               ].map(([n, title, body]) => (
@@ -2650,6 +2695,7 @@ export default function FuneralHomeDashboard() {
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
               const isExpanded = expandedCaseId === item.id;
               const itemLocation = locationNameFor(item);
+              const fundingLabel = partnerFundingLabel(item);
               const nextOwner = nextPartnerTask?.assigned_to_name || nextPartnerTask?.assigned_to_email || nextPartnerTask?.playbook?.partnerOwnerRole || 'Unassigned';
               const nextTaskClosed = nextPartnerTask && ['handled', 'completed', 'done'].includes(String(nextPartnerTask.status || '').toLowerCase());
               const nextExpectedUpdate = nextTaskClosed ? 'Handled - proof is saved on the case spine.' : nextPartnerTask ? (orchestration.nextAction?.expectedUpdate || taskExpectedUpdate(nextPartnerTask, 'funeral_home')) : 'The family status remains visible.';
@@ -2686,6 +2732,7 @@ export default function FuneralHomeDashboard() {
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.25 }}>{item.deceased_name || item.estate_name || item.name || 'Family case'}</div>
                       <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{partnerCaseTypeLabel(item)} - {isMultiLocation ? `${itemLocation} - ` : ''}Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
+                      {fundingLabel && <div style={{ color: C.sage, fontSize: 12.2, fontWeight: 900, marginTop: 5 }}>{fundingLabel}</div>}
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close work pane' : 'Open work pane'}</button>

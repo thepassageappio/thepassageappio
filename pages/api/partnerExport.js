@@ -108,7 +108,7 @@ function workflowCaseType(workflow) {
   const stage = String(workflow?.setup_stage || '');
   const mode = String(workflow?.mode || '');
   return stage.includes('preneed') || stage.includes('prepaid') || mode === 'green'
-    ? 'Pre-need / prepaid'
+    ? 'Pre-need'
     : 'At-need';
 }
 
@@ -117,6 +117,9 @@ function buildCsv(rows) {
     'Case',
     'Record type',
     'Case type',
+    'Prepaid / funded',
+    'Total case value',
+    'Prepaid amount',
     'Source system',
     'Reference',
     'Family contact',
@@ -150,10 +153,14 @@ function buildCsv(rows) {
   ];
   const lines = [header.map(csvCell).join(',')];
   for (const { workflow, task, communication, vendorRequest, event } of rows) {
+    const financials = workflow.orchestration_summary?.partner_financials || {};
     lines.push([
       workflow.estate_name || workflow.deceased_name || workflow.name,
       event ? 'lifecycle_event' : vendorRequest ? 'vendor_request' : communication ? 'communication' : 'task',
       workflowCaseType(workflow),
+      financials.is_prepaid ? 'Yes' : 'No',
+      financials.total_case_value,
+      financials.prepaid_amount,
       workflow.orchestration_summary?.source_system || 'Passage',
       workflow.organization_case_reference,
       workflow.coordinator_name,
@@ -198,6 +205,9 @@ function buildCaseSummaryCsv(workflows, tasks, events) {
   const header = [
     'Case',
     'Case type',
+    'Prepaid / funded',
+    'Total case value',
+    'Prepaid amount',
     'Source system',
     'Reference',
     'Family contact',
@@ -223,6 +233,7 @@ function buildCaseSummaryCsv(workflows, tasks, events) {
   ];
   const lines = [header.map(csvCell).join(',')];
   for (const workflow of workflows || []) {
+    const financials = workflow.orchestration_summary?.partner_financials || {};
     const caseTasks = (tasks || []).filter(task => task.workflow_id === workflow.id);
     const openTasks = caseTasks.filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
     const waitingTasks = caseTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
@@ -236,6 +247,9 @@ function buildCaseSummaryCsv(workflows, tasks, events) {
     lines.push([
       workflow.estate_name || workflow.deceased_name || workflow.name,
       workflowCaseType(workflow),
+      financials.is_prepaid ? 'Yes' : 'No',
+      financials.total_case_value,
+      financials.prepaid_amount,
       workflow.orchestration_summary?.source_system || 'Passage',
       workflow.organization_case_reference,
       workflow.coordinator_name,

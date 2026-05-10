@@ -106,6 +106,9 @@ export default async function handler(req, res) {
     coordinatorEmail,
     coordinatorPhone,
     caseReference,
+    isPrepaid,
+    totalCaseValue,
+    prepaidAmount,
     demo,
     demoType,
     demoLogoUrl,
@@ -121,7 +124,7 @@ export default async function handler(req, res) {
     obituaryDeadline,
   } = req.body || {};
 
-  const normalizedCaseType = ['immediate', 'preneed', 'prepaid'].includes(caseType) ? caseType : 'immediate';
+  const normalizedCaseType = caseType === 'preneed' || caseType === 'prepaid' ? 'preneed' : 'immediate';
   const subjectName = String(personName || deceasedName || '').trim();
   if (!subjectName) return res.status(400).json({ error: 'Add the person or family name to create a case.' });
 
@@ -208,6 +211,11 @@ export default async function handler(req, res) {
       orchestration_summary: {
         partner_case_type: normalizedCaseType,
         partner_setup_stage: `partner_${normalizedCaseType}_created`,
+        partner_financials: {
+          is_prepaid: Boolean(isPrepaid || caseType === 'prepaid'),
+          total_case_value: String(totalCaseValue || '').trim() || null,
+          prepaid_amount: String(prepaidAmount || '').trim() || null,
+        },
         timeline_anchors: timelineAnchors,
         missing_timeline_watch: normalizedCaseType === 'immediate' ? [
           !pronouncementDate ? 'official pronouncement date' : '',
