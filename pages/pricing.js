@@ -162,43 +162,43 @@ export default function PricingPage() {
           }
         }
       `}</style>
-      <section className="pricing-page-section" style={{ maxWidth: 1080, margin: '0 auto', padding: '8px 22px 12px' }}>
-        <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 15, boxShadow: '0 12px 34px rgba(55,45,35,.045)', display: 'grid', gridTemplateColumns: 'minmax(0,.72fr) minmax(380px,1fr)', gap: 14, alignItems: 'start' }} className="pricing-hero-grid">
+      <section className="pricing-page-section" style={{ maxWidth: 1080, margin: '0 auto', padding: '4px 22px 8px' }}>
+        <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 13, boxShadow: '0 10px 28px rgba(55,45,35,.04)', display: 'grid', gridTemplateColumns: 'minmax(0,.68fr) minmax(360px,.92fr)', gap: 13, alignItems: 'start' }} className="pricing-hero-grid">
           <div style={{ alignSelf: 'center' }}>
-            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Pricing</div>
-            <h1 style={{ fontSize: 'clamp(32px, 4vw, 50px)', lineHeight: .98, margin: '0 0 8px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.42, margin: 0, maxWidth: 560 }}>Start urgent if someone just passed. Plan ahead by choosing the number of family records you need.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 7, marginTop: 12 }}>
+            <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Pricing</div>
+            <h1 style={{ fontSize: 'clamp(30px, 3.55vw, 44px)', lineHeight: .98, margin: '0 0 7px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
+            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.36, margin: 0, maxWidth: 560 }}>Start urgent if someone just passed. Plan ahead by choosing the number of family records you need.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 6, marginTop: 10 }}>
               {[['urgent', 'Urgent help'], ...groups.map(g => [g.key, g.label])].map(([key, label]) => (
-                <button key={key} type="button" onClick={() => setActiveChoice(key)} style={{ border: `1px solid ${activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) + '55' : C.border}`, background: activeChoice === key ? (key === 'urgent' ? C.roseFaint : C.sageFaint) : C.bg, color: activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) : C.mid, borderRadius: 12, minHeight: 42, padding: '0 12px', fontFamily: 'Georgia,serif', fontSize: 13, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}>
+                <button key={key} type="button" onClick={() => setActiveChoice(key)} style={{ border: `1px solid ${activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) + '55' : C.border}`, background: activeChoice === key ? (key === 'urgent' ? C.roseFaint : C.sageFaint) : C.bg, color: activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) : C.mid, borderRadius: 11, minHeight: 36, padding: '0 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}>
                   {label}
                 </button>
               ))}
             </div>
-            <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
+            <div style={{ display: 'grid', gap: 5, marginTop: 10 }}>
               {readiness.map(([label, body]) => (
-                <div key={label} style={{ display: 'grid', gridTemplateColumns: '118px minmax(0,1fr)', gap: 9, color: C.mid, fontSize: 12.5, lineHeight: 1.35 }}>
-                  <strong style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</strong>
+                <div key={label} style={{ display: 'grid', gridTemplateColumns: '108px minmax(0,1fr)', gap: 8, color: C.mid, fontSize: 12, lineHeight: 1.28 }}>
+                  <strong style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</strong>
                   <span>{body}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ background: showingUrgent ? C.roseFaint : C.sageFaint, border: `1px solid ${(showingUrgent ? C.rose : C.sage)}35`, borderRadius: 17, padding: 15, display: 'flex', flexDirection: 'column', minHeight: 220 }}>
+          <div style={{ background: showingUrgent ? C.roseFaint : C.sageFaint, border: `1px solid ${(showingUrgent ? C.rose : C.sage)}35`, borderRadius: 17, padding: 14, display: 'flex', flexDirection: 'column', minHeight: 0, alignSelf: 'start' }}>
             {showingUrgent ? (
               <>
-                <div style={{ fontSize: 12, color: C.rose, textTransform: 'uppercase', letterSpacing: '.18em', fontWeight: 900, marginBottom: 7 }}>Someone just passed</div>
-                <div style={{ fontSize: 'clamp(36px, 4.6vw, 52px)', lineHeight: .98, marginBottom: 8 }}>Get help now.</div>
-                <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.4, marginBottom: 10 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
-                <div style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
+                <div style={{ fontSize: 11, color: C.rose, textTransform: 'uppercase', letterSpacing: '.17em', fontWeight: 900, marginBottom: 6 }}>Someone just passed</div>
+                <div style={{ fontSize: 'clamp(32px, 4vw, 44px)', lineHeight: .98, marginBottom: 7 }}>Get help now.</div>
+                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.34, marginBottom: 9 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
+                <div style={{ display: 'grid', gap: 5, marginBottom: 10 }}>
                   {['Open one urgent family record', 'Choose the next call or waiting point', 'Review before anything sends'].map(item => (
-                    <div key={item} style={{ color: C.mid, fontSize: 13, lineHeight: 1.35, display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <span style={{ width: 7, height: 7, borderRadius: 999, background: C.rose, opacity: .65, flexShrink: 0 }} />
+                    <div key={item} style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.25, display: 'flex', gap: 7, alignItems: 'center' }}>
+                      <span style={{ width: 6, height: 6, borderRadius: 999, background: C.rose, opacity: .65, flexShrink: 0 }} />
                       {item}
                     </div>
                   ))}
                 </div>
-                <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 14, padding: '15px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 17 }}>
+                <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 13, padding: '12px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 16 }}>
                   {busy === 'urgent' ? 'Opening checkout...' : 'Get help now \u2192 $79'}
                 </button>
               </>
@@ -248,7 +248,7 @@ export default function PricingPage() {
           </div>
         )}
 
-        <div style={{ marginTop: 9, background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 11, color: C.mid, fontSize: 12.5, lineHeight: 1.42 }}>
+        <div style={{ marginTop: 8, background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '9px 11px', color: C.mid, fontSize: 12, lineHeight: 1.35 }}>
           Add-on estates become available after an active paid subscription. Urgent coordination stays separate at $79 per case.
         </div>
 
