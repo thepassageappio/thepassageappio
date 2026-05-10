@@ -39,6 +39,13 @@ export default function PacketDemo() {
       setError('');
       return;
     }
+    if (/^demo[-_]/i.test(id) || router.query.demo === '1') {
+      setPackets(demoPackets);
+      setActiveId(demoPackets[0]?.id || '');
+      setSourceLabel('Demo packet set');
+      setError('');
+      return;
+    }
     let cancelled = false;
     async function loadPackets() {
       setLoading(true);
