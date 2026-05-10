@@ -2529,6 +2529,14 @@ export default function EstatePage() {
     setPendingRecipientPhone(textValue(person.phone || person.phone_number, ''));
   }
 
+  function savedOwnerLabel(person) {
+    var personName = textValue(person.name || person.full_name || person.email, 'Family contact');
+    var personEmail = textValue(person.email, '');
+    var personRole = textValue(person.estate_role_label || person.relationship || person.role, '');
+    var source = person.source === 'estate_participant' ? 'participant' : '';
+    return personName + (personEmail ? ' - ' + personEmail : '') + (personRole ? ' (' + personRole + ')' : '') + (source ? ' - ' + source : '');
+  }
+
   async function sendTaskDraftFromCommand(task, messageText) {
     if (!task?.id) return;
     var recipientEmail = taskAssignedEmail(task);
@@ -3252,22 +3260,23 @@ export default function EstatePage() {
                           </div>
                           {currentEmail && <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 900 }}>Ready to notify</span>}
                         </div>
-                        {(people || []).length > 0 && (
-                          <div style={{ marginTop: 9 }}>
-                            <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: SOFT, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
-                              Choose someone already attached
-                              <select value={pendingSavedPersonId} onChange={function(e) { applySavedPersonToPending(e.target.value); }} style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 12.5, background: CARD, color: INK }}>
-                                <option value="">Use a saved person...</option>
-                                {(people || []).slice(0, 12).map(function(person) {
-                                  var personName = textValue(person.name || person.email, 'Family contact');
-                                  var personEmail = textValue(person.email, '');
-                                  var id = person.id || personEmail || personName;
-                                  return <option key={id} value={id}>{personName}{personEmail ? ' - ' + personEmail : ''}</option>;
-                                })}
-                              </select>
-                            </label>
+                        <div style={{ marginTop: 9 }}>
+                          <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: SOFT, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+                            Saved owner list
+                            <select value={pendingSavedPersonId} onChange={function(e) { applySavedPersonToPending(e.target.value); }} style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 11px', fontFamily: 'inherit', fontSize: 12.5, background: CARD, color: INK }}>
+                              <option value="">{(people || []).length ? 'Choose a saved family contact or participant...' : 'No saved people or participants yet - add this owner below'}</option>
+                              {(people || []).slice(0, 18).map(function(person) {
+                                var id = person.id || person.email || person.name;
+                                return <option key={id} value={id}>{savedOwnerLabel(person)}</option>;
+                              })}
+                            </select>
+                          </label>
+                          <div style={{ fontSize: 11.5, color: MID, lineHeight: 1.4, marginTop: 5 }}>
+                            {(people || []).length
+                              ? 'Choosing a saved person pre-fills the owner, role, email, and phone fields.'
+                              : 'Once you add family contacts or invite participants, they appear here for every task in this estate.'}
                           </div>
-                        )}
+                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8, marginTop: 9 }}>
                           <input
                             value={pendingRecipientName}

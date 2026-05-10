@@ -45,6 +45,57 @@ async function canAccessEstate(user, workflow) {
   return Boolean(access?.id || member?.id);
 }
 
+async function fetchEstateParticipants(id) {
+  const attempts = [
+    'id,workflow_id,email,name,phone,role,invite_status,invite_token,accepted_at,created_at,updated_at',
+    'id,workflow_id,email,role,invite_status,invite_token,accepted_at,created_at,updated_at',
+    'id,workflow_id,email,invite_status,invite_token,created_at,updated_at',
+  ];
+  for (const selection of attempts) {
+    const { data, error } = await admin
+      .from('estate_participants')
+      .select(selection)
+      .eq('workflow_id', id)
+      .order('created_at', { ascending: false })
+      .limit(80);
+    if (!error) return data || [];
+  }
+  return [];
+}
+
+function mergePeopleAndParticipants(people = [], participants = []) {
+  const seen = new Set();
+  const merged = [];
+  function keyFor(row) {
+    return String(row.email || row.id || row.name || '').trim().toLowerCase();
+  }
+  (people || []).forEach(person => {
+    const key = keyFor(person);
+    if (key) seen.add(key);
+    merged.push(person);
+  });
+  (participants || []).forEach(participant => {
+    const key = keyFor(participant);
+    if (key && seen.has(key)) return;
+    if (key) seen.add(key);
+    merged.push({
+      id: 'participant:' + (participant.id || participant.email || key),
+      source: 'estate_participant',
+      name: participant.name || participant.email || 'Family participant',
+      email: participant.email || '',
+      phone: participant.phone || '',
+      role: participant.role || 'participant',
+      relationship: participant.role || 'participant',
+      estate_role_label: participant.role || 'participant',
+      participant_status: participant.invite_status || '',
+      accepted_at: participant.accepted_at || null,
+      created_at: participant.created_at || null,
+      updated_at: participant.updated_at || null,
+    });
+  });
+  return merged;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   if (!service) return res.status(500).json({ error: 'Supabase service role is not configured.' });
@@ -77,6 +128,7 @@ export default async function handler(req, res) {
     { data: statusEvents },
     { data: communications },
     { data: vendorRequests },
+    participants,
   ] = await Promise.all([
     admin.from('outcomes').select('*').eq('estate_id', id).order('position'),
     admin.from('tasks').select('*').eq('workflow_id', id).order('created_at', { ascending: true }),
@@ -89,6 +141,7 @@ export default async function handler(req, res) {
     admin.from('task_status_events').select('*').eq('workflow_id', id).order('last_action_at', { ascending: false, nullsFirst: false }).limit(80),
     admin.from('notification_log').select('*').eq('workflow_id', id).order('created_at', { ascending: false }).limit(80),
     admin.from('vendor_requests').select('*, vendors(business_name,category,contact_email,contact_phone)').eq('workflow_id', id).order('requested_at', { ascending: false }).limit(40),
+    fetchEstateParticipants(id),
   ]);
 
   await admin.from('workflows').update({ last_viewed_at: new Date().toISOString() }).eq('id', id).then(() => {}, () => {});
@@ -119,7 +172,8 @@ export default async function handler(req, res) {
     tasks: tasks || [],
     events: events || [],
     serviceEvents: mergedServiceEvents,
-    people: people || [],
+    people: mergePeopleAndParticipants(people || [], participants || []),
+    participants: participants || [],
     actions: actions || [],
     announcements: announcements || [],
     statusEvents: statusEvents || [],
