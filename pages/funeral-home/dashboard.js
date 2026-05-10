@@ -1148,7 +1148,6 @@ export default function FuneralHomeDashboard() {
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://www.thepassageapp.io';
   const activationStatus = data?.activationStatus || 'inactive';
   const partnerPlan = data?.partnerPlan || null;
-  const partnerNeedsConfig = user && data && activationStatus === 'no_partner_record';
   const partnerTrialExpired = user && data && activationStatus === 'trial_expired';
   function riskAgeHours(value) {
     if (!value) return 0;
@@ -1380,7 +1379,7 @@ export default function FuneralHomeDashboard() {
     ['6', 'Proof loop', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
   ];
   const contractToProofRows = [
-    ['Contract signed', 'Passage admin activates the partner workspace and billing/trial metadata.'],
+    ['Workspace active', 'The partner team can create or import cases, add staff, assign owners, and export proof.'],
     ['Workspace opened', 'Director confirms case source, locations, staff roles, and first-day expectations.'],
     ['Cases loaded', 'Import a CSV preview or create the first at-need/pre-need case in the UI.'],
     ['Owner assigned', 'Use saved employees, family contacts, participants, vendors, or clergy from the same owner pattern.'],
@@ -1588,11 +1587,6 @@ export default function FuneralHomeDashboard() {
               <input readOnly value={latestFamilyLink.url} style={{ minWidth: 0, border: `1px solid ${C.border}`, borderRadius: 11, background: C.bg, padding: '9px 10px', color: C.mid, fontFamily: 'Georgia,serif', fontSize: 12.5 }} />
               <button onClick={() => copyText(latestFamilyLink.url, 'Family handoff link copied.')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Copy link</button>
             </div>
-          </div>
-        )}
-        {partnerNeedsConfig && (
-          <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 16, color: C.amber, marginBottom: 12, lineHeight: 1.45 }}>
-            Partner access is active, but billing/trial metadata is not linked yet. Cases and reports can still load; Passage admin should connect the partner billing record before a paid pilot.
           </div>
         )}
         {partnerTrialExpired && (
