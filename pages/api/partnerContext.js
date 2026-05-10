@@ -41,6 +41,27 @@ async function selectOrganizationMembers(organizationIds) {
   return [];
 }
 
+async function selectOrganizationLocations(organizationIds) {
+  const tables = ['organization_locations', 'partner_locations'];
+  const selections = [
+    'id, organization_id, name, address, city, state, zip, country, place_id, status, created_at, updated_at',
+    'id, organization_id, name, address, city, state, zip, country, status',
+    'id, organization_id, name, status',
+  ];
+  for (const table of tables) {
+    for (const selection of selections) {
+      const { data, error } = await admin
+        .from(table)
+        .select(selection)
+        .in('organization_id', organizationIds)
+        .neq('status', 'archived');
+      if (!error) return (data || []).map(row => ({ ...row, source: 'partner setup' }));
+      if (!schemaColumnError(error) && error?.code !== '42P01') break;
+    }
+  }
+  return [];
+}
+
 function locationNameForWorkflow(workflow) {
   const ref = String(workflow?.organization_case_reference || workflow?.case_reference || '');
   if (/MULTI-002/i.test(ref)) return 'Poughkeepsie';
@@ -354,6 +375,7 @@ export default async function handler(req, res) {
   let allMembers = memberships || [];
   const organizationMemberData = await selectOrganizationMembers(organizationIds);
   if (organizationMemberData?.length) allMembers = organizationMemberData;
+  const partnerLocations = await selectOrganizationLocations(organizationIds);
 
   let tasks = [];
   let statusEvents = [];
@@ -495,6 +517,10 @@ export default async function handler(req, res) {
   });
 
   const locations = Array.from(new Set(cases.map(locationNameForWorkflow)));
+  const managedLocations = Array.from(new Map([
+    ...partnerLocations.map(location => [String(location.name || '').toLowerCase(), location]),
+    ...locations.map(location => [String(location || '').toLowerCase(), { name: location, organization_id: primaryMembership?.organization_id || null, source: 'case data', status: 'active' }]),
+  ].filter(([key]) => key)).values());
   const totalCaseValue = cases.reduce((sum, item) => sum + caseValueNumber(item), 0);
   const prepaidCaseValue = cases.reduce((sum, item) => sum + prepaidValueNumber(item), 0);
   const byLocation = locations.map(location => {
@@ -572,6 +598,7 @@ export default async function handler(req, res) {
     partnerContexts,
     cases,
     staff,
+    partnerLocations: managedLocations,
     reports,
     isPassageAdmin: adminMode,
   });

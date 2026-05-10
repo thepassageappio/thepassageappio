@@ -413,8 +413,10 @@ export default function FuneralHomeDashboard() {
   const [latestStaffInvite, setLatestStaffInvite] = useState(null);
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
   const [showStaffSetup, setShowStaffSetup] = useState(false);
+  const [showLocationSetup, setShowLocationSetup] = useState(false);
   const [showPilotGuide, setShowPilotGuide] = useState(false);
   const [staffDraft, setStaffDraft] = useState({ name: '', email: '', role: 'staff', locationScope: 'all', annualSalary: '', hourlyCost: '' });
+  const [locationDraft, setLocationDraft] = useState({ name: '', address: '', city: '', state: '', zip: '', country: '', placeId: '' });
   const [importDraft, setImportDraft] = useState(null);
   const [exportRange, setExportRange] = useState({ from: '', to: '' });
   const [copiedKey, setCopiedKey] = useState('');
@@ -494,13 +496,14 @@ export default function FuneralHomeDashboard() {
   }, [router.isReady, demoMode]);
 
   useEffect(() => {
-    const modalOpen = showNewCase || showStaffSetup || Boolean(taskDraft?.task) || Boolean(assignmentDraft.taskId);
+    const modalOpen = showNewCase || showStaffSetup || showLocationSetup || Boolean(taskDraft?.task) || Boolean(assignmentDraft.taskId);
     if (!modalOpen || typeof window === 'undefined') return undefined;
     const previousOverflow = document.body.style.overflow;
     function handleKeyDown(event) {
       if (event.key !== 'Escape') return;
       setShowNewCase(false);
       setShowStaffSetup(false);
+      setShowLocationSetup(false);
       setTaskDraft(null);
       setTaskDraftNote('');
       setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' });
@@ -511,7 +514,7 @@ export default function FuneralHomeDashboard() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showNewCase, showStaffSetup, taskDraft?.task, assignmentDraft.taskId]);
+  }, [showNewCase, showStaffSetup, showLocationSetup, taskDraft?.task, assignmentDraft.taskId]);
 
   async function load(token) {
     setLoading(true);
@@ -807,6 +810,67 @@ export default function FuneralHomeDashboard() {
     }
   }
 
+  async function addPartnerLocation(event) {
+    event?.preventDefault?.();
+    const name = String(locationDraft.name || '').trim();
+    if (!name) {
+      setError('Name the location before saving it.');
+      return;
+    }
+    const savedLocation = {
+      id: `local_${name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+      name,
+      address: locationDraft.address || '',
+      city: locationDraft.city || '',
+      state: locationDraft.state || '',
+      zip: locationDraft.zip || '',
+      country: locationDraft.country || '',
+      placeId: locationDraft.placeId || '',
+      status: 'active',
+      source: 'manual',
+    };
+    if (demoMode || !token) {
+      setData(prev => prev ? {
+        ...prev,
+        partnerLocations: [
+          savedLocation,
+          ...(prev.partnerLocations || []).filter(location => String(location.name || '').toLowerCase() !== name.toLowerCase()),
+        ],
+      } : prev);
+      setNotice('Location saved for this demo workspace. It is now available in staff scope, case setup, and reports.');
+      setLocationDraft({ name: '', address: '', city: '', state: '', zip: '', country: '', placeId: '' });
+      setShowLocationSetup(false);
+      return;
+    }
+    setUpdating('partner_location');
+    setError('');
+    setNotice('');
+    try {
+      const res = await fetch('/api/partnerLocations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify(savedLocation),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not save this location.');
+      } else {
+        setData(prev => prev ? {
+          ...prev,
+          partnerLocations: [
+            json.location || savedLocation,
+            ...(prev.partnerLocations || []).filter(location => String(location.name || '').toLowerCase() !== name.toLowerCase()),
+          ],
+        } : prev);
+        setNotice(json.confirmation || 'Location saved. It is now available in partner setup and reporting.');
+        setLocationDraft({ name: '', address: '', city: '', state: '', zip: '', country: '', placeId: '' });
+        setShowLocationSetup(false);
+      }
+    } finally {
+      setUpdating('');
+    }
+  }
+
   function openPartnerWork(caseId) {
     if (!caseId) return;
     setShowPilotGuide(false);
@@ -843,7 +907,7 @@ export default function FuneralHomeDashboard() {
       return;
     }
     if (nextDirectorStep.key === 'staff') {
-      openPartnerPane('staff', 'partner-staff-section', 'Opening staff assignment so the next owner can be set.');
+      openPartnerPane('staff', 'partner-staff-section', 'Opening staff queue so the next owner can be set.');
       return;
     }
     if (nextDirectorStep.key === 'report') {
@@ -870,9 +934,9 @@ export default function FuneralHomeDashboard() {
     if (!clean) return;
 
     if (clean === 'team') {
-      setActivePartnerView('staff');
-      setNotice('Demo step: staff setup and assignment queues.');
-      scrollPartnerDemoTarget('partner-staff-section');
+      setActivePartnerView('manage');
+      setNotice('Demo step: locations, employees, permissions, and invite handoff.');
+      scrollPartnerDemoTarget('partner-management-section');
       return;
     }
 
@@ -1341,7 +1405,11 @@ export default function FuneralHomeDashboard() {
       casePanelRef.current?.querySelector('input')?.focus?.();
     }, 0);
   }
-  const locations = Array.from(new Set(cases.map(locationNameFor).filter(Boolean)));
+  const savedPartnerLocations = data?.partnerLocations || data?.locations || [];
+  const locations = Array.from(new Set([
+    ...savedPartnerLocations.map(location => location.name || location.location_name || '').filter(Boolean),
+    ...cases.map(locationNameFor).filter(Boolean),
+  ]));
   const isMultiLocation = locations.length > 1 || /group|multi/i.test(String(org?.name || '') + ' ' + String(org?.plan || ''));
   const displayCases = isMultiLocation && selectedLocation !== 'all' ? cases.filter(item => locationNameFor(item) === selectedLocation) : cases;
   const caseOrchestrationRows = displayCases.map(item => ({
@@ -1435,6 +1503,19 @@ export default function FuneralHomeDashboard() {
     nextTask: unassignedStaffTasks.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
   }] : []).sort((a, b) => (b.blocked - a.blocked) || (b.open - a.open) || (b.waiting - a.waiting));
   const activeEmployeeRows = staffWorkloads.filter(member => member.email);
+  const managedLocationRows = locations.map(location => {
+    const rows = cases.filter(item => locationNameFor(item) === location);
+    const employees = activeEmployeeRows.filter(member => member.locationScope === 'all' || member.locationScope === location);
+    const saved = savedPartnerLocations.find(item => String(item.name || item.location_name || '').toLowerCase() === String(location).toLowerCase()) || {};
+    return {
+      name: location,
+      address: saved.address || saved.location_address || '',
+      cases: rows.length,
+      employees: employees.length,
+      caseValue: rows.reduce((sum, item) => sum + caseValueNumber(item), 0),
+      source: saved.source || (rows.length ? 'case data' : 'manual'),
+    };
+  });
   const reportStaffOptions = staffRoster.filter(member => member.email);
   const reportRangeLabel = reportRange === 'custom'
     ? `${reportDates.from || 'Any start'} to ${reportDates.to || 'Any end'}`
@@ -1686,7 +1767,8 @@ export default function FuneralHomeDashboard() {
   const partnerViewTabs = isDirectorRole
     ? [
       ['work', 'Command center', 'Cases and next moves'],
-      ['staff', 'Employees', 'Roles and assignments'],
+      ['staff', 'Work queue', 'Assigned work'],
+      ['manage', 'Management', 'Locations and permissions'],
       ['reports', 'Reporting', 'ROI and operations'],
     ]
     : [
@@ -1707,7 +1789,10 @@ export default function FuneralHomeDashboard() {
     if (router.query.demoTour !== 'funeral-home') return;
     const step = typeof router.query.demoStep === 'string' ? router.query.demoStep : '';
     if (!step || loading) return;
-    if (step === 'team') setShowPilotGuide(true);
+    if (step === 'team') {
+      setShowPilotGuide(true);
+      setActivePartnerView('manage');
+    }
     if (step === 'dashboard') setShowPilotGuide(false);
     if (step === 'export') {
       setShowPilotGuide(false);
@@ -1902,7 +1987,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
                     <button onClick={() => { setShowPilotGuide(false); openCasePanel('immediate'); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
                     <button onClick={() => { setShowPilotGuide(false); setShowTools(true); window.setTimeout(() => document.getElementById('partner-csv-upload')?.click(), 0); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Import CSV</button>
-                    <button onClick={() => { setShowPilotGuide(false); setActivePartnerView('staff'); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add employees</button>
+                    <button onClick={() => { setShowPilotGuide(false); setActivePartnerView('manage'); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add employees</button>
                   </div>
                 </div>
                 <div style={{ display: 'grid', gap: 8 }}>
@@ -1954,7 +2039,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowPilotGuide(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open guide</button>
               <button onClick={() => openCasePanel('immediate')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create case</button>
-              <button onClick={() => openPartnerPane('staff', 'partner-staff-section', 'Opening staff setup.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add staff</button>
+              <button onClick={() => openPartnerPane('manage', 'partner-management-section', 'Opening staff and location management.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add staff</button>
             </div>
           </div>
         )}
@@ -2049,7 +2134,7 @@ export default function FuneralHomeDashboard() {
               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12 }}>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Then assign work</div>
                 <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Add employees once. Directors, location managers, staff, family coordinators, and participants appear in the same assignment dropdown inside each estate task.</div>
-                <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer', marginTop: 10 }}>Open employee setup</button>
+                <button onClick={() => setActivePartnerView('manage')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer', marginTop: 10 }}>Open management</button>
               </div>
             </div>
           </div>
@@ -2262,7 +2347,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                   <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Create case</button>
                   <button onClick={() => { setShowTools(true); setImportDraft(null); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Import locations</button>
-                  <button onClick={() => openPartnerPane('staff', 'partner-staff-section', 'Opening employee setup.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Set up employees</button>
+                  <button onClick={() => openPartnerPane('manage', 'partner-management-section', 'Opening staff and location management.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Set up employees</button>
                   <button onClick={() => openPartnerPane('reports', 'partner-reports-section', 'Opening reports.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Check reporting</button>
                 </div>
               </div>
@@ -2305,16 +2390,198 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
+        {user && !loading && data && activePartnerView === 'manage' && isDirectorRole && (
+          <div id="partner-management-section" data-demo-anchor="demo-partner-setup" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 14 }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner management</div>
+                <div style={{ fontSize: 24, lineHeight: 1.15, marginTop: 3 }}>Locations, employees, roles, permissions, and private economics.</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5, maxWidth: 720 }}>Set this up once. The same roster feeds case creation, owner dropdowns, staff queues, reporting, and exports.</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <button onClick={() => setShowLocationSetup(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add location</button>
+                <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, .8fr)', gap: 12, alignItems: 'start' }}>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Locations</div>
+                      <div style={{ color: C.ink, fontSize: 17, fontWeight: 900, marginTop: 3 }}>Scope work by chapel, branch, or care market.</div>
+                    </div>
+                    <button onClick={() => setShowLocationSetup(true)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New location</button>
+                  </div>
+                  <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
+                    {managedLocationRows.length === 0 ? (
+                      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', color: C.mid, fontSize: 12.5 }}>No locations yet. Add the main location first, or import cases with location names.</div>
+                    ) : managedLocationRows.map(location => (
+                      <div key={location.name} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) repeat(3, minmax(70px,.28fr))', gap: 8, alignItems: 'center', background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ color: C.ink, fontSize: 13.2, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis' }}>{location.name}</div>
+                          <div style={{ color: C.mid, fontSize: 11.6, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{location.address || location.source}</div>
+                        </div>
+                        <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Cases</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.cases}</div></div>
+                        <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Staff</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.employees}</div></div>
+                        <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Value</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.caseValue ? moneyDisplay(location.caseValue) : '$0'}</div></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 9 }}>
+                    <div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Employees</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Saved employees become the owner list inside every case task. Invites stay prepared until your team sends them.</div>
+                    </div>
+                    <button onClick={() => setShowStaffSetup(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
+                  </div>
+                  {activeEmployeeRows.length === 0 ? (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '10px 11px', color: C.mid, fontSize: 12.5 }}>No employees are saved yet. Add the funeral home owner/director first, then location managers and staff.</div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: 7 }}>
+                      {activeEmployeeRows.map(member => (
+                        <div key={member.email} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.2fr) minmax(120px,.55fr) minmax(120px,.55fr) auto', gap: 8, alignItems: 'center', background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ color: C.ink, fontSize: 13.2, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.label || member.email}</div>
+                            <div style={{ color: C.mid, fontSize: 11.7, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.email}</div>
+                          </div>
+                          <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Role</div><div style={{ color: C.ink, fontSize: 12.2, fontWeight: 900 }}>{roleLabel(member.role)}</div></div>
+                          <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Scope</div><div style={{ color: C.mid, fontSize: 12.2 }}>{member.locationScope === 'all' ? 'All locations' : member.locationScope || 'All locations'}</div></div>
+                          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                            <button onClick={() => { setStaffDraft({ name: member.label === member.email ? '' : member.label || '', email: member.email || '', role: member.role || 'staff', locationScope: member.locationScope || 'all', annualSalary: member.annualSalary || '', hourlyCost: member.hourlyCost || '' }); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Edit</button>
+                            <button onClick={() => copyText(staffInviteMessage(member), 'Staff invite message copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Copy invite</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Role permissions</div>
+                  <div style={{ display: 'grid', gap: 8, marginTop: 9 }}>
+                    {[
+                      ['Director / owner', 'All cases, all locations, staff setup, reports, exports, billing prompts, and pilot controls.'],
+                      ['Location manager', 'Cases and reporting for their location scope; can assign staff and move work.'],
+                      ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close tasks.'],
+                      ['Participant / family helper', 'Scoped to the task or estate slice they were invited to handle.'],
+                    ].map(([title, body]) => (
+                      <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                        <div style={{ color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</div>
+                        <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12 }}>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Private economics</div>
+                  <div style={{ color: C.ink, fontSize: 16, fontWeight: 900, marginTop: 4 }}>Salary, cost, and case value stay inside partner reporting.</div>
+                  <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>Families never see staff costs. Directors can compare case value, labor cost, tasks resolved, messages sent, and location efficiency in Reporting.</div>
+                  <button onClick={() => setActivePartnerView('reports')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', marginTop: 10, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open reporting</button>
+                </div>
+              </div>
+            </div>
+
+            {showStaffSetup && (
+              <div onClick={() => setShowStaffSetup(false)} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+                <form onSubmit={addPartnerStaff} onClick={event => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Add employee" style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 10 }}>
+                    <div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Add employee</div>
+                      <div style={{ color: C.ink, fontSize: 22, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>Make someone assignable.</div>
+                    </div>
+                    <button type="button" onClick={() => setShowStaffSetup(false)} aria-label="Close staff setup" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
+                  </div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee, assign a role and location scope, then copy the invite message. Nothing sends automatically.</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, alignItems: 'center' }}>
+                    <input value={staffDraft.name} onChange={event => setStaffDraft(prev => ({ ...prev, name: event.target.value }))} placeholder="Full name" style={inputStyle} />
+                    <input value={staffDraft.email} onChange={event => setStaffDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="employee@funeralhome.com" style={inputStyle} />
+                    <select value={staffDraft.role} onChange={event => setStaffDraft(prev => ({ ...prev, role: event.target.value }))} style={inputStyle}>
+                      <option value="director">Director / owner</option>
+                      <option value="location_manager">Location manager</option>
+                      <option value="staff">Staff</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <select value={staffDraft.locationScope} onChange={event => setStaffDraft(prev => ({ ...prev, locationScope: event.target.value }))} style={inputStyle}>
+                      <option value="all">All locations</option>
+                      {locations.map(location => <option key={location} value={location}>{location}</option>)}
+                    </select>
+                    <input inputMode="decimal" value={staffDraft.annualSalary} onChange={event => setStaffDraft(prev => ({ ...prev, annualSalary: event.target.value }))} placeholder="Private annual salary" style={inputStyle} />
+                    <input inputMode="decimal" value={staffDraft.hourlyCost} onChange={event => setStaffDraft(prev => ({ ...prev, hourlyCost: event.target.value }))} placeholder="Or hourly cost" style={inputStyle} />
+                  </div>
+                  <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>Role controls starting view and permissions. Cost fields stay private to partner reporting and power ROI, cost per task, and location efficiency.</div>
+                  {latestStaffInvite && (
+                    <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Staff handoff ready</div>
+                      <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 4 }}>{latestStaffInvite.email} can now be assigned work. Passage will not send the invite automatically.</div>
+                      <button type="button" onClick={() => copyText(staffInviteMessage(latestStaffInvite), 'Staff invite message copied.')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Copy invite message</button>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                    <button disabled={updating === 'partner_staff'} style={{ border: 'none', background: updating === 'partner_staff' ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_staff' ? 'wait' : 'pointer' }}>{updating === 'partner_staff' ? 'Saving...' : 'Save as assignable staff'}</button>
+                    <button type="button" onClick={() => setShowStaffSetup(false)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Close</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {showLocationSetup && (
+              <div onClick={() => setShowLocationSetup(false)} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+                <form onSubmit={addPartnerLocation} onClick={event => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Add location" style={{ width: 'min(720px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 10 }}>
+                    <div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Add location</div>
+                      <div style={{ color: C.ink, fontSize: 22, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>Create a location scope.</div>
+                    </div>
+                    <button type="button" onClick={() => setShowLocationSetup(false)} aria-label="Close location setup" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
+                  </div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Locations scope cases, employees, reports, imports, and exports. Use a real branch, chapel, care market, or operating location.</div>
+                  <input value={locationDraft.name} onChange={event => setLocationDraft(prev => ({ ...prev, name: event.target.value }))} placeholder="Location name, e.g. Main location" style={{ ...inputStyle, marginBottom: 10, width: '100%', boxSizing: 'border-box' }} />
+                  <SmartAddressInput
+                    compact
+                    label="Location address"
+                    value={locationDraft.address}
+                    onChange={(value, parsed = {}) => setLocationDraft(prev => ({
+                      ...prev,
+                      address: value,
+                      name: prev.name || parsed.placeName || '',
+                      city: parsed.city || '',
+                      state: parsed.state || '',
+                      zip: parsed.postalCode || '',
+                      country: parsed.country || '',
+                      placeId: parsed.placeId || '',
+                    }))}
+                    colors={C}
+                    inputStyle={{ background: C.bg }}
+                    placeholder="Start typing the location address"
+                    hint="Choose a suggestion to attach city, state, ZIP, and country."
+                  />
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                    <button disabled={updating === 'partner_location'} style={{ border: 'none', background: updating === 'partner_location' ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_location' ? 'wait' : 'pointer' }}>{updating === 'partner_location' ? 'Saving...' : 'Save location'}</button>
+                    <button type="button" onClick={() => setShowLocationSetup(false)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Close</button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
+
         {user && !loading && data && activePartnerView === 'staff' && (
-          <div id="partner-staff-section" data-demo-anchor="demo-partner-setup" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
+          <div id="partner-staff-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Employees and permissions</div>
-                <div style={{ fontSize: 24, marginTop: 3 }}>{isDirectorRole ? 'Set up people once, then assign from every case.' : 'Your assigned queue comes first.'}</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Work queue</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>{isDirectorRole ? 'Assign the next owner, then get out of the way.' : 'Your assigned queue comes first.'}</div>
               </div>
-              {isDirectorRole && <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>}
+              {isDirectorRole && <button onClick={() => setActivePartnerView('manage')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Manage people</button>}
             </div>
-            {isDirectorRole && (
+            {false && isDirectorRole && (
               <>
                 {showStaffSetup && (
                   <div onClick={() => setShowStaffSetup(false)} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
@@ -2373,7 +2640,7 @@ export default function FuneralHomeDashboard() {
                 )}
               </>
             )}
-            {isDirectorRole && (
+            {false && isDirectorRole && (
               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, marginTop: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 9 }}>
                   <div>
@@ -2410,7 +2677,7 @@ export default function FuneralHomeDashboard() {
                 )}
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 12 }}>
+            {false && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 12 }}>
               {roleCards.map(([title, body, status]) => (
                 <div key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
                   <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{status}</div>
@@ -2418,8 +2685,8 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>{body}</div>
                 </div>
               ))}
-            </div>
-            {isDirectorRole && (
+            </div>}
+            {false && isDirectorRole && (
               <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: 12 }}>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Role permissions</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 8 }}>
