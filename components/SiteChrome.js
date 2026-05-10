@@ -344,6 +344,8 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
 function DemoCoach({ step }) {
   const [targetRect, setTargetRect] = useState(null);
   const [placement, setPlacement] = useState({ right: 24, bottom: 24 });
+  const stepIndex = DEMO_TOUR_STEPS.findIndex(item => item.id === step.id);
+  const previousStep = stepIndex > 0 ? DEMO_TOUR_STEPS[stepIndex - 1] : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -431,7 +433,10 @@ function DemoCoach({ step }) {
         {step.show && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>Show:</strong> {step.show}</div>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ color: '#b9d2bd', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>Step {Math.max(1, DEMO_TOUR_STEPS.findIndex(item => item.id === step.id) + 1)} / {DEMO_TOUR_STEPS.length}</span>
+        <span style={{ color: '#b9d2bd', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>Step {Math.max(1, stepIndex + 1)} / {DEMO_TOUR_STEPS.length}</span>
+        {previousStep && (
+          <Link href={previousStep.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#eee9e2', borderRadius: 12, textDecoration: 'none', fontWeight: 900, padding: '0 12px', whiteSpace: 'nowrap' }}>{'<'} Back</Link>
+        )}
         <Link onClick={handleAdvance} href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
       </div>
       <div style={{ color: '#aaa39a', fontSize: 11.2, lineHeight: 1.35, marginTop: 9 }}>Demo-safe: highlights guide the story; live email/SMS is not sent from the tour.</div>

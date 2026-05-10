@@ -1009,6 +1009,17 @@ export default function FuneralHomeDashboard() {
     setNotice('Create the first case, then Passage will move the next task.');
   }
 
+  function directorFocusButtonLabel() {
+    if (!isDirectorRole) return firstStaffTask ? 'Open my task' : 'Open staff queue';
+    if (nextDirectorStep.key === 'staff') return 'Open staff queue';
+    if (nextDirectorStep.key === 'report') return 'Open reports';
+    if (nextDirectorStep.key === 'case') return cases.length ? 'Open next case' : 'Create first case';
+    if (nextDirectorStep.key === 'family') return 'Open family request';
+    if (nextDirectorStep.key === 'proof') return 'Record proof';
+    if (nextDirectorStep.key === 'local') return 'Open support request';
+    return 'Open next case';
+  }
+
   function scrollPartnerDemoTarget(id) {
     window.setTimeout(() => {
       const panel = document.getElementById(id);
@@ -2373,7 +2384,7 @@ export default function FuneralHomeDashboard() {
                 </div>
               </div>
               <button onClick={moveDirectorFocus} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                {isDirectorRole ? 'Move this' : firstStaffTask ? 'Do this now' : 'Open staff'}
+                {directorFocusButtonLabel()}
               </button>
             </div>
             {isDirectorRole && (
@@ -3794,6 +3805,7 @@ export default function FuneralHomeDashboard() {
             updating={updating}
             orgName={org?.name || 'Funeral home'}
             onCopyText={copyText}
+            onPreviewOutput={(preview) => setOutputPreview(preview)}
             onClose={() => { setTaskDraft(null); setTaskDraftNote(''); }}
             onHandleForFamily={handleForFamily}
             onUpdateTask={updateTask}
@@ -4010,7 +4022,7 @@ function PreparedOutputPreviewDialog({ preview, copiedKey, onCopyText, onClose }
   );
 }
 
-function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, copiedKey, updating, orgName, onCopyText, onClose, onHandleForFamily, onUpdateTask }) {
+function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, copiedKey, updating, orgName, onCopyText, onPreviewOutput, onClose, onHandleForFamily, onUpdateTask }) {
   const task = taskDraft?.task;
   if (!task) return null;
   const proofDestination = taskDraft.proofDestination || taskProofDestination(task, { surface: 'case spine proof' });
@@ -4025,6 +4037,16 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
     : taskDraft.status === 'blocked'
       ? 'Save family request'
       : 'Save waiting update';
+  const previewTitle = taskDraft.status === 'blocked'
+    ? 'Family request'
+    : taskDraft.status === 'waiting'
+      ? 'Waiting update'
+      : 'Proof packet';
+  const previewPurpose = taskDraft.status === 'blocked'
+    ? 'Copy this reviewed request into email, text, or the case file. Nothing sends automatically from Passage.'
+    : taskDraft.status === 'waiting'
+      ? 'Use this reviewed update to show what is waiting, who owns it, and when the next follow-up is expected.'
+      : 'Review this branded proof packet before saving it to the case spine or printing it for the arrangement file.';
 
   function saveTaskAction() {
     if (!canSave) return;
@@ -4092,6 +4114,18 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
               {copiedKey === copyKey ? 'Copied' : copyLabel}
             </button>
           )}
+          <button
+            disabled={!note}
+            onClick={() => onPreviewOutput && onPreviewOutput({ title: previewTitle, subtitle: sharedTaskTitle(task), purpose: previewPurpose, text: note, copyKey })}
+            style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: note ? 'pointer' : 'not-allowed', opacity: note ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+            Preview / print
+          </button>
+          <button
+            disabled={!note}
+            onClick={() => downloadPreparedOutput({ title: previewTitle, subtitle: sharedTaskTitle(task), purpose: previewPurpose, text: note })}
+            style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: note ? 'pointer' : 'not-allowed', opacity: note ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+            Download
+          </button>
           <button
             disabled={!canSave}
             onClick={saveTaskAction}
