@@ -8,6 +8,7 @@ import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder,
 import { taskGuidanceFor, taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../../lib/taskOrchestration';
 import { trackEvent } from '../../lib/trackEvent';
+import { recordOnboardingProgress } from '../../lib/onboardingClient';
 
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
@@ -980,6 +981,7 @@ export default function FuneralHomeDashboard() {
       return;
     }
     trackEvent('partner_case_created', { workflowId: json.workflowId, caseType: caseForm.caseType, familyParticipantCreated: Boolean(json.familyParticipant?.created) });
+    await recordOnboardingProgress(supabase, 'partner_case_created', { workflowId: json.workflowId, caseType: caseForm.caseType });
     if (json.familyParticipant?.created && json.familyParticipant?.inviteToken) {
       const familyUrl = `${window.location.origin}/accept?token=${json.familyParticipant.inviteToken}`;
       setLatestFamilyLink({
@@ -1081,6 +1083,7 @@ export default function FuneralHomeDashboard() {
       setError(json.error || 'Could not start partner checkout.');
       return;
     }
+    await recordOnboardingProgress(supabase, 'checkout_started', { planId, path: 'partner' });
     window.location.href = json.url;
   }
 

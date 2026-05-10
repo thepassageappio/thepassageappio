@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
+import { smsDeliveryState } from '../../lib/smsReadiness';
 
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -138,6 +139,7 @@ export default async function handler(req, res) {
   const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;
   const TWILIO_FROM = process.env.TWILIO_PHONE_NUMBER;
   const TWILIO_MESSAGING_SERVICE_SID = process.env.TWILIO_MESSAGING_SERVICE_SID;
+  const smsState = smsDeliveryState();
 
   if (!TWILIO_SID || !TWILIO_TOKEN || (!TWILIO_FROM && !TWILIO_MESSAGING_SERVICE_SID)) {
     const message = 'Twilio SMS is not configured for this environment. Add TWILIO_MESSAGING_SERVICE_SID or TWILIO_PHONE_NUMBER.';
@@ -165,6 +167,39 @@ export default async function handler(req, res) {
     });
     const fallback = await sendFallbackEmail({ toEmail: toEmail || recipientEmail, toName, taskTitle, workflowId, taskId, actionId, deceasedName, coordinatorName, actionType, messageText, confirmUrl, triggerToken, reason: message });
     return res.status(fallback.sent ? 200 : 503).json({ error: message, smsFailed: true, fallbackEmailSent: !!fallback.sent, fallbackError: fallback.sent ? null : fallback.reason });
+  }
+
+  if (!smsState.liveEnabled) {
+    const message = smsState.pausedReason;
+    await supabase.from('notification_log').insert([{
+      workflow_id: workflowId || null,
+      channel: 'sms',
+      recipient_phone: to || null,
+      recipient_name: toName || null,
+      body_preview: '',
+      provider: 'twilio',
+      status: 'paused',
+      error_message: message,
+    }]).then(() => {}, () => {});
+    await recordTaskStatus({
+      workflowId,
+      taskId,
+      actionId,
+      status: 'waiting',
+      actor: coordinatorName || 'Passage',
+      channel: 'sms',
+      recipient: toName || to,
+      provider: 'twilio',
+      detail: 'Text was not sent to ' + (toName || to) + ': ' + message,
+    });
+    const fallback = await sendFallbackEmail({ toEmail: toEmail || recipientEmail, toName, taskTitle, workflowId, taskId, actionId, deceasedName, coordinatorName, actionType, messageText, confirmUrl, triggerToken, reason: message });
+    return res.status(fallback.sent ? 200 : 503).json({
+      error: message,
+      smsPaused: true,
+      smsFailed: true,
+      fallbackEmailSent: !!fallback.sent,
+      fallbackError: fallback.sent ? null : fallback.reason,
+    });
   }
 
   try {

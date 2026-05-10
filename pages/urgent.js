@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteFooter } from '../components/SiteChrome';
 import { trackEvent } from '../lib/trackEvent';
+import { recordOnboardingProgress } from '../lib/onboardingClient';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = {
@@ -537,6 +538,7 @@ export default function UrgentPage() {
       if (!response.ok || !json.estateId) {
         throw new Error(json.error || 'Passage could not save this yet. Please try again.');
       }
+      await recordOnboardingProgress(supabase, 'urgent_estate_created', { estateId: json.estateId, situation: selectedSituation || context.deathContext || '' });
       trackEvent('urgent_estate_created', { estateId: json.estateId, situation: selectedSituation || context.deathContext || '', outcomes: outcomes.length });
       try { window.sessionStorage.setItem('passage_last_estate_id', json.estateId); } catch {}
       setSavingEstate(false);

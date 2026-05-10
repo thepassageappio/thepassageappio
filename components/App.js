@@ -4,6 +4,7 @@ import { getTaskPlaybook } from "../lib/taskPlaybooks";
 import { SiteFooter, SiteHeader } from "./SiteChrome";
 import { taskWorkspaceFor } from "../lib/taskWorkspace";
 import { orchestrateTasks } from "../lib/taskOrchestration";
+import { recordOnboardingProgress } from "../lib/onboardingClient";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thepassageapp.io").replace(/\/$/, "");
 
@@ -612,6 +613,7 @@ const handleCheckout = async (planId, userId, userEmail, workflowId = null) => {
     });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || 'Checkout could not be started');
+    await recordOnboardingProgress(supabase, 'checkout_started', { planId, workflowId });
     if (data.url) window.location.href = data.url;
   } catch (err) {
     console.error('Checkout error:', err);
@@ -1453,7 +1455,7 @@ Passage`);
         )}
 
         <div style={{ background: C.bgSubtle, borderRadius: 10, padding: '10px 13px', fontSize: 11.5, color: C.mid, marginBottom: 18, lineHeight: 1.5 }}>
-          🔒 Messages are sent securely via {showEmail && 'email'}{showEmail && showSMS && ' and '}{showSMS && 'SMS'}. Nothing sends until you confirm here.
+          Email is the delivery rail today. SMS is prepared and logged, and falls back to email until production texting is approved. Nothing sends until you confirm here.
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
@@ -2723,6 +2725,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
         throw new Error(result?.error || "Passage could not save this planning estate yet.");
       }
       const createdWorkflowId = result.workflowId;
+      await recordOnboardingProgress(supabase, 'planning_estate_created', { workflowId: createdWorkflowId, mode });
 
       if (mode === 'paid') {
         await handleCheckout(selectedPlan, user.id, user.email, createdWorkflowId);
@@ -3134,6 +3137,7 @@ function PeopleList({ userId }) {
     if (!form.name.trim()) return;
     await savePerson(userId, { id: editing?.id, name: form.name, role: form.role, email: form.email, phone: form.phone });
     await supabase.from('profiles').upsert([{ user_id: userId, people_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
+    await recordOnboardingProgress(supabase, 'people_complete');
     setEditing(null);
     load();
   };
@@ -3217,6 +3221,7 @@ function DocumentsModal({ userId, workflowId, onClose, onSaved }) {
     }]);
     if (!error) {
       await supabase.from('profiles').upsert([{ user_id: userId, documents_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
+      await recordOnboardingProgress(supabase, 'documents_complete', { workflowId });
       setLoaded(false);
       setForm({ label: '', document_type: 'will', notes: '', unlocks_on_trigger: true });
       setFile(null);
@@ -3328,6 +3333,7 @@ function MemoriesModal({ userId, workflowId, onClose, onSaved }) {
     }]);
     if (!error) {
       await supabase.from('profiles').upsert([{ user_id: userId, vault_complete: true, updated_at: new Date().toISOString() }], { onConflict: 'user_id' });
+      await recordOnboardingProgress(supabase, 'vault_complete', { workflowId });
       setLoaded(false);
       setForm({ title: '', to_name: '', to_email: '', to_phone: '', delivery_channel: 'email', content_type: 'letter', delivery_trigger: 'on_death', delivery_date: '', delivery_event: '', content_text: '' });
       setFile(null);

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { trackEvent } from '../lib/trackEvent';
+import { recordOnboardingProgress } from '../lib/onboardingClient';
 
 const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 
@@ -52,6 +53,20 @@ export default function PricingPage() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!user?.id || typeof window === 'undefined') return;
+    const raw = window.localStorage.getItem('passage_pending_pricing_checkout');
+    if (!raw) return;
+    let pending = null;
+    try { pending = JSON.parse(raw); } catch { pending = null; }
+    window.localStorage.removeItem('passage_pending_pricing_checkout');
+    if (pending?.planId) {
+      const pendingDiscount = pending.participantDiscount === true;
+      if (pendingDiscount && !participantDiscount) setParticipantDiscount(true);
+      checkout(pending.planId, pendingDiscount);
+    }
+  }, [user]);
+
   async function signIn() {
     trackEvent('pricing_sign_in_clicked', { participantDiscount });
     if (!supabase?.auth) {
@@ -69,16 +84,22 @@ export default function PricingPage() {
     setSelectedPlan('');
   }
 
-  async function checkout(planId) {
-    trackEvent('checkout_clicked', { planId, participantDiscount, signedIn: Boolean(user) });
+  async function checkout(planId, participantDiscountOverride = participantDiscount) {
+    trackEvent('checkout_clicked', { planId, participantDiscount: participantDiscountOverride, signedIn: Boolean(user) });
     setSelectedPlan(planId);
     if (!supabase?.auth) {
       setMessage('Sign-in is not configured in this environment.');
       return;
     }
     if (!user) {
-      trackEvent('checkout_requires_sign_in', { planId, participantDiscount });
+      trackEvent('checkout_requires_sign_in', { planId, participantDiscount: participantDiscountOverride });
+      window.localStorage.setItem('passage_pending_pricing_checkout', JSON.stringify({
+        planId,
+        participantDiscount: participantDiscountOverride,
+        createdAt: new Date().toISOString(),
+      }));
       setMessage(planId === 'urgent' ? 'Sign in once so Passage can open the urgent command center for you.' : 'Sign in once so Passage can attach the plan to your estate workspace.');
+      await signIn();
       return;
     }
     setBusy(planId);
@@ -91,11 +112,12 @@ export default function PricingPage() {
           'Content-Type': 'application/json',
           Authorization: 'Bearer ' + (sessionData?.session?.access_token || ''),
         },
-        body: JSON.stringify({ planId, userId: user.id, userEmail: user.email, participantDiscount }),
+        body: JSON.stringify({ planId, userId: user.id, userEmail: user.email, participantDiscount: participantDiscountOverride }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || 'Checkout could not be started.');
-      trackEvent('checkout_started', { planId, participantDiscount });
+      await recordOnboardingProgress(supabase, 'checkout_started', { planId, participantDiscount: participantDiscountOverride });
+      trackEvent('checkout_started', { planId, participantDiscount: participantDiscountOverride });
       window.location.href = data.url;
     } catch (err) {
       trackEvent('checkout_failed', { planId, message: err.message || 'Checkout could not be started.' });
