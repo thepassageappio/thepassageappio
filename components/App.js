@@ -4804,6 +4804,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-secondary { background:${C.bgCard}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
         .home-tertiary { background:transparent; color:${C.mid}; border:1px solid ${C.border}; }
         .home-note { color:${C.soft}; font-size:12.5px; line-height:1.45; margin-top:10px; }
+        .home-pledge { display:inline-block; color:${C.sageDark}; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:12px; padding:8px 10px; font-size:12px; line-height:1.35; margin-top:10px; max-width:660px; }
         .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:19px; min-height: 430px; display:flex; flex-direction:column; }
         .home-panel-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:16px; }
         .home-panel-tab { border:1px solid ${C.border}; background:${C.bg}; color:${C.mid}; border-radius:999px; min-height:36px; font-family:inherit; font-size:12px; font-weight:900; cursor:pointer; }
@@ -4843,6 +4844,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <button onClick={onPlan} className="home-action home-tertiary">Plan ahead</button>
             </div>
             <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
+            <div className="home-pledge"><strong>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent path also funds a remembrance tree dedication.</div>
           </div>
 
           <div className="home-panel" aria-label="Passage coordination preview">

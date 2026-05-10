@@ -29,6 +29,8 @@ const proof = [
   ['Proven', 'How we know it happened'],
 ];
 
+const pledgeCopy = 'Passage directs 10% of proceeds to grief and family-support work. For each paid urgent-path command center, we also fund a remembrance tree dedication in the person\'s name.';
+
 export default function MissionPage() {
   const s0 = useState(0); const activePathIndex = s0[0]; const setActivePathIndex = s0[1];
   const activePath = paths[activePathIndex] || paths[0];
@@ -63,6 +65,9 @@ export default function MissionPage() {
             <p style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.4, margin: 0 }}>
               We do not pretend grief is manageable. We make the calls, documents, ownership, and next steps easier to carry.
             </p>
+            <div style={{ background: C.panel, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '8px 10px', color: C.mid, fontSize: 11.8, lineHeight: 1.3 }}>
+              <strong style={{ color: C.sage }}>The Passage family pledge:</strong> {pledgeCopy}
+            </div>
           </div>
         </div>
 

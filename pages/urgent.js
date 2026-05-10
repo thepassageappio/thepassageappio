@@ -723,6 +723,9 @@ export default function UrgentPage() {
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '14px 16px', color: C.sageDark, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720, margin: '14px auto 0' }}>
             If you need to step away for a while, Passage will keep this organized. Come back to one next step, not a pile of decisions.
           </div>
+          <div style={{ background: C.card, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '10px 13px', color: C.mid, fontSize: 13, lineHeight: 1.45, maxWidth: 720, margin: '10px auto 0' }}>
+            <strong style={{ color: C.sageDark }}>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent path funds a remembrance tree dedication in their name.
+          </div>
         </section>
 
         <section className="grid grid-single">
@@ -870,7 +873,7 @@ export default function UrgentPage() {
                 <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
                   {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Keep this command center'}
                 </button>
-                <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the command center, owners, notes, and proof.</div>
+                <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the command center, owners, notes, proof, and the remembrance pledge.</div>
                 {saveError && <div className="save-error">{saveError}</div>}
               </div>
             </div>

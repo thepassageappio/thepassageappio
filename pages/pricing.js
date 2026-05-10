@@ -190,6 +190,9 @@ export default function PricingPage() {
                 <div style={{ fontSize: 11, color: C.rose, textTransform: 'uppercase', letterSpacing: '.17em', fontWeight: 900, marginBottom: 6 }}>Someone just passed</div>
                 <div style={{ fontSize: 'clamp(32px, 4vw, 44px)', lineHeight: .98, marginBottom: 7 }}>Get help now.</div>
                 <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.34, marginBottom: 9 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
+                <div style={{ background: C.card, border: `1px solid ${C.rose}22`, borderRadius: 11, padding: '7px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.28, marginBottom: 9 }}>
+                  Includes a remembrance tree dedication and contributes to the 10% Passage family pledge.
+                </div>
                 <div style={{ display: 'grid', gap: 5, marginBottom: 10 }}>
                   {['Open one urgent family record', 'Choose the next call or waiting point', 'Review before anything sends'].map(item => (
                     <div key={item} style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.25, display: 'flex', gap: 7, alignItems: 'center' }}>
@@ -249,7 +252,7 @@ export default function PricingPage() {
         )}
 
         <div style={{ marginTop: 8, background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '9px 11px', color: C.mid, fontSize: 12, lineHeight: 1.35 }}>
-          Add-on estates become available after an active paid subscription. Urgent coordination stays separate at $79 per case.
+          Add-on estates become available after an active paid subscription. Passage directs 10% of proceeds to grief and family-support work; each paid urgent path also funds a remembrance tree dedication.
         </div>
 
         {message && (
