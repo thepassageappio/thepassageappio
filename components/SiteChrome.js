@@ -39,6 +39,30 @@ export function SpineTrustStrip({ eyebrow = 'Shared record', title = 'What stays
   );
 }
 
+export function RoleActionStrip({ role = 'Your role', action = 'Take the next action', waiting = 'Passage keeps the waiting point visible.', proof = 'Your update is saved as proof.', privacy = 'You only see the work connected to your role.', compact = false }) {
+  const rows = [
+    ['Role', role],
+    ['Next action', action],
+    ['Waiting', waiting],
+    ['Proof', proof],
+  ];
+  return (
+    <div style={{ background: CHROME_COLORS.sageFaint, border: '1px solid #c8deca', borderRadius: compact ? 13 : 15, padding: compact ? 10 : 12, color: CHROME_COLORS.mid }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 7 }}>
+        {rows.map(([label, body]) => (
+          <div key={label} style={{ background: CHROME_COLORS.card, border: '1px solid ' + CHROME_COLORS.border, borderRadius: 11, padding: compact ? '7px 8px' : '8px 9px' }}>
+            <div style={{ color: CHROME_COLORS.sage, fontSize: 9.8, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+            <div style={{ color: CHROME_COLORS.ink, fontSize: compact ? 11.7 : 12.2, lineHeight: 1.35, marginTop: 3, fontWeight: 800 }}>{body}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ color: CHROME_COLORS.mid, fontSize: compact ? 11.5 : 12, lineHeight: 1.42, marginTop: 8 }}>
+        <strong style={{ color: CHROME_COLORS.ink }}>Access boundary:</strong> {privacy}
+      </div>
+    </div>
+  );
+}
+
 const LINKS = [
   ['Mission', '/mission'],
   ['Our story', '/story'],
@@ -86,6 +110,8 @@ const DEMO_TOUR_STEPS = [
     id: 'overview',
     title: 'Start with the promise',
     body: 'Open with the funeral-home problem: fewer repeated calls, visible proof, and data that can leave Passage any time.',
+    say: 'Passage keeps the next move, owner, waiting point, and proof in one family record.',
+    show: 'The lifecycle promise before you open an operating screen.',
     href: '/hospice?demoTour=funeral-home&demoStep=warm',
     cta: 'Next: warm path',
     anchor: 'demo-page-primary',
@@ -94,6 +120,8 @@ const DEMO_TOUR_STEPS = [
     id: 'warm',
     title: 'Show the hospice bridge',
     body: 'Families may enter before the death event. Show the first-hour plan and permissioned funeral-home handoff before opening the partner dashboard.',
+    say: 'The family record can start before crisis and then hand off cleanly.',
+    show: 'Care-prep fields, permissions, and funeral-home preference.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
     cta: 'Next: team setup',
     anchor: 'demo-warm-record',
@@ -102,6 +130,8 @@ const DEMO_TOUR_STEPS = [
     id: 'team',
     title: 'Show staff setup',
     body: 'Explain directors, arrangers, coordinators, and location admins. This is where a home sees Passage as operational, not consumer-only.',
+    say: 'Directors manage the floor; staff work from one assigned queue.',
+    show: 'Role, location, salary/cost privacy, and assignment readiness.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
     cta: 'Next: create a case',
     anchor: 'demo-partner-setup',
@@ -110,6 +140,8 @@ const DEMO_TOUR_STEPS = [
     id: 'case',
     title: 'Create the family case',
     body: 'Walk through at-need versus pre-need. Keep it simple: add the family contact, then Passage creates the command center.',
+    say: 'At-need and pre-need are case states. Prepaid is a funding detail, not a separate product.',
+    show: 'Family contact, case value, prepaid flag, and smart location.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
     cta: 'Next: dashboard value',
     anchor: 'demo-case-create',
@@ -118,6 +150,8 @@ const DEMO_TOUR_STEPS = [
     id: 'dashboard',
     title: 'Director dashboard',
     body: 'Point to active cases, waiting items, calls avoided, and the next partner work. This is the B2B value in under ten seconds.',
+    say: 'A director should know what needs attention without opening every case.',
+    show: 'Cases, staff queue, reports, locations, and ROI signals.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=task',
     cta: 'Next: task spine',
     anchor: 'demo-page-primary',
@@ -126,6 +160,8 @@ const DEMO_TOUR_STEPS = [
     id: 'task',
     title: 'Move one task',
     body: 'Show one task at a time: what Passage handles, what staff handles, and how proof is recorded. No mystery status changes.',
+    say: 'The task is the unit of truth: owner, request, proof, status, report.',
+    show: 'Prepared output preview, owner assignment, family request, proof close.',
     href: '/participating?demoTour=funeral-home&demoStep=participant',
     cta: 'Next: participant view',
     anchor: 'demo-task-spine',
@@ -134,6 +170,8 @@ const DEMO_TOUR_STEPS = [
     id: 'participant',
     title: 'Participant acts',
     body: 'Show the helper view: one assigned responsibility, clear accept/waiting/handled buttons, and an update back to the coordinator.',
+    say: 'Participants are not joining software. They are answering one family ask.',
+    show: 'Scoped access, one next action, and coordinator-visible proof.',
     href: '/share?dn=Eleanor%20Price&cn=Price%20family&demoTour=funeral-home&demoStep=announcement',
     cta: 'Next: family update',
     anchor: 'demo-participant-work',
@@ -142,6 +180,8 @@ const DEMO_TOUR_STEPS = [
     id: 'announcement',
     title: 'Prepare one family update',
     body: 'Show how a coordinator prepares one careful update, recipient list, and channel copy without sending anything automatically.',
+    say: 'Communication is coordination, not a generic chat feed.',
+    show: 'Approved copy, recipient list, channel-specific text.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=chat',
     cta: 'Next: communication',
     anchor: 'demo-family-update',
@@ -150,6 +190,8 @@ const DEMO_TOUR_STEPS = [
     id: 'chat',
     title: 'Coordinate the people',
     body: 'Use the mock chats to show family, cemetery, clergy, and funeral-home staff in one tracked coordination trail.',
+    say: 'Every response becomes context for the next handoff.',
+    show: 'Family, provider, and staff updates tied to the same case.',
     href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
     cta: 'Next: vendor loop',
     anchor: 'demo-coordination',
@@ -158,6 +200,8 @@ const DEMO_TOUR_STEPS = [
     id: 'vendor',
     title: 'Local help stays task-native',
     body: 'Vendors appear only when useful. The request has viewed, accepted, in-progress, and completed states inside Passage.',
+    say: 'Vendors see the request, not the whole family file.',
+    show: 'One scoped vendor task and the proof/status trail.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
     cta: 'Next: close the demo',
     anchor: 'demo-vendor-request',
@@ -166,6 +210,8 @@ const DEMO_TOUR_STEPS = [
     id: 'export',
     title: 'Close with adoption trust',
     body: 'Show CSV export, reporting, and the line that matters: Passage sits on top of their system without trapping data.',
+    say: 'Passage proves value and lets the record leave cleanly.',
+    show: 'Reports, exports, and adoption trust.',
     href: '/system/demo',
     cta: 'End walkthrough',
     anchor: 'demo-reports',
@@ -379,11 +425,16 @@ function DemoCoach({ step }) {
         </div>
         <button onClick={exitDemo} style={{ border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#d8d0c7', borderRadius: 999, minWidth: 58, minHeight: 32, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>Exit</button>
       </div>
-      <p style={{ color: '#d8d0c7', fontSize: 14, lineHeight: 1.55, margin: '10px 0 14px' }}>{step.body}</p>
+      <p style={{ color: '#d8d0c7', fontSize: 13.5, lineHeight: 1.5, margin: '10px 0 10px' }}>{step.body}</p>
+      <div style={{ display: 'grid', gap: 7, marginBottom: 12 }}>
+        {step.say && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>Say:</strong> {step.say}</div>}
+        {step.show && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>Show:</strong> {step.show}</div>}
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ color: '#b9d2bd', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>{Math.max(1, DEMO_TOUR_STEPS.findIndex(item => item.id === step.id) + 1)} / {DEMO_TOUR_STEPS.length}</span>
+        <span style={{ color: '#b9d2bd', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>Step {Math.max(1, DEMO_TOUR_STEPS.findIndex(item => item.id === step.id) + 1)} / {DEMO_TOUR_STEPS.length}</span>
         <Link onClick={handleAdvance} href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
       </div>
+      <div style={{ color: '#aaa39a', fontSize: 11.2, lineHeight: 1.35, marginTop: 9 }}>Demo-safe: highlights guide the story; live email/SMS is not sent from the tour.</div>
     </div>
     </>
   );

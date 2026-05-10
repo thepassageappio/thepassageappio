@@ -512,6 +512,9 @@ export default function SystemAdminPage() {
                 <div style={eyebrow}>Notification dry-run QA</div>
                 <h2 style={h2}>Preview routing without sending anything.</h2>
                 <p style={lead}>This calls the same delivery endpoints with dryRun enabled. The expected result says no provider was called, no fallback was sent, and no production record changed.</p>
+                <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                  SMS production reality: email dry-runs can be exercised safely here. Live SMS remains paused until Twilio carrier registration/A2P approval is complete and Passage explicitly enables production texting.
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 14 }}>
                   <label style={fieldLabel}>
                     Email recipient

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
-import { SiteFooter, SiteHeader, SpineTrustStrip } from '../../components/SiteChrome';
+import { RoleActionStrip, SiteFooter, SiteHeader, SpineTrustStrip } from '../../components/SiteChrome';
 import { money } from '../../lib/vendorEconomics';
 import { vendorCategoryLabel } from '../../lib/vendors';
 
@@ -198,6 +198,21 @@ export default function VendorRequestPage() {
     : request?.status === 'declined'
       ? 'Decline reason/status stays visible for replacement.'
       : 'Viewed/responded timestamps and status changes report back to the case.';
+  const recommendedVendorAction = request?.status === 'accepted'
+    ? ['in_progress', 'Mark in progress']
+    : request?.status === 'in_progress'
+      ? ['completed', 'Mark completed']
+      : request?.status === 'completed'
+        ? null
+        : request?.status === 'declined'
+          ? null
+          : ['accepted', 'Accept request'];
+  const secondaryVendorActions = [
+    ['accepted', 'Accept request'],
+    ['in_progress', 'Mark in progress'],
+    ['completed', 'Mark completed'],
+    ['declined', 'Decline'],
+  ].filter(([action]) => !recommendedVendorAction || action !== recommendedVendorAction[0]);
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -246,6 +261,16 @@ export default function VendorRequestPage() {
             )}
 
             <div style={{ padding: 22 }}>
+            <div style={{ marginBottom: 14 }}>
+              <RoleActionStrip
+                compact
+                role="Scoped support provider"
+                action={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus}
+                waiting={waitingLabel}
+                proof={proofLabel}
+                privacy="You can respond to this request only. Private family notes, unrelated tasks, and the estate workspace stay hidden."
+              />
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(220px, .8fr)', gap: 12, marginBottom: 14 }}>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 15 }}>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>What is needed now</div>
@@ -293,11 +318,20 @@ export default function VendorRequestPage() {
                 Last local demo action: {new Date(request.local_demo_action_at).toLocaleString()}
               </div>
             )}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button onClick={() => setPendingVendorAction('accepted')} disabled={!!updating} style={buttonStyle(C.sage)}>Accept request</button>
-              <button onClick={() => setPendingVendorAction('in_progress')} disabled={!!updating} style={buttonStyle(C.amber)}>Mark in progress</button>
-              <button onClick={() => setPendingVendorAction('completed')} disabled={!!updating} style={buttonStyle(C.sage)}>Mark completed</button>
-              <button onClick={() => setPendingVendorAction('declined')} disabled={!!updating} style={{ ...buttonStyle('#fff'), color: C.rose, border: '1px solid ' + C.rose + '55' }}>Decline</button>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {recommendedVendorAction ? (
+                <button onClick={() => setPendingVendorAction(recommendedVendorAction[0])} disabled={!!updating} style={{ ...buttonStyle(C.sage), minHeight: 46, fontSize: 14, textAlign: 'left' }}>Recommended: {recommendedVendorAction[1]}</button>
+              ) : (
+                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 11, color: C.sage, fontWeight: 900, fontSize: 13 }}>This request is closed. The case now has the vendor status and proof trail.</div>
+              )}
+              <details style={{ border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px', background: C.card }}>
+                <summary style={{ cursor: 'pointer', color: C.mid, fontWeight: 900, fontSize: 12.5 }}>Other responses</summary>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
+                  {secondaryVendorActions.map(([action, label]) => (
+                    <button key={action} onClick={() => setPendingVendorAction(action)} disabled={!!updating} style={action === 'declined' ? { ...buttonStyle('#fff'), color: C.rose, border: '1px solid ' + C.rose + '55' } : buttonStyle(action === 'in_progress' ? C.amber : C.sage)}>{label}</button>
+                  ))}
+                </div>
+              </details>
             </div>
             {pendingVendorAction && (
               <div onClick={() => setPendingVendorAction('')} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
@@ -309,7 +343,7 @@ export default function VendorRequestPage() {
                     </div>
                     <button onClick={() => setPendingVendorAction('')} aria-label="Close vendor response" style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                   </div>
-                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and task. Record value only when it helps the funeral home and family understand the request; keep it supportive, not salesy.</p>
+                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and task. It does not expose the full estate, and it does not send a live family message from this screen.</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                     <label style={labelStyle}>Estimated value<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                     <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>

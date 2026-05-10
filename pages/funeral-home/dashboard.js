@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
-import { SiteHeader, SiteFooter, SpineTrustStrip } from '../../components/SiteChrome';
+import { RoleActionStrip, SiteHeader, SiteFooter, SpineTrustStrip } from '../../components/SiteChrome';
 import SmartAddressInput from '../../components/SmartAddressInput';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
@@ -2814,10 +2814,20 @@ export default function FuneralHomeDashboard() {
                   <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
                     <strong style={{ color: C.ink }}>Proof to save:</strong> {proofDestination}
                   </div>
+                  <div style={{ marginTop: 9 }}>
+                    <RoleActionStrip
+                      compact
+                      role={isDirectorRole ? 'Director sees the floor; staff owns the assigned move.' : 'Assigned staff queue'}
+                      action="Close with proof when the work is complete."
+                      waiting={taskExpectedUpdate(firstStaffTask, 'funeral_home')}
+                      proof={proofDestination}
+                      privacy="Staff sees case context and their assigned work. Private ROI, billing, and unrelated cases stay in director/admin views."
+                    />
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Close with proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this task so it no longer appears as waiting work.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Close with proof</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark waiting</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Need family info</button>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Close with proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this task so it no longer appears as waiting work.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Close with proof</button>
                   </div>
                   <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open full case context</button>
                 </div>
@@ -4040,6 +4050,16 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
           <button onClick={onClose} aria-label="Close task action" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
         </div>
         <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 6 }}>{taskDraft.prompt}</div>
+        <div style={{ marginTop: 9 }}>
+          <RoleActionStrip
+            compact
+            role="Partner task owner"
+            action={saveLabel}
+            waiting={taskExpectedUpdate(task, 'funeral_home')}
+            proof={proofDestination}
+            privacy="This updates the case spine and reports. It does not send live email or SMS from this dialog."
+          />
+        </div>
         {taskDraft.output && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
             <strong style={{ color: C.ink }}>{taskDraft.output.label}</strong>

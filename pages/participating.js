@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
-import { SiteHeader, SiteFooter } from '../components/SiteChrome';
+import { RoleActionStrip, SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
@@ -197,6 +197,8 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const [pendingAction, setPendingAction] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
   const responseDialogOpen = Boolean(pendingAction || detailsOpen);
+  const availableActions = actionSet(kind);
+  const recommendedAction = availableActions.find(([action]) => action === 'handled' || action === 'confirmed') || availableActions[0];
   useEffect(() => {
     if (!responseDialogOpen || typeof window === 'undefined') return undefined;
     const previousOverflow = document.body.style.overflow;
@@ -246,8 +248,15 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         <span style={{ fontSize: 11, fontWeight: 900, color: statusTone, background: statusBg, borderRadius: 999, padding: '5px 9px', flexShrink: 0 }}>{statusLabel(itemStatus(item))}</span>
       </div>
       {primary && (
-        <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 11px', marginBottom: 9, color: C.mid, fontSize: 12.2, lineHeight: 1.4 }}>
-          <strong style={{ color: C.ink }}>Your scope:</strong> one assigned responsibility. {estate?.coordinator_name || 'The coordinator'} sees your update; the broader estate stays private.
+        <div style={{ marginBottom: 9 }}>
+          <RoleActionStrip
+            compact
+            role={contract.label}
+            action={contract.action}
+            waiting={expectedUpdate}
+            proof={`${estate?.coordinator_name || 'The coordinator'} sees status, note, and timestamp.`}
+            privacy="The full estate workspace, private notes, and unrelated tasks stay hidden."
+          />
         </div>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(160px, .8fr)', gap: 8, marginBottom: 9 }}>
@@ -263,9 +272,14 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       {!handled && (
         <>
           {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
+          <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: 9, marginTop: 8 }}>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Recommended next action</div>
+            <button onClick={() => setPendingAction(recommendedAction[0])} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 42, padding: '0 12px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.8, fontWeight: 900, width: '100%', textAlign: 'left' }}>{recommendedAction[1]}</button>
+            <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.4, marginTop: 6 }}>Use this when the task is truly handled. If something is missing, choose another response below so the coordinator sees the waiting point.</div>
+          </div>
           <div className="participant-action-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 7, marginTop: 8 }}>
-            {actionSet(kind).map(([action, label]) => (
-              <button key={action} onClick={() => setPendingAction(action)} style={{ border: action === 'handled' || action === 'confirmed' ? 'none' : `1px solid ${C.border}`, background: action === 'handled' || action === 'confirmed' ? C.sage : C.card, color: action === 'handled' || action === 'confirmed' ? '#fff' : C.mid, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2, fontWeight: 800 }}>{label}</button>
+            {availableActions.filter(([action]) => action !== recommendedAction[0]).map(([action, label]) => (
+              <button key={action} onClick={() => setPendingAction(action)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2, fontWeight: 800 }}>{label}</button>
             ))}
             <button onClick={() => setPendingAction('save_note')} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800, fontSize: 12.2 }}>Save note</button>
             <button onClick={() => setPendingAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2 }}>I need help</button>
@@ -287,7 +301,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
                     <strong style={{ color: C.ink }}>Proof:</strong> {workspace.proofDestination}<br />
                     <strong style={{ color: C.ink }}>Output/request:</strong> {workspace.output.label}. {workspace.output.body}<br />
                     {workspace.guidance?.why && <><strong style={{ color: C.ink }}>Why this matters:</strong> {workspace.guidance.why}<br /></>}
-                    <strong style={{ color: C.ink }}>Visibility:</strong> you only see this responsibility; the coordinator sees the update in the family record.
+                    <strong style={{ color: C.ink }}>Visibility:</strong> you only see this responsibility; the coordinator sees the update in the family record. No email or SMS is sent from this dialog.
                     {itemDescription(item) && <div style={{ marginTop: 6 }}>{itemDescription(item)}</div>}
                   </div>
                 </div>
@@ -325,7 +339,8 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
 
 export default function ParticipatingPage() {
   const router = useRouter();
-  const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1';
+  const [clientSearch, setClientSearch] = useState('');
+  const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1' || clientSearch.includes('demoTour=funeral-home') || clientSearch.includes('demo=1');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -338,6 +353,10 @@ export default function ParticipatingPage() {
   const [showOtherOpen, setShowOtherOpen] = useState({});
   const [actionNotice, setActionNotice] = useState('');
   const [acceptedInviteToken, setAcceptedInviteToken] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') setClientSearch(window.location.search || '');
+  }, []);
 
   useEffect(() => {
     if (!router.isReady) return;
