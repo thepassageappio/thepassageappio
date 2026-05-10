@@ -79,6 +79,17 @@ export default function PassageApp({ Component, pageProps }) {
       <PassageErrorBoundary>
         <Component {...pageProps} />
       </PassageErrorBoundary>
+      <style jsx global>{`
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          background: #f6f3ee;
+        }
+        * {
+          box-sizing: border-box;
+        }
+      `}</style>
     </>
   );
 }

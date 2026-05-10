@@ -163,7 +163,7 @@ export default function PricingPage() {
         }
       `}</style>
       <section className="pricing-page-section" style={{ maxWidth: 1080, margin: '0 auto', padding: '14px 22px 18px' }}>
-        <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 18, boxShadow: '0 16px 44px rgba(55,45,35,.05)', display: 'grid', gridTemplateColumns: 'minmax(0,.72fr) minmax(380px,1fr)', gap: 18, alignItems: 'stretch' }} className="pricing-hero-grid">
+        <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 18, boxShadow: '0 16px 44px rgba(55,45,35,.05)', display: 'grid', gridTemplateColumns: 'minmax(0,.72fr) minmax(380px,1fr)', gap: 18, alignItems: 'start' }} className="pricing-hero-grid">
           <div style={{ alignSelf: 'center' }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Pricing</div>
             <h1 style={{ fontSize: 'clamp(34px, 4.5vw, 56px)', lineHeight: .98, margin: '0 0 10px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
@@ -184,13 +184,21 @@ export default function PricingPage() {
               ))}
             </div>
           </div>
-          <div style={{ background: showingUrgent ? C.roseFaint : C.sageFaint, border: `1px solid ${(showingUrgent ? C.rose : C.sage)}35`, borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 300 }}>
+          <div style={{ background: showingUrgent ? C.roseFaint : C.sageFaint, border: `1px solid ${(showingUrgent ? C.rose : C.sage)}35`, borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', minHeight: 248 }}>
             {showingUrgent ? (
               <>
                 <div style={{ fontSize: 12, color: C.rose, textTransform: 'uppercase', letterSpacing: '.18em', fontWeight: 900, marginBottom: 7 }}>Someone just passed</div>
                 <div style={{ fontSize: 'clamp(40px, 5vw, 58px)', lineHeight: .98, marginBottom: 9 }}>Get help now.</div>
-                <div style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, marginBottom: 16 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
-                <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ marginTop: 24, width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 14, padding: '17px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 18 }}>
+                <div style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, marginBottom: 13 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
+                <div style={{ display: 'grid', gap: 7, marginBottom: 15 }}>
+                  {['Open one urgent family record', 'Choose the next call or waiting point', 'Review before anything sends'].map(item => (
+                    <div key={item} style={{ color: C.mid, fontSize: 13, lineHeight: 1.35, display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ width: 7, height: 7, borderRadius: 999, background: C.rose, opacity: .65, flexShrink: 0 }} />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 14, padding: '15px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 17 }}>
                   {busy === 'urgent' ? 'Opening checkout...' : 'Get help now \u2192 $79'}
                 </button>
               </>
@@ -204,7 +212,7 @@ export default function PricingPage() {
                     <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.45, marginTop: 7 }}>{activeGroup.desc}</div>
                   </div>
                 </div>
-                <div className="pricing-option-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10, marginTop: 24 }}>
+                <div className="pricing-option-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10, marginTop: 18 }}>
                   {activeGroup.options.map(([id, label, price, per]) => (
                     <button key={id} disabled={busy === id} onClick={() => checkout(id)} style={{ textAlign: 'left', border: `1px solid ${selectedPlan === id ? C.sage : C.border}`, background: selectedPlan === id ? C.sageFaint : '#fff', borderRadius: 15, padding: 15, cursor: 'pointer', fontFamily: 'Georgia,serif', minHeight: 126 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 9 }}>{label}</div>
