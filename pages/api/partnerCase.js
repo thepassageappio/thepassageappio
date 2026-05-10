@@ -106,6 +106,13 @@ export default async function handler(req, res) {
     coordinatorEmail,
     coordinatorPhone,
     caseReference,
+    locationName,
+    locationAddress,
+    locationCity,
+    locationState,
+    locationZip,
+    locationCountry,
+    locationPlaceId,
     isPrepaid,
     totalCaseValue,
     prepaidAmount,
@@ -143,6 +150,16 @@ export default async function handler(req, res) {
       .maybeSingle();
 
     const now = new Date().toISOString();
+    const partnerLocation = {
+      name: String(locationName || '').trim() || null,
+      address: String(locationAddress || '').trim() || null,
+      city: String(locationCity || '').trim() || null,
+      state: String(locationState || '').trim() || null,
+      postal_code: String(locationZip || '').trim() || null,
+      country: String(locationCountry || '').trim() || null,
+      place_id: String(locationPlaceId || '').trim() || null,
+    };
+    const hasPartnerLocation = Object.values(partnerLocation).some(Boolean);
     const timelineAnchors = [
       ['pronouncement', 'Official pronouncement', pronouncementDate, 'Official death pronouncement date if known.'],
       ['release', 'Release / pickup', releaseDate, 'Hospital, facility, hospice, or pickup timing if known.'],
@@ -216,6 +233,7 @@ export default async function handler(req, res) {
           total_case_value: String(totalCaseValue || '').trim() || null,
           prepaid_amount: String(prepaidAmount || '').trim() || null,
         },
+        partner_location: hasPartnerLocation ? partnerLocation : null,
         timeline_anchors: timelineAnchors,
         missing_timeline_watch: normalizedCaseType === 'immediate' ? [
           !pronouncementDate ? 'official pronouncement date' : '',
@@ -241,6 +259,8 @@ export default async function handler(req, res) {
         name: anchor.name,
         title: anchor.name,
         date: anchor.date,
+        location_name: partnerLocation.name || null,
+        location_address: partnerLocation.address || null,
         notes: anchor.notes,
         description: anchor.notes,
         actor: email,

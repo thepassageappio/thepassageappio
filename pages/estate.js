@@ -877,6 +877,15 @@ function roleLooksLikeService(role) {
   });
 }
 
+function advisorLabel(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') {
+    return [value.name, value.address, value.city, value.state, value.postal_code || value.postalCode].filter(Boolean).join(' - ');
+  }
+  return String(value || '');
+}
+
 function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people, actions, announcements, tasks, outcomes }) {
   var summary = estate?.orchestration_summary || {};
   var context = summary.chaplain_context || summary.planning_context || {};
@@ -889,7 +898,7 @@ function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people,
     ['Clergy/officiant', trusted.clergy || context.clergyName || context.clergy_or_officiant],
     ['Hospital/hospice', trusted.hospital_hospice_or_doctor || context.hospitalOrHospiceContact],
     ['Medical records', trusted.medical_records_location || context.medicalRecordsLocation || context.medical_records_location],
-  ].map(function(item) { return [item[0], textValue(item[1], '')]; }).filter(function(item) { return item[1]; });
+  ].map(function(item) { return [item[0], textValue(advisorLabel(item[1]), '')]; }).filter(function(item) { return item[1]; });
   var sortedEvents = (serviceEvents || []).slice().sort(function(a, b) {
     var da = (a.date || '9999-12-31') + ' ' + (a.time || '');
     var db = (b.date || '9999-12-31') + ' ' + (b.time || '');
@@ -1012,11 +1021,11 @@ function FuneralHomePrepGenerator({ estate, estateId, name, coordinatorName, ser
     familyPhone: estate?.coordinator_phone || primaryFamily.phone || '',
     disposition: estate?.disposition || estate?.service_type || '',
     servicePreferences: serviceSummary(serviceEvents) || textValue(funeralTask.notes, ''),
-    cemetery: context.cemeteryName || context.cemetery_or_burial_place || advisors.cemetery || '',
+    cemetery: context.cemeteryName || context.cemetery_or_burial_place || advisorLabel(advisors.cemetery) || '',
     clergy: context.clergyName || context.clergy_or_officiant || advisors.clergy || '',
     faithTradition: context.faithTradition || context.faith_tradition || '',
     healthcareProxy: context.authorityName || context.healthcare_proxy?.name || advisors.healthcare_proxy || advisors.healthcare_proxy_or_decision_maker || '',
-    hospitalContact: context.hospitalOrHospiceContact || advisors.hospital_hospice_or_doctor || '',
+    hospitalContact: context.hospitalOrHospiceContact || advisorLabel(advisors.hospital_hospice_or_doctor) || '',
     medicalRecordsLocation: context.medicalRecordsLocation || context.medical_records_location || advisors.medical_records_location || '',
     documentLocation: context.document_location || advisors.document_location || '',
     documents: 'Photo for obituary\nWill or written wishes, if available\nInsurance or burial policy, if available\nMilitary discharge papers (DD-214), if veteran\nClothing or personal items for viewing, if desired',

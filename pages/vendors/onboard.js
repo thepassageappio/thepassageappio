@@ -2,11 +2,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { VENDOR_CATEGORIES } from '../../lib/vendors';
+import SmartAddressInput from '../../components/SmartAddressInput';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 
 export default function VendorOnboard() {
-  const [form, setForm] = useState({ businessName: '', category: 'florist', zipCodes: '', rushSupported: false, rushWindowHours: '24', plannedSupported: true, email: '', phone: '', website: '', description: '' });
+  const [form, setForm] = useState({ businessName: '', category: 'florist', serviceAddress: '', serviceCity: '', serviceState: '', serviceCountry: '', zipCodes: '', rushSupported: false, rushWindowHours: '24', plannedSupported: true, email: '', phone: '', website: '', description: '' });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -37,24 +38,24 @@ export default function VendorOnboard() {
       return;
     }
     setMessage('Thank you. Passage reviews every local support partner before showing them to families.');
-    setForm({ businessName: '', category: 'florist', zipCodes: '', rushSupported: false, rushWindowHours: '24', plannedSupported: true, email: '', phone: '', website: '', description: '' });
+    setForm({ businessName: '', category: 'florist', serviceAddress: '', serviceCity: '', serviceState: '', serviceCountry: '', zipCodes: '', rushSupported: false, rushWindowHours: '24', plannedSupported: true, email: '', phone: '', website: '', description: '' });
   }
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader />
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '8px 22px 12px' }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '2px 22px 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(340px, 1fr)', gap: 14, alignItems: 'start' }}>
-          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
+          <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 15, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
             <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Trusted local support</div>
-            <h1 style={{ fontSize: 'clamp(30px, 4vw, 44px)', lineHeight: 1, margin: 0, fontWeight: 400 }}>Help when a family actually needs you.</h1>
-            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: '10px 0 0' }}>Passage suggests local support only inside the task where it helps. No public directory, no bidding wall, no browsing family records.</p>
-            <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
+            <h1 style={{ fontSize: 'clamp(28px, 3.8vw, 40px)', lineHeight: 1, margin: 0, fontWeight: 400 }}>Help when a family actually needs you.</h1>
+            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.35, margin: '8px 0 0' }}>Passage suggests local support only inside the task where it helps. No public directory, no bidding wall, no browsing family records.</p>
+            <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
               {['Families see your help only when it fits the next step.', 'You receive one scoped request with the details needed to answer.', 'Your response updates the case so nobody has to chase status.'].map((item) => (
                 <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 11, padding: '8px 10px', color: C.mid, fontSize: 12.5, lineHeight: 1.35 }}>{item}</div>
               ))}
             </div>
-            <details style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: 10, marginTop: 10 }}>
+            <details style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: 8, marginTop: 8 }}>
               <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>How approval works</summary>
               <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
                 {setupPath.map(([title, body]) => (
@@ -66,12 +67,31 @@ export default function VendorOnboard() {
               </div>
             </details>
           </div>
-          <form onSubmit={submit} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
-            <div style={{ fontSize: 22, lineHeight: 1.15, marginBottom: 4 }}>Apply as a support partner</div>
-            <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.38, margin: '0 0 8px' }}>We review every application manually before recommendations appear in tasks.</p>
+          <form onSubmit={submit} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 14, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
+            <div style={{ fontSize: 21, lineHeight: 1.1, marginBottom: 3 }}>Apply as a support partner</div>
+            <p style={{ color: C.mid, fontSize: 12, lineHeight: 1.3, margin: '0 0 6px' }}>We review every application manually before recommendations appear in tasks.</p>
             <label style={labelStyle}>Business name<input value={form.businessName} onChange={(e) => update('businessName', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Category<select value={form.category} onChange={(e) => update('category', e.target.value)} style={inputStyle}>{Object.entries(VENDOR_CATEGORIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-            <label style={labelStyle}>ZIP codes served<input value={form.zipCodes} onChange={(e) => update('zipCodes', e.target.value)} placeholder="12508, 12601, 10512" style={inputStyle} /></label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(150px, .65fr)', gap: 8, marginBottom: 7 }}>
+              <SmartAddressInput
+                compact
+                label="Business or service area"
+                value={form.serviceAddress}
+                onChange={(value, parsed = {}) => setForm(prev => ({
+                  ...prev,
+                  serviceAddress: value,
+                  serviceCity: parsed.city || '',
+                  serviceState: parsed.state || '',
+                  serviceCountry: parsed.country || '',
+                  zipCodes: parsed.postalCode ? parsed.postalCode.slice(0, 5) : prev.zipCodes,
+                }))}
+                colors={C}
+                inputStyle={{ background: C.bg }}
+                placeholder="Start typing your address or primary service area"
+                hint="Choose a suggestion to fill the ZIP field below."
+              />
+              <label style={{ ...labelStyle, marginBottom: 0 }}>ZIP codes served<input value={form.zipCodes} onChange={(e) => update('zipCodes', e.target.value)} placeholder="12508, 12601" style={inputStyle} /></label>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 8 }}>
               <label style={checkStyle}><input type="checkbox" checked={form.rushSupported} onChange={(e) => update('rushSupported', e.target.checked)} /> Rush support</label>
               <label style={checkStyle}><input type="checkbox" checked={form.plannedSupported} onChange={(e) => update('plannedSupported', e.target.checked)} /> Planned support</label>
@@ -80,7 +100,7 @@ export default function VendorOnboard() {
             <label style={labelStyle}>Email<input value={form.email} onChange={(e) => update('email', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Phone<input value={form.phone} onChange={(e) => update('phone', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Website<input value={form.website} onChange={(e) => update('website', e.target.value)} style={inputStyle} /></label>
-            <label style={labelStyle}>How you help families<textarea value={form.description} onChange={(e) => update('description', e.target.value)} style={{ ...inputStyle, minHeight: 58, resize: 'vertical' }} /></label>
+            <label style={labelStyle}>How you help families<textarea value={form.description} onChange={(e) => update('description', e.target.value)} style={{ ...inputStyle, minHeight: 44, resize: 'vertical' }} /></label>
             {error && <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', color: C.rose, borderRadius: 11, padding: 10, marginBottom: 8 }}>{error}</div>}
             {message && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 11, padding: 10, marginBottom: 8, fontWeight: 800 }}>{message}</div>}
             <button disabled={submitting} style={{ width: '100%', border: 'none', background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 14px', fontFamily: 'Georgia,serif', fontSize: 14, fontWeight: 900, cursor: submitting ? 'default' : 'pointer' }}>{submitting ? 'Submitting...' : 'Submit for review'}</button>
@@ -93,6 +113,6 @@ export default function VendorOnboard() {
   );
 }
 
-const labelStyle = { display: 'grid', gap: 4, fontSize: 9.8, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 7 };
-const inputStyle = { border: '1px solid ' + C.border, borderRadius: 10, background: C.bg, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink, minWidth: 0 };
-const checkStyle = { display: 'flex', alignItems: 'center', gap: 7, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 10, padding: '8px 10px', color: C.mid, fontSize: 12.5, marginBottom: 7 };
+const labelStyle = { display: 'grid', gap: 3, fontSize: 9.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 };
+const inputStyle = { border: '1px solid ' + C.border, borderRadius: 10, background: C.bg, padding: '7px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, color: C.ink, minWidth: 0 };
+const checkStyle = { display: 'flex', alignItems: 'center', gap: 7, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 10, padding: '7px 10px', color: C.mid, fontSize: 12.2, marginBottom: 5 };

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter, SpineTrustStrip } from '../../components/SiteChrome';
+import SmartAddressInput from '../../components/SmartAddressInput';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 import { taskGuidanceFor, taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
@@ -375,6 +376,13 @@ export default function FuneralHomeDashboard() {
     funeralHomeName: '',
     caseType: 'immediate',
     personName: '',
+    locationName: '',
+    locationAddress: '',
+    locationCity: '',
+    locationState: '',
+    locationZip: '',
+    locationCountry: '',
+    locationPlaceId: '',
     dateOfDeath: '',
     coordinatorName: '',
     coordinatorEmail: '',
@@ -1005,6 +1013,7 @@ export default function FuneralHomeDashboard() {
       const caseName = caseForm.personName.trim() || 'Demo family';
       const normalizedCaseType = caseForm.caseType === 'immediate' ? 'immediate' : 'preneed';
       const planning = normalizedCaseType === 'preneed';
+      const savedLocationName = caseForm.locationName || caseForm.funeralHomeName || 'Main location';
       const demoCase = {
         id,
         deceased_name: planning ? '' : caseName,
@@ -1014,6 +1023,8 @@ export default function FuneralHomeDashboard() {
         coordinator_phone: caseForm.coordinatorPhone || '',
         date_of_death: planning ? '' : caseForm.dateOfDeath,
         organization_case_reference: caseForm.caseReference || `DEMO-${String(Date.now()).slice(-4)}`,
+        location_name: savedLocationName,
+        location_address: caseForm.locationAddress || '',
         setup_stage: planning ? 'preneed' : 'active',
         mode: planning ? 'green' : 'red',
         orchestration_summary: {
@@ -1022,6 +1033,15 @@ export default function FuneralHomeDashboard() {
             is_prepaid: Boolean(caseForm.isPrepaid),
             total_case_value: caseForm.totalCaseValue || null,
             prepaid_amount: caseForm.prepaidAmount || null,
+          },
+          partner_location: {
+            name: savedLocationName,
+            address: caseForm.locationAddress || null,
+            city: caseForm.locationCity || null,
+            state: caseForm.locationState || null,
+            postal_code: caseForm.locationZip || null,
+            country: caseForm.locationCountry || null,
+            place_id: caseForm.locationPlaceId || null,
           },
         },
         status: 'active',
@@ -1044,8 +1064,8 @@ export default function FuneralHomeDashboard() {
         vendorRequests: [],
         activity: [{ id: id + '-activity-1', status: 'assigned' }],
         serviceEvents: [
-          caseForm.arrangementDate ? { id: id + '-arrangement', name: 'Arrangement meeting', date: caseForm.arrangementDate, location_name: 'Main location' } : null,
-          caseForm.funeralDate ? { id: id + '-funeral', name: 'Funeral / memorial', date: caseForm.funeralDate, location_name: 'Main location' } : null,
+          caseForm.arrangementDate ? { id: id + '-arrangement', name: 'Arrangement meeting', date: caseForm.arrangementDate, location_name: savedLocationName, location_address: caseForm.locationAddress || '' } : null,
+          caseForm.funeralDate ? { id: id + '-funeral', name: 'Funeral / memorial', date: caseForm.funeralDate, location_name: savedLocationName, location_address: caseForm.locationAddress || '' } : null,
         ].filter(Boolean),
         coordinationSpine: { attentionItems: [] },
       };
@@ -1061,7 +1081,7 @@ export default function FuneralHomeDashboard() {
       setShowNewCase(false);
       trackEvent('partner_case_created_demo', { caseType: normalizedCaseType, isPrepaid: Boolean(caseForm.isPrepaid), hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
       setExpandedCaseId(id);
-      setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
+      setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', locationName: '', locationAddress: '', locationCity: '', locationState: '', locationZip: '', locationCountry: '', locationPlaceId: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
       return;
     }
     setCreating(true);
@@ -1095,7 +1115,7 @@ export default function FuneralHomeDashboard() {
         : 'Case created. Family access was not prepared yet; use the family view or coordinator email to complete the handoff.');
     }
     setShowNewCase(false);
-    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
+    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', locationName: '', locationAddress: '', locationCity: '', locationState: '', locationZip: '', locationCountry: '', locationPlaceId: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
     await load(token);
   }
 
@@ -1246,6 +1266,9 @@ export default function FuneralHomeDashboard() {
     const ref = String(item.organization_case_reference || item.case_reference || '');
     if (/MULTI-002/i.test(ref)) return 'Poughkeepsie';
     if (/MULTI/i.test(ref)) return 'Beacon';
+    const partnerLocation = item?.orchestration_summary?.partner_location || item?.partner_location || {};
+    if (partnerLocation.name) return partnerLocation.name;
+    if (partnerLocation.city || partnerLocation.state) return [partnerLocation.city, partnerLocation.state].filter(Boolean).join(', ');
     return item.location_name || item.branch_name || item.funeral_home_location || 'Main location';
   }
 
@@ -2619,6 +2642,27 @@ export default function FuneralHomeDashboard() {
                   <input value={caseForm.funeralHomeName} onChange={e => setCaseForm(prev => ({ ...prev, funeralHomeName: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
                 </label>
               )}
+            </div>
+            <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 11, marginTop: 10 }}>
+              <SmartAddressInput
+                compact
+                label="Service / case location"
+                value={caseForm.locationAddress}
+                onChange={(value, parsed = {}) => setCaseForm(prev => ({
+                  ...prev,
+                  locationAddress: value,
+                  locationName: parsed.placeName || prev.locationName,
+                  locationCity: parsed.city || '',
+                  locationState: parsed.state || '',
+                  locationZip: parsed.postalCode || '',
+                  locationCountry: parsed.country || '',
+                  locationPlaceId: parsed.placeId || '',
+                }))}
+                colors={C}
+                inputStyle={{ background: C.card }}
+                placeholder="Start typing funeral home, chapel, cemetery, or family address"
+                hint="Choose a suggestion to keep location, city, state, ZIP, and country attached to the case."
+              />
             </div>
             <div style={{ background: C.sageFaint, border: `1px solid ${caseForm.isPrepaid ? C.sage : C.sage + '22'}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
               <label style={{ display: 'flex', gap: 9, alignItems: 'flex-start', color: C.ink, fontSize: 13.5, fontWeight: 900, cursor: 'pointer' }}>

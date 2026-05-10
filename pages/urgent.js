@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteFooter } from '../components/SiteChrome';
+import SmartAddressInput from '../components/SmartAddressInput';
 import { trackEvent } from '../lib/trackEvent';
 import { recordOnboardingProgress } from '../lib/onboardingClient';
 
@@ -255,11 +256,26 @@ const defaultContext = {
   authorityStatus: '',
   emergencyCalled: '',
   funeralHomeName: '',
+  funeralHomeAddress: '',
+  funeralHomeCity: '',
+  funeralHomeState: '',
+  funeralHomeZip: '',
+  funeralHomeCountry: '',
   cemeteryName: '',
+  cemeteryAddress: '',
+  cemeteryCity: '',
+  cemeteryState: '',
+  cemeteryZip: '',
+  cemeteryCountry: '',
   faithTradition: '',
   clergyName: '',
   authorityName: '',
   hospitalOrHospiceContact: '',
+  hospitalOrHospiceAddress: '',
+  hospitalOrHospiceCity: '',
+  hospitalOrHospiceState: '',
+  hospitalOrHospiceZip: '',
+  hospitalOrHospiceCountry: '',
   medicalRecordsLocation: '',
 };
 
@@ -895,12 +911,32 @@ export default function UrgentPage() {
                   <input value={context.funeralHomeName} onChange={e => updateContext('funeralHomeName', e.target.value)} placeholder="Name, if known" />
                 </div>
                 <div className="field compact">
+                  <SmartAddressInput compact label="Funeral home address" value={context.funeralHomeAddress || ''} onChange={(value, parsed = {}) => {
+                    updateContext('funeralHomeAddress', value);
+                    updateContext('funeralHomeCity', parsed.city || '');
+                    updateContext('funeralHomeState', parsed.state || '');
+                    updateContext('funeralHomeZip', parsed.postalCode || '');
+                    updateContext('funeralHomeCountry', parsed.country || '');
+                    if (parsed.placeName && !context.funeralHomeName) updateContext('funeralHomeName', parsed.placeName);
+                  }} colors={C} placeholder="Start typing the funeral home or address" />
+                </div>
+                <div className="field compact">
                   <label>Healthcare proxy / decision-maker</label>
                   <input value={context.authorityName} onChange={e => updateContext('authorityName', e.target.value)} placeholder="Name, if known" />
                 </div>
                 <div className="field compact">
                   <label>Hospital / hospice / doctor</label>
                   <input value={context.hospitalOrHospiceContact} onChange={e => updateContext('hospitalOrHospiceContact', e.target.value)} placeholder="Contact or facility" />
+                </div>
+                <div className="field compact">
+                  <SmartAddressInput compact label="Facility or care address" value={context.hospitalOrHospiceAddress || ''} onChange={(value, parsed = {}) => {
+                    updateContext('hospitalOrHospiceAddress', value);
+                    updateContext('hospitalOrHospiceCity', parsed.city || '');
+                    updateContext('hospitalOrHospiceState', parsed.state || '');
+                    updateContext('hospitalOrHospiceZip', parsed.postalCode || '');
+                    updateContext('hospitalOrHospiceCountry', parsed.country || '');
+                    if (parsed.placeName && !context.hospitalOrHospiceContact) updateContext('hospitalOrHospiceContact', parsed.placeName);
+                  }} colors={C} placeholder="Start typing hospital, hospice, or address" />
                 </div>
                   <div className="field compact">
                     <label>Pronouncement date</label>
@@ -917,6 +953,16 @@ export default function UrgentPage() {
                   <div className="field compact">
                     <label>Cemetery / burial place</label>
                     <input value={context.cemeteryName} onChange={e => updateContext('cemeteryName', e.target.value)} placeholder="Name, if known" />
+                  </div>
+                  <div className="field compact">
+                    <SmartAddressInput compact label="Cemetery / burial address" value={context.cemeteryAddress || ''} onChange={(value, parsed = {}) => {
+                      updateContext('cemeteryAddress', value);
+                      updateContext('cemeteryCity', parsed.city || '');
+                      updateContext('cemeteryState', parsed.state || '');
+                      updateContext('cemeteryZip', parsed.postalCode || '');
+                      updateContext('cemeteryCountry', parsed.country || '');
+                      if (parsed.placeName && !context.cemeteryName) updateContext('cemeteryName', parsed.placeName);
+                    }} colors={C} placeholder="Start typing cemetery or address" />
                   </div>
                   <div className="field compact">
                     <label>Wake / visitation / shiva date</label>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseBrowser";
 import { getTaskPlaybook } from "../lib/taskPlaybooks";
 import { SiteFooter, SiteHeader } from "./SiteChrome";
+import SmartAddressInput from "./SmartAddressInput";
 import { taskWorkspaceFor } from "../lib/taskWorkspace";
 import { orchestrateTasks } from "../lib/taskOrchestration";
 import { recordOnboardingProgress } from "../lib/onboardingClient";
@@ -918,39 +919,16 @@ const Field = ({ label, placeholder, value, onChange, type = "text", hint }) => 
 );
 
 const AddressField = ({ label, value, onChange, placeholder }) => {
-  const inputRef = useCallback((node) => {
-    if (!node || typeof window === 'undefined') return;
-    const key = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!key) return;
-    const attach = () => {
-      if (!window.google?.maps?.places || node.dataset.autocompleteAttached) return;
-      node.dataset.autocompleteAttached = 'true';
-      const ac = new window.google.maps.places.Autocomplete(node, { types: ['establishment', 'geocode'], fields: ['address_components', 'formatted_address', 'name', 'place_id'] });
-      ac.addListener('place_changed', () => {
-        const place = ac.getPlace();
-        const parsed = parseGooglePlaceAddress(place);
-        onChange(parsed.formattedAddress || parsed.placeName || node.value, parsed);
-      });
-    };
-    if (window.google?.maps?.places) { attach(); return; }
-    if (!document.getElementById('passage-google-places')) {
-      const script = document.createElement('script');
-      script.id = 'passage-google-places';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
-      script.async = true;
-      script.onload = attach;
-      document.head.appendChild(script);
-    } else {
-      setTimeout(attach, 600);
-    }
-  }, [onChange]);
-  const hasPlacesKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
   return (
     <div style={{ marginBottom: 16 }}>
-      {label && <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.mid, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{label}</label>}
-      <input ref={inputRef} type="text" autoComplete="street-address" value={value || ""} onChange={e => onChange(e.target.value)} placeholder={placeholder || "Start typing an address or place"}
-        style={{ width: "100%", padding: "13px 15px", borderRadius: 11, fontSize: 15, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
-      <div style={{ fontSize: 11, color: C.soft, marginTop: 5 }}>{hasPlacesKey ? "Start typing to choose the right place." : "Address suggestions activate when Google Places is configured."}</div>
+      <SmartAddressInput
+        label={label}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        colors={{ ...C, card: C.bgCard }}
+        inputStyle={{ padding: "13px 15px", fontSize: 15, fontFamily: "inherit" }}
+      />
     </div>
   );
 };
