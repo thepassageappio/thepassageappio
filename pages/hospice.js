@@ -186,47 +186,53 @@ export default function HospiceWarmPath() {
         }
       `}</style>
       <SiteHeader />
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '28px 28px 12px' }}>
-        <div className="warm-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .7fr)', gap: 16, alignItems: 'stretch' }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '4px 28px 8px' }}>
+        <div className="warm-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .86fr) minmax(360px, 1fr)', gap: 14, alignItems: 'stretch' }}>
           <div style={heroCard}>
             <div style={eyebrow}>Preparing during care</div>
-            <h1 style={{ fontSize: 'clamp(34px, 4.6vw, 56px)', lineHeight: 1.02, margin: '9px 0 12px', fontWeight: 400 }}>
+            <h1 style={{ fontSize: 'clamp(30px, 3.55vw, 42px)', lineHeight: 1.02, margin: '7px 0 9px', fontWeight: 400 }}>
               Start the family record before the crisis moment.
             </h1>
-            <p style={lead}>
+            <p style={{ ...lead, fontSize: 13.2, lineHeight: 1.38 }}>
               Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.
             </p>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-              <a href="#start-warm-workspace" style={primaryLink}>Start care-prep record</a>
-              <Link href="/urgent" style={primaryLink}>Death has occurred</Link>
-            </div>
-          </div>
-          <div className="mobile-context" style={{ ...heroCard, background: C.sageFaint, borderColor: '#c8deca' }}>
-            <div style={eyebrow}>The handoff promise</div>
-            <h2 style={{ fontSize: 28, lineHeight: 1.12, margin: '9px 0 10px', fontWeight: 400 }}>
-              Same record. Different door.
-            </h2>
-            <p style={lead}>
-              A family may enter through planning, hospice preparation, urgent death guidance, or a funeral home. Passage carries one record forward instead of creating separate product islands.
-            </p>
-            <div style={{ display: 'grid', gap: 9, marginTop: 18 }}>
+            <div style={{ display: 'grid', gap: 6, marginTop: 11 }}>
               {['Family owns permissions', 'Nothing shares without approval', 'Unknown dates become visible tasks'].map(item => (
                 <div key={item} style={statusRow}>{item}</div>
               ))}
             </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+              <a href="#start-warm-workspace" style={primaryLink}>Start care-prep record</a>
+              <Link href="/urgent" style={secondaryLink}>Death has occurred</Link>
+            </div>
+          </div>
+          <div id="start-warm-workspace" style={{ ...panel, padding: 16 }}>
+            <div style={eyebrow}>Create workspace</div>
+            <h2 style={{ ...h2, fontSize: 24, margin: '5px 0 5px' }}>Start with what the family knows now.</h2>
+            <p style={{ ...lead, fontSize: 12.6, lineHeight: 1.35, marginBottom: 8 }}>This creates one family record. It does not send email or SMS. Unknown dates become visible tasks.</p>
+            <div style={{ display: 'grid', gap: 7 }}>
+              <input value={form.lovedOneName} onChange={event => updateField('lovedOneName', event.target.value)} placeholder="Loved one's name" style={inputStyle} />
+              <input value={form.coordinatorName} onChange={event => updateField('coordinatorName', event.target.value)} placeholder="Family coordinator name" style={inputStyle} />
+              <input value={form.hospiceAgency} onChange={event => updateField('hospiceAgency', event.target.value)} placeholder="Hospice agency or care team, if known" style={inputStyle} />
+              <details style={{ border: '1px solid ' + C.border, borderRadius: 12, background: C.bg, padding: 9 }}>
+                <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 13 }}>Add contacts, dates, and funeral-home preference</summary>
+                <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, margin: '6px 0 8px' }}>Add only what the family actually knows.</div>
+                <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 8, marginBottom: 8 }}>
+                  <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
+                  <input value={form.hospicePhone} onChange={event => updateField('hospicePhone', event.target.value)} placeholder="Phone" style={inputStyle} />
+                </div>
+                <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={{ ...inputStyle, marginBottom: 8 }} />
+                <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if known" style={inputStyle} />
+              </details>
+              {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{error}</div>}
+              {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{notice}</div>}
+              <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save warm-path workspace' : 'Sign in and save workspace'}</button>
+            </div>
           </div>
         </div>
-        {false && <div className="warm-spine-grid mobile-context" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 14 }}>
-          {warmSpine.map(([label, value]) => (
-            <div key={label} style={spineBox}>
-              <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-              <div style={{ color: C.ink, fontSize: 14, lineHeight: 1.45, marginTop: 5 }}>{value}</div>
-            </div>
-          ))}
-        </div>}
       </section>
 
-      <section id="start-warm-workspace" style={section}>
+      {false && <section id="start-warm-workspace" style={section}>
         <div style={{ ...panel, padding: 20 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.78fr) minmax(0,1fr)', gap: 18, alignItems: 'start' }} className="warm-two-col">
             <div>
@@ -278,7 +284,7 @@ export default function HospiceWarmPath() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {false && <section style={{ ...section, paddingTop: 0 }}>
         <div style={{ ...panel, background: C.amberFaint, borderColor: '#ead4ac' }}>
@@ -306,12 +312,12 @@ export default function HospiceWarmPath() {
         </div>
       </section>}
 
-      <section style={{ ...section, paddingTop: 0 }}>
-        <div className="warm-depth-panel" style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center', padding: 18 }}>
+      <section style={{ ...section, paddingTop: 0, paddingBottom: 8 }}>
+        <div className="warm-depth-panel" style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 10, alignItems: 'center', padding: 13 }}>
           <div>
             <div style={eyebrow}>Care-team context</div>
-            <h2 style={{ ...h2, fontSize: 24, marginBottom: 6 }}>This is family coordination, not clinical software.</h2>
-            <p style={{ ...lead, fontSize: 14.5 }}>Passage keeps contacts, wishes, dates, tasks, permissions, and handoffs together without replacing medical records or care documentation.</p>
+            <h2 style={{ ...h2, fontSize: 21, margin: '4px 0 4px' }}>Family coordination, not clinical software.</h2>
+            <p style={{ ...lead, fontSize: 12.6, lineHeight: 1.35 }}>Contacts, wishes, dates, tasks, permissions, and handoffs stay together without replacing medical records.</p>
           </div>
           <button onClick={() => setShowDepth(prev => !prev)} style={showMoreButton}>
             {showDepth ? 'Hide details' : 'Show details'}
@@ -460,21 +466,21 @@ function WarmDate({ label, value, onChange }) {
   );
 }
 
-const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 22, padding: '26px 28px', boxShadow: '0 18px 48px rgba(55,45,35,.06)' };
-const section = { maxWidth: 1180, margin: '0 auto', padding: '14px 28px 22px' };
+const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: '18px 20px', boxShadow: '0 14px 34px rgba(55,45,35,.045)' };
+const section = { maxWidth: 1040, margin: '0 auto', padding: '8px 28px 14px' };
 const sectionHeader = { maxWidth: 760, marginBottom: 16 };
-const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
+const eyebrow = { color: C.sage, fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const h2 = { fontSize: 34, lineHeight: 1.1, margin: '8px 0 10px', fontWeight: 400 };
 const h3 = { fontSize: 19, lineHeight: 1.18, margin: '8px 0 6px' };
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.62, margin: 0 };
 const smallText = { color: C.mid, fontSize: 13.5, lineHeight: 1.52, margin: 0 };
-const primaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 18px', background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 13, fontWeight: 900 };
-const secondaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 18px', background: C.card, color: C.sage, textDecoration: 'none', borderRadius: 13, border: '1px solid #c8deca', fontWeight: 900 };
-const primaryButton = { border: 'none', minHeight: 48, borderRadius: 13, background: C.sage, color: '#fff', padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
-const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 13, background: C.card, minHeight: 48, padding: '0 14px', fontFamily: 'Georgia,serif', fontSize: 15, color: C.ink };
-const statusRow = { background: C.card, border: '1px solid #c8deca', borderRadius: 13, padding: '12px 14px', color: C.sage, fontWeight: 900 };
+const primaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 13px', background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 12, fontWeight: 900, fontSize: 12.5 };
+const secondaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 13px', background: C.card, color: C.sage, textDecoration: 'none', borderRadius: 12, border: '1px solid #c8deca', fontWeight: 900, fontSize: 12.5 };
+const primaryButton = { border: 'none', minHeight: 40, borderRadius: 12, background: C.sage, color: '#fff', padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 13 };
+const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 11, background: C.card, minHeight: 39, padding: '0 12px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink };
+const statusRow = { background: C.card, border: '1px solid #c8deca', borderRadius: 11, padding: '8px 10px', color: C.sage, fontWeight: 900, fontSize: 12.5 };
 const card = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18 };
-const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22, boxShadow: '0 10px 34px rgba(55,45,35,.04)' };
+const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 10px 30px rgba(55,45,35,.04)' };
 const numberBubble = { width: 34, height: 34, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontWeight: 900 };
 const taskRow = { display: 'grid', gridTemplateColumns: 'minmax(0, .95fr) minmax(220px, .8fr)', gap: 12, border: '1px solid ' + C.border, borderRadius: 17, padding: 15, background: C.bg };
 const miniBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '10px 12px', display: 'grid', gap: 4, color: C.mid, fontSize: 13 };
@@ -482,4 +488,4 @@ const dateRow = { display: 'flex', justifyContent: 'space-between', gap: 12, ali
 const handoffRow = { display: 'grid', gridTemplateColumns: '160px minmax(0, 1fr)', gap: 12, background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: '12px 13px', color: C.mid };
 const smallCard = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 16 };
 const spineBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: '13px 14px' };
-const showMoreButton = { border: '1px solid #c8deca', minHeight: 46, borderRadius: 13, background: C.sageFaint, color: C.sage, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' };
+const showMoreButton = { border: '1px solid #c8deca', minHeight: 38, borderRadius: 12, background: C.sageFaint, color: C.sage, padding: '0 13px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap', fontSize: 12.5 };
