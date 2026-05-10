@@ -61,6 +61,9 @@ const COLUMN_ALIASES = {
   primary_contact_phone: ['primary_contact_phone', 'phone', 'family_phone', 'family_contact_phone', 'informant_phone', 'next_of_kin_phone', 'coordinator_phone', 'contact_phone'],
   date_of_death: ['date_of_death', 'death_date', 'dod'],
   case_reference: ['case_reference', 'case_id', 'case_number', 'contract_number', 'record_id', 'reference'],
+  total_case_value: ['total_case_value', 'case_value', 'contract_value', 'arrangement_value', 'sale_amount', 'revenue', 'total_price', 'case_total'],
+  is_prepaid: ['is_prepaid', 'prepaid', 'funded', 'pre_need_funded', 'preneed_funded', 'policy_funded'],
+  prepaid_amount: ['prepaid_amount', 'prepaid_value', 'policy_amount', 'policy_value', 'funded_amount', 'pre_need_amount'],
   source_system: ['source_system', 'system', 'export_source', 'case_management_system'],
   pronouncement_date: ['pronouncement_date', 'official_pronouncement', 'pronouncement'],
   release_date: ['release_date', 'pickup_date', 'removal_date', 'transfer_date'],
@@ -93,6 +96,10 @@ function buildHeaderIndex(headers, mapping = {}) {
 function cell(row, index, key) {
   const idx = index[key];
   return idx == null ? '' : String(row[idx] || '').trim();
+}
+
+function truthyFlag(value) {
+  return ['true', 'yes', 'y', '1', 'paid', 'prepaid', 'funded'].includes(String(value || '').trim().toLowerCase());
 }
 
 function timelineAnchorsForRow(row, index) {
@@ -139,6 +146,8 @@ function validateImportRows(parsed, index) {
       reference: cell(row, index, 'case_reference') || '',
       sourceSystem: cell(row, index, 'source_system') || 'csv_import',
       dateOfDeath: cell(row, index, 'date_of_death') || '',
+      caseValue: cell(row, index, 'total_case_value') || '',
+      prepaid: truthyFlag(cell(row, index, 'is_prepaid')) || Boolean(cell(row, index, 'prepaid_amount')),
       eventCount: timelineAnchorsForRow(row, index).length,
       missingTimeline: missingTimelineForRow(row, index),
     });
@@ -242,6 +251,11 @@ export default async function handler(req, res) {
         partner_case_type: 'immediate',
         partner_setup_stage: 'partner_csv_imported',
         source_system: cell(row, index, 'source_system') || 'csv_import',
+        partner_financials: {
+          total_case_value: cell(row, index, 'total_case_value') || null,
+          is_prepaid: truthyFlag(cell(row, index, 'is_prepaid')) || Boolean(cell(row, index, 'prepaid_amount')),
+          prepaid_amount: cell(row, index, 'prepaid_amount') || null,
+        },
         timeline_anchors: timelineAnchors,
         missing_timeline_watch: missingTimelineForRow(row, index),
       },

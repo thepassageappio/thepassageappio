@@ -20,6 +20,13 @@ function cleanText(value) {
   return String(value || '').trim();
 }
 
+function cleanMoney(value) {
+  const raw = String(value || '').replace(/[$,\s]/g, '').trim();
+  if (!raw) return null;
+  const number = Number(raw);
+  return Number.isFinite(number) && number > 0 ? String(number) : null;
+}
+
 function schemaColumnError(error) {
   const message = String(error?.message || '').toLowerCase();
   return error?.code === '42703' || message.includes('column') || message.includes('schema cache');
@@ -53,6 +60,8 @@ export default async function handler(req, res) {
     const displayName = cleanText(req.body?.name || req.body?.displayName);
     const locationScope = cleanText(req.body?.locationScope || req.body?.location_scope) || 'all';
     const title = cleanText(req.body?.title);
+    const annualSalary = cleanMoney(req.body?.annualSalary || req.body?.annual_salary);
+    const hourlyCost = cleanMoney(req.body?.hourlyCost || req.body?.hourly_cost);
     if (!email || !email.includes('@')) return res.status(400).json({ error: 'Add a valid employee email.' });
 
     const baseRow = {
@@ -67,9 +76,12 @@ export default async function handler(req, res) {
       display_name: displayName || null,
       title: title || null,
       location_scope: locationScope,
+      annual_salary: annualSalary,
+      hourly_cost: hourlyCost,
     };
     const attempts = [
-      { row: extendedRow, select: 'organization_id,email,role,status,display_name,title,location_scope' },
+      { row: extendedRow, select: 'organization_id,email,role,status,display_name,title,location_scope,annual_salary,hourly_cost' },
+      { row: { ...baseRow, display_name: displayName || null, title: title || null, location_scope: locationScope }, select: 'organization_id,email,role,status,display_name,title,location_scope' },
       { row: baseRow, select: 'organization_id,email,role,status' },
     ];
     for (const attempt of attempts) {
@@ -80,7 +92,7 @@ export default async function handler(req, res) {
         .maybeSingle();
       if (!error) {
         return res.status(200).json({
-          member: { ...(data || attempt.row), display_name: data?.display_name || displayName || undefined, location_scope: data?.location_scope || locationScope },
+          member: { ...(data || attempt.row), display_name: data?.display_name || displayName || undefined, location_scope: data?.location_scope || locationScope, annual_salary: data?.annual_salary || annualSalary || undefined, hourly_cost: data?.hourly_cost || hourlyCost || undefined },
           confirmation: 'Employee saved. Copy the invite message when you are ready; Passage did not send email or SMS.',
           persistedProfileFields: Boolean(data?.display_name || data?.location_scope),
         });

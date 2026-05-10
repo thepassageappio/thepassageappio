@@ -25,6 +25,7 @@ function schemaColumnError(error) {
 
 async function selectOrganizationMembers(organizationIds) {
   const selections = [
+    'organization_id, role, status, email, display_name, title, location_scope, annual_salary, hourly_cost',
     'organization_id, role, status, email, display_name, title, location_scope',
     'organization_id, role, status, email',
   ];
@@ -50,6 +51,27 @@ function locationNameForWorkflow(workflow) {
 function valueFromRequest(request, field) {
   if (field === 'final_value' && request?.final_value_cents != null) return Number(request.final_value_cents || 0) / 100;
   return Number(request?.[field] || 0);
+}
+
+function moneyNumber(value) {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const raw = String(value || '').replace(/[$,\s]/g, '').trim();
+  const number = Number(raw);
+  return Number.isFinite(number) && number > 0 ? number : 0;
+}
+
+function caseFinancials(workflow) {
+  return workflow?.orchestration_summary?.partner_financials || workflow?.partner_financials || {};
+}
+
+function caseValueNumber(workflow) {
+  const financials = caseFinancials(workflow);
+  return moneyNumber(financials.total_case_value || financials.case_value || financials.contract_value || financials.arrangement_value);
+}
+
+function prepaidValueNumber(workflow) {
+  const financials = caseFinancials(workflow);
+  return moneyNumber(financials.prepaid_amount || financials.policy_amount || financials.funded_amount);
 }
 
 function normalizeEmail(value) {
@@ -133,9 +155,9 @@ function demoPartnerPayload(email, memberships = []) {
     organizations: { id: 'demo-org-collins', type: 'funeral_home', name: 'Collins Family Funeral Home', support_email: email },
   };
   const staff = [
-    { email, role: 'director', scope: 'all_cases', status: 'active' },
-    { email: 'maria@collinsffh.demo', role: 'location_manager', scope: 'main_location', status: 'active' },
-    { email: 'robert@collinsffh.demo', role: 'staff', scope: 'assigned_work', status: 'active' },
+    { email, role: 'director', scope: 'all_cases', status: 'active', annual_salary: '95000' },
+    { email: 'maria@collinsffh.demo', role: 'location_manager', scope: 'main_location', status: 'active', annual_salary: '78000' },
+    { email: 'robert@collinsffh.demo', role: 'staff', scope: 'assigned_work', status: 'active', hourly_cost: '31' },
   ];
   const cases = [
     {
@@ -151,6 +173,7 @@ function demoPartnerPayload(email, memberships = []) {
       mode: 'red',
       path: 'red',
       status: 'active',
+      orchestration_summary: { partner_financials: { total_case_value: '12400', is_prepaid: false, prepaid_amount: null } },
       tasks: [
         { id: 'demo-collins-task-1', workflow_id: 'demo-collins-price', title: 'Confirm cemetery plot details', description: 'Ask family for section, lot number, and deed photo before the arrangement meeting.', status: 'waiting', assigned_to_name: 'Robert Alvarez', assigned_to_email: 'robert@collinsffh.demo', created_at: '2026-05-08T13:00:00Z', last_action_at: '2026-05-08T14:30:00Z', proof_required: 'Family reply or cemetery record' },
         { id: 'demo-collins-task-2', workflow_id: 'demo-collins-price', title: 'Prepare the funeral home meeting summary', description: 'Organize dates, family contact, service preferences, and open questions into one prepared packet.', status: 'assigned', assigned_to_name: 'Maria Collins', assigned_to_email: 'maria@collinsffh.demo', created_at: '2026-05-08T15:00:00Z', proof_required: 'Prepared packet' },
@@ -185,6 +208,7 @@ function demoPartnerPayload(email, memberships = []) {
       mode: 'green',
       path: 'green',
       status: 'active',
+      orchestration_summary: { partner_financials: { total_case_value: '7400', is_prepaid: true, prepaid_amount: '7400' } },
       tasks: [
         { id: 'demo-collins-green-1', workflow_id: 'demo-collins-reed', title: 'Collect pre-need preferences', description: 'Capture wishes, contacts, documents, and activation people before it is urgent.', status: 'assigned', assigned_to_name: 'Maria Collins', assigned_to_email: 'maria@collinsffh.demo', created_at: '2026-05-07T09:00:00Z', proof_required: 'Preferences saved' },
         { id: 'demo-collins-green-2', workflow_id: 'demo-collins-reed', title: 'Confirm activation contacts', description: 'Name who should be contacted when the family needs the plan activated.', status: 'waiting', assigned_to_name: 'Anna Reed', assigned_to_email: 'anna.reed@example.com', created_at: '2026-05-07T10:00:00Z', proof_required: 'Activation contact confirmed' },
@@ -208,6 +232,7 @@ function demoPartnerPayload(email, memberships = []) {
       mode: 'after',
       path: 'after',
       status: 'active',
+      orchestration_summary: { partner_financials: { total_case_value: '9800', is_prepaid: false, prepaid_amount: null } },
       tasks: [
         { id: 'demo-collins-after-1', workflow_id: 'demo-collins-after', title: 'Send aftercare document packet', description: 'Export certificates, service details, and proof summary for the executor.', status: 'handled', assigned_to_name: 'Robert Alvarez', assigned_to_email: 'robert@collinsffh.demo', created_at: '2026-05-05T09:00:00Z', last_action_at: '2026-05-06T12:00:00Z', proof_required: 'Packet delivered' },
         { id: 'demo-collins-after-2', workflow_id: 'demo-collins-after', title: 'Confirm thank-you card recipient list', description: 'Family needs one clean list before printing.', status: 'waiting', assigned_to_name: 'Claire Ellis', assigned_to_email: 'claire.ellis@example.com', created_at: '2026-05-06T09:00:00Z', proof_required: 'Recipient list approved' },
@@ -246,6 +271,9 @@ function demoPartnerPayload(email, memberships = []) {
       assignmentsCoordinated: allTasks.filter(task => task.assigned_to_email || task.assigned_to_name).length,
       callsAvoided: 14,
       avgTasksPerEstate: Math.round((allTasks.length / cases.length) * 10) / 10,
+      totalCaseValue: cases.reduce((sum, item) => sum + caseValueNumber(item), 0),
+      prepaidCaseValue: cases.reduce((sum, item) => sum + prepaidValueNumber(item), 0),
+      avgCaseValue: Math.round(cases.reduce((sum, item) => sum + caseValueNumber(item), 0) / cases.length),
       marketplace: { requests: 1, estimatedValue: 650, funeralHomeShare: 0, passageShare: 0 },
       byLocation: [{ location: 'Main location', cases: 3, openTasks: allTasks.length - handled, handledTasks: handled, waitingTasks: waiting, blockedTasks: blocked, callsAvoided: 14, referralValue: 650, funeralHomeShare: 0 }],
       byEmployee: staff.map(member => ({ email: member.email, role: member.role, scope: member.scope, assignedTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email)).length, openTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && !isHandledStatus(task.status)).length, handledTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && isHandledStatus(task.status)).length, waitingTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && isWaitingStatus(task.status)).length })),
@@ -453,6 +481,11 @@ export default async function handler(req, res) {
       email: member.email,
       role,
       organization_id: member.organization_id,
+      display_name: member.display_name || null,
+      title: member.title || null,
+      location_scope: member.location_scope || null,
+      annual_salary: member.annual_salary || null,
+      hourly_cost: member.hourly_cost || null,
       scope: directorRole ? 'all_cases' : 'assigned_work',
       assignedOpen: assigned.filter(task => !isHandledStatus(task.status)).length,
       handled: handledByMember.length,
@@ -462,6 +495,8 @@ export default async function handler(req, res) {
   });
 
   const locations = Array.from(new Set(cases.map(locationNameForWorkflow)));
+  const totalCaseValue = cases.reduce((sum, item) => sum + caseValueNumber(item), 0);
+  const prepaidCaseValue = cases.reduce((sum, item) => sum + prepaidValueNumber(item), 0);
   const byLocation = locations.map(location => {
     const locationCases = cases.filter(item => locationNameForWorkflow(item) === location);
     const locationTasks = allTasks.filter(task => task.location_name === location);
@@ -474,6 +509,8 @@ export default async function handler(req, res) {
       handledTasks: locationTasks.filter(task => isHandledStatus(task.status)).length,
       waitingTasks: locationTasks.filter(task => isWaitingStatus(task.status)).length,
       blockedTasks: locationTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+      caseValue: locationCases.reduce((sum, item) => sum + caseValueNumber(item), 0),
+      prepaidValue: locationCases.reduce((sum, item) => sum + prepaidValueNumber(item), 0),
       callsAvoided: locationCommunications.length + locationTasks.filter(task => task.assigned_to_email || task.assigned_to_name).length + locationVendorRequests.length,
       referralValue: locationVendorRequests.reduce((sum, request) => sum + valueFromRequest(request, 'final_value') + (!request.final_value ? valueFromRequest(request, 'estimated_value') : 0), 0),
       funeralHomeShare: locationVendorRequests.reduce((sum, request) => sum + valueFromRequest(request, 'funeral_home_share_amount'), 0),
@@ -488,6 +525,8 @@ export default async function handler(req, res) {
       email: member.email,
       role: member.role,
       scope: member.scope,
+      annualSalary: member.annual_salary || null,
+      hourlyCost: member.hourly_cost || null,
       assignedTasks: assigned.length,
       openTasks: assigned.filter(task => !isHandledStatus(task.status)).length,
       handledTasks: assigned.filter(task => isHandledStatus(task.status)).length + acted.filter(task => isHandledStatus(task.status)).length,
@@ -506,6 +545,9 @@ export default async function handler(req, res) {
     assignmentsCoordinated: allTasks.filter(task => task.assigned_to_email || task.assigned_to_name).length,
     callsAvoided: allCommunications.length + allTasks.filter(task => task.assigned_to_email || task.assigned_to_name).length + allVendorRequests.length,
     avgTasksPerEstate: cases.length ? Math.round((allTasks.length / cases.length) * 10) / 10 : 0,
+    totalCaseValue,
+    prepaidCaseValue,
+    avgCaseValue: cases.length ? Math.round(totalCaseValue / cases.length) : 0,
     marketplace: {
       requests: allVendorRequests.length,
       estimatedValue: allVendorRequests.reduce((sum, request) => sum + valueFromRequest(request, 'final_value') + (!request.final_value ? valueFromRequest(request, 'estimated_value') : 0), 0),

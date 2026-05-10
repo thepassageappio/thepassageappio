@@ -19,6 +19,9 @@ const IMPORT_FIELDS = [
   ['primary_contact_email', 'Family contact email', true],
   ['primary_contact_phone', 'Family contact phone', false],
   ['case_reference', 'Case reference', false],
+  ['total_case_value', 'Total case value', false],
+  ['is_prepaid', 'Prepaid / funded', false],
+  ['prepaid_amount', 'Prepaid / policy amount', false],
   ['source_system', 'Source system', false],
   ['date_of_death', 'Date of death', false],
   ['pronouncement_date', 'Pronouncement date', false],
@@ -41,6 +44,9 @@ const IMPORT_ALIASES = {
   primary_contact_phone: ['primary_contact_phone', 'phone', 'family_phone', 'family_contact_phone', 'informant_phone', 'next_of_kin_phone', 'coordinator_phone', 'contact_phone'],
   date_of_death: ['date_of_death', 'death_date', 'dod'],
   case_reference: ['case_reference', 'case_id', 'case_number', 'contract_number', 'record_id', 'reference'],
+  total_case_value: ['total_case_value', 'case_value', 'contract_value', 'arrangement_value', 'sale_amount', 'revenue', 'total_price', 'case_total'],
+  is_prepaid: ['is_prepaid', 'prepaid', 'funded', 'pre_need_funded', 'preneed_funded', 'policy_funded'],
+  prepaid_amount: ['prepaid_amount', 'prepaid_value', 'policy_amount', 'policy_value', 'funded_amount', 'pre_need_amount'],
   source_system: ['source_system', 'system', 'export_source', 'case_management_system'],
   pronouncement_date: ['pronouncement_date', 'official_pronouncement', 'pronouncement'],
   release_date: ['release_date', 'pickup_date', 'removal_date', 'transfer_date'],
@@ -88,9 +94,12 @@ function partnerCaseTypeLabel(item) {
 
 function partnerFundingLabel(item) {
   const financials = item?.orchestration_summary?.partner_financials || item?.partner_financials || {};
-  if (!financials?.is_prepaid) return '';
-  const total = financials.total_case_value || financials.prepaid_amount;
-  return total ? `Prepaid / funded: ${moneyDisplay(total)}` : 'Prepaid / funded';
+  const total = financials.total_case_value || financials.case_value || financials.contract_value;
+  const prepaid = financials.prepaid_amount || financials.policy_amount;
+  if (total && financials?.is_prepaid) return `Case value ${moneyDisplay(total)} - prepaid ${prepaid ? moneyDisplay(prepaid) : 'noted'}`;
+  if (total) return `Case value ${moneyDisplay(total)}`;
+  if (financials?.is_prepaid) return `Prepaid / funded${prepaid ? `: ${moneyDisplay(prepaid)}` : ''}`;
+  return '';
 }
 
 function moneyDisplay(value) {
@@ -98,6 +107,31 @@ function moneyDisplay(value) {
   const number = Number(raw);
   if (!Number.isFinite(number) || number <= 0) return String(value || '');
   return `$${Math.round(number).toLocaleString()}`;
+}
+
+function moneyNumber(value) {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const raw = String(value || '').replace(/[$,\s]/g, '').trim();
+  const number = Number(raw);
+  return Number.isFinite(number) && number > 0 ? number : 0;
+}
+
+function caseFinancials(item) {
+  return item?.orchestration_summary?.partner_financials || item?.partner_financials || {};
+}
+
+function caseValueNumber(item) {
+  const financials = caseFinancials(item);
+  return moneyNumber(financials.total_case_value || financials.case_value || financials.contract_value || financials.arrangement_value);
+}
+
+function prepaidValueNumber(item) {
+  const financials = caseFinancials(item);
+  return moneyNumber(financials.prepaid_amount || financials.policy_amount || financials.funded_amount);
+}
+
+function truthyFlag(value) {
+  return ['true', 'yes', 'y', '1', 'paid', 'prepaid', 'funded'].includes(String(value || '').trim().toLowerCase());
 }
 
 function partnerLifecycleKey(item) {
@@ -180,9 +214,9 @@ const demoPartnerContext = {
   partnerPlan: { name: 'Pilot', status: 'demo' },
   isPassageAdmin: true,
   staff: [
-    { email: 'maria@hvfg.demo', role: 'director', scope: 'all_cases', status: 'active' },
-    { email: 'robert@hvfg.demo', role: 'staff', scope: 'assigned', status: 'active' },
-    { email: 'lena@hvfg.demo', role: 'location_manager', scope: 'main_location', status: 'active' },
+    { email: 'maria@hvfg.demo', role: 'director', scope: 'all_cases', status: 'active', annual_salary: '92000' },
+    { email: 'robert@hvfg.demo', role: 'staff', scope: 'assigned', status: 'active', hourly_cost: '32' },
+    { email: 'lena@hvfg.demo', role: 'location_manager', scope: 'main_location', status: 'active', annual_salary: '78000' },
   ],
   cases: [
     {
@@ -197,6 +231,9 @@ const demoPartnerContext = {
       setup_stage: 'active',
       mode: 'red',
       status: 'active',
+      orchestration_summary: {
+        partner_financials: { total_case_value: '11800', is_prepaid: false, prepaid_amount: null },
+      },
       tasks: [
         { id: 'demo-task-1', title: 'Confirm cemetery plot details', description: 'Ask family for section, lot number, and deed photo before the arrangement meeting.', status: 'waiting', assigned_to_name: 'Robert Alvarez', assigned_to_email: 'robert@hvfg.demo', created_at: '2026-05-08T13:00:00Z', last_action_at: '2026-05-08T14:30:00Z', proof_required: 'Family reply or cemetery record' },
         { id: 'demo-task-2', title: 'Prepare the funeral home meeting summary', description: 'Organize dates, family contact, service preferences, and open questions into one prepared packet.', status: 'assigned', assigned_to_name: 'Maria Ellis', assigned_to_email: 'maria@hvfg.demo', created_at: '2026-05-08T15:00:00Z', proof_required: 'Prepared packet' },
@@ -226,6 +263,9 @@ const demoPartnerContext = {
       setup_stage: 'preneed',
       mode: 'green',
       status: 'active',
+      orchestration_summary: {
+        partner_financials: { total_case_value: '7200', is_prepaid: true, prepaid_amount: '7200' },
+      },
       tasks: [
         { id: 'demo-green-1', title: 'Collect pre-need preferences', status: 'assigned', assigned_to_name: 'Lena Ortiz', assigned_to_email: 'lena@hvfg.demo', created_at: '2026-05-07T09:00:00Z' },
       ],
@@ -252,8 +292,8 @@ function buildDemoPartnerExport(data, view = 'spine') {
   const cases = data?.cases || [];
   const summaryView = view === 'cases';
   const rows = summaryView
-    ? [['Case', 'Case type', 'Reference', 'Family contact', 'Family email', 'Location', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Next move', 'Updated at']]
-    : [['Case', 'Record type', 'Case type', 'Reference', 'Family contact', 'Family email', 'Location', 'Task / request', 'Owner', 'Status', 'Waiting on', 'Proof / reporting']];
+    ? [['Case', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Prepaid amount', 'Family contact', 'Family email', 'Location', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Next move', 'Updated at']]
+    : [['Case', 'Record type', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Family contact', 'Family email', 'Location', 'Task / request', 'Owner', 'Status', 'Waiting on', 'Proof / reporting']];
 
   for (const item of cases) {
     const tasks = [...(item.partnerTasks || []), ...(item.tasks || [])];
@@ -267,6 +307,9 @@ function buildDemoPartnerExport(data, view = 'spine') {
         caseName,
         item.caseType || item.mode || 'At-need',
         item.caseReference || item.reference || '',
+        caseValueNumber(item) || '',
+        caseFinancials(item)?.is_prepaid ? 'Yes' : 'No',
+        prepaidValueNumber(item) || '',
         item.coordinatorName || item.primaryContactName || '',
         item.coordinatorEmail || item.primaryContactEmail || '',
         item.location || item.locationName || 'Main location',
@@ -280,7 +323,7 @@ function buildDemoPartnerExport(data, view = 'spine') {
     }
 
     if (!tasks.length) {
-      rows.push([caseName, 'case', item.caseType || 'At-need', item.caseReference || '', item.coordinatorName || '', item.coordinatorEmail || '', item.location || 'Main location', 'No open task', '', item.status || '', '', '']);
+      rows.push([caseName, 'case', item.caseType || 'At-need', item.caseReference || '', caseValueNumber(item) || '', caseFinancials(item)?.is_prepaid ? 'Yes' : 'No', item.coordinatorName || '', item.coordinatorEmail || '', item.location || 'Main location', 'No open task', '', item.status || '', '', '']);
     }
     for (const task of tasks) {
       rows.push([
@@ -288,6 +331,8 @@ function buildDemoPartnerExport(data, view = 'spine') {
         'task',
         item.caseType || item.mode || 'At-need',
         item.caseReference || item.reference || '',
+        caseValueNumber(item) || '',
+        caseFinancials(item)?.is_prepaid ? 'Yes' : 'No',
         item.coordinatorName || item.primaryContactName || '',
         item.coordinatorEmail || item.primaryContactEmail || '',
         item.location || item.locationName || 'Main location',
@@ -304,6 +349,8 @@ function buildDemoPartnerExport(data, view = 'spine') {
         'vendor_request',
         item.caseType || item.mode || 'At-need',
         item.caseReference || item.reference || '',
+        caseValueNumber(item) || '',
+        caseFinancials(item)?.is_prepaid ? 'Yes' : 'No',
         item.coordinatorName || item.primaryContactName || '',
         item.coordinatorEmail || item.primaryContactEmail || '',
         item.location || item.locationName || 'Main location',
@@ -367,7 +414,7 @@ export default function FuneralHomeDashboard() {
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
   const [showStaffSetup, setShowStaffSetup] = useState(false);
   const [showPilotGuide, setShowPilotGuide] = useState(false);
-  const [staffDraft, setStaffDraft] = useState({ name: '', email: '', role: 'staff', locationScope: 'all' });
+  const [staffDraft, setStaffDraft] = useState({ name: '', email: '', role: 'staff', locationScope: 'all', annualSalary: '', hourlyCost: '' });
   const [importDraft, setImportDraft] = useState(null);
   const [exportRange, setExportRange] = useState({ from: '', to: '' });
   const [copiedKey, setCopiedKey] = useState('');
@@ -709,6 +756,10 @@ export default function FuneralHomeDashboard() {
       name: staffDraft.name || email,
       location_scope: staffDraft.locationScope || 'all',
       locationScope: staffDraft.locationScope || 'all',
+      annual_salary: staffDraft.annualSalary || null,
+      annualSalary: staffDraft.annualSalary || '',
+      hourly_cost: staffDraft.hourlyCost || null,
+      hourlyCost: staffDraft.hourlyCost || '',
       status: 'active',
       scope: /director|admin|manager|location/i.test(staffDraft.role || '') ? 'all_cases' : 'assigned_work',
     };
@@ -722,7 +773,7 @@ export default function FuneralHomeDashboard() {
       } : prev);
       setLatestStaffInvite(savedMember);
       setNotice('Employee saved for this demo. Copy the invite message; no email or SMS was sent.');
-      setStaffDraft({ name: '', email: '', role: 'staff', locationScope: 'all' });
+      setStaffDraft({ name: '', email: '', role: 'staff', locationScope: 'all', annualSalary: '', hourlyCost: '' });
       return;
     }
     setUpdating('partner_staff');
@@ -737,6 +788,8 @@ export default function FuneralHomeDashboard() {
           email,
           role: staffDraft.role || 'staff',
           locationScope: staffDraft.locationScope || 'all',
+          annualSalary: staffDraft.annualSalary,
+          hourlyCost: staffDraft.hourlyCost,
         }),
       });
       const json = await res.json().catch(() => ({}));
@@ -746,7 +799,7 @@ export default function FuneralHomeDashboard() {
         const persistedMember = json.member || savedMember;
         setLatestStaffInvite(persistedMember);
         setNotice(json.confirmation || 'Staff profile saved.');
-        setStaffDraft({ name: '', email: '', role: 'staff', locationScope: 'all' });
+        setStaffDraft({ name: '', email: '', role: 'staff', locationScope: 'all', annualSalary: '', hourlyCost: '' });
         await load(token);
       }
     } finally {
@@ -1005,7 +1058,7 @@ export default function FuneralHomeDashboard() {
 
   async function createCase(e) {
     e.preventDefault();
-    trackEvent('partner_case_create_submitted', { demoMode, caseType: caseForm.caseType, hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
+    trackEvent('partner_case_create_submitted', { demoMode, caseType: caseForm.caseType, hasFamilyEmail: Boolean(caseForm.coordinatorEmail), hasCaseValue: Boolean(caseForm.totalCaseValue), isPrepaid: Boolean(caseForm.isPrepaid) });
     if (!token) return;
     if (demoMode) {
       const now = new Date().toISOString();
@@ -1079,7 +1132,7 @@ export default function FuneralHomeDashboard() {
         ? 'Demo case created locally. Family handoff link is prepared for the walkthrough; no production record, email, or SMS was created.'
         : 'Demo case created locally. Add a family email in a real case before preparing the family handoff link.');
       setShowNewCase(false);
-      trackEvent('partner_case_created_demo', { caseType: normalizedCaseType, isPrepaid: Boolean(caseForm.isPrepaid), hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
+      trackEvent('partner_case_created_demo', { caseType: normalizedCaseType, isPrepaid: Boolean(caseForm.isPrepaid), hasCaseValue: Boolean(caseForm.totalCaseValue), hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
       setExpandedCaseId(id);
       setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', locationName: '', locationAddress: '', locationCity: '', locationState: '', locationZip: '', locationCountry: '', locationPlaceId: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
       return;
@@ -1098,7 +1151,7 @@ export default function FuneralHomeDashboard() {
       setError(json.error || 'Could not create this family case.');
       return;
     }
-    trackEvent('partner_case_created', { workflowId: json.workflowId, caseType: caseForm.caseType, familyParticipantCreated: Boolean(json.familyParticipant?.created) });
+    trackEvent('partner_case_created', { workflowId: json.workflowId, caseType: caseForm.caseType, isPrepaid: Boolean(caseForm.isPrepaid), hasCaseValue: Boolean(caseForm.totalCaseValue), familyParticipantCreated: Boolean(json.familyParticipant?.created) });
     await recordOnboardingProgress(supabase, 'partner_case_created', { workflowId: json.workflowId, caseType: caseForm.caseType });
     if (json.familyParticipant?.created && json.familyParticipant?.inviteToken) {
       const familyUrl = `${window.location.origin}/accept?token=${json.familyParticipant.inviteToken}`;
@@ -1219,6 +1272,8 @@ export default function FuneralHomeDashboard() {
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
   const totalVendorRequests = cases.reduce((sum, item) => sum + (item.vendorRequests?.length || 0), 0);
   const vendorValue = (request) => Number(request?.final_value ?? (request?.final_value_cents != null ? Number(request.final_value_cents || 0) / 100 : request?.estimated_value) ?? 0);
+  const totalCaseValue = cases.reduce((sum, item) => sum + caseValueNumber(item), 0);
+  const prepaidCaseValue = cases.reduce((sum, item) => sum + prepaidValueNumber(item), 0);
   const totalVendorValue = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + vendorValue(request), 0), 0);
   const funeralHomeShare = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.funeral_home_share_amount || 0), 0), 0);
   const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to_email || t.assigned_to_name || t.owner_name || t.participant_id).length, 0);
@@ -1259,6 +1314,7 @@ export default function FuneralHomeDashboard() {
   ];
   const detailGlanceItems = [
     ['Coordination time saved', timeSavedLabel],
+    ['Recorded case value', totalCaseValue ? moneyDisplay(totalCaseValue) : '$0'],
     ['Local requests coordinated', totalVendorRequests],
     ['Tracked referral value', totalVendorValue ? `$${Math.round(totalVendorValue)}` : '$0'],
   ];
@@ -1347,12 +1403,14 @@ export default function FuneralHomeDashboard() {
       scope: member.scope || (isDirectorRole ? 'all_cases' : 'assigned'),
       locationScope: member.location_scope || member.locationScope || 'all',
       title: member.title || '',
+      annualSalary: member.annual_salary || member.annualSalary || member.salary || member.salary_amount || '',
+      hourlyCost: member.hourly_cost || member.hourlyCost || member.hourly_rate || member.private_hourly_cost || '',
     }));
   const staffRosterEmails = new Set(staffRoster.map(member => member.email).filter(Boolean));
   const assignedEmails = new Set(allPartnerTasks.map(task => String(task.assigned_to_email || '').toLowerCase()).filter(Boolean));
   assignedEmails.forEach(email => {
     if (!staffRosterEmails.has(email)) {
-      staffRoster.push({ email, label: email, role: 'assigned contact', scope: 'assigned', locationScope: 'case assignment', title: '' });
+      staffRoster.push({ email, label: email, role: 'assigned contact', scope: 'assigned', locationScope: 'case assignment', title: '', annualSalary: '', hourlyCost: '' });
       staffRosterEmails.add(email);
     }
   });
@@ -1439,6 +1497,22 @@ export default function FuneralHomeDashboard() {
       : Math.max(1, Number(reportRange || 30));
   const reportAvgTasksPerEstate = reportScopedCases.length ? Math.round((reportScopedTasks.length / reportScopedCases.length) * 10) / 10 : 0;
   const reportTasksPerDay = Math.round((reportHandledTasks.length / reportActiveDays) * 10) / 10;
+  const reportCaseValue = reportScopedCases.reduce((sum, item) => sum + caseValueNumber(item), 0);
+  const reportPrepaidValue = reportScopedCases.reduce((sum, item) => sum + prepaidValueNumber(item), 0);
+  const reportAvgCaseValue = reportScopedCases.length ? Math.round(reportCaseValue / reportScopedCases.length) : 0;
+  const hourlyCostForEmail = (email) => {
+    const member = staffRoster.find(row => row.email && row.email === String(email || '').toLowerCase());
+    const hourly = moneyNumber(member?.hourlyCost);
+    if (hourly) return hourly;
+    const annual = moneyNumber(member?.annualSalary);
+    return annual ? annual / 2080 : 0;
+  };
+  const taskCostEstimate = (task) => {
+    const hourly = hourlyCostForEmail(task.assigned_to_email || task.last_actor);
+    return hourly ? (hourly * 8) / 60 : 0;
+  };
+  const reportLaborCost = reportHandledTasks.reduce((sum, task) => sum + taskCostEstimate(task), 0);
+  const reportCostPerResolvedTask = reportHandledTasks.length ? reportLaborCost / reportHandledTasks.length : 0;
   const reportLocations = reportLocation === 'all' ? locations : [reportLocation];
   const reportLocationRows = reportLocations.map(location => {
     const rows = cases.filter(item => locationNameFor(item) === location && reportDateInScope(caseReportDate(item)));
@@ -1447,22 +1521,29 @@ export default function FuneralHomeDashboard() {
     const waiting = tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length;
     const blocked = tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length;
     const messages = reportScopedMessages.filter(message => message.locationName === location).length;
-    return [location, rows.length, tasks.length, handled, waiting + blocked, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
+    const value = rows.reduce((sum, item) => sum + caseValueNumber(item), 0);
+    return [location, rows.length, moneyDisplay(value), rows.length ? moneyDisplay(value / rows.length) : '$0', tasks.length, handled, waiting + blocked, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
   }).filter(row => row[1] || row[2]);
   const reportEmployeeRows = (reportStaff === 'all' ? staffRoster : staffRoster.filter(member => member.email === reportStaff)).map(member => {
     const tasks = reportScopedTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
+    const hourly = hourlyCostForEmail(member.email);
+    const handled = tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const cost = handled.reduce((sum, task) => sum + taskCostEstimate(task), 0);
     return [
       member.label || member.email,
       roleLabel(member.role),
+      hourly ? moneyDisplay(hourly) + '/hr' : 'Not set',
       tasks.length,
-      tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())).length,
+      handled.length,
+      cost ? moneyDisplay(cost) : '$0',
+      handled.length && cost ? moneyDisplay(cost / handled.length) : '$0',
       tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
       tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
     ];
   }).filter(row => row[2] || reportStaff !== 'all');
   if ((reportStaff === 'all' || reportStaff === 'unassigned') && reportScopedTasks.some(task => !task.assigned_to_email && !task.assigned_to_name)) {
     const tasks = reportScopedTasks.filter(task => !task.assigned_to_email && !task.assigned_to_name);
-    reportEmployeeRows.push(['Unassigned', 'Needs owner', tasks.length, 0, tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length, tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length]);
+    reportEmployeeRows.push(['Unassigned', 'Needs owner', 'Not set', tasks.length, 0, '$0', '$0', tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length, tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length]);
   }
   const reportTaskSummaryRows = Array.from(reportScopedTasks.reduce((map, task) => {
     const title = sharedTaskTitle(task);
@@ -1479,6 +1560,8 @@ export default function FuneralHomeDashboard() {
     return [
       item.deceased_name || item.estate_name || item.name || 'Family case',
       locationNameFor(item),
+      caseValueNumber(item) ? moneyDisplay(caseValueNumber(item)) : '$0',
+      caseFinancials(item)?.is_prepaid ? 'Yes' : 'No',
       tasks.length,
       tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())).length,
       tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
@@ -2270,8 +2353,10 @@ export default function FuneralHomeDashboard() {
                           <option value="all">All locations</option>
                           {locations.map(location => <option key={location} value={location}>{location}</option>)}
                         </select>
+                        <input inputMode="decimal" value={staffDraft.annualSalary} onChange={event => setStaffDraft(prev => ({ ...prev, annualSalary: event.target.value }))} placeholder="Private annual salary" style={inputStyle} />
+                        <input inputMode="decimal" value={staffDraft.hourlyCost} onChange={event => setStaffDraft(prev => ({ ...prev, hourlyCost: event.target.value }))} placeholder="Or hourly cost" style={inputStyle} />
                       </div>
-                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>This prepares access and assignment. Email delivery is intentionally manual here: copy the invite message, or send it later from an approved notification flow.</div>
+                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>This prepares access and assignment. Salary/hourly cost stays in the partner reporting layer so directors can see private ROI, cost per task, and location efficiency. It is never shown to families or participants.</div>
                       {latestStaffInvite && (
                         <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
                           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Staff handoff ready</div>
@@ -2316,7 +2401,7 @@ export default function FuneralHomeDashboard() {
                           <div style={{ color: C.mid, fontSize: 12.2 }}>{member.locationScope === 'all' ? 'All locations' : member.locationScope || 'All locations'}</div>
                         </div>
                         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                          <button onClick={() => { setStaffDraft({ name: member.label === member.email ? '' : member.label || '', email: member.email || '', role: member.role || 'staff', locationScope: member.locationScope || 'all' }); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Edit</button>
+                          <button onClick={() => { setStaffDraft({ name: member.label === member.email ? '' : member.label || '', email: member.email || '', role: member.role || 'staff', locationScope: member.locationScope || 'all', annualSalary: member.annualSalary || '', hourlyCost: member.hourlyCost || '' }); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Edit</button>
                           <button onClick={() => copyText(staffInviteMessage(member), 'Staff invite message copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Copy invite</button>
                         </div>
                       </div>
@@ -2502,8 +2587,11 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8, marginBottom: 12 }}>
               {[
                 ['Calls avoided', reportCallsAvoided],
+                ['Case value', moneyDisplay(reportCaseValue)],
+                ['Avg case value', moneyDisplay(reportAvgCaseValue)],
                 ['Messages sent', reportScopedMessages.length],
                 ['Tasks resolved', reportHandledTasks.length],
+                ['Cost / resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0'],
                 ['Avg tasks / estate', reports.avgTasksPerEstate ?? reportAvgTasksPerEstate],
                 ['Tasks / day', reportTasksPerDay],
                 ['Waiting + blocked', reportWaitingTasks.length + reportBlockedTasks.length],
@@ -2521,8 +2609,13 @@ export default function FuneralHomeDashboard() {
                   columns={['Metric', 'Value', 'Why it matters']}
                   rows={[
                     ['Calls avoided', reportCallsAvoided, 'Assignments, messages, and requests replace repeated status calls.'],
+                    ['Recorded case value', moneyDisplay(reportCaseValue), 'Case economics entered at intake or imported from the case system.'],
+                    ['Average case value', moneyDisplay(reportAvgCaseValue), 'Helps compare location revenue and case mix without creating a separate case type.'],
+                    ['Prepaid / funded value', moneyDisplay(reportPrepaidValue), 'Funding detail on the same family record, not a separate workflow.'],
                     ['Tasks resolved', reportHandledTasks.length, 'Shows work that moved from waiting to proof.'],
                     ['Average tasks per estate', reportAvgTasksPerEstate, 'Helps price support load and compare case complexity.'],
+                    ['Estimated labor cost', reportLaborCost ? moneyDisplay(reportLaborCost) : '$0', 'Private estimate from employee salary/hourly cost; not visible to families.'],
+                    ['Cost per resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0', 'Directional cost based on an 8-minute coordination unit.'],
                     ['Tasks completed per day', reportTasksPerDay, 'Shows throughput for the selected range.'],
                     ['Messages sent', reportScopedMessages.length, 'Measures family-facing coordination volume.'],
                   ]}
@@ -2542,14 +2635,14 @@ export default function FuneralHomeDashboard() {
             {reportView === 'locations' && (
               <ReportTable
                 title="By location"
-                columns={['Location', 'Cases', 'Tasks', 'Handled', 'Waiting / blocked', 'Calls avoided']}
+                columns={['Location', 'Cases', 'Case value', 'Avg value', 'Tasks', 'Handled', 'Waiting / blocked', 'Calls avoided']}
                 rows={reportLocationRows}
               />
             )}
             {reportView === 'staff' && (
               <ReportTable
                 title="By employee"
-                columns={['Employee', 'Role', 'Tasks', 'Handled', 'Waiting', 'Blocked']}
+                columns={['Employee', 'Role', 'Private cost', 'Tasks', 'Handled', 'Est. cost', 'Cost / task', 'Waiting', 'Blocked']}
                 rows={reportEmployeeRows}
               />
             )}
@@ -2563,7 +2656,7 @@ export default function FuneralHomeDashboard() {
             {reportView === 'cases' && (
               <ReportTable
                 title="By case / estate"
-                columns={['Case', 'Location', 'Tasks', 'Handled', 'Waiting', 'Blocked']}
+                columns={['Case', 'Location', 'Case value', 'Prepaid', 'Tasks', 'Handled', 'Waiting', 'Blocked']}
                 rows={reportCaseRows}
               />
             )}
@@ -2667,26 +2760,25 @@ export default function FuneralHomeDashboard() {
                 hint="Choose a suggestion to keep location, city, state, ZIP, and country attached to the case."
               />
             </div>
-            <div style={{ background: C.sageFaint, border: `1px solid ${caseForm.isPrepaid ? C.sage : C.sage + '22'}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
-              <label style={{ display: 'flex', gap: 9, alignItems: 'flex-start', color: C.ink, fontSize: 13.5, fontWeight: 900, cursor: 'pointer' }}>
-                <input type="checkbox" checked={caseForm.isPrepaid} onChange={event => setCaseForm(prev => ({ ...prev, isPrepaid: event.target.checked }))} style={{ marginTop: 2, accentColor: C.sage }} />
-                <span>
-                  Prepaid or funded arrangement
-                  <span style={{ display: 'block', color: C.mid, fontSize: 12, lineHeight: 1.45, fontWeight: 500, marginTop: 3 }}>This is not a separate case type. It is a funding detail on the same family record.</span>
-                </span>
-              </label>
-              {caseForm.isPrepaid && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: 8, marginTop: 10 }}>
-                  <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
-                    Total case value
-                    <input inputMode="decimal" value={caseForm.totalCaseValue} onChange={e => setCaseForm(prev => ({ ...prev, totalCaseValue: e.target.value }))} placeholder="$" style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
-                  </label>
+            <div style={{ background: C.sageFaint, border: `1px solid ${caseForm.totalCaseValue || caseForm.isPrepaid ? C.sage : C.sage + '22'}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case economics</div>
+              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>Value belongs on every case when known. Prepaid is only a funding flag, and these numbers power private ROI reports for the funeral home.</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: 8, marginTop: 10, alignItems: 'end' }}>
+                <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                  Total case value
+                  <input inputMode="decimal" value={caseForm.totalCaseValue} onChange={e => setCaseForm(prev => ({ ...prev, totalCaseValue: e.target.value }))} placeholder="$8,500" style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
+                </label>
+                <label style={{ display: 'flex', gap: 9, alignItems: 'center', color: C.ink, fontSize: 13.5, fontWeight: 900, cursor: 'pointer', minHeight: 40 }}>
+                  <input type="checkbox" checked={caseForm.isPrepaid} onChange={event => setCaseForm(prev => ({ ...prev, isPrepaid: event.target.checked }))} style={{ marginTop: 2, accentColor: C.sage }} />
+                  Prepaid or funded
+                </label>
+                {caseForm.isPrepaid && (
                   <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
                     Prepaid / policy amount
                     <input inputMode="decimal" value={caseForm.prepaidAmount} onChange={e => setCaseForm(prev => ({ ...prev, prepaidAmount: e.target.value }))} placeholder="$" style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.card, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
                   </label>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             {caseForm.caseType === 'immediate' && (
               <details style={{ border: `1px solid ${C.border}`, borderRadius: 12, background: C.bg, padding: '9px 10px', marginTop: 10 }}>
