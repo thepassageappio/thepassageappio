@@ -4741,37 +4741,37 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <style>{`
         .home-shell { max-width: 1120px; margin: 0 auto; padding: 26px 28px 58px; }
-        .home-hero { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(340px, .78fr); gap: 44px; align-items: center; padding: 18px 0 34px; }
+        .home-hero { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(320px, .72fr); gap: 36px; align-items: center; padding: 12px 0 26px; }
         .home-kicker { color:${C.sage}; font-size:11px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:14px; }
-        .home-title { font-family: Georgia, serif; font-size: clamp(44px, 6vw, 76px); line-height: .98; color:${C.ink}; margin:0 0 18px; font-weight:400; letter-spacing:0; }
-        .home-lede { color:${C.mid}; font-size:18px; line-height:1.62; max-width:660px; margin:0; }
-        .home-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:28px; }
-        .home-action { min-height:54px; border-radius:14px; padding:0 20px; font-family:inherit; font-size:15px; font-weight:900; cursor:pointer; }
+        .home-title { font-family: Georgia, serif; font-size: clamp(42px, 5.6vw, 68px); line-height: 1; color:${C.ink}; margin:0 0 16px; font-weight:400; letter-spacing:0; }
+        .home-lede { color:${C.mid}; font-size:17px; line-height:1.58; max-width:640px; margin:0; }
+        .home-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:24px; }
+        .home-action { min-height:50px; border-radius:13px; padding:0 18px; font-family:inherit; font-size:14px; font-weight:900; cursor:pointer; }
         .home-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
         .home-secondary { background:${C.bgCard}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
         .home-tertiary { background:transparent; color:${C.mid}; border:1px solid ${C.border}; }
         .home-note { color:${C.soft}; font-size:13px; line-height:1.55; margin-top:14px; }
-        .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 22px 70px rgba(55,45,35,.08); padding:24px; }
-        .home-panel-head { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; border-bottom:1px solid ${C.border}; padding-bottom:18px; margin-bottom:18px; }
-        .home-panel-title { font-size:24px; line-height:1.12; color:${C.ink}; margin:0; font-weight:400; }
+        .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:20px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:20px; }
+        .home-panel-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; border-bottom:1px solid ${C.border}; padding-bottom:14px; margin-bottom:10px; }
+        .home-panel-title { font-size:22px; line-height:1.12; color:${C.ink}; margin:0; font-weight:400; }
         .home-pill { background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; border-radius:999px; padding:6px 10px; font-size:11.5px; font-weight:900; white-space:nowrap; }
-        .home-step { display:grid; grid-template-columns:32px minmax(0,1fr); gap:12px; align-items:start; padding:14px 0; border-bottom:1px solid ${C.border}; }
+        .home-step { display:grid; grid-template-columns:30px minmax(0,1fr); gap:10px; align-items:start; padding:11px 0; border-bottom:1px solid ${C.border}; }
         .home-step:last-child { border-bottom:none; }
         .home-num { width:30px; height:30px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:${C.sageFaint}; color:${C.sageDark}; font-size:13px; font-weight:900; }
         .home-step b { display:block; color:${C.ink}; font-size:16px; margin-bottom:4px; }
         .home-step span { display:block; color:${C.mid}; font-size:13.5px; line-height:1.5; }
-        .home-band { border-top:1px solid ${C.border}; padding:28px 0 0; margin-top:0; }
-        .home-band-grid { display:grid; grid-template-columns:minmax(0,.82fr) minmax(0,1fr); gap:36px; align-items:start; }
-        .home-band h2 { font-family:Georgia,serif; font-size:clamp(30px,3.8vw,46px); line-height:1.04; margin:0 0 12px; color:${C.ink}; font-weight:400; }
-        .home-band p { color:${C.mid}; font-size:15.5px; line-height:1.65; margin:0; }
-        .home-line { display:grid; grid-template-columns:128px minmax(0,1fr); gap:16px; padding:16px 0; border-bottom:1px solid ${C.border}; }
+        .home-band { border-top:1px solid ${C.border}; padding:22px 0 0; margin-top:0; }
+        .home-band-grid { display:grid; grid-template-columns:minmax(0,.78fr) minmax(0,1fr); gap:28px; align-items:start; }
+        .home-band h2 { font-family:Georgia,serif; font-size:clamp(28px,3.4vw,40px); line-height:1.06; margin:0 0 10px; color:${C.ink}; font-weight:400; }
+        .home-band p { color:${C.mid}; font-size:14.5px; line-height:1.58; margin:0; }
+        .home-line { display:grid; grid-template-columns:118px minmax(0,1fr); gap:14px; padding:12px 0; border-bottom:1px solid ${C.border}; }
         .home-line:last-child { border-bottom:none; }
         .home-line-label { color:${C.sageDark}; font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; }
         .home-line-title { color:${C.ink}; font-size:19px; line-height:1.18; margin-bottom:5px; }
         .home-line-body { color:${C.mid}; font-size:13.5px; line-height:1.55; }
-        .partner-strip { margin-top:30px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:22px; padding:24px 26px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:22px; align-items:center; }
-        .partner-strip h2 { font-family:Georgia,serif; font-size:clamp(26px,3vw,36px); line-height:1.08; margin:0 0 8px; color:${C.ink}; font-weight:400; }
-        .partner-strip p { color:${C.mid}; font-size:14.5px; line-height:1.6; margin:0; max-width:700px; }
+        .partner-strip { margin-top:22px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:20px; padding:20px 22px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; align-items:center; }
+        .partner-strip h2 { font-family:Georgia,serif; font-size:clamp(24px,2.6vw,32px); line-height:1.08; margin:0 0 6px; color:${C.ink}; font-weight:400; }
+        .partner-strip p { color:${C.mid}; font-size:13.5px; line-height:1.55; margin:0; max-width:700px; }
         @media (max-width: 720px) {
           .home-shell { padding: 22px 18px 50px; }
           .home-hero, .home-band-grid, .partner-strip { grid-template-columns:1fr; }

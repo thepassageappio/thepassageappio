@@ -56,48 +56,19 @@ export default function ResourcesPage() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <SiteHeader />
-      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '22px 28px 18px' }}>
-        <div style={{ maxWidth: 760, marginBottom: 22 }}>
+      <section style={{ maxWidth: 1060, margin: '0 auto', padding: '22px 28px 18px' }}>
+        <div style={{ maxWidth: 760, marginBottom: 18 }}>
           <div style={eyebrow}>Resources</div>
-          <h1 style={{ fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: .95, margin: '0 0 12px', fontWeight: 400 }}>
-            How Passage coordinates the work around a death.
+          <h1 style={{ fontSize: 'clamp(34px, 4.5vw, 52px)', lineHeight: 1, margin: '0 0 10px', fontWeight: 400 }}>
+            Start with the question you are carrying.
           </h1>
-          <p style={{ color: C.mid, fontSize: 18, lineHeight: 1.5, margin: 0 }}>
-            A plain-language overview for families, funeral homes, helpers, and vendors. Product screens stay action-first; this page carries the explanation.
+          <p style={{ color: C.mid, fontSize: 17, lineHeight: 1.5, margin: 0 }}>
+            Simple guides for families, funeral homes, invited helpers, and local support partners.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(280px, .75fr)', gap: 18, alignItems: 'stretch' }} className="resources-hero-grid">
-          <section style={panel}>
-            <div style={eyebrow}>The spine</div>
-            <h2 style={sectionTitle}>One task-native coordination loop.</h2>
-            <div style={{ display: 'grid', gap: 0, marginTop: 10 }}>
-              {spineSteps.map(([number, title, body]) => (
-                <div key={number} style={{ display: 'grid', gridTemplateColumns: '34px minmax(0,1fr)', gap: 12, padding: '13px 0', borderTop: `1px solid ${C.border}` }}>
-                  <span style={{ width: 28, height: 28, borderRadius: '50%', background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{number}</span>
-                  <div>
-                    <div style={{ fontSize: 18, lineHeight: 1.15, fontWeight: 800 }}>{title}</div>
-                    <div style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.45, marginTop: 4 }}>{body}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <aside style={{ ...panel, background: C.goldFaint, borderColor: '#ead8b6' }}>
-            <div style={eyebrow}>When you need guidance</div>
-            <h2 style={sectionTitle}>Start here, not inside a work screen.</h2>
-            <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.5, margin: '8px 0 14px' }}>
-              Guides explain the first 24 hours, family notifications, executor basics, and funeral home meeting prep.
-            </p>
-            <Link href="/guides" style={primaryLink}>Open guides</Link>
-          </aside>
-        </div>
-
-        <section style={{ marginTop: 18 }}>
-          <div style={eyebrow}>By role</div>
-          <h2 style={sectionTitle}>Different views, same truth.</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))', gap: 12, marginTop: 12 }}>
+        <section>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))', gap: 12 }}>
             {audiences.map(item => (
               <article key={item.label} style={panel}>
                 <div style={eyebrow}>{item.label}</div>
@@ -109,15 +80,32 @@ export default function ResourcesPage() {
           </div>
         </section>
 
-        <section style={{ ...panel, marginTop: 18 }}>
-          <div style={eyebrow}>Coordination rules</div>
-          <h2 style={sectionTitle}>Messages, notifications, and proof are not the same thing.</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))', gap: 10, marginTop: 12 }}>
-            {trustNotes.map(note => (
-              <div key={note} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, color: C.mid, fontSize: 14.5, lineHeight: 1.45 }}>{note}</div>
+        <section style={{ ...panel, marginTop: 14, display: 'grid', gridTemplateColumns: 'minmax(0,.9fr) minmax(0,1.1fr)', gap: 18, alignItems: 'start' }} className="resources-hero-grid">
+          <div>
+            <div style={eyebrow}>The spine</div>
+            <h2 style={sectionTitle}>One task keeps the owner, message, proof, and waiting point together.</h2>
+            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: '9px 0 0' }}>
+              Everyone sees only the slice they need. The family record stays continuous as providers rotate in and out.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {spineSteps.map(([number, title]) => (
+              <div key={number} style={{ display: 'grid', gridTemplateColumns: '30px minmax(0,1fr)', gap: 9, alignItems: 'center', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 11, padding: '8px 10px' }}>
+                <span style={{ width: 24, height: 24, borderRadius: '50%', background: C.card, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12 }}>{number}</span>
+                <span style={{ fontSize: 14, lineHeight: 1.25, fontWeight: 800 }}>{title}</span>
+              </div>
             ))}
           </div>
         </section>
+
+        <details style={{ ...panel, marginTop: 14 }}>
+          <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>Coordination rules</summary>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))', gap: 10, marginTop: 12 }}>
+            {trustNotes.map(note => (
+              <div key={note} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, color: C.mid, fontSize: 14, lineHeight: 1.45 }}>{note}</div>
+            ))}
+          </div>
+        </details>
       </section>
       <SiteFooter />
       <style jsx>{`

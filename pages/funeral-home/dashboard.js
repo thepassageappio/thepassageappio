@@ -701,14 +701,16 @@ export default function FuneralHomeDashboard() {
     setSelectedLocation('all');
     setExpandedCaseId(caseId);
     setNotice('Opening the case work queue.');
-    window.setTimeout(() => {
+    const scrollToCase = () => {
       const panel = document.getElementById('partner-case-' + caseId);
       if (panel) {
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
         setNotice('Case work is open. If the case is filtered out, switch to All locations.');
       }
-    }, 80);
+    };
+    window.setTimeout(scrollToCase, 80);
+    window.setTimeout(scrollToCase, 260);
   }
 
   function openPartnerPane(view, targetId, message) {
@@ -1468,18 +1470,18 @@ export default function FuneralHomeDashboard() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '32px 28px 56px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 24, alignItems: 'flex-start', marginBottom: 24 }}>
+      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '24px 28px 50px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
           <div>
-            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Partner command center</div>
-            <h1 style={{ fontSize: 32, lineHeight: 1.1, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
-            <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.55, maxWidth: 620 }}>Create a case, move the next task, and keep the family informed.</p>
+            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Partner command center</div>
+            <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 620, marginTop: 8 }}>One case at a time: next task, owner, waiting point, proof, and export.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New at-need case</button>}
-            {user && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New pre-need case</button>}
-            {user && <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export cases</button>}
-            {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 18px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'More tools'}</button>}
+            {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New at-need case</button>}
+            {user && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Pre-need</button>}
+            {user && <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export</button>}
+            {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'Tools'}</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
         </div>
@@ -1571,7 +1573,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data && (
+        {false && user && !loading && data && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '11px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <div>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner command center</div>
@@ -2451,7 +2453,7 @@ export default function FuneralHomeDashboard() {
                       <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>{partnerCaseTypeLabel(item)} - {isMultiLocation ? `${itemLocation} - ` : ''}Coordinator: {item.coordinator_name || 'Family coordinator'}{item.coordinator_email ? ` (${item.coordinator_email})` : ''}</div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                      <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close case work' : 'Open case work'}</button>
+                      <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close work pane' : 'Open work pane'}</button>
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'stretch', marginTop: 12 }}>
@@ -2499,28 +2501,28 @@ export default function FuneralHomeDashboard() {
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{item.tasks.length} tasks</span>
-                    {isMultiLocation && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Location: {itemLocation}</span>}
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{partnerTasks.length} partner-ready</span>
-                    {isAdminDemo && isDemoCase && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Demo data</span>}
                     {waitingFamily.length > 0 && <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{waitingFamily.length} waiting on family</span>}
                     {blocked > 0 && <span style={{ background: C.roseFaint, color: C.rose, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{blocked} need help</span>}
-                    {vendorRequests.length > 0 && <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{vendorRequests.length} local help requests</span>}
-                    {timelineEvents.length > 0
+                    {isExpanded && isMultiLocation && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Location: {itemLocation}</span>}
+                    {isExpanded && isAdminDemo && isDemoCase && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Demo data</span>}
+                    {isExpanded && vendorRequests.length > 0 && <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{vendorRequests.length} local help requests</span>}
+                    {isExpanded && (timelineEvents.length > 0
                       ? timelineEvents.slice(0, 1).map(event => (
                         <span key={`${event.event_type || event.name || event.title}_${event.date}`} style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{event.name || event.title || event.event_type || 'Event'}: {new Date(String(event.date).includes('T') ? event.date : `${event.date}T12:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                       ))
-                      : <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Event dates unknown</span>}
-                    {missingTimeline.map(label => (
+                      : <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Event dates unknown</span>)}
+                    {isExpanded && missingTimeline.map(label => (
                       <span key={`missing_${label}`} style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>Add when known: {label}</span>
                     ))}
-                    <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{conversationCount} convo / {proofCount} proof / {notificationCount} alerts</span>
+                    {isExpanded && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{conversationCount} convo / {proofCount} proof / {notificationCount} alerts</span>}
                   </div>
-                  <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
+                  {isExpanded && <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
                     <span style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Outputs</span>
                     <Link href={`/packet?id=${encodeURIComponent(item.id)}&demoTour=funeral-home&demoStep=warm`} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 9px', textDecoration: 'none', fontSize: 11.5, fontWeight: 900 }}>Prepared packets</Link>
                     <Link href={familyUpdateHref} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 9px', textDecoration: 'none', fontSize: 11.5, fontWeight: 900 }}>Family update</Link>
                     <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.mid, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 999, padding: '6px 9px', textDecoration: 'none', fontSize: 11.5, fontWeight: 900 }}>Printable summary</Link>
-                  </div>
+                  </div>}
                   {isExpanded && nextPartnerTask && (() => {
                     const context = { caseName: item?.deceased_name || item?.estate_name || item?.name, coordinatorName: item?.coordinator_name, surface: 'case spine proof' };
                     const output = taskOutputFor(nextPartnerTask, context);

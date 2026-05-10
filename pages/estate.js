@@ -1596,7 +1596,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
   }
 
   return (
-    <section style={{ borderTop: '1px solid ' + BORDER, borderBottom: '1px solid ' + BORDER, padding: '24px 0 26px', marginBottom: 24 }}>
+    <section style={{ borderTop: '1px solid ' + BORDER, borderBottom: '1px solid ' + BORDER, padding: '18px 0 20px', marginBottom: 20 }}>
       <style>{`
         @media (max-width: 760px) {
           .passage-task-spine-grid { grid-template-columns: 1fr !important; }
@@ -1609,17 +1609,17 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 18 }}>
         <div>
           <div style={{ fontSize: 10.5, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Estate operating spine</div>
-          <div style={{ fontSize: 28, color: INK, lineHeight: 1.08, fontWeight: 900 }}>One next move. One shared truth.</div>
-          <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.55, marginTop: 7, maxWidth: 620 }}>Every task keeps the owner, request, response expectation, proof, and family-visible status together.</div>
+          <div style={{ fontSize: 26, color: INK, lineHeight: 1.08, fontWeight: 900 }}>One next move. One shared truth.</div>
+          <div style={{ color: MID, fontSize: 13.2, lineHeight: 1.5, marginTop: 6, maxWidth: 620 }}>Owner, request, waiting point, proof, and family-visible status stay together.</div>
         </div>
-        <div style={{ minWidth: 180, background: statusBg, border: '1px solid ' + (blockedCount ? ROSE + '35' : waitingCount ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 16, padding: '11px 13px', textAlign: 'right' }}>
+        <div style={{ minWidth: 170, background: statusBg, border: '1px solid ' + (blockedCount ? ROSE + '35' : waitingCount ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 14, padding: '10px 12px', textAlign: 'right' }}>
           <div style={{ color: statusTone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{blockedCount ? 'Needs attention' : waitingCount ? 'Waiting' : 'On track'}</div>
           <div style={{ color: INK, fontSize: 20, lineHeight: 1.1, fontWeight: 900, marginTop: 4 }}>{handledCount} handled</div>
           <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{waitingCount} waiting · {blockedCount} blocked</div>
         </div>
       </div>
 
-      <div className="passage-task-trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
+      {false && <div className="passage-task-trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
         {[
           ['Who can see this', 'The coordinator sees the family record. Assigned helpers see only the work appropriate to their role.'],
           ['What stays protected', 'Proof, documents, and sensitive notes stay attached to the estate record until an approved action uses them.'],
@@ -1632,15 +1632,15 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
             </div>
           );
         })}
-      </div>
+      </div>}
 
-      <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(170px, .36fr) minmax(0, 1.64fr)', gap: 16, alignItems: 'stretch' }}>
+      <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, .34fr) minmax(0, 1.66fr)', gap: 14, alignItems: 'stretch' }}>
         <aside className="passage-task-spine-queue" style={{ borderRight: '1px solid ' + BORDER, paddingRight: 16 }}>
           <div style={{ fontSize: 11, color: SOFT, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 9 }}>Open work</div>
           {queue.length === 0 ? (
             <div style={{ color: SAGE, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: 11, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45 }}>Nothing open. The estate is quiet right now.</div>
           ) : (
-            <div style={{ maxHeight: 410, overflowY: 'auto', paddingRight: 4 }}>
+            <div style={{ maxHeight: 320, overflowY: 'auto', paddingRight: 4 }}>
           {queue.map(function(entry, index) {
             var selected = index === selectedIndex;
             var entryOwner = entry.kind === 'task' ? taskSpineOwner(entry.item) : textValue(entry.item.owner_label, 'Needs owner');
@@ -1658,8 +1658,8 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         </aside>
 
         <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(190px, .42fr)', gap: 12, alignItems: 'stretch' }} className="passage-task-spine-facts">
-            <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 18, padding: 18 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, alignItems: 'stretch' }} className="passage-task-spine-facts">
+            <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 18, padding: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 7 }}>
                 <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap' }}>
                   <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
@@ -1673,7 +1673,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                   </div>
                 )}
               </div>
-              <div style={{ color: INK, fontSize: 29, lineHeight: 1.08, fontWeight: 900 }}>{title}</div>
+              <div style={{ color: INK, fontSize: 26, lineHeight: 1.08, fontWeight: 900 }}>{title}</div>
               <div style={{ color: MID, fontSize: 14.5, lineHeight: 1.55, marginTop: 10 }}>{item ? displayTaskNext(item) : 'No estate work needs attention right now.'}</div>
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
                 <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
@@ -1713,14 +1713,14 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                 </details>
               )}
             </div>
-            <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 18, padding: 15 }}>
+            {false && <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 18, padding: 15 }}>
               <SpineFact label="Owner" value={owner} tone={missingOwner ? 'warn' : 'good'} />
               <SpineFact label="Recipient / contact" value={recipient} tone={recipient.includes('Add recipient') ? 'warn' : 'good'} />
               <SpineFact label="Status truth" value={status} tone={blockedCount ? 'warn' : 'good'} />
               <SpineFact label="Proof destination" value={proof} />
               <SpineFact label="Visibility" value="Estate roles and assigned helpers see task updates appropriate to their role." />
               <SpineFact label="Last actor / time" value={lastTime ? lastActor + ' - ' + lastTime : lastActor} />
-            </div>
+            </div>}
           </div>
 
           {item && (

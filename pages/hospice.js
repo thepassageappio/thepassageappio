@@ -186,24 +186,24 @@ export default function HospiceWarmPath() {
         }
       `}</style>
       <SiteHeader />
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '34px 28px 16px' }}>
+      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '28px 28px 12px' }}>
         <div className="warm-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(300px, .7fr)', gap: 16, alignItems: 'stretch' }}>
           <div style={heroCard}>
             <div style={eyebrow}>Preparing during care</div>
-            <h1 style={{ fontSize: 'clamp(36px, 5vw, 64px)', lineHeight: 1.02, margin: '10px 0 14px', fontWeight: 400 }}>
+            <h1 style={{ fontSize: 'clamp(34px, 4.6vw, 56px)', lineHeight: 1.02, margin: '9px 0 12px', fontWeight: 400 }}>
               Start the family record before the crisis moment.
             </h1>
             <p style={lead}>
               Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.
             </p>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 22 }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
               <a href="#start-warm-workspace" style={primaryLink}>Start care-prep record</a>
               <Link href="/urgent" style={primaryLink}>Death has occurred</Link>
             </div>
           </div>
           <div className="mobile-context" style={{ ...heroCard, background: C.sageFaint, borderColor: '#c8deca' }}>
             <div style={eyebrow}>The handoff promise</div>
-            <h2 style={{ fontSize: 31, lineHeight: 1.12, margin: '10px 0 12px', fontWeight: 400 }}>
+            <h2 style={{ fontSize: 28, lineHeight: 1.12, margin: '9px 0 10px', fontWeight: 400 }}>
               Same record. Different door.
             </h2>
             <p style={lead}>
@@ -227,50 +227,54 @@ export default function HospiceWarmPath() {
       </section>
 
       <section id="start-warm-workspace" style={section}>
-        <div className="warm-two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .72fr) minmax(0, 1fr)', gap: 16, alignItems: 'stretch' }}>
-          <div className="mobile-context" style={{ ...panel, padding: 20 }}>
-            <div style={eyebrow}>Saved warm-path workspace</div>
-            <h2 style={{ ...h2, fontSize: 28 }}>Start with what the family knows now.</h2>
-            <p style={{ ...lead, fontSize: 14.5 }}>This creates a real family record. It does not send email or SMS. Unknown dates become visible tasks.</p>
-            <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
-              {[
-                'Name the family coordinator',
-                'Record hospice/on-call contact',
-                'Prepare the first-hour plan',
-                'Prepare funeral-home handoff packet',
-              ].map(item => <div key={item} style={statusRow}>{item}</div>)}
+        <div style={{ ...panel, padding: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.78fr) minmax(0,1fr)', gap: 18, alignItems: 'start' }} className="warm-two-col">
+            <div>
+              <div style={eyebrow}>Care-prep record</div>
+              <h2 style={{ ...h2, fontSize: 27, marginBottom: 7 }}>Start with what the family knows now.</h2>
+              <p style={{ ...lead, fontSize: 14.5 }}>
+                This creates one family record. It does not send email or SMS. Unknown dates become visible tasks instead of setup friction.
+              </p>
+              <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
+                {[
+                  'Coordinator and backup',
+                  'Hospice or care contact',
+                  'First-hour plan',
+                  'Funeral-home handoff when ready',
+                ].map(item => <div key={item} style={statusRow}>{item}</div>)}
+              </div>
             </div>
-          </div>
-          <div style={{ ...panel, padding: 20 }}>
-            <div style={eyebrow}>Create workspace</div>
-            <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-              <input value={form.lovedOneName} onChange={event => updateField('lovedOneName', event.target.value)} placeholder="Loved one's name" style={inputStyle} />
-              <input value={form.coordinatorName} onChange={event => updateField('coordinatorName', event.target.value)} placeholder="Family coordinator name" style={inputStyle} />
-              <input value={form.hospiceAgency} onChange={event => updateField('hospiceAgency', event.target.value)} placeholder="Hospice agency or care team, if known" style={inputStyle} />
-              <details style={{ border: '1px solid ' + C.border, borderRadius: 13, background: C.bg, padding: 12 }}>
-                <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 14 }}>Add contacts, dates, and funeral-home preference</summary>
-                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, margin: '7px 0 10px' }}>
-                  Add only what the family actually knows. Unknown dates stay visible as tasks instead of blocking the workspace.
-                </div>
-                <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 10, marginBottom: 10 }}>
-                  <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
-                  <input value={form.hospicePhone} onChange={event => updateField('hospicePhone', event.target.value)} placeholder="Phone" style={inputStyle} />
-                </div>
-                <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={{ ...inputStyle, marginBottom: 10 }} />
-                <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if the family knows it" style={{ ...inputStyle, marginBottom: 10 }} />
-                <div className="warm-date-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
-                  <WarmDate label="Pronouncement" value={form.pronouncementDate} onChange={value => updateField('pronouncementDate', value)} />
-                  <WarmDate label="Arrangement meeting" value={form.arrangementDate} onChange={value => updateField('arrangementDate', value)} />
-                  <WarmDate label="Funeral / memorial" value={form.serviceDate} onChange={value => updateField('serviceDate', value)} />
-                  <WarmDate label="Burial / committal" value={form.burialDate} onChange={value => updateField('burialDate', value)} />
-                  <WarmDate label="Shiva / mourning" value={form.shivaDate} onChange={value => updateField('shivaDate', value)} />
-                  <WarmDate label="Reception / gathering" value={form.receptionDate} onChange={value => updateField('receptionDate', value)} />
-                </div>
-              </details>
-              {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{error}</div>}
-              {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{notice}</div>}
-              {!user && <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>Sign in once so Passage can save this to your family command center.</div>}
-              <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save warm-path workspace' : 'Sign in and save workspace'}</button>
+            <div>
+              <div style={eyebrow}>Create workspace</div>
+              <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+                <input value={form.lovedOneName} onChange={event => updateField('lovedOneName', event.target.value)} placeholder="Loved one's name" style={inputStyle} />
+                <input value={form.coordinatorName} onChange={event => updateField('coordinatorName', event.target.value)} placeholder="Family coordinator name" style={inputStyle} />
+                <input value={form.hospiceAgency} onChange={event => updateField('hospiceAgency', event.target.value)} placeholder="Hospice agency or care team, if known" style={inputStyle} />
+                <details style={{ border: '1px solid ' + C.border, borderRadius: 13, background: C.bg, padding: 12 }}>
+                  <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 14 }}>Add contacts, dates, and funeral-home preference</summary>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, margin: '7px 0 10px' }}>
+                    Add only what the family actually knows. Unknown dates stay visible as tasks instead of blocking the workspace.
+                  </div>
+                  <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 10, marginBottom: 10 }}>
+                    <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
+                    <input value={form.hospicePhone} onChange={event => updateField('hospicePhone', event.target.value)} placeholder="Phone" style={inputStyle} />
+                  </div>
+                  <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={{ ...inputStyle, marginBottom: 10 }} />
+                  <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if the family knows it" style={{ ...inputStyle, marginBottom: 10 }} />
+                  <div className="warm-date-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+                    <WarmDate label="Pronouncement" value={form.pronouncementDate} onChange={value => updateField('pronouncementDate', value)} />
+                    <WarmDate label="Arrangement meeting" value={form.arrangementDate} onChange={value => updateField('arrangementDate', value)} />
+                    <WarmDate label="Funeral / memorial" value={form.serviceDate} onChange={value => updateField('serviceDate', value)} />
+                    <WarmDate label="Burial / committal" value={form.burialDate} onChange={value => updateField('burialDate', value)} />
+                    <WarmDate label="Shiva / mourning" value={form.shivaDate} onChange={value => updateField('shivaDate', value)} />
+                    <WarmDate label="Reception / gathering" value={form.receptionDate} onChange={value => updateField('receptionDate', value)} />
+                  </div>
+                </details>
+                {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{error}</div>}
+                {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{notice}</div>}
+                {!user && <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>Sign in once so Passage can save this to your family command center.</div>}
+                <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save warm-path workspace' : 'Sign in and save workspace'}</button>
+              </div>
             </div>
           </div>
         </div>
@@ -456,8 +460,8 @@ function WarmDate({ label, value, onChange }) {
   );
 }
 
-const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 22, padding: '30px 32px', boxShadow: '0 18px 48px rgba(55,45,35,.06)' };
-const section = { maxWidth: 1180, margin: '0 auto', padding: '18px 28px 28px' };
+const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 22, padding: '26px 28px', boxShadow: '0 18px 48px rgba(55,45,35,.06)' };
+const section = { maxWidth: 1180, margin: '0 auto', padding: '14px 28px 22px' };
 const sectionHeader = { maxWidth: 760, marginBottom: 16 };
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const h2 = { fontSize: 34, lineHeight: 1.1, margin: '8px 0 10px', fontWeight: 400 };
@@ -470,7 +474,7 @@ const primaryButton = { border: 'none', minHeight: 48, borderRadius: 13, backgro
 const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 13, background: C.card, minHeight: 48, padding: '0 14px', fontFamily: 'Georgia,serif', fontSize: 15, color: C.ink };
 const statusRow = { background: C.card, border: '1px solid #c8deca', borderRadius: 13, padding: '12px 14px', color: C.sage, fontWeight: 900 };
 const card = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18 };
-const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 22, padding: 24, boxShadow: '0 10px 34px rgba(55,45,35,.04)' };
+const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 22, boxShadow: '0 10px 34px rgba(55,45,35,.04)' };
 const numberBubble = { width: 34, height: 34, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontWeight: 900 };
 const taskRow = { display: 'grid', gridTemplateColumns: 'minmax(0, .95fr) minmax(220px, .8fr)', gap: 12, border: '1px solid ' + C.border, borderRadius: 17, padding: 15, background: C.bg };
 const miniBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '10px 12px', display: 'grid', gap: 4, color: C.mid, fontSize: 13 };
