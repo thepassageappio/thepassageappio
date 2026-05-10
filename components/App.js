@@ -3698,13 +3698,13 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
         ) : (
           <>
             <div style={{ marginBottom: 12 }}>
-              <Heading size={22}>Estate operating spine{userData?.first_name ? ` - ${userData.first_name}` : ""}</Heading>
+              <Heading size={22}>My estate</Heading>
               {false && redWorkflows.length > 0 ? (
                 <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 11, padding: "11px 14px", fontSize: 13, color: C.sage, fontWeight: 500 }}>
                   ✓ Estate plan active — assign tasks to notify people automatically
                 </div>
               ) : (
-                <Sub>{hasAnyEstate ? "Work from one estate at a time. Switch estates only when you need a different family record." : "Open an estate first. Everything lives inside that estate: tasks, people, documents, wishes, memories, and updates."}</Sub>
+                <Sub>{hasAnyEstate ? "One family record at a time. Passage keeps the next move, owner, waiting point, and proof together." : "Open an estate first. Everything lives inside that estate: tasks, people, documents, wishes, memories, and updates."}</Sub>
               )}
             </div>
 
@@ -3733,17 +3733,36 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "16px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                 <div>
-                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 900, marginBottom: 5 }}>Estate operating spine</div>
+                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, fontWeight: 900, marginBottom: 5 }}>{selectedDashboardEstate?.path === 'green' ? 'Planning record' : 'Active estate'}</div>
                   <div style={{ fontFamily: "Georgia, serif", fontSize: 23, color: C.ink, lineHeight: 1.15 }}>{selectedDashboardEstate?.name || "Select an estate"}</div>
-                  <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>One next move, one owner, one proof trail. Switch estates only when you need a different family record.</div>
+                  <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{selectedEstateStateBody}</div>
                 </div>
+                {activeWorkflows.length > 1 && (
+                  <label style={{ display: "grid", gap: 5, minWidth: 240, color: C.soft, fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900 }}>
+                    Switch family record
+                    <select
+                      value={String(selectedDashboardEstate?.id || "")}
+                      onChange={event => setSelectedDashboardEstateId(event.target.value)}
+                      style={{ border: `1px solid ${C.border}`, borderRadius: 11, background: C.bgSubtle, color: C.ink, minHeight: 42, padding: "0 11px", fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, maxWidth: 300 }}
+                    >
+                      {activeWorkflows.map(wf => {
+                        const stats = taskStatsByWorkflow[wf.id] || {};
+                        return (
+                          <option key={wf.id} value={String(wf.id)}>
+                            {wf.path === 'green' ? 'Planning' : 'Active'} - {wf.name || 'Estate'}{stats.required ? ` - ${stats.completed || 0}/${stats.required}` : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
+                )}
               </div>
-              <div style={{ background: selectedDashboardEstate?.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${selectedDashboardEstate?.path === 'green' ? C.sageLight : C.rose + '30'}`, borderRadius: 13, padding: "11px 12px", marginBottom: 12 }}>
+              {false && <div style={{ background: selectedDashboardEstate?.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${selectedDashboardEstate?.path === 'green' ? C.sageLight : C.rose + '30'}`, borderRadius: 13, padding: "11px 12px", marginBottom: 12 }}>
                 <div style={{ fontSize: 9.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900, marginBottom: 4 }}>Current state</div>
                 <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 800 }}>{selectedEstateState}</div>
                 <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>{selectedEstateStateBody}</div>
-              </div>
-              {activeWorkflows.length > 1 && (
+              </div>}
+              {false && activeWorkflows.length > 1 && (
                 <div style={{ display: "flex", gap: 7, flexWrap: "wrap", paddingBottom: 2, marginBottom: 12 }}>
                   {activeWorkflows.slice(0, 6).map(wf => {
                     const selected = String(wf.id) === String(selectedDashboardEstate?.id);
@@ -3800,7 +3819,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: 12, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: "11px 12px" }}>
+              {false && <div style={{ marginTop: 12, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: "11px 12px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontSize: 9.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900 }}>Family first-day path</div>
@@ -3826,7 +3845,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                     </div>
                   ))}
                 </div>
-              </div>
+              </div>}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
                 <button onClick={() => onOpenPlan(selectedDashboardEstate)} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>{selectedDashboardEstate?.path === 'green' ? 'Open planning workspace' : 'Continue this estate'}</button>
                 {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: `1px solid ${C.sageLight}`, borderRadius: 11, padding: "10px 13px", background: C.sageFaint, color: C.sage, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Add planning estate</button>}
