@@ -76,6 +76,93 @@ function normalizedTaskStatus(value) {
   return clean || 'draft';
 }
 
+function escapePreparedOutput(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function preparedOutputFilename(preview) {
+  return `${String(preview?.title || 'passage-prepared-output')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') || 'passage-prepared-output'}.txt`;
+}
+
+function downloadPreparedOutput(preview) {
+  if (typeof window === 'undefined' || !preview?.text) return;
+  trackEvent('partner_prepared_output_downloaded', { title: preview.title || '' });
+  const content = [
+    'Passage',
+    'Powered by Passage | thepassageapp.io',
+    '',
+    preview.title || 'Prepared output',
+    preview.subtitle || '',
+    '',
+    'Review before sharing. Nothing sends automatically from Passage.',
+    '',
+    preview.text,
+  ].filter(line => line !== undefined).join('\n');
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = preparedOutputFilename(preview);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function printPreparedOutput(preview) {
+  if (typeof window === 'undefined' || !preview?.text) return;
+  trackEvent('partner_prepared_output_printed', { title: preview.title || '' });
+  const win = window.open('', '_blank', 'noopener,noreferrer,width=820,height=900');
+  if (!win) return;
+  const title = escapePreparedOutput(preview.title || 'Passage prepared output');
+  const subtitle = escapePreparedOutput(preview.subtitle || 'Family coordination spine');
+  const text = escapePreparedOutput(preview.text);
+  const purpose = escapePreparedOutput(preview.purpose || 'Review before copying, printing, or sharing. Nothing sends automatically.');
+  win.document.write(`<!doctype html>
+    <html>
+      <head>
+        <title>${title}</title>
+        <style>
+          @page { margin: 0.65in; }
+          body { font-family: Georgia, serif; color: #1a1916; background: #fff; line-height: 1.55; }
+          header { display:flex; justify-content:space-between; gap:24px; align-items:flex-start; border-bottom:1px solid #e4ddd4; padding-bottom:14px; margin-bottom:18px; }
+          .brand { font-size:22px; font-weight:900; }
+          .muted { color:#6a6560; font-size:12px; }
+          .eyebrow { color:#6b8f71; font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; }
+          h1 { font-size:30px; line-height:1.12; margin:6px 0 4px; font-weight:400; }
+          .notice { background:#f0f5f1; border:1px solid #c8deca; border-radius:12px; padding:10px 12px; color:#426347; font-size:13px; margin:16px 0; }
+          pre { white-space:pre-wrap; font-family:Georgia, serif; font-size:14px; line-height:1.6; }
+          footer { border-top:1px solid #e4ddd4; margin-top:22px; padding-top:10px; color:#a09890; font-size:11px; }
+        </style>
+      </head>
+      <body>
+        <header>
+          <div>
+            <div class="brand">Passage</div>
+            <div class="muted">Family coordination spine</div>
+          </div>
+          <div class="muted" style="text-align:right">Powered by Passage<br/>thepassageapp.io</div>
+        </header>
+        <div class="eyebrow">Prepared output</div>
+        <h1>${title}</h1>
+        <div class="muted">${subtitle}</div>
+        <div class="notice">${purpose}</div>
+        <pre>${text}</pre>
+        <footer>Prepared by Passage. Review before sharing outside the family record. Powered by Passage | thepassageapp.io</footer>
+        <script>window.onload = () => window.setTimeout(() => window.print(), 150);</script>
+      </body>
+    </html>`);
+  win.document.close();
+}
+
 function vendorRequestLabel(value) {
   if (value === 'completed') return 'Completed';
   if (value === 'in_progress') return 'In progress';
@@ -2730,7 +2817,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark waiting</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Need family info</button>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Mark done with proof', prompt: taskActionPrompt('handled', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark done</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Close with proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this task so it no longer appears as waiting work.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Close with proof</button>
                   </div>
                   <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open full case context</button>
                 </div>
@@ -3362,7 +3449,7 @@ export default function FuneralHomeDashboard() {
                     });
                     const packetPreviewLines = packetText.split('\n').filter(Boolean).slice(0, 10);
                     const packetPurpose = output.label || 'Prepared case output';
-                    const packetUse = 'Review before copying. Use it as the staff call script, case-file note, or family-approved handoff; Passage does not send it automatically.';
+                    const packetUse = 'This is the task work product: review it, print or save it as a Passage-branded PDF, then use Mark done to save it as proof. Nothing sends automatically.';
                     const coordinationRows = [
                       {
                         label: 'Conversation',
@@ -3415,7 +3502,7 @@ export default function FuneralHomeDashboard() {
                             </div>
                             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                               <button onClick={() => setOutputPreview({ title: packetPurpose, subtitle: sharedTaskTitle(nextPartnerTask), purpose: packetUse, text: packetText, copyKey: 'partner_output_' + item.id })} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Preview output</button>
-                              <button onClick={() => copyText(packetText, 'Prepared output copied.', 'partner_output_' + item.id)} style={{ border: `1px solid ${C.sage}33`, background: copiedKey === 'partner_output_' + item.id ? C.sage : C.card, color: copiedKey === 'partner_output_' + item.id ? '#fff' : C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{copiedKey === 'partner_output_' + item.id ? 'Copied' : 'Copy text'}</button>
+                              <button onClick={() => copyText(packetText, 'Prepared output copied.', 'partner_output_' + item.id)} style={{ border: `1px solid ${C.sage}33`, background: copiedKey === 'partner_output_' + item.id ? C.sage : C.card, color: copiedKey === 'partner_output_' + item.id ? '#fff' : C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{copiedKey === 'partner_output_' + item.id ? 'Copied' : 'Copy packet'}</button>
                             </div>
                           </div>
                         </div>
@@ -3427,7 +3514,7 @@ export default function FuneralHomeDashboard() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))', gap: 8, marginTop: 12 }}>
                           <button onClick={() => { setAssignmentDraft({ taskId: nextPartnerTask.id, name: nextPartnerTask.assigned_to_name || firstAssignee?.name || '', email: nextPartnerTask.assigned_to_email || firstAssignee?.email || '', role: nextPartnerTask.playbook?.partnerOwnerRole || firstAssignee?.role || 'staff', phone: '' }); setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Assign owner<br /><span style={{ color: C.mid, fontWeight: 500 }}>staff or case contact</span></button>
                           <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'blocked', label: 'Family request', prompt: 'Write the missing detail needed from the family.', draft, output, proofDestination }); setTaskDraftNote(draft); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Request family info<br /><span style={{ color: C.mid, fontWeight: 500 }}>one request</span></button>
-                          <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Mark done with proof', prompt: 'Review the prepared output, add the proof note, then close this task.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Mark done<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>save proof</span></button>
+                          <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Close with proof', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this task. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Close task<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>save proof</span></button>
                           <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'waiting', label: 'Waiting update', prompt: 'Write what is waiting and the next expected update.', draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${nextPartnerTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(nextPartnerTask)} can move forward. Next update expected tomorrow morning.`); setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 11, padding: '11px 12px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Mark waiting<br /><span style={{ color: C.soft, fontWeight: 500 }}>next update</span></button>
                         </div>
                         )}
@@ -3668,7 +3755,7 @@ export default function FuneralHomeDashboard() {
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                           <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Mark waiting</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Mark done with proof', prompt: taskActionPrompt('handled', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Mark done'}</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Close with proof', prompt: 'Add the proof note that shows what happened, then close this task so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
                         </div>
                       )}
                       {['handled', 'completed', 'done'].includes(task.status || '') && (
@@ -3884,11 +3971,14 @@ function PreparedOutputPreviewDialog({ preview, copiedKey, onCopyText, onClose }
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 240, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
       <div role="dialog" aria-modal="true" aria-label="Prepared output preview" onClick={event => event.stopPropagation()} style={{ width: 'min(820px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Prepared output preview</div>
-            <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{preview.title || 'Passage prepared output'}</div>
-            {preview.subtitle && <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginTop: 4 }}>{preview.subtitle}</div>}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', borderBottom: `1px solid ${C.border}`, paddingBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '34px minmax(0,1fr)', gap: 10, alignItems: 'start' }}>
+            <img src="/passage-icon-light-onbg.svg" alt="Passage" style={{ width: 34, height: 34, borderRadius: 9 }} />
+            <div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Prepared Passage output</div>
+              <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{preview.title || 'Passage prepared output'}</div>
+              {preview.subtitle && <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginTop: 4 }}>{preview.subtitle}</div>}
+            </div>
           </div>
           <button onClick={onClose} aria-label="Close prepared output preview" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
         </div>
@@ -3896,8 +3986,13 @@ function PreparedOutputPreviewDialog({ preview, copiedKey, onCopyText, onClose }
           <strong style={{ color: C.ink }}>What this is for:</strong> {preview.purpose || 'Review this before copying it into a case file, staff note, or approved family handoff. Passage does not send it automatically.'}
         </div>
         <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: '#fff', border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.55, margin: '12px 0 0' }}>{preview.text}</pre>
+        <div style={{ color: C.soft, fontSize: 11.2, lineHeight: 1.45, marginTop: 8, borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
+          Prepared by Passage. Review before sharing outside the family record. Powered by Passage | thepassageapp.io
+        </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
           <button onClick={() => onCopyText(preview.text, 'Prepared output copied.', copyKey)} style={{ border: 'none', background: copiedKey === copyKey ? C.ink : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{copiedKey === copyKey ? 'Copied' : 'Copy reviewed output'}</button>
+          <button onClick={() => downloadPreparedOutput(preview)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Download .txt</button>
+          <button onClick={() => printPreparedOutput(preview)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Print / save PDF</button>
           <button onClick={onClose} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Close</button>
         </div>
       </div>
@@ -3913,10 +4008,10 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
   const canSave = !!String(taskDraftNote || '').trim() && !isSaving;
   const note = String(taskDraftNote || '').trim();
   const copyKey = taskDraft.status === 'blocked' ? 'task_request_' + task.id : 'task_output_' + task.id;
-  const copyLabel = taskDraft.status === 'blocked' ? 'Copy family request' : 'Copy prepared output';
+  const copyLabel = taskDraft.status === 'blocked' ? 'Copy family request' : 'Copy proof packet';
   const copiedLabel = taskDraft.status === 'blocked' ? 'Family request copied.' : 'Prepared output copied.';
   const saveLabel = taskDraft.status === 'handled'
-    ? 'Save proof and close task'
+    ? 'Close task with this proof'
     : taskDraft.status === 'blocked'
       ? 'Save family request'
       : 'Save waiting update';
@@ -3960,7 +4055,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
         <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.45, marginTop: 6 }}>{proofDestination}</div>
         {taskDraft.status === 'handled' && (
           <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
-            Passage prepared this output for review. Copy it for the arrangement file, then save proof when it is ready for the family status trail.
+            This is the proof packet that closes the task. Review it, copy or print it for the arrangement file if needed, then close the task so the waiting/request actions disappear.
           </div>
         )}
         {taskDraft.status === 'blocked' && (

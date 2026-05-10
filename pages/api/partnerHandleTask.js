@@ -9,6 +9,40 @@ const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const authClient = createClient(url, anon);
 const admin = createClient(url, service);
 
+function missingColumnFrom(error) {
+  const message = String(error?.message || error?.details || '');
+  const match = message.match(/'([^']+)'\s+column/i) || message.match(/column\s+"?([a-z0-9_]+)"?\s+.*does not exist/i);
+  return match?.[1] || '';
+}
+
+async function updateTaskWithSchemaFallback(task, updates) {
+  const skippedColumns = [];
+  let remaining = { ...updates };
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const { data, error } = await admin
+      .from('tasks')
+      .update(remaining)
+      .eq('id', task.id)
+      .eq('workflow_id', task.workflow_id)
+      .select('id,status,outcome_status,last_action_at,last_actor,completed_at,completed_by,completed_by_email')
+      .maybeSingle();
+
+    if (!error) return { task: data, skippedColumns };
+
+    const missingColumn = missingColumnFrom(error);
+    if (!missingColumn || !(missingColumn in remaining)) {
+      return { error };
+    }
+
+    skippedColumns.push(missingColumn);
+    const { [missingColumn]: _omitted, ...nextRemaining } = remaining;
+    remaining = nextRemaining;
+  }
+
+  return { error: new Error('Partner task proof could not be saved after schema fallback.') };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -58,6 +92,22 @@ export default async function handler(req, res) {
     const orgName = organization?.from_name || organization?.name || 'The funeral home';
     const subjectName = workflow.deceased_name || workflow.estate_name || 'this family case';
     const detail = cleanNote;
+    const now = new Date().toISOString();
+
+    const { task: updatedTask, error: updateError, skippedColumns = [] } = await updateTaskWithSchemaFallback(task, {
+      status: 'done',
+      outcome_status: 'completed',
+      notes: detail,
+      last_action_at: now,
+      last_actor: user.email,
+      completed_at: now,
+      completed_by: user.email,
+      completed_by_email: user.email,
+      channel: 'record',
+      recipient: workflow.coordinator_name || workflow.coordinator_email || 'Family coordinator',
+      updated_at: now,
+    });
+    if (updateError) throw updateError;
 
     const statusResult = await recordTaskCommunicationEvent({
       verb: 'prove',
@@ -131,9 +181,11 @@ export default async function handler(req, res) {
       emailSent,
       notificationQueued: sendFamilyEmail === true,
       statusResult,
-      status: 'handled',
+      status: updatedTask?.status || 'done',
+      task: updatedTask || { id: task.id, status: 'done', outcome_status: 'completed', last_action_at: now, last_actor: user.email },
       confirmation: taskActionConfirmation('handled', task, 'funeral_home'),
       eventDetail: detail,
+      skippedColumns,
     });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Could not handle this task for the family.' });
