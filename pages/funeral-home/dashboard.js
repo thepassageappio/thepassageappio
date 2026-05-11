@@ -989,6 +989,14 @@ export default function FuneralHomeDashboard() {
     scrollPartnerDemoTarget(targetId);
   }
 
+  function openPartnerManagement(message = 'Opening locations, employees, roles, and permissions.') {
+    setShowPilotGuide(false);
+    setShowTools(false);
+    setActivePartnerView('manage');
+    if (message) setNotice(message);
+    scrollPartnerDemoTarget('partner-management-section');
+  }
+
   function moveDirectorFocus() {
     setShowPilotGuide(false);
     setShowTools(false);
@@ -2107,7 +2115,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
                     <button onClick={() => { setShowPilotGuide(false); openCasePanel('immediate'); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
                     <button onClick={() => { setShowPilotGuide(false); setShowTools(true); window.setTimeout(() => document.getElementById('partner-csv-upload')?.click(), 0); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Import CSV</button>
-                    <button onClick={() => { setShowPilotGuide(false); setActivePartnerView('manage'); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add employees</button>
+                    <button onClick={() => { openPartnerManagement('Opening employee setup. Add the director first, then managers and staff.'); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add employees</button>
                   </div>
                 </div>
                 <div style={{ display: 'grid', gap: 8 }}>
@@ -2159,7 +2167,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowPilotGuide(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open guide</button>
               <button onClick={() => openCasePanel('immediate')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create case</button>
-              <button onClick={() => openPartnerPane('manage', 'partner-management-section', 'Opening staff and location management.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add staff</button>
+              <button onClick={() => openPartnerManagement('Opening locations, employees, roles, and permissions.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add staff</button>
             </div>
           </div>
         )}
@@ -2254,7 +2262,7 @@ export default function FuneralHomeDashboard() {
               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12 }}>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Then assign work</div>
                 <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Add employees once. Directors, location managers, staff, family coordinators, and participants appear in the same assignment dropdown inside each estate task.</div>
-                <button onClick={() => setActivePartnerView('manage')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer', marginTop: 10 }}>Open management</button>
+                <button onClick={() => openPartnerManagement('Opening locations, employees, roles, and permissions.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer', marginTop: 10 }}>Open management</button>
               </div>
             </div>
           </div>
@@ -2467,7 +2475,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                   <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Create case</button>
                   <button onClick={() => { setShowTools(true); setImportDraft(null); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Import locations</button>
-                  <button onClick={() => openPartnerPane('manage', 'partner-management-section', 'Opening staff and location management.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Set up employees</button>
+                  <button onClick={() => openPartnerManagement('Opening locations, employees, roles, and permissions.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 900, cursor: 'pointer' }}>Set up employees</button>
                   <button onClick={() => openPartnerPane('reports', 'partner-reports-section', 'Opening reports.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 11.8, fontWeight: 800, cursor: 'pointer' }}>Check reporting</button>
                 </div>
               </div>
@@ -2699,7 +2707,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Work queue</div>
                 <div style={{ fontSize: 24, marginTop: 3 }}>{isDirectorRole ? 'Assign the next owner, then get out of the way.' : 'Your assigned queue comes first.'}</div>
               </div>
-              {isDirectorRole && <button onClick={() => setActivePartnerView('manage')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Manage people</button>}
+              {isDirectorRole && <button onClick={() => openPartnerManagement('Opening locations, employees, roles, and permissions.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Manage people</button>}
             </div>
             {false && isDirectorRole && (
               <>
@@ -3249,6 +3257,78 @@ export default function FuneralHomeDashboard() {
 
         {user && activePartnerView === 'work' && cases.length > 0 && (
           <>
+          <div id="partner-today-section" data-demo-anchor="demo-partner-command" style={{ background: C.card, border: `1px solid ${C.border}`, borderTop: 'none', borderRadius: '0 0 18px 18px', padding: 14, marginBottom: 12, boxShadow: '0 8px 26px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 12, alignItems: 'stretch' }}>
+              <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 13 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Command center' : 'My work'}</div>
+                    <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>
+                      {isDirectorRole ? `${nextDirectorStep.label}: ${nextDirectorStep.next}` : firstStaffTask ? sharedTaskTitle(firstStaffTask) : 'No assigned work is waiting.'}
+                    </div>
+                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>
+                      {isDirectorRole
+                        ? 'Start here each morning. This pane routes to the exact case, staff queue, management page, or report needed next.'
+                        : firstStaffTask
+                          ? `Case: ${firstStaffTask.caseName}. Owner, expected update, and proof travel with the task.`
+                          : 'When a director assigns work, it appears here with case context and proof requirements.'}
+                    </div>
+                  </div>
+                  <button onClick={moveDirectorFocus} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 42, padding: '0 13px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    {directorFocusButtonLabel()}
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 8, marginTop: 12 }}>
+                  {glanceItems.slice(0, 4).map(([label, value]) => (
+                    <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 55 }}>
+                      <div style={{ color: C.sage, fontSize: 9.6, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                      <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.1, marginTop: 3 }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+                {isDirectorRole && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
+                    {[
+                      ['Create/import', () => openCasePanel('immediate')],
+                      ['Manage team', () => openPartnerManagement('Opening locations, employees, roles, and permissions.')],
+                      ['Open report', () => openPartnerPane('reports', 'partner-reports-section', 'Opening reporting and ROI.')],
+                      ['Export proof', () => downloadExport('cases')],
+                    ].map(([label, action]) => (
+                      <button key={label} onClick={action} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 10, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {isDirectorRole && (
+                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', marginBottom: 8 }}>
+                    <div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Self-service gates</div>
+                      <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.4, marginTop: 3 }}>A pilot home can operate alone when each gate is green.</div>
+                    </div>
+                    <button onClick={() => setShowPilotGuide(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '6px 9px', fontFamily: 'Georgia,serif', fontSize: 11, fontWeight: 900, cursor: 'pointer' }}>Guide</button>
+                  </div>
+                  <div style={{ display: 'grid', gap: 7 }}>
+                    {pilotLaunchRows.map(([n, title, body, done]) => (
+                      <button key={title} onClick={() => {
+                        if (title === 'Employees' || title === 'Locations' || title === 'First owner') openPartnerManagement('Opening the setup spine for locations, employees, roles, and assignment readiness.');
+                        else if (title === 'Cases') openCasePanel('immediate');
+                        else if (title === 'Proof loop') moveDirectorFocus();
+                      }} style={{ textAlign: 'left', border: `1px solid ${done ? C.sage + '22' : C.amber + '33'}`, background: done ? C.sageFaint : C.amberFaint, borderRadius: 10, padding: '7px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'center', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+                        <span style={{ width: 18, height: 18, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: done ? C.sage : C.amber, color: '#fff', fontSize: 9, fontWeight: 900 }}>{done ? 'OK' : n}</span>
+                        <span style={{ minWidth: 0 }}>
+                          <span style={{ display: 'block', color: C.ink, fontSize: 12.2, fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
+                          <span style={{ display: 'block', color: C.mid, fontSize: 11.4, lineHeight: 1.3, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{body}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
           {isMultiLocation && (
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderTop: 'none', borderBottom: 'none', borderRadius: 0, padding: '10px 12px', marginBottom: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: showTools ? 10 : 0 }}>
@@ -3622,7 +3702,7 @@ export default function FuneralHomeDashboard() {
                             ) : (
                               <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '9px 10px', color: C.amber, fontSize: 12.2, lineHeight: 1.45, marginTop: 10 }}>
                                 <div>No employees or case contacts are saved yet.</div>
-                                <button onClick={() => setActivePartnerView('staff')} style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Open Staff work</button>
+                                <button onClick={() => openPartnerManagement('Add an employee or case contact first; saved people appear in this owner dropdown.')} style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Open management</button>
                               </div>
                             )}
                             {(!assignmentDraft.email || !assignmentOptions.some(option => option.email === assignmentDraft.email)) && (

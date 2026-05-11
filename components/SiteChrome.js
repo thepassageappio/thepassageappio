@@ -347,19 +347,20 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
       <style>{`
         @media (max-width: 720px) {
           .passage-nav-secondary { display: none !important; }
-          .passage-nav-wrap { gap: 6px !important; font-size: 13px !important; }
+          .passage-nav-wrap { gap: 6px !important; font-size: 13px !important; min-width: 0 !important; max-width: calc(100vw - 128px) !important; }
           .passage-nav-wrap a, .passage-nav-wrap button { min-height: 40px !important; padding: 8px 9px !important; }
+          .passage-nav-action-slot { width: auto !important; }
         }
       `}</style>
       <Link href="/" onClick={handleHomeClick} style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
       <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, fontSize: 13.5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
+        {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {currentUser && AUTH_LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
           <Link href="/system/admin" style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
         {currentUser && <Link href={dashboardHref} onClick={handleDashboardClick} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
-        <span style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
+        <span className="passage-nav-action-slot" style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
             <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
           )}
