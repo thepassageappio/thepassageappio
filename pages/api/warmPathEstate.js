@@ -44,7 +44,31 @@ function warmTask(title, description, category, priority, playbookKey, extras = 
   };
 }
 
+function careContextLabel(context = {}) {
+  const providerType = clean(context.provider_type || context.care_provider_type || '').toLowerCase();
+  if (providerType === 'care_facility') return 'care facility';
+  if (providerType === 'senior_living') return 'senior living community';
+  if (providerType === 'home_care') return 'home care team';
+  return 'hospice or care team';
+}
+
+function careTeamName(context = {}) {
+  return clean(context.care_team_name || context.facility_name || context.hospice_agency);
+}
+
+function careTeamContact(context = {}) {
+  return clean(context.care_team_contact || context.facility_contact || context.hospice_contact);
+}
+
+function careTeamPhone(context = {}) {
+  return clean(context.care_team_phone || context.facility_phone || context.hospice_phone);
+}
+
 function buildWarmPathTasks(context = {}) {
+  const careLabel = careContextLabel(context);
+  const teamName = careTeamName(context);
+  const teamContact = careTeamContact(context);
+  const teamPhone = careTeamPhone(context);
   return [
     warmTask(
       'Name the family coordinator',
@@ -55,16 +79,16 @@ function buildWarmPathTasks(context = {}) {
       { execution_kind: 'record', waiting_on: 'family coordinator', proof_required: 'coordinator and backup recorded' }
     ),
     warmTask(
-      'Record hospice agency and on-call line',
-      'Save the hospice agency, on-call number, nurse or social worker, and the first call path for an expected death.',
+      'Record care team and first call path',
+      `Save the ${careLabel}, on-call or release contact, and the first call path if death occurs.`,
       'medical',
       'high',
       'confirm hospital or facility release',
-      { execution_kind: 'record', waiting_on: 'hospice contact', proof_required: 'hospice contact and first call path recorded' }
+      { execution_kind: 'record', waiting_on: `${careLabel} contact`, proof_required: 'care contact and first call path recorded' }
     ),
     warmTask(
       'Prepare the when-it-happens plan',
-      'Prepare the first-hour plan so the family knows who calls hospice, who calls the funeral home, and what proof to record.',
+      `Prepare the first-hour plan so the family knows who calls the ${careLabel}, who calls the funeral home, and what proof to record.`,
       'logistics',
       'high',
       'prepare for funeral home meeting',
@@ -88,15 +112,15 @@ function buildWarmPathTasks(context = {}) {
     ),
     warmTask(
       'Prepare funeral-home handoff packet',
-      'Prepare contacts, dates, preferences, hospice context, missing items, and proof needs for the funeral home to review when approved.',
+      'Prepare contacts, dates, preferences, care context, missing items, and proof needs for the funeral home to review when approved.',
       'service',
       'normal',
       'prepare for funeral home meeting',
       { execution_kind: 'packet', automation_level: 'PACKET', waiting_on: 'family approval', funeral_home_eligible: true, proof_required: 'handoff packet reviewed' }
     ),
   ].map(task => {
-    if (task.title === 'Record hospice agency and on-call line' && (context.hospice_agency || context.hospice_contact)) {
-      return { ...task, status: 'done', notes: `Hospice context saved: ${[context.hospice_agency, context.hospice_contact, context.hospice_phone].filter(Boolean).join(' - ')}` };
+    if (task.title === 'Record care team and first call path' && (teamName || teamContact || teamPhone)) {
+      return { ...task, status: 'done', notes: `Care context saved: ${[teamName, teamContact, teamPhone].filter(Boolean).join(' - ')}` };
     }
     if (task.title === 'Record preferred funeral home or undecided status' && context.funeral_home_name) {
       return { ...task, status: 'done', notes: `Preferred funeral home: ${context.funeral_home_name}` };
@@ -161,13 +185,21 @@ export default async function handler(req, res) {
   const coordinatorEmail = clean(req.body?.coordinatorEmail) || user.email;
   const now = new Date().toISOString();
   const warmContext = {
-    lifecycle_phase: 'hospice_preparation',
+    lifecycle_phase: 'care_preparation',
+    provider_type: clean(req.body?.providerType) || clean(req.body?.careProviderType) || 'hospice',
+    care_setting: clean(req.body?.careSetting),
     for_whom: lovedOneName,
     family_coordinator: coordinatorName,
     caregiver_name: clean(req.body?.caregiverName),
     hospice_agency: clean(req.body?.hospiceAgency),
     hospice_contact: clean(req.body?.hospiceContact),
     hospice_phone: clean(req.body?.hospicePhone),
+    facility_name: clean(req.body?.facilityName),
+    facility_contact: clean(req.body?.facilityContact),
+    facility_phone: clean(req.body?.facilityPhone),
+    care_team_name: clean(req.body?.careTeamName) || clean(req.body?.hospiceAgency) || clean(req.body?.facilityName),
+    care_team_contact: clean(req.body?.careTeamContact) || clean(req.body?.hospiceContact) || clean(req.body?.facilityContact),
+    care_team_phone: clean(req.body?.careTeamPhone) || clean(req.body?.hospicePhone) || clean(req.body?.facilityPhone),
     funeral_home_name: clean(req.body?.funeralHomeName),
     authority_contact: clean(req.body?.authorityContact),
     disposition_preference: clean(req.body?.dispositionPreference),
@@ -208,17 +240,17 @@ export default async function handler(req, res) {
       trigger_type: 'death_confirmed',
       path: 'warm',
       mode: 'warm',
-      setup_stage: 'hospice_preparation',
+      setup_stage: 'care_preparation',
       orchestration_summary: {
         ...(existing?.orchestration_summary || {}),
-        lifecycle_phase: 'hospice_preparation',
+        lifecycle_phase: 'care_preparation',
         warm_path_context: warmContext,
         hospice_context: warmContext,
         timeline_anchors: timelineAnchors,
         missing_timeline_watch: missingTimelineWatch(warmContext),
         trusted_advisors: {
           ...(existing?.orchestration_summary?.trusted_advisors || {}),
-          hospice_or_care_team: warmContext.hospice_contact || warmContext.hospice_agency || null,
+          hospice_or_care_team: warmContext.care_team_contact || warmContext.care_team_name || null,
           funeral_home: warmContext.funeral_home_name || null,
           healthcare_proxy_or_decision_maker: warmContext.authority_contact || null,
         },

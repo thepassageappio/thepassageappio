@@ -1875,7 +1875,7 @@ export default function FuneralHomeDashboard() {
   const needsFirstDaySetup = Boolean(isDirectorRole && (cases.length === 0 || partnerStaff.length <= 1 || assignmentsCoordinated === 0 || (proofEventsLogged === 0 && totalHandled === 0)));
   const lifecycleRows = [
     ['green', 'Planning', 'pre-need cases; prepaid is a funding detail', 'Family record begins before crisis.'],
-    ['warm', 'Warm / hospice', 'transition preparation', 'Contacts, dates, wishes, and handoff notes travel forward.'],
+    ['warm', 'Warm / care', 'transition preparation', 'Hospice, facility, contacts, dates, wishes, and handoff notes travel forward.'],
     ['red', 'Death event', 'first-hour coordination', 'Immediate owners, calls, and proof become visible.'],
     ['funeral', 'Service coordination', 'arrangements and family logistics', 'Staff, family, vendors, and participants work from one spine.'],
     ['after', 'Aftercare', 'estate, remembrance, and continuity', 'Exports and status history keep the record useful after service.'],

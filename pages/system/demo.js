@@ -33,9 +33,9 @@ const demoSteps = [
   {
     id: 'warm',
     kicker: 'Warm path',
-    title: 'Show the hospice-to-funeral-home handoff.',
-    point: 'A family may enter before death through hospice or serious illness. Passage preserves contacts, dates, preferences, and the first-hour plan so the funeral home does not start from zero.',
-    action: 'Say: "Passage follows the family. Planning, hospice preparation, urgent guidance, and the funeral-home case are different doors into the same coordination record."',
+    title: 'Show the care-to-funeral-home handoff.',
+    point: 'A family may enter before death through hospice, home care, senior living, assisted care, or serious illness. Passage preserves contacts, dates, preferences, and the first-hour plan so the funeral home does not start from zero.',
+    action: 'Say: "Passage follows the family. Planning, care preparation, urgent guidance, and the funeral-home case are different doors into the same coordination record."',
     href: '/hospice?demoTour=funeral-home&demoStep=warm',
   },
   {
@@ -154,7 +154,7 @@ const demoMetrics = [
 ];
 
 const fullLoop = [
-  ['1', 'Family enters through the right door', 'Planning, hospice preparation, urgent death guidance, or funeral-home intake starts the same spine.'],
+  ['1', 'Family enters through the right door', 'Planning, care preparation, urgent death guidance, or funeral-home intake starts the same spine.'],
   ['2', 'Set up once', 'Partner confirms workspace, locations/case scope, employees, roles, and preferred support before work gets assigned.'],
   ['3', 'Load cases two ways', 'Import existing cases by CSV with preview, or create the first family case fresh in UI.'],
   ['4', 'Assign the first owner', 'A saved employee, family coordinator, participant, vendor, clergy, or cemetery contact receives only the work they own.'],
@@ -166,9 +166,9 @@ const demoRail = [
   {
     n: '01',
     title: 'Family prepares during care',
-    persona: 'Family / hospice-adjacent',
+    persona: 'Family / care-adjacent',
     route: '/hospice?demoTour=funeral-home&demoStep=warm',
-    proof: 'Hospice contact, caregiver, family coordinator, known dates, when-it-happens plan, and funeral-home handoff packet.',
+    proof: 'Hospice or facility contact, caregiver, family coordinator, known dates, when-it-happens plan, and funeral-home handoff packet.',
     value: 'Shows Passage as continuity infrastructure before the funeral home ever starts a case.',
   },
   {
@@ -294,7 +294,7 @@ const productionReadiness = [
   ['Orchestration believability', 'Medium-high', 'The demo now has the spine: owner, request, waiting, proof, output, lifecycle state, and reporting. Keep tightening until every task feels authoritative.'],
   ['Funeral-home founder-led sales', 'Ready', 'Pitch and demo the coordination layer now: first-day setup, import/create, assign owner, record proof, and export back out. Founder should guide onboarding.'],
   ['Notification QA', 'Dry-run ready', 'Email/SMS endpoints can be exercised without contacting a real recipient or changing production records. Live sends still require explicit controlled approval.'],
-  ['Hospice discovery', 'Ready for conversations', 'Pitch the upstream family coordination bridge, not hospice software. Use discovery to validate care-team setup, family communication, and funeral-home handoff.'],
+  ['Hospice / care-facility discovery', 'Ready for conversations', 'Pitch the upstream family coordination bridge, not hospice or facility software. Use discovery to validate care-team setup, family communication, and funeral-home handoff.'],
   ['Unassisted paid rollout', 'Not yet', 'Needs delivery monitoring, support operations, more task outputs, billing/admin cleanup, and messy real CSV import QA before self-serve live usage.'],
 ];
 
@@ -701,10 +701,10 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
       <Panel>
         <div style={eyebrow}>Demo screen</div>
         <h2 style={h2}>Warm path continuity.</h2>
-        <p style={{ ...lead, marginBottom: 14 }}>Use this stop to show that Passage can start before the death event without becoming hospice software. The family owns the record, prepares the first-hour plan, and approves any handoff.</p>
+        <p style={{ ...lead, marginBottom: 14 }}>Use this stop to show that Passage can start before the death event without becoming hospice, facility, or clinical software. The family owns the record, prepares the first-hour plan, and approves any handoff.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginBottom: 14 }}>
           {[
-            ['Family enters during care', 'Hospice contact, caregiver, family coordinator, and preferred funeral home if known.'],
+            ['Family enters during care', 'Hospice or facility contact, caregiver, family coordinator, and preferred funeral home if known.'],
             ['Passage prepares', 'First-hour plan, family update list, and funeral-home handoff packet.'],
             ['Red path activates', 'When death occurs, the urgent path starts with existing context.'],
             ['Funeral home receives context', 'Director sees dates, authority, preferences, blockers, and missing items after family approval.'],
@@ -719,7 +719,7 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
           <Link href="/hospice?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Open warm path</Link>
           <Link href="/share?dn=Jack%20Taylor&cn=Taylor%20family" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show family-record one-pager</Link>
           <Link href="/packet?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show packet outputs</Link>
-          <button onClick={() => demoAction('Demo: hospice preparation becomes a reviewed handoff packet. Nothing is shared until the family approves it.')} style={tinyButton}>Explain handoff</button>
+          <button onClick={() => demoAction('Demo: care preparation becomes a reviewed handoff packet. Nothing is shared until the family approves it.')} style={tinyButton}>Explain handoff</button>
         </div>
       </Panel>
     );

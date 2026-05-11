@@ -91,14 +91,38 @@ const hospicePilotSetup = [
   ['5', 'Handoff', 'When death occurs, the same record moves to red path and funeral-home coordination.'],
 ];
 
+const careModes = {
+  hospice: {
+    eyebrow: 'Preparing during care',
+    title: 'Start the family record before the crisis moment.',
+    body: 'Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.',
+    input: 'Hospice agency or care team, if known',
+    contact: 'Hospice/on-call contact',
+    setting: 'Home hospice',
+  },
+  facility: {
+    eyebrow: 'Senior living / assisted care',
+    title: 'Keep the family record continuous when care changes.',
+    body: 'Capture the facility, family coordinator, release path, preferred funeral home, and practical handoff details before everyone is starting from zero.',
+    input: 'Community, facility, or care residence',
+    contact: 'Care director, nurse desk, or social worker',
+    setting: 'Senior living or assisted care',
+  },
+};
+
 export default function HospiceWarmPath() {
   const [user, setUser] = useState(null);
+  const [careMode, setCareMode] = useState('hospice');
   const [form, setForm] = useState({
     lovedOneName: '',
     coordinatorName: '',
     hospiceAgency: '',
     hospiceContact: '',
     hospicePhone: '',
+    facilityName: '',
+    facilityContact: '',
+    facilityPhone: '',
+    careSetting: '',
     funeralHomeName: '',
     expectedWindow: '',
     pronouncementDate: '',
@@ -112,6 +136,7 @@ export default function HospiceWarmPath() {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [showDepth, setShowDepth] = useState(false);
+  const activeMode = careModes[careMode] || careModes.hospice;
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -146,6 +171,11 @@ export default function HospiceWarmPath() {
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          providerType: careMode === 'facility' ? 'care_facility' : 'hospice',
+          careSetting: form.careSetting || activeMode.setting,
+          careTeamName: careMode === 'facility' ? form.facilityName : form.hospiceAgency,
+          careTeamContact: careMode === 'facility' ? form.facilityContact : form.hospiceContact,
+          careTeamPhone: careMode === 'facility' ? form.facilityPhone : form.hospicePhone,
           coordinatorEmail: user.email,
           coordinatorName: form.coordinatorName || user.user_metadata?.full_name || user.email,
         }),
@@ -190,13 +220,28 @@ export default function HospiceWarmPath() {
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '4px 28px 8px' }}>
         <div className="warm-hero-grid" data-demo-anchor="demo-warm-record" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .86fr) minmax(360px, 1fr)', gap: 14, alignItems: 'stretch' }}>
           <div style={heroCard}>
-            <div style={eyebrow}>Preparing during care</div>
+            <div style={eyebrow}>{activeMode.eyebrow}</div>
             <h1 style={{ fontSize: 'clamp(30px, 3.55vw, 42px)', lineHeight: 1.02, margin: '7px 0 9px', fontWeight: 400 }}>
-              Start the family record before the crisis moment.
+              {activeMode.title}
             </h1>
             <p style={{ ...lead, fontSize: 13.2, lineHeight: 1.38 }}>
-              Capture who to call, what is known, what is still uncertain, and what the funeral home should receive when the family is ready.
+              {activeMode.body}
             </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 7, marginTop: 11 }}>
+              {[
+                ['hospice', 'Hospice / home care'],
+                ['facility', 'Senior living / assisted care'],
+              ].map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setCareMode(mode)}
+                  style={{ border: '1px solid ' + (careMode === mode ? C.sage : C.border), background: careMode === mode ? C.sageFaint : C.card, color: careMode === mode ? C.sage : C.mid, borderRadius: 11, minHeight: 36, padding: '0 9px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <div style={{ display: 'grid', gap: 6, marginTop: 11 }}>
               {['Family owns permissions', 'Nothing shares without approval', 'Unknown dates become visible tasks'].map(item => (
                 <div key={item} style={statusRow}>{item}</div>
@@ -215,14 +260,30 @@ export default function HospiceWarmPath() {
             <div style={{ display: 'grid', gap: 7 }}>
               <input value={form.lovedOneName} onChange={event => updateField('lovedOneName', event.target.value)} placeholder="Loved one's name" style={inputStyle} />
               <input value={form.coordinatorName} onChange={event => updateField('coordinatorName', event.target.value)} placeholder="Family coordinator name" style={inputStyle} />
-              <input value={form.hospiceAgency} onChange={event => updateField('hospiceAgency', event.target.value)} placeholder="Hospice agency or care team, if known" style={inputStyle} />
+              <input
+                value={careMode === 'facility' ? form.facilityName : form.hospiceAgency}
+                onChange={event => updateField(careMode === 'facility' ? 'facilityName' : 'hospiceAgency', event.target.value)}
+                placeholder={activeMode.input}
+                style={inputStyle}
+              />
               <details style={{ border: '1px solid ' + C.border, borderRadius: 12, background: C.bg, padding: 9 }}>
                 <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 13 }}>Add contacts, dates, and funeral-home preference</summary>
                 <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, margin: '6px 0 8px' }}>Add only what the family actually knows.</div>
                 <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 8, marginBottom: 8 }}>
-                  <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
-                  <input value={form.hospicePhone} onChange={event => updateField('hospicePhone', event.target.value)} placeholder="Phone" style={inputStyle} />
+                  <input
+                    value={careMode === 'facility' ? form.facilityContact : form.hospiceContact}
+                    onChange={event => updateField(careMode === 'facility' ? 'facilityContact' : 'hospiceContact', event.target.value)}
+                    placeholder={activeMode.contact}
+                    style={inputStyle}
+                  />
+                  <input
+                    value={careMode === 'facility' ? form.facilityPhone : form.hospicePhone}
+                    onChange={event => updateField(careMode === 'facility' ? 'facilityPhone' : 'hospicePhone', event.target.value)}
+                    placeholder="Phone"
+                    style={inputStyle}
+                  />
                 </div>
+                <input value={form.careSetting} onChange={event => updateField('careSetting', event.target.value)} placeholder={`Care setting, e.g. ${activeMode.setting}`} style={{ ...inputStyle, marginBottom: 8 }} />
                 <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={{ ...inputStyle, marginBottom: 8 }} />
                 <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if known" style={inputStyle} />
               </details>
@@ -319,7 +380,7 @@ export default function HospiceWarmPath() {
           <div>
             <div style={eyebrow}>Care-team context</div>
             <h2 style={{ ...h2, fontSize: 21, margin: '4px 0 4px' }}>Family coordination, not clinical software.</h2>
-            <p style={{ ...lead, fontSize: 12.6, lineHeight: 1.35 }}>Contacts, wishes, dates, tasks, permissions, and handoffs stay together without replacing medical records.</p>
+            <p style={{ ...lead, fontSize: 12.6, lineHeight: 1.35 }}>Contacts, wishes, dates, tasks, permissions, and handoffs stay together without replacing medical records, facility systems, or care documentation.</p>
           </div>
           <button onClick={() => setShowDepth(prev => !prev)} style={showMoreButton}>
             {showDepth ? 'Hide details' : 'Show details'}
@@ -333,7 +394,7 @@ export default function HospiceWarmPath() {
         <div style={sectionHeader}>
           <div style={eyebrow}>Lifecycle spine</div>
           <h2 style={h2}>The warm path is the bridge between planning and red path.</h2>
-          <p style={lead}>This is not medical software. It is family coordination continuity before, during, and after the institutional handoff.</p>
+          <p style={lead}>This is not hospice, facility, or medical software. It is family coordination continuity before, during, and after the institutional handoff.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
           {lifecycle.map(([n, title, body]) => (
@@ -349,7 +410,7 @@ export default function HospiceWarmPath() {
       <section style={section}>
         <div style={panel}>
           <div style={eyebrow}>Future hospice pilot setup</div>
-          <h2 style={h2}>A hospice location should start with care-team setup, not a blank dashboard.</h2>
+          <h2 style={h2}>A hospice or care-facility location should start with care-team setup, not a blank dashboard.</h2>
           <p style={lead}>This is the same Passage spine as funeral-home onboarding, shifted upstream: set the location or care-team context once, add people once, then every family workspace reuses those roles and handoff paths.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginTop: 16 }}>
             {hospicePilotSetup.map(([n, title, body]) => (
@@ -363,7 +424,7 @@ export default function HospiceWarmPath() {
             ))}
           </div>
           <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 12 }}>
-            Hospice and assisted-care setup should reuse the same SaaS pattern as funeral homes: organization, locations or care teams, employees and roles, family records, assigned tasks, communication, proof, and reporting. The product stays family-first; providers rotate through the persistent record.
+            Hospice, senior-living, and assisted-care setup should reuse the same SaaS pattern as funeral homes: organization, locations or care teams, employees and roles, family records, assigned tasks, communication, proof, and reporting. The product stays family-first; providers rotate through the persistent record.
           </div>
         </div>
       </section>
@@ -410,7 +471,7 @@ export default function HospiceWarmPath() {
           <div style={{ ...panel, background: C.roseFaint, borderColor: '#efcaca' }}>
             <div style={{ ...eyebrow, color: C.rose }}>When death occurs</div>
             <h2 style={h2}>Red path starts from what the family already prepared.</h2>
-            <p style={lead}>If this is a hospice case, Passage should put the hospice/on-call path first, then carry known contacts and preferences into the command center.</p>
+            <p style={lead}>If this is an expected death in care, Passage should put the hospice, on-call, or facility release path first, then carry known contacts and preferences into the command center.</p>
             <Link href="/urgent" style={{ ...primaryLink, background: C.rose, marginTop: 18 }}>Open urgent path</Link>
           </div>
           <div style={panel}>
@@ -439,7 +500,7 @@ export default function HospiceWarmPath() {
           <h2 style={h2}>What this changes in the platform.</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 16 }}>
             {[
-              ['Spine events', 'Add warm-path events such as hospice contact recorded, when-it-happens plan prepared, and funeral-home handoff approved.'],
+              ['Spine events', 'Add warm-path events such as care contact recorded, when-it-happens plan prepared, and funeral-home handoff approved.'],
               ['Task priority', 'Rank by lifecycle state, service dates, death date, unknown required dates, and who is waiting on whom.'],
               ['Partner demo', 'Show the family arriving with context instead of making the funeral home start from zero.'],
               ['Announcement batch', 'Prepare one event one-pager and recipient groups before any send queue exists.'],

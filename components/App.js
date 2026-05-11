@@ -98,7 +98,7 @@ const POST_DEATH_TASKS = [
       { id: "t1_06", title: "Make arrangements for minor children and pets", desc: "Ensure children and pets are cared for immediately.", category: "personal" },
       { id: "t1_07", title: "Notify the executor of the estate", desc: "Inform them of the death and their legal responsibilities.", category: "legal" },
       { id: "t1_08", title: "Document the date, time, and location of death", desc: "Required on death certificates and all official documents.", category: "legal" },
-      { id: "t1_09", title: "Notify hospice or home care providers", desc: "They need to retrieve equipment and close out care records.", category: "medical" },
+      { id: "t1_09", title: "Notify hospice, home care, or facility providers", desc: "They need to confirm equipment, release path, records, and closeout steps.", category: "medical" },
     ]
   },
   {
@@ -714,8 +714,8 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   if (lower.includes('funeral home') || lower.includes('funeral director')) {
     return { ...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating funeral arrangements for ${shorten(deceased, 26)}. Please sign in to Passage for task details.`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
   }
-  if (lower.includes('hospice') || lower.includes('home care')) {
-    return { ...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'hospice or home care provider', subject: `${deceased} - care provider notification`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you please confirm any equipment pickup, final care records, medication disposal instructions, and billing or benefits steps we need to handle?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is notifying hospice or care providers for ${shorten(deceased, 23)}. Sign in to Passage for details.`, steps: ['Call the hospice or home care main number.', 'Ask about equipment pickup, medications, records, and final billing.', 'Record any pickup window or case number.', 'Mark handled after the provider confirms the next step.'] };
+  if (lower.includes('hospice') || lower.includes('home care') || lower.includes('facility provider')) {
+    return { ...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'hospice, care team, or facility provider', subject: `${deceased} - care provider notification`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you please confirm any equipment pickup, release path, final care records, medication disposal instructions, and billing or benefits steps we need to handle?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is notifying care providers for ${shorten(deceased, 23)}. Sign in to Passage for details.`, steps: ['Call the hospice, home care, or facility main contact.', 'Ask about equipment pickup, release path, medications, records, and final billing.', 'Record any pickup window, release instruction, or case number.', 'Mark handled after the provider confirms the next step.'] };
   }
   if (lower.includes('death certificate') || lower.includes('pronouncement')) {
     return { ...base, executionMode: 'link', primaryLabel: 'Open official records path', recipientLabel: 'physician, hospice nurse, coroner, or funeral director', link: 'https://www.cdc.gov/nchs/w2w/index.htm', linkLabel: 'Find state vital records office', subject: `${deceased} - official pronouncement / death certificates`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you confirm who will provide the official pronouncement and how we should order certified death certificates?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} needs help with death certificate steps for ${shorten(deceased, 26)}. Sign in to Passage for details.`, steps: ['Confirm who is legally pronouncing the death.', 'Ask how many certified death certificates to order.', 'Record the contact name and phone number.', 'Use the state vital records link if certificates must be ordered directly.', 'Mark handled once the document path is clear.'] };
@@ -4358,7 +4358,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               style={{ display: 'block', background: C.sageFaint, color: C.sage, border: `1.5px solid ${C.sageLight}`, borderRadius: 14, padding: '16px 24px', fontSize: 14.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6, minWidth: 205 }}>
               Preparing during care
             </button>
-            <div style={{ fontSize: 12, color: C.soft }}>Hospice or serious illness</div>
+            <div style={{ fontSize: 12, color: C.soft }}>Hospice, care, or serious illness</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <button onClick={onPlan}
@@ -4738,7 +4738,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       cta: null,
       rows: [
         ['Green', 'Plan before crisis', 'Wishes, contacts, documents, roles, and preferences are organized early.'],
-        ['Warm', 'Prepare during care', 'Hospice or serious illness can become an earlier activation point.'],
+        ['Warm', 'Prepare during care', 'Hospice, home care, senior living, or serious illness can become an earlier activation point.'],
         ['Red', 'Move through the first hours', 'The experience narrows to one clear action, owner, and proof.'],
         ['After', 'Carry the long tail', 'Estate, notifications, remembrance, vendors, and reporting stay tied together.'],
       ],
@@ -4825,7 +4825,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             </div>
             <div className="home-demo-links" aria-label="View Passage demos">
               <a className="home-demo-link" href="/urgent?demo=1">View family experience</a>
-              <a className="home-demo-link" href="/hospice?demoTour=funeral-home&demoStep=warm">View planning experience</a>
+              <a className="home-demo-link" href="/hospice?demoTour=funeral-home&demoStep=warm">View care-prep experience</a>
               <a className="home-demo-link" href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard">View funeral-home demo</a>
             </div>
             <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>

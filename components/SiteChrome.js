@@ -150,10 +150,10 @@ const DEMO_TOUR_STEPS = [
   },
   {
     id: 'warm',
-    title: 'Show the hospice bridge',
-    body: 'Families may enter before the death event. Show the first-hour plan and permissioned funeral-home handoff before opening the partner dashboard.',
+    title: 'Show the care bridge',
+    body: 'Families may enter before the death event through hospice, home care, senior living, or assisted care. Show the first-hour plan and permissioned funeral-home handoff before opening the partner dashboard.',
     say: 'The family record can start before crisis and then hand off cleanly.',
-    show: 'Care-prep fields, permissions, and funeral-home preference.',
+    show: 'Care-prep fields, facility or hospice context, permissions, and funeral-home preference.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
     cta: 'Next: team setup',
     anchor: 'demo-warm-record',

@@ -31,6 +31,13 @@ const audiences = [
     cta: 'See funeral home fit',
   },
   {
+    label: 'For care teams',
+    title: 'Prepare the handoff without becoming another clinical system.',
+    body: 'Hospice, home care, senior living, and assisted-care teams can help families organize contacts, first-hour plans, and funeral-home preferences before crisis.',
+    href: '/hospice',
+    cta: 'Open care-prep path',
+  },
+  {
     label: 'For invited helpers',
     title: 'See only the work you were asked to handle.',
     body: 'Participants and vendors receive a scoped request tied to one estate task, with context, expectations, and a place to respond.',
