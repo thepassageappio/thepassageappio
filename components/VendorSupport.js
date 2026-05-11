@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
+import { RoleActionStrip, StatusBadge } from './SiteChrome';
 import { vendorAvailabilityLabel, vendorCategoryLabel } from '../lib/vendors';
 
 const C = {
@@ -107,6 +108,14 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
         </div>
         {category && <span style={{ fontSize: 10.5, fontWeight: 900, color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 8px', whiteSpace: 'nowrap' }}>{vendorCategoryLabel(category)}</span>}
       </div>
+      <RoleActionStrip
+        compact
+        role="Scoped vendor help"
+        action="Request one provider only when this task needs outside help."
+        waiting="Viewed, accepted, in progress, and completed stay attached to this task."
+        proof="The family and funeral home see the request state without exposing the whole record."
+        privacy="Vendors see only the relevant task, timing, and contact details needed to respond."
+      />
       {loading && <div style={{ fontSize: 12.5, color: C.soft }}>Checking local support...</div>}
       {!loading && vendors.length === 0 && (
         <div style={{ background: C.subtle, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, color: C.mid, lineHeight: 1.45 }}>
@@ -156,11 +165,11 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
             <div key={request.id} style={{ display: 'grid', gap: 5, padding: '6px 0', borderTop: '1px solid ' + C.sageLight }}>
               <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 900 }}>{request.vendors?.business_name || 'Local support'} - {vendorRequestLabel(request.status)}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                {request.requested_at && <ProofPill label="Sent" time={request.requested_at} active />}
-                {request.viewed_at && <ProofPill label="Viewed" time={request.viewed_at} active />}
-                {(request.responded_at || ['accepted', 'in_progress', 'completed'].includes(request.status)) && <ProofPill label="Accepted" time={request.responded_at} active />}
-                {(request.in_progress_at || request.status === 'in_progress' || request.status === 'completed') && <ProofPill label="In progress" time={request.in_progress_at || request.responded_at} active />}
-                {request.completed_at && <ProofPill label="Completed" time={request.completed_at} active />}
+                {request.requested_at && <ProofPill status="sent" label="Sent" time={request.requested_at} />}
+                {request.viewed_at && <ProofPill status="viewed" label="Viewed" time={request.viewed_at} />}
+                {(request.responded_at || ['accepted', 'in_progress', 'completed'].includes(request.status)) && <ProofPill status="accepted" label="Accepted" time={request.responded_at} />}
+                {(request.in_progress_at || request.status === 'in_progress' || request.status === 'completed') && <ProofPill status="waiting" label="In progress" time={request.in_progress_at || request.responded_at} />}
+                {request.completed_at && <ProofPill status="completed" label="Completed" time={request.completed_at} />}
               </div>
               {['requested', 'accepted', 'in_progress'].includes(request.status) && (
                 <div style={{ fontSize: 11.5, color: C.mid }}>Waiting for response. If we do not hear back, Passage will prompt you.</div>
@@ -175,11 +184,9 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
   );
 }
 
-function ProofPill({ label, time }) {
+function ProofPill({ status, label, time }) {
   return (
-    <span style={{ background: '#fff', border: '1px solid #c8deca', color: '#6b8f71', borderRadius: 999, padding: '3px 7px', fontSize: 10.5, fontWeight: 900 }}>
-      {label}{time ? ` - ${new Date(time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}
-    </span>
+    <StatusBadge status={status} compact label={time ? `${label} - ${new Date(time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : label} />
   );
 }
 

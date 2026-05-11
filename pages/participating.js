@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
-import { RoleActionStrip, SiteHeader, SiteFooter } from '../components/SiteChrome';
+import { RoleActionStrip, SiteHeader, SiteFooter, StatusBadge } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
@@ -189,7 +189,10 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     surface: 'your assigned task',
   });
   const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'acknowledged' ? 'Status: Confirmed' : itemStatus(item) === 'blocked' ? 'Status: Needs help' : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
-  const expectedUpdate = taskExpectedUpdate(item, 'participant');
+  const rawExpectedUpdate = taskExpectedUpdate(item, 'participant');
+  const expectedUpdate = /waiting for an owner/i.test(rawExpectedUpdate)
+    ? 'Waiting for your update - accept it, mark what is waiting, or record proof.'
+    : rawExpectedUpdate;
   const statusTone = handled ? C.sage : itemStatus(item) === 'blocked' ? C.rose : C.amber;
   const statusBg = handled ? C.sageFaint : itemStatus(item) === 'blocked' ? C.roseFaint : C.amberFaint;
   const [savedPulse, setSavedPulse] = useState(false);
@@ -245,7 +248,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <div style={{ fontSize: primary ? 20 : 16, color: C.ink, fontWeight: 800, lineHeight: 1.25 }}>{itemTitle(item)}</div>
           {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Your next responsibility</div>}
         </div>
-        <span style={{ fontSize: 11, fontWeight: 900, color: statusTone, background: statusBg, borderRadius: 999, padding: '5px 9px', flexShrink: 0 }}>{statusLabel(itemStatus(item))}</span>
+        <StatusBadge status={itemStatus(item)} label={statusLabel(itemStatus(item))} />
       </div>
       {primary && (
         <div style={{ marginBottom: 9 }}>

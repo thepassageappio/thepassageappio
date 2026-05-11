@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
 import { RoleActionStrip, SiteHeader, SiteFooter, SpineTrustStrip } from '../../components/SiteChrome';
+import PacketGeneratorModal from '../../components/PacketGeneratorModal';
 import SmartAddressInput from '../../components/SmartAddressInput';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
@@ -487,6 +488,7 @@ export default function FuneralHomeDashboard() {
   const [taskDraft, setTaskDraft] = useState(null);
   const [taskDraftNote, setTaskDraftNote] = useState('');
   const [outputPreview, setOutputPreview] = useState(null);
+  const [packetModal, setPacketModal] = useState(null);
   const [assignmentDraft, setAssignmentDraft] = useState({ taskId: '', name: '', email: '', role: '', phone: '' });
   const [activePartnerView, setActivePartnerView] = useState('work');
   const [reportView, setReportView] = useState('overview');
@@ -3404,6 +3406,7 @@ export default function FuneralHomeDashboard() {
                   </div>
                   {isExpanded && <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
                     <span style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Outputs</span>
+                    <button onClick={() => setPacketModal({ estateId: item.id, packetType: 'funeral_home_arrangement' })} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 999, padding: '6px 10px', textDecoration: 'none', fontSize: 11.5, fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Generate packet</button>
                     <Link href={`/packet?id=${encodeURIComponent(item.id)}&demoTour=funeral-home&demoStep=warm`} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 9px', textDecoration: 'none', fontSize: 11.5, fontWeight: 900 }}>Prepared packets</Link>
                     <Link href={familyUpdateHref} style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 9px', textDecoration: 'none', fontSize: 11.5, fontWeight: 900 }}>Family update</Link>
                     <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.mid, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 999, padding: '6px 9px', textDecoration: 'none', fontSize: 11.5, fontWeight: 900 }}>Printable summary</Link>
@@ -3817,6 +3820,24 @@ export default function FuneralHomeDashboard() {
             copiedKey={copiedKey}
             onCopyText={copyText}
             onClose={() => setOutputPreview(null)}
+          />
+        )}
+        {user && packetModal && (
+          <PacketGeneratorModal
+            estateId={packetModal.estateId}
+            packetType={packetModal.packetType}
+            accessToken={token}
+            onClose={() => setPacketModal(null)}
+            onComplete={({ packet, text }) => {
+              setPacketModal(null);
+              setOutputPreview({
+                title: packet?.data?.title || 'Prepared Passage packet',
+                subtitle: 'Generated from the case spine',
+                purpose: packet?.data?.approvalBoundary || 'Review before sharing outside the family record.',
+                text,
+                copyKey: 'generated_packet_' + (packet?.estate_id || ''),
+              });
+            }}
           />
         )}
       </section>

@@ -63,6 +63,38 @@ export function RoleActionStrip({ role = 'Your role', action = 'Take the next ac
   );
 }
 
+export function StatusBadge({ status = 'draft', label, compact = false }) {
+  const clean = String(status || '').toLowerCase();
+  const state = clean === 'done' || clean === 'handled' || clean === 'completed'
+    ? { text: 'Handled', icon: '✓', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#c8deca' }
+    : clean === 'acknowledged' || clean === 'accepted' || clean === 'viewed'
+      ? { text: clean === 'viewed' ? 'Viewed' : 'Accepted', icon: '•', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#c8deca' }
+      : clean === 'sent' || clean === 'assigned' || clean === 'waiting' || clean === 'pending' || clean === 'requested'
+        ? { text: clean === 'sent' ? 'Sent' : 'Waiting', icon: '…', color: '#7a6a52', bg: '#f7f1e7', border: '#eadcc8' }
+        : clean === 'blocked' || clean === 'failed' || clean === 'needs_review' || clean === 'declined'
+          ? { text: clean === 'declined' ? 'Needs another option' : 'Needs help', icon: '!', color: '#9a6842', bg: '#fdf3ec', border: '#edd0bd' }
+          : { text: 'Draft', icon: '•', color: CHROME_COLORS.soft, bg: CHROME_COLORS.bg, border: CHROME_COLORS.border };
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 5,
+      border: `1px solid ${state.border}`,
+      background: state.bg,
+      color: state.color,
+      borderRadius: 999,
+      padding: compact ? '3px 7px' : '5px 9px',
+      fontSize: compact ? 10.5 : 11.5,
+      lineHeight: 1,
+      fontWeight: 900,
+      whiteSpace: 'nowrap',
+    }}>
+      <span aria-hidden="true">{state.icon}</span>
+      {label || state.text}
+    </span>
+  );
+}
+
 const LINKS = [
   ['Mission', '/mission'],
   ['Our story', '/story'],

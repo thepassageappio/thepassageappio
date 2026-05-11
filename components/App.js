@@ -4782,6 +4782,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-secondary { background:${C.bgCard}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
         .home-tertiary { background:transparent; color:${C.mid}; border:1px solid ${C.border}; }
         .home-note { color:${C.soft}; font-size:12.5px; line-height:1.45; margin-top:10px; }
+        .home-demo-links { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+        .home-demo-link { display:inline-flex; align-items:center; min-height:34px; border-radius:999px; border:1px solid ${C.border}; background:${C.bgCard}; color:${C.mid}; text-decoration:none; padding:0 11px; font-size:12px; font-weight:900; }
         .home-pledge { display:inline-block; color:${C.sageDark}; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:12px; padding:8px 10px; font-size:12px; line-height:1.35; margin-top:10px; max-width:660px; }
         .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:19px; min-height: 430px; display:flex; flex-direction:column; }
         .home-panel-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:16px; }
@@ -4820,6 +4822,11 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <button onClick={() => window.location.href = '/urgent'} className="home-action home-primary">Start urgent path</button>
               <button onClick={() => window.location.href = '/hospice'} className="home-action home-secondary">Prepare during care</button>
               <button onClick={onPlan} className="home-action home-tertiary">Plan ahead</button>
+            </div>
+            <div className="home-demo-links" aria-label="View Passage demos">
+              <a className="home-demo-link" href="/urgent?demo=1">View family experience</a>
+              <a className="home-demo-link" href="/hospice?demoTour=funeral-home&demoStep=warm">View planning experience</a>
+              <a className="home-demo-link" href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard">View funeral-home demo</a>
             </div>
             <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
             <div className="home-pledge"><strong>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent path also funds a remembrance tree dedication.</div>
