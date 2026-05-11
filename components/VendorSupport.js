@@ -25,6 +25,8 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
   const [category, setCategory] = useState('');
   const [message, setMessage] = useState('');
   const [requesting, setRequesting] = useState('');
+  const [deciding, setDeciding] = useState('');
+  const [urgency, setUrgency] = useState('planned');
   const [token, setToken] = useState(authToken || '');
 
   useEffect(() => {
@@ -84,7 +86,10 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
           taskId,
           taskTitle,
           vendorId: vendor.id,
-          urgency: vendor.rush_supported ? 'rush' : 'planned',
+          urgency,
+          requestNote: urgency === 'rush'
+            ? 'Family requested the fastest available quote or availability window.'
+            : 'Family requested planned timing and a clear quote before work begins.',
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -96,6 +101,29 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
       setMessage(error.message || 'Could not request help.');
     } finally {
       setRequesting('');
+    }
+  }
+
+  async function decideQuote(request, action) {
+    setDeciding(request.id + ':' + action);
+    setMessage('');
+    try {
+      const response = await fetch('/api/vendorRequests/decision', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+        body: JSON.stringify({ requestId: request.id, action }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Could not update this quote.');
+      setRequests((prev) => prev.map((item) => item.id === request.id ? data.request : item));
+      setMessage(action === 'approve_quote'
+        ? 'Quote accepted - the vendor work is now scheduled on this task.'
+        : 'Marked as needing another option. The request stays visible on the proof trail.');
+      if (onRequested) onRequested(data);
+    } catch (error) {
+      setMessage(error.message || 'Could not update this quote.');
+    } finally {
+      setDeciding('');
     }
   }
 
@@ -116,6 +144,17 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
         proof="The family and funeral home see the request state without exposing the whole record."
         privacy="Vendors see only the relevant task, timing, and contact details needed to respond."
       />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 7, margin: '9px 0' }}>
+        {[
+          ['planned', 'Planned quote', 'Use when timing can be coordinated calmly.'],
+          ['rush', 'Urgent quote', 'Use when the family needs a fast availability answer.'],
+        ].map(([value, title, body]) => (
+          <button key={value} onClick={() => setUrgency(value)} style={{ textAlign: 'left', border: '1px solid ' + (urgency === value ? C.sage : C.border), background: urgency === value ? C.sageFaint : C.card, color: C.ink, borderRadius: 11, padding: '9px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+            <div style={{ fontSize: 12.5, fontWeight: 900 }}>{title}</div>
+            <div style={{ color: C.mid, fontSize: 11.3, lineHeight: 1.35, marginTop: 3 }}>{body}</div>
+          </button>
+        ))}
+      </div>
       {loading && <div style={{ fontSize: 12.5, color: C.soft }}>Checking local support...</div>}
       {!loading && vendors.length === 0 && (
         <div style={{ background: C.subtle, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, color: C.mid, lineHeight: 1.45 }}>
@@ -150,7 +189,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
               )}
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 9 }}>
                 <button onClick={() => requestHelp(vendor)} disabled={requesting === vendor.id} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: requesting === vendor.id ? 'default' : 'pointer' }}>
-                  {requesting === vendor.id ? 'Requesting...' : 'Request help'}
+                  {requesting === vendor.id ? 'Requesting...' : urgency === 'rush' ? 'Request urgent quote' : 'Request quote'}
                 </button>
                 {vendor.contact_phone && <span style={{ fontSize: 11.5, color: C.mid }}>{vendor.contact_phone}</span>}
               </div>
@@ -164,15 +203,34 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
           {requests.map((request) => (
             <div key={request.id} style={{ display: 'grid', gap: 5, padding: '6px 0', borderTop: '1px solid ' + C.sageLight }}>
               <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 900 }}>{request.vendors?.business_name || 'Local support'} - {vendorRequestLabel(request.status)}</div>
+              {request.vendor_note && <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45 }}>{request.vendor_note}</div>}
+              {(request.estimated_value || request.final_value) && (
+                <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 900 }}>
+                  Quote/value: ${Math.round(Number(request.final_value || request.estimated_value || 0))}
+                </div>
+              )}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {request.requested_at && <ProofPill status="sent" label="Sent" time={request.requested_at} />}
                 {request.viewed_at && <ProofPill status="viewed" label="Viewed" time={request.viewed_at} />}
-                {(request.responded_at || ['accepted', 'in_progress', 'completed'].includes(request.status)) && <ProofPill status="accepted" label="Accepted" time={request.responded_at} />}
-                {(request.in_progress_at || request.status === 'in_progress' || request.status === 'completed') && <ProofPill status="waiting" label="In progress" time={request.in_progress_at || request.responded_at} />}
+                {(request.responded_at || ['accepted', 'in_progress', 'completed'].includes(request.status)) && <ProofPill status="accepted" label="Quote ready" time={request.responded_at} />}
+                {(request.in_progress_at || request.status === 'in_progress' || request.status === 'completed') && <ProofPill status="waiting" label="Scheduled" time={request.in_progress_at || request.responded_at} />}
                 {request.completed_at && <ProofPill status="completed" label="Completed" time={request.completed_at} />}
               </div>
-              {['requested', 'accepted', 'in_progress'].includes(request.status) && (
-                <div style={{ fontSize: 11.5, color: C.mid }}>Waiting for response. If we do not hear back, Passage will prompt you.</div>
+              {request.status === 'accepted' && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <button onClick={() => decideQuote(request, 'approve_quote')} disabled={deciding === request.id + ':approve_quote'} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 9px', fontFamily: 'Georgia,serif', fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
+                    {deciding === request.id + ':approve_quote' ? 'Saving...' : 'Accept quote'}
+                  </button>
+                  <button onClick={() => decideQuote(request, 'decline_quote')} disabled={deciding === request.id + ':decline_quote'} style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 9px', fontFamily: 'Georgia,serif', fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
+                    Need another option
+                  </button>
+                </div>
+              )}
+              {request.status === 'requested' && (
+                <div style={{ fontSize: 11.5, color: C.mid }}>Waiting for a quote or availability response. If we do not hear back, Passage keeps it visible here.</div>
+              )}
+              {request.status === 'in_progress' && (
+                <div style={{ fontSize: 11.5, color: C.mid }}>Quote accepted. Waiting for completion proof from the vendor.</div>
               )}
             </div>
           ))}
@@ -192,8 +250,8 @@ function ProofPill({ status, label, time }) {
 
 function vendorRequestLabel(status) {
   if (status === 'completed') return 'Completed';
-  if (status === 'in_progress') return 'In progress';
-  if (status === 'accepted') return 'Accepted';
+  if (status === 'in_progress') return 'Quote accepted';
+  if (status === 'accepted') return 'Quote ready';
   if (status === 'declined') return 'Needs another option';
-  return 'Waiting for response';
+  return 'Quote requested';
 }

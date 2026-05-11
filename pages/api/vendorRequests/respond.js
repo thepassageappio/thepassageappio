@@ -63,7 +63,13 @@ export default async function handler(req, res) {
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
     passage_share_amount: economics.passageShareAmount,
-    payment_collection_status: status === 'completed' && finalValue > 0 ? 'passage_collects' : 'tracking_only',
+    payment_collection_status: status === 'declined'
+      ? 'waived'
+      : status === 'completed' && finalValue > 0
+        ? 'passage_collects'
+        : status === 'accepted' || status === 'in_progress'
+          ? 'tracking_only'
+          : 'quote_needed',
     updated_at: now,
   };
   const { error: updateError } = await admin.from('vendor_requests').update(update).eq('id', request.id);
@@ -72,13 +78,15 @@ export default async function handler(req, res) {
   const vendorName = request.vendors?.business_name || 'Vendor';
   const category = vendorCategoryLabel(request.vendors?.category);
   const title = status === 'accepted'
-    ? `${vendorName} accepted`
+    ? `${vendorName} sent a quote`
     : status === 'in_progress'
       ? `${vendorName} started work`
     : status === 'completed'
       ? `${vendorName} completed request`
       : `${vendorName} declined`;
-  const detail = `${category} request for ${request.task_title || 'this task'} was ${status}.`;
+  const detail = status === 'accepted'
+    ? `${category} quote for ${request.task_title || 'this task'} is ready for review.${finalValue > 0 ? ` Value: $${Math.round(finalValue)}.` : ''}`
+    : `${category} request for ${request.task_title || 'this task'} was ${status}.`;
   await recordTaskCommunicationEvent({
     verb: status === 'completed' ? 'prove' : status === 'declined' ? 'escalate' : 'update',
     workflowId: request.workflow_id,

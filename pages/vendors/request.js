@@ -17,6 +17,7 @@ const demoRequest = {
   responded_at: '',
   estimated_value: 450,
   final_value: '',
+  vendor_note: '',
   platform_fee_amount: 72,
   funeral_home_share_amount: 24,
   passage_share_amount: 48,
@@ -48,6 +49,7 @@ export default function VendorRequestPage() {
   const [updating, setUpdating] = useState('');
   const [estimatedValue, setEstimatedValue] = useState('');
   const [finalValue, setFinalValue] = useState('');
+  const [vendorNote, setVendorNote] = useState('');
   const [pendingVendorAction, setPendingVendorAction] = useState('');
 
   useEffect(() => {
@@ -117,6 +119,7 @@ export default function VendorRequestPage() {
     setRequest(json.request);
     setEstimatedValue(json.request?.estimated_value || '');
     setFinalValue(json.request?.final_value || '');
+    setVendorNote(json.request?.vendor_note || '');
   }
 
   async function loadVendorProfile(accessToken = userToken) {
@@ -142,7 +145,7 @@ export default function VendorRequestPage() {
 
   async function update(action) {
     if (!token) {
-      const next = applyVendorRequestTransition(request, action, { estimatedValue, finalValue });
+      const next = applyVendorRequestTransition(request, action, { estimatedValue, finalValue, vendorNote });
       setRequest(next);
       setNotice(noticeForAction(action, true));
       setPendingVendorAction('');
@@ -154,7 +157,7 @@ export default function VendorRequestPage() {
     const res = await fetch('/api/vendorRequests/portal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, action, estimatedValue, finalValue }),
+      body: JSON.stringify({ token, action, estimatedValue, finalValue, vendorNote }),
     });
     const json = await res.json().catch(() => ({}));
     setUpdating('');
@@ -175,12 +178,12 @@ export default function VendorRequestPage() {
   const nextExpected = request?.status === 'completed'
     ? 'Completed. Passage will show the family and funeral home this request is handled.'
     : request?.status === 'in_progress'
-      ? 'In progress. Update again when the service is completed or if details are missing.'
+      ? 'Quote accepted. Update again when the service is completed or if details are missing.'
       : request?.status === 'accepted'
-        ? 'Accepted. The family and funeral home can see you are working on it.'
+        ? 'Quote ready. The family or funeral home can accept it before work starts.'
         : request?.status === 'declined'
           ? 'Declined. Passage will keep the request visible so another option can be found.'
-        : 'Waiting for your response. Accept, ask for details, or decline if you cannot help.';
+        : 'Waiting for your response. Send a quote, ask for details, or decline if you cannot help.';
   const ownerLabel = request?.status === 'requested'
     ? vendorName
     : request?.status === 'declined'
@@ -190,7 +193,9 @@ export default function VendorRequestPage() {
     ? 'Nothing. Proof is saved.'
     : request?.status === 'declined'
       ? 'Another support option'
-      : request?.status === 'accepted' || request?.status === 'in_progress'
+      : request?.status === 'accepted'
+        ? 'Family or funeral-home quote approval'
+        : request?.status === 'in_progress'
         ? 'Completion update from vendor'
         : 'Vendor response';
   const proofLabel = request?.status === 'completed'
@@ -199,17 +204,17 @@ export default function VendorRequestPage() {
       ? 'Decline reason/status stays visible for replacement.'
       : 'Viewed/responded timestamps and status changes report back to the case.';
   const recommendedVendorAction = request?.status === 'accepted'
-    ? ['in_progress', 'Mark in progress']
+    ? ['in_progress', 'Mark scheduled']
     : request?.status === 'in_progress'
       ? ['completed', 'Mark completed']
       : request?.status === 'completed'
         ? null
         : request?.status === 'declined'
           ? null
-          : ['accepted', 'Accept request'];
+        : ['accepted', 'Send quote'];
   const secondaryVendorActions = [
-    ['accepted', 'Accept request'],
-    ['in_progress', 'Mark in progress'],
+    ['accepted', 'Send quote'],
+    ['in_progress', 'Mark scheduled'],
     ['completed', 'Mark completed'],
     ['declined', 'Decline'],
   ].filter(([action]) => !recommendedVendorAction || action !== recommendedVendorAction[0]);
@@ -239,7 +244,7 @@ export default function VendorRequestPage() {
               <h1 style={{ fontSize: 'clamp(30px, 5vw, 44px)', lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
               <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Demo request. Button clicks update local screen state only.' : 'One scoped request connected to the family record. You only see what is needed to answer this request.'}</p>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 12 }}>
-                <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After accepting:</strong> the family and funeral home see the request status on the same coordination record.
+                <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After your quote:</strong> the family or funeral home accepts it before work begins.
               </div>
               <div style={{ marginTop: 12 }}>
                 <SpineTrustStrip
@@ -286,8 +291,16 @@ export default function VendorRequestPage() {
                 <Info label="Urgency" value={urgencyLabel} />
                 <div style={{ height: 8 }} />
                 <Info label="Status" value={requestStatus} />
+                <div style={{ height: 8 }} />
+                <Info label="Quote/value" value={request?.final_value || request?.estimated_value ? money(request?.final_value || request?.estimated_value) : 'Not quoted yet'} />
               </div>
             </div>
+
+            {request?.vendor_note && (
+              <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginBottom: 14 }}>
+                <strong style={{ color: C.ink }}>Vendor note:</strong> {request.vendor_note}
+              </div>
+            )}
 
             <VendorRequestLoop
               next={request?.status === 'requested' ? 'Respond to the scoped request.' : nextExpected}
@@ -339,15 +352,16 @@ export default function VendorRequestPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                     <div>
                       <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor response</div>
-                      <div style={{ color: C.ink, fontSize: 23, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{labelForStatus(pendingVendorAction)}</div>
+                      <div style={{ color: C.ink, fontSize: 23, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{pendingVendorAction === 'accepted' ? 'Send quote for review' : labelForStatus(pendingVendorAction)}</div>
                     </div>
                     <button onClick={() => setPendingVendorAction('')} aria-label="Close vendor response" style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                   </div>
                   <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and task. It does not expose the full estate, and it does not send a live family message from this screen.</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-                    <label style={labelStyle}>Estimated value<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
+                    <label style={labelStyle}>Estimated quote<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                     <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                   </div>
+                  <label style={{ ...labelStyle, marginTop: 9 }}>Quote note / availability<textarea value={vendorNote} onChange={(e) => setVendorNote(e.target.value)} placeholder="Available Friday afternoon. Quote includes setup, service coverage, and delivery of recording." style={{ ...inputStyle, minHeight: 74, resize: 'vertical' }} /></label>
                   {(request.platform_fee_amount || request.funeral_home_share_amount || request.passage_share_amount) && (
                     <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9, fontSize: 12.5, color: C.mid }}>
                       {request.platform_fee_amount && <span>Tracked platform fee: <strong>{money(request.platform_fee_amount)}</strong></span>}
@@ -380,6 +394,7 @@ function applyVendorRequestTransition(current, action, values = {}) {
     viewed_at: current?.viewed_at || now,
     estimated_value: values.estimatedValue,
     final_value: values.finalValue,
+    vendor_note: values.vendorNote || current?.vendor_note || '',
   };
   if (status === 'accepted') {
     next.responded_at = now;
@@ -409,9 +424,9 @@ function applyVendorRequestTransition(current, action, values = {}) {
 function noticeForAction(action, demo) {
   const prefix = demo ? 'Demo update saved locally. ' : '';
   if (action === 'completed') return prefix + 'Marked completed. Passage will show the family and funeral home that this is handled.';
-  if (action === 'in_progress') return prefix + 'Marked in progress. Passage will keep this visible while the vendor works.';
+  if (action === 'in_progress') return prefix + 'Marked scheduled. Passage will keep this visible while the vendor works.';
   if (action === 'declined') return prefix + 'Marked declined. Passage will show that this request needs another option.';
-  return prefix + 'Request accepted. The family and funeral home will be notified that you are working on it.';
+  return prefix + 'Quote sent for review. The family and funeral home can accept it before work starts.';
 }
 
 function VendorDashboard({ vendor, requests }) {
@@ -488,10 +503,10 @@ function Pill({ label, time }) {
 
 function labelForStatus(status) {
   if (status === 'completed') return 'Completed';
-  if (status === 'in_progress') return 'In progress';
-  if (status === 'accepted') return 'Accepted';
+  if (status === 'in_progress') return 'Quote accepted';
+  if (status === 'accepted') return 'Quote ready';
   if (status === 'declined') return 'Declined';
-  return 'Waiting for response';
+  return 'Quote requested';
 }
 
 function buttonStyle(background) {

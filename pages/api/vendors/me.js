@@ -47,7 +47,7 @@ export default async function handler(req, res) {
 
   const { data: requests, error: requestError } = await configured.admin
     .from('vendor_requests')
-    .select('id,response_token,task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,workflows(deceased_name,estate_name,name,organizations(name))')
+    .select('id,response_token,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,workflows(deceased_name,estate_name,name,organizations(name))')
     .eq('vendor_id', vendor.id)
     .order('requested_at', { ascending: false })
     .limit(50);

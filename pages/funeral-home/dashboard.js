@@ -166,10 +166,10 @@ function printPreparedOutput(preview) {
 
 function vendorRequestLabel(value) {
   if (value === 'completed') return 'Completed';
-  if (value === 'in_progress') return 'In progress';
-  if (value === 'accepted') return 'Accepted';
+  if (value === 'in_progress') return 'Quote accepted';
+  if (value === 'accepted') return 'Quote ready';
   if (value === 'declined') return 'Declined';
-  return 'Waiting for response';
+  return 'Quote requested';
 }
 
 function partnerCaseTypeLabel(item) {
@@ -1667,11 +1667,21 @@ export default function FuneralHomeDashboard() {
     locationName: locationNameFor(item),
     reportDate: message.created_at || message.sent_at || message.updated_at || caseReportDate(item),
   }))).filter(message => (reportLocation === 'all' || message.locationName === reportLocation) && reportDateInScope(message.reportDate));
+  const reportScopedVendorRequests = cases.flatMap(item => (item.vendorRequests || []).map(request => ({
+    ...request,
+    caseName: item.deceased_name || item.estate_name || item.name || 'Family case',
+    locationName: locationNameFor(item),
+    reportDate: request.requested_at || request.responded_at || request.completed_at || caseReportDate(item),
+  }))).filter(request => (reportLocation === 'all' || request.locationName === reportLocation) && reportDateInScope(request.reportDate));
   const reportHandledTasks = reportScopedTasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
   const reportWaitingTasks = reportScopedTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
   const reportBlockedTasks = reportScopedTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
   const reportAssignments = reportScopedTasks.filter(task => task.assigned_to_email || task.assigned_to_name || task.owner_name || task.participant_id);
-  const reportCallsAvoided = reportScopedMessages.length + reportAssignments.length + totalVendorRequests;
+  const reportCallsAvoided = reportScopedMessages.length + reportAssignments.length + reportScopedVendorRequests.length;
+  const reportVendorQuoteReady = reportScopedVendorRequests.filter(request => String(request.status || '').toLowerCase() === 'accepted').length;
+  const reportVendorAccepted = reportScopedVendorRequests.filter(request => ['in_progress', 'completed'].includes(String(request.status || '').toLowerCase())).length;
+  const reportVendorCompleted = reportScopedVendorRequests.filter(request => String(request.status || '').toLowerCase() === 'completed').length;
+  const reportVendorValue = reportScopedVendorRequests.reduce((sum, request) => sum + vendorValue(request), 0);
   const reportActiveDays = reportRange === 'all'
     ? Math.max(1, new Set(reportScopedTasks.map(task => String(task.reportDate || '').slice(0, 10)).filter(Boolean)).size || 1)
     : reportRange === 'custom'
@@ -2969,6 +2979,8 @@ export default function FuneralHomeDashboard() {
                 ['Case value', moneyDisplay(reportCaseValue)],
                 ['Avg case value', moneyDisplay(reportAvgCaseValue)],
                 ['Messages sent', reportScopedMessages.length],
+                ['Vendor quotes', reportVendorQuoteReady],
+                ['Quotes accepted', reportVendorAccepted],
                 ['Tasks resolved', reportHandledTasks.length],
                 ['Cost / resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0'],
                 ['Avg tasks / estate', reports.avgTasksPerEstate ?? reportAvgTasksPerEstate],
@@ -2997,6 +3009,7 @@ export default function FuneralHomeDashboard() {
                     ['Cost per resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0', 'Directional cost based on an 8-minute coordination unit.'],
                     ['Tasks completed per day', reportTasksPerDay, 'Shows throughput for the selected range.'],
                     ['Messages sent', reportScopedMessages.length, 'Measures family-facing coordination volume.'],
+                    ['Vendor quote pipeline', `${reportScopedVendorRequests.length} requested / ${reportVendorQuoteReady} ready / ${reportVendorAccepted} accepted`, 'Shows local support requests without turning Passage into a directory.'],
                   ]}
                 />
                 <ReportTable
@@ -3004,8 +3017,9 @@ export default function FuneralHomeDashboard() {
                   columns={['Signal', 'Value', 'Source']}
                   rows={[
                     ['Estimated hours saved', reportCallsAvoided > 0 ? `${Math.max(1, Math.round((reportCallsAvoided * 8) / 60))} hr` : 'None yet', '8 minutes per avoided repeat call estimate'],
-                    ['Marketplace value', money(reports.marketplace?.estimatedValue ?? totalVendorValue), 'Task-linked local support requests'],
+                    ['Marketplace value', money(reportVendorValue || reports.marketplace?.estimatedValue || totalVendorValue), 'Task-linked local support requests'],
                     ['Partner share', money(reports.marketplace?.funeralHomeShare ?? funeralHomeShare), 'Tracked only where value is present'],
+                    ['Completed vendor work', reportVendorCompleted, 'Requests that reached proof/handled status.'],
                     ['Portable proof', `${reportHandledTasks.length + reportScopedMessages.length} rows`, 'Exports back to existing case systems'],
                   ]}
                 />
@@ -3727,10 +3741,11 @@ export default function FuneralHomeDashboard() {
                         <div key={request.id} style={{ fontSize: 12.3, color: C.mid, lineHeight: 1.45, padding: '5px 0', borderTop: `1px solid ${C.border}` }}>
                           <strong style={{ color: C.ink }}>{request.task_title || 'Local help'}</strong>
                           <div>{request.vendors?.business_name || 'Vendor'} - {vendorRequestLabel(request.status)}{request.requested_at ? ` - ${new Date(request.requested_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</div>
+                          <div style={{ color: C.soft, fontSize: 11.4 }}>{request.urgency === 'rush' ? 'Urgent timeframe' : 'Planned timeframe'}{request.vendor_note ? ` - ${request.vendor_note}` : ''}</div>
                           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 4 }}>
                             {request.viewed_at && <span style={miniPill}>Viewed</span>}
-                            {request.responded_at && <span style={miniPill}>Accepted</span>}
-                            {request.in_progress_at && <span style={miniPill}>In progress</span>}
+                            {request.responded_at && <span style={miniPill}>Quote ready</span>}
+                            {request.in_progress_at && <span style={miniPill}>Quote accepted</span>}
                             {request.completed_at && <span style={miniPill}>Completed</span>}
                             {vendorValue(request) > 0 && <span style={miniPill}>Value ${Math.round(vendorValue(request))}</span>}
                           </div>

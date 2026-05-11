@@ -204,7 +204,10 @@ function demoPartnerPayload(email, memberships = []) {
       blockedTasks: [{ id: 'demo-collins-task-3', status: 'blocked' }],
       communications: [{ id: 'demo-collins-comm-1', status: 'sent' }, { id: 'demo-collins-comm-2', status: 'waiting' }],
       waitingOnFamily: [{ id: 'demo-collins-waiting-1', title: 'Cemetery plot details' }],
-      vendorRequests: [{ id: 'demo-collins-vendor-1', task_title: 'Livestream support', status: 'accepted', requested_at: '2026-05-08T12:00:00Z', estimated_value: 650 }],
+      vendorRequests: [
+        { id: 'demo-collins-vendor-1', task_title: 'Memorial program and livestream support', status: 'accepted', urgency: 'planned', requested_at: '2026-05-08T12:00:00Z', viewed_at: '2026-05-08T12:08:00Z', responded_at: '2026-05-08T12:40:00Z', estimated_value: 650, vendor_note: 'Available for the Friday service. Quote includes setup, livestream, and recording delivery.', payment_collection_status: 'tracking_only', vendors: { business_name: 'Hudson Valley Memorial Media', category: 'memorial_printing' } },
+        { id: 'demo-collins-vendor-2', task_title: 'Cemetery flower delivery', status: 'in_progress', urgency: 'rush', requested_at: '2026-05-08T09:30:00Z', viewed_at: '2026-05-08T09:42:00Z', responded_at: '2026-05-08T10:00:00Z', in_progress_at: '2026-05-08T10:20:00Z', estimated_value: 185, vendor_note: 'Accepted by family. Delivery window confirmed before the committal.', payment_collection_status: 'tracking_only', vendors: { business_name: 'Beacon Floral Studio', category: 'florist' } },
+      ],
       activity: [{ id: 'demo-collins-act-1', status: 'handled', detail: 'Hospital release saved.' }, { id: 'demo-collins-act-2', status: 'waiting', detail: 'Waiting for cemetery plot confirmation.' }],
       serviceEvents: [{ id: 'demo-collins-service-1', name: 'Arrangement meeting', event_type: 'arrangement', date: '2026-05-12', time: '10:00 AM', location_name: 'Main location' }],
       coordinationSpine: {
@@ -409,7 +412,7 @@ export default async function handler(req, res) {
 
     const { data: vendorRequestData } = await admin
       .from('vendor_requests')
-      .select('id,workflow_id,task_id,task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,platform_fee_amount,funeral_home_share_amount,passage_share_amount,payment_collection_status,vendors(business_name,category,contact_email,contact_phone)')
+      .select('id,workflow_id,task_id,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,platform_fee_amount,funeral_home_share_amount,passage_share_amount,payment_collection_status,vendors(business_name,category,contact_email,contact_phone)')
       .in('workflow_id', workflowIds)
       .order('requested_at', { ascending: false })
       .limit(120);

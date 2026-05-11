@@ -9,7 +9,7 @@ async function loadRequest(token) {
   if (!token) return null;
   const { data } = await admin
     .from('vendor_requests')
-    .select('id,workflow_id,task_id,task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,marketplace_fee_percent,funeral_home_rev_share_percent,payment_collection_status,organization_id,vendors(business_name,category,contact_email,contact_phone,website),workflows(deceased_name,estate_name,name,coordinator_name,coordinator_email,organizations(name))')
+    .select('id,workflow_id,task_id,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,marketplace_fee_percent,funeral_home_rev_share_percent,payment_collection_status,organization_id,vendors(business_name,category,contact_email,contact_phone,website),workflows(deceased_name,estate_name,name,coordinator_name,coordinator_email,organizations(name))')
     .eq('response_token', token)
     .maybeSingle();
   return data;
@@ -100,6 +100,7 @@ export default async function handler(req, res) {
   const now = new Date().toISOString();
   const estimatedValue = Number(req.body?.estimatedValue || request.estimated_value || 0);
   const finalValue = Number(req.body?.finalValue || request.final_value || 0);
+  const vendorNote = String(req.body?.vendorNote || '').trim();
   const valueForFee = action === 'completed' ? finalValue : estimatedValue;
   const resetFromDeclined = request.status === 'declined' && action !== 'declined';
   const economics = calculateVendorEconomics({
@@ -116,10 +117,17 @@ export default async function handler(req, res) {
     completed_at: action === 'declined' || action === 'accepted' || action === 'in_progress' ? null : now,
     estimated_value: estimatedValue > 0 ? estimatedValue : request.estimated_value,
     final_value: action === 'declined' ? null : finalValue > 0 ? finalValue : request.final_value,
+    vendor_note: vendorNote || request.vendor_note || null,
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
     passage_share_amount: economics.passageShareAmount,
-    payment_collection_status: action === 'completed' && finalValue > 0 ? 'passage_collects' : request.payment_collection_status || 'tracking_only',
+    payment_collection_status: action === 'declined'
+      ? 'waived'
+      : action === 'completed' && finalValue > 0
+        ? 'passage_collects'
+        : action === 'accepted' || action === 'in_progress'
+          ? 'tracking_only'
+          : request.payment_collection_status || 'quote_needed',
     updated_at: now,
   };
   const { error } = await admin.from('vendor_requests').update(update).eq('id', request.id);
@@ -127,13 +135,15 @@ export default async function handler(req, res) {
 
   const vendorName = request.vendors?.business_name || 'Vendor';
   const title = action === 'accepted'
-    ? `${vendorName} accepted`
+    ? `${vendorName} sent a quote`
     : action === 'in_progress'
       ? `${vendorName} started work`
       : action === 'completed'
         ? `${vendorName} completed request`
         : `${vendorName} declined`;
-  const detail = `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this task'} was ${action.replace('_', ' ')}.`;
+  const detail = action === 'accepted'
+    ? `${vendorCategoryLabel(request.vendors?.category)} quote for ${request.task_title || 'this task'} is ready for family or funeral-home review.${estimatedValue > 0 ? ` Estimated value: $${Math.round(estimatedValue)}.` : ''}${vendorNote ? ` Note: ${vendorNote}` : ''}`
+    : `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this task'} was ${action.replace('_', ' ')}.`;
   await admin.from('estate_events').insert([{
     estate_id: request.workflow_id,
     event_type: action === 'completed' ? 'vendor_help_completed' : 'vendor_help_updated',

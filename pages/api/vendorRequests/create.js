@@ -63,6 +63,7 @@ export default async function handler(req, res) {
   if (!auth.ok || !auth.user) return res.status(auth.status || 401).json({ error: auth.error || 'Please sign in first.' });
 
   const { workflowId, taskId, taskTitle, vendorId, urgency } = req.body || {};
+  const requestNote = String(req.body?.requestNote || '').trim();
   if (!isUuid(workflowId)) return res.status(400).json({ error: 'Missing estate.' });
   if (!isUuid(vendorId)) return res.status(400).json({ error: 'Choose a vendor.' });
 
@@ -94,6 +95,7 @@ export default async function handler(req, res) {
     requested_by_name: auth.user.user_metadata?.full_name || auth.user.email,
     status: 'requested',
     urgency: urgency === 'rush' ? 'rush' : 'planned',
+    request_note: requestNote || null,
     referral_source: workflow.organization_id ? 'funeral_home' : 'passage',
     marketplace_fee_percent: marketplaceFeePercent,
     passage_rev_share_percent: passageSharePercent,
@@ -105,7 +107,7 @@ export default async function handler(req, res) {
   if (error) return res.status(500).json({ error: error.message });
 
   const emailSent = await sendVendorEmail({ vendor, workflow, request, taskTitle: resolvedTaskTitle });
-  const detail = `${vendorCategoryLabel(vendor.category)} help requested from ${vendor.business_name}. ${emailSent ? 'Vendor notified.' : 'Vendor request recorded.'} We'll coordinate this here.`;
+  const detail = `${vendorCategoryLabel(vendor.category)} quote requested from ${vendor.business_name}. ${urgency === 'rush' ? 'Urgent timeframe.' : 'Planned timeframe.'} ${emailSent ? 'Vendor notified.' : 'Vendor request recorded.'} We'll coordinate this here.`;
   await recordTaskCommunicationEvent({
     verb: 'ask',
     workflowId: workflow.id,
