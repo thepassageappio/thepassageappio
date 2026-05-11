@@ -344,7 +344,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
     fontWeight: 800,
   };
   return (
-    <nav style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
+    <nav style={{ width: 'min(1180px, 100%)', boxSizing: 'border-box', maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
       <style>{`
         @media (max-width: 720px) {
           .passage-nav-secondary { display: none !important; }

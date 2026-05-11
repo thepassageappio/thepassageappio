@@ -289,8 +289,8 @@ function CandleLogo({ size = 34 }) {
     <div className="brand">
       <style suppressHydrationWarning>{`
         @keyframes brandGlow {
-          0%,100% { opacity:.22; transform:translate(-50%,-50%) scale(.92); }
-          50% { opacity:.48; transform:translate(-50%,-50%) scale(1.08); }
+          0%,100% { opacity:.22; transform:scale(.92); }
+          50% { opacity:.48; transform:scale(1.08); }
         }
         @keyframes markFlicker {
           0%,100% { filter: drop-shadow(0 0 0 rgba(184,120,58,0)); opacity:.96; transform:scale(1); }
@@ -598,25 +598,25 @@ export default function UrgentPage() {
         * { box-sizing: border-box; }
         body { margin: 0; background: ${C.bg}; color: ${C.ink}; }
         main { min-height: 100vh; font-family: Georgia, serif; background: radial-gradient(circle at 50% 0%, #fffaf1 0%, ${C.bg} 42%, #f4efe7 100%); }
-        .shell { max-width: 1120px; margin: 0 auto; padding: 16px 22px 40px; }
-        .brand { display: inline-flex; align-items: center; gap: 10px; }
+        .shell { max-width: 1120px; margin: 0 auto; padding: 12px 22px 24px; }
+        .brand { display: inline-flex; align-items: center; gap: 10px; padding-left: 8px; }
         .brand-name { font-size: 26px; font-weight: 700; color: ${C.ink}; letter-spacing: 0; animation: wordGlow 4.6s ease-in-out infinite; }
         .mark { position: relative; display: inline-flex; align-items: center; justify-content: center; }
-        .halo { position: absolute; inset: -8px; border-radius: 50%; background: radial-gradient(circle, rgba(207,149,60,.26), rgba(207,149,60,0) 66%); animation: brandGlow 4.2s ease-in-out infinite; }
+        .halo { position: absolute; inset: -6px; border-radius: 50%; background: radial-gradient(circle, rgba(207,149,60,.26), rgba(207,149,60,0) 66%); animation: brandGlow 4.2s ease-in-out infinite; }
         .flame { transform-origin: 24px 25px; animation: flame 2.9s ease-in-out infinite; }
-        nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+        nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
         nav a { color: ${C.mid}; text-decoration: none; font-size: 14px; }
-        .hero { max-width: 760px; margin-bottom: 14px; }
-        .kicker { color: ${C.rose}; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 750; margin-bottom: 10px; }
-        h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(32px, 4vw, 44px); line-height: 1.04; margin: 0 0 10px; }
-        .lede { font-size: 15.5px; line-height: 1.55; color: ${C.mid}; max-width: 720px; margin: 0; }
-        .grid { display: grid; grid-template-columns: 1.5fr .8fr; gap: 18px; align-items: start; }
+        .hero { max-width: 760px; margin-bottom: 10px; }
+        .kicker { color: ${C.rose}; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 750; margin-bottom: 7px; }
+        h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(30px, 3.7vw, 40px); line-height: 1.04; margin: 0 0 8px; }
+        .lede { font-size: 15px; line-height: 1.5; color: ${C.mid}; max-width: 720px; margin: 0; }
+        .grid { display: grid; grid-template-columns: 1.5fr .8fr; gap: 14px; align-items: start; }
         .grid.grid-single { grid-template-columns: minmax(0, 760px); justify-content: center; }
         .card { background: rgba(255,253,249,.92); border: 1px solid ${C.border}; border-radius: 18px; box-shadow: 0 18px 50px rgba(55,45,35,.08); }
-        .primary-card { padding: 22px; }
-        .phase { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; color: ${C.rose}; background: ${C.roseFaint}; border: 1px solid rgba(184,107,111,.22); border-radius: 999px; padding: 4px 9px; font-weight: 750; margin-bottom: 12px; }
-        h2 { font-family: Georgia, serif; font-weight: 400; font-size: 27px; line-height: 1.14; margin: 0 0 9px; }
-        .support { color: ${C.mid}; font-size: 14px; line-height: 1.55; margin: 0 0 14px; max-width: 580px; }
+        .primary-card { padding: 18px; }
+        .phase { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; color: ${C.rose}; background: ${C.roseFaint}; border: 1px solid rgba(184,107,111,.22); border-radius: 999px; padding: 4px 9px; font-weight: 750; margin-bottom: 9px; }
+        h2 { font-family: Georgia, serif; font-weight: 400; font-size: 25px; line-height: 1.12; margin: 0 0 7px; }
+        .support { color: ${C.mid}; font-size: 13.5px; line-height: 1.5; margin: 0 0 10px; max-width: 580px; }
         .save-strip { display:grid; grid-template-columns:minmax(0,1fr) 150px auto; gap:10px; align-items:end; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:12px; margin-bottom:16px; }
         .context-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; background:${C.card}; border:1px solid ${C.border}; border-radius:14px; padding:12px; margin-bottom:16px; }
         .context-title { grid-column:1 / -1; color:${C.sageDark}; font-size:11px; text-transform:uppercase; letter-spacing:.14em; font-weight:850; }
@@ -636,8 +636,8 @@ export default function UrgentPage() {
         .triage-choice { border:1px solid ${C.border}; background:${C.bg}; color:${C.ink}; border-radius:12px; padding:11px 12px; text-align:left; cursor:pointer; font-weight:800; transition: background .12s ease, border-color .12s ease, transform .12s ease; }
         .triage-choice:hover { border-color:${C.sageLight}; background:${C.card}; }
         .triage-choice.active { background:${C.sageFaint}; border-color:${C.sage}; color:${C.sageDark}; }
-        .crisis-sequence { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:0 0 14px; }
-        .crisis-step { background:${C.card}; border:1px solid ${C.border}; border-radius:14px; padding:12px; }
+        .crisis-sequence { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0 0 10px; }
+        .crisis-step { background:${C.card}; border:1px solid ${C.border}; border-radius:14px; padding:10px; }
         .crisis-step.active { background:${C.roseFaint}; border-color:rgba(184,107,111,.35); }
         .crisis-step b { display:block; color:${C.ink}; font-size:15px; margin-bottom:4px; }
         .crisis-step span { display:block; color:${C.mid}; font-size:13px; line-height:1.4; }

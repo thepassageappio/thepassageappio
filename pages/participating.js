@@ -581,17 +581,26 @@ export default function ParticipatingPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
+    <main className="participant-page" style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <style>{`
+        .participant-page, .participant-page * { box-sizing: border-box; }
+        .participant-page { overflow-x: hidden; }
+        .participant-shell { width: min(1040px, 100%); margin: 0 auto; padding: 22px 28px 36px; }
+        .participant-shell, .participant-estate-card, .participant-estate-card * { min-width: 0; max-width: 100%; }
         @media (max-width: 760px) {
           .participant-layout { grid-template-columns: 1fr !important; }
           .participant-estate-summary { grid-template-columns: 1fr !important; }
-          .participant-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .participant-action-grid { grid-template-columns: 1fr !important; }
+          .participant-shell { width: 100% !important; padding: 18px 18px 30px !important; }
+          .participant-estate-card { width: 100% !important; min-width: 0 !important; }
+          .participant-estate-head { padding: 15px 16px 10px !important; }
+          .participant-estate-body { padding: 0 16px 16px !important; }
+          .participant-estate-head > div { flex-direction: column !important; }
         }
       `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
 
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '22px 28px 36px' }}>
+      <section className="participant-shell">
         <div style={{ maxWidth: 760, marginBottom: 16 }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Participant task spine</div>
           <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: '0 0 7px', fontWeight: 400 }}>One assigned task. One safe update.</h1>
@@ -703,8 +712,8 @@ export default function ParticipatingPage() {
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
                   const showOpenList = showOtherOpen[estate.id];
                   return (
-                <div key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
-                  <div style={{ width: '100%', background: 'none', border: 'none', padding: '17px 20px 12px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
+                <div className="participant-estate-card" key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
+                  <div className="participant-estate-head" style={{ width: '100%', background: 'none', border: 'none', padding: '17px 20px 12px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
                   <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Participant operating spine</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
                     <div>
@@ -720,7 +729,7 @@ export default function ParticipatingPage() {
                   </div>
                   </div>
 
-                    <div style={{ padding: '0 20px 20px' }}>
+                    <div className="participant-estate-body" style={{ padding: '0 20px 20px' }}>
                       <div className="participant-estate-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
                         {[
                           ['Asked of you', primaryItem ? itemTitle(primaryItem) : 'Nothing open'],

@@ -972,7 +972,8 @@ export default function FuneralHomeDashboard() {
     const scrollToCase = () => {
       const panel = document.getElementById('partner-case-' + caseId);
       if (panel) {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        window.setTimeout(() => window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' }), 80);
       } else {
         setNotice('Case work is open. If the case is filtered out, switch to All locations.');
       }
@@ -1034,7 +1035,10 @@ export default function FuneralHomeDashboard() {
   function scrollPartnerDemoTarget(id) {
     window.setTimeout(() => {
       const panel = document.getElementById(id);
-      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        window.setTimeout(() => window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' }), 80);
+      }
     }, 100);
   }
 
@@ -1527,7 +1531,8 @@ export default function FuneralHomeDashboard() {
       ? 'Create an at-need case. Add only what you know.'
       : 'Create a pre-need planning case. Add prepaid or funded details only if they apply.');
     window.setTimeout(() => {
-      casePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      casePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      window.setTimeout(() => window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' }), 80);
       casePanelRef.current?.querySelector('input')?.focus?.();
     }, 0);
   }
@@ -1986,16 +1991,31 @@ export default function FuneralHomeDashboard() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
+    <main className="partner-dashboard-page" style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink, overflowX: 'clip' }}>
+      <style>{`
+        .partner-dashboard-page, .partner-dashboard-page * { box-sizing: border-box; }
+        .partner-dashboard-page { overflow-x: clip; }
+        .partner-dashboard-shell { width: min(1120px, 100%); margin: 0 auto; padding: 24px 28px 50px; }
+        .partner-dashboard-shell, .partner-case-card, .partner-case-card * { min-width: 0; max-width: 100%; }
+        @media (max-width: 760px) {
+          .partner-dashboard-shell { width: 100% !important; padding: 18px 18px 42px !important; }
+          .partner-dashboard-hero { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; }
+          .partner-dashboard-actions { justify-content: flex-start !important; }
+          .partner-dashboard-actions button { flex: 1 1 140px !important; }
+          .partner-case-card { width: 100% !important; min-width: 0 !important; }
+          .partner-case-head { padding: 15px 16px 11px !important; }
+          .partner-case-body { padding: 0 16px 16px !important; }
+        }
+      `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
-      <section data-demo-anchor="demo-page-primary" style={{ maxWidth: 1120, margin: '0 auto', padding: '24px 28px 50px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
+      <section className="partner-dashboard-shell" data-demo-anchor="demo-page-primary">
+        <div className="partner-dashboard-hero" style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
           <div>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Partner command center</div>
             <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 620, marginTop: 8 }}>One case at a time: next task, owner, waiting point, proof, and export.</p>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <div className="partner-dashboard-actions" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New at-need case</button>}
             {user && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Pre-need</button>}
             {user && <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export</button>}
