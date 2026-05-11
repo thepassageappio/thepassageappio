@@ -70,8 +70,21 @@ function schemaColumnError(error) {
 
 function itemSelect(kind) {
   return kind === 'task'
-    ? 'id,status,workflow_id,title'
-    : 'id,status,workflow_id,subject,task_title';
+    ? 'id,status,workflow_id,title,notes'
+    : 'id,status,delivery_status,workflow_id,subject,task_title,notes';
+}
+
+async function loadParticipantRecord({ table, kind, emailColumn, id, email }) {
+  return admin
+    .from(table)
+    .select(itemSelect(kind))
+    .eq('id', id)
+    .ilike(emailColumn, email)
+    .maybeSingle();
+}
+
+function isTerminalStatus(value) {
+  return ['done', 'handled', 'completed'].includes(String(value || '').toLowerCase());
 }
 
 async function updateParticipantRecord({ table, kind, emailColumn, id, email, updates }) {
@@ -130,6 +143,18 @@ export default async function handler(req, res) {
   const table = kind === 'task' ? 'tasks' : 'workflow_actions';
   const emailColumn = kind === 'task' ? 'assigned_to_email' : 'recipient_email';
   const trimmedNotes = typeof notes === 'string' ? notes.trim() : '';
+
+  const existing = await loadParticipantRecord({ table, kind, emailColumn, id, email });
+  if (existing.error) return res.status(500).json({ error: existing.error.message });
+  if (!existing.data) return res.status(404).json({ error: 'No matching task found for this email.' });
+  const existingStatus = existing.data.status || existing.data.delivery_status;
+  if (isTerminalStatus(existingStatus) && normalizedAction !== 'save_note') {
+    return res.status(409).json({
+      error: 'This responsibility is already marked handled. The coordinator can see the proof; ask them to reopen it if something changed.',
+      status: normalizeTaskStatusForStorage(existingStatus),
+      item: existing.data,
+    });
+  }
 
   if (action === 'save_note') {
     if (!trimmedNotes) return res.status(400).json({ error: 'Add a note to save.' });

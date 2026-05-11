@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -125,6 +126,22 @@ export default async function handler(req, res) {
   if (access.error) return res.status(500).json({ error: access.error.message });
 
   const taskId = firstPresent(participant.task_id, participant.assigned_task_id, participant.workflow_task_id);
+  await recordTaskCommunicationEvent({
+    verb: 'assign',
+    workflowId,
+    taskId,
+    taskTitle: participant.task_title || participant.role || 'Participant invite',
+    status: 'acknowledged',
+    actor: user.email,
+    actorRole: 'participant',
+    channel: 'invite',
+    recipient: user.email,
+    recipientRole: participant.role || participant.participant_role || 'participant',
+    detail: `${user.email} accepted their Passage invite. Access is scoped to the assigned estate work.`,
+    visibility: 'family',
+    eventType: 'participant_invite_accepted',
+    eventTitle: 'Participant accepted invite',
+  }).then(() => {}, () => {});
   await admin.from('estate_events').insert([{
     estate_id: workflowId,
     event_type: 'participant_invite_accepted',

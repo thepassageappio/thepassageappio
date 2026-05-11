@@ -79,6 +79,25 @@ function isHandled(value) {
   return ['handled', 'completed', 'done'].includes(value || '');
 }
 
+function recommendedParticipantAction(availableActions, status) {
+  const normalized = String(status || '').toLowerCase();
+  const findAction = (key) => availableActions.find(([action]) => action === key);
+  if (['assigned', 'sent', 'pending', ''].includes(normalized)) {
+    return findAction('accept') || availableActions[0];
+  }
+  if (['acknowledged', 'waiting', 'blocked', 'needs_review'].includes(normalized)) {
+    return findAction('handled') || findAction('confirmed') || availableActions[0];
+  }
+  return findAction('handled') || findAction('confirmed') || availableActions[0];
+}
+
+function recommendedParticipantCopy(action) {
+  if (action === 'accept') return 'Start here if you can take this on. Passage keeps the task open until you mark what is waiting or record proof that it is done.';
+  if (action === 'waiting') return 'Use this if you started but need a reply, document, date, or decision before the coordinator can move on.';
+  if (action === 'handled' || action === 'confirmed') return 'Use this only when your part is truly complete. Passage records the proof and moves this out of your active work.';
+  return 'Send one clear update so the coordinator knows what changed.';
+}
+
 function normalizeItems(estate) {
   const seen = new Set();
   return [...(estate.tasks || []).map(t => ({ ...t, _kind: 'task' })), ...(estate.actions || []).map(a => ({ ...a, _kind: 'action' }))]
@@ -201,7 +220,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const [detailsOpen, setDetailsOpen] = useState(false);
   const responseDialogOpen = Boolean(pendingAction || detailsOpen);
   const availableActions = actionSet(kind);
-  const recommendedAction = availableActions.find(([action]) => action === 'handled' || action === 'confirmed') || availableActions[0];
+  const recommendedAction = recommendedParticipantAction(availableActions, itemStatus(item));
   useEffect(() => {
     if (!responseDialogOpen || typeof window === 'undefined') return undefined;
     const previousOverflow = document.body.style.overflow;
@@ -278,7 +297,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: 9, marginTop: 8 }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Recommended next action</div>
             <button onClick={() => setPendingAction(recommendedAction[0])} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 42, padding: '0 12px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.8, fontWeight: 900, width: '100%', textAlign: 'left' }}>{recommendedAction[1]}</button>
-            <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.4, marginTop: 6 }}>Use this when the task is truly handled. If something is missing, choose another response below so the coordinator sees the waiting point.</div>
+            <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.4, marginTop: 6 }}>{recommendedParticipantCopy(recommendedAction[0])}</div>
           </div>
           <div className="participant-action-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 7, marginTop: 8 }}>
             {availableActions.filter(([action]) => action !== recommendedAction[0]).map(([action, label]) => (
@@ -335,7 +354,11 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           )}
         </>
       )}
-      {handled && <div style={{ color: C.sage, fontWeight: 800, fontSize: 12 }}>This is handled. The coordinator can see your update.</div>}
+      {handled && (
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 11px', color: C.sage, fontWeight: 800, fontSize: 12.5, lineHeight: 1.45 }}>
+          Done. No more action is needed here. The coordinator can see your proof, timestamp, and note on the family record.
+        </div>
+      )}
     </div>
   );
 }
@@ -356,6 +379,7 @@ export default function ParticipatingPage() {
   const [showOtherOpen, setShowOtherOpen] = useState({});
   const [actionNotice, setActionNotice] = useState('');
   const [acceptedInviteToken, setAcceptedInviteToken] = useState('');
+  const [lastFocusedItem, setLastFocusedItem] = useState(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') setClientSearch(window.location.search || '');
@@ -427,6 +451,7 @@ export default function ParticipatingPage() {
   }
 
   async function participantAction(kind, id, action) {
+    setLastFocusedItem({ kind, id });
     if (demoMode) {
       const note = notesByItem[kind + ':' + id] || '';
       if (taskActionRequiresNote(action) && !String(note || '').trim()) {
@@ -439,6 +464,7 @@ export default function ParticipatingPage() {
         estates: (prev?.estates || []).map(estate => ({
           ...estate,
           tasks: (estate.tasks || []).map(item => item.id === id ? { ...item, status: nextStatus || item.status, notes: note || item.notes, last_action_at: new Date().toISOString() } : item),
+          actions: (estate.actions || []).map(item => item.id === id ? { ...item, status: nextStatus || item.status, delivery_status: nextStatus || item.delivery_status, notes: note || item.notes, last_action_at: new Date().toISOString() } : item),
           coordinationSpine: {
             ...(estate.coordinationSpine || { conversation: [], proof: [], notifications: [], attentionItems: [], latest: [] }),
             latest: [{
@@ -672,7 +698,8 @@ export default function ParticipatingPage() {
                   const openItems = items.filter(item => !isHandled(itemStatus(item)));
                   const handledItems = items.filter(item => isHandled(itemStatus(item)));
                   const linkedItem = items.find(item => item.id === router.query.task);
-                  const primaryItem = linkedItem || openItems[0] || handledItems[0];
+                  const focusedItem = lastFocusedItem ? items.find(item => item.id === lastFocusedItem.id && item._kind === lastFocusedItem.kind) : null;
+                  const primaryItem = linkedItem || focusedItem || openItems[0] || handledItems[0];
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
                   const showOpenList = showOtherOpen[estate.id];
                   return (

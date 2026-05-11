@@ -1673,6 +1673,14 @@ export default function FuneralHomeDashboard() {
     locationName: locationNameFor(item),
     reportDate: request.requested_at || request.responded_at || request.completed_at || caseReportDate(item),
   }))).filter(request => (reportLocation === 'all' || request.locationName === reportLocation) && reportDateInScope(request.reportDate));
+  const reportScopedParticipants = reportScopedCases.flatMap(item => (item.familyParticipants || []).map(participant => ({
+    ...participant,
+    caseId: item.id,
+    caseName: item.deceased_name || item.estate_name || item.name || 'Family case',
+    locationName: locationNameFor(item),
+    reportDate: participant.accepted_at || participant.created_at || caseReportDate(item),
+  }))).filter(participant => reportDateInScope(participant.reportDate));
+  const reportAcceptedParticipants = reportScopedParticipants.filter(participant => participant.accepted_at || /accepted|active/i.test(String(participant.invite_status || '')));
   const reportHandledTasks = reportScopedTasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
   const reportWaitingTasks = reportScopedTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
   const reportBlockedTasks = reportScopedTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
@@ -2979,6 +2987,8 @@ export default function FuneralHomeDashboard() {
                 ['Case value', moneyDisplay(reportCaseValue)],
                 ['Avg case value', moneyDisplay(reportAvgCaseValue)],
                 ['Messages sent', reportScopedMessages.length],
+                ['Participants invited', reportScopedParticipants.length],
+                ['Participants accepted', reportAcceptedParticipants.length],
                 ['Vendor quotes', reportVendorQuoteReady],
                 ['Quotes accepted', reportVendorAccepted],
                 ['Tasks resolved', reportHandledTasks.length],
@@ -3009,6 +3019,7 @@ export default function FuneralHomeDashboard() {
                     ['Cost per resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0', 'Directional cost based on an 8-minute coordination unit.'],
                     ['Tasks completed per day', reportTasksPerDay, 'Shows throughput for the selected range.'],
                     ['Messages sent', reportScopedMessages.length, 'Measures family-facing coordination volume.'],
+                    ['Participant activation', `${reportAcceptedParticipants.length}/${reportScopedParticipants.length}`, 'Shows whether family helpers accepted scoped access instead of joining the full workspace.'],
                     ['Vendor quote pipeline', `${reportScopedVendorRequests.length} requested / ${reportVendorQuoteReady} ready / ${reportVendorAccepted} accepted`, 'Shows local support requests without turning Passage into a directory.'],
                   ]}
                 />

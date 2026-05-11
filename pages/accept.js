@@ -34,6 +34,15 @@ export default function AcceptInvitePage() {
 
   useEffect(() => {
     if (!router.isReady) return;
+    if (inviteToken === 'demo') {
+      setLoading(false);
+      return undefined;
+    }
+    if (!supabase?.auth) {
+      setLoading(false);
+      setError('Sign-in is not configured in this environment. Use the demo invite to preview the flow.');
+      return undefined;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       setToken(session?.access_token || '');
@@ -76,6 +85,11 @@ export default function AcceptInvitePage() {
   }
 
   async function signIn() {
+    if (inviteToken === 'demo') {
+      router.replace('/participating?demo=1');
+      return;
+    }
+    if (!supabase?.auth) return setError('Sign-in is not configured in this environment.');
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${SITE_URL}/accept?token=${encodeURIComponent(inviteToken)}` },
@@ -84,6 +98,11 @@ export default function AcceptInvitePage() {
 
   async function sendMagicLink() {
     if (!emailLogin || !inviteToken) return;
+    if (inviteToken === 'demo') {
+      router.replace('/participating?demo=1');
+      return;
+    }
+    if (!supabase?.auth) return setError('Sign-in is not configured in this environment.');
     setError('');
     const { error } = await supabase.auth.signInWithOtp({
       email: emailLogin,
