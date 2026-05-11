@@ -503,6 +503,7 @@ export default function FuneralHomeDashboard() {
   const [showDirectorHelp, setShowDirectorHelp] = useState(false);
   const [showStaffSetup, setShowStaffSetup] = useState(false);
   const [showLocationSetup, setShowLocationSetup] = useState(false);
+  const [casePaneAutoOpened, setCasePaneAutoOpened] = useState(false);
   const [showPilotGuide, setShowPilotGuide] = useState(false);
   const [staffDraft, setStaffDraft] = useState({ name: '', email: '', role: 'staff', locationScope: 'all', annualSalary: '', hourlyCost: '' });
   const [locationDraft, setLocationDraft] = useState({ name: '', address: '', city: '', state: '', zip: '', country: '', placeId: '' });
@@ -1907,9 +1908,10 @@ export default function FuneralHomeDashboard() {
   }, [loading, data, isDirectorRole, activePartnerView]);
 
   useEffect(() => {
-    if (loading || !data || activePartnerView !== 'work' || expandedCaseId || !focusedDisplayCases[0]?.id) return;
+    if (loading || !data || activePartnerView !== 'work' || expandedCaseId || casePaneAutoOpened || !focusedDisplayCases[0]?.id) return;
     setExpandedCaseId(focusedDisplayCases[0].id);
-  }, [loading, data, activePartnerView, expandedCaseId, focusedDisplayCases]);
+    setCasePaneAutoOpened(true);
+  }, [loading, data, activePartnerView, expandedCaseId, focusedDisplayCases, casePaneAutoOpened]);
 
   function money(value) {
     return `$${Math.round(Number(value || 0)).toLocaleString()}`;
@@ -3340,7 +3342,14 @@ export default function FuneralHomeDashboard() {
                       {fundingLabel && <div style={{ color: C.sage, fontSize: 12.2, fontWeight: 900, marginTop: 5 }}>{fundingLabel}</div>}
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                      <button onClick={() => setExpandedCaseId(isExpanded ? '' : item.id)} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close work pane' : 'Open work pane'}</button>
+                      <button onClick={() => {
+                        if (isExpanded) {
+                          setExpandedCaseId('');
+                          setCasePaneAutoOpened(true);
+                        } else {
+                          setExpandedCaseId(item.id);
+                        }
+                      }} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close work pane' : 'Open work pane'}</button>
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'stretch', marginTop: 12 }}>
