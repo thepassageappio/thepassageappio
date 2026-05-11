@@ -595,7 +595,7 @@ export default function ParticipatingPage() {
           .participant-estate-card { width: 100% !important; min-width: 0 !important; }
           .participant-estate-head { padding: 15px 16px 10px !important; }
           .participant-estate-body { padding: 0 16px 16px !important; }
-          .participant-estate-head > div { flex-direction: column !important; }
+          .participant-estate-head-main { flex-direction: column !important; }
         }
       `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
@@ -715,7 +715,7 @@ export default function ParticipatingPage() {
                 <div className="participant-estate-card" key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
                   <div className="participant-estate-head" style={{ width: '100%', background: 'none', border: 'none', padding: '17px 20px 12px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
                   <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Participant operating spine</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
+                  <div className="participant-estate-head-main" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.2, color: C.ink }}>{estate.deceased_name || estate.name || 'Estate plan'}</div>
                       <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>Role: {estate.role} | Coordinator: {estate.coordinator_name || 'Family coordinator'}{estate.coordinator_email ? ` (${estate.coordinator_email})` : ''}</div>

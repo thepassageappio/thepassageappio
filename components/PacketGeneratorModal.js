@@ -19,6 +19,8 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
   const [reviewText, setReviewText] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [emailPreview, setEmailPreview] = useState(null);
+  const [emailLoading, setEmailLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +81,31 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
     window.setTimeout(() => setNotice(''), 2200);
   }
 
+  async function prepareEmailPreview() {
+    if (!estateId || !packet?.type) return;
+    setEmailLoading(true);
+    setNotice('');
+    try {
+      const res = await fetch(`/api/estates/${encodeURIComponent(estateId)}/packets/${encodeURIComponent(packet.type)}/email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({ dryRun: true }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Could not prepare the email preview.');
+      setEmailPreview(json.emailPreview || null);
+      setNotice(json.safety || 'Email preview prepared. Nothing was sent.');
+      window.setTimeout(() => setNotice(''), 2600);
+    } catch (err) {
+      setNotice(err.message || 'Could not prepare the email preview.');
+    } finally {
+      setEmailLoading(false);
+    }
+  }
+
   function finish() {
     onComplete?.({ packet, text: reviewText });
     onClose?.();
@@ -125,7 +152,7 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
               {[
                 ['Status', packet?.status || 'draft'],
                 ['Approval', 'Review first'],
-                ['Proof path', 'Task spine'],
+                ['Proof path', packet?.persistence === 'document_packet_saved' ? 'Saved packet + task spine' : 'Task spine'],
               ].map(([label, value]) => (
                 <div key={label} style={metaBox}>
                   <div style={metaLabel}>{label}</div>
@@ -187,11 +214,19 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
                 Prepared by Passage. Review before sharing outside the family record. Powered by Passage | thepassageapp.io
               </div>
             </div>
+            {emailPreview && (
+              <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 12, marginTop: 12 }}>
+                <div style={{ ...metaLabel, color: C.amber }}>Email preview only</div>
+                <div style={{ color: C.ink, fontSize: 14, fontWeight: 900 }}>{emailPreview.subject}</div>
+                <pre style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0', color: C.mid, fontFamily: 'Georgia,serif', fontSize: 12.5, lineHeight: 1.45, maxHeight: 150, overflow: 'auto' }}>{emailPreview.body}</pre>
+              </div>
+            )}
             {notice && <div style={{ ...quietBox, padding: '9px 12px', marginTop: 12 }}>{notice}</div>}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
               <button onClick={copyPacket} style={secondaryButton}>Copy</button>
               <button onClick={downloadPacket} style={secondaryButton}>Download .txt</button>
               <button onClick={() => window.print()} style={secondaryButton}>Print / save PDF</button>
+              <button onClick={prepareEmailPreview} disabled={emailLoading} style={{ ...secondaryButton, opacity: emailLoading ? .65 : 1 }}>{emailLoading ? 'Preparing...' : 'Prepare email preview'}</button>
               <button onClick={finish} style={primaryButton}>Use as task proof</button>
             </div>
           </>

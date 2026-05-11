@@ -1,4 +1,4 @@
-import { loadContinuityPacketSet, packetForType, preparedPacketRecord } from '../../../../lib/continuityPacketApi';
+import { loadContinuityPacketSet, packetForType, persistPreparedPacket } from '../../../../lib/continuityPacketApi';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const packet = packetForType(loaded.packets, packetType);
   if (!packet) return res.status(404).json({ error: 'No packet template is available for this case yet.' });
 
-  const record = preparedPacketRecord({
+  const persisted = await persistPreparedPacket({
     estateId,
     packet,
     packetType,
@@ -22,13 +22,17 @@ export default async function handler(req, res) {
   return res.status(200).json({
     source: loaded.source,
     workflow: loaded.workflow,
-    packet: record,
+    packet: persisted.record,
+    persisted: persisted.persisted,
+    persistence: persisted.reason,
     next: [
       'Preview the prepared output.',
       'Resolve any missing fields.',
       'Download or print only after coordinator approval.',
       'Save the reviewed output as task proof before closing the work.',
     ],
-    safety: 'No email, SMS, or production document storage write occurred.',
+    safety: persisted.persisted
+      ? 'Prepared packet metadata was saved for review. No email or SMS was sent.'
+      : 'Prepared for review only. No email, SMS, or production document storage write occurred.',
   });
 }

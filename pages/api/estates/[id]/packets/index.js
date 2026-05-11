@@ -1,4 +1,4 @@
-import { loadContinuityPacketSet, preparedPacketRecord } from '../../../../../lib/continuityPacketApi';
+import { loadContinuityPacketSet, loadPersistedPacketRecords, preparedPacketRecord } from '../../../../../lib/continuityPacketApi';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -7,17 +7,25 @@ export default async function handler(req, res) {
   const loaded = await loadContinuityPacketSet(req, estateId);
   if (loaded.error) return res.status(loaded.status || 500).json({ error: loaded.error });
 
+  const persistedPackets = await loadPersistedPacketRecords({
+    estateId,
+    user: loaded.user,
+    fallbackPackets: loaded.packets,
+    context: loaded.context,
+  });
+
   return res.status(200).json({
     source: loaded.source,
     workflow: loaded.workflow,
     context: loaded.context,
-    packets: loaded.packets.map(packet => preparedPacketRecord({
+    packets: persistedPackets || loaded.packets.map(packet => preparedPacketRecord({
       estateId,
       packet,
       packetType: packet.id,
       user: loaded.user,
       context: loaded.context,
     })),
+    persistence: persistedPackets ? 'document_packets_or_fallback' : 'prepared_from_spine',
     safety: 'Prepared packet list only. Nothing was sent.',
   });
 }

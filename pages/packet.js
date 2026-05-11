@@ -65,7 +65,7 @@ export default function PacketDemo() {
         const { data } = await supabase.auth.getSession();
         const token = data?.session?.access_token;
         if (!token) throw new Error('Sign in to generate packets from this case.');
-        const res = await fetch('/api/continuityPackets?id=' + encodeURIComponent(id), { headers: { Authorization: 'Bearer ' + token } });
+        const res = await fetch(`/api/estates/${encodeURIComponent(id)}/packets`, { headers: { Authorization: 'Bearer ' + token } });
         const json = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(json.error || 'Could not generate packets from this case.');
         if (cancelled) return;

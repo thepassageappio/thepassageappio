@@ -3545,8 +3545,11 @@ export default function FuneralHomeDashboard() {
                         if (isExpanded) {
                           setExpandedCaseId('');
                           setCasePaneAutoOpened(true);
+                          setShowAllCases(true);
+                          setNotice('Work pane closed. Showing the case list again.');
                         } else {
                           setExpandedCaseId(item.id);
+                          setShowAllCases(false);
                         }
                       }} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close work pane' : 'Open work pane'}</button>
                     </div>
