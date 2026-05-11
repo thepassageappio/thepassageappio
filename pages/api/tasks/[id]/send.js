@@ -48,6 +48,7 @@ export default async function handler(req, res) {
   const channel = req.body?.channel || (req.body?.toPhone ? 'sms' : 'email');
   const recipient = req.body?.to || req.body?.toEmail || req.body?.toPhone || (channel === 'sms' ? '' : task.assigned_to_email);
   if (!recipient) return res.status(400).json({ error: 'Add a recipient before sending.' });
+  const dryRun = req.body?.dryRun === true || req.body?.dryRun === '1' || req.query?.dryRun === '1';
 
   const basePayload = {
     to: recipient,
@@ -64,6 +65,7 @@ export default async function handler(req, res) {
     messageText: req.body?.messageText,
     toEmail: req.body?.toEmail || task.assigned_to_email || '',
     cc: req.body?.cc,
+    dryRun,
   };
 
   try {
@@ -73,10 +75,15 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      status: sent.data?.skipped ? 'prepared' : 'sent',
-      skipped: Boolean(sent.data?.skipped),
+      status: dryRun || sent.data?.skipped ? 'prepared' : 'sent',
+      dryRun,
+      skipped: dryRun || Boolean(sent.data?.skipped),
       providerId: sent.data?.id || sent.data?.sid || null,
-      message: sent.data?.skipped ? 'Message prepared - delivery provider is not configured.' : 'Message sent - awaiting delivery confirmation.',
+      message: dryRun
+        ? 'Message prepared for review. No email or SMS was sent.'
+        : sent.data?.skipped
+          ? 'Message prepared - delivery provider is not configured.'
+          : 'Message sent - awaiting delivery confirmation.',
     });
   } catch (err) {
     await recordTaskCommunicationEvent({
