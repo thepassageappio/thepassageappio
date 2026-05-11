@@ -1481,6 +1481,7 @@ export default function FuneralHomeDashboard() {
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://www.thepassageapp.io';
   const activationStatus = data?.activationStatus || 'inactive';
   const partnerPlan = data?.partnerPlan || null;
+  const billingStatus = data?.billingStatus || (partnerPlan?.status === 'demo' ? 'demo' : 'not_configured');
   const partnerTrialExpired = user && data && activationStatus === 'trial_expired';
   function riskAgeHours(value) {
     if (!value) return 0;
@@ -1887,6 +1888,21 @@ export default function FuneralHomeDashboard() {
     ['4', 'Cases', cases.length ? `${cases.length} case${cases.length === 1 ? '' : 's'} loaded` : 'Import CSV or create fresh', cases.length > 0],
     ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first task owner', assignmentsCoordinated > 0],
     ['6', 'Proof loop', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
+    ['7', 'Invite truth', latestStaffInvite || partnerStaff.length ? 'Invite copy ready; nothing auto-sent' : 'Add staff before sending handoffs', latestStaffInvite || partnerStaff.length > 0],
+    ['8', 'Billing truth', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial' ? (partnerPlan?.plan ? `${partnerPlan.plan} visible` : 'Trial/demo visible') : 'Billing record not linked', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial'],
+  ];
+  const launchReadyCount = pilotLaunchRows.filter(row => row[3]).length;
+  const launchReadyLabel = `${launchReadyCount}/${pilotLaunchRows.length} ready`;
+  const notificationReadinessRows = [
+    ['Email', 'Prepared and logged before delivery. Dry-run stays safe for QA.', true],
+    ['SMS', 'Prepared only until Twilio/A2P registration is active; copy fallback remains visible.', false],
+    ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case spine.' : 'Assign the first task owner to create visible proof.', assignmentsCoordinated > 0],
+  ];
+  const billingReadinessRows = [
+    ['Plan state', partnerPlan?.plan || partnerPlan?.name || activationStatus || 'Not linked'],
+    ['Billing status', billingStatus === 'paid' ? 'Paid' : billingStatus === 'demo' ? 'Demo' : billingStatus === 'stripe_pending' ? 'Stripe pending' : 'Not configured'],
+    ['Seats tracked', `${activeEmployeeRows.length || partnerStaff.length} employee${(activeEmployeeRows.length || partnerStaff.length) === 1 ? '' : 's'}`],
+    ['Private ROI inputs', activeEmployeeRows.some(member => moneyNumber(member.hourlyCost) || moneyNumber(member.annualSalary)) ? 'Labor cost available' : 'Add salary/hourly cost for cost-per-task reporting'],
   ];
   const contractToProofRows = [
     ['Workspace active', 'The partner team can create or import cases, add staff, assign owners, and export proof.'],
@@ -2566,6 +2582,27 @@ export default function FuneralHomeDashboard() {
               </div>
             </div>
 
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 15, padding: 13, marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Launch readiness</div>
+                  <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 900, marginTop: 3 }}>Can this home operate without Passage holding its hand?</div>
+                </div>
+                <div style={{ color: launchReadyCount === pilotLaunchRows.length ? C.sage : C.amber, background: C.card, border: `1px solid ${launchReadyCount === pilotLaunchRows.length ? C.sage + '33' : C.amber + '33'}`, borderRadius: 999, padding: '6px 10px', fontSize: 12, fontWeight: 900 }}>{launchReadyLabel}</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 10 }}>
+                {pilotLaunchRows.map(([n, title, body, done]) => (
+                  <div key={`manage_${title}`} style={{ background: done ? C.card : C.amberFaint, border: `1px solid ${done ? C.border : C.amber + '33'}`, borderRadius: 11, padding: '9px 10px', minHeight: 72 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                      <div style={{ color: done ? C.sage : C.amber, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
+                      <span style={{ color: done ? C.sage : C.amber, fontSize: 11, fontWeight: 900 }}>{done ? 'Ready' : n}</span>
+                    </div>
+                    <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 6 }}>{body}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, .8fr)', gap: 12, alignItems: 'start' }}>
               <div style={{ display: 'grid', gap: 12 }}>
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12 }}>
@@ -2646,6 +2683,29 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.ink, fontSize: 16, fontWeight: 900, marginTop: 4 }}>Salary, cost, and case value stay inside partner reporting.</div>
                   <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>Families never see staff costs. Directors can compare case value, labor cost, tasks resolved, messages sent, and location efficiency in Reporting.</div>
                   <button onClick={() => setActivePartnerView('reports')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', marginTop: 10, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open reporting</button>
+                </div>
+                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Billing and seats</div>
+                  <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+                    {billingReadinessRows.map(([label, value]) => (
+                      <div key={label} style={{ display: 'grid', gridTemplateColumns: '115px minmax(0,1fr)', gap: 8, borderTop: `1px solid ${C.border}`, paddingTop: 7, color: C.mid, fontSize: 12.1, lineHeight: 1.35 }}>
+                        <strong style={{ color: C.ink }}>{label}</strong>
+                        <span>{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Notification truth</div>
+                  <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>Passage prepares the handoff, records proof, and keeps the fallback obvious. Nothing quietly sends from a demo or dry-run state.</div>
+                  <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+                    {notificationReadinessRows.map(([label, body, ready]) => (
+                      <div key={label} style={{ background: ready ? C.sageFaint : C.amberFaint, border: `1px solid ${ready ? C.sage + '22' : C.amber + '33'}`, borderRadius: 10, padding: '8px 9px' }}>
+                        <div style={{ color: ready ? C.sage : C.amber, fontSize: 11, fontWeight: 900 }}>{label}</div>
+                        <div style={{ color: C.mid, fontSize: 11.7, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -3347,7 +3407,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'grid', gap: 7 }}>
                     {pilotLaunchRows.map(([n, title, body, done]) => (
                       <button key={title} onClick={() => {
-                        if (title === 'Employees' || title === 'Locations' || title === 'First owner') openPartnerManagement('Opening the setup spine for locations, employees, roles, and assignment readiness.');
+                        if (title === 'Employees' || title === 'Locations' || title === 'First owner' || title === 'Invite truth' || title === 'Billing truth') openPartnerManagement('Opening the setup spine for locations, employees, roles, invites, billing truth, and assignment readiness.');
                         else if (title === 'Cases') openCasePanel('immediate');
                         else if (title === 'Proof loop') moveDirectorFocus();
                       }} style={{ textAlign: 'left', border: `1px solid ${done ? C.sage + '22' : C.amber + '33'}`, background: done ? C.sageFaint : C.amberFaint, borderRadius: 10, padding: '7px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'center', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
