@@ -5,7 +5,7 @@ import { RoleActionStrip, SiteHeader, SiteFooter, StatusBadge } from '../compone
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
-import { taskWorkspaceFor } from '../lib/taskWorkspace';
+import { taskExplanationFor, taskWorkspaceFor } from '../lib/taskWorkspace';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
@@ -118,68 +118,6 @@ function itemDescription(item) {
   return item.description || item.body || '';
 }
 
-function participantTaskExplanation({ item, kind, contract, workspace, estate }) {
-  const title = itemTitle(item);
-  const text = [title, itemDescription(item), contract?.label, contract?.action].join(' ').toLowerCase();
-  const coordinator = estate?.coordinator_name || 'the coordinator';
-  const caseName = estate?.deceased_name || estate?.name || 'this family record';
-  const fallback = {
-    what: `The family asked you to help with "${title}" for ${caseName}.`,
-    why: workspace?.guidance?.why || 'This keeps the next step from sitting in a private text thread or phone call.',
-    done: workspace?.proofDestination || 'A short note, confirmation, or proof is saved back to the coordinator.',
-  };
-  if (text.includes('primary confirmation') || text.includes('confirmation contact')) {
-    return {
-      what: 'You are being asked to be the confirmation contact for this item, not to manage the whole estate.',
-      why: `${coordinator} needs one reliable reply so the family knows whether this step is owned, waiting, or finished.`,
-      done: 'Mark done only after you have confirmed your part, or mark waiting if you need a reply, document, date, or decision.',
-    };
-  }
-  if (text.includes('cemetery') || text.includes('burial') || text.includes('plot')) {
-    return {
-      what: 'The family is asking you to provide or confirm cemetery, burial, or plot details.',
-      why: 'These details can affect transportation, service timing, cemetery coordination, and what the funeral home can finalize.',
-      done: 'Share the cemetery name, plot or deed detail, contact person, or what is still missing before marking it done.',
-    };
-  }
-  if (text.includes('photo') || text.includes('memory') || /\bstory\b/.test(text) || /\bstories\b/.test(text)) {
-    return {
-      what: 'The family is asking you to contribute a specific memory, photo, or story.',
-      why: 'This lets the coordinator collect contributions in one place instead of chasing separate messages.',
-      done: 'Upload or describe what you contributed, then mark it done so the coordinator knows it is ready.',
-    };
-  }
-  if (text.includes('obituary')) {
-    return {
-      what: 'The family is asking you to review, approve, or supply information for the obituary.',
-      why: 'Obituary work usually blocks publication, service announcements, and family updates.',
-      done: 'Save the correction, approval, missing detail, or blocker before marking it done.',
-    };
-  }
-  if (text.includes('flower') || text.includes('florist') || kind === 'vendor') {
-    return {
-      what: 'This is a scoped vendor or service request tied to one family need.',
-      why: 'The coordinator needs availability, timing, pricing, or a blocker before committing the family.',
-      done: 'Record the quote, confirmation, scheduled time, or reason you cannot help.',
-    };
-  }
-  if (kind === 'executor') {
-    return {
-      what: 'This is a responsible family or executor task tied to documents, institutions, or authority.',
-      why: 'These steps can affect downstream estate work, so Passage keeps ownership and proof visible.',
-      done: 'Record the confirmation number, document request, deadline, or proof before closing it.',
-    };
-  }
-  if (kind === 'officiant') {
-    return {
-      what: 'The family is asking whether you can help with the service or ceremony.',
-      why: 'Service planning depends on availability, timing, location, and any details you need from the family.',
-      done: 'Confirm availability or write exactly what details you need before the coordinator can move on.',
-    };
-  }
-  return fallback;
-}
-
 function itemStatus(item) {
   return item.status || item.delivery_status || 'assigned';
 }
@@ -269,7 +207,13 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     coordinatorName: estate?.coordinator_name || 'the coordinator',
     surface: 'your assigned task',
   });
-  const explanation = participantTaskExplanation({ item, kind, contract, workspace, estate });
+  const explanation = taskExplanationFor(item, {
+    estateName: estate?.deceased_name || estate?.name || 'this family record',
+    coordinatorName: estate?.coordinator_name || 'the coordinator',
+    roleKind: kind,
+    output: workspace.output,
+    guidance: workspace.guidance,
+  });
   const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'acknowledged' ? 'Status: Confirmed' : itemStatus(item) === 'blocked' ? 'Status: Needs help' : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
   const rawExpectedUpdate = taskExpectedUpdate(item, 'participant');
   const expectedUpdate = /waiting for an owner/i.test(rawExpectedUpdate)

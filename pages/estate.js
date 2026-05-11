@@ -10,7 +10,7 @@ import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import VendorSupport from '../components/VendorSupport';
 import PacketGeneratorModal from '../components/PacketGeneratorModal';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
-import { taskWorkspaceFor } from '../lib/taskWorkspace';
+import { taskExplanationFor, taskWorkspaceFor } from '../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../lib/taskOrchestration';
 
 // ── TOKENS ────────────────────────────────────────────────────────────────────
@@ -3280,6 +3280,13 @@ export default function EstatePage() {
               var copy = taskActionCopy(pendingTaskAction.status);
               var assignedEmailForSpine = taskAssignedEmail(pendingTaskAction.task);
               var promptText = textValue(pendingTaskAction.prompt || copy.prompt, 'Record what happened, who owns it, and what proof should be saved.');
+              var workspace = taskWorkspaceFor(pendingTaskAction.task, { estateName: name, coordinatorName: coordinatorName, surface: 'task proof panel' });
+              var explanation = taskExplanationFor(pendingTaskAction.task, {
+                estateName: name,
+                coordinatorName: coordinatorName,
+                output: workspace.output,
+                guidance: workspace.guidance,
+              });
               return (
                 <>
                   <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this task' : pendingTaskAction.status === 'handled' ? 'Mark done and save proof' : 'Save this update'}</div>
@@ -3290,6 +3297,20 @@ export default function EstatePage() {
                       This closes the task. Add the proof, reference, file, or short note the family should be able to trust later.
                     </div>
                   )}
+                  <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 12 }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>What this task is</div>
+                    <div style={{ fontSize: 12.8, color: INK, lineHeight: 1.45, fontWeight: 800 }}>{explanation.what}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginTop: 8 }}>
+                      <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
+                        <div style={{ fontSize: 9.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>Why it matters</div>
+                        <div style={{ fontSize: 12, color: MID, lineHeight: 1.4, marginTop: 3 }}>{explanation.why}</div>
+                      </div>
+                      <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
+                        <div style={{ fontSize: 9.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>What done means</div>
+                        <div style={{ fontSize: 12, color: MID, lineHeight: 1.4, marginTop: 3 }}>{explanation.done}</div>
+                      </div>
+                    </div>
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 12 }}>
                     <div style={{ background: assignedEmailForSpine ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (assignedEmailForSpine ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 12, padding: '9px 10px' }}>
                       <div style={{ fontSize: 10.5, fontWeight: 900, color: assignedEmailForSpine ? SAGE : AMBER, letterSpacing: '.11em', textTransform: 'uppercase' }}>1. Owner</div>

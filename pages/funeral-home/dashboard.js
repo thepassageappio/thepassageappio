@@ -7,7 +7,7 @@ import PacketGeneratorModal from '../../components/PacketGeneratorModal';
 import SmartAddressInput from '../../components/SmartAddressInput';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction as sharedTaskNext } from '../../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
-import { taskGuidanceFor, taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
+import { taskExplanationFor, taskGuidanceFor, taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../../lib/taskOrchestration';
 import { trackEvent } from '../../lib/trackEvent';
 import { recordOnboardingProgress } from '../../lib/onboardingClient';
@@ -3627,6 +3627,7 @@ export default function FuneralHomeDashboard() {
                     const taskClosed = ['handled', 'completed', 'done'].includes(String(nextPartnerTask.status || '').toLowerCase());
                     const output = taskOutputFor(nextPartnerTask, context);
                     const guidance = taskGuidanceFor(nextPartnerTask, { ...context, owner: nextOwner });
+                    const explanation = taskExplanationFor(nextPartnerTask, { ...context, output, guidance });
                     const draft = taskRequestDraftFor(nextPartnerTask, context);
                     const proofDestination = taskProofDestination(nextPartnerTask, context);
                     const assignOpen = assignmentDraft.taskId === nextPartnerTask.id;
@@ -3716,6 +3717,11 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(nextPartnerTask)}</div>
                             <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{taskClosed ? 'This task is already handled. Passage keeps the proof, notification, owner, and family-visible status together.' : 'Choose the next operational move. Passage keeps the owner, request, proof, and family-visible status on the same family record.'}</div>
                             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
+                              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', marginBottom: 8 }}>
+                                <strong style={{ color: C.ink }}>What this task is:</strong> {explanation.what}
+                                <br />
+                                <strong style={{ color: C.ink }}>What done means:</strong> {explanation.done}
+                              </div>
                               <strong style={{ color: C.ink }}>Why now:</strong> {guidance.why}
                               <br />
                               <strong style={{ color: C.ink }}>Expected timing:</strong> {guidance.timing}
