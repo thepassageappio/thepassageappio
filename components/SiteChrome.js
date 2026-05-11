@@ -140,30 +140,40 @@ function isSystemAdminUser(user) {
 const DEMO_TOUR_STEPS = [
   {
     id: 'overview',
-    title: 'Start with the promise',
-    body: 'Open with the funeral-home problem: fewer repeated calls, visible proof, and data that can leave Passage any time.',
-    say: 'Passage keeps the next move, owner, waiting point, and proof in one family record.',
-    show: 'The lifecycle promise before you open an operating screen.',
+    title: 'Start with the funeral-home promise',
+    body: 'Open with the Monday-morning value: fewer repeated calls, clearer owners, visible proof, and clean export back to the systems they already use.',
+    say: 'Passage is not replacing your case system. It coordinates the family work around it.',
+    show: 'The public funeral-home promise before you open the operating console.',
     href: '/hospice?demoTour=funeral-home&demoStep=warm',
-    cta: 'Next: warm path',
-    anchor: 'demo-page-primary',
+    cta: 'Next: warm handoff',
+    anchor: 'demo-fh-promise',
   },
   {
     id: 'warm',
-    title: 'Show the care bridge',
-    body: 'Families may enter before the death event through hospice, home care, senior living, or assisted care. Show the first-hour plan and permissioned funeral-home handoff before opening the partner dashboard.',
-    say: 'The family record can start before crisis and then hand off cleanly.',
+    title: 'Show how families arrive prepared',
+    body: 'A family may enter before death through hospice, care preparation, senior living, or direct planning. This is the warm inbound handoff a funeral home can receive instead of starting from zero.',
+    say: 'The family record can start before crisis and then hand off cleanly when the funeral home is needed.',
     show: 'Care-prep fields, facility or hospice context, permissions, and funeral-home preference.',
-    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
-    cta: 'Next: team setup',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
+    cta: 'Open live console',
     anchor: 'demo-warm-record',
   },
   {
+    id: 'dashboard',
+    title: 'Command center first',
+    body: 'Show the operating pane first. A director should see active cases, waiting items, what needs attention, and the next move without hunting through stacked sections.',
+    say: 'This is the daily floor: one command center, one case at a time, one next action.',
+    show: 'Active cases, waiting response, blocked work, locations, and the next director action.',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
+    cta: 'Next: setup',
+    anchor: 'demo-partner-command',
+  },
+  {
     id: 'team',
-    title: 'Show staff setup',
-    body: 'Explain directors, arrangers, coordinators, and location admins. This is where a home sees Passage as operational, not consumer-only.',
-    say: 'Directors manage the floor; staff work from one assigned queue.',
-    show: 'Role, location, salary/cost privacy, and assignment readiness.',
+    title: 'Set up locations and people once',
+    body: 'Show directors, staff, location scope, and permissions as a management pane, not a scattered onboarding checklist. This is where self-service becomes believable.',
+    say: 'Once staff and locations are saved, every case task can assign from the same owner list.',
+    show: 'Locations, role permissions, staff management, and assignment readiness.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
     cta: 'Next: create a case',
     anchor: 'demo-partner-setup',
@@ -171,29 +181,19 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'case',
     title: 'Create the family case',
-    body: 'Walk through at-need versus pre-need. Keep it simple: add the family contact, then Passage creates the command center.',
+    body: 'Walk through at-need versus pre-need as states of a family case. Keep it simple: add the family contact, case value, prepaid flag when relevant, and the known dates.',
     say: 'At-need and pre-need are case states. Prepaid is a funding detail, not a separate product.',
     show: 'Family contact, case value, prepaid flag, and smart location.',
-    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
-    cta: 'Next: dashboard value',
-    anchor: 'demo-case-create',
-  },
-  {
-    id: 'dashboard',
-    title: 'Director dashboard',
-    body: 'Point to active cases, waiting items, calls avoided, and the next partner work. This is the B2B value in under ten seconds.',
-    say: 'A director should know what needs attention without opening every case.',
-    show: 'Cases, staff queue, reports, locations, and ROI signals.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=task',
     cta: 'Next: task spine',
-    anchor: 'demo-page-primary',
+    anchor: 'demo-case-create',
   },
   {
     id: 'task',
     title: 'Move one task',
-    body: 'Show one task at a time: what Passage handles, what staff handles, and how proof is recorded. No mystery status changes.',
+    body: 'Show one task at a time: prepared output, owner, request, proof, waiting state, and reporting. No mystery status changes.',
     say: 'The task is the unit of truth: owner, request, proof, status, report.',
-    show: 'Prepared output preview, owner assignment, family request, proof close.',
+    show: 'Prepared packet preview, owner assignment, family request, proof close, and the actions that move out of the way after completion.',
     href: '/participating?demoTour=funeral-home&demoStep=participant',
     cta: 'Next: participant view',
     anchor: 'demo-task-spine',
@@ -221,7 +221,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'chat',
     title: 'Coordinate the people',
-    body: 'Use the mock chats to show family, cemetery, clergy, and funeral-home staff in one tracked coordination trail.',
+    body: 'Show that notifications, conversation, proof, and family-visible status are separate layers tied to the same case, not one noisy chat feed.',
     say: 'Every response becomes context for the next handoff.',
     show: 'Family, provider, and staff updates tied to the same case.',
     href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
@@ -241,10 +241,10 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'export',
     title: 'Close with adoption trust',
-    body: 'Show CSV export, reporting, and the line that matters: Passage sits on top of their system without trapping data.',
-    say: 'Passage proves value and lets the record leave cleanly.',
-    show: 'Reports, exports, and adoption trust.',
-    href: '/system/demo',
+    body: 'Close where a buyer cares: calls avoided, tasks handled, blocked work, case value, staff/location reporting, vendor value, and CSV/full-spine export.',
+    say: 'You can use Passage without trapping your data here. Bring case data in, coordinate the family work, then export the record back out.',
+    show: 'Reports, exports, ROI, and adoption trust.',
+    href: '/funeral-home',
     cta: 'End walkthrough',
     anchor: 'demo-reports',
   },
@@ -253,6 +253,7 @@ const DEMO_TOUR_STEPS = [
 function demoStepFor(path, queryStep) {
   const requested = String(queryStep || '');
   if (DEMO_TOUR_STEPS.some(step => step.id === requested)) return requested;
+  if (path === '/funeral-home') return 'overview';
   if (path === '/funeral-home/dashboard') return 'dashboard';
   if (path === '/hospice') return 'warm';
   if (path === '/estate') return 'task';
@@ -441,7 +442,7 @@ function DemoCoach({ step }) {
 
   function exitDemo() {
     if (typeof window === 'undefined') return;
-    window.location.assign('/system/demo');
+    window.location.assign('/funeral-home');
   }
 
   return (
@@ -452,7 +453,7 @@ function DemoCoach({ step }) {
         <div style={{ position: 'absolute', top: targetRect.top, left: targetRect.left, width: targetRect.width, height: targetRect.height, border: '3px solid #6b8f71', borderRadius: 18, boxShadow: '0 0 0 9999px rgba(26,25,22,.18), 0 18px 50px rgba(0,0,0,.2)', background: 'rgba(240,245,241,.08)' }} />
       </div>
     )}
-    <div style={{ position: 'fixed', ...(placement.left != null ? { left: placement.left } : { right: placement.right ?? 24 }), ...(placement.top != null ? { top: placement.top } : { bottom: placement.bottom ?? 24 }), zIndex: 2147483601, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
+    <div data-demo-coach="funeral-home" style={{ position: 'fixed', ...(placement.left != null ? { left: placement.left } : { right: placement.right ?? 24 }), ...(placement.top != null ? { top: placement.top } : { bottom: placement.bottom ?? 24 }), zIndex: 2147483601, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
         <div>
           <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>DEMO DATA - for demonstration only</div>

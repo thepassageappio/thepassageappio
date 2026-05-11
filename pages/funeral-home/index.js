@@ -122,7 +122,7 @@ export default function FuneralHomePage() {
       `}</style>
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
       <section className="fh-shell">
-        <div className="fh-hero">
+        <div className="fh-hero" data-demo-anchor="demo-fh-promise">
           <div>
             <div className="fh-kicker">For funeral homes</div>
             <h1 className="fh-title">A calmer family layer on top of the work you already do.</h1>
@@ -131,6 +131,7 @@ export default function FuneralHomePage() {
             </p>
             <div className="fh-actions">
               <Link href="/funeral-home/dashboard" className="fh-button fh-primary">Open partner workspace</Link>
+              <Link href="/funeral-home?demoTour=funeral-home&demoStep=overview" className="fh-button fh-secondary">View guided demo</Link>
               <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" className="fh-button fh-secondary">Book a pilot walkthrough</a>
             </div>
             <div className="fh-note">Passage does not replace your case system. It coordinates the humans around it.</div>

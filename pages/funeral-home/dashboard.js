@@ -1043,6 +1043,8 @@ export default function FuneralHomeDashboard() {
     if (!clean) return;
 
     if (clean === 'team') {
+      setShowNewCase(false);
+      setShowPilotGuide(false);
       setActivePartnerView('manage');
       setNotice('Demo step: locations, employees, permissions, and invite handoff.');
       scrollPartnerDemoTarget('partner-management-section');
@@ -1050,6 +1052,8 @@ export default function FuneralHomeDashboard() {
     }
 
     if (clean === 'case') {
+      setShowPilotGuide(false);
+      setActivePartnerView('work');
       openCasePanel('immediate');
       setNotice('Demo step: create an at-need case with only the known details.');
       scrollPartnerDemoTarget('partner-case-form');
@@ -1057,6 +1061,9 @@ export default function FuneralHomeDashboard() {
     }
 
     if (clean === 'dashboard') {
+      setShowNewCase(false);
+      setShowPilotGuide(false);
+      setShowTools(false);
       setActivePartnerView('work');
       setNotice('Demo step: director sees active cases, waiting items, and ROI.');
       scrollPartnerDemoTarget('partner-today-section');
@@ -1064,6 +1071,10 @@ export default function FuneralHomeDashboard() {
     }
 
     if (clean === 'task') {
+      setShowNewCase(false);
+      setShowPilotGuide(false);
+      setShowTools(false);
+      setActivePartnerView('work');
       if (firstOpenCase?.id) {
         openPartnerWork(firstOpenCase.id);
         scrollPartnerDemoTarget('partner-action-workspace-' + firstOpenCase.id);
@@ -1075,6 +1086,10 @@ export default function FuneralHomeDashboard() {
     }
 
     if (clean === 'chat') {
+      setShowNewCase(false);
+      setShowPilotGuide(false);
+      setShowTools(false);
+      setActivePartnerView('work');
       if (firstOpenCase?.id) {
         openPartnerWork(firstOpenCase.id);
         setNotice('Demo step: communication, proof, and notifications stay attached to the selected case.');
@@ -1084,6 +1099,8 @@ export default function FuneralHomeDashboard() {
     }
 
     if (clean === 'export') {
+      setShowNewCase(false);
+      setShowPilotGuide(false);
       setActivePartnerView('reports');
       setShowTools(true);
       setNotice('Demo step: close with reporting, CSV export, and adoption trust.');
@@ -1916,10 +1933,7 @@ export default function FuneralHomeDashboard() {
     if (router.query.demoTour !== 'funeral-home') return;
     const step = typeof router.query.demoStep === 'string' ? router.query.demoStep : '';
     if (!step || loading) return;
-    if (step === 'team') {
-      setShowPilotGuide(true);
-      setActivePartnerView('manage');
-    }
+    if (step === 'team') setActivePartnerView('manage');
     if (step === 'dashboard') setShowPilotGuide(false);
     if (step === 'export') {
       setShowPilotGuide(false);
@@ -3723,7 +3737,7 @@ export default function FuneralHomeDashboard() {
                     );
                   })()}
                   {isExpanded && (
-                    <details id={'partner-coordination-spine-' + item.id} data-demo-anchor="demo-coordination" style={{ border: `1px solid ${C.border}`, borderRadius: 13, background: C.bg, marginTop: 10, overflow: 'hidden', scrollMarginTop: 92 }}>
+                    <details id={'partner-coordination-spine-' + item.id} data-demo-anchor="demo-coordination" open={router.query.demoTour === 'funeral-home' && router.query.demoStep === 'chat'} style={{ border: `1px solid ${C.border}`, borderRadius: 13, background: C.bg, marginTop: 10, overflow: 'hidden', scrollMarginTop: 92 }}>
                       <summary style={{ cursor: 'pointer', padding: '10px 12px', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>
                         Supporting details
                       </summary>

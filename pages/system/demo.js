@@ -26,49 +26,49 @@ const demoSteps = [
     id: 'overview',
     kicker: 'Open',
     title: 'Show Passage as the coordination layer.',
-    point: 'Start with the pain: fewer repeated calls, clearer ownership, and a family-facing record the funeral home can trust.',
+    point: 'Start with the buyer pain: fewer repeated calls, clearer ownership, visible proof, warm family handoffs, and export back to the funeral home system.',
     action: 'Say: "This is not replacing your case system. It sits on top, imports what you already have, reduces calls, and exports cleanly."',
-    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
+    href: '/funeral-home?demoTour=funeral-home&demoStep=overview',
   },
   {
     id: 'warm',
-    kicker: 'Warm path',
-    title: 'Show the care-to-funeral-home handoff.',
+    kicker: 'Warm handoff',
+    title: 'Show how families arrive prepared.',
     point: 'A family may enter before death through hospice, home care, senior living, assisted care, or serious illness. Passage preserves contacts, dates, preferences, and the first-hour plan so the funeral home does not start from zero.',
-    action: 'Say: "Passage follows the family. Planning, care preparation, urgent guidance, and the funeral-home case are different doors into the same coordination record."',
+    action: 'Say: "Passage can bring you warm, organized family handoffs. Providers rotate in and out; the family record stays continuous."',
     href: '/hospice?demoTour=funeral-home&demoStep=warm',
+  },
+  {
+    id: 'dashboard',
+    kicker: 'Command',
+    title: 'Open the operating console.',
+    point: 'A director should see the floor in one pane: cases, waiting responses, blocked work, location scope, and the next action.',
+    action: 'Show the command center first. Avoid dashboard wandering. The value is "what needs attention without another status call."',
+    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard',
   },
   {
     id: 'team',
     kicker: 'Setup',
-    title: 'Show first-day pilot setup.',
+    title: 'Show locations, employees, and permissions.',
     point: 'A signed pilot owner should know what to do in minute one: confirm workspace, set locations/case scope, add employees and roles, then import CSV or create the first case fresh.',
-    action: 'Show the launch rail, the import-vs-create branches, employee setup, and the uniform owner dropdown reused across estate tasks.',
+    action: 'Show Management, not an onboarding overlay: locations, role permissions, assignable staff, and the reusable owner dropdown.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
   },
   {
     id: 'case',
     kicker: 'Case',
-    title: 'Create a family case in under a minute.',
-    point: 'Add the family contact and a few known facts. Passage creates the command center and starts the task spine.',
-    action: 'Show at-need versus pre-need. Emphasize "add only what you know."',
+    title: 'Create or open a family case.',
+    point: 'Add the family contact and known facts. Passage creates the command center and starts the same task spine.',
+    action: 'Show at-need versus pre-need as case states. Prepaid is a funding detail, not a separate case type.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
   },
   {
-    id: 'tasks',
+    id: 'task',
     kicker: 'Work',
     title: 'Move one task, then show the proof.',
     point: 'Each task has a next action, an owner, a waiting state, and proof. Unknown never pretends to be done.',
-    action: 'Use "Handle for family" only after recording what happened. Use "Need family info" when staff is blocked.',
+    action: 'Show prepared output, owner assignment, request family info, close task, and proof. This is the product loop.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=task',
-  },
-  {
-    id: 'delegation',
-    kicker: 'Delegate',
-    title: 'Set up the employee, then assign the work.',
-    point: 'Directors save staff profiles first; case tasks then assign from saved employees, family contacts, participants, clergy, cemetery contacts, or vendors.',
-    action: 'Show Add employee in Staff work, then assign a task from the saved dropdown. Notifications remain approval-based.',
-    href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
   },
   {
     id: 'coordinate',
@@ -165,11 +165,11 @@ const fullLoop = [
 const demoRail = [
   {
     n: '01',
-    title: 'Family prepares during care',
-    persona: 'Family / care-adjacent',
-    route: '/hospice?demoTour=funeral-home&demoStep=warm',
-    proof: 'Hospice or facility contact, caregiver, family coordinator, known dates, when-it-happens plan, and funeral-home handoff packet.',
-    value: 'Shows Passage as continuity infrastructure before the funeral home ever starts a case.',
+    title: 'Funeral home promise',
+    persona: 'Funeral-home owner/director',
+    route: '/funeral-home?demoTour=funeral-home&demoStep=overview',
+    proof: 'Fewer repeated calls, clearer ownership, visible proof, warm handoffs, and export back to the existing case system.',
+    value: 'Frames Passage as the coordination layer around the work they already do.',
   },
   {
     n: '02',
@@ -192,7 +192,7 @@ const demoRail = [
     title: 'Director creates or opens a case',
     persona: 'Arranger / coordinator',
     route: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
-    proof: 'At-need, pre-need, and prepaid case types with dates captured when known.',
+    proof: 'At-need and pre-need case states, case value, prepaid funding detail, location, dates, and family contact captured when known.',
     value: 'Shows “add only what you know” without blocking urgent work.',
   },
   {
@@ -359,10 +359,10 @@ function isSystemAdmin(user) {
 
 function studioStepFromQuery(value) {
   const clean = String(value || '').toLowerCase();
-  if (clean === 'task') return 'tasks';
+  if (clean === 'tasks') return 'task';
   if (clean === 'hospice' || clean === 'during-care') return 'warm';
   if (clean === 'chat') return 'coordinate';
-  if (clean === 'participant') return 'delegation';
+  if (clean === 'participant') return 'coordinate';
   if (demoSteps.some(step => step.id === clean)) return clean;
   return '';
 }
@@ -465,7 +465,7 @@ export default function SystemDemo() {
                 <h1 style={{ ...h1, maxWidth: 720 }}>A guided walkthrough for funeral-home directors.</h1>
                 <p style={{ ...lead, maxWidth: 760 }}>A clean, dummy-only walkthrough. Each step shows one screen and one sales point so the director is not overwhelmed.</p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-                  <button onClick={() => router.push('/hospice?demoTour=funeral-home&demoStep=warm')} style={primaryButton}>Start guided product tour</button>
+                  <button onClick={() => router.push('/funeral-home?demoTour=funeral-home&demoStep=overview')} style={primaryButton}>Start guided product tour</button>
                   <Link href="/funeral-home/dashboard?demoTour=funeral-home&demoStep=dashboard" style={primaryLink}>Open live dashboard demo</Link>
                   <button onClick={() => demoAction('Demo reset: use the dummy cases, staff, messages, vendor loop, and export close below. No real estate data is touched.')} style={secondaryButton}>Reset dummy demo</button>
                 </div>
@@ -780,7 +780,7 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
     );
   }
 
-  if (activeStepId === 'tasks') {
+  if (activeStepId === 'task') {
     return (
       <Panel>
         <div style={eyebrow}>Demo screen</div>
