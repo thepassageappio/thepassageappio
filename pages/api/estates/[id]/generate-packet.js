@@ -27,6 +27,7 @@ export default async function handler(req, res) {
       'Preview the prepared output.',
       'Resolve any missing fields.',
       'Download or print only after coordinator approval.',
+      'Save the reviewed output as task proof before closing the work.',
     ],
     safety: 'No email, SMS, or production document storage write occurred.',
   });

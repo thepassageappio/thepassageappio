@@ -84,12 +84,33 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
     onClose?.();
   }
 
+  const packetTitle = packet?.data?.title || 'Passage prepared output';
+  const packetDescription = packet?.data?.description || 'Prepared from the family record.';
+  const approvalBoundary = packet?.data?.approvalBoundary || 'Review before sharing outside the family record.';
+  const proofPath = 'Save the reviewed output as proof on the task before closing it.';
+
   return (
     <div style={overlay} role="dialog" aria-modal="true" aria-label="Prepare Passage packet">
       <div style={modal}>
+        <style jsx global>{`
+          @media print {
+            body * { visibility: hidden !important; }
+            #passage-packet-print, #passage-packet-print * { visibility: visible !important; }
+            #passage-packet-print {
+              display: block !important;
+              position: absolute !important;
+              inset: 0 auto auto 0 !important;
+              width: 100% !important;
+              background: #fff !important;
+              color: #1a1916 !important;
+              padding: 32px !important;
+              box-sizing: border-box !important;
+            }
+          }
+        `}</style>
         <button onClick={onClose} aria-label="Close" style={closeButton}>x</button>
-        <div style={eyebrow}>Packet generator</div>
-        <h2 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '4px 0 8px' }}>Prepare the output, then review.</h2>
+        <div style={eyebrow}>Passage task output</div>
+        <h2 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '4px 0 8px' }}>Review the packet before it becomes proof.</h2>
         <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.55, margin: '0 0 16px', maxWidth: 760 }}>
           Passage builds this from the same family spine: dates, owners, waiting points, proof, and approval boundaries. Nothing sends from this window.
         </p>
@@ -103,8 +124,8 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 14 }}>
               {[
                 ['Status', packet?.status || 'draft'],
-                ['Boundary', 'Review first'],
-                ['Powered by', 'Passage'],
+                ['Approval', 'Review first'],
+                ['Proof path', 'Task spine'],
               ].map(([label, value]) => (
                 <div key={label} style={metaBox}>
                   <div style={metaLabel}>{label}</div>
@@ -112,7 +133,36 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
                 </div>
               ))}
             </div>
-            <label style={eyebrow} htmlFor="packet-review-text">Review packet text</label>
+            <div style={brandPreview}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', borderBottom: `1px solid ${C.border}`, paddingBottom: 12, marginBottom: 12 }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={mark}>P</span>
+                    <div>
+                      <div style={{ color: C.ink, fontSize: 17, fontWeight: 900 }}>Passage</div>
+                      <div style={{ color: C.mid, fontSize: 11.5 }}>Family coordination spine</div>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ color: C.mid, fontSize: 11.5, textAlign: 'right' }}>Powered by Passage<br />thepassageapp.io</div>
+              </div>
+              <div style={eyebrow}>Prepared output</div>
+              <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.12, fontWeight: 900, marginTop: 4 }}>{packetTitle}</div>
+              <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5, margin: '8px 0 0' }}>{packetDescription}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 12 }}>
+                {[
+                  ['Purpose', 'Produce a useful artifact, not just a status change.'],
+                  ['Boundary', approvalBoundary],
+                  ['Proof', proofPath],
+                ].map(([label, value]) => (
+                  <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 10 }}>
+                    <div style={metaLabel}>{label}</div>
+                    <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <label style={{ ...eyebrow, display: 'block', marginTop: 14 }} htmlFor="packet-review-text">Review packet text</label>
             <textarea
               id="packet-review-text"
               value={reviewText}
@@ -120,14 +170,29 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
               style={textarea}
             />
             <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 8 }}>
-              The PDF path today is browser print/save PDF so the family coordinator can review before anything leaves the record.
+              Print / save PDF creates a Passage-branded artifact. Use this output only after review, then save it as task proof.
+            </div>
+            <div id="passage-packet-print" style={printPacket}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${C.border}`, paddingBottom: 12, marginBottom: 18 }}>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 900 }}>Passage</div>
+                  <div style={{ color: C.mid, fontSize: 12 }}>Family coordination spine</div>
+                </div>
+                <div style={{ color: C.mid, fontSize: 11, textAlign: 'right' }}>Powered by Passage<br />thepassageapp.io</div>
+              </div>
+              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Prepared output</div>
+              <h1 style={{ fontSize: 28, lineHeight: 1.1, margin: '6px 0 12px' }}>{packetTitle}</h1>
+              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Georgia,serif', fontSize: 13.5, lineHeight: 1.55 }}>{reviewText}</pre>
+              <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 18, paddingTop: 10, color: C.mid, fontSize: 11 }}>
+                Prepared by Passage. Review before sharing outside the family record. Powered by Passage | thepassageapp.io
+              </div>
             </div>
             {notice && <div style={{ ...quietBox, padding: '9px 12px', marginTop: 12 }}>{notice}</div>}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
               <button onClick={copyPacket} style={secondaryButton}>Copy</button>
               <button onClick={downloadPacket} style={secondaryButton}>Download .txt</button>
               <button onClick={() => window.print()} style={secondaryButton}>Print / save PDF</button>
-              <button onClick={finish} style={primaryButton}>Use this output</button>
+              <button onClick={finish} style={primaryButton}>Use as task proof</button>
             </div>
           </>
         )}
@@ -180,6 +245,9 @@ const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTrans
 const quietBox = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 14, padding: 14, fontSize: 14, fontWeight: 800 };
 const metaBox = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 };
 const metaLabel = { color: C.sage, fontSize: 10, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 4 };
+const mark = { width: 24, height: 24, borderRadius: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.bg, border: `1px solid ${C.border}`, color: C.sage, fontSize: 13, fontWeight: 900 };
+const brandPreview = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 15, marginBottom: 12 };
+const printPacket = { display: 'none' };
 const textarea = {
   width: '100%',
   minHeight: 260,

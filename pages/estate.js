@@ -3100,6 +3100,7 @@ export default function EstatePage() {
       estateId: estateId,
       packetType: packetTypeForTask(task),
       taskTitle: displayTaskTitle(task),
+      task: task,
     });
   }
 
@@ -3245,7 +3246,23 @@ export default function EstatePage() {
             onClose={function() { setPacketModal(null); }}
             onComplete={function(result) {
               var packet = result && result.packet;
+              var task = packetModal && packetModal.task;
+              var proofText = result && result.text ? result.text : '';
               setPacketModal(null);
+              if (task) {
+                startTaskUpdate({
+                  task: task,
+                  status: 'handled',
+                  mode: 'packet',
+                  title: 'Save reviewed output as proof',
+                  detail: (packet?.data?.title || 'Passage output') + ' reviewed',
+                  prompt: 'Review is complete. Save this Passage-branded output as proof on the task, or change the status to Waiting / Needs help before saving.'
+                });
+                setPendingTaskDraftText(proofText);
+                setPendingTaskNote('Reviewed Passage output prepared from the family spine. Save as proof when ready.');
+                showToast((packet?.data?.title || 'Passage output') + ' prepared. Save it as proof to close the task.');
+                return;
+              }
               showToast((packet?.data?.title || 'Passage output') + ' prepared. Review before sharing.');
             }}
           />
