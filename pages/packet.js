@@ -25,20 +25,19 @@ export default function PacketDemo() {
   const [packets, setPackets] = useState(demoPackets);
   const [activeId, setActiveId] = useState(packets[0]?.id || '');
   const [notice, setNotice] = useState('');
-  const [sourceLabel, setSourceLabel] = useState('Demo packet set');
+  const [sourceLabel, setSourceLabel] = useState('Sample output set');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const active = packets.find(packet => packet.id === activeId) || packets[0];
-  const asPath = String(router.asPath || '');
-  const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1' || asPath.includes('demoTour=funeral-home') || asPath.includes('demo=1');
-  const displaySourceLabel = !demoMode && sourceLabel === 'Demo packet set' ? 'Sample output set' : sourceLabel;
+  const demoMode = router.isReady && (router.query.demoTour === 'funeral-home' || router.query.demo === '1');
+  const displaySourceLabel = sourceLabel;
 
   useEffect(() => {
     if (!router.isReady) return;
     const id = String(router.query.id || '').trim();
     if (!id) {
       setPackets(demoPackets);
-      setSourceLabel('Demo packet set');
+      setSourceLabel(router.query.demo === '1' || router.query.demoTour === 'funeral-home' ? 'Demo packet set' : 'Sample output set');
       setError('');
       return;
     }

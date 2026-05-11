@@ -3133,7 +3133,7 @@ export default function EstatePage() {
         {!user ? (
           <div style={{ width: '100%', maxWidth: 520, textAlign: 'center', background: CARD, border: '1px solid ' + BORDER, borderRadius: 20, padding: '30px 28px', boxShadow: '0 18px 54px rgba(55,45,35,.06)' }}>
             <div style={{ fontSize: 11, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 12 }}>Your family record</div>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, lineHeight: 1.12, color: INK, marginBottom: 10 }}>Sign in to open your record.</div>
+            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 30, lineHeight: 1.12, color: INK, margin: '0 0 10px', fontWeight: 400 }}>Sign in to open your record.</h1>
             <div style={{ fontSize: 15, color: MID, lineHeight: 1.65, margin: '0 auto 22px', maxWidth: 440 }}>Passage keeps next steps, owners, documents, and proof in one place. Sign in to continue where you left off.</div>
             <button onClick={signInToEstate}
               style={{ width: '100%', minHeight: 48, borderRadius: 13, border: 'none', background: INK, color: '#fff', fontSize: 15, fontWeight: 900, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 10 }}>

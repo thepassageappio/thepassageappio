@@ -2807,8 +2807,8 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
       </div>
       <Field label="Cemetery or burial place (optional)" placeholder="Name, plot, or location if known" value={cemeteryName} onChange={setCemeteryName} />
       <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-        <Btn variant="ghost" onClick={() => setStep(2)}>â† Back</Btn>
-        <Btn onClick={() => setStep(4)} style={{ flex: 1 }}>Continue â†’</Btn>
+        <Btn variant="ghost" onClick={() => setStep(2)}>Back</Btn>
+        <Btn onClick={() => setStep(4)} style={{ flex: 1 }}>Continue</Btn>
       </div>
     </Card>,
 
