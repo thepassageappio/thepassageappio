@@ -3104,7 +3104,7 @@ export default function EstatePage() {
     });
   }
 
-  // ── LOADING ──────────────────────────────────────────────────────────────────
+  // Loading
   useEffect(function() {
     if (loading || !initialTaskId || !tasks.length) return;
     var key = String(initialTaskId) + ':' + (initialTaskIntent || 'open');
@@ -3125,7 +3125,7 @@ export default function EstatePage() {
     </div>
   );
 
-  // ── NO ESTATE ─────────────────────────────────────────────────────────────────
+  // No estate
   if (!estateId || !estate) return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />

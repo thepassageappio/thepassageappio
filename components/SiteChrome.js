@@ -66,14 +66,14 @@ export function RoleActionStrip({ role = 'Your role', action = 'Take the next ac
 export function StatusBadge({ status = 'draft', label, compact = false }) {
   const clean = String(status || '').toLowerCase();
   const state = clean === 'done' || clean === 'handled' || clean === 'completed'
-    ? { text: 'Handled', icon: '✓', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#c8deca' }
+    ? { text: 'Handled', icon: 'OK', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#c8deca' }
     : clean === 'acknowledged' || clean === 'accepted' || clean === 'viewed'
-      ? { text: clean === 'viewed' ? 'Viewed' : 'Accepted', icon: '•', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#c8deca' }
+      ? { text: clean === 'viewed' ? 'Viewed' : 'Accepted', icon: 'Seen', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#c8deca' }
       : clean === 'sent' || clean === 'assigned' || clean === 'waiting' || clean === 'pending' || clean === 'requested'
-        ? { text: clean === 'sent' ? 'Sent' : 'Waiting', icon: '…', color: '#7a6a52', bg: '#f7f1e7', border: '#eadcc8' }
+        ? { text: clean === 'sent' ? 'Sent' : 'Waiting', icon: 'Wait', color: '#7a6a52', bg: '#f7f1e7', border: '#eadcc8' }
         : clean === 'blocked' || clean === 'failed' || clean === 'needs_review' || clean === 'declined'
           ? { text: clean === 'declined' ? 'Needs another option' : 'Needs help', icon: '!', color: '#9a6842', bg: '#fdf3ec', border: '#edd0bd' }
-          : { text: 'Draft', icon: '•', color: CHROME_COLORS.soft, bg: CHROME_COLORS.bg, border: CHROME_COLORS.border };
+          : { text: 'Draft', icon: 'New', color: CHROME_COLORS.soft, bg: CHROME_COLORS.bg, border: CHROME_COLORS.border };
   return (
     <span style={{
       display: 'inline-flex',
@@ -89,7 +89,7 @@ export function StatusBadge({ status = 'draft', label, compact = false }) {
       fontWeight: 900,
       whiteSpace: 'nowrap',
     }}>
-      <span aria-hidden="true">{state.icon}</span>
+      <span aria-hidden="true" style={{ fontSize: compact ? 8.5 : 9, letterSpacing: '.04em' }}>{state.icon}</span>
       {label || state.text}
     </span>
   );

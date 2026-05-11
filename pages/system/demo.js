@@ -542,9 +542,9 @@ export default function SystemDemo() {
             </section>
 
             <details style={{ marginTop: 22 }}>
-              <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>Show full demo rail: nine product moments</summary>
+              <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>Show full guided demo: nine product moments</summary>
               <Panel style={{ marginTop: 12 }}>
-                <div style={eyebrow}>Runnable demo rail</div>
+                <div style={eyebrow}>Guided demo path</div>
                 <h2 style={h2}>One story, nine product moments.</h2>
                 <p style={{ ...lead, maxWidth: 820 }}>Use this as the operator-safe spine for demos. Every stop opens the actual product surface that should prove the claim, with dummy-safe links where the flow touches participants or vendors.</p>
                 <div style={{ display: 'grid', gap: 9, marginTop: 14 }}>

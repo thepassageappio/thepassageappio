@@ -161,7 +161,7 @@ export default function PacketDemo() {
             <div style={{ display: 'inline-flex', marginTop: 12, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 10px', fontSize: 12, fontWeight: 900 }}>{loading ? 'Generating...' : displaySourceLabel}</div>
           </div>
           {demoMode ? (
-            <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Back to demo rail</Link>
+            <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Back to guided demo</Link>
           ) : (
             <Link href="/funeral-home" style={secondaryLink}>See provider workflow</Link>
           )}
@@ -194,7 +194,7 @@ export default function PacketDemo() {
             ))}
             <div style={{ background: demoMode ? C.amberFaint : C.sageFaint, border: '1px solid ' + (demoMode ? '#edd7b1' : '#c8deca'), borderRadius: 14, padding: 13, color: demoMode ? C.amber : C.sage, fontSize: 12.5, lineHeight: 1.5 }}>
               {demoMode
-                ? 'Demo mode: this page prepares copyable outputs only. It does not send email/SMS or change production records.'
+                ? 'Demo-safe output: review, copy, print, or save. Nothing sends by itself.'
                 : 'Review boundary: copy, print, or download only after the family or coordinator approves the output.'}
             </div>
           </aside>

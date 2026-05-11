@@ -2414,7 +2414,7 @@ export default function FuneralHomeDashboard() {
               {[
                 ['Import accepts', 'Passage template plus common case-system names such as decedent, family contact, case number, service date, funeral date, burial date, and obituary deadline.'],
                 ['Export includes', 'Case summary CSV for existing systems plus full-spine CSV for tasks, owners, messages, vendor requests, proof requirements, and payment/reporting fields where present.'],
-                ['Pilot posture', 'CSV bridge now. Direct adapters should be mapped after we see each home’s actual Passare, Gather, SRS, Tribute, or local export shape.'],
+                ['Pilot posture', "CSV bridge now. Direct adapters should be mapped after we see each home's actual Passare, Gather, SRS, Tribute, or local export shape."],
               ].map(([title, body]) => (
                 <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 11px' }}>
                   <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
