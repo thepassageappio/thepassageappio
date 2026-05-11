@@ -422,7 +422,7 @@ function DemoCoach({ step }) {
     <div style={{ position: 'fixed', ...(placement.left != null ? { left: placement.left } : { right: placement.right ?? 24 }), ...(placement.top != null ? { top: placement.top } : { bottom: placement.bottom ?? 24 }), zIndex: 2147483601, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
         <div>
-          <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage demo guide</div>
+          <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>DEMO DATA - for demonstration only</div>
           <div style={{ fontSize: 22, lineHeight: 1.15, marginTop: 6 }}>{step.title}</div>
         </div>
         <button onClick={exitDemo} style={{ border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#d8d0c7', borderRadius: 999, minWidth: 58, minHeight: 32, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>Exit</button>
