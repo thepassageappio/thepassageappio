@@ -8,6 +8,7 @@ import { supabase as sb } from '../lib/supabaseBrowser';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import VendorSupport from '../components/VendorSupport';
+import PacketGeneratorModal from '../components/PacketGeneratorModal';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
 import { taskWorkspaceFor } from '../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../lib/taskOrchestration';
@@ -1541,7 +1542,7 @@ function SpineFact({ label, value, tone }) {
   );
 }
 
-function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, estateId, estate, estateName, coordinatorName, serviceEvents, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
+function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, estateId, estate, estateName, coordinatorName, serviceEvents, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction, onGeneratePacket }) {
   var orchestrationContext = {
     estate: estate || {},
     deathDate: estate?.date_of_death || '',
@@ -1733,7 +1734,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           </div>
 
           {item && (
-            <div className="passage-task-spine-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8, marginTop: 12 }}>
+            <div className="passage-task-spine-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 8, marginTop: 12 }}>
               {current.kind === 'outcome' ? (
                 <>
                   <button onClick={function() { onOpenOutcome(item); }} style={miniBtn(SAGE, '#fff', SAGE)}>Open workspace</button>
@@ -1744,6 +1745,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               ) : (
                 <>
                   <button onClick={function() { onTaskAction(item, 'handled'); }} style={miniBtn(SAGE, '#fff', SAGE)}>Mark done / proof</button>
+                  <button onClick={function() { onGeneratePacket(item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Generate output</button>
                   <button onClick={function() { onTaskAction(item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Waiting</button>
                   <button onClick={function() { onTaskAction(item, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
                   <button onClick={function() { onTaskAction(item, 'assign'); }} style={miniBtn(CARD, MID, BORDER)}>Owner / message</button>
@@ -2188,6 +2190,8 @@ export default function EstatePage() {
   var s27 = useState(null); var pendingTaskAttachment = s27[0]; var setPendingTaskAttachment = s27[1];
   var s28 = useState(false); var uploadingTaskAttachment = s28[0]; var setUploadingTaskAttachment = s28[1];
   var s29 = useState(''); var openedInitialTaskKey = s29[0]; var setOpenedInitialTaskKey = s29[1];
+  var s30 = useState(''); var authToken = s30[0]; var setAuthToken = s30[1];
+  var s31 = useState(null); var packetModal = s31[0]; var setPacketModal = s31[1];
 
   async function signInToEstate() {
     if (!sb?.auth || typeof window === 'undefined') return;
@@ -2196,9 +2200,11 @@ export default function EstatePage() {
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
+    if (!sb?.auth) { setLoading(false); return; }
     sb.auth.getSession().then(function(r) {
       if (r.data && r.data.session) {
         setUser(r.data.session.user);
+        setAuthToken(r.data.session.access_token || '');
         sb.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', r.data.session.user.id).then(function() {});
       }
       var token = r.data && r.data.session ? r.data.session.access_token : '';
@@ -2253,6 +2259,7 @@ export default function EstatePage() {
 
   useEffect(function() {
     if (!estateId) return;
+    if (!sb?.channel) return;
     var channel = sb.channel('estate-live-' + estateId)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'estate_events', filter: 'estate_id=eq.' + estateId }, function(payload) {
         if (!payload.new) return;
@@ -2824,6 +2831,16 @@ export default function EstatePage() {
     ].join('\n');
   }
 
+  function packetTypeForTask(task) {
+    var title = String(task?.title || '').toLowerCase();
+    if (title.includes('funeral') || title.includes('arrangement') || title.includes('service')) return 'funeral_home_arrangement';
+    if (title.includes('bank') || title.includes('insurance') || title.includes('account') || title.includes('credit')) return 'bank_notification';
+    if (title.includes('social security') || title.includes('government') || title.includes('benefit') || title.includes('medicaid') || title.includes('medicare') || title.includes('va ') || title.includes('dmv')) return 'ss_government';
+    if (title.includes('executor') || title.includes('probate') || title.includes('attorney') || title.includes('legal')) return 'executor_summary';
+    if (title.includes('family') || title.includes('announcement') || title.includes('event') || title.includes('obituary')) return 'family_event_one_pager';
+    return 'executor_summary';
+  }
+
   function copyTextToClipboard(text, label) {
     var value = String(text || '').trim();
     if (!value) {
@@ -3074,6 +3091,18 @@ export default function EstatePage() {
     }
   }
 
+  function generatePacketFromCommand(task) {
+    if (!estateId) {
+      showToast('Open a family record before preparing an output.');
+      return;
+    }
+    setPacketModal({
+      estateId: estateId,
+      packetType: packetTypeForTask(task),
+      taskTitle: displayTaskTitle(task),
+    });
+  }
+
   // ── LOADING ──────────────────────────────────────────────────────────────────
   useEffect(function() {
     if (loading || !initialTaskId || !tasks.length) return;
@@ -3204,8 +3233,23 @@ export default function EstatePage() {
             onOutcomeHandled={proofOutcomeFromCommand}
             onOutcomeProgress={function(outcome) { updateOutcomeFromCommand(outcome, { status: 'in_progress' }); }}
             onTaskAction={taskActionFromCommand}
+            onGeneratePacket={generatePacketFromCommand}
           />
         </TaskPanelBoundary>
+
+        {packetModal && (
+          <PacketGeneratorModal
+            estateId={packetModal.estateId}
+            packetType={packetModal.packetType}
+            accessToken={authToken}
+            onClose={function() { setPacketModal(null); }}
+            onComplete={function(result) {
+              var packet = result && result.packet;
+              setPacketModal(null);
+              showToast((packet?.data?.title || 'Passage output') + ' prepared. Review before sharing.');
+            }}
+          />
+        )}
 
         {pendingTaskAction && (
           <TaskPanelBoundary resetKey={(pendingTaskAction.task?.id || '') + ':' + (pendingTaskAction.status || '') + ':' + (pendingTaskAction.mode || '')} title="Task panel recovered" detail="This task has one field Passage could not display safely.">
