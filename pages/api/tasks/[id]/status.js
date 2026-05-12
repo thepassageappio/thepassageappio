@@ -9,7 +9,8 @@ const allowedChannels = new Set(['email', 'sms', 'call', 'website', 'record', 'p
 
 function normalizeStoredStatus(status) {
   if (['handled', 'completed', 'done'].includes(status)) return 'handled';
-  if (['waiting', 'pending'].includes(status)) return 'pending';
+  if (status === 'waiting') return 'waiting';
+  if (status === 'pending') return 'pending';
   return status;
 }
 

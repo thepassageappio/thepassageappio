@@ -12,6 +12,38 @@ function schemaColumnError(error) {
   return /schema cache|column .* does not exist|Could not find the .* column/i.test(message);
 }
 
+function missingColumnFrom(error) {
+  const message = String(error?.message || error?.details || '');
+  const match = message.match(/'([^']+)'\s+column/i) || message.match(/column\s+"?([a-z0-9_]+)"?\s+.*does not exist/i);
+  return match?.[1] || '';
+}
+
+async function updateCaseTaskAssignments({ workflowId, taskIds, updates }) {
+  const skippedColumns = [];
+  let remaining = { ...updates };
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const result = await serviceSupabase
+      .from('tasks')
+      .update(remaining)
+      .eq('workflow_id', workflowId)
+      .in('id', taskIds);
+
+    if (!result.error) return { skippedColumns, savedUpdates: remaining };
+
+    const missingColumn = missingColumnFrom(result.error);
+    if (!missingColumn || !(missingColumn in remaining) || !schemaColumnError(result.error)) {
+      return { error: result.error, skippedColumns };
+    }
+
+    skippedColumns.push(missingColumn);
+    const { [missingColumn]: _omitted, ...nextRemaining } = remaining;
+    remaining = nextRemaining;
+  }
+
+  return { error: new Error('Case tasks could not be assigned after schema fallback.'), skippedColumns };
+}
+
 async function userCanAssignWorkflow(auth, workflow) {
   if (auth.source === 'internal') return true;
   const email = auth.user?.email?.toLowerCase();
@@ -97,28 +129,14 @@ export default async function handler(req, res) {
     updated_at: now,
   };
 
-  let result = await serviceSupabase
-    .from('tasks')
-    .update(updates)
-    .eq('workflow_id', workflowId)
-    .in('id', targetTasks.map(task => task.id));
+  const targetTaskIds = targetTasks.map(task => task.id);
+  const { error: updateError, skippedColumns = [] } = await updateCaseTaskAssignments({
+    workflowId,
+    taskIds: targetTaskIds,
+    updates,
+  });
 
-  if (result.error && schemaColumnError(result.error)) {
-    const compatibleUpdates = {
-      assigned_to_name: assigneeName,
-      assigned_to_email: assigneeEmail,
-      last_action_at: now,
-      last_actor: actorName,
-      updated_at: now,
-    };
-    result = await serviceSupabase
-      .from('tasks')
-      .update(compatibleUpdates)
-      .eq('workflow_id', workflowId)
-      .in('id', targetTasks.map(task => task.id));
-  }
-
-  if (result.error) return res.status(500).json({ error: result.error.message });
+  if (updateError) return res.status(500).json({ error: updateError.message });
 
   await Promise.all(targetTasks.slice(0, 12).map(task => recordTaskCommunicationEvent({
     verb: 'assign',
@@ -145,5 +163,6 @@ export default async function handler(req, res) {
     assignee: { name: assigneeName, email: assigneeEmail, role: assigneeRole, phone: assigneePhone },
     scope: assignmentScope,
     confirmation: `${targetTasks.length} open task${targetTasks.length === 1 ? '' : 's'} assigned to ${assigneeName}.`,
+    skippedColumns,
   });
 }

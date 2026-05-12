@@ -2,11 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 import { isPassageAdmin } from '../../lib/adminAccess';
 import { taskActionConfirmation } from '../../lib/taskActions';
+import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const authClient = createClient(url, anon);
 const admin = createClient(url, service);
 
 function missingColumnFrom(error) {
@@ -45,12 +44,14 @@ async function updateTaskWithSchemaFallback(task, updates) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (!token) return res.status(401).json({ error: 'Please sign in first.' });
 
-  const { data: userData, error: userError } = await authClient.auth.getUser(token);
-  const user = userData?.user;
-  if (userError || !user?.email) return res.status(401).json({ error: 'Session could not be verified.' });
+  const auth = await verifyDeliveryRequest(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+  const user = auth.user;
+  const actorEmail = String(user?.email || req.body?.actor || '').trim().toLowerCase();
+  if (auth.source !== 'internal' && !actorEmail) {
+    return res.status(401).json({ error: 'Your Passage session expired. Refresh, sign in again, and retry this task action.' });
+  }
 
     const { taskId, note, sendFamilyEmail } = req.body || {};
     if (!taskId) return res.status(400).json({ error: 'Missing task.' });
@@ -78,10 +79,10 @@ export default async function handler(req, res) {
       .from('organization_members')
       .select('id')
       .eq('organization_id', workflow.organization_id)
-      .ilike('email', user.email)
+      .ilike('email', actorEmail || '')
       .eq('status', 'active')
       .limit(1);
-    if (!member?.length && !isPassageAdmin(user.email)) return res.status(403).json({ error: 'You do not have access to this partner case.' });
+    if (auth.source !== 'internal' && !member?.length && !isPassageAdmin(actorEmail)) return res.status(403).json({ error: 'You do not have access to this partner case.' });
 
     const { data: organization } = await admin
       .from('organizations')
@@ -99,10 +100,10 @@ export default async function handler(req, res) {
       outcome_status: 'completed',
       notes: detail,
       last_action_at: now,
-      last_actor: user.email,
+      last_actor: actorEmail || 'Passage',
       completed_at: now,
-      completed_by: user.email,
-      completed_by_email: user.email,
+      completed_by: actorEmail || 'Passage',
+      completed_by_email: actorEmail || null,
       channel: 'record',
       recipient: workflow.coordinator_name || workflow.coordinator_email || 'Family coordinator',
       updated_at: now,
@@ -115,7 +116,7 @@ export default async function handler(req, res) {
       taskId: task.id,
       taskTitle: task.title,
       status: 'handled',
-      actor: user.email,
+      actor: actorEmail || 'Passage',
       actorRole: 'funeral_home',
       channel: 'record',
       recipient: workflow.coordinator_name || workflow.coordinator_email || 'Family coordinator',
@@ -182,7 +183,7 @@ export default async function handler(req, res) {
       notificationQueued: sendFamilyEmail === true,
       statusResult,
       status: updatedTask?.status || 'handled',
-      task: updatedTask || { id: task.id, status: 'handled', outcome_status: 'completed', last_action_at: now, last_actor: user.email },
+      task: updatedTask || { id: task.id, status: 'handled', outcome_status: 'completed', last_action_at: now, last_actor: actorEmail || 'Passage' },
       confirmation: taskActionConfirmation('handled', task, 'funeral_home'),
       eventDetail: detail,
       skippedColumns,

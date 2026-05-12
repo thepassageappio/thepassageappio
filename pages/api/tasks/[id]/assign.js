@@ -8,6 +8,38 @@ function schemaColumnError(error) {
   return /schema cache|column .* does not exist|Could not find the .* column/i.test(message);
 }
 
+function missingColumnFrom(error) {
+  const message = String(error?.message || error?.details || '');
+  const match = message.match(/'([^']+)'\s+column/i) || message.match(/column\s+"?([a-z0-9_]+)"?\s+.*does not exist/i);
+  return match?.[1] || '';
+}
+
+async function updateTaskAssignmentWithSchemaFallback(task, updates) {
+  const skippedColumns = [];
+  let remaining = { ...updates };
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const result = await serviceSupabase
+      .from('tasks')
+      .update(remaining)
+      .eq('id', task.id)
+      .eq('workflow_id', task.workflow_id);
+
+    if (!result.error) return { skippedColumns, savedUpdates: remaining };
+
+    const missingColumn = missingColumnFrom(result.error);
+    if (!missingColumn || !(missingColumn in remaining) || !schemaColumnError(result.error)) {
+      return { error: result.error, skippedColumns };
+    }
+
+    skippedColumns.push(missingColumn);
+    const { [missingColumn]: _omitted, ...nextRemaining } = remaining;
+    remaining = nextRemaining;
+  }
+
+  return { error: new Error('Task owner could not be saved after schema fallback.'), skippedColumns };
+}
+
 async function userCanAssignTask(auth, task) {
   if (auth.source === 'internal') return true;
   const email = auth.user?.email?.toLowerCase();
@@ -90,28 +122,8 @@ export default async function handler(req, res) {
     updated_at: now,
   };
 
-  let result = await serviceSupabase
-    .from('tasks')
-    .update(updates)
-    .eq('id', taskId)
-    .eq('workflow_id', task.workflow_id);
-
-  if (result.error && schemaColumnError(result.error)) {
-    const compatibleUpdates = {
-      assigned_to_name: assigneeName,
-      assigned_to_email: assigneeEmail,
-      last_action_at: now,
-      last_actor: actorName,
-      updated_at: now,
-    };
-    result = await serviceSupabase
-      .from('tasks')
-      .update(compatibleUpdates)
-      .eq('id', taskId)
-      .eq('workflow_id', task.workflow_id);
-  }
-
-  if (result.error) return res.status(500).json({ error: result.error.message });
+  const { error: updateError, skippedColumns = [], savedUpdates = updates } = await updateTaskAssignmentWithSchemaFallback(task, updates);
+  if (updateError) return res.status(500).json({ error: updateError.message });
 
   await recordTaskCommunicationEvent({
     verb: 'assign',
@@ -133,7 +145,8 @@ export default async function handler(req, res) {
 
   return res.status(200).json({
     success: true,
-    task: Object.assign({}, task, updates, { owner_label: assigneeName }),
+    task: Object.assign({}, task, savedUpdates, { owner_label: assigneeName }),
     confirmation: 'Recipient saved. Passage can send this task message now.',
+    skippedColumns,
   });
 }

@@ -685,11 +685,19 @@ export default function FuneralHomeDashboard() {
   async function getFreshPartnerToken() {
     if (demoMode) return token;
     if (!supabase?.auth) return token;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData?.session;
+    const expiresAtMs = session?.expires_at ? session.expires_at * 1000 : 0;
+    const hasUsableSession = session?.access_token && (!expiresAtMs || expiresAtMs - Date.now() > 60 * 1000);
+    if (hasUsableSession) {
+      if (session.access_token !== token) setToken(session.access_token);
+      return session.access_token;
+    }
+
     const { data: refreshed } = await supabase.auth.refreshSession();
-    const { data: sessionData } = refreshed?.session ? { data: refreshed } : await supabase.auth.getSession();
-    const nextToken = sessionData?.session?.access_token || '';
-    if (nextToken && nextToken !== token) setToken(nextToken);
-    return nextToken || token;
+    const refreshedToken = refreshed?.session?.access_token || session?.access_token || '';
+    if (refreshedToken && refreshedToken !== token) setToken(refreshedToken);
+    return refreshedToken || token;
   }
 
   async function partnerAuthedFetch(url, options = {}) {
@@ -870,7 +878,7 @@ export default function FuneralHomeDashboard() {
         setNotice(json.confirmation || taskActionConfirmation(status, task, 'funeral_home'));
         setTaskDraft(null);
         setTaskDraftNote('');
-        await load(token);
+        await load(await getFreshPartnerToken());
       }
     } finally {
       setUpdating('');
@@ -919,7 +927,7 @@ export default function FuneralHomeDashboard() {
         setTaskDraft(null);
         setTaskDraftNote('');
         setNotice(json.confirmation || 'Proof saved. The family-facing status trail can show this without sending a live email.');
-        await load(token);
+        await load(await getFreshPartnerToken());
       }
     } finally {
       setUpdating('');
@@ -970,7 +978,7 @@ export default function FuneralHomeDashboard() {
         } : prev);
         setNotice(json.confirmation || 'Owner saved. Passage can route the task notification when approved.');
         setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
-        await load(token);
+        await load(await getFreshPartnerToken());
       }
     } finally {
       setUpdating('');
@@ -1036,7 +1044,7 @@ export default function FuneralHomeDashboard() {
         } : prev);
         setNotice(json.confirmation || 'Case tasks assigned. Staff can now work from their queue.');
         setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
-        await load(token);
+        await load(await getFreshPartnerToken());
       }
     } finally {
       setUpdating('');
