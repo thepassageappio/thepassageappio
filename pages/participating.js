@@ -297,6 +297,11 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         </div>
         <StatusBadge status={itemStatus(item)} label={statusLabel(itemStatus(item))} />
       </div>
+      <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: '11px 12px', marginBottom: 9 }}>
+        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>What you were asked to do</div>
+        <div style={{ color: C.ink, fontSize: 14, lineHeight: 1.45, fontWeight: 900 }}>{explanation.what}</div>
+        <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}><strong style={{ color: C.ink }}>Your part:</strong> {contract.action}</div>
+      </div>
       {primary && (
         <div style={{ marginBottom: 9 }}>
           <RoleActionStrip
@@ -310,8 +315,6 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         </div>
       )}
       <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9 }}>
-        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>What this task is</div>
-        <div style={{ color: C.ink, fontSize: 13.3, lineHeight: 1.45, fontWeight: 800 }}>{explanation.what}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 7, marginTop: 9 }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
             <div style={{ color: C.sage, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Why it matters</div>
