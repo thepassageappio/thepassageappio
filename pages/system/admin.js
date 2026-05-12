@@ -145,6 +145,16 @@ const personaProfiles = [
   },
 ];
 
+const qaFrontDoors = [
+  ['Family record', '/estate', 'Gated family workspace and estate switcher'],
+  ['Participant', '/participating', 'Invite-only scoped task spine'],
+  ['Funeral-home director', '/funeral-home/login', 'Director setup, cases, staff, reporting'],
+  ['Funeral-home staff', '/funeral-home/staff', 'Assigned work first'],
+  ['Vendor', '/vendors/login', 'Approved vendor sign-in and request queue'],
+  ['Vendor application', '/vendors/onboard', 'New support partner review path'],
+  ['Demo cockpit', '/system/demo', 'Owner-only linear demo story'],
+];
+
 export default function SystemAdminPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -424,45 +434,61 @@ export default function SystemAdminPage() {
             )}
 
             {adminView === 'personas' && (
-            <Panel compact>
-              <div style={eyebrow}>Demo sandbox cockpit</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(230px, .44fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
-                <div>
-                  <h2 style={h2}>Open each side of the same demo story.</h2>
-                  <p style={lead}>Use these sandbox roles to demo the family, participant, funeral-home, employee, and vendor experiences without exposing production records or sending live messages.</p>
-                  <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
-                    {personaProfiles.map((profile) => (
-                      <button key={profile.id} onClick={() => setActivePersonaId(profile.id)} style={activePersona.id === profile.id ? selectedToolButton : toolButton}>
-                        <span>
-                          <span style={{ display: 'block' }}>{profile.label}</span>
-                          <span style={{ display: 'block', fontSize: 11.5, color: activePersona.id === profile.id ? 'rgba(255,255,255,.78)' : C.soft, marginTop: 2 }}>{profile.role}</span>
-                        </span>
-                        <span style={activePersona.id === profile.id ? livePillOnGreen : livePill}>QA</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div style={previewPanel}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start', marginBottom: 10 }}>
-                    <div>
-                      <div style={eyebrow}>Selected role</div>
-                      <h2 style={{ ...h2, marginTop: 5 }}>{activePersona.label}</h2>
-                      <p style={{ ...smallText, marginTop: 3 }}>{activePersona.proof}</p>
+            <>
+              <Panel compact>
+                <div style={eyebrow}>Demo sandbox cockpit</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(230px, .44fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Open each side of the same demo story.</h2>
+                    <p style={lead}>Use these sandbox roles to demo the family, participant, funeral-home, employee, and vendor experiences without exposing production records or sending live messages.</p>
+                    <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
+                      {personaProfiles.map((profile) => (
+                        <button key={profile.id} onClick={() => setActivePersonaId(profile.id)} style={activePersona.id === profile.id ? selectedToolButton : toolButton}>
+                          <span>
+                            <span style={{ display: 'block' }}>{profile.label}</span>
+                            <span style={{ display: 'block', fontSize: 11.5, color: activePersona.id === profile.id ? 'rgba(255,255,255,.78)' : C.soft, marginTop: 2 }}>{profile.role}</span>
+                          </span>
+                          <span style={activePersona.id === profile.id ? livePillOnGreen : livePill}>QA</span>
+                        </button>
+                      ))}
                     </div>
-                    <Link href={activePersona.href} target="_blank" style={{ ...primaryLink, flexShrink: 0 }}>Open full view</Link>
                   </div>
-                  <iframe
-                    key={activePersona.href}
-                    src={activePersona.href}
-                    title={'Passage QA preview - ' + activePersona.label}
-                    style={{ width: '100%', height: 430, border: '1px solid ' + C.border, borderRadius: 14, background: C.bg }}
-                  />
+                  <div style={previewPanel}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start', marginBottom: 10 }}>
+                      <div>
+                        <div style={eyebrow}>Selected role</div>
+                        <h2 style={{ ...h2, marginTop: 5 }}>{activePersona.label}</h2>
+                        <p style={{ ...smallText, marginTop: 3 }}>{activePersona.proof}</p>
+                      </div>
+                      <Link href={activePersona.href} target="_blank" style={{ ...primaryLink, flexShrink: 0 }}>Open full view</Link>
+                    </div>
+                    <iframe
+                      key={activePersona.href}
+                      src={activePersona.href}
+                      title={'Passage QA preview - ' + activePersona.label}
+                      style={{ width: '100%', height: 430, border: '1px solid ' + C.border, borderRadius: 14, background: C.bg }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
-                Admin boundary: these are shared sandbox views for demos and QA. Production impersonation remains intentionally gated until it has audit logs, scoped tokens, session expiry, and explicit owner approval.
-              </div>
-            </Panel>
+                <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                  Admin boundary: these are shared sandbox views for demos and QA. Production impersonation remains intentionally gated until it has audit logs, scoped tokens, session expiry, and explicit owner approval.
+                </div>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Role front doors</div>
+                <h2 style={h2}>The login and onboarding doors to test before every sales push.</h2>
+                <p style={lead}>This is the owner-only checklist for public-to-private transitions: family, participant, funeral-home director, staff, vendor, and vendor application.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 9, marginTop: 14 }}>
+                  {qaFrontDoors.map(([label, href, body]) => (
+                    <Link key={href} href={href} target="_blank" style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, color: C.ink, textDecoration: 'none', display: 'grid', gap: 5 }}>
+                      <span style={{ fontSize: 17, fontWeight: 900 }}>{label}</span>
+                      <span style={{ ...smallText, marginTop: 0 }}>{body}</span>
+                      <span style={{ color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Open</span>
+                    </Link>
+                  ))}
+                </div>
+              </Panel>
+            </>
             )}
 
             {adminView === 'metrics' && (
@@ -592,6 +618,30 @@ export default function SystemAdminPage() {
                   <div style={{ background: dryRunResult.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (dryRunResult.ok ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12, marginTop: 12 }}>
                     <div style={{ color: dryRunResult.ok ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{dryRunResult.ok ? 'Dry-run passed' : 'Dry-run failed'} - {dryRunResult.channel}</div>
                     <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '8px 0 0', color: C.mid, fontSize: 12, lineHeight: 1.45, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>{JSON.stringify(dryRunResult.json, null, 2)}</pre>
+                  </div>
+                )}
+                {metrics?.notifications && (
+                  <div style={{ marginTop: 18 }}>
+                    <div style={eyebrow}>Recent delivery truth</div>
+                    <p style={{ ...smallText, marginTop: 4 }}>These are the latest logged email/SMS outcomes, masked for safety. Use this after testing invites or task updates with your own address only.</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10, marginTop: 10 }}>
+                      <div style={subPanel}>
+                        <h3 style={h3}>By status</h3>
+                        {(metrics.notifications.byStatus || []).length ? metrics.notifications.byStatus.slice(0, 8).map((item) => (
+                          <MetricRow key={item.label} label={item.label} value={item.count} />
+                        )) : <div style={smallText}>No notification log rows yet.</div>}
+                      </div>
+                      <div style={subPanel}>
+                        <h3 style={h3}>Latest notifications</h3>
+                        {(metrics.notifications.recent || []).length ? metrics.notifications.recent.slice(0, 8).map((item) => (
+                          <MetricRow
+                            key={(item.id || item.channel) + item.sentAt}
+                            label={[item.channel || 'message', item.status || 'unknown', item.subject || item.provider || 'Passage'].filter(Boolean).join(' - ')}
+                            value={item.error ? 'Failed' : item.recipient}
+                          />
+                        )) : <div style={smallText}>No recent delivery records.</div>}
+                      </div>
+                    </div>
                   </div>
                 )}
               </Panel>

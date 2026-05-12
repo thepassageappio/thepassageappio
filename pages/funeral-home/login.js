@@ -27,7 +27,7 @@ const roleCards = [
   {
     eyebrow: 'Funeral-home staff',
     title: 'Open assigned work',
-    body: 'See today’s assigned tasks with case context, waiting points, family requests, and proof actions.',
+    body: "See today's assigned tasks with case context, waiting points, family requests, and proof actions.",
     href: '/funeral-home/dashboard?staff=1',
     action: 'Staff sign in',
   },

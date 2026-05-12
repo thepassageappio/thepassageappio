@@ -70,6 +70,30 @@ async function fetchRecentLeads(admin) {
   }
 }
 
+async function fetchRecentNotifications(admin) {
+  const selections = [
+    'id,channel,recipient_email,recipient_phone,recipient_name,subject,status,provider,provider_id,error_message,sent_at,created_at',
+    'id,channel,recipient_email,recipient_phone,subject,status,provider,error_message,sent_at,created_at',
+    'id,channel,status,provider,error_message,sent_at,created_at',
+  ];
+  for (const selection of selections) {
+    try {
+      const { data, error } = await admin
+        .from('notification_log')
+        .select(selection)
+        .order('sent_at', { ascending: false })
+        .limit(40);
+      if (!error) return { rows: data || [], error: null, source: 'notification_log' };
+      if (error.code !== '42703' && !String(error.message || '').toLowerCase().includes('schema cache')) {
+        return { rows: [], error: error.message, source: 'notification_log' };
+      }
+    } catch (error) {
+      return { rows: [], error: error.message, source: 'notification_log' };
+    }
+  }
+  return { rows: [], error: 'notification_log schema is not readable.', source: 'notification_log' };
+}
+
 function sinceFromQuery(days) {
   const parsed = Math.max(1, Math.min(365, Number(days || 30) || 30));
   const since = new Date(Date.now() - parsed * 24 * 60 * 60 * 1000).toISOString();
@@ -215,6 +239,42 @@ function summarizeLeads(rows = []) {
   };
 }
 
+function maskedRecipient(row = {}) {
+  const email = row.recipient_email || '';
+  if (email && email.includes('@')) return email.replace(/^(.{2}).*(@.*)$/, '$1***$2');
+  const phone = row.recipient_phone || '';
+  if (phone) return phone.replace(/\d(?=\d{4})/g, '*');
+  return row.recipient_name || 'No recipient';
+}
+
+function summarizeNotifications(result = {}) {
+  const rows = result.rows || [];
+  const byStatus = {};
+  const byChannel = {};
+  rows.forEach((row) => {
+    const status = row.status || 'unknown';
+    const channel = row.channel || 'unknown';
+    byStatus[status] = (byStatus[status] || 0) + 1;
+    byChannel[channel] = (byChannel[channel] || 0) + 1;
+  });
+  return {
+    error: result.error || null,
+    source: result.source || 'notification_log',
+    byStatus: Object.entries(byStatus).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
+    byChannel: Object.entries(byChannel).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
+    recent: rows.slice(0, 12).map((row) => ({
+      id: row.id || '',
+      channel: row.channel || '',
+      status: row.status || '',
+      provider: row.provider || '',
+      subject: row.subject || '',
+      recipient: maskedRecipient(row),
+      error: row.error_message || '',
+      sentAt: row.sent_at || row.created_at || '',
+    })),
+  };
+}
+
 function inRange(value, since) {
   if (!since) return true;
   const time = value ? new Date(value).getTime() : 0;
@@ -276,12 +336,15 @@ function csvEscape(value) {
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
-function toRawCsv(metrics, leadSummary) {
+function toRawCsv(metrics, leadSummary, notificationSummary) {
   const rows = [['section', 'label', 'value', 'unit', 'status', 'source', 'error']];
   metrics.forEach((item) => rows.push(['metrics', item.label, formatMetricValue(item) || item.value, item.unit, item.status, item.source, item.error]));
   (leadSummary.byType || []).forEach((item) => rows.push(['lead_type', item.label, item.count, '', 'real', 'leads.notes.category', '']));
   (leadSummary.bySource || []).forEach((item) => rows.push(['lead_source', item.label, item.count, '', 'real', 'leads.source', '']));
   (leadSummary.recent || []).forEach((item) => rows.push(['recent_lead', item.type, item.email, item.urgency, 'real', item.source, item.createdAt]));
+  (notificationSummary.byStatus || []).forEach((item) => rows.push(['notification_status', item.label, item.count, '', 'real', notificationSummary.source, notificationSummary.error || '']));
+  (notificationSummary.byChannel || []).forEach((item) => rows.push(['notification_channel', item.label, item.count, '', 'real', notificationSummary.source, notificationSummary.error || '']));
+  (notificationSummary.recent || []).forEach((item) => rows.push(['recent_notification', item.channel, item.recipient, item.status, 'real', item.provider, item.error || item.sentAt]));
   return rows.map((row) => row.map(csvEscape).join(',')).join('\n');
 }
 
@@ -318,6 +381,7 @@ export default async function handler(req, res) {
     funeralHomeRequestsOpen,
     funeralHomeRequestsAccepted,
     recentLeads,
+    recentNotifications,
     subscriptionRows,
     userProfiles,
     authUsers,
@@ -348,11 +412,13 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'funeral_home_requests', [{ op: 'in', column: 'status', value: ['requested', 'matched_partner', 'partner_notified', 'outreach_needed'] }]),
     countRows(auth.admin, 'funeral_home_requests', [{ op: 'in', column: 'status', value: ['accepted', 'converted'] }]),
     fetchRecentLeads(auth.admin),
+    fetchRecentNotifications(auth.admin),
     fetchSubscriptionRows(auth.admin),
     fetchUserProfiles(auth.admin),
     fetchAuthUsers(auth.admin),
   ]);
   const leadSummary = summarizeLeads(recentLeads.rows);
+  const notificationSummary = summarizeNotifications(recentNotifications);
   const revenue = summarizeRevenue(subscriptionRows);
   const userFunnel = summarizeUserFunnel(userProfiles, authUsers, range.since);
 
@@ -395,7 +461,7 @@ export default async function handler(req, res) {
   if (req.query.format === 'csv') {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="passage-system-metrics.csv"');
-    return res.status(200).send(toRawCsv(metrics, leadSummary));
+    return res.status(200).send(toRawCsv(metrics, leadSummary, notificationSummary));
   }
 
   return res.status(200).json({
@@ -405,5 +471,6 @@ export default async function handler(req, res) {
     metrics,
     funnel: userFunnel,
     leads: Object.assign({ error: recentLeads.error || null }, leadSummary),
+    notifications: notificationSummary,
   });
 }
