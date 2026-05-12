@@ -630,6 +630,37 @@ export default function FuneralHomeDashboard() {
     if (res.ok) setVendorPrefs({ vendors: json.vendors || [], preferred: json.preferred || [], marketplaceEnabled: json.marketplaceEnabled !== false });
   }
 
+  async function getFreshPartnerToken() {
+    if (demoMode) return token;
+    if (!supabase?.auth) return token;
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    const { data: sessionData } = refreshed?.session ? { data: refreshed } : await supabase.auth.getSession();
+    const nextToken = sessionData?.session?.access_token || '';
+    if (nextToken && nextToken !== token) setToken(nextToken);
+    return nextToken || token;
+  }
+
+  async function partnerAuthedFetch(url, options = {}) {
+    const freshToken = await getFreshPartnerToken();
+    const withAuth = (accessToken) => ({
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: 'Bearer ' + accessToken,
+      },
+    });
+    let res = await fetch(url, withAuth(freshToken));
+    if (res.status === 401 && supabase?.auth && !demoMode) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const refreshedToken = refreshed?.session?.access_token || '';
+      if (refreshedToken) {
+        setToken(refreshedToken);
+        res = await fetch(url, withAuth(refreshedToken));
+      }
+    }
+    return res;
+  }
+
   async function signIn() {
     if (!supabase?.auth) {
       setError('Supabase browser auth is not configured in this environment.');
@@ -690,9 +721,9 @@ export default function FuneralHomeDashboard() {
     if (!token) return;
     const next = vendorPrefs.marketplaceEnabled === false;
     setUpdating('marketplace_enabled');
-    const res = await fetch('/api/vendors/preferred', {
+    const res = await partnerAuthedFetch('/api/vendors/preferred', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ marketplaceEnabled: next }),
     });
     const json = await res.json().catch(() => ({}));
@@ -705,9 +736,9 @@ export default function FuneralHomeDashboard() {
     if (!token || !vendor?.id) return;
     const isPreferred = (vendorPrefs.preferred || []).some(p => p.vendor_id === vendor.id && p.category === vendor.category && p.active !== false);
     setUpdating('vendor_' + vendor.id);
-    const res = await fetch('/api/vendors/preferred', {
+    const res = await partnerAuthedFetch('/api/vendors/preferred', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ vendorId: vendor.id, category: vendor.category, active: !isPreferred }),
     });
     const json = await res.json().catch(() => ({}));
@@ -722,9 +753,9 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
-      const res = await fetch(`/api/tasks/${task.id}/status`, {
+      const res = await partnerAuthedFetch(`/api/tasks/${task.id}/status`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status,
           channel: 'record',
@@ -768,9 +799,9 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
-      const res = await fetch('/api/partnerHandleTask', {
+      const res = await partnerAuthedFetch('/api/partnerHandleTask', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           taskId: task.id,
           note: cleanNote,
@@ -816,9 +847,9 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
-      const res = await fetch(`/api/tasks/${task.id}/assign`, {
+      const res = await partnerAuthedFetch(`/api/tasks/${task.id}/assign`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       const json = await res.json().catch(() => ({}));
@@ -880,9 +911,9 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
-      const res = await fetch('/api/partnerStaff', {
+      const res = await partnerAuthedFetch('/api/partnerStaff', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: staffDraft.name,
           email,
@@ -920,9 +951,9 @@ export default function FuneralHomeDashboard() {
     setUpdating(`staff_invite_${email}`);
     setError('');
     try {
-      const res = await fetch('/api/partnerStaffInvite', {
+      const res = await partnerAuthedFetch('/api/partnerStaffInvite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => ({}));
@@ -973,9 +1004,9 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
-      const res = await fetch('/api/partnerLocations', {
+      const res = await partnerAuthedFetch('/api/partnerLocations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(savedLocation),
       });
       const json = await res.json().catch(() => ({}));
@@ -1025,9 +1056,9 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
-      const res = await fetch('/api/partnerBranding', {
+      const res = await partnerAuthedFetch('/api/partnerBranding', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(brandingDraft),
       });
       const json = await res.json().catch(() => ({}));
