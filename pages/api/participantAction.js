@@ -67,6 +67,11 @@ function schemaColumnError(error) {
   return /schema cache|column .* does not exist|Could not find the .* column/i.test(message);
 }
 
+function workflowActionStatusConstraintError(error) {
+  const message = String(error?.message || error || '');
+  return error?.code === '23514' && /workflow_actions_status_check/i.test(message);
+}
+
 function itemSelect(kind) {
   return kind === 'task'
     ? 'id,status,workflow_id,title,notes'
@@ -84,6 +89,13 @@ async function loadParticipantRecord({ table, kind, emailColumn, id, email }) {
 
 function isTerminalStatus(value) {
   return ['done', 'handled', 'completed'].includes(String(value || '').toLowerCase());
+}
+
+function effectiveRecordStatus(record) {
+  const delivery = String(record?.delivery_status || '').toLowerCase();
+  const status = String(record?.status || '').toLowerCase();
+  if (isTerminalStatus(delivery) || ['blocked', 'waiting', 'acknowledged', 'needs_review'].includes(delivery)) return delivery;
+  return status || delivery;
 }
 
 function participantStorageStatus(action) {
@@ -105,7 +117,21 @@ async function updateParticipantRecord({ table, kind, emailColumn, id, email, up
     .maybeSingle();
 
   let result = await baseQuery();
-  if (!result.error || !schemaColumnError(result.error)) return result;
+  if (!result.error) return result;
+
+  if (table === 'workflow_actions' && updates.status !== undefined && workflowActionStatusConstraintError(result.error)) {
+    const compatibleUpdates = { ...updates, delivery_status: updates.status };
+    delete compatibleUpdates.status;
+    result = await admin
+      .from(table)
+      .update(compatibleUpdates)
+      .eq('id', id)
+      .ilike(emailColumn, email)
+      .select(itemSelect(kind))
+      .maybeSingle();
+    if (!result.error) return result;
+  }
+  if (!schemaColumnError(result.error)) return result;
 
   const saferUpdates = {};
   ['status', 'notes', 'updated_at', 'outcome_status', 'follow_up_at'].forEach(key => {
@@ -118,7 +144,21 @@ async function updateParticipantRecord({ table, kind, emailColumn, id, email, up
     .ilike(emailColumn, email)
     .select(itemSelect(kind))
     .maybeSingle();
-  if (!result.error || !schemaColumnError(result.error)) return result;
+  if (!result.error) return result;
+
+  if (table === 'workflow_actions' && saferUpdates.status !== undefined && workflowActionStatusConstraintError(result.error)) {
+    const compatibleUpdates = { ...saferUpdates, delivery_status: saferUpdates.status };
+    delete compatibleUpdates.status;
+    result = await admin
+      .from(table)
+      .update(compatibleUpdates)
+      .eq('id', id)
+      .ilike(emailColumn, email)
+      .select(itemSelect(kind))
+      .maybeSingle();
+    if (!result.error) return result;
+  }
+  if (!schemaColumnError(result.error)) return result;
 
   const safestUpdates = {};
   ['status', 'notes'].forEach(key => {
@@ -155,7 +195,7 @@ export default async function handler(req, res) {
   const existing = await loadParticipantRecord({ table, kind, emailColumn, id, email });
   if (existing.error) return res.status(500).json({ error: existing.error.message });
   if (!existing.data) return res.status(404).json({ error: 'No matching task found for this email.' });
-  const existingStatus = existing.data.status || existing.data.delivery_status;
+  const existingStatus = effectiveRecordStatus(existing.data);
   if (isTerminalStatus(existingStatus) && normalizedAction !== 'save_note') {
     return res.status(409).json({
       error: 'This responsibility is already marked handled. The coordinator can see the proof; ask them to reopen it if something changed.',
@@ -206,7 +246,7 @@ export default async function handler(req, res) {
       success: true,
       item: data,
       action: normalizedAction,
-      status: data.status || 'in_progress',
+      status: effectiveRecordStatus(data) || 'in_progress',
       confirmation: taskActionConfirmation('save_note', data, 'participant'),
       eventDetail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - note saved',
     });

@@ -79,6 +79,13 @@ function isHandled(value) {
   return ['handled', 'completed', 'done'].includes(value || '');
 }
 
+function effectiveItemStatus(item) {
+  const status = String(item?.status || '').toLowerCase();
+  const delivery = String(item?.delivery_status || '').toLowerCase();
+  if (isHandled(delivery) || ['blocked', 'waiting', 'acknowledged', 'needs_review'].includes(delivery)) return delivery;
+  return status || delivery || 'assigned';
+}
+
 function recommendedParticipantAction(availableActions, status) {
   const normalized = String(status || '').toLowerCase();
   const findAction = (key) => availableActions.find(([action]) => action === key);
@@ -140,7 +147,7 @@ function itemDescription(item) {
 }
 
 function itemStatus(item) {
-  return item.status || item.delivery_status || 'assigned';
+  return effectiveItemStatus(item);
 }
 
 function roleKind(role, item) {
