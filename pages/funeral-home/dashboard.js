@@ -78,6 +78,31 @@ function normalizedTaskStatus(value) {
   return clean || 'draft';
 }
 
+function taskStatusValue(task) {
+  if (typeof task === 'string') return task.toLowerCase();
+  return String(task?.status || task?.delivery_status || task?.outcome_status || '').toLowerCase();
+}
+
+function taskIsClosed(task) {
+  const status = taskStatusValue(task);
+  const outcome = String(task?.outcome_status || '').toLowerCase();
+  return ['handled', 'completed', 'done', 'not_applicable', 'cancelled'].includes(status)
+    || ['handled', 'completed', 'done'].includes(outcome)
+    || Boolean(task?.completed_at || task?.handled_at);
+}
+
+function taskIsOpen(task) {
+  return !taskIsClosed(task);
+}
+
+function taskIsWaiting(task) {
+  return taskIsOpen(task) && ['sent', 'waiting', 'pending', 'assigned', 'acknowledged'].includes(taskStatusValue(task));
+}
+
+function taskNeedsHelp(task) {
+  return taskIsOpen(task) && ['blocked', 'failed', 'needs_review'].includes(taskStatusValue(task));
+}
+
 function escapePreparedOutput(value) {
   return String(value || '')
     .replace(/&/g, '&amp;')
@@ -429,9 +454,9 @@ function buildDemoPartnerExport(data, view = 'spine') {
 
   for (const item of cases) {
     const tasks = [...(item.partnerTasks || []), ...(item.tasks || [])];
-    const handled = tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
-    const waiting = tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned', 'blocked'].includes(String(task.status || '').toLowerCase()));
-    const open = tasks.filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const handled = tasks.filter(taskIsClosed);
+    const waiting = tasks.filter(task => taskIsWaiting(task) || taskNeedsHelp(task));
+    const open = tasks.filter(taskIsOpen);
     const caseName = item.estateName || item.deceasedName || item.familyName || item.name || 'Demo family';
 
     if (summaryView) {
@@ -900,6 +925,7 @@ export default function FuneralHomeDashboard() {
         demoTaskAction(task, 'handled', 'Demo proof saved. The task moved out of active work without sending a live message.', {
           notes: cleanNote,
           outcome_status: 'completed',
+          completed_at: new Date().toISOString(),
         });
         return;
       }
@@ -916,12 +942,20 @@ export default function FuneralHomeDashboard() {
         setError(json.error || 'Could not handle this for the family.');
       } else {
         const nextStatus = normalizedTaskStatus(json.task?.status || json.status || 'done');
+        const closedTaskUpdates = {
+          ...(json.task || {}),
+          status: nextStatus,
+          outcome_status: json.task?.outcome_status || 'completed',
+          completed_at: json.task?.completed_at || new Date().toISOString(),
+          last_action_at: json.task?.last_action_at || new Date().toISOString(),
+          last_actor: json.task?.last_actor || user?.email || 'Funeral home staff',
+        };
         setData(prev => prev ? {
           ...prev,
           cases: (prev.cases || []).map(item => ({
             ...item,
-            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, status: nextStatus, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
-            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, status: nextStatus, last_action_at: new Date().toISOString(), last_actor: user?.email || 'Funeral home staff' } : t),
+            tasks: (item.tasks || []).map(t => t.id === task.id ? { ...t, ...closedTaskUpdates } : t),
+            partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, ...closedTaskUpdates } : t),
           })),
         } : prev);
         setTaskDraft(null);
@@ -1005,7 +1039,7 @@ export default function FuneralHomeDashboard() {
     try {
       if (demoMode) {
         const ids = new Set((caseItem.tasks || [])
-          .filter(t => !['handled', 'completed', 'done'].includes(String(t.status || '').toLowerCase()))
+          .filter(taskIsOpen)
           .filter(t => scope === 'all_open' || (!t.assigned_to_email && !t.assigned_to_name))
           .map(t => t.id));
         const now = new Date().toISOString();
@@ -1031,7 +1065,7 @@ export default function FuneralHomeDashboard() {
         setError(json.error || 'Could not assign this case.');
       } else {
         const ids = new Set((caseItem.tasks || [])
-          .filter(t => !['handled', 'completed', 'done'].includes(String(t.status || '').toLowerCase()))
+          .filter(taskIsOpen)
           .filter(t => scope === 'all_open' || (!t.assigned_to_email && !t.assigned_to_name))
           .map(t => t.id));
         setData(prev => prev ? {
@@ -1821,8 +1855,8 @@ export default function FuneralHomeDashboard() {
   const openWarmInbounds = warmInbounds.filter(request => !['declined', 'archived', 'converted'].includes(String(request.status || '').toLowerCase()));
   const acceptedWarmInbounds = warmInbounds.filter(request => ['accepted', 'converted'].includes(String(request.status || '').toLowerCase()));
   const totalBlocked = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
-  const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['sent', 'waiting', 'pending', 'assigned'].includes(t.status || '')).length, 0);
-  const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length, 0);
+  const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(taskIsWaiting).length, 0);
+  const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(taskIsClosed).length, 0);
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
   const totalVendorRequests = cases.reduce((sum, item) => sum + (item.vendorRequests?.length || 0), 0);
   const vendorValue = (request) => Number(request?.final_value ?? (request?.final_value_cents != null ? Number(request.final_value_cents || 0) / 100 : request?.estimated_value) ?? 0);
@@ -1831,7 +1865,7 @@ export default function FuneralHomeDashboard() {
   const totalVendorValue = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + vendorValue(request), 0), 0);
   const funeralHomeShare = cases.reduce((sum, item) => sum + (item.vendorRequests || []).reduce((inner, request) => inner + Number(request.funeral_home_share_amount || 0), 0), 0);
   const assignmentsCoordinated = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => t.assigned_to_email || t.assigned_to_name || t.owner_name || t.participant_id).length, 0);
-  const familyRequestsOpen = cases.reduce((sum, item) => sum + (item.waitingOnFamily?.length || 0) + (item.tasks || []).filter(t => ['blocked', 'needs_review'].includes(String(t.status || '').toLowerCase())).length, 0);
+  const familyRequestsOpen = cases.reduce((sum, item) => sum + (item.waitingOnFamily?.filter?.(taskIsOpen)?.length || item.waitingOnFamily?.length || 0) + (item.tasks || []).filter(taskNeedsHelp).length, 0);
   const proofEventsLogged = cases.reduce((sum, item) => sum + (item.activity || []).filter(event => ['handled', 'completed', 'done', 'waiting', 'blocked', 'sent'].includes(String(event.status || '').toLowerCase())).length, 0);
   const callsAvoided = totalCommunications + assignmentsCoordinated + totalVendorRequests;
   const timeSavedMinutes = callsAvoided * 8;
@@ -1867,8 +1901,9 @@ export default function FuneralHomeDashboard() {
     const status = String(task?.status || '').toLowerCase();
     const age = riskAgeHours(task?.last_action_at || task?.updated_at || task?.created_at);
     const title = `${task?.title || ''} ${task?.description || ''}`.toLowerCase();
-    if (['blocked', 'failed', 'needs_review'].includes(status)) return 'Escalating: blocked or needs help';
-    if (['sent', 'waiting', 'pending', 'assigned'].includes(status) && age >= 24) return 'At risk: no response in 24h';
+    if (taskIsClosed(task)) return '';
+    if (taskNeedsHelp(task)) return 'Escalating: blocked or needs help';
+    if (taskIsWaiting(task) && age >= 24) return 'At risk: no response in 24h';
     if (/obituary|service|flowers|transport|cemetery|permit|pronouncement/.test(title) && ['draft', 'acknowledged', 'waiting', 'pending'].includes(status)) return 'At risk near service work';
     if ((caseItem?.vendorRequests || []).some(request => !['completed', 'declined'].includes(String(request.status || '').toLowerCase()) && riskAgeHours(request.requested_at) >= 24)) return 'At risk: vendor response overdue';
     return '';
@@ -1961,7 +1996,7 @@ export default function FuneralHomeDashboard() {
     locationName: locationNameFor(item),
     importance: taskImportance(task, { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'staff work' }),
   })));
-  const openTasksForCase = (item) => (item.tasks || []).filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+  const openTasksForCase = (item) => (item.tasks || []).filter(taskIsOpen);
   const unassignedTasksForCase = (item) => openTasksForCase(item).filter(task => !task.assigned_to_email && !task.assigned_to_name && !task.owner_name && !task.participant_id);
   const unassignedCaseRows = displayCases
     .map(item => ({ caseItem: item, unassignedTasks: unassignedTasksForCase(item), openTasks: openTasksForCase(item) }))
@@ -1969,7 +2004,7 @@ export default function FuneralHomeDashboard() {
   const unassignedCaseCount = unassignedCaseRows.length;
   const unassignedTaskCount = unassignedCaseRows.reduce((sum, row) => sum + row.unassignedTasks.length, 0);
   const assignedWorkQueue = allPartnerTasks
-    .filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()))
+    .filter(taskIsOpen)
     .filter(task => isDirectorRole || String(task.assigned_to_email || '').toLowerCase() === currentUserEmail || String(task.last_actor || '').toLowerCase() === currentUserEmail)
     .sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))
     .slice(0, 5);
@@ -1995,13 +2030,13 @@ export default function FuneralHomeDashboard() {
       staffRosterEmails.add(email);
     }
   });
-  const unassignedStaffTasks = allPartnerTasks.filter(task => !task.assigned_to_email && !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+  const unassignedStaffTasks = allPartnerTasks.filter(task => !task.assigned_to_email && taskIsOpen(task));
   const staffWorkloads = staffRoster.map(member => {
     const rows = allPartnerTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
-    const openRows = rows.filter(task => !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
-    const waitingRows = openRows.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
-    const blockedRows = openRows.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
-    const handledRows = rows.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const openRows = rows.filter(taskIsOpen);
+    const waitingRows = openRows.filter(taskIsWaiting);
+    const blockedRows = openRows.filter(taskNeedsHelp);
+    const handledRows = rows.filter(taskIsClosed);
     const nextTask = openRows.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null;
     return { ...member, open: openRows.length, waiting: waitingRows.length, blocked: blockedRows.length, handled: handledRows.length, nextTask };
   }).concat(unassignedStaffTasks.length ? [{
@@ -2010,8 +2045,8 @@ export default function FuneralHomeDashboard() {
     role: 'needs owner',
     scope: 'director_attention',
     open: unassignedStaffTasks.length,
-    waiting: unassignedStaffTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
-    blocked: unassignedStaffTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+    waiting: unassignedStaffTasks.filter(taskIsWaiting).length,
+    blocked: unassignedStaffTasks.filter(taskNeedsHelp).length,
     handled: 0,
     nextTask: unassignedStaffTasks.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
   }] : []).sort((a, b) => (b.blocked - a.blocked) || (b.open - a.open) || (b.waiting - a.waiting));
@@ -2093,9 +2128,9 @@ export default function FuneralHomeDashboard() {
     reportDate: participant.accepted_at || participant.created_at || caseReportDate(item),
   }))).filter(participant => reportDateInScope(participant.reportDate));
   const reportAcceptedParticipants = reportScopedParticipants.filter(participant => participant.accepted_at || /accepted|active/i.test(String(participant.invite_status || '')));
-  const reportHandledTasks = reportScopedTasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
-  const reportWaitingTasks = reportScopedTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
-  const reportBlockedTasks = reportScopedTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
+  const reportHandledTasks = reportScopedTasks.filter(taskIsClosed);
+  const reportWaitingTasks = reportScopedTasks.filter(taskIsWaiting);
+  const reportBlockedTasks = reportScopedTasks.filter(taskNeedsHelp);
   const reportAssignments = reportScopedTasks.filter(task => task.assigned_to_email || task.assigned_to_name || task.owner_name || task.participant_id);
   const reportCallsAvoided = reportScopedMessages.length + reportAssignments.length + reportScopedVendorRequests.length;
   const reportVendorQuoteReady = reportScopedVendorRequests.filter(request => String(request.status || '').toLowerCase() === 'accepted').length;
@@ -2129,9 +2164,9 @@ export default function FuneralHomeDashboard() {
   const reportLocationRows = reportLocations.map(location => {
     const rows = cases.filter(item => locationNameFor(item) === location && reportDateInScope(caseReportDate(item)));
     const tasks = reportScopedTasks.filter(task => task.locationName === location);
-    const handled = tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())).length;
-    const waiting = tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length;
-    const blocked = tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length;
+    const handled = tasks.filter(taskIsClosed).length;
+    const waiting = tasks.filter(taskIsWaiting).length;
+    const blocked = tasks.filter(taskNeedsHelp).length;
     const messages = reportScopedMessages.filter(message => message.locationName === location).length;
     const value = rows.reduce((sum, item) => sum + caseValueNumber(item), 0);
     return [location, rows.length, moneyDisplay(value), rows.length ? moneyDisplay(value / rows.length) : '$0', tasks.length, handled, waiting + blocked, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
@@ -2139,7 +2174,7 @@ export default function FuneralHomeDashboard() {
   const reportEmployeeRows = (reportStaff === 'all' ? staffRoster : staffRoster.filter(member => member.email === reportStaff)).map(member => {
     const tasks = reportScopedTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
     const hourly = hourlyCostForEmail(member.email);
-    const handled = tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const handled = tasks.filter(taskIsClosed);
     const cost = handled.reduce((sum, task) => sum + taskCostEstimate(task), 0);
     return [
       member.label || member.email,
@@ -2149,21 +2184,21 @@ export default function FuneralHomeDashboard() {
       handled.length,
       cost ? moneyDisplay(cost) : '$0',
       handled.length && cost ? moneyDisplay(cost / handled.length) : '$0',
-      tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
-      tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+      tasks.filter(taskIsWaiting).length,
+      tasks.filter(taskNeedsHelp).length,
     ];
   }).filter(row => row[2] || reportStaff !== 'all');
   if ((reportStaff === 'all' || reportStaff === 'unassigned') && reportScopedTasks.some(task => !task.assigned_to_email && !task.assigned_to_name)) {
     const tasks = reportScopedTasks.filter(task => !task.assigned_to_email && !task.assigned_to_name);
-    reportEmployeeRows.push(['Unassigned', 'Needs owner', 'Not set', tasks.length, 0, '$0', '$0', tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length, tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length]);
+    reportEmployeeRows.push(['Unassigned', 'Needs owner', 'Not set', tasks.length, 0, '$0', '$0', tasks.filter(taskIsWaiting).length, tasks.filter(taskNeedsHelp).length]);
   }
   const reportTaskSummaryRows = Array.from(reportScopedTasks.reduce((map, task) => {
     const title = sharedTaskTitle(task);
     const row = map.get(title) || { title, total: 0, handled: 0, waiting: 0, blocked: 0 };
     row.total += 1;
-    if (['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())) row.handled += 1;
-    if (['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())) row.waiting += 1;
-    if (['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())) row.blocked += 1;
+    if (taskIsClosed(task)) row.handled += 1;
+    if (taskIsWaiting(task)) row.waiting += 1;
+    if (taskNeedsHelp(task)) row.blocked += 1;
     map.set(title, row);
     return map;
   }, new Map()).values()).sort((a, b) => b.blocked - a.blocked || b.waiting - a.waiting || b.total - a.total).slice(0, 12).map(row => [row.title, row.total, row.handled, row.waiting, row.blocked]);
@@ -2175,9 +2210,9 @@ export default function FuneralHomeDashboard() {
       caseValueNumber(item) ? moneyDisplay(caseValueNumber(item)) : '$0',
       caseFinancials(item)?.is_prepaid ? 'Yes' : 'No',
       tasks.length,
-      tasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase())).length,
-      tasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase())).length,
-      tasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+      tasks.filter(taskIsClosed).length,
+      tasks.filter(taskIsWaiting).length,
+      tasks.filter(taskNeedsHelp).length,
     ];
   }).filter(row => row[2] || reportRange === 'all').slice(0, 18);
   const focusedDisplayCases = showAllCases
@@ -2269,19 +2304,20 @@ export default function FuneralHomeDashboard() {
     ['4', 'Cases', cases.length ? `${cases.length} case${cases.length === 1 ? '' : 's'} loaded` : 'Import CSV or create fresh', cases.length > 0],
     ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first task owner', assignmentsCoordinated > 0],
     ['6', 'Proof loop', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
-    ['7', 'Invite truth', latestStaffInvite || partnerStaff.length ? 'Invite copy ready; nothing auto-sent' : 'Add staff before sending handoffs', latestStaffInvite || partnerStaff.length > 0],
-    ['8', 'Billing truth', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial' ? (partnerPlan?.plan ? `${partnerPlan.plan} visible` : 'Trial/demo visible') : 'Billing record not linked', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial'],
+    ['7', 'Invite review', latestStaffInvite || partnerStaff.length ? 'Invite copy ready; nothing auto-sent' : 'Add staff before sending handoffs', latestStaffInvite || partnerStaff.length > 0],
+    ['8', 'Billing setup', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial' ? (partnerPlan?.plan ? `${partnerPlan.plan} visible` : 'Trial/demo visible') : 'Set up after pilot approval', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial'],
   ];
-  const launchReadyCount = pilotLaunchRows.filter(row => row[3]).length;
-  const launchReadyLabel = `${launchReadyCount}/${pilotLaunchRows.length} ready`;
+  const visiblePilotLaunchRows = isAdminDemo ? pilotLaunchRows : pilotLaunchRows.filter(row => !['Invite review', 'Billing setup'].includes(row[1]));
+  const launchReadyCount = visiblePilotLaunchRows.filter(row => row[3]).length;
+  const launchReadyLabel = `${launchReadyCount}/${visiblePilotLaunchRows.length} ready`;
   const notificationReadinessRows = [
-    ['Email', 'Prepared and logged before delivery. Dry-run stays safe for QA.', true],
-    ['SMS', 'Prepared only until Twilio/A2P registration is active; copy fallback remains visible.', false],
+    ['Email', 'Prepared, reviewed, delivered, and logged on the case record.', true],
+    ['SMS', 'Text fallback remains visible until carrier registration is active.', false],
     ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case spine.' : 'Assign the first task owner to create visible proof.', assignmentsCoordinated > 0],
   ];
   const billingReadinessRows = [
-    ['Plan state', partnerPlan?.plan || partnerPlan?.name || activationStatus || 'Not linked'],
-    ['Billing status', billingStatus === 'paid' ? 'Paid' : billingStatus === 'demo' ? 'Demo' : billingStatus === 'stripe_pending' ? 'Stripe pending' : 'Not configured'],
+    ['Plan', partnerPlan?.plan || partnerPlan?.name || (activationStatus === 'active_trial' ? 'Pilot trial' : 'Pilot setup pending')],
+    ['Billing', billingStatus === 'paid' ? 'Paid' : billingStatus === 'demo' ? 'Demo' : billingStatus === 'stripe_pending' ? 'Stripe pending' : 'Set up after pilot approval'],
     ['Seats tracked', `${activeEmployeeRows.length || partnerStaff.length} employee${(activeEmployeeRows.length || partnerStaff.length) === 1 ? '' : 's'}`],
     ['Private ROI inputs', activeEmployeeRows.some(member => moneyNumber(member.hourlyCost) || moneyNumber(member.annualSalary)) ? 'Labor cost available' : 'Add salary/hourly cost for cost-per-task reporting'],
   ];
@@ -2381,11 +2417,11 @@ export default function FuneralHomeDashboard() {
   }
 
   function itemNextPartnerTask(item, orchestration) {
-    const stillOpen = task => task && !['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase());
+    const stillOpen = task => task && taskIsOpen(task);
     return (stillOpen(item.nextPartnerTask) ? item.nextPartnerTask : null)
       || (stillOpen(orchestration?.nextTask) ? orchestration.nextTask : null)
-      || (item.partnerTasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || ''))
-      || (item.tasks || []).find(t => !['handled', 'completed', 'done'].includes(t.status || ''));
+      || (item.partnerTasks || []).find(taskIsOpen)
+      || (item.tasks || []).find(taskIsOpen);
   }
 
   return (
@@ -3220,8 +3256,8 @@ export default function FuneralHomeDashboard() {
                   </div>
                 </div>
                 <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
-                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Notification truth</div>
-                  <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>Passage prepares the handoff, records proof, and keeps the fallback obvious. Nothing quietly sends from a demo or dry-run state.</div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Notification delivery</div>
+                  <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>Passage prepares the handoff, records proof, and keeps the fallback obvious. Your team reviews messages before they leave the workspace.</div>
                   <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
                     {notificationReadinessRows.map(([label, body, ready]) => (
                       <div key={label} style={{ background: ready ? C.sageFaint : C.amberFaint, border: `1px solid ${ready ? C.sage + '22' : C.amber + '33'}`, borderRadius: 10, padding: '8px 9px' }}>
@@ -3502,8 +3538,8 @@ export default function FuneralHomeDashboard() {
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
                   {staffQueuePreview.map(task => {
-                    const blocked = ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase());
-                    const waiting = ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase());
+                    const blocked = taskNeedsHelp(task);
+                    const waiting = taskIsWaiting(task);
                     const tone = blocked ? C.rose : waiting ? C.amber : C.sage;
                     const guidance = taskGuidanceFor(task, { owner: task.assigned_to_name || task.assigned_to_email || 'staff', surface: 'staff work queue' });
                     return (
@@ -3941,19 +3977,19 @@ export default function FuneralHomeDashboard() {
                   </div>
                 )}
               </div>
-              {isDirectorRole && (
+              {isDirectorRole && isAdminDemo && (
                 <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', marginBottom: 8 }}>
                     <div>
-                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Self-service gates</div>
-                      <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.4, marginTop: 3 }}>A pilot home can operate alone when each gate is green.</div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Admin readiness check</div>
+                      <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.4, marginTop: 3 }}>Visible only to Passage admins while reviewing self-service setup.</div>
                     </div>
                     <button onClick={() => setShowPilotGuide(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '6px 9px', fontFamily: 'Georgia,serif', fontSize: 11, fontWeight: 900, cursor: 'pointer' }}>Guide</button>
                   </div>
                   <div style={{ display: 'grid', gap: 7 }}>
-                    {pilotLaunchRows.map(([n, title, body, done]) => (
+                    {visiblePilotLaunchRows.map(([n, title, body, done]) => (
                       <button key={title} onClick={() => {
-                        if (title === 'Employees' || title === 'Locations' || title === 'First owner' || title === 'Invite truth' || title === 'Billing truth') openPartnerManagement('Opening the setup spine for locations, employees, roles, invites, billing truth, and assignment readiness.');
+                        if (title === 'Employees' || title === 'Locations' || title === 'First owner' || title === 'Invite review' || title === 'Billing setup') openPartnerManagement('Opening the setup spine for locations, employees, roles, invites, billing setup, and assignment readiness.');
                         else if (title === 'Cases') openCasePanel('immediate');
                         else if (title === 'Proof loop') moveDirectorFocus();
                       }} style={{ textAlign: 'left', border: `1px solid ${done ? C.sage + '22' : C.amber + '33'}`, background: done ? C.sageFaint : C.amberFaint, borderRadius: 10, padding: '7px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'center', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
@@ -4017,8 +4053,8 @@ export default function FuneralHomeDashboard() {
                     <tbody>
                       {locations.map(location => {
                         const rows = cases.filter(item => locationNameFor(item) === location);
-                        const handled = rows.reduce((sum, item) => sum + item.tasks.filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length, 0);
-                        const waiting = rows.reduce((sum, item) => sum + item.tasks.filter(t => ['sent', 'waiting', 'pending', 'assigned', 'blocked'].includes(t.status || '')).length, 0);
+                        const handled = rows.reduce((sum, item) => sum + item.tasks.filter(taskIsClosed).length, 0);
+                        const waiting = rows.reduce((sum, item) => sum + item.tasks.filter(task => taskIsWaiting(task) || taskNeedsHelp(task)).length, 0);
                         return (
                           <tr key={location}>
                             <td style={{ padding: '7px 8px', borderBottom: `1px solid ${C.border}`, fontWeight: 900 }}>{location}</td>
@@ -4048,13 +4084,13 @@ export default function FuneralHomeDashboard() {
           </div>
           <div style={{ display: 'grid', gap: 10, background: C.card, border: `1px solid ${C.border}`, borderTop: 'none', borderRadius: '0 0 18px 18px', padding: '0 14px 14px', marginBottom: 16, boxShadow: '0 8px 26px rgba(55,45,35,.04)' }}>
             {focusedDisplayCases.map(item => {
-              const handledCount = item.tasks.filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length;
-              const waitingCount = item.tasks.filter(t => ['sent', 'waiting', 'pending', 'assigned'].includes(t.status || '')).length;
+              const handledCount = item.tasks.filter(taskIsClosed).length;
+              const waitingCount = item.tasks.filter(taskIsWaiting).length;
               const progressCount = item.tasks.filter(t => ['draft', 'acknowledged'].includes(t.status || '')).length;
               const open = item.tasks.length - handledCount;
               const openCaseTasks = openTasksForCase(item);
               const unassignedCaseTasks = unassignedTasksForCase(item);
-              const blocked = item.tasks.filter(t => ['blocked', 'needs_review', 'failed'].includes(t.status || '')).length;
+              const blocked = item.tasks.filter(taskNeedsHelp).length;
               const partnerTasks = item.partnerTasks || [];
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
@@ -4069,7 +4105,7 @@ export default function FuneralHomeDashboard() {
               const itemLocation = locationNameFor(item);
               const fundingLabel = partnerFundingLabel(item);
               const nextOwner = nextPartnerTask?.assigned_to_name || nextPartnerTask?.assigned_to_email || nextPartnerTask?.playbook?.partnerOwnerRole || 'Unassigned';
-              const nextTaskClosed = nextPartnerTask && ['handled', 'completed', 'done'].includes(String(nextPartnerTask.status || '').toLowerCase());
+              const nextTaskClosed = nextPartnerTask && taskIsClosed(nextPartnerTask);
               const nextExpectedUpdate = nextTaskClosed ? 'Handled - proof is saved on the case spine.' : nextPartnerTask ? (orchestration.nextAction?.expectedUpdate || taskExpectedUpdate(nextPartnerTask, 'funeral_home')) : 'The family status remains visible.';
               const conversationCount = item.coordinationSpine?.conversation?.length || 0;
               const proofCount = item.coordinationSpine?.proof?.length || 0;
@@ -4222,7 +4258,7 @@ export default function FuneralHomeDashboard() {
                   </div>}
                   {isExpanded && nextPartnerTask && (() => {
                     const context = { caseName: item?.deceased_name || item?.estate_name || item?.name, coordinatorName: item?.coordinator_name, surface: 'case spine proof' };
-                    const taskClosed = ['handled', 'completed', 'done'].includes(String(nextPartnerTask.status || '').toLowerCase());
+                    const taskClosed = taskIsClosed(nextPartnerTask);
                     const output = taskOutputFor(nextPartnerTask, context);
                     const guidance = taskGuidanceFor(nextPartnerTask, { ...context, owner: nextOwner });
                     const explanation = taskExplanationFor(nextPartnerTask, { ...context, output, guidance });
@@ -4618,14 +4654,14 @@ export default function FuneralHomeDashboard() {
                           <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 5 }}>{proofDestination}</div>
                         </div>
                       </div>
-                      {task.playbook?.funeralHomeEligible && !['handled', 'completed', 'done'].includes(task.status || '') && (
+                      {task.playbook?.funeralHomeEligible && taskIsOpen(task) && (
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                           <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Mark waiting</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
                           <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Close with proof', prompt: 'Add the proof note that shows what happened, then close this task so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
                         </div>
                       )}
-                      {['handled', 'completed', 'done'].includes(task.status || '') && (
+                      {taskIsClosed(task) && (
                         <div style={{ marginTop: 8, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 10, padding: '8px 10px', color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Handled for the family</div>
                       )}
                           </>

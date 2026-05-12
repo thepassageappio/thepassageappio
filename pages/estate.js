@@ -410,12 +410,37 @@ function bucketForTask(task) {
   return 'year';
 }
 
-function isHandledStatus(status) {
-  return ['handled', 'completed', 'done', 'not_applicable'].includes(status);
+function taskStatusKey(value) {
+  if (value && typeof value === 'object') return String(value.status || value.delivery_status || value.outcome_status || '').toLowerCase();
+  return String(value || '').toLowerCase();
 }
 
-function isReadinessHandled(status) {
-  return ['handled', 'completed', 'done'].includes(status);
+function isHandledStatus(value) {
+  if (value && typeof value === 'object') {
+    var outcome = String(value.outcome_status || '').toLowerCase();
+    return ['handled', 'completed', 'done', 'not_applicable', 'cancelled'].includes(taskStatusKey(value))
+      || ['handled', 'completed', 'done'].includes(outcome)
+      || Boolean(value.completed_at || value.handled_at);
+  }
+  return ['handled', 'completed', 'done', 'not_applicable', 'cancelled'].includes(taskStatusKey(value));
+}
+
+function isReadinessHandled(value) {
+  if (value && typeof value === 'object') {
+    var outcome = String(value.outcome_status || '').toLowerCase();
+    return ['handled', 'completed', 'done'].includes(taskStatusKey(value))
+      || ['handled', 'completed', 'done'].includes(outcome)
+      || Boolean(value.completed_at || value.handled_at);
+  }
+  return ['handled', 'completed', 'done'].includes(taskStatusKey(value));
+}
+
+function isWaitingStatus(value) {
+  return !isHandledStatus(value) && ['waiting', 'pending', 'sent', 'delivered', 'assigned', 'acknowledged'].includes(taskStatusKey(value));
+}
+
+function needsHelpStatus(value) {
+  return !isHandledStatus(value) && ['blocked', 'failed', 'needs_review'].includes(taskStatusKey(value));
 }
 
 function textValue(value, fallback) {
@@ -698,7 +723,7 @@ function participantSignal(item) {
   var actor = textValue(item.completed_by_email || item.assigned_to_name || item.recipient_name || item.assigned_to_email || item.recipient_email, '');
   var at = item.completed_at || item.handled_at || item.accepted_at || item.updated_at || item.sent_at || item.created_at;
   var ago = timeAgo(at);
-  if (item.completed_by_email && isHandledStatus(item.status)) return actor + ' marked this as handled' + (ago ? ' ' + ago : '');
+  if (item.completed_by_email && isHandledStatus(item)) return actor + ' marked this as handled' + (ago ? ' ' + ago : '');
   if (item.accepted_at || item.status === 'acknowledged') return (actor || 'Someone') + ' accepted this task' + (ago ? ' ' + ago : '');
   if ((item.status || item.delivery_status) === 'blocked' || (item.outcome_status === 'help' || item.outcome_status === 'unavailable')) return (actor || 'Someone') + ' needs help with this' + (ago ? ' ' + ago : '');
   if (['waiting', 'needs_review'].includes(item.status || item.delivery_status)) return (actor || 'Someone') + ' updated this' + (ago ? ' ' + ago : '');
@@ -742,7 +767,7 @@ function proofRowsFor(actions, tasks, events) {
       ].filter(Boolean).join(' | '),
       status: statusText(t.status),
       at: t.completed_at || t.follow_up_at || t.updated_at || t.created_at,
-      tone: isHandledStatus(t.status) || t.status === 'acknowledged' ? 'good' : ['needs_review', 'failed', 'blocked'].includes(t.status) ? 'warn' : 'soft'
+      tone: isHandledStatus(t) || t.status === 'acknowledged' ? 'good' : ['needs_review', 'failed', 'blocked'].includes(t.status) ? 'warn' : 'soft'
     });
   });
   (events || []).slice(0, 8).forEach(function(e) {
@@ -935,7 +960,7 @@ function OutcomeCard({ id, outcome, estateId, expanded, showAssign, showProof, o
             </div>
             <ProviderActionPanel outcome={outcome} estateId={estateId} onStarted={onMarkInProgress} />
             <VendorSupport workflowId={estateId} taskTitle={displayTaskTitle(outcome)} onRequested={onMarkInProgress} />
-            {outcome.status !== 'handled' && (
+            {!isHandledStatus(outcome) && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {outcome.status === 'not_started' && (
                   <button onClick={onMarkInProgress}
@@ -1045,8 +1070,8 @@ function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people,
     return da.localeCompare(db);
   });
   var servicePeople = (people || []).filter(function(p) { return roleLooksLikeService(p.role) || roleLooksLikeService(p.estate_role_label) || roleLooksLikeService(p.relationship); }).slice(0, 6);
-  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
-  var ownerGaps = (outcomes || []).filter(function(o) { return !o.owner_label && o.status !== 'handled'; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
+  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t); });
+  var ownerGaps = (outcomes || []).filter(function(o) { return !o.owner_label && !isHandledStatus(o); }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
   var pendingMessages = (announcements || []).filter(function(a) { return ['draft', 'pending_review', 'approved'].includes(a.status || 'draft'); }).length + (actions || []).filter(function(a) { return !['sent', 'handled', 'cancelled'].includes(a.status || a.delivery_status || 'draft'); }).length;
   var missing = [];
   if (sortedEvents.length === 0) missing.push('Add wake, funeral, cemetery, or reception details when known.');
@@ -1414,7 +1439,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     return acc;
   }, {});
   var proofTasks = enriched.filter(function(t) { return t.playbook.topProofTask || t.playbook.institutionTemplate; }).slice(0, 10);
-  var actionTasks = enriched.filter(function(t) { return !isHandledStatus(t.status); }).slice(0, 12);
+  var actionTasks = enriched.filter(function(t) { return !isHandledStatus(t); }).slice(0, 12);
   var owners = {};
   enriched.forEach(function(t) { var key = ownerBucket(t); owners[key] = (owners[key] || 0) + 1; });
   (outcomes || []).forEach(function(o) { var key = textValue(o.owner_label, 'Not assigned'); owners[key] = (owners[key] || 0) + 1; });
@@ -1696,8 +1721,8 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
     context: orchestrationContext
   });
   var rankedTasks = orchestrated.tasks || tasks || [];
-  var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
-  var openTasks = rankedTasks.filter(function(t) { return !isHandledStatus(t.status); });
+  var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o); });
+  var openTasks = rankedTasks.filter(function(t) { return !isHandledStatus(t); });
   var queue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
   var allQueue = rankedTasks.map(function(task) { return { kind: 'task', item: task }; }).concat((outcomes || []).map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
   var initialIndex = initialTaskId ? queue.findIndex(function(entry) { return String(entry.item?.id || '') === String(initialTaskId); }) : 0;
@@ -1727,9 +1752,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
   var lastTime = item && item.last_action_at ? timeAgo(item.last_action_at) : '';
   var missingOwner = item && (owner === 'Unassigned' || owner === 'Needs owner');
   var recent = (coordinationSpine && coordinationSpine.latest && coordinationSpine.latest.length ? coordinationSpine.latest : [].concat(events || [], actions || [])).slice(0, 6);
-  var handledCount = (tasks || []).filter(function(t) { return isHandledStatus(t.status); }).length + (outcomes || []).filter(function(o) { return isHandledStatus(o.status); }).length;
-  var waitingCount = (tasks || []).filter(function(t) { return ['waiting', 'pending', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
-  var blockedCount = (tasks || []).filter(function(t) { return ['blocked', 'failed', 'needs_review'].includes(t.status || ''); }).length + openOutcomes.filter(function(o) { return !o.owner_label; }).length;
+  var handledCount = (tasks || []).filter(function(t) { return isHandledStatus(t); }).length + (outcomes || []).filter(function(o) { return isHandledStatus(o); }).length;
+  var waitingCount = (tasks || []).filter(isWaitingStatus).length;
+  var blockedCount = (tasks || []).filter(needsHelpStatus).length + openOutcomes.filter(function(o) { return !o.owner_label; }).length;
   var conversationCount = coordinationSpine?.conversation?.length || 0;
   var proofCount = coordinationSpine?.proof?.length || 0;
   var notificationCount = coordinationSpine?.notifications?.length || 0;
@@ -1928,8 +1953,8 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
 }
 
 function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
-  var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o.status); });
-  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t.status); });
+  var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o); });
+  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t); });
   var openQueue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
   var allQueue = (tasks || []).map(function(task) { return { kind: 'task', item: task }; }).concat((outcomes || []).map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
   var focusedEntry = initialTaskId ? (openQueue.find(function(entry) {
@@ -1962,7 +1987,7 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
   }, [initialTaskId, queueKey]);
   var current = queue[selectedIndex] || null;
   var openedFromTaskLink = Boolean(initialTaskId && current && String(current.item && current.item.id ? current.item.id : '') === String(initialTaskId));
-  var waiting = openTasks.filter(function(t) { return ['waiting', 'pending', 'sent', 'delivered', 'assigned'].includes(t.status || ''); }).length;
+  var waiting = openTasks.filter(isWaitingStatus).length;
   var needsOwner = openOutcomes.filter(function(o) { return !o.owner_label; }).length + openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
   var recent = (coordinationSpine && coordinationSpine.latest && coordinationSpine.latest.length ? coordinationSpine.latest : [].concat(events || [], actions || [])).slice(0, 8);
   var tabs = [
@@ -2121,8 +2146,8 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
   var needsReview = (actions || []).filter(function(a) { return a.status === 'needs_review' || a.delivery_status === 'needs_review'; });
   var assignedTasks = (tasks || []).filter(function(t) { return t.assigned_to_email || t.assigned_to_name || t.owner_label; });
   var blockedTasks = (tasks || []).filter(function(t) { return t.status === 'blocked' || t.outcome_status === 'help' || t.outcome_status === 'unavailable'; });
-  var missingOwners = (outcomes || []).filter(function(o) { return !o.owner_label && o.status !== 'handled'; }).length +
-    (tasks || []).filter(function(t) { return !isHandledStatus(t.status) && ownerForTask(t) === 'Needs owner'; }).length;
+  var missingOwners = (outcomes || []).filter(function(o) { return !o.owner_label && !isHandledStatus(o); }).length +
+    (tasks || []).filter(function(t) { return !isHandledStatus(t) && ownerForTask(t) === 'Needs owner'; }).length;
   var activated = ['activated', 'approved', 'in_motion', 'triggered'].includes(estate?.activation_status || estate?.status || '');
   var rows = [
     ['Email', pendingActions.filter(function(a) { return a.recipient_email || a.action_type === 'email'; }).length, activated ? 'still waiting' : 'prepared for approval'],
@@ -2879,8 +2904,8 @@ export default function EstatePage() {
   var requiredOutcomeCount = outcomes.length;
   var requiredTaskCount = tasks.filter(function(t) { return t.status !== 'not_applicable'; }).length;
   var requiredCount = requiredOutcomeCount + requiredTaskCount;
-  var readinessHandledCount = outcomes.filter(function(o) { return isReadinessHandled(o.status); }).length +
-    tasks.filter(function(t) { return t.status !== 'not_applicable' && isReadinessHandled(t.status); }).length;
+  var readinessHandledCount = outcomes.filter(function(o) { return isReadinessHandled(o); }).length +
+    tasks.filter(function(t) { return t.status !== 'not_applicable' && isReadinessHandled(t); }).length;
   var readinessPct = requiredCount > 0 ? Math.round((readinessHandledCount / requiredCount) * 100) : 0;
 
   var bannerText = allHandled
@@ -2892,7 +2917,7 @@ export default function EstatePage() {
   var bannerBg = needsOwnerCount > 0 && !allHandled ? AMBER_FAINT : SAGE_FAINT;
   var bannerBorder = needsOwnerCount > 0 && !allHandled ? AMBER_BORDER : SAGE_LIGHT;
 
-  var firstIncomplete = outcomes.findIndex(function(o) { return o.status !== 'handled'; });
+  var firstIncomplete = outcomes.findIndex(function(o) { return !isHandledStatus(o); });
   var name = estate ? textValue(estate.deceased_first_name || estate.deceased_name, 'your loved one') : 'your loved one';
   var coordinatorName = estate ? textValue(estate.coordinator_name, 'You') : 'You';
   function obituaryDraftForTask(task) {
@@ -3030,7 +3055,7 @@ export default function EstatePage() {
   var timelineGroups = TIMELINE_BUCKETS.map(function(bucket) {
     var outcomeItems = outcomes
       .filter(function(o) {
-        if (isHandledStatus(o.status)) return false;
+        if (isHandledStatus(o)) return false;
         if (bucket.key === 'now') return o.timeframe === 'now' || o.timeframe === 'today' || o.priority === 'critical';
         if (bucket.key === '72h') return o.timeframe === '72h' || o.timeframe === 'next_72_hours';
         if (bucket.key === 'week') return o.timeframe === 'week' || o.timeframe === 'first_week';
@@ -3043,11 +3068,11 @@ export default function EstatePage() {
         return { id: 'outcome_' + o.id, rawTitle: textValue(o.title, ''), title: displayTaskTitle(o), owner: ownerLabel || 'Needs owner', status: textValue(o.status, 'not_started'), next: o.status === 'needs_owner' ? 'Assign an owner' : o.status === 'in_progress' ? ((ownerLabel || 'Someone') + ' is working on this') : displayTaskNext(o) };
       });
     var taskItems = tasks
-      .filter(function(t) { return !isHandledStatus(t.status) && bucketForTask(t) === bucket.key; })
+      .filter(function(t) { return !isHandledStatus(t) && bucketForTask(t) === bucket.key; })
       .map(function(t) {
-        var working = ['assigned', 'waiting', 'in_progress'].includes(t.status || '');
+        var working = !isHandledStatus(t) && ['assigned', 'waiting', 'in_progress'].includes(t.status || '');
         var signal = participantSignal(t);
-        var responseWait = ['sent', 'delivered'].includes(t.status || '') && !t.acknowledged_at ? 'Waiting for confirmation' : '';
+        var responseWait = !isHandledStatus(t) && ['sent', 'delivered'].includes(t.status || '') && !t.acknowledged_at ? 'Waiting for confirmation' : '';
         var taskOwner = textValue(t.assigned_to_name || t.assigned_to_email, '');
         return { id: 'task_' + t.id, rawTitle: textValue(t.title, ''), title: displayTaskTitle(t), owner: ownerForTask(t), status: textValue(t.status, 'pending'), next: signal || responseWait || (working ? ((taskOwner || 'Someone') + ' is working on this') : taskOwner ? 'Waiting on owner' : displayTaskNext(t)) };
       });
@@ -3056,12 +3081,12 @@ export default function EstatePage() {
   var nowGroup = timelineGroups.find(function(g) { return g.key === 'now'; }) || { items: [] };
   var next72Group = timelineGroups.find(function(g) { return g.key === '72h'; }) || { items: [] };
   var readyFor72 = nowGroup.items.length === 0 && next72Group.items.length > 0 && !allHandled;
-  var upNextTasks = tasks.filter(function(t) { return !isHandledStatus(t.status); }).slice(3, 8);
+  var upNextTasks = tasks.filter(function(t) { return !isHandledStatus(t); }).slice(3, 8);
   var resumeEvent = events.find(function(e) { return e.event_type === 'task_updated' || e.event_type === 'task_completed' || e.event_type === 'owner_assigned' || e.event_type === 'participant_updated' || e.event_type === 'participant_waiting' || e.event_type === 'participant_acknowledged' || e.event_type === 'participant_blocked'; });
   var recentParticipantEvents = events.filter(function(e) { return ['participant_handled', 'participant_updated', 'participant_waiting', 'participant_acknowledged', 'participant_blocked', 'task_message_sent'].includes(e.event_type); }).slice(0, 4);
-  var firstOpenOutcome = outcomes.find(function(o) { return !isHandledStatus(o.status); });
-  var firstOpenOutcomeIndex = outcomes.findIndex(function(o) { return !isHandledStatus(o.status); });
-  var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t.status); });
+  var firstOpenOutcome = outcomes.find(function(o) { return !isHandledStatus(o); });
+  var firstOpenOutcomeIndex = outcomes.findIndex(function(o) { return !isHandledStatus(o); });
+  var firstOpenTask = tasks.find(function(t) { return !isHandledStatus(t); });
   var firstFastTitle = firstOpenOutcome ? displayTaskTitle(firstOpenOutcome) : firstOpenTask ? displayTaskTitle(firstOpenTask) : '';
   var estateMode = String(estate?.mode || estate?.path || estate?.workflow_type || '').toLowerCase();
   var planningTitleSignals = [
@@ -3848,3 +3873,4 @@ export default function EstatePage() {
     </div>
   );
 }
+

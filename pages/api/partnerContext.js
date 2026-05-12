@@ -10,12 +10,25 @@ const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const authClient = createClient(url, anon);
 const admin = createClient(url, service);
 
-function isHandledStatus(status) {
-  return ['handled', 'completed', 'done', 'not_applicable', 'cancelled'].includes(String(status || '').toLowerCase());
+function taskStatusValue(task) {
+  if (typeof task === 'string') return task.toLowerCase();
+  return String(task?.status || task?.delivery_status || task?.outcome_status || '').toLowerCase();
 }
 
-function isWaitingStatus(status) {
-  return ['sent', 'waiting', 'pending', 'assigned', 'acknowledged'].includes(String(status || '').toLowerCase());
+function isHandledStatus(task) {
+  const status = taskStatusValue(task);
+  const outcome = String(task?.outcome_status || '').toLowerCase();
+  return ['handled', 'completed', 'done', 'not_applicable', 'cancelled'].includes(status)
+    || ['handled', 'completed', 'done'].includes(outcome)
+    || Boolean(task?.completed_at || task?.handled_at);
+}
+
+function isWaitingStatus(task) {
+  return !isHandledStatus(task) && ['sent', 'waiting', 'pending', 'assigned', 'acknowledged'].includes(taskStatusValue(task));
+}
+
+function taskNeedsHelp(task) {
+  return !isHandledStatus(task) && ['blocked', 'failed', 'needs_review'].includes(taskStatusValue(task));
 }
 
 function schemaColumnError(error) {
@@ -292,9 +305,9 @@ function demoPartnerPayload(email, memberships = []) {
     },
   ];
   const allTasks = cases.flatMap(item => item.tasks || []);
-  const handled = allTasks.filter(task => isHandledStatus(task.status)).length;
-  const waiting = allTasks.filter(task => isWaitingStatus(task.status)).length;
-  const blocked = allTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length;
+  const handled = allTasks.filter(isHandledStatus).length;
+  const waiting = allTasks.filter(isWaitingStatus).length;
+  const blocked = allTasks.filter(taskNeedsHelp).length;
   return {
     organizations: [organizationRow],
     partnerPlan: { plan: 'pilot', status: 'demo' },
@@ -321,7 +334,7 @@ function demoPartnerPayload(email, memberships = []) {
       avgCaseValue: Math.round(cases.reduce((sum, item) => sum + caseValueNumber(item), 0) / cases.length),
       marketplace: { requests: 1, estimatedValue: 650, funeralHomeShare: 0, passageShare: 0 },
       byLocation: [{ location: 'Main location', cases: 3, openTasks: allTasks.length - handled, handledTasks: handled, waitingTasks: waiting, blockedTasks: blocked, callsAvoided: 14, referralValue: 650, funeralHomeShare: 0 }],
-      byEmployee: staff.map(member => ({ email: member.email, role: member.role, scope: member.scope, assignedTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email)).length, openTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && !isHandledStatus(task.status)).length, handledTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && isHandledStatus(task.status)).length, waitingTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && isWaitingStatus(task.status)).length })),
+      byEmployee: staff.map(member => ({ email: member.email, role: member.role, scope: member.scope, assignedTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email)).length, openTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && !isHandledStatus(task)).length, handledTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && isHandledStatus(task)).length, waitingTasks: allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === normalizeEmail(member.email) && isWaitingStatus(task)).length })),
     },
     isPassageAdmin: false,
     demoData: true,
@@ -425,11 +438,24 @@ export default async function handler(req, res) {
   let familyParticipants = [];
   let serviceEvents = [];
   if (workflowIds.length > 0) {
-    const { data: taskData } = await admin
-      .from('tasks')
-      .select('id,workflow_id,title,status,last_action_at,last_actor,channel,recipient,assigned_to_name,assigned_to_email,notes,outcome_status')
-      .in('workflow_id', workflowIds)
-      .order('last_action_at', { ascending: false, nullsFirst: false });
+    let taskData = [];
+    const taskSelections = [
+      'id,workflow_id,title,status,last_action_at,last_actor,channel,recipient,assigned_to_name,assigned_to_email,notes,outcome_status,completed_at,completed_by,completed_by_email,handled_at',
+      'id,workflow_id,title,status,last_action_at,last_actor,channel,recipient,assigned_to_name,assigned_to_email,notes,outcome_status,completed_at,completed_by,completed_by_email',
+      'id,workflow_id,title,status,last_action_at,last_actor,channel,recipient,assigned_to_name,assigned_to_email,notes,outcome_status',
+    ];
+    for (const selection of taskSelections) {
+      const { data, error } = await admin
+        .from('tasks')
+        .select(selection)
+        .in('workflow_id', workflowIds)
+        .order('last_action_at', { ascending: false, nullsFirst: false });
+      if (!error) {
+        taskData = data || [];
+        break;
+      }
+      if (!schemaColumnError(error)) return res.status(500).json({ error: error.message });
+    }
     tasks = (taskData || []).map(enrichTaskWithPlaybook).sort((a, b) => partnerTaskPriority(a) - partnerTaskPriority(b));
 
     const { data: eventData } = await admin
@@ -497,8 +523,10 @@ export default async function handler(req, res) {
     });
     const caseTasks = orchestration.tasks;
     const partnerTasks = caseTasks.filter(t => t.playbook?.funeralHomeEligible);
+    const activeCaseTasks = caseTasks.filter(task => !isHandledStatus(task));
+    const activePartnerTasks = partnerTasks.filter(task => !isHandledStatus(task));
     const partnerOrchestration = orchestrateTasks({
-      tasks: partnerTasks.length ? partnerTasks : caseTasks,
+      tasks: activePartnerTasks.length ? activePartnerTasks : activeCaseTasks,
       role: 'funeral_home',
       context: { workflow: w, estate: w, deathDate: w.date_of_death, serviceEvents: caseServiceEvents },
     });
@@ -520,10 +548,10 @@ export default async function handler(req, res) {
       serviceEvents: caseServiceEvents,
       partnerTasks,
       orchestration,
-      nextPartnerTask: partnerOrchestration.nextTask || selectNextTask(partnerTasks.length ? partnerTasks : caseTasks, 'funeral_home'),
+      nextPartnerTask: partnerOrchestration.nextTask || selectNextTask(activePartnerTasks.length ? activePartnerTasks : activeCaseTasks, 'funeral_home'),
       coordinationSpine,
-      waitingOnFamily: caseTasks.filter(t => /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
-      blockedTasks: caseTasks.filter(t => ['blocked', 'failed', 'needs_review'].includes(t.status || '')),
+      waitingOnFamily: activeCaseTasks.filter(t => /family|executor|coordinator/i.test(t.playbook?.waitingOn || '')),
+      blockedTasks: caseTasks.filter(taskNeedsHelp),
     };
   });
 
@@ -539,15 +567,15 @@ export default async function handler(req, res) {
     };
   });
   const allCommunications = cases.flatMap(item => item.communications || []);
-  const activeTasks = allTasks.filter(task => !isHandledStatus(task.status));
-  const handledTasks = allTasks.filter(task => isHandledStatus(task.status));
-  const waitingTasks = allTasks.filter(task => isWaitingStatus(task.status));
-  const blockedTasks = allTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
+  const activeTasks = allTasks.filter(task => !isHandledStatus(task));
+  const handledTasks = allTasks.filter(isHandledStatus);
+  const waitingTasks = allTasks.filter(isWaitingStatus);
+  const blockedTasks = allTasks.filter(taskNeedsHelp);
 
   const staff = (allMembers || []).map(member => {
     const memberEmail = String(member.email || '').toLowerCase();
     const assigned = allTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === memberEmail);
-    const handledByMember = allTasks.filter(task => String(task.last_actor || '').toLowerCase() === memberEmail && isHandledStatus(task.status));
+    const handledByMember = allTasks.filter(task => String(task.last_actor || '').toLowerCase() === memberEmail && isHandledStatus(task));
     const role = String(member.role || 'staff');
     const directorRole = /owner|admin|director|manager|location/i.test(role);
     return {
@@ -560,10 +588,10 @@ export default async function handler(req, res) {
       annual_salary: member.annual_salary || null,
       hourly_cost: member.hourly_cost || null,
       scope: directorRole ? 'all_cases' : 'assigned_work',
-      assignedOpen: assigned.filter(task => !isHandledStatus(task.status)).length,
+      assignedOpen: assigned.filter(task => !isHandledStatus(task)).length,
       handled: handledByMember.length,
-      waiting: assigned.filter(task => isWaitingStatus(task.status)).length,
-      blocked: assigned.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+      waiting: assigned.filter(isWaitingStatus).length,
+      blocked: assigned.filter(taskNeedsHelp).length,
     };
   });
 
@@ -582,10 +610,10 @@ export default async function handler(req, res) {
     return {
       location,
       cases: locationCases.length,
-      openTasks: locationTasks.filter(task => !isHandledStatus(task.status)).length,
-      handledTasks: locationTasks.filter(task => isHandledStatus(task.status)).length,
-      waitingTasks: locationTasks.filter(task => isWaitingStatus(task.status)).length,
-      blockedTasks: locationTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase())).length,
+      openTasks: locationTasks.filter(task => !isHandledStatus(task)).length,
+      handledTasks: locationTasks.filter(isHandledStatus).length,
+      waitingTasks: locationTasks.filter(isWaitingStatus).length,
+      blockedTasks: locationTasks.filter(taskNeedsHelp).length,
       caseValue: locationCases.reduce((sum, item) => sum + caseValueNumber(item), 0),
       prepaidValue: locationCases.reduce((sum, item) => sum + prepaidValueNumber(item), 0),
       callsAvoided: locationCommunications.length + locationTasks.filter(task => task.assigned_to_email || task.assigned_to_name).length + locationVendorRequests.length,
@@ -605,9 +633,9 @@ export default async function handler(req, res) {
       annualSalary: member.annual_salary || null,
       hourlyCost: member.hourly_cost || null,
       assignedTasks: assigned.length,
-      openTasks: assigned.filter(task => !isHandledStatus(task.status)).length,
-      handledTasks: assigned.filter(task => isHandledStatus(task.status)).length + acted.filter(task => isHandledStatus(task.status)).length,
-      waitingTasks: assigned.filter(task => isWaitingStatus(task.status)).length,
+      openTasks: assigned.filter(task => !isHandledStatus(task)).length,
+      handledTasks: assigned.filter(isHandledStatus).length + acted.filter(isHandledStatus).length,
+      waitingTasks: assigned.filter(isWaitingStatus).length,
     };
   });
 

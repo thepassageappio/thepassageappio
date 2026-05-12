@@ -77,10 +77,18 @@ function statusLabel(value) {
 }
 
 function isHandled(value) {
-  return ['handled', 'completed', 'done'].includes(value || '');
+  if (value && typeof value === 'object') {
+    const status = String(value.status || value.delivery_status || value.outcome_status || '').toLowerCase();
+    const outcome = String(value.outcome_status || '').toLowerCase();
+    return ['handled', 'completed', 'done', 'not_applicable', 'cancelled'].includes(status)
+      || ['handled', 'completed', 'done'].includes(outcome)
+      || Boolean(value.completed_at || value.handled_at);
+  }
+  return ['handled', 'completed', 'done', 'not_applicable', 'cancelled'].includes(String(value || '').toLowerCase());
 }
 
 function effectiveItemStatus(item) {
+  if (isHandled(item)) return 'handled';
   const status = String(item?.status || '').toLowerCase();
   const delivery = String(item?.delivery_status || '').toLowerCase();
   if (isHandled(delivery) || ['blocked', 'waiting', 'acknowledged', 'needs_review'].includes(delivery)) return delivery;
@@ -227,7 +235,7 @@ function statusForParticipantAction(action) {
 }
 
 function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, estate }) {
-  const handled = isHandled(itemStatus(item));
+  const handled = isHandled(item);
   const kind = roleKind(estate?.role, item);
   const contract = requestContract(kind, estate, item);
   const playbook = getTaskPlaybook(itemTitle(item));
@@ -777,7 +785,7 @@ export default function ParticipatingPage() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                       {data.estates.map(estate => {
                         const items = normalizeItems(estate);
-                        const openCount = items.filter(item => !isHandled(itemStatus(item))).length;
+                        const openCount = items.filter(item => !isHandled(item)).length;
                         const selected = expandedEstateId === estate.id;
                         return (
                           <button key={estate.id} onClick={() => openParticipantEstate(estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, minHeight: 38, padding: '0 13px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.8 }}>
@@ -795,8 +803,8 @@ export default function ParticipatingPage() {
                 .sort((a, b) => (a.id === router.query.estate ? -1 : b.id === router.query.estate ? 1 : 0))
                 .map(estate => {
                   const items = normalizeItems(estate).sort((a, b) => (a.id === router.query.task ? -1 : b.id === router.query.task ? 1 : 0));
-                  const openItems = items.filter(item => !isHandled(itemStatus(item)));
-                  const handledItems = items.filter(item => isHandled(itemStatus(item)));
+                  const openItems = items.filter(item => !isHandled(item));
+                  const handledItems = items.filter(item => isHandled(item));
                   const linkedItem = items.find(item => item.id === router.query.task);
                   const focusedItem = lastFocusedItem ? items.find(item => item.id === lastFocusedItem.id && item._kind === lastFocusedItem.kind) : null;
                   const primaryItem = linkedItem || focusedItem || openItems[0] || handledItems[0];
@@ -918,3 +926,4 @@ export default function ParticipatingPage() {
     </main>
   );
 }
+
