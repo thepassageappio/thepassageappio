@@ -3981,8 +3981,8 @@ export default function FuneralHomeDashboard() {
                 <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', marginBottom: 8 }}>
                     <div>
-                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Admin readiness check</div>
-                      <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.4, marginTop: 3 }}>Visible only to Passage admins while reviewing self-service setup.</div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Workspace readiness</div>
+                      <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.4, marginTop: 3 }}>A quick setup check before the first case moves.</div>
                     </div>
                     <button onClick={() => setShowPilotGuide(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '6px 9px', fontFamily: 'Georgia,serif', fontSize: 11, fontWeight: 900, cursor: 'pointer' }}>Guide</button>
                   </div>
@@ -4112,7 +4112,7 @@ export default function FuneralHomeDashboard() {
               const notificationCount = item.coordinationSpine?.notifications?.length || 0;
               const familyUpdateHref = `/share?wid=${encodeURIComponent(item.id)}&dn=${encodeURIComponent(item.deceased_name || item.estate_name || item.name || 'Family case')}&cn=${encodeURIComponent(item.coordinator_name || 'the family')}`;
               const packetHref = demoMode
-                ? `/packet?id=${encodeURIComponent(item.id)}&demoTour=funeral-home&demoStep=warm`
+                ? `/packet?id=${encodeURIComponent(item.id)}&demo=1`
                 : `/packet?id=${encodeURIComponent(item.id)}`;
               const timelineEvents = (item.serviceEvents || item.service_events || [])
                 .filter(event => event?.date)
