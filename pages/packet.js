@@ -197,7 +197,7 @@ export default function PacketDemo() {
             ))}
             <div style={{ background: demoMode ? C.amberFaint : C.sageFaint, border: '1px solid ' + (demoMode ? '#edd7b1' : '#c8deca'), borderRadius: 14, padding: 13, color: demoMode ? C.amber : C.sage, fontSize: 12.5, lineHeight: 1.5 }}>
               {demoMode
-                ? 'Demo-safe output: review, copy, print, or save. Nothing sends by itself.'
+                ? 'Demo output: review, copy, print, or save. Nothing sends by itself.'
                 : 'Review boundary: copy, print, or download only after the family or coordinator approves the output.'}
             </div>
           </aside>

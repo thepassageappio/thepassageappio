@@ -425,11 +425,11 @@ export default function SystemAdminPage() {
 
             {adminView === 'personas' && (
             <Panel compact>
-              <div style={eyebrow}>Persona QA cockpit</div>
+              <div style={eyebrow}>Demo sandbox cockpit</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(230px, .44fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
                 <div>
-                  <h2 style={h2}>View the product as each role.</h2>
-                  <p style={lead}>Demo-safe profile switching for QA. This does not impersonate real users, send messages, or mutate production records.</p>
+                  <h2 style={h2}>Open each side of the same demo story.</h2>
+                  <p style={lead}>Use these sandbox roles to demo the family, participant, funeral-home, employee, and vendor experiences without exposing production records or sending live messages.</p>
                   <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
                     {personaProfiles.map((profile) => (
                       <button key={profile.id} onClick={() => setActivePersonaId(profile.id)} style={activePersona.id === profile.id ? selectedToolButton : toolButton}>
@@ -460,7 +460,7 @@ export default function SystemAdminPage() {
                 </div>
               </div>
               <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
-                Production-safe boundary: this is a system-admin QA launcher into demo/role views. Real login-as-user impersonation would require explicit audit logging, scoped tokens, session expiry, and owner approval before implementation.
+                Admin boundary: these are shared sandbox views for demos and QA. Production impersonation remains intentionally gated until it has audit logs, scoped tokens, session expiry, and explicit owner approval.
               </div>
             </Panel>
             )}

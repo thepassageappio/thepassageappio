@@ -141,7 +141,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'overview',
     title: 'Start with the funeral-home promise',
-    body: 'Open with the Monday-morning value: fewer repeated calls, clearer owners, visible proof, and clean export back to the systems they already use.',
+    body: 'The Monday-morning value is simple: fewer repeated calls, clearer owners, visible proof, and clean export back to the systems funeral homes already use.',
     point: 'Passage does not replace the case system. It coordinates the family work around it.',
     evidence: 'The public funeral-home promise before the operating console opens.',
     href: '/hospice?demoTour=funeral-home&demoStep=warm',
@@ -150,7 +150,7 @@ const DEMO_TOUR_STEPS = [
   },
   {
     id: 'warm',
-    title: 'Show how families arrive prepared',
+    title: 'Families can arrive prepared',
     body: 'A family may enter before death through hospice, care preparation, senior living, or direct planning. This is the warm inbound handoff a funeral home can receive instead of starting from zero.',
     point: 'The family record can start before crisis and hand off cleanly when the funeral home is needed.',
     evidence: 'Care-prep fields, facility or hospice context, permissions, and funeral-home preference.',
@@ -161,7 +161,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'dashboard',
     title: 'Command center first',
-    body: 'Show the operating pane first. A director should see active cases, waiting items, what needs attention, and the next move without hunting through stacked sections.',
+    body: 'A director sees active cases, waiting items, what needs attention, and the next move without hunting through stacked sections.',
     point: 'Daily operating view: one command center, one case at a time, one next action.',
     evidence: 'Active cases, waiting response, blocked work, locations, and the next director action.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=team',
@@ -171,7 +171,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'team',
     title: 'Set up locations and people once',
-    body: 'Show directors, staff, location scope, and permissions as a management pane, not a scattered onboarding checklist. This is where self-service becomes believable.',
+    body: 'Directors, staff, location scope, and permissions live in one management pane instead of a scattered onboarding checklist.',
     point: 'Saved staff and locations become the owner list for every case task.',
     evidence: 'Locations, role permissions, staff management, and assignment readiness.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=case',
@@ -181,7 +181,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'case',
     title: 'Create the family case',
-    body: 'Walk through at-need versus pre-need as states of a family case. Keep it simple: add the family contact, case value, prepaid flag when relevant, and the known dates.',
+    body: 'At-need and pre-need are states of a family case. The team adds the family contact, case value, prepaid flag when relevant, and the known dates.',
     point: 'At-need and pre-need are case states. Prepaid is a funding detail, not a separate product.',
     evidence: 'Family contact, case value, prepaid flag, and smart location.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=task',
@@ -191,7 +191,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'task',
     title: 'Move one task',
-    body: 'Show one task at a time: prepared output, owner, request, proof, waiting state, and reporting. No mystery status changes.',
+    body: 'One task carries the prepared output, owner, request, proof, waiting state, and reporting. Status changes stay visible.',
     point: 'The task is the unit of truth: owner, request, proof, status, report.',
     evidence: 'Prepared packet preview, owner assignment, family request, proof close, and the actions that move out of the way after completion.',
     href: '/participating?demoTour=funeral-home&demoStep=participant',
@@ -201,7 +201,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'participant',
     title: 'Participant acts',
-    body: 'Show the helper view: one assigned responsibility, clear accept/waiting/handled buttons, and an update back to the coordinator.',
+    body: 'The helper view is intentionally small: one assigned responsibility, clear accept/waiting/handled buttons, and an update back to the coordinator.',
     point: 'Participants are not joining software. They are answering one family ask.',
     evidence: 'Scoped access, one next action, and coordinator-visible proof.',
     href: '/share?dn=Eleanor%20Price&cn=Price%20family&demoTour=funeral-home&demoStep=announcement',
@@ -211,7 +211,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'announcement',
     title: 'Prepare one family update',
-    body: 'Show how a coordinator prepares one careful update, recipient list, and channel copy without sending anything automatically.',
+    body: 'A coordinator prepares one careful update, recipient list, and channel copy without sending anything automatically.',
     point: 'Communication is coordination, not a generic chat feed.',
     evidence: 'Approved copy, recipient list, channel-specific text.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=chat',
@@ -221,7 +221,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'chat',
     title: 'Coordinate the people',
-    body: 'Show that notifications, conversation, proof, and family-visible status are separate layers tied to the same case, not one noisy chat feed.',
+    body: 'Notifications, conversation, proof, and family-visible status are separate layers tied to the same case, not one noisy chat feed.',
     point: 'Every response becomes context for the next handoff.',
     evidence: 'Family, provider, and staff updates tied to the same case.',
     href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor',
@@ -241,7 +241,7 @@ const DEMO_TOUR_STEPS = [
   {
     id: 'export',
     title: 'Close with adoption trust',
-    body: 'Close where a buyer cares: calls avoided, tasks handled, blocked work, case value, staff/location reporting, vendor value, and CSV/full-spine export.',
+    body: 'The buyer sees calls avoided, tasks handled, blocked work, case value, staff/location reporting, vendor value, and CSV/full-spine export.',
     point: 'Passage does not trap case data. Bring case data in, coordinate the family work, then export the record back out.',
     evidence: 'Reports, exports, ROI, and adoption trust.',
     href: '/funeral-home',
@@ -473,7 +473,7 @@ function DemoCoach({ step }) {
         )}
         <Link onClick={handleAdvance} href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
       </div>
-      <div style={{ color: '#aaa39a', fontSize: 11.2, lineHeight: 1.35, marginTop: 9 }}>Demo-safe: highlights guide the story; live email/SMS is not sent from the tour.</div>
+      <div style={{ color: '#aaa39a', fontSize: 11.2, lineHeight: 1.35, marginTop: 9 }}>This tour uses demo data. Live email/SMS is not sent from the tour.</div>
     </div>
     </>
   );

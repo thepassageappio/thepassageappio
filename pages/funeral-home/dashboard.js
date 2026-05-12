@@ -988,7 +988,7 @@ export default function FuneralHomeDashboard() {
       return;
     }
     if (demoMode || !token) {
-      setNotice('Demo-safe: this is the employee invite email. No message was sent.');
+      setNotice('Demo workspace: this is the employee invite email preview. No message was sent.');
       return;
     }
     setUpdating(`staff_invite_${email}`);
@@ -1030,10 +1030,10 @@ export default function FuneralHomeDashboard() {
 
     if (demoMode || !token) {
       applyLocal(action === 'accept'
-        ? 'Demo-safe: family request accepted into the partner queue. No live message was sent.'
+        ? 'Demo workspace: family request accepted into the partner queue. No live message was sent.'
         : action === 'convert'
-          ? 'Demo-safe: inbound marked converted for reporting.'
-          : 'Demo-safe: inbound request updated.');
+          ? 'Demo workspace: inbound marked converted for reporting.'
+          : 'Demo workspace: inbound request updated.');
       return;
     }
 
@@ -2322,7 +2322,7 @@ export default function FuneralHomeDashboard() {
                   'CSV export back to your existing system',
                 ].map(item => (
                   <div key={item} style={{ display: 'grid', gridTemplateColumns: '16px minmax(0,1fr)', gap: 7, color: C.mid, fontSize: 13.2, lineHeight: 1.45 }}>
-                    <span style={{ color: C.sage, fontWeight: 900 }}>→</span>
+                    <span style={{ color: C.sage, fontWeight: 900 }}>-&gt;</span>
                     <span>{item}</span>
                   </div>
                 ))}
@@ -2362,7 +2362,10 @@ export default function FuneralHomeDashboard() {
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.55, marginBottom: 12 }}>
               Demo partners can use the email and password Passage issued. Real partner teams can continue with Google when their domain is connected.
             </div>
-            <button onClick={signIn} style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <Link href="/funeral-home/dashboard?demo=1&persona=fh-director&demoTour=funeral-home&demoStep=dashboard" style={{ border: `1px solid ${C.sage}33`, borderRadius: 13, padding: '12px 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, textDecoration: 'none' }}>View demo workspace</Link>
+              <button onClick={signIn} style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+            </div>
           </div>
           </div>
         )}

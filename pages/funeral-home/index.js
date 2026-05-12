@@ -130,11 +130,12 @@ export default function FuneralHomePage() {
               Passage gives families one shared command center while your team keeps cases moving: fewer repeated calls, clearer owners, visible proof, approved handoffs, and clean export back to your existing workflow.
             </p>
             <div className="fh-actions">
-              <Link href="/funeral-home/dashboard" className="fh-button fh-primary">Open partner workspace</Link>
-              <Link href="/funeral-home?demoTour=funeral-home&demoStep=overview" className="fh-button fh-secondary">View guided demo</Link>
+              <Link href="/funeral-home/dashboard?demo=1&persona=fh-director&demoTour=funeral-home&demoStep=dashboard" className="fh-button fh-primary">View demo workspace</Link>
+              <Link href="/funeral-home/dashboard" className="fh-button fh-secondary">Partner sign in</Link>
+              <Link href="/funeral-home?demoTour=funeral-home&demoStep=overview" className="fh-button fh-secondary">Guided walkthrough</Link>
               <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" className="fh-button fh-secondary">Book a pilot walkthrough</a>
             </div>
-            <div className="fh-note">Passage does not replace your case system. It coordinates the humans around it.</div>
+            <div className="fh-note">The demo workspace uses sample data. Partner sign in is for funeral homes with an active Passage workspace.</div>
             {error && <div style={{ marginTop: 14, background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
           </div>
 

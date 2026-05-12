@@ -584,7 +584,7 @@ export default function SystemDemo() {
                 </Panel>
                 <Panel>
                   <div style={eyebrow}>Readiness checks</div>
-                  <h2 style={h2}>Demo-safe boundaries.</h2>
+                  <h2 style={h2}>Demo boundaries.</h2>
                   <div style={{ display: 'grid', gap: 9 }}>
                     {readinessChecks.map((check) => (
                       <div key={check} style={{ display: 'grid', gridTemplateColumns: '24px minmax(0,1fr)', gap: 9, alignItems: 'start', color: C.mid, lineHeight: 1.45 }}>
