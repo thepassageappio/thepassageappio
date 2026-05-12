@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { SiteHeader, SiteFooter } from '../../components/SiteChrome';
-import { blogPosts } from '../../lib/blogPosts';
+import { getSortedBlogPosts } from '../../lib/blogPosts';
 
 const C = {
   bg: '#f6f3ee', card: '#ffffff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890',
@@ -9,6 +9,7 @@ const C = {
 };
 
 export default function BlogIndex() {
+  const posts = getSortedBlogPosts();
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <Head>
@@ -24,11 +25,11 @@ export default function BlogIndex() {
         </div>
 
         <div style={{ display: 'grid', gap: 16 }}>
-          {blogPosts.map(post => (
+          {posts.map(post => (
             <Link key={post.slug} href={`/blog/${post.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 14px 34px rgba(55,45,35,.05)', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 18, alignItems: 'end' }}>
                 <div>
-                  <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>{post.category}</div>
+                  <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>{post.category} · {post.date}</div>
                   <h2 style={{ fontSize: 31, lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400 }}>{post.title}</h2>
                   <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.55, margin: 0 }}>{post.excerpt}</p>
                 </div>

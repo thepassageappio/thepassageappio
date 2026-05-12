@@ -24,7 +24,7 @@ export default function BlogPost({ post }) {
     '@type': 'Article',
     headline: post.title,
     description: post.excerpt,
-    datePublished: '2026-05-12',
+    datePublished: post.publishedAt || post.date,
     author: { '@type': 'Organization', name: 'Passage' },
     publisher: { '@type': 'Organization', name: 'Passage' },
     mainEntityOfPage: url,
@@ -41,7 +41,7 @@ export default function BlogPost({ post }) {
       <article style={{ maxWidth: 1040, margin: '0 auto', padding: '32px 24px 70px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 28, alignItems: 'start' }}>
           <div>
-            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>{post.category}</div>
+            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>{post.category} · {post.date}</div>
             <h1 style={{ fontSize: 'clamp(40px, 6vw, 74px)', lineHeight: .94, fontWeight: 400, margin: '0 0 14px' }}>{post.title}</h1>
             <p style={{ color: C.mid, fontSize: 19, lineHeight: 1.5, margin: '0 0 18px' }}>{post.excerpt}</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
