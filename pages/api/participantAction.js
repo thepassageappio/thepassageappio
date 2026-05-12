@@ -294,6 +294,9 @@ export default async function handler(req, res) {
   }
 
   const status = participantStorageStatus(action);
+  const recordStatus = table === 'workflow_actions' && status === 'handled'
+    ? 'acknowledged'
+    : status;
   if (taskActionRequiresNote(action) && !trimmedNotes) {
     return res.status(400).json({ error: 'Add a short proof or blocker note before saving this update.' });
   }
@@ -304,7 +307,7 @@ export default async function handler(req, res) {
     : 'help_requested_at';
 
   const updates = {
-    status,
+    status: recordStatus,
     [stamp]: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     outcome_status: outcomeStatus || taskActionOutcomeStatus(action),
@@ -315,11 +318,12 @@ export default async function handler(req, res) {
     recipient: email,
   };
   if (terminalStatus) {
+    if (table === 'workflow_actions') updates.delivery_status = status;
     updates.completed_at = new Date().toISOString();
     updates.completed_by = actorName;
     updates.completed_by_email = email;
   }
-  if (status === 'acknowledged') updates.acknowledged_at = new Date().toISOString();
+  if (recordStatus === 'acknowledged') updates.acknowledged_at = new Date().toISOString();
   if (followUpAt) updates.follow_up_at = new Date(followUpAt).toISOString();
   if (trimmedNotes) updates.notes = trimmedNotes;
   const { data, error } = await updateParticipantRecord({
