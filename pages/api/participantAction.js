@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionRequiresNote, taskActionStatus } from '../../lib/taskActions';
 import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
+import { escapeHtml, passageEmailShell } from '../../lib/brandedEmail';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -25,17 +26,24 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     : status === 'acknowledged' ? 'accepted this task'
     : status === 'blocked' ? 'needs help with this task'
     : 'updated this task';
-  const safeNotes = notes ? `<p style="color:#6a6560;font-size:14px;line-height:1.7;margin:10px 0 0;"><strong>Note:</strong> ${String(notes).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : '';
-  const html = `<!doctype html><html><body style="font-family:Georgia,serif;background:#f6f3ee;margin:0;padding:28px 16px;">
-    <div style="max-width:540px;margin:0 auto;background:#fff;border-radius:16px;padding:28px;border:1px solid #e4ddd4;">
-      <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800;margin-bottom:14px;">Passage update</div>
-      <div style="font-size:22px;line-height:1.3;color:#1a1916;margin-bottom:10px;">${actorEmail} ${statusLine}.</div>
-      <p style="color:#6a6560;font-size:14px;line-height:1.7;margin:0;">Estate: ${deceased}</p>
-      <p style="color:#1a1916;font-size:15px;line-height:1.6;margin:10px 0 0;"><strong>Task:</strong> ${taskTitle || 'Assigned task'}</p>
-      ${safeNotes}
-      <a href="${SITE_URL}/estate?id=${workflowId}" style="display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;padding:12px 18px;border-radius:11px;font-size:14px;font-weight:800;margin-top:18px;">Open estate</a>
-    </div>
-  </body></html>`;
+  const html = passageEmailShell({
+    eyebrow: 'Participant update',
+    title: `${actorEmail} ${statusLine}.`,
+    intro: 'A participant response was saved to the family record so the coordinator can see what changed without chasing another thread.',
+    sections: [
+      {
+        label: 'Family record',
+        html: `Estate: <strong style="color:#1a1916;">${escapeHtml(deceased)}</strong><br/>Task: <strong style="color:#1a1916;">${escapeHtml(taskTitle || 'Assigned task')}</strong>`,
+      },
+      notes ? {
+        label: 'Participant note',
+        text: notes,
+        tone: 'soft',
+      } : null,
+    ].filter(Boolean),
+    ctaLabel: 'Open family record',
+    ctaUrl: `${SITE_URL}/estate?id=${workflowId}`,
+  });
 
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',

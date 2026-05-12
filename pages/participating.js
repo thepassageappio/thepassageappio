@@ -438,6 +438,13 @@ export default function ParticipatingPage() {
   const [acceptedInviteToken, setAcceptedInviteToken] = useState('');
   const [lastFocusedItem, setLastFocusedItem] = useState(null);
 
+  function openParticipantEstate(estateId) {
+    setExpandedEstateId(estateId);
+    setActionNotice('');
+    if (router.query.estate === estateId) return;
+    router.push({ pathname: '/participating', query: { estate: estateId } }, undefined, { shallow: true });
+  }
+
   useEffect(() => {
     if (typeof window !== 'undefined') setClientSearch(window.location.search || '');
   }, []);
@@ -670,16 +677,20 @@ export default function ParticipatingPage() {
 
       <section className="participant-shell">
         <div style={{ maxWidth: 760, marginBottom: 16 }}>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Participant task spine</div>
-          <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: '0 0 7px', fontWeight: 400 }}>One assigned task. One safe update.</h1>
-          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: 0 }}>Work from one estate at a time. Switch only when the family asked you to help with a different record.</p>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Private participant workspace</div>
+          <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: '0 0 7px', fontWeight: 400 }}>{user ? 'Open the family request assigned to you.' : 'Sign in to open your assigned request.'}</h1>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: 0 }}>
+            {user
+              ? 'This is a scoped task spine. You see only the estate, task, messages, and proof the coordinator asked you to handle.'
+              : 'This page is gated. Use the email that received the invite; unrelated estate details stay private.'}
+          </p>
         </div>
 
         {!user && !demoMode && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, maxWidth: 520 }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>Open the task someone sent you.</div>
+            <div style={{ fontSize: 22, marginBottom: 8 }}>Open your private Passage request.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
-              Sign in with the email that received the Passage invite. Passage will show one responsibility at a time, keep the rest of the estate private, and record proof for the coordinator.
+              Sign in with the email that received the Passage invite. Passage will show your assigned task spine, keep the full estate private, and record proof for the coordinator.
             </p>
             <div style={{ display: 'grid', gap: 8, margin: '14px 0 16px' }}>
               {[
@@ -757,8 +768,8 @@ export default function ParticipatingPage() {
                         const openCount = items.filter(item => !isHandled(itemStatus(item))).length;
                         const selected = expandedEstateId === estate.id;
                         return (
-                          <button key={estate.id} onClick={() => setExpandedEstateId(estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, minHeight: 38, padding: '0 13px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.8 }}>
-                            {(estate.deceased_name || estate.name || 'Estate')} ({openCount} task{openCount === 1 ? '' : 's'})
+                          <button key={estate.id} onClick={() => openParticipantEstate(estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, minHeight: 38, padding: '0 13px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.8 }}>
+                            Open {(estate.deceased_name || estate.name || 'Estate')} ({openCount} task{openCount === 1 ? '' : 's'})
                           </button>
                         );
                       })}
@@ -782,11 +793,12 @@ export default function ParticipatingPage() {
                   return (
                 <div className="participant-estate-card" key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
                   <div className="participant-estate-head" style={{ width: '100%', background: 'none', border: 'none', padding: '17px 20px 12px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
-                  <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Participant operating spine</div>
+                  <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Scoped task orchestration spine</div>
                   <div className="participant-estate-head-main" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.2, color: C.ink }}>{estate.deceased_name || estate.name || 'Estate plan'}</div>
                       <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>Role: {estate.role} | Coordinator: {estate.coordinator_name || 'Family coordinator'}{estate.coordinator_email ? ` (${estate.coordinator_email})` : ''}</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 7 }}>You can act on the assigned request, save a note, mark what is waiting, or close it with proof. The coordinator sees your response in the family record.</div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: openItems.length ? C.rose : C.sage, background: openItems.length ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{openItems.length ? `${openItems.length} need you` : 'All clear'}</span>
                         {handledItems.length > 0 && <span style={{ fontSize: 11, fontWeight: 800, color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{handledItems.length} handled</span>}

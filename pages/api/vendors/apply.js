@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { cleanZipList, normalizeVendorCategory, vendorCategoryLabel } from '../../../lib/vendors';
+import { escapeHtml, passageEmailShell } from '../../../lib/brandedEmail';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -18,7 +19,22 @@ async function notifyPassage(vendor) {
       from,
       to: [to],
       subject: 'New Passage vendor application',
-      html: `<p><strong>${vendor.business_name}</strong> applied as ${vendorCategoryLabel(vendor.category)}.</p><p>Email: ${vendor.contact_email || 'n/a'}<br/>Phone: ${vendor.contact_phone || 'n/a'}<br/>ZIPs: ${(vendor.zip_codes_served || []).join(', ') || 'n/a'}</p><p>${vendor.short_description || ''}</p>`,
+      html: passageEmailShell({
+        eyebrow: 'Vendor application',
+        title: `${vendor.business_name} applied as ${vendorCategoryLabel(vendor.category)}.`,
+        intro: 'A vendor applied to receive scoped Passage requests. Review quality, service area, category fit, and approval status before making them available in partner or family flows.',
+        sections: [
+          {
+            label: 'Contact',
+            html: `Email: <strong style="color:#1a1916;">${escapeHtml(vendor.contact_email || 'n/a')}</strong><br/>Phone: ${escapeHtml(vendor.contact_phone || 'n/a')}<br/>ZIPs: ${escapeHtml((vendor.zip_codes_served || []).join(', ') || 'n/a')}`,
+          },
+          {
+            label: 'Description',
+            text: vendor.short_description || 'No description supplied.',
+            tone: 'soft',
+          },
+        ],
+      }),
     }),
   }).catch(() => null);
 }
