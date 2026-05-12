@@ -321,11 +321,27 @@ export default async function handler(req, res) {
 
   const email = userData.user.email.toLowerCase();
   const adminMode = isPassageAdmin(email);
-  const { data: memberships, error: memberError } = await admin
-    .from('organization_members')
-    .select('organization_id, role, status, email, organizations(id,type,name,logo_url,primary_color,white_label_enabled,support_email,from_name)')
-    .ilike('email', email)
-    .eq('status', 'active');
+  let memberships = [];
+  let memberError = null;
+  const membershipSelections = [
+    'organization_id, role, status, email, organizations(id,type,name,logo_url,primary_color,white_label_enabled,support_email,support_phone,from_name,family_portal_name)',
+    'organization_id, role, status, email, organizations(id,type,name,logo_url,primary_color,white_label_enabled,support_email,from_name)',
+    'organization_id, role, status, email, organizations(id,type,name)',
+  ];
+  for (const selection of membershipSelections) {
+    const result = await admin
+      .from('organization_members')
+      .select(selection)
+      .ilike('email', email)
+      .eq('status', 'active');
+    if (!result.error) {
+      memberships = result.data || [];
+      memberError = null;
+      break;
+    }
+    memberError = result.error;
+    if (!schemaColumnError(result.error)) break;
+  }
   if (memberError) return res.status(500).json({ error: memberError.message });
 
   const organizationIds = (memberships || []).map(m => m.organization_id).filter(Boolean);

@@ -507,6 +507,7 @@ export default function FuneralHomeDashboard() {
   const [showPilotGuide, setShowPilotGuide] = useState(false);
   const [staffDraft, setStaffDraft] = useState({ name: '', email: '', role: 'staff', locationScope: 'all', annualSalary: '', hourlyCost: '' });
   const [locationDraft, setLocationDraft] = useState({ name: '', address: '', city: '', state: '', zip: '', country: '', placeId: '' });
+  const [brandingDraft, setBrandingDraft] = useState({ organizationName: '', familyPortalName: '', supportEmail: '', supportPhone: '', logoUrl: '', primaryColor: '#6b8f71', whiteLabelEnabled: true });
   const [importDraft, setImportDraft] = useState(null);
   const [exportRange, setExportRange] = useState({ from: '', to: '' });
   const [copiedKey, setCopiedKey] = useState('');
@@ -551,6 +552,12 @@ export default function FuneralHomeDashboard() {
         setPartnerEmail(emailHint);
         setNotice(`Staff sign-in opened for ${emailHint}.`);
       }
+    }
+    if (params.get('partner') === '1') {
+      setActivePartnerView('manage');
+      const emailHint = params.get('email');
+      if (emailHint) setPartnerEmail(emailHint);
+      setNotice('Partner invite opened. Sign in with the invited email, then confirm brand, locations, employees, and first cases.');
     }
   }, []);
 
@@ -986,6 +993,57 @@ export default function FuneralHomeDashboard() {
         setLocationDraft({ name: '', address: '', city: '', state: '', zip: '', country: '', placeId: '' });
         setShowLocationSetup(false);
       }
+    } finally {
+      setUpdating('');
+    }
+  }
+
+  async function savePartnerBranding(event) {
+    event?.preventDefault?.();
+    if (demoMode || !token) {
+      setData(prev => prev ? {
+        ...prev,
+        organizations: (prev.organizations || []).map((membership, index) => index === 0 ? {
+          ...membership,
+          organizations: {
+            ...(membership.organizations || {}),
+            name: brandingDraft.organizationName || membership.organizations?.name,
+            from_name: brandingDraft.familyPortalName || brandingDraft.organizationName || membership.organizations?.from_name,
+            family_portal_name: brandingDraft.familyPortalName || brandingDraft.organizationName || membership.organizations?.family_portal_name,
+            support_email: brandingDraft.supportEmail || membership.organizations?.support_email,
+            support_phone: brandingDraft.supportPhone || membership.organizations?.support_phone,
+            logo_url: brandingDraft.logoUrl || membership.organizations?.logo_url,
+            primary_color: brandingDraft.primaryColor || membership.organizations?.primary_color,
+            white_label_enabled: brandingDraft.whiteLabelEnabled,
+          },
+        } : membership),
+      } : prev);
+      setNotice('Demo brand saved locally. In production this updates the family-facing partner view.');
+      return;
+    }
+    setUpdating('partner_branding');
+    setError('');
+    setNotice('');
+    try {
+      const res = await fetch('/api/partnerBranding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify(brandingDraft),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not save family-facing brand settings.');
+        return;
+      }
+      setData(prev => prev ? {
+        ...prev,
+        organizations: (prev.organizations || []).map((membership, index) => index === 0 ? {
+          ...membership,
+          organizations: { ...(membership.organizations || {}), ...(json.organization || {}) },
+        } : membership),
+      } : prev);
+      setNotice(json.confirmation || 'Family-facing brand saved.');
+      await load(token);
     } finally {
       setUpdating('');
     }
@@ -1486,6 +1544,15 @@ export default function FuneralHomeDashboard() {
   }
 
   const org = data?.organizations?.[0]?.organizations;
+  const partnerBrand = {
+    organizationName: org?.name || '',
+    familyPortalName: org?.family_portal_name || org?.from_name || org?.name || '',
+    supportEmail: org?.support_email || '',
+    supportPhone: org?.support_phone || '',
+    logoUrl: org?.logo_url || '',
+    primaryColor: org?.primary_color || C.sage,
+    whiteLabelEnabled: org?.white_label_enabled !== false,
+  };
   const cases = data?.cases || [];
   const isAdminDemo = !!data?.isPassageAdmin;
   const totalBlocked = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
@@ -1511,6 +1578,20 @@ export default function FuneralHomeDashboard() {
   const partnerPlan = data?.partnerPlan || null;
   const billingStatus = data?.billingStatus || (partnerPlan?.status === 'demo' ? 'demo' : 'not_configured');
   const partnerTrialExpired = user && data && activationStatus === 'trial_expired';
+
+  useEffect(() => {
+    if (!org) return;
+    setBrandingDraft(prev => ({
+      organizationName: prev.organizationName || org.name || '',
+      familyPortalName: prev.familyPortalName || org.family_portal_name || org.from_name || org.name || '',
+      supportEmail: prev.supportEmail || org.support_email || '',
+      supportPhone: prev.supportPhone || org.support_phone || '',
+      logoUrl: prev.logoUrl || org.logo_url || '',
+      primaryColor: prev.primaryColor || org.primary_color || C.sage,
+      whiteLabelEnabled: org.white_label_enabled !== false,
+    }));
+  }, [org?.id]);
+
   function riskAgeHours(value) {
     if (!value) return 0;
     const time = new Date(value).getTime();
@@ -2058,6 +2139,11 @@ export default function FuneralHomeDashboard() {
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Partner command center</div>
             <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 620, marginTop: 8 }}>One case at a time: next task, owner, waiting point, proof, and export.</p>
+            {user && org && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 10px', color: C.sage, fontSize: 12, fontWeight: 900 }}>
+                Family-facing view: {partnerBrand.familyPortalName || org.name} + Passage
+              </div>
+            )}
           </div>
           <div className="partner-dashboard-actions" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New at-need case</button>}
@@ -2090,11 +2176,17 @@ export default function FuneralHomeDashboard() {
           <div style={{ maxWidth: 540 }}>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 18, padding: '16px 18px', marginBottom: 12 }}>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Partner workspace</div>
-              <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.25, marginBottom: 8 }}>What opens after sign-in</div>
+              <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.25, marginBottom: 8 }}>{router.query.partner === '1' ? 'Your Passage invite opens here' : 'What opens after sign-in'}</div>
+              {router.query.partner === '1' && (
+                <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginBottom: 9 }}>
+                  Sign in with the invited email. The first setup screen confirms your co-branded family view, locations, employees, and first cases.
+                </div>
+              )}
               <div style={{ display: 'grid', gap: 6 }}>
                 {[
                   'Active cases with family progress and next steps',
                   'Staff queue showing who owns what',
+                  'Co-branded family handoff with your funeral home and Passage',
                   'Proof and waiting states tied to the family record',
                   'CSV export back to your existing system',
                 ].map(item => (
@@ -2609,6 +2701,43 @@ export default function FuneralHomeDashboard() {
                 <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
               </div>
             </div>
+
+            <form onSubmit={savePartnerBranding} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 15, padding: 14, marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 10 }}>
+                <div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Co-branded family view</div>
+                  <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 900, marginTop: 3 }}>Families should recognize the funeral home while Passage carries the coordination.</div>
+                  <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 5 }}>These settings feed the partner header, family handoff language, employee invites, and Passage-branded packet context.</div>
+                </div>
+                <button type="submit" disabled={updating === 'partner_branding'} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_branding' ? 'wait' : 'pointer', opacity: updating === 'partner_branding' ? .65 : 1 }}>{updating === 'partner_branding' ? 'Saving...' : 'Save brand'}</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(240px, .45fr)', gap: 12, alignItems: 'stretch' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8 }}>
+                  <input value={brandingDraft.organizationName} onChange={event => setBrandingDraft(prev => ({ ...prev, organizationName: event.target.value }))} placeholder="Funeral home legal/display name" style={inputStyle} />
+                  <input value={brandingDraft.familyPortalName} onChange={event => setBrandingDraft(prev => ({ ...prev, familyPortalName: event.target.value }))} placeholder="Family-facing name" style={inputStyle} />
+                  <input value={brandingDraft.supportEmail} onChange={event => setBrandingDraft(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Support email families can recognize" style={inputStyle} />
+                  <input value={brandingDraft.supportPhone} onChange={event => setBrandingDraft(prev => ({ ...prev, supportPhone: event.target.value }))} placeholder="Support phone" style={inputStyle} />
+                  <input value={brandingDraft.logoUrl} onChange={event => setBrandingDraft(prev => ({ ...prev, logoUrl: event.target.value }))} placeholder="Logo URL (optional)" style={inputStyle} />
+                  <input value={brandingDraft.primaryColor} onChange={event => setBrandingDraft(prev => ({ ...prev, primaryColor: event.target.value }))} placeholder="#6b8f71" style={inputStyle} />
+                </div>
+                <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12 }}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    {brandingDraft.logoUrl ? <img src={brandingDraft.logoUrl} alt="" style={{ width: 42, height: 42, borderRadius: 10, objectFit: 'contain', border: `1px solid ${C.border}`, background: C.bg, padding: 5 }} /> : <div style={{ width: 42, height: 42, borderRadius: 10, display: 'grid', placeItems: 'center', background: C.sageFaint, color: C.sage, border: `1px solid ${C.sage}22`, fontWeight: 900 }}>P</div>}
+                    <div>
+                      <div style={{ color: C.ink, fontSize: 15.5, fontWeight: 900 }}>{brandingDraft.familyPortalName || brandingDraft.organizationName || org?.name || 'Your funeral home'}</div>
+                      <div style={{ color: C.mid, fontSize: 12.2, marginTop: 2 }}>Coordinated with Passage</div>
+                    </div>
+                  </div>
+                  <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.2, lineHeight: 1.4 }}>
+                    Family-safe preview: next task, owner, waiting point, proof, and contact details stay in one record.
+                  </div>
+                  <label style={{ display: 'flex', gap: 8, alignItems: 'center', color: C.mid, fontSize: 12.2, marginTop: 9 }}>
+                    <input type="checkbox" checked={brandingDraft.whiteLabelEnabled} onChange={event => setBrandingDraft(prev => ({ ...prev, whiteLabelEnabled: event.target.checked }))} />
+                    Show funeral-home name beside Passage
+                  </label>
+                </div>
+              </div>
+            </form>
 
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 15, padding: 13, marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>

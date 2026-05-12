@@ -158,6 +158,9 @@ export default function SystemAdminPage() {
   const [dryRunDraft, setDryRunDraft] = useState({ email: '', phone: '', channel: 'email' });
   const [dryRunResult, setDryRunResult] = useState(null);
   const [dryRunLoading, setDryRunLoading] = useState(false);
+  const [partnerInviteDraft, setPartnerInviteDraft] = useState({ organizationName: '', directorName: '', directorEmail: '', supportEmail: '', supportPhone: '' });
+  const [partnerInviteResult, setPartnerInviteResult] = useState(null);
+  const [partnerInviteLoading, setPartnerInviteLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -281,6 +284,34 @@ export default function SystemAdminPage() {
     }
   }
 
+  async function sendPartnerInvite(event) {
+    event?.preventDefault?.();
+    if (!supabase) return;
+    setPartnerInviteLoading(true);
+    setPartnerInviteResult(null);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/partnerInvite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        },
+        body: JSON.stringify(partnerInviteDraft),
+      });
+      const json = await response.json().catch(() => ({}));
+      setPartnerInviteResult({ ok: response.ok, status: response.status, json });
+      if (response.ok) {
+        setPartnerInviteDraft({ organizationName: '', directorName: '', directorEmail: '', supportEmail: '', supportPhone: '' });
+      }
+    } catch (error) {
+      setPartnerInviteResult({ ok: false, status: 0, json: { error: error.message || 'Partner invite failed.' } });
+    } finally {
+      setPartnerInviteLoading(false);
+    }
+  }
+
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <style>{`
@@ -340,28 +371,56 @@ export default function SystemAdminPage() {
             </Panel>
 
             {adminView === 'operations' && (
-            <Panel compact>
-              <div style={eyebrow}>Operations</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(210px, .42fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
-                <div style={{ display: 'grid', gap: 7 }}>
-                  {adminModules.map((module) => (
-                    <button key={module.title} onClick={() => setActiveModuleTitle(module.title)} style={activeModule.title === module.title ? selectedToolButton : toolButton}>
-                      <span>{module.title}</span>
-                      <span style={activeModule.title === module.title ? livePillOnGreen : module.status === 'Live' || module.status === 'Live demo' || module.status === 'Intake live' || module.status === 'Live scaffold' ? livePill : plannedPill}>{module.status}</span>
-                    </button>
-                  ))}
-                </div>
-                <div style={{ background: activeModule.status === 'Roadmap' ? C.amberFaint : C.sageFaint, border: '1px solid ' + (activeModule.status === 'Roadmap' ? '#ead8b8' : '#c8deca'), borderRadius: 16, padding: 17 }}>
-                  <div style={eyebrow}>Selected tool</div>
-                  <h2 style={{ ...h2, marginTop: 6 }}>{activeModule.title}</h2>
-                  <p style={lead}>{activeModule.body}</p>
-                  <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 14 }}>
-                    <Link href={activeModule.href} style={primaryLink}>Open</Link>
-                    <span style={activeModule.status === 'Roadmap' ? plannedPill : livePill}>{activeModule.status}</span>
+            <>
+              <Panel compact>
+                <div style={eyebrow}>Operations</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(210px, .42fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
+                  <div style={{ display: 'grid', gap: 7 }}>
+                    {adminModules.map((module) => (
+                      <button key={module.title} onClick={() => setActiveModuleTitle(module.title)} style={activeModule.title === module.title ? selectedToolButton : toolButton}>
+                        <span>{module.title}</span>
+                        <span style={activeModule.title === module.title ? livePillOnGreen : module.status === 'Live' || module.status === 'Live demo' || module.status === 'Intake live' || module.status === 'Live scaffold' ? livePill : plannedPill}>{module.status}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ background: activeModule.status === 'Roadmap' ? C.amberFaint : C.sageFaint, border: '1px solid ' + (activeModule.status === 'Roadmap' ? '#ead8b8' : '#c8deca'), borderRadius: 16, padding: 17 }}>
+                    <div style={eyebrow}>Selected tool</div>
+                    <h2 style={{ ...h2, marginTop: 6 }}>{activeModule.title}</h2>
+                    <p style={lead}>{activeModule.body}</p>
+                    <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 14 }}>
+                      <Link href={activeModule.href} style={primaryLink}>Open</Link>
+                      <span style={activeModule.status === 'Roadmap' ? plannedPill : livePill}>{activeModule.status}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Panel>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Invite funeral home</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Send the partner-owner setup email.</h2>
+                    <p style={lead}>This creates or updates the funeral-home organization, saves the director as owner, and emails a setup link into the co-branded partner workspace.</p>
+                  </div>
+                  <form onSubmit={sendPartnerInvite} style={{ display: 'grid', gap: 9 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 }}>
+                      <input value={partnerInviteDraft.organizationName} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, organizationName: event.target.value }))} placeholder="Funeral home name" style={inputStyle} />
+                      <input value={partnerInviteDraft.directorName} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, directorName: event.target.value }))} placeholder="Director / owner name" style={inputStyle} />
+                      <input value={partnerInviteDraft.directorEmail} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, directorEmail: event.target.value }))} placeholder="director@funeralhome.com" style={inputStyle} />
+                      <input value={partnerInviteDraft.supportPhone} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, supportPhone: event.target.value }))} placeholder="Support phone" style={inputStyle} />
+                      <input value={partnerInviteDraft.supportEmail} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Family support email (optional)" style={inputStyle} />
+                    </div>
+                    <button type="submit" disabled={partnerInviteLoading} style={{ ...primaryButton, marginTop: 0, justifySelf: 'start', opacity: partnerInviteLoading ? .6 : 1 }}>{partnerInviteLoading ? 'Sending invite...' : 'Create workspace + send invite'}</button>
+                    {partnerInviteResult && (
+                      <div style={{ background: partnerInviteResult.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (partnerInviteResult.ok ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12 }}>
+                        <div style={{ color: partnerInviteResult.ok ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{partnerInviteResult.ok ? 'Invite ready' : 'Invite failed'}</div>
+                        <div style={{ ...smallText, marginTop: 5 }}>{partnerInviteResult.json?.message || partnerInviteResult.json?.error || (partnerInviteResult.json?.inviteUrl ? 'Partner invite sent.' : 'Partner invite processed.')}</div>
+                        {partnerInviteResult.json?.inviteUrl && <input readOnly value={partnerInviteResult.json.inviteUrl} style={{ ...inputStyle, width: '100%', marginTop: 8 }} />}
+                      </div>
+                    )}
+                  </form>
+                </div>
+              </Panel>
+            </>
             )}
 
             {adminView === 'personas' && (
