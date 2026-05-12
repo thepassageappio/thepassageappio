@@ -1157,7 +1157,7 @@ export default function FuneralHomeDashboard() {
       return;
     }
     if (demoMode || !token) {
-      setNotice('Demo workspace: this is the employee invite email preview. No message was sent.');
+      setNotice('Employee invite preview prepared. No message was sent.');
       return;
     }
     setUpdating(`staff_invite_${email}`);
@@ -1199,10 +1199,10 @@ export default function FuneralHomeDashboard() {
 
     if (demoMode || !token) {
       applyLocal(action === 'accept'
-        ? 'Demo workspace: family request accepted into the partner queue. No live message was sent.'
+        ? 'Family request accepted into the partner queue. No live message was sent.'
         : action === 'convert'
-          ? 'Demo workspace: inbound marked converted for reporting.'
-          : 'Demo workspace: inbound request updated.');
+          ? 'Inbound marked converted for reporting.'
+          : 'Inbound request updated.');
       return;
     }
 
@@ -1260,7 +1260,7 @@ export default function FuneralHomeDashboard() {
           ...(prev.partnerLocations || []).filter(location => String(location.name || '').toLowerCase() !== name.toLowerCase()),
         ],
       } : prev);
-      setNotice('Location saved for this demo workspace. It is now available in staff scope, case setup, and reports.');
+      setNotice('Location saved. It is now available in staff scope, case setup, and reports.');
       setLocationDraft({ name: '', address: '', city: '', state: '', zip: '', country: '', placeId: '' });
       setShowLocationSetup(false);
       return;
@@ -1434,7 +1434,7 @@ export default function FuneralHomeDashboard() {
       setShowNewCase(false);
       setShowPilotGuide(false);
       setActivePartnerView('manage');
-      setNotice('Demo step: locations, employees, permissions, and invite handoff.');
+      setNotice('Opening locations, employees, permissions, and invite handoff.');
       scrollPartnerDemoTarget('partner-management-section');
       return;
     }
@@ -1443,7 +1443,7 @@ export default function FuneralHomeDashboard() {
       setShowPilotGuide(false);
       setActivePartnerView('work');
       openCasePanel('immediate');
-      setNotice('Demo step: create an at-need case with only the known details.');
+      setNotice('Opening case creation with only the known details required.');
       scrollPartnerDemoTarget('partner-case-form');
       return;
     }
@@ -1453,7 +1453,7 @@ export default function FuneralHomeDashboard() {
       setShowPilotGuide(false);
       setShowTools(false);
       setActivePartnerView('work');
-      setNotice('Demo step: director sees active cases, waiting items, and ROI.');
+      setNotice('Opening the director command center: active cases, waiting items, and ROI.');
       scrollPartnerDemoTarget('partner-today-section');
       return;
     }
@@ -1467,7 +1467,7 @@ export default function FuneralHomeDashboard() {
         openPartnerWork(firstOpenCase.id);
         scrollPartnerDemoTarget('partner-action-workspace-' + firstOpenCase.id);
       } else {
-        setNotice('Demo step: create a case first, then Passage opens the task spine.');
+        setNotice('Create a case first, then Passage opens the task spine.');
         openCasePanel('immediate');
       }
       return;
@@ -1480,7 +1480,7 @@ export default function FuneralHomeDashboard() {
       setActivePartnerView('work');
       if (firstOpenCase?.id) {
         openPartnerWork(firstOpenCase.id);
-        setNotice('Demo step: communication, proof, and notifications stay attached to the selected case.');
+        setNotice('Opening communication, proof, and notifications for the selected case.');
         scrollPartnerDemoTarget('partner-coordination-spine-' + firstOpenCase.id);
       }
       return;
@@ -1491,7 +1491,7 @@ export default function FuneralHomeDashboard() {
       setShowPilotGuide(false);
       setActivePartnerView('reports');
       setShowTools(true);
-      setNotice('Demo step: close with reporting, CSV export, and adoption trust.');
+      setNotice('Opening reporting, CSV export, and adoption proof.');
       scrollPartnerDemoTarget('partner-reports-section');
     }
   }

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { saveFuneralHomePipelineRequest } from '../../lib/funeralHomePipeline';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -658,6 +659,56 @@ export default async function handler(req, res) {
   }
 
   const workflow = workflowResult.data;
+  const funeralHomeProvider = context.funeralHomeName
+    ? {
+      name: context.funeralHomeName,
+      address: context.funeralHomeAddress,
+      city: context.funeralHomeCity,
+      state: context.funeralHomeState,
+      zip: context.funeralHomeZip,
+      country: context.funeralHomeCountry,
+    }
+    : context.funeralHomeHandoffIntent === 'request_help'
+      ? {
+        name: `Funeral home help requested${context.funeralHomeReferralCity ? ` - ${context.funeralHomeReferralCity}` : ''}${context.funeralHomeReferralState ? `, ${context.funeralHomeReferralState}` : ''}`,
+        city: context.funeralHomeReferralCity,
+        state: context.funeralHomeReferralState,
+        zip: context.funeralHomeReferralZip,
+      }
+      : null;
+
+  if (funeralHomeProvider?.name) {
+    const pipelineResult = await saveFuneralHomePipelineRequest({
+      admin,
+      user,
+      workflow,
+      provider: funeralHomeProvider,
+      source: 'urgent_path',
+      urgency: 'urgent',
+      familyPermission: true,
+      notes: context.funeralHomeHandoffIntent === 'request_help'
+        ? `Family asked Passage to help identify a funeral home. ${context.funeralHomeReferralNote || 'No outreach was sent automatically.'}`
+        : 'Family saved a preferred funeral home during urgent intake. No outreach was sent automatically.',
+      sourceUrl: '/urgent',
+    });
+    if (pipelineResult?.success) {
+      await admin.from('estate_events').insert([{
+        estate_id: workflow.id,
+        event_type: 'funeral_home_request_saved',
+        title: pipelineResult.matchedOrganization ? 'Partner funeral home request saved' : 'Funeral home request saved for Passage review',
+        description: pipelineResult.matchedOrganization
+          ? `${funeralHomeProvider.name} is a Passage partner. The request is available in the partner inbound queue.`
+          : `${funeralHomeProvider.name} was saved as a family-requested funeral home for Passage outreach review.`,
+        payload: {
+          provider: funeralHomeProvider,
+          request_id: pipelineResult.request?.id || null,
+          matched_organization_id: pipelineResult.matchedOrganization?.id || null,
+        },
+        created_at: new Date().toISOString(),
+      }]).then(() => {}, () => {});
+    }
+  }
+
   const ownerLabel = clean(firstOwner?.name);
   const ownerEmail = clean(firstOwner?.email);
   const ownerPhone = clean(firstOwner?.phone);

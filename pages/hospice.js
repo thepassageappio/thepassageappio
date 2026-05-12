@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
+import SmartAddressInput from '../components/SmartAddressInput';
 import { calendlyUrl } from '../lib/scheduling';
 
 const C = {
@@ -124,6 +125,12 @@ export default function HospiceWarmPath() {
     facilityPhone: '',
     careSetting: '',
     funeralHomeName: '',
+    funeralHomeAddress: '',
+    funeralHomeCity: '',
+    funeralHomeState: '',
+    funeralHomeZip: '',
+    funeralHomeCountry: '',
+    funeralHomePlaceId: '',
     expectedWindow: '',
     pronouncementDate: '',
     arrangementDate: '',
@@ -147,6 +154,19 @@ export default function HospiceWarmPath() {
 
   function updateField(field, value) {
     setForm(prev => ({ ...prev, [field]: value }));
+  }
+
+  function updateFuneralHomeAddress(value, parsed = {}) {
+    setForm(prev => ({
+      ...prev,
+      funeralHomeAddress: value,
+      funeralHomeName: prev.funeralHomeName || parsed.placeName || '',
+      funeralHomeCity: parsed.city || prev.funeralHomeCity,
+      funeralHomeState: parsed.state || prev.funeralHomeState,
+      funeralHomeZip: parsed.postalCode || prev.funeralHomeZip,
+      funeralHomeCountry: parsed.country || prev.funeralHomeCountry,
+      funeralHomePlaceId: parsed.placeId || prev.funeralHomePlaceId,
+    }));
   }
 
   async function signIn() {
@@ -284,7 +304,19 @@ export default function HospiceWarmPath() {
                   />
                 </div>
                 <input value={form.careSetting} onChange={event => updateField('careSetting', event.target.value)} placeholder={`Care setting, e.g. ${activeMode.setting}`} style={{ ...inputStyle, marginBottom: 8 }} />
-                <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={{ ...inputStyle, marginBottom: 8 }} />
+                <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(0, 1fr)', gap: 8, marginBottom: 8 }}>
+                  <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={inputStyle} />
+                  <SmartAddressInput
+                    value={form.funeralHomeAddress}
+                    onChange={updateFuneralHomeAddress}
+                    onAddress={parsed => updateFuneralHomeAddress(parsed.formattedAddress || form.funeralHomeAddress, parsed)}
+                    placeholder="Funeral home address"
+                    compact
+                    colors={C}
+                    inputStyle={{ minHeight: 42 }}
+                    hint="Choose a suggestion to attach city, state, ZIP, and country."
+                  />
+                </div>
                 <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if known" style={inputStyle} />
               </details>
               {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{error}</div>}
@@ -328,7 +360,19 @@ export default function HospiceWarmPath() {
                     <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
                     <input value={form.hospicePhone} onChange={event => updateField('hospicePhone', event.target.value)} placeholder="Phone" style={inputStyle} />
                   </div>
-                  <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={{ ...inputStyle, marginBottom: 10 }} />
+                  <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(0, 1fr)', gap: 10, marginBottom: 10 }}>
+                    <input value={form.funeralHomeName} onChange={event => updateField('funeralHomeName', event.target.value)} placeholder="Preferred funeral home, or leave blank" style={inputStyle} />
+                    <SmartAddressInput
+                      value={form.funeralHomeAddress}
+                      onChange={updateFuneralHomeAddress}
+                      onAddress={parsed => updateFuneralHomeAddress(parsed.formattedAddress || form.funeralHomeAddress, parsed)}
+                      placeholder="Funeral home address"
+                      compact
+                      colors={C}
+                      inputStyle={{ minHeight: 42 }}
+                      hint="Choose a suggestion to attach city, state, ZIP, and country."
+                    />
+                  </div>
                   <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if the family knows it" style={{ ...inputStyle, marginBottom: 10 }} />
                   <div className="warm-date-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
                     <WarmDate label="Pronouncement" value={form.pronouncementDate} onChange={value => updateField('pronouncementDate', value)} />

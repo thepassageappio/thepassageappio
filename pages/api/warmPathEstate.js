@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { getTaskPlaybook } from '../../lib/taskPlaybooks';
+import { saveFuneralHomePipelineRequest } from '../../lib/funeralHomePipeline';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -201,6 +202,12 @@ export default async function handler(req, res) {
     care_team_contact: clean(req.body?.careTeamContact) || clean(req.body?.hospiceContact) || clean(req.body?.facilityContact),
     care_team_phone: clean(req.body?.careTeamPhone) || clean(req.body?.hospicePhone) || clean(req.body?.facilityPhone),
     funeral_home_name: clean(req.body?.funeralHomeName),
+    funeral_home_address: clean(req.body?.funeralHomeAddress),
+    funeral_home_city: clean(req.body?.funeralHomeCity),
+    funeral_home_state: clean(req.body?.funeralHomeState),
+    funeral_home_zip: clean(req.body?.funeralHomeZip),
+    funeral_home_country: clean(req.body?.funeralHomeCountry),
+    funeral_home_place_id: clean(req.body?.funeralHomePlaceId),
     authority_contact: clean(req.body?.authorityContact),
     disposition_preference: clean(req.body?.dispositionPreference),
     service_preference: clean(req.body?.servicePreference),
@@ -252,7 +259,15 @@ export default async function handler(req, res) {
         trusted_advisors: {
           ...(existing?.orchestration_summary?.trusted_advisors || {}),
           hospice_or_care_team: warmContext.care_team_contact || warmContext.care_team_name || null,
-          funeral_home: warmContext.funeral_home_name || null,
+          funeral_home: warmContext.funeral_home_name ? {
+            name: warmContext.funeral_home_name,
+            address: warmContext.funeral_home_address || null,
+            city: warmContext.funeral_home_city || null,
+            state: warmContext.funeral_home_state || null,
+            postal_code: warmContext.funeral_home_zip || null,
+            country: warmContext.funeral_home_country || null,
+            place_id: warmContext.funeral_home_place_id || null,
+          } : null,
           healthcare_proxy_or_decision_maker: warmContext.authority_contact || null,
         },
       },
@@ -267,6 +282,51 @@ export default async function handler(req, res) {
     }
 
     const workflow = workflowResult.data;
+    if (warmContext.funeral_home_name) {
+      const pipelineResult = await saveFuneralHomePipelineRequest({
+        admin,
+        user,
+        workflow,
+        provider: {
+          name: warmContext.funeral_home_name,
+          address: warmContext.funeral_home_address,
+          city: warmContext.funeral_home_city,
+          state: warmContext.funeral_home_state,
+          zip: warmContext.funeral_home_zip,
+          country: warmContext.funeral_home_country,
+          placeId: warmContext.funeral_home_place_id,
+        },
+        source: 'warm_path',
+        urgency: 'planning',
+        familyPermission: true,
+        notes: 'Warm-path care-prep record saved a preferred funeral home. No outreach was sent automatically.',
+        sourceUrl: '/hospice',
+      });
+      if (pipelineResult?.success) {
+        await admin.from('estate_events').insert([{
+          estate_id: workflow.id,
+          event_type: 'funeral_home_request_saved',
+          title: pipelineResult.matchedOrganization ? 'Partner funeral home request saved' : 'Funeral home request saved for Passage review',
+          description: pipelineResult.matchedOrganization
+            ? `${warmContext.funeral_home_name} is a Passage partner. The request is available in the partner inbound queue.`
+            : `${warmContext.funeral_home_name} was saved as a family-requested funeral home for Passage outreach review.`,
+          payload: {
+            provider: {
+              name: warmContext.funeral_home_name,
+              address: warmContext.funeral_home_address,
+              city: warmContext.funeral_home_city,
+              state: warmContext.funeral_home_state,
+              zip: warmContext.funeral_home_zip,
+              place_id: warmContext.funeral_home_place_id,
+            },
+            request_id: pipelineResult.request?.id || null,
+            matched_organization_id: pipelineResult.matchedOrganization?.id || null,
+          },
+          created_at: now,
+        }]).then(() => {}, () => {});
+      }
+    }
+
     const tasks = buildWarmPathTasks(warmContext).map(task => ({
       ...task,
       workflow_id: workflow.id,
