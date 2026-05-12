@@ -3,6 +3,11 @@ import { serviceSupabase } from '../../../../lib/taskStatus';
 import { isPassageAdmin } from '../../../../lib/adminAccess';
 import { recordTaskCommunicationEvent } from '../../../../lib/communicationEvents';
 
+function schemaColumnError(error) {
+  const message = String(error?.message || error || '');
+  return /schema cache|column .* does not exist|Could not find the .* column/i.test(message);
+}
+
 async function userCanAssignTask(auth, task) {
   if (auth.source === 'internal') return true;
   const email = auth.user?.email?.toLowerCase();
@@ -79,19 +84,34 @@ export default async function handler(req, res) {
   const updates = {
     assigned_to_name: assigneeName,
     assigned_to_email: assigneeEmail,
-    owner_label: assigneeName,
     recipient: assigneeEmail,
     last_action_at: now,
     last_actor: actorName,
     updated_at: now,
   };
 
-  const { error: updateError } = await serviceSupabase
+  let result = await serviceSupabase
     .from('tasks')
     .update(updates)
     .eq('id', taskId)
     .eq('workflow_id', task.workflow_id);
-  if (updateError) return res.status(500).json({ error: updateError.message });
+
+  if (result.error && schemaColumnError(result.error)) {
+    const compatibleUpdates = {
+      assigned_to_name: assigneeName,
+      assigned_to_email: assigneeEmail,
+      last_action_at: now,
+      last_actor: actorName,
+      updated_at: now,
+    };
+    result = await serviceSupabase
+      .from('tasks')
+      .update(compatibleUpdates)
+      .eq('id', taskId)
+      .eq('workflow_id', task.workflow_id);
+  }
+
+  if (result.error) return res.status(500).json({ error: result.error.message });
 
   await recordTaskCommunicationEvent({
     verb: 'assign',
@@ -113,7 +133,7 @@ export default async function handler(req, res) {
 
   return res.status(200).json({
     success: true,
-    task: Object.assign({}, task, updates),
+    task: Object.assign({}, task, updates, { owner_label: assigneeName }),
     confirmation: 'Recipient saved. Passage can send this task message now.',
   });
 }
