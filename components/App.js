@@ -625,6 +625,9 @@ const handleCheckout = async (planId, userId, userEmail, workflowId = null) => {
 const getEstateSeatLimit = (userData) => {
   const fromDb = Number(userData?.estate_seats_total || 0);
   if (fromDb > 0) return fromDb;
+  const included = Number(userData?.estate_seats_included || 0);
+  const addon = Number(userData?.estate_seats_addon || 0);
+  if (included + addon > 0) return included + addon;
   return PLAN_SEATS[userData?.plan || 'free'] || 1;
 };
 
@@ -3797,6 +3800,27 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   </div>
                 ))}
               </div>
+              <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "12px 13px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 12, alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 9.5, color: C.sage, letterSpacing: ".13em", textTransform: "uppercase", fontWeight: 900, marginBottom: 4 }}>Family record slots</div>
+                  <div style={{ color: C.ink, fontSize: 15, fontWeight: 900, lineHeight: 1.25 }}>{usedGreenSeats}/{estateSeatLimit} planning records used</div>
+                  <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 3 }}>
+                    Planning slots are for green/prep records. Urgent help can still start separately when someone has passed.
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                  {availableGreenSeats > 0 ? (
+                    <button onClick={onStartPlan} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Add family record</button>
+                  ) : isPaidPlan ? (
+                    <>
+                      <button onClick={() => handleCheckout('addon_monthly', user && user.id, user && user.email)} style={{ border: `1px solid ${C.sageLight}`, borderRadius: 11, padding: "10px 13px", background: C.bgCard, color: C.sage, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Add slot $4.99/mo</button>
+                      <button onClick={() => handleCheckout('addon_annual', user && user.id, user && user.email)} style={{ border: `1px solid ${C.border}`, borderRadius: 11, padding: "10px 13px", background: C.bgSubtle, color: C.mid, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Annual $39.99</button>
+                    </>
+                  ) : (
+                    <button onClick={() => window.location.href = '/pricing'} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Choose plan</button>
+                  )}
+                </div>
+              </div>
               {false && <div style={{ marginTop: 12, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: "11px 12px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
                   <div>
@@ -3826,7 +3850,6 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               </div>}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
                 <button onClick={() => onOpenPlan(selectedDashboardEstate)} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>{selectedDashboardEstate?.path === 'green' ? 'Open planning workspace' : 'Continue this estate'}</button>
-                {availableGreenSeats > 0 && <button onClick={onStartPlan} style={{ border: `1px solid ${C.sageLight}`, borderRadius: 11, padding: "10px 13px", background: C.sageFaint, color: C.sage, fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>Add planning estate</button>}
               </div>
             </div>
             <details style={{ background: C.bgCard, borderRadius: 14, padding: 0, border: `1px solid ${C.border}`, marginBottom: 12 }}>

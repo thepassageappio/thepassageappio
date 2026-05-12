@@ -127,19 +127,25 @@ async function recordEntitlement(userId, session) {
   }
 
   if (addon) {
-    const { data: userRow } = await sb.from('users').select('estate_seats_addon').eq('id', userId).single();
+    const { data: userRow } = await sb.from('users').select('estate_seats_addon,estate_seats_included').eq('id', userId).single();
+    const nextAddonSeats = Number(userRow?.estate_seats_addon || 0) + addonSeats;
+    const includedSeats = Number(userRow?.estate_seats_included || 0);
     await updateUserPlan(userId, {
-      estate_seats_addon: (userRow?.estate_seats_addon || 0) + addonSeats,
+      estate_seats_addon: nextAddonSeats,
+      estate_seats_total: Math.max(1, includedSeats + nextAddonSeats),
       plan_status: 'active',
       stripe_customer_id: session.customer || null,
     });
     return;
   }
 
+  const { data: userRow } = await sb.from('users').select('estate_seats_addon').eq('id', userId).single();
+  const addonSeatsTotal = Number(userRow?.estate_seats_addon || 0);
   await updateUserPlan(userId, {
     plan: planId,
     plan_status: 'active',
     estate_seats_included: estateSeats,
+    estate_seats_total: Math.max(1, estateSeats + addonSeatsTotal),
     plan_activated_at: new Date().toISOString(),
     stripe_customer_id: session.customer || null,
     stripe_subscription_id: session.subscription || null,
