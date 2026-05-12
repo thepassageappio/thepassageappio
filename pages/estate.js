@@ -9,6 +9,7 @@ import { getTaskPlaybook } from '../lib/taskPlaybooks';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import VendorSupport from '../components/VendorSupport';
 import PacketGeneratorModal from '../components/PacketGeneratorModal';
+import SmartAddressInput from '../components/SmartAddressInput';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
 import { taskExplanationFor, taskWorkspaceFor } from '../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../lib/taskOrchestration';
@@ -245,6 +246,144 @@ function ProviderActionPanel({ outcome, estateId, onStarted }) {
         </div>
       )}
     </div>
+  );
+}
+
+function FuneralHomeRequestPanel({ estateId, estateName, coordinatorName, defaultNear, compact }) {
+  var q0 = useState(''); var query = q0[0]; var setQuery = q0[1];
+  var n0 = useState(defaultNear || ''); var near = n0[0]; var setNear = n0[1];
+  var r0 = useState([]); var results = r0[0]; var setResults = r0[1];
+  var s0 = useState(null); var selected = s0[0]; var setSelected = s0[1];
+  var m0 = useState(''); var manualName = m0[0]; var setManualName = m0[1];
+  var a0 = useState(''); var manualAddress = a0[0]; var setManualAddress = a0[1];
+  var p0 = useState({}); var parsedAddress = p0[0]; var setParsedAddress = p0[1];
+  var u0 = useState('normal'); var urgency = u0[0]; var setUrgency = u0[1];
+  var note0 = useState(''); var notes = note0[0]; var setNotes = note0[1];
+  var loadingState = useState(false); var loading = loadingState[0]; var setLoading = loadingState[1];
+  var savingState = useState(false); var saving = savingState[0]; var setSaving = savingState[1];
+  var messageState = useState(''); var message = messageState[0]; var setMessage = messageState[1];
+  var activeProvider = selected || (manualName.trim() ? {
+    name: manualName.trim(),
+    address: manualAddress,
+    city: parsedAddress.city,
+    state: parsedAddress.state,
+    zip: parsedAddress.postalCode,
+    country: parsedAddress.country,
+  } : null);
+
+  async function searchFuneralHomes() {
+    setLoading(true);
+    setMessage('');
+    try {
+      var response = await fetch('/api/providerSearch?' + new URLSearchParams({ q: query || 'funeral home', kind: 'funeral home', near: near }).toString());
+      var data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Funeral home search failed.');
+      setResults(data.results || []);
+      setSelected((data.results || [])[0] || null);
+      if (!(data.results || []).length) setMessage('No funeral home found yet. Add the name and address manually below.');
+    } catch (error) {
+      setMessage(error.message || 'Funeral home search failed.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function submitRequest() {
+    if (!estateId) {
+      setMessage('Open a family record before requesting a funeral home.');
+      return;
+    }
+    if (!activeProvider || !activeProvider.name) {
+      setMessage('Choose a funeral home or add one manually first.');
+      return;
+    }
+    setSaving(true);
+    setMessage('');
+    try {
+      var session = await sb.auth.getSession();
+      var token = session && session.data && session.data.session ? session.data.session.access_token : '';
+      var response = await fetch('/api/funeralHomeRequests', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+        body: JSON.stringify({
+          workflowId: estateId,
+          provider: activeProvider,
+          urgency: urgency,
+          notes: notes,
+          source: 'family_estate_spine',
+          familyPermission: true,
+        }),
+      });
+      var data = await response.json().catch(function() { return {}; });
+      if (!response.ok) throw new Error(data.error || 'Could not save this funeral-home request.');
+      var partner = data.matchedOrganization && data.matchedOrganization.name ? ' This funeral home can see the request inside their Passage workspace.' : ' Passage will keep this ready so the team can help connect the family when it is time.';
+      setMessage('Funeral home request saved to this family record.' + partner + ' Nothing is sent without family approval.');
+    } catch (error) {
+      setMessage(error.message || 'Could not save this funeral-home request.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section id="funeral-home-request" style={{ background: compact ? SUBTLE : CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: compact ? '13px 14px' : '16px 18px', marginBottom: compact ? 14 : 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 12, alignItems: 'start', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 10.5, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Funeral home connection</div>
+          <div style={{ fontSize: compact ? 18 : 22, color: INK, lineHeight: 1.15, fontWeight: 900 }}>Choose or request a funeral home for this record.</div>
+          <div style={{ color: MID, fontSize: 12.7, lineHeight: 1.5, marginTop: 6, maxWidth: 760 }}>
+            Search for the funeral home the family wants. Passage keeps the request attached to {estateName || 'this estate'}; participating homes can respond inside Passage, and other homes can be contacted when the family is ready.
+          </div>
+        </div>
+        <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900, whiteSpace: 'nowrap' }}>Family approved</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, .8fr) auto', gap: 8, marginBottom: 9 }}>
+        <input value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Funeral home name" style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 11, padding: '10px 11px', fontFamily: 'inherit', fontSize: 13 }} />
+        <input value={near} onChange={function(e) { setNear(e.target.value); }} placeholder="City or ZIP" style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 11, padding: '10px 11px', fontFamily: 'inherit', fontSize: 13 }} />
+        <button onClick={searchFuneralHomes} disabled={loading} style={{ border: 'none', background: loading ? BORDER : SAGE, color: '#fff', borderRadius: 11, padding: '10px 13px', fontFamily: 'inherit', fontWeight: 900, cursor: loading ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>{loading ? 'Searching...' : 'Search'}</button>
+      </div>
+      {results.length > 0 && (
+        <div style={{ display: 'grid', gap: 7, marginBottom: 10 }}>
+          {results.slice(0, 5).map(function(result) {
+            var active = selected && (selected.placeId || selected.organizationId || selected.name) === (result.placeId || result.organizationId || result.name);
+            return (
+              <button key={result.placeId || result.organizationId || result.name} onClick={function() { setSelected(result); }} style={{ textAlign: 'left', border: '1px solid ' + (active ? SAGE_LIGHT : BORDER), background: active ? SAGE_FAINT : CARD, borderRadius: 12, padding: '9px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                  <div style={{ color: INK, fontSize: 13.5, fontWeight: 900 }}>{result.name}</div>
+                  {result.source === 'passage_partner' && <span style={{ color: SAGE, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 999, padding: '3px 7px', fontSize: 10.5, fontWeight: 900 }}>Passage partner</span>}
+                </div>
+                <div style={{ color: MID, fontSize: 11.8, lineHeight: 1.45, marginTop: 3 }}>{[result.phone, result.address, result.website].filter(Boolean).join(' | ') || 'Details can be added after selection.'}</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <details style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px', marginBottom: 10 }}>
+        <summary style={{ cursor: 'pointer', color: SAGE, fontSize: 12.5, fontWeight: 900 }}>Add manually if search does not find them</summary>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(0, 1.2fr)', gap: 8, marginTop: 9 }}>
+          <input value={manualName} onChange={function(e) { setManualName(e.target.value); setSelected(null); }} placeholder="Funeral home name" style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '9px 10px', fontFamily: 'inherit', fontSize: 13 }} />
+          <SmartAddressInput
+            value={manualAddress}
+            onChange={function(value, parsed) { setManualAddress(value); setParsedAddress(parsed || {}); setSelected(null); }}
+            onAddress={function(parsed) { setParsedAddress(parsed || {}); }}
+            placeholder="Start typing their address"
+            compact
+            colors={{ ink: INK, mid: MID, soft: SOFT, border: BORDER, card: CARD, bg: BG, sage: SAGE, sageFaint: SAGE_FAINT }}
+          />
+        </div>
+      </details>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .65fr) minmax(0, 1.35fr) auto', gap: 8, alignItems: 'center' }}>
+        <select value={urgency} onChange={function(e) { setUrgency(e.target.value); }} style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 11px', fontFamily: 'inherit', fontSize: 13, background: CARD }}>
+          <option value="urgent">Urgent - need contact today</option>
+          <option value="soon">Soon - this week</option>
+          <option value="normal">Normal coordination</option>
+          <option value="planning">Planning ahead</option>
+        </select>
+        <input value={notes} onChange={function(e) { setNotes(e.target.value); }} placeholder="Optional note: relationship, preference, service timing, or concern" style={{ minWidth: 0, border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 11px', fontFamily: 'inherit', fontSize: 13 }} />
+        <button onClick={submitRequest} disabled={saving} style={{ border: 'none', background: saving ? BORDER : SAGE, color: '#fff', borderRadius: 10, padding: '10px 13px', fontFamily: 'inherit', fontWeight: 900, cursor: saving ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>{saving ? 'Saving...' : 'Save request'}</button>
+      </div>
+      {message && <div style={{ background: message.includes('saved') ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (message.includes('saved') ? SAGE_LIGHT : AMBER_BORDER), color: message.includes('saved') ? SAGE : AMBER, borderRadius: 11, padding: '9px 10px', fontSize: 12.5, fontWeight: 800, lineHeight: 1.45, marginTop: 10 }}>{message}</div>}
+    </section>
   );
 }
 
@@ -2381,6 +2520,36 @@ export default function EstatePage() {
     return '/' + query;
   }
 
+  function openEstateSupport(kind) {
+    var keywords = kind === 'documents'
+      ? ['document', 'file', 'certificate', 'will', 'insurance', 'policy', 'proof', 'upload']
+      : ['preference', 'wishes', 'service', 'faith', 'burial', 'cremation', 'music', 'reading'];
+    var targetTask = (tasks || []).find(function(task) {
+      var text = String([task.title, task.description, task.category, task.notes].filter(Boolean).join(' ')).toLowerCase();
+      return keywords.some(function(word) { return text.includes(word); });
+    });
+    if (targetTask) {
+      taskActionFromCommand(targetTask, 'open');
+      return;
+    }
+    var targetOutcomeIndex = (outcomes || []).findIndex(function(outcome) {
+      var text = String([outcome.title, outcome.description, outcome.category, outcome.notes].filter(Boolean).join(' ')).toLowerCase();
+      return keywords.some(function(word) { return text.includes(word); });
+    });
+    if (targetOutcomeIndex >= 0) {
+      setExpanded(targetOutcomeIndex);
+      window.setTimeout(function() {
+        var outcome = outcomes[targetOutcomeIndex];
+        var el = outcome && document.getElementById('outcome_' + outcome.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 40);
+      return;
+    }
+    showToast(kind === 'documents'
+      ? 'No document task is open yet. Use the current next move or generate an output when a document is needed.'
+      : 'No preference task is open yet. Service and family wishes stay inside the family record when added.');
+  }
+
   async function updateOutcome(index, updates) {
     var outcome = outcomes[index];
     if (!outcome?.id) return;
@@ -3213,6 +3382,13 @@ export default function EstatePage() {
         </div>
 
         {/* Outcomes — generated from /urgent or empty state */}
+        <FuneralHomeRequestPanel
+          estateId={estateId}
+          estateName={name}
+          coordinatorName={coordinatorName}
+          defaultNear={estate?.city || estate?.state || estate?.location_name || ''}
+        />
+
         <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">
           <TaskSpineCommandCenter
             activeTab={activeCommandTab}
@@ -3645,12 +3821,12 @@ export default function EstatePage() {
             <div style={{ fontSize: 12.5, fontWeight: 900 }}>Announcement</div>
             <div style={{ fontSize: 11.3, color: MID, lineHeight: 1.35, marginTop: 3 }}>Draft or review family-facing news.</div>
           </button>
-          <button onClick={function() { window.location.href = homeLink('documents'); }}
+          <button onClick={function() { openEstateSupport('documents'); }}
             style={{ textAlign: 'left', border: '1px solid ' + BORDER, background: CARD, color: INK, borderRadius: 12, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             <div style={{ fontSize: 12.5, fontWeight: 900 }}>Estate files</div>
             <div style={{ fontSize: 11.3, color: MID, lineHeight: 1.35, marginTop: 3 }}>Documents and proof stay scoped here.</div>
           </button>
-          <button onClick={function() { window.location.href = homeLink('wishes'); }}
+          <button onClick={function() { openEstateSupport('preferences'); }}
             style={{ textAlign: 'left', border: '1px solid ' + BORDER, background: CARD, color: INK, borderRadius: 12, padding: '11px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
             <div style={{ fontSize: 12.5, fontWeight: 900 }}>Preferences</div>
             <div style={{ fontSize: 11.3, color: MID, lineHeight: 1.35, marginTop: 3 }}>Service, faith, family wishes.</div>

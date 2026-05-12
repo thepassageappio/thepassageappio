@@ -366,6 +366,49 @@ const demoPartnerContext = {
       coordinationSpine: { attentionItems: [] },
     },
   ],
+  funeralHomeRequests: [
+    {
+      id: 'demo-inbound-1',
+      workflow_id: 'demo-case-green',
+      requested_provider_name: 'Hudson Valley Funeral Group',
+      requested_by_name: 'Anna Reed',
+      requested_by_email: 'anna@example.com',
+      requested_by_phone: '845-555-0188',
+      address: 'Beacon, NY',
+      city: 'Beacon',
+      state: 'NY',
+      status: 'matched_partner',
+      urgency: 'soon',
+      source: 'green_path',
+      family_permission_to_contact: true,
+      notes: 'Family is planning ahead and wants a director conversation this week.',
+      estimated_case_value: 7200,
+      requested_at: '2026-05-11T14:20:00Z',
+      case_name: 'Reed planning file',
+      location_name: 'Beacon',
+    },
+    {
+      id: 'demo-inbound-2',
+      workflow_id: 'demo-case-price',
+      requested_provider_name: 'Hudson Valley Funeral Group',
+      requested_by_name: 'Michael Price',
+      requested_by_email: 'michael@example.com',
+      requested_by_phone: '845-555-0137',
+      address: 'Poughkeepsie, NY',
+      city: 'Poughkeepsie',
+      state: 'NY',
+      status: 'accepted',
+      urgency: 'urgent',
+      source: 'red_path',
+      family_permission_to_contact: true,
+      notes: 'Family requested help connecting the active record to the funeral home.',
+      estimated_case_value: 11800,
+      requested_at: '2026-05-10T10:15:00Z',
+      accepted_at: '2026-05-10T10:42:00Z',
+      case_name: 'Price family',
+      location_name: 'Poughkeepsie',
+    },
+  ],
   reports: {},
 };
 
@@ -963,6 +1006,59 @@ export default function FuneralHomeDashboard() {
       }
       setNotice(json.skipped ? (json.message || 'Invite prepared, but email is not configured.') : `Invite sent to ${email}. They can open Passage and sign in with that email.`);
       setLatestStaffInvite({ ...member, inviteSent: !json.skipped, inviteUrl: json.inviteUrl || staffHandoffUrl(email) });
+    } finally {
+      setUpdating('');
+    }
+  }
+
+  async function updateFuneralHomeInbound(request, action) {
+    if (!request?.id) return;
+    const nextStatus = action === 'accept' ? 'accepted' : action === 'convert' ? 'converted' : action === 'archive' ? 'archived' : 'declined';
+    const localRequest = {
+      ...request,
+      status: nextStatus,
+      accepted_at: action === 'accept' ? new Date().toISOString() : request.accepted_at,
+      converted_at: action === 'convert' ? new Date().toISOString() : request.converted_at,
+    };
+    const applyLocal = (message) => {
+      setData(prev => prev ? {
+        ...prev,
+        funeralHomeRequests: (prev.funeralHomeRequests || []).map(item => item.id === request.id ? localRequest : item),
+      } : prev);
+      setNotice(message);
+    };
+
+    if (demoMode || !token) {
+      applyLocal(action === 'accept'
+        ? 'Demo-safe: family request accepted into the partner queue. No live message was sent.'
+        : action === 'convert'
+          ? 'Demo-safe: inbound marked converted for reporting.'
+          : 'Demo-safe: inbound request updated.');
+      return;
+    }
+
+    setUpdating(`fh_request_${request.id}_${action}`);
+    setError('');
+    setNotice('');
+    try {
+      const res = await partnerAuthedFetch('/api/funeralHomeRequests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: request.id, action }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not update this family request.');
+        return;
+      }
+      const updatedRequest = json.request || localRequest;
+      setData(prev => prev ? {
+        ...prev,
+        funeralHomeRequests: (prev.funeralHomeRequests || []).map(item => item.id === request.id ? { ...item, ...updatedRequest } : item),
+      } : prev);
+      setNotice(json.confirmation || (action === 'accept'
+        ? 'Family request accepted. The family record is now ready to coordinate from the partner case list.'
+        : 'Family request updated.'));
     } finally {
       setUpdating('');
     }
@@ -1586,6 +1682,9 @@ export default function FuneralHomeDashboard() {
   };
   const cases = data?.cases || [];
   const isAdminDemo = !!data?.isPassageAdmin;
+  const warmInbounds = data?.funeralHomeRequests || [];
+  const openWarmInbounds = warmInbounds.filter(request => !['declined', 'archived', 'converted'].includes(String(request.status || '').toLowerCase()));
+  const acceptedWarmInbounds = warmInbounds.filter(request => ['accepted', 'converted'].includes(String(request.status || '').toLowerCase()));
   const totalBlocked = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
   const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['sent', 'waiting', 'pending', 'assigned'].includes(t.status || '')).length, 0);
   const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(t => ['handled', 'completed', 'done'].includes(t.status || '')).length, 0);
@@ -2073,6 +2172,7 @@ export default function FuneralHomeDashboard() {
     ? [
       ['work', 'Command center', 'Cases and next moves'],
       ['staff', 'Work queue', 'Assigned work'],
+      ['inbounds', 'Warm inbounds', openWarmInbounds.length ? `${openWarmInbounds.length} family requests` : 'Family requests'],
       ['manage', 'Management', 'Locations and permissions'],
       ['reports', 'Reporting', 'ROI and operations'],
     ]
@@ -2719,6 +2819,90 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
+        {user && !loading && data && activePartnerView === 'inbounds' && isDirectorRole && (
+          <div id="partner-inbounds-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 14 }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Warm family requests</div>
+                <div style={{ fontSize: 24, lineHeight: 1.15, marginTop: 3 }}>Families can connect their record to the funeral home they trust.</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5, maxWidth: 760 }}>
+                  Requests start from the family record, not a cold directory. Accepting one brings the family context into your case spine; nothing is sent outside Passage without review.
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(90px, 1fr))', gap: 8, minWidth: 300 }}>
+                {[
+                  ['Open', openWarmInbounds.length],
+                  ['Accepted', acceptedWarmInbounds.length],
+                  ['Estimated value', moneyDisplay(warmInbounds.reduce((sum, request) => sum + Number(request.estimated_case_value || 0), 0))],
+                ].map(([label, value]) => (
+                  <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '9px 10px' }}>
+                    <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                    <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, marginTop: 3 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {warmInbounds.length === 0 ? (
+              <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16 }}>
+                <div style={{ color: C.ink, fontSize: 17, fontWeight: 900 }}>No family requests yet.</div>
+                <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>
+                  When a family chooses or requests this funeral home from a Passage record, the request appears here with urgency, permission, and the context your team needs to respond.
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 10 }}>
+                {warmInbounds.map(request => {
+                  const status = String(request.status || 'requested').toLowerCase();
+                  const active = !['declined', 'archived', 'converted'].includes(status);
+                  const contactLine = [request.requested_by_name, request.requested_by_email, request.requested_by_phone].filter(Boolean).join(' · ');
+                  const addressText = String(request.address || '');
+                  const addressAlreadyScoped = addressText && [request.city, request.state, request.zip].filter(Boolean).some(part => addressText.toLowerCase().includes(String(part).toLowerCase()));
+                  const placeLine = addressAlreadyScoped ? addressText : [request.address, request.city, request.state, request.zip].filter(Boolean).join(', ');
+                  return (
+                    <div key={request.id} style={{ background: active ? C.sageFaint : C.bg, border: `1px solid ${active ? C.sage + '33' : C.border}`, borderRadius: 15, padding: 14 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{request.urgency || 'normal'} request</div>
+                          <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 900, marginTop: 3 }}>{request.case_name || request.requested_provider_name || 'Family request'}</div>
+                          <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>
+                            {contactLine || 'Family contact not shared yet'}{placeLine ? ` · ${placeLine}` : ''}
+                          </div>
+                        </div>
+                        <span style={{ background: status === 'accepted' || status === 'converted' ? C.sage : status === 'declined' ? C.rose : C.card, color: status === 'accepted' || status === 'converted' ? '#fff' : status === 'declined' ? '#fff' : C.mid, border: `1px solid ${status === 'accepted' || status === 'converted' ? C.sage : status === 'declined' ? C.rose : C.border}`, borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 900 }}>
+                          {status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginTop: 10 }}>
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                          <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Permission</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{request.family_permission_to_contact ? 'Family approved contact through Passage.' : 'Review before contacting outside Passage.'}</div>
+                        </div>
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                          <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Source</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{String(request.source || 'family record').replace(/_/g, ' ')}</div>
+                        </div>
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                          <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Value</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{request.estimated_case_value ? moneyDisplay(request.estimated_case_value) : 'Add value once known'}</div>
+                        </div>
+                      </div>
+                      {request.notes && (
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 8 }}>{request.notes}</div>
+                      )}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                        <button disabled={updating === `fh_request_${request.id}_accept` || status === 'accepted'} onClick={() => updateFuneralHomeInbound(request, 'accept')} style={{ border: 'none', background: status === 'accepted' ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: status === 'accepted' ? 'default' : 'pointer' }}>{status === 'accepted' ? 'Accepted' : 'Accept into cases'}</button>
+                        <button disabled={updating === `fh_request_${request.id}_decline`} onClick={() => updateFuneralHomeInbound(request, 'decline')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Decline</button>
+                        <button disabled={updating === `fh_request_${request.id}_convert`} onClick={() => updateFuneralHomeInbound(request, 'convert')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark converted</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {user && !loading && data && activePartnerView === 'manage' && isDirectorRole && (
           <div id="partner-management-section" data-demo-anchor="demo-partner-setup" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 14 }}>
@@ -3266,6 +3450,7 @@ export default function FuneralHomeDashboard() {
                   ['locations', 'Locations'],
                   ['staff', 'Staff'],
                   ['tasks', 'Tasks'],
+                  ['inbounds', 'Warm inbounds'],
                   ['cases', 'Cases'],
                 ].map(([key, label]) => (
                   <button key={key} onClick={() => setReportView(key)} style={{ border: `1px solid ${reportView === key ? C.sage : C.border}`, background: reportView === key ? C.sage : C.card, color: reportView === key ? '#fff' : C.mid, borderRadius: 999, padding: '8px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
@@ -3283,6 +3468,8 @@ export default function FuneralHomeDashboard() {
                 ['Messages sent', reportScopedMessages.length],
                 ['Participants invited', reportScopedParticipants.length],
                 ['Participants accepted', reportAcceptedParticipants.length],
+                ['Warm inbounds', reports.warmInboundRequests ?? warmInbounds.length],
+                ['Open inbounds', reports.warmInboundOpen ?? openWarmInbounds.length],
                 ['Vendor quotes', reportVendorQuoteReady],
                 ['Quotes accepted', reportVendorAccepted],
                 ['Tasks resolved', reportHandledTasks.length],
@@ -3314,6 +3501,7 @@ export default function FuneralHomeDashboard() {
                     ['Tasks completed per day', reportTasksPerDay, 'Shows throughput for the selected range.'],
                     ['Messages sent', reportScopedMessages.length, 'Measures family-facing coordination volume.'],
                     ['Participant activation', `${reportAcceptedParticipants.length}/${reportScopedParticipants.length}`, 'Shows whether family helpers accepted scoped access instead of joining the full workspace.'],
+                    ['Warm family requests', `${warmInbounds.length} total / ${openWarmInbounds.length} open / ${acceptedWarmInbounds.length} accepted`, 'Families who asked to connect their record to this funeral home.'],
                     ['Vendor quote pipeline', `${reportScopedVendorRequests.length} requested / ${reportVendorQuoteReady} ready / ${reportVendorAccepted} accepted`, 'Shows local support requests without turning Passage into a directory.'],
                   ]}
                 />
@@ -3349,6 +3537,20 @@ export default function FuneralHomeDashboard() {
                 title="By task type"
                 columns={['Task', 'Total', 'Handled', 'Waiting', 'Blocked']}
                 rows={reportTaskSummaryRows}
+              />
+            )}
+            {reportView === 'inbounds' && (
+              <ReportTable
+                title="Warm family requests"
+                columns={['Family / case', 'Urgency', 'Status', 'Source', 'Permission', 'Estimated value']}
+                rows={warmInbounds.map(request => [
+                  request.case_name || request.requested_by_name || request.requested_provider_name || 'Family request',
+                  request.urgency || 'normal',
+                  String(request.status || 'requested').replace(/_/g, ' '),
+                  String(request.source || 'family record').replace(/_/g, ' '),
+                  request.family_permission_to_contact ? 'Approved' : 'Review first',
+                  request.estimated_case_value ? moneyDisplay(request.estimated_case_value) : '$0',
+                ])}
               />
             )}
             {reportView === 'cases' && (

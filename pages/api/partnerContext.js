@@ -62,6 +62,27 @@ async function selectOrganizationLocations(organizationIds) {
   return [];
 }
 
+async function selectFuneralHomeRequests(organizationIds) {
+  if (!organizationIds?.length) return [];
+  const selections = [
+    'id,workflow_id,requested_provider_name,requested_by_email,requested_by_name,address,city,state,zip,phone,website,maps_url,matched_organization_id,status,urgency,source,relationship,family_permission_to_contact,notes,estimated_case_value,requested_at,accepted_at,declined_at,converted_at,created_at,updated_at',
+    'id,workflow_id,requested_provider_name,requested_by_email,address,phone,website,matched_organization_id,status,urgency,source,notes,requested_at,updated_at',
+    'id,workflow_id,requested_provider_name,matched_organization_id,status,urgency,requested_at',
+  ];
+  for (const selection of selections) {
+    const { data, error } = await admin
+      .from('funeral_home_requests')
+      .select(selection)
+      .in('matched_organization_id', organizationIds)
+      .neq('status', 'archived')
+      .order('requested_at', { ascending: false })
+      .limit(80);
+    if (!error) return data || [];
+    if (error?.code !== '42P01' && !schemaColumnError(error)) return [];
+  }
+  return [];
+}
+
 function locationNameForWorkflow(workflow) {
   const ref = String(workflow?.organization_case_reference || workflow?.case_reference || '');
   if (/MULTI-002/i.test(ref)) return 'Poughkeepsie';
@@ -400,6 +421,7 @@ export default async function handler(req, res) {
   let statusEvents = [];
   let communications = [];
   let vendorRequests = [];
+  let funeralHomeRequests = [];
   let familyParticipants = [];
   let serviceEvents = [];
   if (workflowIds.length > 0) {
@@ -459,6 +481,7 @@ export default async function handler(req, res) {
       .limit(160);
     serviceEvents = serviceEventData || [];
   }
+  funeralHomeRequests = await selectFuneralHomeRequests(organizationIds);
 
   const cases = visibleWorkflows.map(w => {
     const rawCaseTasks = tasks.filter(t => t.workflow_id === w.id);
@@ -506,6 +529,15 @@ export default async function handler(req, res) {
 
   const allTasks = cases.flatMap(item => (item.tasks || []).map(task => ({ ...task, case_id: item.id, case_name: item.deceased_name || item.estate_name || item.name || 'Family case', location_name: locationNameForWorkflow(item) })));
   const allVendorRequests = cases.flatMap(item => (item.vendorRequests || []).map(request => ({ ...request, case_id: item.id, case_name: item.deceased_name || item.estate_name || item.name || 'Family case', location_name: locationNameForWorkflow(item) })));
+  const allFuneralHomeRequests = funeralHomeRequests.map(request => {
+    const caseItem = cases.find(item => String(item.id) === String(request.workflow_id));
+    return {
+      ...request,
+      case_id: request.workflow_id,
+      case_name: caseItem?.deceased_name || caseItem?.estate_name || caseItem?.name || 'Requested family record',
+      location_name: caseItem ? locationNameForWorkflow(caseItem) : 'Inbound family',
+    };
+  });
   const allCommunications = cases.flatMap(item => item.communications || []);
   const activeTasks = allTasks.filter(task => !isHandledStatus(task.status));
   const handledTasks = allTasks.filter(task => isHandledStatus(task.status));
@@ -589,6 +621,9 @@ export default async function handler(req, res) {
     communicationsLogged: allCommunications.length,
     assignmentsCoordinated: allTasks.filter(task => task.assigned_to_email || task.assigned_to_name).length,
     callsAvoided: allCommunications.length + allTasks.filter(task => task.assigned_to_email || task.assigned_to_name).length + allVendorRequests.length,
+    warmInboundRequests: allFuneralHomeRequests.length,
+    warmInboundAccepted: allFuneralHomeRequests.filter(request => ['accepted', 'converted'].includes(String(request.status || '').toLowerCase())).length,
+    warmInboundOpen: allFuneralHomeRequests.filter(request => ['requested', 'matched_partner', 'partner_notified', 'outreach_needed'].includes(String(request.status || '').toLowerCase())).length,
     avgTasksPerEstate: cases.length ? Math.round((allTasks.length / cases.length) * 10) / 10 : 0,
     totalCaseValue,
     prepaidCaseValue,
@@ -616,6 +651,7 @@ export default async function handler(req, res) {
     featureFlags,
     partnerContexts,
     cases,
+    funeralHomeRequests: allFuneralHomeRequests,
     staff,
     partnerLocations: managedLocations,
     reports,

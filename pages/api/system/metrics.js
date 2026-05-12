@@ -314,6 +314,9 @@ export default async function handler(req, res) {
     deliveredNotifications,
     leads,
     leadsInRange,
+    funeralHomeRequests,
+    funeralHomeRequestsOpen,
+    funeralHomeRequestsAccepted,
     recentLeads,
     subscriptionRows,
     userProfiles,
@@ -341,6 +344,9 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'notification_log', [{ op: 'eq', column: 'status', value: 'delivered' }]),
     countRows(auth.admin, 'leads'),
     countRows(auth.admin, 'leads', dateFilters('created_at', range.since)),
+    countRows(auth.admin, 'funeral_home_requests'),
+    countRows(auth.admin, 'funeral_home_requests', [{ op: 'in', column: 'status', value: ['requested', 'matched_partner', 'partner_notified', 'outreach_needed'] }]),
+    countRows(auth.admin, 'funeral_home_requests', [{ op: 'in', column: 'status', value: ['accepted', 'converted'] }]),
     fetchRecentLeads(auth.admin),
     fetchSubscriptionRows(auth.admin),
     fetchUserProfiles(auth.admin),
@@ -381,6 +387,9 @@ export default async function handler(req, res) {
     metric('Delivered notifications', deliveredNotifications),
     metric('Leads and support inquiries', leads),
     metric(`Leads (${range.days}d)`, leadsInRange),
+    metric('Funeral-home family requests', funeralHomeRequests),
+    metric('Open funeral-home requests', funeralHomeRequestsOpen),
+    metric('Accepted funeral-home requests', funeralHomeRequestsAccepted),
   ];
 
   if (req.query.format === 'csv') {
