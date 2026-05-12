@@ -3668,11 +3668,13 @@ export default function FuneralHomeDashboard() {
                     const firstAssignee = assignmentOptions[0] || null;
                     const applyAssignee = (option) => setAssignmentDraft(prev => ({
                       ...prev,
+                      mode: 'saved',
                       name: option?.name || '',
                       email: option?.email || '',
                       role: option?.role || '',
                       phone: option?.phone || '',
                     }));
+                    const assigningNewOwner = assignmentDraft.mode === 'new' || !assignmentOptions.length || !assignmentDraft.email || !assignmentOptions.some(option => option.email === assignmentDraft.email);
                     const packetText = taskPreparedPacketFor(nextPartnerTask, {
                       caseName: item?.deceased_name || item?.estate_name || item?.name || 'this case',
                       coordinatorName: item.coordinator_name,
@@ -3788,8 +3790,8 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Assign owner</div>
                               <button onClick={() => setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' })} aria-label="Close assignment" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                             </div>
-                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>Saved employees, roles, family coordinators, and participants appear here as the uniform owner list for this estate task. Location context stays attached to the case.</div>
-                            {assignmentOptions.length > 0 ? (
+                            <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>Choose a saved employee or case contact for this task. To create a real funeral-home employee with role, location, and permission settings, use Management first.</div>
+                            {assignmentOptions.length > 0 && assignmentDraft.mode !== 'new' ? (
                               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8, marginTop: 10, alignItems: 'center' }}>
                                 <select
                                   value={assignmentDraft.email || ''}
@@ -3800,23 +3802,26 @@ export default function FuneralHomeDashboard() {
                                     <option key={`${option.type}_${option.email || option.name}`} value={option.email}>{option.label}</option>
                                   ))}
                                 </select>
-                                <button onClick={() => setAssignmentDraft(prev => ({ ...prev, name: '', email: '', role: '', phone: '' }))} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '9px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Manual</button>
+                                <button onClick={() => setAssignmentDraft(prev => ({ ...prev, mode: 'new', name: '', email: '', role: 'staff', phone: '' }))} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '9px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Add one-time owner</button>
                               </div>
                             ) : (
                               <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '9px 10px', color: C.amber, fontSize: 12.2, lineHeight: 1.45, marginTop: 10 }}>
-                                <div>No employees or case contacts are saved yet.</div>
-                                <button onClick={() => openPartnerManagement('Add an employee or case contact first; saved people appear in this owner dropdown.')} style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Open management</button>
+                                <div>{assignmentOptions.length ? 'Adding a one-time owner for this task. They will not become a saved employee until you add them in Management.' : 'No employees or case contacts are saved yet.'}</div>
+                                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
+                                  {assignmentOptions.length > 0 && <button onClick={() => applyAssignee(firstAssignee)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Use saved person</button>}
+                                  <button onClick={() => { setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' }); openPartnerManagement('Opening employee setup. Add employees here so they appear in every owner dropdown with role and location context.'); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Create employee in Management</button>
+                                </div>
                               </div>
                             )}
-                            {(!assignmentDraft.email || !assignmentOptions.some(option => option.email === assignmentDraft.email)) && (
+                            {assigningNewOwner && (
                               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
-                                <input value={assignmentDraft.name} onChange={event => setAssignmentDraft(prev => ({ ...prev, name: event.target.value }))} placeholder="Name or role" style={inputStyle} />
-                                <input value={assignmentDraft.email} onChange={event => setAssignmentDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="Email address" style={inputStyle} />
-                                <input value={assignmentDraft.role} onChange={event => setAssignmentDraft(prev => ({ ...prev, role: event.target.value }))} placeholder="Role: staff, executor, clergy..." style={inputStyle} />
+                                <input value={assignmentDraft.name} onChange={event => setAssignmentDraft(prev => ({ ...prev, mode: 'new', name: event.target.value }))} placeholder="New owner name" style={inputStyle} />
+                                <input value={assignmentDraft.email} onChange={event => setAssignmentDraft(prev => ({ ...prev, mode: 'new', email: event.target.value }))} placeholder="Email for assignment" style={inputStyle} />
+                                <input value={assignmentDraft.role} onChange={event => setAssignmentDraft(prev => ({ ...prev, mode: 'new', role: event.target.value }))} placeholder="Role: staff, executor, clergy..." style={inputStyle} />
                               </div>
                             )}
                             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
-                              <button disabled={updating === nextPartnerTask.id + 'assign'} onClick={() => assignTaskOwner(nextPartnerTask)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === nextPartnerTask.id + 'assign' ? 'Saving...' : 'Save owner and proof'}</button>
+                              <button disabled={updating === nextPartnerTask.id + 'assign'} onClick={() => assignTaskOwner(nextPartnerTask)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === nextPartnerTask.id + 'assign' ? 'Saving...' : assigningNewOwner ? 'Save one-time owner and proof' : 'Save owner and proof'}</button>
                               <button onClick={() => setAssignmentDraft({ taskId: '', name: '', email: '', role: '', phone: '' })} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
                             </div>
                           </div>
