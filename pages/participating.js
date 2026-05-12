@@ -147,6 +147,27 @@ function normalizeItems(estate) {
     });
 }
 
+function openItemCount(estate) {
+  return normalizeItems(estate).filter(item => !isHandled(item)).length;
+}
+
+function chooseParticipantEstate(estates = [], query = {}, previousId = '') {
+  const linkedEstate = String(query.estate || '').trim();
+  if (linkedEstate && estates.some(estate => estate.id === linkedEstate)) return linkedEstate;
+  const linkedTask = String(query.task || '').trim();
+  if (linkedTask) {
+    const taskEstate = estates.find(estate => normalizeItems(estate).some(item => item.id === linkedTask));
+    if (taskEstate?.id) return taskEstate.id;
+  }
+  if (previousId && estates.some(estate => estate.id === previousId && openItemCount(estate) > 0)) return previousId;
+  const firstOpen = estates.find(estate => openItemCount(estate) > 0);
+  return firstOpen?.id || previousId || estates[0]?.id || '';
+}
+
+function participantEstateLabel(estate) {
+  return estate?.deceased_name || estate?.name || 'Family record';
+}
+
 function itemTitle(item) {
   return sharedTaskTitle(item);
 }
@@ -527,8 +548,10 @@ export default function ParticipatingPage() {
     if (!r.ok) setError(json.error || 'Could not load participating estates.');
     else setData(json);
     if (json?.estates?.length) {
-      const linkedEstate = router.query.estate;
-      setExpandedEstateId(prev => linkedEstate || prev || json.estates[0].id);
+      setExpandedEstateId(prev => chooseParticipantEstate(json.estates, {
+        estate: router.query.estate || acceptedInvite?.estateId,
+        task: router.query.task || acceptedInvite?.taskId,
+      }, prev));
     }
     setLoading(false);
   }
@@ -787,9 +810,10 @@ export default function ParticipatingPage() {
                         const items = normalizeItems(estate);
                         const openCount = items.filter(item => !isHandled(item)).length;
                         const selected = expandedEstateId === estate.id;
+                        const label = participantEstateLabel(estate);
                         return (
                           <button key={estate.id} onClick={() => openParticipantEstate(estate.id)} style={{ border: `1px solid ${selected ? C.sage : C.border}`, background: selected ? C.sageFaint : C.card, color: selected ? C.sage : C.mid, borderRadius: 999, minHeight: 38, padding: '0 13px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', fontSize: 12.8 }}>
-                            Open {(estate.deceased_name || estate.name || 'Estate')} ({openCount} task{openCount === 1 ? '' : 's'})
+                            {selected ? 'Viewing' : 'Switch to'} {label} - {openCount ? `${openCount} open` : 'All clear'}
                           </button>
                         );
                       })}
@@ -807,9 +831,12 @@ export default function ParticipatingPage() {
                   const handledItems = items.filter(item => isHandled(item));
                   const linkedItem = items.find(item => item.id === router.query.task);
                   const focusedItem = lastFocusedItem ? items.find(item => item.id === lastFocusedItem.id && item._kind === lastFocusedItem.kind) : null;
-                  const primaryItem = linkedItem || focusedItem || openItems[0] || handledItems[0];
+                  const activeLinkedItem = linkedItem && !isHandled(linkedItem) ? linkedItem : null;
+                  const activeFocusedItem = focusedItem && !isHandled(focusedItem) ? focusedItem : null;
+                  const primaryItem = activeLinkedItem || activeFocusedItem || openItems[0] || linkedItem || focusedItem || handledItems[0];
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
                   const showOpenList = showOtherOpen[estate.id];
+                  const allClear = openItems.length === 0;
                   return (
                 <div className="participant-estate-card" key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
                   <div className="participant-estate-head" style={{ width: '100%', background: 'none', border: 'none', padding: '17px 20px 12px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
@@ -818,7 +845,11 @@ export default function ParticipatingPage() {
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.2, color: C.ink }}>{estate.deceased_name || estate.name || 'Estate plan'}</div>
                       <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>Role: {estate.role} | Coordinator: {estate.coordinator_name || 'Family coordinator'}{estate.coordinator_email ? ` (${estate.coordinator_email})` : ''}</div>
-                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 7 }}>You can act on the assigned request, save a note, mark what is waiting, or close it with proof. The coordinator sees your response in the family record.</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 7 }}>
+                        {allClear
+                          ? 'No action is needed right now. This is your receipt: the coordinator can see what was handled, when it changed, and where the proof lives.'
+                          : 'You can act on the assigned request, save a note, mark what is waiting, or close it with proof. The coordinator sees your response in the family record.'}
+                      </div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: openItems.length ? C.rose : C.sage, background: openItems.length ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{openItems.length ? `${openItems.length} need you` : 'All clear'}</span>
                         {handledItems.length > 0 && <span style={{ fontSize: 11, fontWeight: 800, color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{handledItems.length} handled</span>}
@@ -832,7 +863,7 @@ export default function ParticipatingPage() {
                     <div className="participant-estate-body" style={{ padding: '0 20px 20px' }}>
                       <div className="participant-estate-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
                         {[
-                          ['Asked of you', primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
+                          ['Asked of you', allClear ? 'All assigned work is handled' : primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
                           ['Still waiting', openItems.length],
                           ['Saved updates', estate.coordinationSpine?.latest?.length || 0],
                         ].map(([label, value]) => (
@@ -842,7 +873,23 @@ export default function ParticipatingPage() {
                           </div>
                         ))}
                       </div>
-                      {primaryItem && (
+                      {allClear && (
+                        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 16, padding: 16, marginBottom: 12, color: C.mid }}>
+                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>All set</div>
+                          <div style={{ color: C.ink, fontSize: 22, lineHeight: 1.18, fontWeight: 900 }}>No action is needed from you right now.</div>
+                          <p style={{ fontSize: 13.5, lineHeight: 1.55, margin: '8px 0 0' }}>
+                            Your part is handled for this family record. The coordinator can see your status, timestamp, and proof in Passage. If they need anything else, it will appear here as a new request.
+                          </p>
+                          {primaryItem && (
+                            <div style={{ marginTop: 12, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px' }}>
+                              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Most recent handled item</div>
+                              <div style={{ color: C.ink, fontSize: 15, fontWeight: 900, marginTop: 4 }}>{itemTitle(primaryItem)}</div>
+                              <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>{taskExpectedUpdate(primaryItem, 'participant') || 'Saved to the family record.'}</div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {primaryItem && !allClear && (
                         <ParticipantItem
                           item={primaryItem}
                           linked={primaryItem.id === router.query.task}
@@ -905,11 +952,11 @@ export default function ParticipatingPage() {
                       {handledItems.length > 0 && (
                         <div style={{ marginTop: 12 }}>
                           <button onClick={() => setShowHandled(prev => ({ ...prev, [estate.id]: !prev[estate.id] }))} style={{ width: '100%', border: `1px solid ${C.border}`, background: C.card, borderRadius: 11, padding: '9px 12px', color: C.mid, cursor: 'pointer', fontFamily: 'Georgia,serif', fontSize: 13, fontWeight: 800 }}>
-                            {showHandled[estate.id] ? 'Hide handled items' : `Show ${handledItems.length} handled item${handledItems.length === 1 ? '' : 's'}`}
+                            {showHandled[estate.id] ? 'Hide completed receipt' : allClear ? 'Show completed receipt' : `Show ${handledItems.length} handled item${handledItems.length === 1 ? '' : 's'}`}
                           </button>
                           {showHandled[estate.id] && handledItems.slice(0, 8).map(item => (
                             <div key={(item.id || itemTitle(item)) + 'handled'} style={{ borderTop: `1px solid ${C.border}`, padding: '9px 2px', fontSize: 13, color: C.mid }}>
-                              <strong style={{ color: C.ink }}>{itemTitle(item)}</strong><br />Handled
+                              <strong style={{ color: C.ink }}>{itemTitle(item)}</strong><br />Handled. The coordinator can see this on the family record.
                             </div>
                           ))}
                         </div>
