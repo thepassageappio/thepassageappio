@@ -54,6 +54,10 @@ Focus:
 - Communication logs, case progression states, role management, and staff workflow optimization.
 - Location, employee, task, response-time, marketplace, and ROI reporting without exposing Passage-only business data.
 - End-to-end proof: create case -> family link -> task assignment -> staff/funeral home action -> family-visible update -> export/report.
+- Self-service partner launch: Passage admin invites director -> director sets branding, locations, employees, roles, case source, first case, first family handoff, and first proof from one management pane.
+- Family ownership handoff: funeral homes can coordinate work, but the family owns the durable record after invite acceptance and after the service. The record must continue into estate, notifications, remembrance, vendors, and future provider handoffs.
+- Organic inbound pipeline: direct red/green families can request or select a funeral home from the estate spine; partner funeral homes see warm inbound requests; non-partner requests become Passage admin outreach leads.
+- Shared provider/address model: funeral homes, locations, vendors, hospice locations, and care facilities use the same smart address and normalized contact pattern so future wedges do not fork the spine.
 
 ### Sprint D: Trust / Security / Enterprise Readiness
 
@@ -189,6 +193,10 @@ The schema can tell a sophisticated product story, but the demo is not credible 
 
 - Partner identity: at least one test funeral-home `organization` and `funeral_home_partner` must exist before partner dashboard QA.
 - Family handoff: partner case creation must write the `estate_participants` or equivalent participation link that lets a family open the correct command center.
+- Partner invite: Passage system admin must be able to invite a funeral-home owner/director into a setup path, and that director must see co-branding, locations, employees, role permissions, case loading, family handoff, and reporting before being asked to operate live cases.
+- Employee/vendor invite: saving an employee or vendor contact must lead to a reviewed Passage invite, not a copy-only note or an ambiguous manual button.
+- Family ownership handoff: accepted family links must make ownership explicit. Funeral-home access is provider-scoped; the family record persists beyond the funeral-home engagement.
+- Warm inbound request: a family-requested funeral home must create either a partner-visible inbound request or a Passage-admin lead if the funeral home is not yet onboarded.
 - Terminal task state: marking handled must update both the audit/status event and the task row's terminal status used by dashboards and reports.
 - Vendor loop: seeded `marketplace_providers` must connect to at least one task-native `vendor_request` or explicitly remain hidden from demo claims.
 - Entitlement loop: pricing CTAs must either complete a test Stripe entitlement path or route to a visible contact/pilot fallback. They may not pretend payment is live if `subscriptions`, `accounts`, and `account_entitlements` are empty.

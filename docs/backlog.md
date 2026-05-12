@@ -26,6 +26,15 @@
 
 ## Next
 
+- P0 Self-Service and Production Readiness Sprint:
+  - P0: make funeral-home owner/director invitation a real setup loop: Passage admin sends invite, director signs in, confirms co-branded family view, adds locations, adds employees, sends employee invites, creates/imports first case, invites family, and reaches first proof without founder narration.
+  - P0: make employee/vendor/hospice/care-facility staff creation consistent across the spine: save person, review invite, send Passage email, recipient authenticates, lands in the correct role-native workspace, and appears in assignment dropdowns where allowed.
+  - P0: make family handoff ownership explicit. A funeral home can start or manage a case, but the family coordinator owns the durable family record after acceptance and after service. Post-service copy must say the record continues for estate, notifications, remembrance, vendors, and future handoffs.
+  - P0: add family-to-funeral-home request pipeline. Direct red/green users can search for or request a funeral home from the estate spine; partner funeral homes see warm inbound requests in their dashboard; non-partner requests create Passage admin leads for outreach.
+  - P0: add a shared smart address component and normalized address model for funeral homes, funeral-home locations, vendors, hospice locations, care facilities, and family-requested providers. Address autocomplete should populate city, state, zip, country, and external place id when available.
+  - P0: propagate co-branding to all external-facing partner surfaces: family invite, employee invite, accepted family command center, packet outputs, reports, and exports. Remove all internal setup/demo language from customer-visible UI.
+  - P0: add funeral-home management and reporting as first-class tabs: locations, employees, role permissions, warm inbound requests, cases, tasks, response time, case value, calls avoided, exports, and source-data labels.
+  - P0: verify the loop across backend and frontend together: every invite/request/status row must have a visible UI state, next action, proof/audit trail, and role-scoped permission explanation.
 - Demo-Ready Continuity Spine Sprint:
   - P0: add task authority language to task workspaces so every priority task explains why it matters, usual owner, timing, next step, Passage output, and what to do when overwhelmed.
   - P0: make the red-path first three minutes read as stabilize -> coordinate -> organize, with authority before dashboard complexity.
