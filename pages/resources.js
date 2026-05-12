@@ -60,11 +60,19 @@ const trustNotes = [
   'Funeral homes can use Passage as an operational layer without trapping their case data.',
 ];
 
+function titleCaseLabel(value) {
+  return String(value || '')
+    .replace(/^For\s+/i, '')
+    .split(' ')
+    .map(word => word ? word[0].toUpperCase() + word.slice(1) : word)
+    .join(' ');
+}
+
 export default function ResourcesPage() {
   const panes = [
     ...audiences.map(item => ({
       id: item.label,
-      label: item.label.replace('For ', ''),
+      label: titleCaseLabel(item.label),
       eyebrow: item.label,
       title: item.title,
       body: item.body,

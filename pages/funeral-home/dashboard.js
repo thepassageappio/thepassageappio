@@ -2234,7 +2234,7 @@ export default function FuneralHomeDashboard() {
   });
   const partnerViewTabs = isDirectorRole
     ? [
-      ['work', 'Command center', 'Cases and next moves'],
+      ['work', 'My Day', 'Cases and next moves'],
       ['staff', 'Work queue', 'Assigned work'],
       ['inbounds', 'Warm inbounds', openWarmInbounds.length ? `${openWarmInbounds.length} family requests` : 'Family requests'],
       ['manage', 'Management', 'Locations and permissions'],
@@ -2331,9 +2331,9 @@ export default function FuneralHomeDashboard() {
       <section className="partner-dashboard-shell" data-demo-anchor="demo-page-primary">
         <div className="partner-dashboard-hero" style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
           <div>
-            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Partner command center</div>
+            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Private partner workspace</div>
             <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 620, marginTop: 8 }}>One case at a time: next task, owner, waiting point, proof, and export.</p>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 620, marginTop: 8 }}>Start with My Day, then open the case, task, owner, proof, or report that needs attention.</p>
             {user && org && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 10px', color: C.sage, fontSize: 12, fontWeight: 900 }}>
                 Family-facing view: {partnerBrand.familyPortalName || org.name} + Passage
@@ -2370,11 +2370,18 @@ export default function FuneralHomeDashboard() {
         {!user && (
           <div style={{ maxWidth: 540 }}>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 18, padding: '16px 18px', marginBottom: 12 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Partner workspace</div>
-              <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.25, marginBottom: 8 }}>{router.query.partner === '1' ? 'Your Passage invite opens here' : 'What opens after sign-in'}</div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Private partner workspace</div>
+              <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.25, marginBottom: 8 }}>
+                {router.query.staff === '1' ? 'Staff sign-in opens assigned work.' : router.query.partner === '1' ? 'Director sign-in opens setup and My Day.' : 'What opens after sign-in'}
+              </div>
               {router.query.partner === '1' && (
                 <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginBottom: 9 }}>
                   Sign in with the invited email. The first setup screen confirms your co-branded family view, locations, employees, and first cases.
+                </div>
+              )}
+              {router.query.staff === '1' && (
+                <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', color: C.mid, fontSize: 12.8, lineHeight: 1.45, marginBottom: 9 }}>
+                  Sign in with the email your director invited. Staff see assigned work first: what is due, what is waiting, and what proof closes the loop.
                 </div>
               )}
               <div style={{ display: 'grid', gap: 6 }}>
@@ -2393,7 +2400,7 @@ export default function FuneralHomeDashboard() {
               </div>
             </div>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
-            <div style={{ fontSize: 28, lineHeight: 1.12, marginBottom: 8 }}>Sign in to your partner workspace.</div>
+            <div style={{ fontSize: 28, lineHeight: 1.12, marginBottom: 8 }}>Sign in to your funeral-home workspace.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Only staff connected to a Passage partner organization can view cases, staff assignments, proof, and exports.</p>
             {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45, marginBottom: 10 }}>{error}</div>}
             <form onSubmit={signInWithPassword} style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
@@ -2428,6 +2435,7 @@ export default function FuneralHomeDashboard() {
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={signIn} style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+              <Link href="/login" style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, textDecoration: 'none' }}>All sign-in options</Link>
             </div>
           </div>
           </div>
@@ -3816,7 +3824,7 @@ export default function FuneralHomeDashboard() {
               <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 13 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Command center' : 'My work'}</div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'My Day' : 'My work'}</div>
                     <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>
                       {isDirectorRole ? `${nextDirectorStep.label}: ${nextDirectorStep.next}` : firstStaffTask ? sharedTaskTitle(firstStaffTask) : 'No assigned work is waiting.'}
                     </div>

@@ -293,8 +293,8 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   }, [controlled]);
 
   async function defaultSignIn() {
-    if (!chromeSupabase || typeof window === 'undefined') return;
-    await chromeSupabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    if (typeof window === 'undefined') return;
+    window.location.assign('/login');
   }
 
   async function defaultSignOut() {

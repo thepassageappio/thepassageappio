@@ -31,7 +31,7 @@ function isSystemAdmin(user) {
 const adminModules = [
   {
     title: 'Demo studio',
-    body: 'Dummy-only guided sales walkthrough for funeral-home prospects.',
+    body: 'Admin-only guided walkthrough using sample data for funeral-home demos and persona QA.',
     href: '/system/demo',
     status: 'Live',
   },

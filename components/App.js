@@ -4779,6 +4779,16 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         ['Proof', 'Close the loop', 'Proof, waiting states, and exports stay attached to the family record.'],
       ],
     },
+    {
+      id: 'lifecycle',
+      label: 'Lifecycle',
+      eyebrow: 'Continuity map',
+      title: 'The same family record moves through every handoff.',
+      body: 'Planning, care, hospice, funeral coordination, and family work should not become separate islands. Passage keeps the record together as people and providers change.',
+      cta: { href: '/mission', label: 'See the mission' },
+      visual: 'lifecycle',
+      rows: [],
+    },
   ];
   const s0 = useState(0); const activePaneIndex = s0[0]; const setActivePaneIndex = s0[1];
   const activePane = panes[activePaneIndex] || panes[0];
@@ -4809,7 +4819,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-demo-link { display:inline-flex; align-items:center; min-height:34px; border-radius:999px; border:1px solid ${C.border}; background:${C.bgCard}; color:${C.mid}; text-decoration:none; padding:0 11px; font-size:12px; font-weight:900; }
         .home-pledge { display:inline-block; color:${C.sageDark}; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:12px; padding:8px 10px; font-size:12px; line-height:1.35; margin-top:10px; max-width:660px; }
         .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:19px; min-height: 430px; display:flex; flex-direction:column; }
-        .home-panel-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:16px; }
+        .home-panel-tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:16px; }
         .home-panel-tab { border:1px solid ${C.border}; background:${C.bg}; color:${C.mid}; border-radius:999px; min-height:36px; font-family:inherit; font-size:12px; font-weight:900; cursor:pointer; }
         .home-panel-tab-active { border-color:${C.sageLight}; background:${C.sageFaint}; color:${C.sageDark}; }
         .home-panel-head { border-bottom:1px solid ${C.border}; padding-bottom:14px; margin-bottom:10px; }
@@ -4821,6 +4831,21 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-step b { display:block; color:${C.ink}; font-size:16px; margin-bottom:4px; }
         .home-step span { display:block; color:${C.mid}; font-size:13.5px; line-height:1.5; }
         .home-panel-cta { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; margin-top:auto; align-self:flex-start; min-height:42px; border-radius:12px; padding:0 14px; background:${C.ink}; color:white; font-size:13px; font-weight:900; }
+        .lifecycle-map { display:grid; gap:8px; margin-top:2px; }
+        .lifecycle-track { position:relative; display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:7px; align-items:stretch; }
+        .lifecycle-track:before { content:""; position:absolute; left:8%; right:8%; top:22px; height:2px; background:${C.sageLight}; z-index:0; }
+        .lifecycle-node { position:relative; z-index:1; background:${C.bgCard}; border:1px solid ${C.border}; border-radius:13px; padding:9px 8px 8px; min-height:88px; }
+        .lifecycle-dot { width:28px; height:28px; border-radius:999px; display:flex; align-items:center; justify-content:center; background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; font-size:12px; font-weight:900; margin-bottom:7px; }
+        .lifecycle-node b { display:block; font-size:12.5px; line-height:1.12; color:${C.ink}; margin-bottom:4px; }
+        .lifecycle-node span { display:block; font-size:10.8px; line-height:1.28; color:${C.mid}; }
+        .lifecycle-center { display:grid; grid-template-columns:minmax(0, .75fr) minmax(0, 1fr); gap:8px; align-items:stretch; margin-top:8px; }
+        .lifecycle-record { background:${C.bgDark}; color:white; border-radius:15px; padding:13px; }
+        .lifecycle-record small { display:block; color:#b9d2bd; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
+        .lifecycle-record strong { display:block; font-size:17px; line-height:1.12; margin-bottom:6px; }
+        .lifecycle-record span { display:block; color:#d8d0c7; font-size:11.5px; line-height:1.35; }
+        .lifecycle-proof { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:15px; padding:12px; }
+        .lifecycle-proof b { display:block; color:${C.sageDark}; font-size:12px; margin-bottom:6px; }
+        .lifecycle-proof span { display:block; color:${C.mid}; font-size:11.5px; line-height:1.35; }
         @media (max-width: 720px) {
           .home-shell { padding: 22px 18px 50px; }
           .home-hero { grid-template-columns:1fr; min-height:auto; gap:22px; }
@@ -4829,6 +4854,11 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           .home-panel { padding:18px; min-height:auto; }
           .home-panel-tabs { grid-template-columns:1fr; }
           .home-step { grid-template-columns:42px minmax(0,1fr); }
+          .lifecycle-track { grid-template-columns:1fr; }
+          .lifecycle-track:before { display:none; }
+          .lifecycle-node { min-height:auto; display:grid; grid-template-columns:36px minmax(0,1fr); column-gap:9px; align-items:start; }
+          .lifecycle-dot { grid-row:1 / span 2; margin-bottom:0; }
+          .lifecycle-center { grid-template-columns:1fr; }
         }
       `}</style>
       <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} onDashboard={onDashboard} />
@@ -4871,17 +4901,21 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <h2 className="home-panel-title">{activePane.title}</h2>
               <p className="home-panel-body">{activePane.body}</p>
             </div>
-            {activePane.rows.map(function(row) {
-              return (
-                <div className="home-step" key={row[1]}>
-                  <span className="home-num">{row[0]}</span>
-                  <span>
-                    <b>{row[1]}</b>
-                    <span>{row[2]}</span>
-                  </span>
-                </div>
-              );
-            })}
+            {activePane.visual === 'lifecycle' ? (
+              <LifecycleMap />
+            ) : (
+              activePane.rows.map(function(row) {
+                return (
+                  <div className="home-step" key={row[1]}>
+                    <span className="home-num">{row[0]}</span>
+                    <span>
+                      <b>{row[1]}</b>
+                      <span>{row[2]}</span>
+                    </span>
+                  </div>
+                );
+              })
+            )}
             {activePane.cta && (
               <a className="home-panel-cta" href={activePane.cta.href}>{activePane.cta.label}</a>
             )}
@@ -4890,6 +4924,43 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       </div>
 
       <SiteFooter />
+    </div>
+  );
+}
+
+function LifecycleMap() {
+  const nodes = [
+    ['1', 'Pre-planning', 'Wishes, roles, contacts'],
+    ['2', 'Assisted living', 'Care context and people'],
+    ['3', 'Hospice', 'First-hour plan'],
+    ['4', 'Funeral home', 'Service and proof'],
+    ['5', 'Family', 'Aftercare and estate work'],
+  ];
+
+  return (
+    <div className="lifecycle-map" aria-label="Passage lifecycle continuity map">
+      <div className="lifecycle-track">
+        {nodes.map(function(node) {
+          return (
+            <div className="lifecycle-node" key={node[1]}>
+              <div className="lifecycle-dot">{node[0]}</div>
+              <b>{node[1]}</b>
+              <span>{node[2]}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="lifecycle-center">
+        <div className="lifecycle-record">
+          <small>Passage record</small>
+          <strong>One family spine</strong>
+          <span>The next step, owner, waiting point, permissions, and proof move forward together.</span>
+        </div>
+        <div className="lifecycle-proof">
+          <b>Provider handoff becomes clearer</b>
+          <span>When the family chooses a funeral home, hospice, care facility, or vendor, the request carries context instead of starting another disconnected thread.</span>
+        </div>
+      </div>
     </div>
   );
 }
