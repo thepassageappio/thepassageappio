@@ -4383,8 +4383,8 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           <a href="/content" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Guides</a>
           <a href="/pricing" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Pricing</a>
           <a href="/contact" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Contact</a>
-          <a href="/participating" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>My tasks</a>
           <a href="/funeral-home" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Funeral homes</a>
+          <a href="/participants" style={{ fontSize: 12.5, color: C.mid, textDecoration: 'none' }}>Participants</a>
           {user ? (
             <button onClick={onDashboard} style={{ background: C.sage, border: 'none', borderRadius: 9, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', fontFamily: 'inherit' }}>
               My estate

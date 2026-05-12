@@ -41,8 +41,8 @@ const audiences = [
     label: 'For invited helpers',
     title: 'See only the work you were asked to handle.',
     body: 'Participants and vendors receive a scoped request tied to one estate task, with context, expectations, and a place to respond.',
-    href: '/participating',
-    cta: 'Open assigned work',
+    href: '/participants',
+    cta: 'How participant access works',
   },
 ];
 
