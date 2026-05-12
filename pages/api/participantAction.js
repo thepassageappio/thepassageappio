@@ -72,6 +72,59 @@ function workflowActionStatusConstraintError(error) {
   return error?.code === '23514' && /workflow_actions_status_check/i.test(message);
 }
 
+async function updateWorkflowActionWithoutStatus({ id, emailColumn, email, updates, kind }) {
+  const compatibleUpdates = { ...updates };
+  const requestedStatus = compatibleUpdates.status;
+  delete compatibleUpdates.status;
+  if (requestedStatus !== undefined) compatibleUpdates.delivery_status = requestedStatus;
+
+  let result = await admin
+    .from('workflow_actions')
+    .update(compatibleUpdates)
+    .eq('id', id)
+    .ilike(emailColumn, email)
+    .select(itemSelect(kind))
+    .maybeSingle();
+  if (!result.error) return result;
+
+  if (schemaColumnError(result.error)) {
+    const olderSchemaUpdates = {};
+    ['delivery_status', 'notes', 'updated_at', 'outcome_status', 'follow_up_at', 'handled_at', 'accepted_at', 'help_requested_at'].forEach(key => {
+      if (compatibleUpdates[key] !== undefined) olderSchemaUpdates[key] = compatibleUpdates[key];
+    });
+    result = await admin
+      .from('workflow_actions')
+      .update(olderSchemaUpdates)
+      .eq('id', id)
+      .ilike(emailColumn, email)
+      .select(itemSelect(kind))
+      .maybeSingle();
+    if (!result.error) return result;
+  }
+
+  if (requestedStatus !== undefined) {
+    const lastSafeStatus = ['handled', 'completed', 'done'].includes(String(requestedStatus).toLowerCase())
+      ? 'acknowledged'
+      : ['waiting', 'blocked', 'acknowledged', 'needs_review', 'sent', 'delivered'].includes(String(requestedStatus).toLowerCase())
+        ? requestedStatus
+        : 'needs_review';
+    const minimalUpdates = {
+      status: lastSafeStatus,
+      notes: updates.notes,
+      updated_at: updates.updated_at,
+    };
+    return admin
+      .from('workflow_actions')
+      .update(Object.fromEntries(Object.entries(minimalUpdates).filter(([, value]) => value !== undefined)))
+      .eq('id', id)
+      .ilike(emailColumn, email)
+      .select(itemSelect(kind))
+      .maybeSingle();
+  }
+
+  return result;
+}
+
 function itemSelect(kind) {
   return kind === 'task'
     ? 'id,status,workflow_id,title,notes'
@@ -120,15 +173,7 @@ async function updateParticipantRecord({ table, kind, emailColumn, id, email, up
   if (!result.error) return result;
 
   if (table === 'workflow_actions' && updates.status !== undefined && workflowActionStatusConstraintError(result.error)) {
-    const compatibleUpdates = { ...updates, delivery_status: updates.status };
-    delete compatibleUpdates.status;
-    result = await admin
-      .from(table)
-      .update(compatibleUpdates)
-      .eq('id', id)
-      .ilike(emailColumn, email)
-      .select(itemSelect(kind))
-      .maybeSingle();
+    result = await updateWorkflowActionWithoutStatus({ id, emailColumn, email, updates, kind });
     if (!result.error) return result;
   }
   if (!schemaColumnError(result.error)) return result;
@@ -147,15 +192,7 @@ async function updateParticipantRecord({ table, kind, emailColumn, id, email, up
   if (!result.error) return result;
 
   if (table === 'workflow_actions' && saferUpdates.status !== undefined && workflowActionStatusConstraintError(result.error)) {
-    const compatibleUpdates = { ...saferUpdates, delivery_status: saferUpdates.status };
-    delete compatibleUpdates.status;
-    result = await admin
-      .from(table)
-      .update(compatibleUpdates)
-      .eq('id', id)
-      .ilike(emailColumn, email)
-      .select(itemSelect(kind))
-      .maybeSingle();
+    result = await updateWorkflowActionWithoutStatus({ id, emailColumn, email, updates: saferUpdates, kind });
     if (!result.error) return result;
   }
   if (!schemaColumnError(result.error)) return result;
@@ -164,13 +201,17 @@ async function updateParticipantRecord({ table, kind, emailColumn, id, email, up
   ['status', 'notes'].forEach(key => {
     if (updates[key] !== undefined) safestUpdates[key] = updates[key];
   });
-  return admin
+  result = await admin
     .from(table)
     .update(safestUpdates)
     .eq('id', id)
     .ilike(emailColumn, email)
     .select(itemSelect(kind))
     .maybeSingle();
+  if (table === 'workflow_actions' && safestUpdates.status !== undefined && workflowActionStatusConstraintError(result.error)) {
+    return updateWorkflowActionWithoutStatus({ id, emailColumn, email, updates: safestUpdates, kind });
+  }
+  return result;
 }
 
 export default async function handler(req, res) {

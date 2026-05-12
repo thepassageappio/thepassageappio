@@ -120,10 +120,10 @@ function buildWarmPathTasks(context = {}) {
     ),
   ].map(task => {
     if (task.title === 'Record care team and first call path' && (teamName || teamContact || teamPhone)) {
-      return { ...task, status: 'done', notes: `Care context saved: ${[teamName, teamContact, teamPhone].filter(Boolean).join(' - ')}` };
+      return { ...task, status: 'handled', notes: `Care context saved: ${[teamName, teamContact, teamPhone].filter(Boolean).join(' - ')}` };
     }
     if (task.title === 'Record preferred funeral home or undecided status' && context.funeral_home_name) {
-      return { ...task, status: 'done', notes: `Preferred funeral home: ${context.funeral_home_name}` };
+      return { ...task, status: 'handled', notes: `Preferred funeral home: ${context.funeral_home_name}` };
     }
     return task;
   });
@@ -237,6 +237,7 @@ export default async function handler(req, res) {
       coordinator_email: coordinatorEmail,
       coordinator_phone: clean(req.body?.coordinatorPhone),
       status: 'active',
+      activation_status: 'activated',
       trigger_type: 'death_confirmed',
       path: 'warm',
       mode: 'warm',
@@ -270,8 +271,8 @@ export default async function handler(req, res) {
       ...task,
       workflow_id: workflow.id,
       user_id: user.id,
-      last_actor: task.status === 'done' ? coordinatorName : null,
-      last_action_at: task.status === 'done' ? now : null,
+      last_actor: ['handled', 'completed', 'done'].includes(task.status) ? coordinatorName : null,
+      last_action_at: ['handled', 'completed', 'done'].includes(task.status) ? now : null,
       created_at: now,
       updated_at: now,
     }));

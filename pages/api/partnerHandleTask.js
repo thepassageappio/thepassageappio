@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     const now = new Date().toISOString();
 
     const { task: updatedTask, error: updateError, skippedColumns = [] } = await updateTaskWithSchemaFallback(task, {
-      status: 'done',
+      status: 'handled',
       outcome_status: 'completed',
       notes: detail,
       last_action_at: now,
@@ -181,8 +181,8 @@ export default async function handler(req, res) {
       emailSent,
       notificationQueued: sendFamilyEmail === true,
       statusResult,
-      status: updatedTask?.status || 'done',
-      task: updatedTask || { id: task.id, status: 'done', outcome_status: 'completed', last_action_at: now, last_actor: user.email },
+      status: updatedTask?.status || 'handled',
+      task: updatedTask || { id: task.id, status: 'handled', outcome_status: 'completed', last_action_at: now, last_actor: user.email },
       confirmation: taskActionConfirmation('handled', task, 'funeral_home'),
       eventDetail: detail,
       skippedColumns,

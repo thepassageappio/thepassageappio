@@ -391,7 +391,7 @@ function localOutcomeMap(rawOutcomes) {
     if (!canonicalTitle) return;
     map.set(taskKey(canonicalTitle), {
       proof,
-      status: item?.status === 'handled' ? 'done' : clean(item?.status),
+      status: item?.status === 'handled' ? 'handled' : clean(item?.status),
       owner: item?.owner || null,
     });
   });
@@ -588,6 +588,7 @@ export default async function handler(req, res) {
     path: 'red',
     mode: 'red',
     setup_stage: 'active',
+    activation_status: 'activated',
     orchestration_summary: {
       ...(existing?.orchestration_summary || {}),
       chaplain_context: context,
@@ -669,7 +670,7 @@ export default async function handler(req, res) {
     const taskOwnerLabel = clean(localOwner?.name) || (index === 0 && ownerLabel ? ownerLabel : null);
     const taskOwnerEmail = clean(localOwner?.email) || (index === 0 && ownerEmail ? ownerEmail : null);
     const taskOwnerPhone = clean(localOwner?.phone) || (index === 0 && ownerPhone ? ownerPhone : null);
-    const completed = local?.status === 'done';
+    const completed = ['handled', 'completed', 'done'].includes(local?.status);
     const row = {
       ...task,
       workflow_id: workflow.id,
@@ -681,7 +682,7 @@ export default async function handler(req, res) {
       partner_owner_role: task.partner_owner_role || null,
       funeral_home_eligible: Boolean(task.funeral_home_eligible),
       proof_required: task.proof_required || 'confirmation',
-      status: completed ? 'done' : taskOwnerLabel ? 'assigned' : 'pending',
+      status: completed ? 'handled' : taskOwnerLabel ? 'assigned' : 'pending',
       assigned_to_name: taskOwnerLabel,
       assigned_to_email: taskOwnerEmail,
       recipient: taskOwnerEmail || taskOwnerPhone || taskOwnerLabel || null,
@@ -702,7 +703,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: tasksError.message || 'Could not create urgent tasks.' });
   }
 
-  const completedLocalTasks = tasks.filter(task => task.status === 'done' && task.notes);
+  const completedLocalTasks = tasks.filter(task => ['handled', 'completed', 'done'].includes(task.status) && task.notes);
   if (completedLocalTasks.length > 0) {
     const { data: savedTasks } = await admin
       .from('tasks')
@@ -712,7 +713,7 @@ export default async function handler(req, res) {
     const events = (savedTasks || []).map(task => ({
       workflow_id: workflow.id,
       task_id: task.id,
-      status: 'done',
+      status: 'handled',
       last_action_at: task.last_action_at || now,
       last_actor: task.last_actor || coordinatorName,
       channel: 'urgent_path',

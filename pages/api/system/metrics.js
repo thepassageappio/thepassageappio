@@ -323,7 +323,7 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'workflows', [{ op: 'eq', column: 'path', value: 'red' }]),
     countRows(auth.admin, 'workflows', [{ op: 'eq', column: 'path', value: 'green' }]),
     countRows(auth.admin, 'tasks'),
-    countRows(auth.admin, 'tasks', [{ op: 'eq', column: 'status', value: 'done' }]),
+    countRows(auth.admin, 'tasks', [{ op: 'in', column: 'status', value: ['handled', 'completed', 'done'] }]),
     countRows(auth.admin, 'tasks', [{ op: 'eq', column: 'status', value: 'pending' }]),
     countRows(auth.admin, 'tasks', [{ op: 'in', column: 'status', value: ['pending', 'waiting', 'sent', 'assigned'] }]),
     countRows(auth.admin, 'tasks', [{ op: 'in', column: 'status', value: ['blocked', 'failed', 'needs_review'] }]),

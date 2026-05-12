@@ -8,7 +8,7 @@ const allowedStatuses = new Set(['waiting', 'pending', 'acknowledged', 'handled'
 const allowedChannels = new Set(['email', 'sms', 'call', 'website', 'record', 'participant']);
 
 function normalizeStoredStatus(status) {
-  if (['handled', 'completed', 'done'].includes(status)) return 'done';
+  if (['handled', 'completed', 'done'].includes(status)) return 'handled';
   if (['waiting', 'pending'].includes(status)) return 'pending';
   return status;
 }
@@ -111,7 +111,7 @@ export default async function handler(req, res) {
   const now = new Date().toISOString();
   const actorName = actor || auth.user?.user_metadata?.full_name || auth.user?.email || 'Passage';
   const actorEmail = auth.user?.email || (String(actor || '').includes('@') ? String(actor).toLowerCase() : null);
-  const terminalStatus = storedStatus === 'done';
+  const terminalStatus = storedStatus === 'handled';
   const updates = {
     status: storedStatus,
     last_action_at: now,

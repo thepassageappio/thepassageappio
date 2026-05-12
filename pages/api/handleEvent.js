@@ -177,7 +177,9 @@ async function handleDeathConfirmed(payload) {
 
   await supabase.from('workflows').update({
     status: 'triggered',
+    activation_status: 'activated',
     triggered_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   }).eq('id', workflowId);
 
   return { sent, failed };
@@ -318,7 +320,7 @@ async function handleTaskCompleted(payload) {
     workflowId,
     taskId,
     actionId,
-    status: 'done',
+    status: 'handled',
     actor: actor || 'Passage',
     channel: channel || 'record',
     recipient: recipient || null,

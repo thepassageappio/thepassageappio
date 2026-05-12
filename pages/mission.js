@@ -19,8 +19,8 @@ const C = {
 
 const paths = [
   ['Red path', '/urgent', 'Someone just passed', 'Start with the few actions that matter tonight: who calls, who is notified, what is waiting, and what is already handled.', C.roseFaint, C.rose],
-  ['Green path', '/?start=plan', 'Plan before it is needed', 'Gather people, wishes, documents, and confirmation contacts so your family is not starting from zero later.', C.sageFaint, C.sage],
-  ['Partner path', '/funeral-home', 'For funeral homes', 'A case workspace for directors to see family progress, act on behalf, and reduce repeated status calls.', C.goldFaint, C.amber],
+  ['Green path', '/estate?path=green', 'Plan before it is needed', 'Gather people, wishes, documents, and confirmation contacts so your family is not starting from zero later.', C.sageFaint, C.sage],
+  ['Partner path', '/funeral-home/dashboard', 'For funeral homes', 'A case workspace for directors to see family progress, act on behalf, and reduce repeated status calls.', C.goldFaint, C.amber],
 ];
 
 const proof = [

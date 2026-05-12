@@ -241,6 +241,7 @@ export default async function handler(req, res) {
       coordinator_name: user.user_metadata?.full_name || user.email,
       coordinator_email: user.email,
       status: 'ready',
+      activation_status: 'activated',
       trigger_type: 'death_confirmed',
       path: 'green',
       mode: 'green',
