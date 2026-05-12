@@ -3511,6 +3511,20 @@ export default function EstatePage() {
               placeholder={pendingTaskAction.status === 'choose' ? 'Optional internal note about why this person owns it.' : pendingTaskAction.mode ? 'What happened with this? Example: copied packet to provider portal, called and left voicemail, reference #1234, or waiting on Claire to approve.' : taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
               style={{ width: '100%', boxSizing: 'border-box', minHeight: 82, border: '1.5px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.45, background: CARD, color: INK }}
             />
+            {pendingTaskAction.status !== 'choose' && (
+              <div style={{ background: pendingTaskAction.status === 'handled' ? SAGE_FAINT : pendingTaskAction.status === 'blocked' ? ROSE_FAINT : SUBTLE, border: '1px solid ' + (pendingTaskAction.status === 'handled' ? SAGE_LIGHT : pendingTaskAction.status === 'blocked' ? ROSE + '35' : BORDER), borderRadius: 12, padding: '9px 10px', marginTop: 9, color: MID, fontSize: 12.5, lineHeight: 1.45 }}>
+                <strong style={{ color: INK }}>After you save:</strong>{' '}
+                {pendingTaskAction.status === 'handled'
+                  ? 'Passage marks this task done, saves the proof note and attachment path, and moves it out of active work.'
+                  : pendingTaskAction.status === 'blocked'
+                    ? 'Passage keeps this visible as a help request until someone clears the blocker.'
+                    : pendingTaskAction.status === 'waiting'
+                      ? 'Passage keeps this task open and shows what is waiting before the next move.'
+                      : pendingTaskAction.mode
+                        ? 'Passage saves this prepared output as proof on the task. Nothing sends unless you choose a send action above.'
+                        : 'Passage saves this update to the estate record.'}
+              </div>
+            )}
             <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Attachments</div>
               <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.45 }}>

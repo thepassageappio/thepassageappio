@@ -98,6 +98,27 @@ function recommendedParticipantCopy(action) {
   return 'Send one clear update so the coordinator knows what changed.';
 }
 
+function participantActionSaveLabel(action) {
+  if (action === 'save_note') return 'Save note only';
+  if (action === 'accept') return 'Accept responsibility';
+  if (action === 'waiting') return 'Save waiting update';
+  if (action === 'handled' || action === 'confirmed') return 'Mark done with proof';
+  if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'Ask coordinator for help';
+  if (action === 'quoted') return 'Save quote update';
+  if (action === 'scheduled') return 'Save scheduled update';
+  return 'Send update';
+}
+
+function participantActionEffectCopy(action) {
+  if (action === 'save_note') return 'This saves a note for the coordinator without changing the task status.';
+  if (action === 'accept') return 'This tells the coordinator you are taking responsibility. The task stays open until you save proof or a waiting update.';
+  if (action === 'waiting') return 'This keeps the task open and shows exactly what you are waiting on.';
+  if (action === 'handled' || action === 'confirmed') return 'This marks your part done, records your proof, and moves it out of your active work.';
+  if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'This keeps the task visible as blocked so the coordinator can step in.';
+  if (action === 'quoted' || action === 'scheduled') return 'This saves your update to the same family record without exposing the full workspace.';
+  return 'This update goes back to the coordinator and stays attached to the family record.';
+}
+
 function normalizeItems(estate) {
   const seen = new Set();
   return [...(estate.tasks || []).map(t => ({ ...t, _kind: 'task' })), ...(estate.actions || []).map(a => ({ ...a, _kind: 'action' }))]
@@ -350,6 +371,9 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
                 </div>
                 {pendingAction && (
                   <>
+                    <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 12 }}>
+                      <strong style={{ color: C.ink }}>After you save:</strong> {participantActionEffectCopy(pendingAction)}
+                    </div>
                     <textarea value={notes} onChange={e => noteChange(e.target.value)} placeholder={taskActionPlaceholder(pendingAction === 'save_note' ? 'handled' : pendingAction, item, 'participant') || 'Add proof, what is waiting, or what help you need'} style={{ width: '100%', boxSizing: 'border-box', minHeight: primary ? 112 : 92, marginTop: 12, padding: '10px 11px', borderRadius: 11, border: `1px solid ${proofWarning ? C.rose : C.border}`, background: C.bg, color: C.ink, fontFamily: 'Georgia,serif', fontSize: 13, lineHeight: 1.45 }} />
                     <div style={{ fontSize: 11.5, color: proofWarning ? C.rose : C.soft, fontWeight: proofWarning ? 800 : 400, marginTop: 6 }}>
                       {proofWarning || 'This update goes back to the coordinator and stays attached to the family record.'}
@@ -365,7 +389,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
                           return;
                         }
                         submitAction(pendingAction);
-                      }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 900 }}>Send update</button>
+                      }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 900 }}>{participantActionSaveLabel(pendingAction)}</button>
                       <button onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 12, minHeight: 44, padding: '0 14px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Cancel</button>
                     </div>
                   </>
