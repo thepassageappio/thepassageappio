@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { syncLeadToHubSpot } from '../../lib/hubspot';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -48,6 +49,31 @@ export default async function handler(req, res) {
       source,
       notes: JSON.stringify({ category, urgency, message, site: SITE_URL, created_at: new Date().toISOString() }),
     }]).then(() => {}, () => {});
+
+    const lowerCategory = category.toLowerCase();
+    const isFuneralHome = lowerCategory.includes('funeral') || lowerCategory.includes('partner');
+    const isVendor = lowerCategory.includes('vendor');
+    const isCare = lowerCategory.includes('hospice') || lowerCategory.includes('care');
+    const isMeeting = lowerCategory.includes('demo') || lowerCategory.includes('walkthrough') || lowerCategory.includes('conversation') || isFuneralHome || isVendor || isCare;
+    await syncLeadToHubSpot({
+      admin: supabase,
+      eventType: 'support_inquiry',
+      source,
+      contact: {
+        email,
+        name,
+        persona: isFuneralHome ? 'funeral_home' : isVendor ? 'vendor' : isCare ? 'care_provider' : 'family',
+        lifecycleStage: isMeeting ? 'marketingqualifiedlead' : 'lead',
+        message,
+      },
+      company: isFuneralHome || isVendor || isCare ? { name: name || email, companyType: isFuneralHome ? 'funeral_home' : isVendor ? 'vendor' : 'care_provider' } : {},
+      deal: isMeeting ? {
+        name: `Passage ${category}: ${name || email}`,
+        persona: isFuneralHome ? 'funeral_home' : isVendor ? 'vendor' : isCare ? 'care_provider' : 'family',
+        description: `${urgency}\n\n${message}`,
+      } : {},
+      payload: { category, urgency, message, flowType, source, site: SITE_URL },
+    });
 
     const key = process.env.RESEND_API_KEY;
     if (key) {

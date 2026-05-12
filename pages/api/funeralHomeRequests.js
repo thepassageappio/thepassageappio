@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { syncLeadToHubSpot } from '../../lib/hubspot';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -180,6 +181,36 @@ export default async function handler(req, res) {
 
     await writeLead({ user, workflow, provider: { ...provider, name: providerName, placeId }, request: body, matchedOrg });
     await logEstateEvent(workflowId, 'funeral_home_request_saved', { providerName, matchedOrganizationId: matchedOrg?.id || null, status });
+    await syncLeadToHubSpot({
+      admin,
+      eventType: matchedOrg ? 'partner_funeral_home_request' : 'non_partner_funeral_home_request',
+      source: 'funeral_home_request',
+      sourceId: data.id,
+      contact: {
+        email: user.email || workflow.coordinator_email,
+        name: clean(user.user_metadata?.full_name || body.requestedByName || workflow.coordinator_name, 160),
+        persona: 'family',
+        lifecycleStage: 'marketingqualifiedlead',
+      },
+      company: {
+        name: providerName,
+        website: provider.website,
+        phone: provider.phone,
+        companyType: 'funeral_home',
+        address: {
+          address: provider.address || body.address,
+          city: provider.city,
+          state: provider.state,
+          zip: provider.zip || provider.postalCode,
+        },
+      },
+      deal: {
+        name: `${matchedOrg ? 'Partner inbound' : 'Family-requested funeral home'}: ${providerName}`,
+        persona: 'funeral_home',
+        description: `A family using Passage requested ${providerName}. Status: ${status}. Urgency: ${requestRow.urgency}. Workflow: ${workflow.name || workflow.estate_name || workflow.deceased_name || workflow.id}. Permission to contact: ${requestRow.family_permission_to_contact ? 'yes' : 'no'}.`,
+      },
+      payload: { requestId: data.id, workflowId, providerName, status, matchedOrganizationId: matchedOrg?.id || null, urgency: requestRow.urgency },
+    });
 
     return res.status(200).json({ success: true, matchedOrganization: matchedOrg, request: data });
   }

@@ -99,6 +99,7 @@ const LINKS = [
   ['Mission', '/mission'],
   ['Our story', '/story'],
   ['Resources', '/resources'],
+  ['Blog', '/blog'],
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
   ['Funeral homes', '/funeral-home'],

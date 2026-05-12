@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { syncLeadToHubSpot } from '../../lib/hubspot';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -57,6 +58,33 @@ export default async function handler(req, res) {
       console.error('Lead save error:', error);
       // Don't fail the request — lead capture is non-critical
     }
+
+    await syncLeadToHubSpot({
+      admin: supabase,
+      eventType: 'web_lead',
+      source: 'web',
+      contact: {
+        email: resolvedEmail,
+        name: resolvedName,
+        persona: flow_type === 'red' || mode === 'urgent' ? 'red_path_family' : flow_type === 'green' ? 'green_path_family' : 'family',
+        lifecycleStage: 'lead',
+      },
+      deal: flow_type === 'red' || mode === 'urgent' ? {
+        name: `Urgent path lead: ${resolvedName || resolvedEmail || 'New family'}`,
+        amount: 79,
+        persona: 'red_path_family',
+        description: `Urgent family lead from Passage. Loved one: ${deceased_name || 'Not provided'}. Relationship: ${relationship || 'Not provided'}.`,
+      } : {},
+      payload: {
+        mode,
+        flow_type,
+        deceased_name,
+        relationship,
+        executor_name,
+        disposition,
+        service_type,
+      },
+    });
 
     return res.status(200).json({ success: true });
   } catch (err) {

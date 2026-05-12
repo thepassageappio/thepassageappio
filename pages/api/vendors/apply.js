@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { cleanZipList, normalizeVendorCategory, vendorCategoryLabel } from '../../../lib/vendors';
 import { escapeHtml, passageEmailShell } from '../../../lib/brandedEmail';
+import { syncLeadToHubSpot } from '../../../lib/hubspot';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -73,6 +74,31 @@ export default async function handler(req, res) {
 
   const { data, error } = await supabase.from('vendors').insert([vendorRow]).select('id,business_name,category,contact_email,zip_codes_served').single();
   if (error) return res.status(500).json({ error: error.message });
+  await syncLeadToHubSpot({
+    admin: supabase,
+    eventType: 'vendor_application',
+    source: 'vendor_onboarding',
+    sourceId: data.id,
+    contact: {
+      email,
+      name: businessName,
+      phone,
+      persona: 'vendor',
+      lifecycleStage: 'marketingqualifiedlead',
+    },
+    company: {
+      name: businessName,
+      website: vendorRow.website,
+      phone,
+      companyType: 'vendor',
+    },
+    deal: {
+      name: `Vendor application: ${businessName}`,
+      persona: 'vendor',
+      description: `${businessName} applied as ${vendorCategoryLabel(category)}. ZIPs: ${zipCodes.join(', ')}.`,
+    },
+    payload: { vendorId: data.id, category, zipCodes, rushSupported: vendorRow.rush_supported },
+  });
   await notifyPassage(data);
   return res.status(200).json({ success: true, vendor: data });
 }

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { syncLeadToHubSpot } from '../../lib/hubspot';
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -198,6 +199,40 @@ async function updateWorkflowAfterCheckout(metadata) {
   }]);
 }
 
+async function syncCheckoutToHubSpot(session) {
+  const metadata = session.metadata || {};
+  const planId = metadata.planId || 'paid';
+  const path = metadata.path || (planId === 'urgent' ? 'red' : 'green');
+  const email = session.customer_details?.email || session.customer_email || metadata.email || '';
+  const name = session.customer_details?.name || metadata.name || email;
+  const amount = Math.round(Number(session.amount_total || amountForPlan(planId, 0)) / 100);
+  let workflowName = metadata.workflowId || 'Family record';
+  if (metadata.workflowId) {
+    const { data } = await sb.from('workflows').select('name,estate_name,deceased_name').eq('id', metadata.workflowId).maybeSingle();
+    workflowName = data?.deceased_name || data?.estate_name || data?.name || workflowName;
+  }
+  await syncLeadToHubSpot({
+    admin: sb,
+    eventType: 'checkout_completed',
+    source: 'stripe',
+    sourceId: session.id,
+    contact: {
+      email,
+      name,
+      persona: path === 'red' ? 'red_path_family' : 'green_path_family',
+      lifecycleStage: 'customer',
+    },
+    deal: {
+      name: `${path === 'red' ? 'Urgent family record' : 'Planning subscription'}: ${workflowName}`,
+      amount,
+      persona: path === 'red' ? 'red_path_family' : 'green_path_family',
+      dealstage: process.env.HUBSPOT_CLOSED_WON_DEALSTAGE || 'closedwon',
+      description: `Stripe checkout completed. Plan: ${planId}. Stripe session: ${session.id}.`,
+    },
+    payload: { planId, path, workflowId: metadata.workflowId || null, stripeSessionId: session.id, amountTotal: session.amount_total || null },
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
@@ -219,6 +254,7 @@ export default async function handler(req, res) {
       await recordEntitlement(userId, object);
       await updateWorkflowAfterCheckout(object.metadata || {});
       await recordImpactCommitment(userId, object);
+      await syncCheckoutToHubSpot(object);
     }
 
     if (event.type === 'customer.subscription.deleted') {
