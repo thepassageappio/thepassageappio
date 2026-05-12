@@ -93,7 +93,7 @@ export default async function handler(req, res) {
       if (!error) {
         return res.status(200).json({
           member: { ...(data || attempt.row), display_name: data?.display_name || displayName || undefined, location_scope: data?.location_scope || locationScope, annual_salary: data?.annual_salary || annualSalary || undefined, hourly_cost: data?.hourly_cost || hourlyCost || undefined },
-          confirmation: 'Employee saved. Copy the invite message when you are ready; Passage did not send email or SMS.',
+          confirmation: 'Employee saved. Review and send the Passage invite when you are ready.',
           persistedProfileFields: Boolean(data?.display_name || data?.location_scope),
         });
       }

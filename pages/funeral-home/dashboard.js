@@ -865,7 +865,7 @@ export default function FuneralHomeDashboard() {
         ],
       } : prev);
       setLatestStaffInvite(savedMember);
-      setNotice('Employee saved for this demo. Copy the invite message; no email or SMS was sent.');
+      setNotice('Employee saved for this demo. Review the prepared invite below; demo mode will not send email.');
       setStaffDraft({ name: '', email: '', role: 'staff', locationScope: 'all', annualSalary: '', hourlyCost: '' });
       return;
     }
@@ -891,10 +891,40 @@ export default function FuneralHomeDashboard() {
       } else {
         const persistedMember = json.member || savedMember;
         setLatestStaffInvite(persistedMember);
-        setNotice(json.confirmation || 'Staff profile saved.');
+        setNotice(json.confirmation || 'Employee saved. Review and send the Passage invite below.');
         setStaffDraft({ name: '', email: '', role: 'staff', locationScope: 'all', annualSalary: '', hourlyCost: '' });
         await load(token);
       }
+    } finally {
+      setUpdating('');
+    }
+  }
+
+  async function sendStaffInvite(member = latestStaffInvite) {
+    const email = String(member?.email || '').trim().toLowerCase();
+    if (!email) {
+      setError('Save an employee before sending the invite.');
+      return;
+    }
+    if (demoMode || !token) {
+      setNotice('Demo-safe: this is the employee invite email. No message was sent.');
+      return;
+    }
+    setUpdating(`staff_invite_${email}`);
+    setError('');
+    try {
+      const res = await fetch('/api/partnerStaffInvite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(json.error || 'Could not send this employee invite.');
+        return;
+      }
+      setNotice(json.skipped ? (json.message || 'Invite prepared, but email is not configured.') : `Invite sent to ${email}. They can open Passage and sign in with that email.`);
+      setLatestStaffInvite({ ...member, inviteSent: !json.skipped, inviteUrl: json.inviteUrl || staffHandoffUrl(email) });
     } finally {
       setUpdating('');
     }
@@ -1433,8 +1463,6 @@ export default function FuneralHomeDashboard() {
       'Your first screen is My work: assigned case tasks, service timing, what is waiting, and the proof field. You only need to move the work you own.',
       '',
       'When something is handled, waiting, or needs family input, record that update in Passage so the family record and director view stay aligned.',
-      '',
-      'No email or SMS is sent from this copied message until your team chooses to send it.',
       '',
       link,
     ].join('\n');
@@ -2720,7 +2748,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                     <button type="button" onClick={() => setShowStaffSetup(false)} aria-label="Close staff setup" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                   </div>
-                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee, assign a role and location scope, then copy the invite message. Nothing sends automatically.</div>
+                  <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Save the employee, assign a role and location scope, then review and send their Passage invite. They will land on the staff workspace and authenticate with the same email.</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, alignItems: 'center' }}>
                     <input value={staffDraft.name} onChange={event => setStaffDraft(prev => ({ ...prev, name: event.target.value }))} placeholder="Full name" style={inputStyle} />
                     <input value={staffDraft.email} onChange={event => setStaffDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="employee@funeralhome.com" style={inputStyle} />
@@ -2740,9 +2768,13 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>Role controls starting view and permissions. Cost fields stay private to partner reporting and power ROI, cost per task, and location efficiency.</div>
                   {latestStaffInvite && (
                     <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
-                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Staff handoff ready</div>
-                      <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 4 }}>{latestStaffInvite.email} can now be assigned work. Passage will not send the invite automatically.</div>
-                      <button type="button" onClick={() => copyText(staffInviteMessage(latestStaffInvite), 'Staff invite message copied.')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', marginTop: 8 }}>Copy invite message</button>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Review employee invite</div>
+                      <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 4 }}>{latestStaffInvite.email} can now be assigned work. Send this Passage email so they can open the staff workspace and sign in with Google or email.</div>
+                      <pre style={{ whiteSpace: 'pre-wrap', margin: '9px 0 0', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 10, color: C.mid, fontFamily: 'Georgia,serif', fontSize: 11.7, lineHeight: 1.45, maxHeight: 160, overflowY: 'auto' }}>{staffInviteMessage(latestStaffInvite)}</pre>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
+                        <button type="button" disabled={updating === `staff_invite_${latestStaffInvite.email}`} onClick={() => sendStaffInvite(latestStaffInvite)} style={{ border: 'none', background: updating === `staff_invite_${latestStaffInvite.email}` ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: updating === `staff_invite_${latestStaffInvite.email}` ? 'wait' : 'pointer', fontFamily: 'Georgia,serif' }}>{updating === `staff_invite_${latestStaffInvite.email}` ? 'Sending...' : 'Send Passage invite'}</button>
+                        <button type="button" onClick={() => copyText(staffInviteMessage(latestStaffInvite), 'Staff invite message copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Copy instead</button>
+                      </div>
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
@@ -2891,7 +2923,7 @@ export default function FuneralHomeDashboard() {
                         </div>
                         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                           <button onClick={() => { setStaffDraft({ name: member.label === member.email ? '' : member.label || '', email: member.email || '', role: member.role || 'staff', locationScope: member.locationScope || 'all', annualSalary: member.annualSalary || '', hourlyCost: member.hourlyCost || '' }); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Edit</button>
-                          <button onClick={() => copyText(staffInviteMessage(member), 'Staff invite message copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Copy invite</button>
+                          <button onClick={() => { setLatestStaffInvite(member); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Invite</button>
                         </div>
                       </div>
                     ))}
