@@ -4846,11 +4846,6 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <button onClick={() => window.location.href = '/hospice'} className="home-action home-secondary">Prepare during care</button>
               <button onClick={onPlan} className="home-action home-tertiary">Plan ahead</button>
             </div>
-            <div className="home-demo-links" aria-label="View Passage demos">
-              <a className="home-demo-link" href="/urgent?demo=1">View family experience</a>
-              <a className="home-demo-link" href="/hospice?demoTour=funeral-home&demoStep=warm">View care-prep experience</a>
-              <a className="home-demo-link" href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard">View funeral-home demo</a>
-            </div>
             <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
             <div className="home-pledge"><strong>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent path also funds a remembrance tree dedication.</div>
           </div>

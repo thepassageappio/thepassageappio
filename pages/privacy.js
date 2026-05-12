@@ -13,11 +13,11 @@ const C = {
 
 const rows = [
   ['What data means here', 'Estate, case, task, message, participant, document reference, vendor request, and audit data are treated as coordination records for the family or account using Passage.'],
-  ['Who should see it', 'Access should follow role and context: family coordinators, invited participants, funeral-home staff, vendors, and Passage system admins should each have different visibility.'],
-  ['Export and ownership', 'The roadmap standard is that families and funeral homes can export the data behind reports and case work. Passage should be a coordination layer, not a data trap.'],
-  ['Documents and proof', 'Proof can include notes, confirmation numbers, message receipts, generated packets, screenshots, or future uploaded files. Sensitive uploads require stronger storage, permission, and retention review before pilots.'],
+  ['Who should see it', 'Access follows role and context: family coordinators, invited participants, funeral-home staff, vendors, and Passage support admins each have different visibility.'],
+  ['Export and ownership', 'Families and funeral homes should be able to export the data behind reports and case work. Passage should be a coordination layer, not a data trap.'],
+  ['Documents and proof', 'Proof can include notes, confirmation numbers, message receipts, generated packets, screenshots, or uploaded files. Sensitive records should stay tied to clear permissions and human review.'],
   ['Communications', 'Email, SMS, and in-app messages should log sender, recipient, timestamp, channel, and delivery state where available so users can see what happened.'],
-  ['Final policy status', 'This is a plain-language product overview. A formal Privacy Policy still needs owner and counsel review before it becomes final legal policy.'],
+  ['Privacy posture', 'Passage is designed around scoped access, review before sharing, exportability, and clear records of what happened.'],
 ];
 
 export default function PrivacyPage() {
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         <div style={eyebrow}>Privacy overview</div>
         <h1 style={h1}>Data should stay understandable, role-scoped, and exportable.</h1>
         <p style={lead}>
-          This page explains the product privacy posture Passage is being built toward. It is not the final counsel-reviewed Privacy Policy.
+          This page explains how Passage approaches privacy, access, exports, and records in plain language.
         </p>
 
         <div style={{ display: 'grid', gap: 12, marginTop: 18 }}>

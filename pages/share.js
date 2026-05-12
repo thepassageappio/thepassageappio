@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase as sb } from "../lib/supabaseBrowser";
 import { SiteFooter, SiteHeader } from "../components/SiteChrome";
+import { isPassageAdmin } from "../lib/adminAccess";
 
 var NL = String.fromCharCode(10);
 
@@ -238,7 +239,16 @@ export default function SharePage() {
 
   useEffect(function() {
     var params = new URLSearchParams(window.location.search);
-    setDemoMode(params.get("demoTour") === "funeral-home" || params.get("demo") === "1");
+    var requestedDemo = params.get("demoTour") === "funeral-home" || params.get("demo") === "1";
+    if (!requestedDemo || !sb?.auth) {
+      setDemoMode(false);
+      return;
+    }
+    var cancelled = false;
+    sb.auth.getSession().then(function(result) {
+      if (!cancelled) setDemoMode(isPassageAdmin(result && result.data && result.data.session && result.data.session.user && result.data.session.user.email));
+    });
+    return function() { cancelled = true; };
   }, []);
 
   useEffect(function() {

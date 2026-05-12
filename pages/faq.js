@@ -37,15 +37,15 @@ const sections = [
     items: [
       ['Does Passage replace our case system?', 'No. Passage is designed to sit on top of existing funeral-home systems as a family-facing coordination layer, with CSV export for portability.'],
       ['What does "act on behalf" mean?', 'A funeral-home user can handle or update family-visible tasks with an audit trail so families know what is done, waiting, or needs their input.'],
-      ['How are staff roles handled?', 'The roadmap separates director/admin, location manager, and employee views so staff can see assigned work without being treated as family participants.'],
+      ['How are staff roles handled?', 'Directors, location managers, and staff can have different views so each person sees the cases, tasks, and reporting connected to their role.'],
       ['What metrics should a funeral home see?', 'Calls avoided, waiting items, tasks completed, tasks by employee/location, response times, vendor requests, and exportable case data.'],
     ],
   },
   {
     title: 'Vendors',
     items: [
-      ['How do I become a local vendor?', 'Use the vendor application form. Passage system admins review business details, category, ZIP codes, contact information, and fit before approval.'],
-      ['Do vendor admin requests come from Contact Us?', 'No. Vendor admin applications come from the vendor onboarding/application flow. General Contact Us messages are support/lead inquiries and belong in a separate system-admin inbox.'],
+      ['How do I become a local vendor?', 'Use the vendor application form. Passage reviews business details, category, ZIP codes, contact information, and fit before approval.'],
+      ['Do vendor applications come from Contact Us?', 'No. Vendor applications come from the vendor onboarding flow. General Contact Us messages are support, product, billing, or partnership inquiries.'],
       ['What happens after approval?', 'The approved contact email becomes the vendor login identity. Approved vendors can sign in to the vendor page and manage task-native requests.'],
       ['Where do families see vendors?', 'Only inside relevant tasks. Passage is not building a generic directory where families browse vendors under stress.'],
     ],
@@ -56,8 +56,8 @@ const sections = [
       ['How do I report a bug?', 'Use Contact and choose Report a bug or Technical issue. Include the page, what you clicked, and what you expected to happen.'],
       ['How do I request a feature?', 'Use Contact and describe the workflow gap, who needs it, and what proof or output should appear.'],
       ['How do I dispute billing?', 'Use Contact and choose Billing or Stripe. Include the account email and charge date.'],
-      ['Where are Terms and Privacy?', 'The public Trust, Privacy, and Terms overview pages explain current product boundaries. Formal legal copy still needs owner/counsel review before it becomes final production policy.'],
-      ['Where do support requests go today?', 'Contact submissions are captured as support or lead inquiries. Vendor applications use the vendor application form and appear in the Passage system-admin vendor queue after submission.'],
+      ['Where are Terms and Privacy?', 'The public Trust, Privacy, and Terms pages explain current product boundaries, data posture, and user responsibilities in plain language.'],
+      ['Where do support requests go today?', 'Contact submissions are captured as support or lead inquiries. Vendor applications use the vendor application form and are routed for Passage review after submission.'],
     ],
   },
 ];
@@ -73,7 +73,7 @@ export default function FAQPage() {
 
         <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', borderRadius: 18, padding: 18, marginTop: 18 }}>
           <div style={{ color: C.rose, fontSize: 12, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Important boundary</div>
-          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.6, margin: '8px 0 0' }}>Passage provides coordination guidance and recordkeeping. It does not replace emergency services, hospice, medical professionals, legal counsel, funeral directors, clergy, government offices, or local authority requirements.</p>
+          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.6, margin: '8px 0 0' }}>Passage provides coordination guidance and recordkeeping. It does not replace emergency services, hospice, medical professionals, legal advice, funeral directors, clergy, government offices, or local authority requirements.</p>
         </div>
 
         <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
@@ -94,7 +94,7 @@ export default function FAQPage() {
 
         <section style={{ ...panel, marginTop: 14 }}>
           <h2 style={h2}>Still need help?</h2>
-          <p style={lead}>Support, vendor applications, bug reports, feature requests, billing disputes, and funeral-home pilot inquiries should be routed through Contact until the system-admin inbox is live.</p>
+          <p style={lead}>Support, bug reports, feature requests, billing questions, and funeral-home pilot inquiries can be routed through Contact. Vendor applications should use the vendor application form.</p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
             <Link href="/contact" style={primaryLink}>Contact Passage</Link>
             <Link href="/trust" style={secondaryLink}>Read trust boundaries</Link>

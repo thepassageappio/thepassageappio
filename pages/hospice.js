@@ -486,8 +486,8 @@ export default function HospiceWarmPath() {
               ))}
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-              <Link href="/funeral-home/dashboard?demoTour=funeral-home&demoStep=case" style={primaryLink}>Show funeral-home handoff</Link>
-              <Link href="/packet" style={secondaryLink}>Generate packet demo</Link>
+              <Link href="/funeral-home" style={primaryLink}>See funeral-home fit</Link>
+              <Link href="/packet" style={secondaryLink}>Review packet outputs</Link>
               <Link href="/share?dn=Jack%20Taylor&cn=Taylor%20family" style={secondaryLink}>Prepare event one-pager</Link>
             </div>
           </div>

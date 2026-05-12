@@ -558,7 +558,7 @@ export default function SystemAdminPage() {
               <Panel compact>
                 <div style={eyebrow}>FAQ, support, terms, and privacy</div>
                 <h2 style={h2}>Public trust layer is queued behind owner/legal review.</h2>
-                <p style={lead}>The FAQ should explain vendor applications, support requests, feature requests, bug reports, billing disputes, urgent-path limits, and data ownership. Terms and Privacy need owner/counsel approval before production legal claims change.</p>
+                <p style={lead}>The FAQ should explain vendor applications, support requests, feature requests, bug reports, billing disputes, urgent-path limits, and data ownership. Terms and Privacy changes should stay reviewed before production legal claims change.</p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
                   <Link href="/faq" style={secondaryLink}>FAQ</Link>
                   <Link href="/trust" style={secondaryLink}>Trust</Link>

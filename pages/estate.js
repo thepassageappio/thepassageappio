@@ -3684,7 +3684,7 @@ export default function EstatePage() {
             <textarea
               value={pendingTaskNote}
               onChange={function(e) { setPendingTaskNote(e.target.value); }}
-              placeholder={pendingTaskAction.status === 'choose' ? 'Optional internal note about why this person owns it.' : pendingTaskAction.mode ? 'What happened with this? Example: copied packet to provider portal, called and left voicemail, reference #1234, or waiting on Claire to approve.' : taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
+              placeholder={pendingTaskAction.status === 'choose' ? 'Optional private note about why this person owns it.' : pendingTaskAction.mode ? 'What happened with this? Example: copied packet to provider portal, called and left voicemail, reference #1234, or waiting on Claire to approve.' : taskActionPlaceholder(pendingTaskAction.status, pendingTaskAction.task, 'family')}
               style={{ width: '100%', boxSizing: 'border-box', minHeight: 82, border: '1.5px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 10, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.45, background: CARD, color: INK }}
             />
             {pendingTaskAction.status !== 'choose' && (

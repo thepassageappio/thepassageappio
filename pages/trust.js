@@ -30,13 +30,13 @@ export default function TrustPage() {
         <div style={eyebrow}>Trust and boundaries</div>
         <h1 style={h1}>Passage should make the work clearer, not pretend it can replace judgment.</h1>
         <p style={lead}>
-          Passage is a coordination layer for emotionally difficult work. These are the operating boundaries the product is being built around before formal counsel-reviewed policies are finalized.
+          Passage is a coordination layer for emotionally difficult work. These boundaries explain what Passage helps organize, what remains human judgment, and when families or providers should contact professionals directly.
         </p>
 
         <section style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 20, padding: 20, marginTop: 18 }}>
           <div style={{ color: C.rose, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>When safety or legal authority is unclear</div>
           <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.6, margin: '8px 0 0' }}>
-            If there is danger, uncertainty about whether someone has died, a medical emergency, an unattended death, or any local rule requiring professional notification, contact emergency services, hospice, medical staff, police, a funeral director, legal counsel, or the appropriate local authority directly. Passage guidance is not a substitute for those decisions.
+            If there is danger, uncertainty about whether someone has died, a medical emergency, an unattended death, or any local rule requiring professional notification, contact emergency services, hospice, medical staff, police, a funeral director, a qualified legal professional, or the appropriate local authority directly. Passage guidance is not a substitute for those decisions.
           </p>
         </section>
 
@@ -50,9 +50,9 @@ export default function TrustPage() {
         </div>
 
         <section style={{ ...panel, marginTop: 16, background: C.goldFaint }}>
-          <h2 style={h2}>What still needs counsel review</h2>
+          <h2 style={h2}>How Passage earns trust</h2>
           <p style={bodyText}>
-            The formal Terms of Service, Privacy Policy, data retention policy, liability language, vendor terms, funeral-home partner terms, and state-specific guidance boundaries need owner and counsel review before serious pilots. These pages are product trust scaffolding, not final legal documents.
+            Passage keeps sensitive coordination work role-scoped, review-first, and exportable. Families and professionals remain in control of what is sent, shared, completed, and handed off.
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
             <Link href="/privacy" style={primaryLink}>Privacy overview</Link>

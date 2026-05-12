@@ -5,6 +5,11 @@ import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { vendorCategoryLabel } from '../../lib/vendors';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
+const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com', 'thepassageappio@gmail.com'];
+
+function isSystemAdmin(user) {
+  return SYSTEM_ADMIN_EMAILS.includes(String(user?.email || '').trim().toLowerCase());
+}
 
 export default function VendorAdmin() {
   const [user, setUser] = useState(null);
@@ -32,7 +37,7 @@ export default function VendorAdmin() {
       setUser(data?.session?.user || null);
       const accessToken = data?.session?.access_token || '';
       setToken(accessToken);
-      if (accessToken) load(accessToken);
+      if (accessToken && isSystemAdmin(data?.session?.user)) load(accessToken);
       else setLoading(false);
     }).catch((err) => {
       if (!alive) return;
@@ -44,7 +49,7 @@ export default function VendorAdmin() {
       const accessToken = session?.access_token || '';
       setUser(session?.user || null);
       setToken(accessToken);
-      if (accessToken) load(accessToken);
+      if (accessToken && isSystemAdmin(session?.user)) load(accessToken);
       else {
         setVendors([]);
         setLoading(false);
@@ -120,6 +125,7 @@ export default function VendorAdmin() {
     rejected: vendors.filter((vendor) => vendor.status === 'rejected').length,
   }), [vendors]);
   const visibleVendors = filter === 'all' ? vendors : vendors.filter((vendor) => vendor.status === filter);
+  const admin = isSystemAdmin(user);
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -132,10 +138,10 @@ export default function VendorAdmin() {
         <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, margin: '18px 0', display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Admin status</div>
-            <div style={{ fontSize: 18, fontWeight: 900, marginTop: 4 }}>{loading ? 'Checking access...' : user ? 'Signed in as system admin' : 'System admin sign-in required'}</div>
+            <div style={{ fontSize: 18, fontWeight: 900, marginTop: 4 }}>{loading ? 'Checking access...' : admin ? 'Signed in as system admin' : 'System admin sign-in required'}</div>
             <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 3 }}>{user ? user.email : 'Only Passage system admins can approve vendors before they appear in task recommendations.'}</div>
           </div>
-          <button onClick={() => token ? load(token) : signIn()} style={primaryButton}>{token ? 'Refresh applications' : 'Sign in to review'}</button>
+          <button onClick={() => token && admin ? load(token) : signIn()} style={primaryButton}>{token && admin ? 'Refresh applications' : 'Sign in to review'}</button>
         </div>
 
         <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, margin: '18px 0', display: 'grid', gap: 12 }}>
@@ -167,7 +173,14 @@ export default function VendorAdmin() {
           </div>
         )}
 
-        {user && (
+        {user && !admin && !loading && (
+          <div style={emptyStyle}>
+            <div style={{ fontSize: 24, marginBottom: 6 }}>This vendor approval area is not available for this account.</div>
+            <p style={{ color: C.mid, lineHeight: 1.6, marginTop: 0 }}>Vendor approval is restricted to Passage system admins.</p>
+          </div>
+        )}
+
+        {user && admin && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             {[
               ['pending', `Pending (${counts.pending})`],
@@ -183,7 +196,7 @@ export default function VendorAdmin() {
 
         {loading && <div style={emptyStyle}>Loading vendor applications...</div>}
 
-        {user && !loading && vendors.length === 0 && (
+        {user && admin && !loading && vendors.length === 0 && (
           <div style={emptyStyle}>
             <div style={{ fontSize: 24, marginBottom: 6 }}>No vendor applications yet.</div>
             <p style={{ color: C.mid, lineHeight: 1.6, marginTop: 0 }}>When a vendor submits the support partner form, it will appear here for system-admin approval.</p>
@@ -191,12 +204,12 @@ export default function VendorAdmin() {
           </div>
         )}
 
-        {user && !loading && vendors.length > 0 && visibleVendors.length === 0 && (
+        {user && admin && !loading && vendors.length > 0 && visibleVendors.length === 0 && (
           <div style={emptyStyle}>No {filter} vendors right now.</div>
         )}
 
         <div style={{ display: 'grid', gap: 10 }}>
-          {visibleVendors.map((vendor) => (
+          {admin && visibleVendors.map((vendor) => (
             <div key={vendor.id} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <div>

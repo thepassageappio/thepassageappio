@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
 import { RoleActionStrip, SiteHeader, SiteFooter, StatusBadge } from '../components/SiteChrome';
+import { isPassageAdmin } from '../lib/adminAccess';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
@@ -421,7 +422,8 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
 export default function ParticipatingPage() {
   const router = useRouter();
   const [clientSearch, setClientSearch] = useState('');
-  const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1' || clientSearch.includes('demoTour=funeral-home') || clientSearch.includes('demo=1');
+  const requestedDemoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1' || clientSearch.includes('demoTour=funeral-home') || clientSearch.includes('demo=1');
+  const [demoMode, setDemoMode] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -442,29 +444,40 @@ export default function ParticipatingPage() {
 
   useEffect(() => {
     if (!router.isReady) return;
-    if (demoMode) {
-      setUser({ email: demoParticipantContext.email });
-      setData(demoParticipantContext);
-      setExpandedEstateId('demo-participant-estate');
-      setLoading(false);
-      return undefined;
-    }
     if (!supabase?.auth) {
       setLoading(false);
-      setError('Sign-in is not configured in this environment. Use the demo participant view to inspect the flow.');
+      setError('Sign-in is not configured in this environment.');
       return undefined;
     }
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (requestedDemoMode && isPassageAdmin(session?.user?.email)) {
+        setDemoMode(true);
+        setUser(session.user);
+        setData(demoParticipantContext);
+        setExpandedEstateId('demo-participant-estate');
+        setLoading(false);
+        return;
+      }
+      setDemoMode(false);
       setUser(session?.user || null);
       if (session?.access_token) load(session.access_token);
       else setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (requestedDemoMode && isPassageAdmin(session?.user?.email)) {
+        setDemoMode(true);
+        setUser(session.user);
+        setData(demoParticipantContext);
+        setExpandedEstateId('demo-participant-estate');
+        setLoading(false);
+        return;
+      }
+      setDemoMode(false);
       setUser(session?.user || null);
       if (session?.access_token) load(session.access_token);
     });
     return () => sub?.subscription?.unsubscribe?.();
-  }, [router.isReady, router.query.estate, router.query.task, demoMode]);
+  }, [router.isReady, router.query.estate, router.query.task, requestedDemoMode]);
 
   async function load(token) {
     setLoading(true);

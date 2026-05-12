@@ -77,7 +77,7 @@ export default function VendorRequestPage() {
   }, [token]);
 
   useEffect(() => {
-    if (!token && (demoQuery || isSystemAdmin(user))) {
+    if (!token && demoQuery && isSystemAdmin(user)) {
       setRequest(demoRequest);
       setEstimatedValue(demoRequest.estimated_value || '');
       setFinalValue('');
@@ -172,7 +172,7 @@ export default function VendorRequestPage() {
 
   const familyName = request?.workflows?.deceased_name || request?.workflows?.estate_name || request?.workflows?.name || 'Family case';
   const vendorName = request?.vendors?.business_name || 'Vendor';
-  const demoMode = !token && (demoQuery || isSystemAdmin(user));
+  const demoMode = !token && isSystemAdmin(user) && demoQuery;
   const requestStatus = labelForStatus(request?.status);
   const urgencyLabel = request?.urgency === 'rush' ? 'Needed within 24 hours' : 'Planning ahead';
   const nextExpected = request?.status === 'completed'
@@ -232,7 +232,7 @@ export default function VendorRequestPage() {
             <div style={cardStyle}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
               <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{user ? 'No approved vendor profile yet.' : 'Sign in to manage vendor requests.'}</h1>
-              <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first, Passage system admin approves them, then the approved contact email can sign in here to respond to scoped task requests. Vendors do not browse families or cases.'}</p>
+              <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first. Once approved, the primary contact can sign in here to respond to scoped task requests. Vendors do not browse families or cases.'}</p>
               {!user && <button onClick={() => supabase?.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } })} style={buttonStyle(C.sage)}>Sign in</button>}
             </div>
           )
@@ -240,9 +240,9 @@ export default function VendorRequestPage() {
         {!loading && request && (
           <div data-demo-anchor="demo-vendor-request" style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: 22, borderBottom: '1px solid ' + C.border, background: C.card }}>
-              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Demo scoped vendor request' : 'Scoped local support request'}</div>
+              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Sample scoped vendor request' : 'Scoped local support request'}</div>
               <h1 style={{ fontSize: 'clamp(30px, 5vw, 44px)', lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
-              <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Demo request. Button clicks update local screen state only.' : 'One scoped request connected to the family record. You only see what is needed to answer this request.'}</p>
+              <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Sample request for an admin walkthrough. No live family record is changed.' : 'One scoped request connected to the family record. You only see what is needed to answer this request.'}</p>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 12 }}>
                 <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After your quote:</strong> the family or funeral home accepts it before work begins.
               </div>
@@ -261,7 +261,7 @@ export default function VendorRequestPage() {
             </div>
             {demoMode && (
               <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', color: C.amber, borderRadius: 12, padding: 10, margin: '14px 22px 0', fontWeight: 800, fontSize: 13.5, lineHeight: 1.45 }}>
-                Demo mode. No live messages, payments, or production request records are changed.
+                Sample mode. No live messages, payments, or production request records are changed.
               </div>
             )}
 

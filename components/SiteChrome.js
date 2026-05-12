@@ -118,7 +118,7 @@ const navLink = {
   alignItems: 'center',
 };
 
-const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
+const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com', 'thepassageappio@gmail.com'];
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
@@ -319,7 +319,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   }
 
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
-  const demoTourActive = hydrated && router?.query?.demoTour === 'funeral-home';
+  const demoTourActive = hydrated && showSystemAdminLinks && router?.query?.demoTour === 'funeral-home';
   const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(activePath, router?.query?.demoStep)) : null;
   const activeStyle = {
     background: CHROME_COLORS.sage,
@@ -456,15 +456,15 @@ function DemoCoach({ step }) {
     <div data-demo-coach="funeral-home" style={{ position: 'fixed', ...(placement.left != null ? { left: placement.left } : { right: placement.right ?? 24 }), ...(placement.top != null ? { top: placement.top } : { bottom: placement.bottom ?? 24 }), zIndex: 2147483601, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
         <div>
-          <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>DEMO DATA - for demonstration only</div>
+          <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Sample walkthrough</div>
           <div style={{ fontSize: 22, lineHeight: 1.15, marginTop: 6 }}>{step.title}</div>
         </div>
         <button onClick={exitDemo} style={{ border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#d8d0c7', borderRadius: 999, minWidth: 58, minHeight: 32, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>Exit</button>
       </div>
       <p style={{ color: '#d8d0c7', fontSize: 13.5, lineHeight: 1.5, margin: '10px 0 10px' }}>{step.body}</p>
       <div style={{ display: 'grid', gap: 7, marginBottom: 12 }}>
-        {step.point && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>What this demonstrates:</strong> {step.point}</div>}
-        {step.evidence && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>Where it appears:</strong> {step.evidence}</div>}
+        {step.point && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>Why it matters:</strong> {step.point}</div>}
+        {step.evidence && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>What to look at:</strong> {step.evidence}</div>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ color: '#b9d2bd', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>Step {Math.max(1, stepIndex + 1)} / {DEMO_TOUR_STEPS.length}</span>
@@ -473,7 +473,7 @@ function DemoCoach({ step }) {
         )}
         <Link onClick={handleAdvance} href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
       </div>
-      <div style={{ color: '#aaa39a', fontSize: 11.2, lineHeight: 1.35, marginTop: 9 }}>This tour uses demo data. Live email/SMS is not sent from the tour.</div>
+      <div style={{ color: '#aaa39a', fontSize: 11.2, lineHeight: 1.35, marginTop: 9 }}>This walkthrough uses sample data. No messages are sent from the tour.</div>
     </div>
     </>
   );

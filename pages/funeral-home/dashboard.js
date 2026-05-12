@@ -11,6 +11,7 @@ import { taskExplanationFor, taskGuidanceFor, taskOutputFor, taskPreparedPacketF
 import { orchestrateTasks, taskImportance } from '../../lib/taskOrchestration';
 import { trackEvent } from '../../lib/trackEvent';
 import { recordOnboardingProgress } from '../../lib/onboardingClient';
+import { isPassageAdmin } from '../../lib/adminAccess';
 
 const C = { bg: '#f6f3ee', bgDark: '#1a1916', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 
@@ -511,7 +512,8 @@ function downloadCsvFile(csv, filename) {
 
 export default function FuneralHomeDashboard() {
   const router = useRouter();
-  const demoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1';
+  const requestedDemoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1';
+  const [demoMode, setDemoMode] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState('');
   const [data, setData] = useState(null);
@@ -606,34 +608,41 @@ export default function FuneralHomeDashboard() {
 
   useEffect(() => {
     if (!router.isReady) return;
-    if (demoMode) {
-      setUser({ id: 'demo-partner-user', email: 'maria@hvfg.demo' });
-      setToken('demo-token');
-      setData(demoPartnerContext);
-      setPartnerEmail('maria@hvfg.demo');
-      setVendorPrefs({
-        vendors: [{ id: 'demo-vendor', business_name: 'Hudson Valley Livestream', category: 'livestream', status: 'active' }],
-        preferred: [{ vendor_id: 'demo-vendor', category: 'livestream', active: true }],
-        marketplaceEnabled: true,
-      });
-      setLoading(false);
-      return;
-    }
     if (!supabase?.auth) {
       setError('Supabase browser auth is not configured in this environment.');
       setLoading(false);
       return;
     }
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
-      setToken(session?.access_token || '');
-      if (session?.access_token) {
-        load(session.access_token);
-        loadPreferredVendors(session.access_token);
+      const sessionUser = session?.user || null;
+      const sessionToken = session?.access_token || '';
+      if (requestedDemoMode && isPassageAdmin(sessionUser?.email)) {
+        setDemoMode(true);
+        setUser(sessionUser);
+        setToken(sessionToken || 'demo-token');
+        setData(demoPartnerContext);
+        setPartnerEmail(sessionUser?.email || 'maria@hvfg.demo');
+        setVendorPrefs({
+          vendors: [{ id: 'demo-vendor', business_name: 'Hudson Valley Livestream', category: 'livestream', status: 'active' }],
+          preferred: [{ vendor_id: 'demo-vendor', category: 'livestream', active: true }],
+          marketplaceEnabled: true,
+        });
+        setLoading(false);
+        return;
       }
-      else setLoading(false);
+      setDemoMode(false);
+      setUser(sessionUser);
+      setToken(sessionToken);
+      if (sessionToken) {
+        load(sessionToken);
+        loadPreferredVendors(sessionToken);
+      }
+      else {
+        if (requestedDemoMode) setNotice('Sign in as a Passage system admin to open the guided demo workspace.');
+        setLoading(false);
+      }
     });
-  }, [router.isReady, demoMode]);
+  }, [router.isReady, requestedDemoMode]);
 
   useEffect(() => {
     const modalOpen = showNewCase || showStaffSetup || showLocationSetup || Boolean(taskDraft?.task) || Boolean(assignmentDraft.taskId);
@@ -658,8 +667,8 @@ export default function FuneralHomeDashboard() {
 
   async function load(token) {
     setLoading(true);
-    const demoMode = router.query.demo === '1' || router.query.demo === 'true';
-    const res = await fetch(demoMode && !token ? '/api/partnerContext?demo=1' : '/api/partnerContext', token ? { headers: { Authorization: 'Bearer ' + token } } : undefined);
+    const useDemoContext = demoMode && !token;
+    const res = await fetch(useDemoContext ? '/api/partnerContext?demo=1' : '/api/partnerContext', token ? { headers: { Authorization: 'Bearer ' + token } } : undefined);
     const json = await res.json().catch(() => ({}));
     if (!res.ok) setError(json.error || 'Could not load partner dashboard.');
     else setData(json);
@@ -2246,7 +2255,7 @@ export default function FuneralHomeDashboard() {
   }, [firstOpenCase?.id, data]);
 
   useEffect(() => {
-    if (router.query.demoTour !== 'funeral-home') return;
+    if (!demoMode || router.query.demoTour !== 'funeral-home') return;
     const step = typeof router.query.demoStep === 'string' ? router.query.demoStep : '';
     if (!step || loading) return;
     if (step === 'team') setActivePartnerView('manage');
@@ -2256,7 +2265,7 @@ export default function FuneralHomeDashboard() {
       setShowTools(true);
     }
     focusPartnerDemoStep(step);
-  }, [router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
+  }, [demoMode, router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
 
   useEffect(() => {
     if (loading || !data || isDirectorRole || activePartnerView !== 'work') return;
@@ -2415,10 +2424,9 @@ export default function FuneralHomeDashboard() {
               </button>
             </form>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.55, marginBottom: 12 }}>
-              Demo partners can use the email and password Passage issued. Real partner teams can continue with Google when their domain is connected.
+              Partner teams can use the email and password Passage issued. Google sign-in can be enabled when their domain is connected.
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <Link href="/funeral-home/dashboard?demo=1&persona=fh-director&demoTour=funeral-home&demoStep=dashboard" style={{ border: `1px solid ${C.sage}33`, borderRadius: 13, padding: '12px 18px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, textDecoration: 'none' }}>View demo workspace</Link>
               <button onClick={signIn} style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
             </div>
           </div>
@@ -2430,7 +2438,7 @@ export default function FuneralHomeDashboard() {
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
         {user && !loading && data?.demoData && (
           <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 14, color: C.amber, marginBottom: 10, lineHeight: 1.45, fontWeight: 900 }}>
-            {data.demoLabel || 'Demo data is loaded for this walkthrough. No email, SMS, or production record is changed by demo actions.'}
+            {data.demoLabel || 'Sample data is loaded for this walkthrough. No email, SMS, or production record is changed by sample actions.'}
           </div>
         )}
         {user && latestFamilyLink?.url && (
@@ -4232,7 +4240,7 @@ export default function FuneralHomeDashboard() {
                               <br />
                               <strong style={{ color: C.ink }}>Expected timing:</strong> {guidance.timing}
                               <br />
-                              <strong style={{ color: C.ink }}>Visibility:</strong> family-facing status and proof are shared; internal staff notes stay operational.
+                              <strong style={{ color: C.ink }}>Visibility:</strong> family-facing status and proof are shared; staff notes stay in the operating record.
                             </div>
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 11 }}>

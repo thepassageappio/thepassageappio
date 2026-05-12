@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
+import { isPassageAdmin } from '../lib/adminAccess';
 import { supabase } from '../lib/supabaseBrowser';
 import { buildContinuityPackets, demoContinuityInput } from '../lib/continuityPackets';
 import { trackEvent } from '../lib/trackEvent';
@@ -28,20 +29,38 @@ export default function PacketDemo() {
   const [sourceLabel, setSourceLabel] = useState('Sample output set');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [adminDemoAllowed, setAdminDemoAllowed] = useState(false);
   const active = packets.find(packet => packet.id === activeId) || packets[0];
-  const demoMode = router.isReady && (router.query.demoTour === 'funeral-home' || router.query.demo === '1');
+  const requestedDemoMode = router.isReady && (router.query.demoTour === 'funeral-home' || router.query.demo === '1');
+  const demoMode = requestedDemoMode && adminDemoAllowed;
   const displaySourceLabel = sourceLabel;
+
+  useEffect(() => {
+    if (!router.isReady || !requestedDemoMode) {
+      setAdminDemoAllowed(false);
+      return;
+    }
+    if (!supabase?.auth) {
+      setAdminDemoAllowed(false);
+      return;
+    }
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled) setAdminDemoAllowed(isPassageAdmin(data?.session?.user?.email));
+    });
+    return () => { cancelled = true; };
+  }, [router.isReady, requestedDemoMode]);
 
   useEffect(() => {
     if (!router.isReady) return;
     const id = String(router.query.id || '').trim();
     if (!id) {
       setPackets(demoPackets);
-      setSourceLabel(router.query.demo === '1' || router.query.demoTour === 'funeral-home' ? 'Demo packet set' : 'Sample output set');
+      setSourceLabel(demoMode ? 'Demo packet set' : 'Sample output set');
       setError('');
       return;
     }
-    if (/^demo[-_]/i.test(id) || router.query.demo === '1') {
+    if (demoMode && (/^demo[-_]/i.test(id) || router.query.demo === '1')) {
       setPackets(demoPackets);
       setActiveId(demoPackets[0]?.id || '');
       setSourceLabel('Demo packet set');
@@ -77,7 +96,7 @@ export default function PacketDemo() {
         if (!cancelled) {
           setPackets(demoPackets);
           setActiveId(demoPackets[0]?.id || '');
-          setSourceLabel('Demo packet set');
+          setSourceLabel('Sample output set');
           setError(err.message || 'Could not load packets.');
         }
       } finally {
@@ -86,7 +105,7 @@ export default function PacketDemo() {
     }
     loadPackets();
     return () => { cancelled = true; };
-  }, [router.isReady, router.query.id, demoPackets]);
+  }, [router.isReady, router.query.id, demoPackets, demoMode]);
 
   async function copyActive() {
     trackEvent('packet_copied', { packetId: active?.id, sourceLabel });
@@ -170,7 +189,7 @@ export default function PacketDemo() {
           )}
         </div>
 
-        {error && <div className="no-print" style={{ background: C.amberFaint, color: C.amber, border: '1px solid #edd7b1', borderRadius: 12, padding: '10px 14px', marginBottom: 12 }}>{error} Showing demo packets instead.</div>}
+        {error && <div className="no-print" style={{ background: C.amberFaint, color: C.amber, border: '1px solid #edd7b1', borderRadius: 12, padding: '10px 14px', marginBottom: 12 }}>{error} Showing sample packets instead.</div>}
         {notice && <div className="no-print" style={{ background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 14px', marginBottom: 12, display: 'inline-flex' }}>{notice}</div>}
 
         <div className="packet-grid" style={{ display: 'grid', gridTemplateColumns: '310px minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>
