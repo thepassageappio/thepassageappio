@@ -694,6 +694,12 @@ export default function FuneralHomeDashboard() {
 
   async function partnerAuthedFetch(url, options = {}) {
     const freshToken = await getFreshPartnerToken();
+    if (!freshToken) {
+      return new Response(JSON.stringify({ error: 'Sign in to your partner workspace before changing live case work.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     const withAuth = (accessToken) => ({
       ...options,
       headers: {
@@ -711,6 +717,32 @@ export default function FuneralHomeDashboard() {
       }
     }
     return res;
+  }
+
+  function updateLocalTask(taskId, updates = {}) {
+    setData(prev => prev ? {
+      ...prev,
+      cases: (prev.cases || []).map(item => ({
+        ...item,
+        tasks: (item.tasks || []).map(t => t.id === taskId ? { ...t, ...updates } : t),
+        partnerTasks: (item.partnerTasks || []).map(t => t.id === taskId ? { ...t, ...updates } : t),
+      })),
+    } : prev);
+  }
+
+  function demoTaskAction(task, status, confirmation, extra = {}) {
+    const now = new Date().toISOString();
+    const nextStatus = normalizedTaskStatus(status);
+    updateLocalTask(task.id, {
+      status: nextStatus,
+      last_action_at: now,
+      last_actor: user?.email || 'Demo funeral home user',
+      ...extra,
+    });
+    setNotice(confirmation || taskActionConfirmation(status, task, 'funeral_home'));
+    setTaskDraft(null);
+    setTaskDraftNote('');
+    setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
   }
 
   async function signIn() {
@@ -800,10 +832,15 @@ export default function FuneralHomeDashboard() {
   }
 
   async function updateTask(task, status, detail) {
-    if (!token || !task?.id) return;
+    if ((!token && !demoMode) || !task?.id) return;
     setUpdating(task.id + status);
     setError('');
     setNotice('');
+    if (demoMode) {
+      demoTaskAction(task, status, taskActionConfirmation(status, task, 'funeral_home'));
+      setUpdating('');
+      return;
+    }
     try {
       const res = await partnerAuthedFetch(`/api/tasks/${task.id}/status`, {
         method: 'POST',
@@ -841,7 +878,7 @@ export default function FuneralHomeDashboard() {
   }
 
   async function handleForFamily(task, note) {
-    if (!token || !task?.id) return;
+    if ((!token && !demoMode) || !task?.id) return;
     const cleanNote = String(note || '').trim();
     if (!cleanNote) {
       setError('Add what your team actually completed before marking this handled.');
@@ -851,6 +888,13 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
+      if (demoMode) {
+        demoTaskAction(task, 'handled', 'Demo proof saved. The task moved out of active work without sending a live message.', {
+          notes: cleanNote,
+          outcome_status: 'completed',
+        });
+        return;
+      }
       const res = await partnerAuthedFetch('/api/partnerHandleTask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -883,7 +927,7 @@ export default function FuneralHomeDashboard() {
   }
 
   async function assignTaskOwner(task) {
-    if (!token || !task?.id) return;
+    if ((!token && !demoMode) || !task?.id) return;
     const payload = {
       name: assignmentDraft.name,
       email: assignmentDraft.email,
@@ -899,6 +943,14 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
+      if (demoMode) {
+        demoTaskAction(task, 'assigned', 'Demo owner saved. In a live workspace this would update the task owner and prepare the invite path.', {
+          assigned_to_name: payload.name || payload.email,
+          assigned_to_email: payload.email,
+          recipient: payload.email,
+        });
+        return;
+      }
       const res = await partnerAuthedFetch(`/api/tasks/${task.id}/assign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -926,7 +978,7 @@ export default function FuneralHomeDashboard() {
   }
 
   async function assignCaseTasks(caseItem, scope = 'unassigned_open') {
-    if (!token || !caseItem?.id) return;
+    if ((!token && !demoMode) || !caseItem?.id) return;
     const payload = {
       name: assignmentDraft.name,
       email: assignmentDraft.email,
@@ -943,6 +995,24 @@ export default function FuneralHomeDashboard() {
     setError('');
     setNotice('');
     try {
+      if (demoMode) {
+        const ids = new Set((caseItem.tasks || [])
+          .filter(t => !['handled', 'completed', 'done'].includes(String(t.status || '').toLowerCase()))
+          .filter(t => scope === 'all_open' || (!t.assigned_to_email && !t.assigned_to_name))
+          .map(t => t.id));
+        const now = new Date().toISOString();
+        setData(prev => prev ? {
+          ...prev,
+          cases: (prev.cases || []).map(item => item.id === caseItem.id ? {
+            ...item,
+            tasks: (item.tasks || []).map(t => ids.has(t.id) ? { ...t, assigned_to_name: payload.name || payload.email, assigned_to_email: payload.email, recipient: payload.email, last_actor: payload.actor, last_action_at: now } : t),
+            partnerTasks: (item.partnerTasks || []).map(t => ids.has(t.id) ? { ...t, assigned_to_name: payload.name || payload.email, assigned_to_email: payload.email, recipient: payload.email, last_actor: payload.actor, last_action_at: now } : t),
+          } : item),
+        } : prev);
+        setNotice(`${ids.size} demo task${ids.size === 1 ? '' : 's'} assigned. In a live workspace this updates the shared case spine and staff queue.`);
+        setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
+        return;
+      }
       const res = await partnerAuthedFetch(`/api/workflows/${caseItem.id}/assign-tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -4833,7 +4833,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-panel-cta { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; margin-top:auto; align-self:flex-start; min-height:42px; border-radius:12px; padding:0 14px; background:${C.ink}; color:white; font-size:13px; font-weight:900; }
         .lifecycle-map { display:grid; gap:8px; margin-top:2px; }
         .lifecycle-track { position:relative; display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:7px; align-items:stretch; }
-        .lifecycle-track:before { content:""; position:absolute; left:8%; right:8%; top:22px; height:2px; background:${C.sageLight}; z-index:0; }
+        .lifecycle-track-line { position:absolute; left:8%; right:8%; top:22px; height:2px; background:${C.sageLight}; z-index:0; }
         .lifecycle-node { position:relative; z-index:1; background:${C.bgCard}; border:1px solid ${C.border}; border-radius:13px; padding:9px 8px 8px; min-height:88px; }
         .lifecycle-dot { width:28px; height:28px; border-radius:999px; display:flex; align-items:center; justify-content:center; background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; font-size:12px; font-weight:900; margin-bottom:7px; }
         .lifecycle-node b { display:block; font-size:12.5px; line-height:1.12; color:${C.ink}; margin-bottom:4px; }
@@ -4855,7 +4855,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           .home-panel-tabs { grid-template-columns:1fr; }
           .home-step { grid-template-columns:42px minmax(0,1fr); }
           .lifecycle-track { grid-template-columns:1fr; }
-          .lifecycle-track:before { display:none; }
+          .lifecycle-track-line { display:none; }
           .lifecycle-node { min-height:auto; display:grid; grid-template-columns:36px minmax(0,1fr); column-gap:9px; align-items:start; }
           .lifecycle-dot { grid-row:1 / span 2; margin-bottom:0; }
           .lifecycle-center { grid-template-columns:1fr; }
@@ -4940,6 +4940,7 @@ function LifecycleMap() {
   return (
     <div className="lifecycle-map" aria-label="Passage lifecycle continuity map">
       <div className="lifecycle-track">
+        <div className="lifecycle-track-line" aria-hidden="true" />
         {nodes.map(function(node) {
           return (
             <div className="lifecycle-node" key={node[1]}>
