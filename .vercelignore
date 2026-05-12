@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.git-codex
+.git-codex-writable*
+.codex-bin
+.codex-tools
+output
+.env*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
