@@ -90,7 +90,7 @@ export default async function handler(req, res) {
     .eq('id', membership.organization_id)
     .maybeSingle();
 
-  const inviteUrl = `${SITE_URL}/funeral-home/dashboard?staff=1&email=${encodeURIComponent(email)}`;
+  const inviteUrl = `${SITE_URL}/partner/accept?role=staff&email=${encodeURIComponent(email)}`;
   const subject = `${org?.name || 'Your team'} invited you to Passage`;
   const html = staffInviteHtml({
     orgName: org?.name,

@@ -155,7 +155,7 @@ export default async function handler(req, res) {
       directorName,
     });
 
-    const inviteUrl = `${SITE_URL}/funeral-home/dashboard?partner=1&email=${encodeURIComponent(directorEmail)}`;
+    const inviteUrl = `${SITE_URL}/partner/accept?role=director&email=${encodeURIComponent(directorEmail)}`;
     const subject = `${organizationName}: set up your Passage partner workspace`;
     const html = partnerInviteHtml({ organizationName, directorName, directorEmail, inviteUrl, senderEmail: adminEmail });
 

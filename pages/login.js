@@ -45,7 +45,7 @@ const portalCards = [
     eyebrow: 'Funeral home staff',
     title: 'Open assigned funeral-home work',
     body: 'For arrangers, location managers, and staff working assigned tasks with proof and case context.',
-    href: '/funeral-home/staff',
+    href: '/partner/accept?role=staff',
     action: 'Staff sign in',
   },
   {
@@ -59,7 +59,7 @@ const portalCards = [
     eyebrow: 'Vendor employee',
     title: 'Open assigned vendor work',
     body: 'For vendor team members responding to a request link or signing in with the email on their vendor profile.',
-    href: '/vendors/login',
+    href: '/vendors/accept',
     action: 'Vendor employee sign in',
   },
   {

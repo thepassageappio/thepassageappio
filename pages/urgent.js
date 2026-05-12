@@ -419,6 +419,7 @@ export default function UrgentPage() {
   const [context, setContext] = useState(defaultContext);
   const [savingEstate, setSavingEstate] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [magicSent, setMagicSent] = useState(false);
   const [paidSuccess, setPaidSuccess] = useState(false);
   const [handoff, setHandoff] = useState(false);
   const [proofByOutcome, setProofByOutcome] = useState({});
@@ -492,6 +493,30 @@ export default function UrgentPage() {
       if (error) throw error;
     } catch (error) {
       setSaveError(error?.message || 'Passage could not start sign-in. Please try again.');
+    }
+  };
+
+  const signInWithEmail = async () => {
+    const email = String(coordinatorEmail || '').trim();
+    if (!email || !email.includes('@')) {
+      setSaveError('Add your email so Passage can send a secure sign-in link.');
+      return;
+    }
+    try {
+      localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail: email, context, outcomes, people, proofByOutcome }));
+    } catch {}
+    try {
+      if (!supabase?.auth) throw new Error('Passage sign-in is not configured in this environment.');
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: SITE_URL + '/urgent' },
+      });
+      if (error) throw error;
+      setMagicSent(true);
+      setSaveError('');
+      trackEvent('urgent_magic_link_sent', { situation: selectedSituation || context.deathContext || '' });
+    } catch (error) {
+      setSaveError(error?.message || 'Passage could not send that sign-in link. Please try again.');
     }
   };
 
@@ -897,10 +922,22 @@ export default function UrgentPage() {
                   <label>Date</label>
                   <input value={dateOfDeath} onChange={e => setDateOfDeath(e.target.value)} type="date" />
                 </div>
+                {!user && (
+                  <div className="field compact">
+                    <label>Your email</label>
+                    <input value={coordinatorEmail} onChange={e => { setCoordinatorEmail(e.target.value); setMagicSent(false); }} placeholder="you@example.com" type="email" />
+                  </div>
+                )}
                 <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
-                  {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Keep this command center'}
+                  {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Save with Google'}
                 </button>
+                {!user && (
+                  <button type="button" className="secondary save-command" onClick={signInWithEmail} style={{ background: C.card, color: C.sageDark, borderColor: C.sageLight }}>
+                    {magicSent ? 'Check your email' : 'Email me a secure link'}
+                  </button>
+                )}
                 <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the command center, owners, notes, proof, and the remembrance pledge.</div>
+                {magicSent && <div className="save-helper" style={{ color: C.sageDark, fontWeight: 800 }}>We sent a secure link to {coordinatorEmail}. Open it on this device to keep this command center.</div>}
                 {saveError && <div className="save-error">{saveError}</div>}
               </div>
             </div>

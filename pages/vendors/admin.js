@@ -241,7 +241,7 @@ function statusMessage(status, vendor) {
   const email = vendor?.contact_email;
   if (status === 'active') {
     return email
-      ? `Vendor approved. ${email} can sign in and use the vendor page for this business.`
+      ? `Vendor approved. Passage sent ${email} a vendor workspace link. They can also open /vendors/accept with this email.`
       : 'Vendor approved. Add a contact email so they can sign in and manage their vendor page.';
   }
   if (status === 'inactive') return 'Vendor paused. They will not be recommended inside tasks while paused.';

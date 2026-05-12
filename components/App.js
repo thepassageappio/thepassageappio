@@ -1041,6 +1041,47 @@ const GoogleSignInBtn = ({ label = "Continue with Google", compact = false }) =>
   </button>
 );
 
+const EmailSignInBridge = ({ redirectPath = "/", compact = false }) => {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const sendLink = async () => {
+    const clean = email.trim();
+    if (!clean || !clean.includes("@")) {
+      setError("Enter an email address first.");
+      return;
+    }
+    setError("");
+    const { error: authError } = await supabase.auth.signInWithOtp({
+      email: clean,
+      options: { emailRedirectTo: SITE_URL + redirectPath },
+    });
+    if (authError) {
+      setError(authError.message || "Passage could not send that link.");
+      return;
+    }
+    setSent(true);
+  };
+  return (
+    <div style={{ display: "grid", gap: compact ? 7 : 9, width: compact ? 280 : "100%", maxWidth: compact ? 320 : undefined }}>
+      <div style={{ display: "grid", gridTemplateColumns: compact ? "minmax(0,1fr) auto" : "1fr", gap: 8 }}>
+        <input
+          value={email}
+          onChange={e => { setEmail(e.target.value); setSent(false); }}
+          placeholder="Email me a secure link"
+          type="email"
+          style={{ width: "100%", minHeight: compact ? 40 : 46, boxSizing: "border-box", borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "inherit", fontSize: compact ? 12.5 : 14, padding: "9px 12px", outline: "none" }}
+        />
+        <button type="button" onClick={sendLink} style={{ minHeight: compact ? 40 : 46, borderRadius: 11, border: `1.5px solid ${C.sageLight}`, background: C.sageFaint, color: C.sage, fontFamily: "inherit", fontWeight: 800, fontSize: compact ? 12.5 : 14, padding: "9px 14px", cursor: "pointer", whiteSpace: "nowrap" }}>
+          {sent ? "Sent" : "Send link"}
+        </button>
+      </div>
+      {sent && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800 }}>Check {email.trim()} to continue.</div>}
+      {error && <div style={{ fontSize: 11.5, color: C.rose, fontWeight: 800 }}>{error}</div>}
+    </div>
+  );
+};
+
 // ─── TOAST NOTIFICATION ───────────────────────────────────────────────────────
 function Toast({ message, type = "success", onDone }) {
   useEffect(() => {
@@ -2436,6 +2477,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
             <>
               <div style={{ flex: "1 1 220px", minWidth: 180, fontSize: 12.5, color: C.mid, lineHeight: 1.35 }}>Sign in to save this plan across devices.</div>
               <GoogleSignInBtn label="Save with Google" compact />
+              <EmailSignInBridge redirectPath="/" compact />
             </>
           ) : (
             <>
@@ -2742,7 +2784,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
         { value: "parent", icon: "2", title: "A loved one", desc: "Help someone I love get organized before it is urgent." },
         { value: "spouse", icon: "3", title: "My spouse or partner", desc: "Plan together so neither of us is left guessing." },
       ].map(o => <OptionCard key={o.value} {...o} selected={forWhom === o.value} onClick={() => setForWhom(o.value)} />)}
-      {!user && <div style={{ marginTop: 14, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14 }}><div style={{ fontSize: 12.5, color: C.mid, marginBottom: 10, lineHeight: 1.45 }}>Sign in once so Passage can save this plan to your estate command center.</div><GoogleSignInBtn /></div>}
+      {!user && <div style={{ marginTop: 14, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14 }}><div style={{ fontSize: 12.5, color: C.mid, marginBottom: 10, lineHeight: 1.45 }}>Sign in once so Passage can save this plan to your estate command center.</div><div style={{ display: "grid", gap: 10 }}><GoogleSignInBtn /><EmailSignInBridge redirectPath="/" /></div></div>}
       {planError && <div style={{ marginTop: 12, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.rose, lineHeight: 1.5, fontWeight: 700 }}>{planError}</div>}
       <Btn onClick={() => setStep(1)} disabled={!forWhom} style={{ width: "100%", marginTop: 12 }}>Continue</Btn>
     </Card>,
@@ -5020,7 +5062,12 @@ function Success({ mode, onDashboard, workflowId }) {
             )}
           </>
         ) : (
-          <GoogleSignInBtn label="Sign in to keep building" />
+          <>
+            <GoogleSignInBtn label="Sign in to keep building" />
+            <div style={{ marginTop: 10 }}>
+              <EmailSignInBridge redirectPath="/" />
+            </div>
+          </>
         )}
       </div>
     </div>

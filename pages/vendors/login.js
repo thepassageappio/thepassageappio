@@ -42,6 +42,9 @@ const vendorCards = [
 
 export default function VendorLogin() {
   const [user, setUser] = useState(null);
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!supabase?.auth) return undefined;
@@ -53,6 +56,18 @@ export default function VendorLogin() {
   async function signIn() {
     if (!supabase?.auth || typeof window === 'undefined') return;
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/vendors/request` } });
+  }
+
+  async function sendMagicLink() {
+    if (!email) return setError('Enter the email connected to your vendor profile or request.');
+    if (!supabase?.auth || typeof window === 'undefined') return setError('Sign-in is not configured in this environment.');
+    setError('');
+    const { error: authError } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/vendors/request` },
+    });
+    if (authError) setError(authError.message);
+    else setSent(true);
   }
 
   async function signOut() {
@@ -76,9 +91,17 @@ export default function VendorLogin() {
               Approved vendor teams can sign in with Google. New vendors apply first so Passage can review service area, category, and response expectations.
             </div>
             {!user && (
-              <button onClick={signIn} style={{ minHeight: 50, border: 'none', background: C.sage, color: '#fff', borderRadius: 14, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', marginTop: 16 }}>
-                Continue with Google
-              </button>
+              <div style={{ display: 'grid', gap: 9, marginTop: 16 }}>
+                {error && <div style={{ background: '#fdf3f3', border: '1px solid #c47a7a33', color: '#c47a7a', borderRadius: 12, padding: 10, fontSize: 13, lineHeight: 1.45 }}>{error}</div>}
+                <button onClick={signIn} style={{ minHeight: 50, border: 'none', background: C.sage, color: '#fff', borderRadius: 14, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
+                  Continue with Google
+                </button>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8 }}>
+                  <input value={email} onChange={event => setEmail(event.target.value)} type="email" placeholder="vendor@example.com" style={{ border: `1.5px solid ${C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
+                  <button onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Email link</button>
+                </div>
+                {sent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45 }}>Check your email. The secure link opens your vendor workspace.</div>}
+              </div>
             )}
           </div>
 

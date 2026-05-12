@@ -33,11 +33,10 @@ const roleCards = [
   },
   {
     eyebrow: 'New partner',
-    title: 'Book a Passage walkthrough',
-    body: 'See how Passage receives prepared families, reduces repeated calls, and keeps proof tied to each case.',
-    href: calendlyUrl({ source: 'funeral home login' }),
-    action: 'Book meeting',
-    external: true,
+    title: 'Create a partner workspace',
+    body: 'Start setup yourself: confirm the organization, first location, co-branded family view, employees, cases, and warm inbounds.',
+    href: '/funeral-home/setup',
+    action: 'Start setup',
   },
 ];
 
@@ -54,8 +53,9 @@ export default function FuneralHomeLogin() {
               Passage separates the sales page from the working console. Directors manage the business view; staff see the work assigned to them.
             </p>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
-              Sign in with the email invited to your funeral-home organization. If you are not set up yet, book a walkthrough and Passage will prepare the workspace with you.
+              Sign in with the email invited to your funeral-home organization. If you are not set up yet, create a workspace or book a walkthrough.
             </div>
+            <a href={calendlyUrl({ source: 'funeral home login' })} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', marginTop: 10, color: C.sage, fontSize: 13, fontWeight: 900, textDecoration: 'none' }}>Book a walkthrough instead</a>
           </div>
 
           <div style={{ display: 'grid', gap: 10 }}>
