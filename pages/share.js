@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase as sb } from "../lib/supabaseBrowser";
 import { SiteFooter, SiteHeader } from "../components/SiteChrome";
 
@@ -67,6 +67,19 @@ function parseRecipients(raw) {
       return { name: name, email: email, phone: phone, raw: text };
     })
     .filter(Boolean);
+}
+
+function parseRecipientCsv(text) {
+  var rows = String(text || "").replace(/\r/g, "").split("\n").map(function(row) { return row.trim(); }).filter(Boolean);
+  if (!rows.length) return [];
+  var first = rows[0].toLowerCase();
+  var hasHeader = first.indexOf("email") > -1 || first.indexOf("phone") > -1 || first.indexOf("name") > -1;
+  var body = hasHeader ? rows.slice(1) : rows;
+  return body.map(function(row) {
+    var cells = row.split(",").map(function(cell) { return cell.replace(/^"|"$/g, "").trim(); });
+    var joined = cells.join(" ");
+    return joined;
+  }).filter(Boolean);
 }
 
 function downloadText(filename, text) {
@@ -220,6 +233,8 @@ export default function SharePage() {
   var s9 = useState(false); var loaded = s9[0]; var setLoaded = s9[1];
   var s10 = useState(""); var toastMsg = s10[0]; var setToastMsg = s10[1];
   var s11 = useState(""); var recipientsText = s11[0]; var setRecipientsText = s11[1];
+  var s12 = useState({ name: "", email: "", phone: "" }); var recipientDraft = s12[0]; var setRecipientDraft = s12[1];
+  var fileInputRef = useRef(null);
 
   useEffect(function() {
     var params = new URLSearchParams(window.location.search);
@@ -399,6 +414,36 @@ export default function SharePage() {
     setTimeout(function() { setToastMsg(""); }, 3000);
   }
 
+  function addRecipient() {
+    var pieces = [recipientDraft.name, recipientDraft.email, recipientDraft.phone].map(function(value) { return String(value || "").trim(); }).filter(Boolean);
+    if (!pieces.length) {
+      setToastMsg("Add a name, email, or phone first.");
+      setTimeout(function() { setToastMsg(""); }, 2400);
+      return;
+    }
+    var nextLine = pieces.join(" ");
+    setRecipientsText([recipientsText.trim(), nextLine].filter(Boolean).join(NL));
+    setRecipientDraft({ name: "", email: "", phone: "" });
+    setToastMsg("Recipient added. Nothing was sent.");
+    setTimeout(function() { setToastMsg(""); }, 2400);
+  }
+
+  function importRecipientFile(event) {
+    var file = event.target.files && event.target.files[0];
+    if (!file) return;
+    file.text().then(function(text) {
+      var imported = parseRecipientCsv(text);
+      if (!imported.length) {
+        setToastMsg("No recipients found in that file.");
+      } else {
+        setRecipientsText([recipientsText.trim(), imported.join(NL)].filter(Boolean).join(NL));
+        setToastMsg(imported.length + " recipients imported for review. Nothing was sent.");
+      }
+      event.target.value = "";
+      setTimeout(function() { setToastMsg(""); }, 3000);
+    });
+  }
+
   var dn = wf ? (wf.deceased_name || "your loved one") : "your loved one";
   var parsedRecipients = recipientRows();
   var recipientEmails = parsedRecipients.filter(function(r) { return r.email; }).map(function(r) { return r.email; });
@@ -451,20 +496,34 @@ export default function SharePage() {
 
             <div data-demo-anchor="demo-family-update" style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 14, padding: 14, marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Coordinator update list</div>
-                  <div style={{ fontSize: 16, color: INK, fontWeight: 700, marginTop: 2 }}>One reviewed update for many people.</div>
-                  <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Paste names with emails or phone numbers. Passage prepares the batch, recipient CSV, and copy blocks as proof-ready outputs on the same family record. This page does not send real email or SMS.</div>
-                </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: SAGE, textTransform: "uppercase", letterSpacing: "0.12em" }}>Coordinator update list</div>
+                    <div style={{ fontSize: 16, color: INK, fontWeight: 700, marginTop: 2 }}>One reviewed update for many people.</div>
+                    <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Use this for funeral/service details, family updates, or other coordinator-approved announcements. Passage prepares the recipient list, CSV, and channel copy as proof-ready outputs. This page does not bulk-send email or SMS.</div>
+                  </div>
                 <div style={{ flexShrink: 0, background: SAGE_FAINT, border: "1px solid " + SAGE_LIGHT, borderRadius: 11, padding: "8px 10px", color: SAGE, fontSize: 12, fontWeight: 800, textAlign: "center", whiteSpace: "nowrap" }}>
                   {parsedRecipients.length} people
                 </div>
               </div>
+              <div style={{ background: GOLD_FAINT, border: "1px solid " + GOLD + "35", borderRadius: 11, padding: "10px 12px", color: GOLD, fontSize: 12.3, lineHeight: 1.55, marginBottom: 10 }}>
+                <strong>Format:</strong> enter one person per line. Examples: <strong>Jane Doe jane@example.com</strong>, <strong>Michael Smith 555-555-1212</strong>, or <strong>Aunt Linda linda@example.com 845-555-1212</strong>. Passage separates email, text, and manual contacts before anything leaves the record.
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto", gap: 8, marginBottom: 10 }}>
+                <input value={recipientDraft.name} onChange={function(e) { setRecipientDraft(Object.assign({}, recipientDraft, { name: e.target.value })); }} placeholder="Name" style={{ minWidth: 0, padding: "10px 11px", borderRadius: 10, border: "1.5px solid " + BORDER, background: SUBTLE, color: INK, fontFamily: "Georgia,serif", fontSize: 12.5 }} />
+                <input value={recipientDraft.email} onChange={function(e) { setRecipientDraft(Object.assign({}, recipientDraft, { email: e.target.value })); }} placeholder="Email" style={{ minWidth: 0, padding: "10px 11px", borderRadius: 10, border: "1.5px solid " + BORDER, background: SUBTLE, color: INK, fontFamily: "Georgia,serif", fontSize: 12.5 }} />
+                <input value={recipientDraft.phone} onChange={function(e) { setRecipientDraft(Object.assign({}, recipientDraft, { phone: e.target.value })); }} placeholder="Phone" style={{ minWidth: 0, padding: "10px 11px", borderRadius: 10, border: "1.5px solid " + BORDER, background: SUBTLE, color: INK, fontFamily: "Georgia,serif", fontSize: 12.5 }} />
+                <button onClick={addRecipient} style={{ border: "1px solid " + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: "0 12px", fontFamily: "inherit", fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" }}>Add row</button>
+              </div>
+              <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={importRecipientFile} style={{ display: "none" }} />
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                <button onClick={function() { fileInputRef.current && fileInputRef.current.click(); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: "pointer" }}>Import CSV</button>
+                <button onClick={function() { downloadText("passage-recipient-template.csv", ["name,email,phone", "Jane Doe,jane@example.com,", "Michael Smith,,555-555-1212"].join(NL)); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: "pointer" }}>Download template</button>
+              </div>
               <textarea
                 value={recipientsText}
                 onChange={function(e) { setRecipientsText(e.target.value); }}
-                rows={4}
-                placeholder={"Jane Doe jane@example.com\nMichael Smith 555-555-1212\nAunt Linda linda@example.com"}
+                rows={5}
+                placeholder={"Jane Doe jane@example.com\nMichael Smith 555-555-1212\nAunt Linda linda@example.com 845-555-1212"}
                 style={{ width: "100%", padding: "12px", borderRadius: 11, border: "1.5px solid " + BORDER, fontFamily: "Georgia, serif", fontSize: 13, color: INK, lineHeight: 1.55, resize: "vertical", boxSizing: "border-box", background: SUBTLE }}
               />
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
@@ -477,6 +536,25 @@ export default function SharePage() {
                 <button disabled={!recipientEmails.length} onClick={function() { copyText(recipientEmails.join(", "), "Email list"); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: recipientEmails.length ? "pointer" : "not-allowed", opacity: recipientEmails.length ? 1 : 0.5 }}>Copy email list</button>
                 <button disabled={!recipientPhones.length} onClick={function() { copyText(recipientPhones.join(", "), "Text list"); }} style={{ border: "1px solid " + BORDER, background: CARD, color: MID, borderRadius: 10, padding: "8px 10px", fontFamily: "inherit", fontWeight: 800, cursor: recipientPhones.length ? "pointer" : "not-allowed", opacity: recipientPhones.length ? 1 : 0.5 }}>Copy text list</button>
               </div>
+              {parsedRecipients.length > 0 && (
+                <div style={{ marginTop: 12, border: "1px solid " + BORDER, borderRadius: 11, overflow: "hidden", background: CARD }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr .8fr .6fr", gap: 0, background: SUBTLE, color: SOFT, fontSize: 10.5, letterSpacing: ".09em", textTransform: "uppercase", fontWeight: 800 }}>
+                    {["Name", "Email", "Phone", "Channel"].map(function(label) { return <div key={label} style={{ padding: "8px 9px" }}>{label}</div>; })}
+                  </div>
+                  {parsedRecipients.slice(0, 6).map(function(r, index) {
+                    var channel = r.email ? "Email" : r.phone ? "Text" : "Manual";
+                    return (
+                      <div key={r.raw + index} style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr .8fr .6fr", borderTop: "1px solid " + BORDER, color: MID, fontSize: 12, lineHeight: 1.35 }}>
+                        <div style={{ padding: "8px 9px", color: INK, fontWeight: 700 }}>{r.name}</div>
+                        <div style={{ padding: "8px 9px", overflow: "hidden", textOverflow: "ellipsis" }}>{r.email || "-"}</div>
+                        <div style={{ padding: "8px 9px" }}>{r.phone || "-"}</div>
+                        <div style={{ padding: "8px 9px", color: channel === "Manual" ? GOLD : SAGE, fontWeight: 800 }}>{channel}</div>
+                      </div>
+                    );
+                  })}
+                  {parsedRecipients.length > 6 && <div style={{ borderTop: "1px solid " + BORDER, padding: "8px 9px", color: SOFT, fontSize: 12 }}>{parsedRecipients.length - 6} more recipients included in exports and copied lists.</div>}
+                </div>
+              )}
             </div>
 
             <div style={{ marginBottom: 14 }}>
