@@ -102,6 +102,7 @@ const LINKS = [
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
   ['Funeral homes', '/funeral-home'],
+  ['Vendors', '/vendors'],
 ];
 
 const AUTH_LINKS = [
@@ -355,7 +356,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
       `}</style>
       <Link href="/" onClick={handleHomeClick} style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
       <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, fontSize: 13.5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
+        {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {currentUser && AUTH_LINKS.map(([label, href]) => <Link key={href} href={href} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
           <Link href="/system/admin" style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>

@@ -687,37 +687,49 @@ export default function ParticipatingPage() {
         </div>
 
         {!user && !demoMode && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, maxWidth: 520 }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>Open your private Passage request.</div>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
-              Sign in with the email that received the Passage invite. Passage will show your assigned task spine, keep the full estate private, and record proof for the coordinator.
-            </p>
-            <div style={{ display: 'grid', gap: 8, margin: '14px 0 16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.78fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
+              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Participant access</div>
+              <h2 style={{ fontSize: 'clamp(34px,4.6vw,56px)', lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Help with one request, without opening the whole record.</h2>
+              <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
+                Participants are relatives, friends, clergy, vendors, or helpers invited to handle one specific responsibility. Passage shows the task, waiting point, and proof needed. The full estate workspace stays private.
+              </p>
+              <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
+                Use the same email that received the invite. If you were added under a different email, sign in with that address or ask the coordinator to resend the assignment.
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
+                <div style={{ fontSize: 22, marginBottom: 8 }}>Open your private Passage request.</div>
+                <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7, marginTop: 0 }}>
+                  Sign in with Google or send a secure email link. After sign-in, you will land on the assigned task spine for the family record.
+                </p>
+                <button onClick={() => signIn(router.asPath || '/participating')} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+                <div style={{ height: 12 }} />
+                {!magicSent ? (
+                  <>
+                    <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 13, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
+                    <button onClick={sendMagicLink} style={{ width: '100%', border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Email me a sign-in link</button>
+                  </>
+                ) : (
+                  <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '14px 15px', color: C.mid, fontSize: 13.2, lineHeight: 1.55 }}>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Sent</div>
+                    <strong style={{ color: C.ink }}>Check your email.</strong> We sent a secure sign-in link to <strong style={{ color: C.ink }}>{emailLogin}</strong>. Open it on this device to see the task the family assigned to you.
+                  </div>
+                )}
+              </div>
               {[
-                ['1', 'Open the invite sent to your email.'],
-                ['2', 'See the one task you were asked to help with.'],
-                ['3', 'Accept, ask for details, mark waiting, or record proof.'],
-                ['4', 'The coordinator sees your update in the family record.'],
-              ].map(([step, text]) => (
-                <div key={step} style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr)', gap: 8, alignItems: 'flex-start', color: C.mid, fontSize: 12.8, lineHeight: 1.45 }}>
-                  <span style={{ width: 28, height: 28, borderRadius: 999, background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, flexShrink: 0 }}>{step}</span>
-                  <span>{text}</span>
+                ['See your part', 'Only the assigned task, request details, and safe service context appear.'],
+                ['Answer once', 'Accept it, ask for help, mark waiting, save a note, or close with proof.'],
+                ['Coordinator sees it', 'Your update returns to the family record with status, note, and timestamp.'],
+              ].map(([title, body]) => (
+                <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '15px 16px' }}>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
+                  <div style={{ color: C.mid, fontSize: 13.3, lineHeight: 1.45, marginTop: 5 }}>{body}</div>
                 </div>
               ))}
             </div>
-            <button onClick={() => signIn(router.asPath || '/participating')} style={{ border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
-            <div style={{ height: 12 }} />
-            {!magicSent ? (
-              <>
-                <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 13, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
-                <button onClick={sendMagicLink} style={{ width: '100%', border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Email me a sign-in link</button>
-              </>
-            ) : (
-              <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '14px 15px', color: C.mid, fontSize: 13.2, lineHeight: 1.55 }}>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Sent</div>
-                <strong style={{ color: C.ink }}>Check your email.</strong> We sent a secure sign-in link to <strong style={{ color: C.ink }}>{emailLogin}</strong>. Open it on this device to see the task the family assigned to you.
-              </div>
-            )}
           </div>
         )}
 
