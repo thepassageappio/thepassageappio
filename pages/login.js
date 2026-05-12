@@ -50,9 +50,9 @@ const portalCards = [
   },
   {
     eyebrow: 'Vendor partner',
-    title: 'Manage vendor requests',
+    title: 'Open the vendor workspace',
     body: 'For approved vendors reviewing quote requests, status updates, and completion proof.',
-    href: '/vendors',
+    href: '/vendors/login',
     action: 'Vendor owner portal',
   },
   {
