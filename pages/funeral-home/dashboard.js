@@ -2580,6 +2580,71 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
+        {user && !loading && data && isDirectorRole && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 14, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 10 }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director command center</div>
+                <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Open the right operating view first.</div>
+                <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>My Day is the floor. Coverage, inbounds, staff, and reporting are one click away.</div>
+              </div>
+              <button onClick={moveDirectorFocus} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 40, padding: '0 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
+                {directorFocusButtonLabel()}
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 9 }}>
+              {[
+                {
+                  label: 'My Day',
+                  value: totalBlocked ? `${totalBlocked} blocked` : totalWaiting ? `${totalWaiting} waiting` : `${cases.length} active case${cases.length === 1 ? '' : 's'}`,
+                  detail: nextDirectorStep?.next || 'Cases and next moves',
+                  tone: totalBlocked ? C.rose : totalWaiting ? C.amber : C.sage,
+                  bg: totalBlocked ? C.roseFaint : totalWaiting ? C.amberFaint : C.sageFaint,
+                  action: () => setActivePartnerView('work'),
+                },
+                {
+                  label: 'Unassigned work',
+                  value: `${unassignedTaskCount} task${unassignedTaskCount === 1 ? '' : 's'}`,
+                  detail: unassignedCaseCount ? `${unassignedCaseCount} case${unassignedCaseCount === 1 ? '' : 's'} need coverage` : 'All open work has an owner',
+                  tone: unassignedTaskCount ? C.amber : C.sage,
+                  bg: unassignedTaskCount ? C.amberFaint : C.sageFaint,
+                  action: () => unassignedCaseRows[0]?.caseItem?.id ? openPartnerWork(unassignedCaseRows[0].caseItem.id) : setActivePartnerView('staff'),
+                },
+                {
+                  label: 'Warm inbounds',
+                  value: `${openWarmInbounds.length} open`,
+                  detail: warmInbounds.length ? `${warmInbounds.length} total family request${warmInbounds.length === 1 ? '' : 's'}` : 'No family requests yet',
+                  tone: openWarmInbounds.length ? C.amber : C.sage,
+                  bg: openWarmInbounds.length ? C.amberFaint : C.sageFaint,
+                  action: () => setActivePartnerView('inbounds'),
+                },
+                {
+                  label: 'Staff',
+                  value: `${activeEmployeeRows.length || partnerStaff.length} employee${(activeEmployeeRows.length || partnerStaff.length) === 1 ? '' : 's'}`,
+                  detail: `${staffWorkloads.filter(member => member.open > 0).length} with open assigned work`,
+                  tone: C.sage,
+                  bg: C.sageFaint,
+                  action: () => setActivePartnerView('staff'),
+                },
+                {
+                  label: 'Reporting',
+                  value: timeSavedLabel,
+                  detail: `${callsAvoided} calls or handoffs avoided`,
+                  tone: C.sage,
+                  bg: C.sageFaint,
+                  action: () => setActivePartnerView('reports'),
+                },
+              ].map(item => (
+                <button key={item.label} onClick={item.action} style={{ textAlign: 'left', border: `1px solid ${item.tone}33`, background: item.bg, borderRadius: 14, padding: '11px 12px', minHeight: 98, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
+                  <div style={{ color: item.tone, fontSize: 10.2, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{item.label}</div>
+                  <div style={{ color: C.ink, fontSize: 19, lineHeight: 1.12, fontWeight: 900, marginTop: 5 }}>{item.value}</div>
+                  <div style={{ color: C.mid, fontSize: 12.1, lineHeight: 1.35, marginTop: 5 }}>{item.detail}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {false && user && !loading && data && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '11px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <div>
