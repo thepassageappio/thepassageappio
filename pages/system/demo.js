@@ -554,7 +554,7 @@ export default function SystemDemo() {
                     <span style={{ minWidth: 0 }}>
                       <strong style={{ color: C.ink, fontSize: 16 }}>{step.title}</strong>
                       <span style={{ display: 'block', color: C.soft, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900, marginTop: 2 }}>{step.persona}</span>
-                      <span style={{ display: 'block', color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}><strong>Show:</strong> {step.proof}</span>
+                      <span style={{ display: 'block', color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}><strong>What to highlight:</strong> {step.proof}</span>
                       <span style={{ display: 'block', color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 2 }}><strong>Why it matters:</strong> {step.value}</span>
                       <Link href={step.route} style={{ ...tinyPill, textDecoration: 'none', display: 'inline-flex', marginTop: 8 }}>Open step</Link>
                     </span>

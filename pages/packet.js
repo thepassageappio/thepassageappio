@@ -145,7 +145,10 @@ export default function PacketDemo() {
           main { background: #fff !important; }
           .packet-shell { max-width: none !important; padding: 0 !important; }
           .packet-grid { display: block !important; }
-          .packet-sheet { box-shadow: none !important; border: none !important; }
+          .packet-sheet { box-shadow: none !important; border: none !important; padding: 20px 24px !important; overflow: visible !important; }
+          .packet-brand-row { gap: 0 !important; overflow: visible !important; align-items: flex-start !important; }
+          .packet-brand-icon { display: none !important; }
+          .packet-brand-name { display: block !important; min-width: 120px !important; overflow: visible !important; line-height: 1.2 !important; letter-spacing: 0 !important; padding-left: 0 !important; margin-left: 0 !important; }
         }
         @media (max-width: 820px) {
           .packet-grid { grid-template-columns: 1fr !important; }
@@ -201,10 +204,10 @@ export default function PacketDemo() {
 
           <article className="packet-sheet" style={{ background: '#fff', border: '1px solid ' + C.border, borderRadius: 20, padding: 26, boxShadow: '0 20px 58px rgba(55,45,35,.07)' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'center', borderBottom: '1px solid ' + C.border, paddingBottom: 14, marginBottom: 18 }}>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <img src="/passage-icon-light-onbg.svg" alt="Passage" style={{ width: 34, height: 34, borderRadius: 9 }} />
+              <div className="packet-brand-row" style={{ display: 'flex', gap: 10, alignItems: 'center', overflow: 'visible' }}>
+                <img className="packet-brand-icon" src="/passage-icon-light-onbg.svg" alt="Passage" style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0 }} />
                 <div>
-                  <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.1 }}>Passage</div>
+                  <div className="packet-brand-name" style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.1, overflow: 'visible' }}>Passage</div>
                   <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35 }}>Family coordination spine</div>
                 </div>
               </div>
