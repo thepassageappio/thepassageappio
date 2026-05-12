@@ -210,7 +210,7 @@ function authorityMessage(status) {
 const taskPlaybooks = {
   emergency: {
     title: 'Emergency call path',
-    body: 'If this was unexpected and 911 has not been called, call 911 now. Say: "A person has died at home unexpectedly. We need emergency services and instructions for what happens next."',
+    body: 'If this was unexpected and 911 has not been called, call 911 now. Suggested words: "A person has died at home unexpectedly. We need emergency services and instructions for what happens next."',
     steps: ['Call 911 if not already done', 'Do not move the person unless emergency services instruct you to', 'Write down the responding agency or case number if one is provided'],
   },
   hospice: {

@@ -27,7 +27,7 @@ const demoSteps = [
     kicker: 'Open',
     title: 'Show Passage as the coordination layer.',
     point: 'Start with the buyer pain: fewer repeated calls, clearer ownership, visible proof, warm family handoffs, and export back to the funeral home system.',
-    action: 'Say: "This is not replacing your case system. It sits on top, imports what you already have, reduces calls, and exports cleanly."',
+    action: 'Passage sits on top of the existing case system: it imports what the team already has, reduces repeated calls, and exports cleanly.',
     href: '/funeral-home?demoTour=funeral-home&demoStep=overview',
   },
   {
@@ -35,7 +35,7 @@ const demoSteps = [
     kicker: 'Warm handoff',
     title: 'Show how families arrive prepared.',
     point: 'A family may enter before death through hospice, home care, senior living, assisted care, or serious illness. Passage preserves contacts, dates, preferences, and the first-hour plan so the funeral home does not start from zero.',
-    action: 'Say: "Passage can bring you warm, organized family handoffs. Providers rotate in and out; the family record stays continuous."',
+    action: 'Passage can bring warm, organized family handoffs. Providers rotate in and out; the family record stays continuous.',
     href: '/hospice?demoTour=funeral-home&demoStep=warm',
   },
   {
@@ -75,7 +75,7 @@ const demoSteps = [
     kicker: 'Coordinate',
     title: 'Coordinate without mixing messages, notifications, and proof.',
     point: 'Mock the real-life handoff: director asks family once, staff sees the work, cemetery/vendor gets a scoped request, and proof is recorded separately.',
-    action: 'Say: "Notifications get attention. Conversation coordinates the work. Proof records what happened."',
+    action: 'Notifications get attention. Conversation coordinates the work. Proof records what happened.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=chat',
   },
   {
@@ -91,7 +91,7 @@ const demoSteps = [
     kicker: 'Close',
     title: 'End with ROI and portability.',
     point: 'Calls avoided, waiting items, active cases, import mapping, case-summary export, full-spine export, date ranges, and the family-facing audit trail are the adoption story.',
-    action: 'Say: "You can use Passage without trapping your data here. Bring case data in, coordinate the family work, then export the record back out."',
+    action: 'Passage does not trap case data. Bring case data in, coordinate the family work, then export the record back out.',
     href: '/funeral-home/dashboard?demoTour=funeral-home&demoStep=export',
   },
 ];
