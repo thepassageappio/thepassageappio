@@ -2455,10 +2455,10 @@ export default function FuneralHomeDashboard() {
             )}
           </div>
           <div className="partner-dashboard-actions" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {user && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New at-need case</button>}
-            {user && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Pre-need</button>}
-            {user && <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export</button>}
-            {user && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'Tools'}</button>}
+            {user && isDirectorRole && <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New at-need case</button>}
+            {user && isDirectorRole && <button onClick={() => openCasePanel('preneed')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Pre-need</button>}
+            {user && isDirectorRole && <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export</button>}
+            {user && isDirectorRole && <button onClick={() => setShowTools(v => !v)} style={{ border: `1px solid ${C.border}`, borderRadius: 12, minHeight: 44, padding: '0 14px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{showTools ? 'Hide tools' : 'Tools'}</button>}
             {org?.logo_url && <img src={org.logo_url} alt="" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, padding: 8 }} />}
           </div>
         </div>
@@ -3424,14 +3424,33 @@ export default function FuneralHomeDashboard() {
         )}
 
         {user && !loading && data && activePartnerView === 'staff' && (
-          <div id="partner-staff-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
+          <div id="partner-staff-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: isDirectorRole ? 18 : 16, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Work queue</div>
-                <div style={{ fontSize: 24, marginTop: 3 }}>{isDirectorRole ? 'Assign the next owner, then get out of the way.' : 'Your assigned queue comes first.'}</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Work queue' : 'My work today'}</div>
+                <div style={{ fontSize: isDirectorRole ? 24 : 28, lineHeight: 1.12, marginTop: 3 }}>{isDirectorRole ? 'Assign the next owner, then get out of the way.' : 'Here is what needs your attention today.'}</div>
+                {!isDirectorRole && (
+                  <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 6, maxWidth: 660 }}>
+                    Work one request at a time. Each item includes the family case, what is waiting, and the proof that closes the loop.
+                  </div>
+                )}
               </div>
               {isDirectorRole && <button onClick={() => openPartnerManagement('Opening locations, employees, roles, and permissions.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Manage people</button>}
             </div>
+            {!isDirectorRole && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 145px), 1fr))', gap: 8, marginBottom: 12 }}>
+                {[
+                  ['Assigned to you', assignedWorkQueue.length],
+                  ['Waiting', assignedWorkQueue.filter(taskIsWaiting).length],
+                  ['Needs help', assignedWorkQueue.filter(taskNeedsHelp).length],
+                ].map(([label, value]) => (
+                  <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 11px' }}>
+                    <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                    <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.1, marginTop: 4, fontWeight: 900 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
             {false && isDirectorRole && (
               <>
                 {showStaffSetup && (
@@ -3593,12 +3612,12 @@ export default function FuneralHomeDashboard() {
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark waiting</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Need family info</button>
                   </div>
-                  <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open full case context</button>
+                  <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{isDirectorRole ? 'Open full case context' : 'Open case context'}</button>
                 </div>
               );})()}
               {assignedWorkQueue.length === 0 ? (
                 <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 13 }}>
-                  No assigned work is waiting.
+                  No assigned work needs your attention right now. New requests from your director will appear here with case context, waiting point, and proof.
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
