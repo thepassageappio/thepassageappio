@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionRequiresNote, taskActionStatus } from '../../lib/taskActions';
-import { normalizeTaskStatusForStorage } from '../../lib/taskStatus';
 import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -87,6 +86,15 @@ function isTerminalStatus(value) {
   return ['done', 'handled', 'completed'].includes(String(value || '').toLowerCase());
 }
 
+function participantStorageStatus(action) {
+  const requested = taskActionStatus(action);
+  if (requested === 'handled') return 'handled';
+  if (requested === 'waiting') return 'waiting';
+  if (requested === 'blocked') return 'blocked';
+  if (requested === 'acknowledged') return 'acknowledged';
+  return requested || 'needs_review';
+}
+
 async function updateParticipantRecord({ table, kind, emailColumn, id, email, updates }) {
   const baseQuery = () => admin
     .from(table)
@@ -151,7 +159,7 @@ export default async function handler(req, res) {
   if (isTerminalStatus(existingStatus) && normalizedAction !== 'save_note') {
     return res.status(409).json({
       error: 'This responsibility is already marked handled. The coordinator can see the proof; ask them to reopen it if something changed.',
-      status: normalizeTaskStatusForStorage(existingStatus),
+      status: existingStatus,
       item: existing.data,
     });
   }
@@ -204,12 +212,11 @@ export default async function handler(req, res) {
     });
   }
 
-  const requestedStatus = taskActionStatus(action) || 'needs_review';
-  const status = normalizeTaskStatusForStorage(requestedStatus);
+  const status = participantStorageStatus(action);
   if (taskActionRequiresNote(action) && !trimmedNotes) {
     return res.status(400).json({ error: 'Add a short proof or blocker note before saving this update.' });
   }
-  const terminalStatus = status === 'done';
+  const terminalStatus = isTerminalStatus(status);
   const actorName = userData.user.user_metadata?.full_name || email;
   const stamp = normalizedAction === 'accept' ? 'accepted_at'
     : terminalStatus ? 'handled_at'
@@ -246,7 +253,7 @@ export default async function handler(req, res) {
   if (error) return res.status(500).json({ error: error.message });
   if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
   await recordTaskCommunicationEvent({
-    verb: status === 'done' ? 'prove' : status === 'blocked' ? 'escalate' : status === 'acknowledged' ? 'assign' : 'update',
+    verb: terminalStatus ? 'prove' : status === 'blocked' ? 'escalate' : status === 'acknowledged' ? 'assign' : 'update',
     workflowId: data.workflow_id,
     taskId: kind === 'task' ? data.id : null,
     actionId: kind === 'action' ? data.id : null,
