@@ -108,16 +108,21 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
     setDeciding(request.id + ':' + action);
     setMessage('');
     try {
-      const response = await fetch('/api/vendorRequests/decision', {
+      const endpoint = action === 'approve_quote' ? '/api/vendorRequests/checkout' : '/api/vendorRequests/decision';
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
-        body: JSON.stringify({ requestId: request.id, action }),
+        body: JSON.stringify(action === 'approve_quote' ? { requestId: request.id } : { requestId: request.id, action }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Could not update this quote.');
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
       setRequests((prev) => prev.map((item) => item.id === request.id ? data.request : item));
       setMessage(action === 'approve_quote'
-        ? 'Quote accepted - the vendor work is now scheduled on this task.'
+        ? 'Quote accepted - opening secure payment.'
         : 'Marked as needing another option. The request stays visible on the proof trail.');
       if (onRequested) onRequested(data);
     } catch (error) {
@@ -219,7 +224,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
               {request.status === 'accepted' && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                   <button onClick={() => decideQuote(request, 'approve_quote')} disabled={deciding === request.id + ':approve_quote'} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 9px', fontFamily: 'Georgia,serif', fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
-                    {deciding === request.id + ':approve_quote' ? 'Saving...' : 'Accept quote'}
+                    {deciding === request.id + ':approve_quote' ? 'Opening payment...' : 'Accept and pay'}
                   </button>
                   <button onClick={() => decideQuote(request, 'decline_quote')} disabled={deciding === request.id + ':decline_quote'} style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 9px', fontFamily: 'Georgia,serif', fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
                     Need another option

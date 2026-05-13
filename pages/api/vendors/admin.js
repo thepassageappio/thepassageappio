@@ -102,9 +102,28 @@ export default async function handler(req, res) {
     const { vendorId, status } = req.body || {};
     if (!vendorId) return res.status(400).json({ error: 'Missing vendor.' });
     if (!['pending', 'active', 'inactive', 'rejected'].includes(status)) return res.status(400).json({ error: 'Invalid status.' });
+    const updates = { status, updated_at: new Date().toISOString() };
+    if (req.body.stripeConnectAccountId !== undefined) {
+      updates.stripe_connect_account_id = String(req.body.stripeConnectAccountId || '').trim() || null;
+    }
+    if (req.body.marketplaceFeePercent !== undefined) {
+      const fee = Number(req.body.marketplaceFeePercent);
+      if (!Number.isFinite(fee) || fee < 0 || fee > 40) return res.status(400).json({ error: 'Marketplace fee must be between 0 and 40 percent.' });
+      updates.marketplace_fee_percent = fee;
+      updates.passage_rev_share_percent = fee;
+      updates.funeral_home_rev_share_percent = 0;
+    }
+    if (req.body.stripeChargesEnabled !== undefined) {
+      updates.stripe_charges_enabled = Boolean(req.body.stripeChargesEnabled);
+      updates.stripe_connect_status = updates.stripe_charges_enabled ? 'charges_enabled' : 'onboarding';
+    }
+    if (req.body.stripePayoutsEnabled !== undefined) {
+      updates.stripe_payouts_enabled = Boolean(req.body.stripePayoutsEnabled);
+      if (updates.stripe_payouts_enabled) updates.stripe_connect_status = 'payouts_enabled';
+    }
     const { data, error } = await auth.admin
       .from('vendors')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update(updates)
       .eq('id', vendorId)
       .select('*')
       .single();

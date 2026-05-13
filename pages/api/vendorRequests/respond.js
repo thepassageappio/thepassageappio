@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   const economics = calculateVendorEconomics({
     value: finalValue,
     marketplaceFeePercent: request.marketplace_fee_percent,
-    funeralHomeSharePercent: request.funeral_home_rev_share_percent || 6,
+    funeralHomeSharePercent: request.funeral_home_rev_share_percent || 0,
     hasFuneralHome: !!request.organization_id,
   });
   const update = {
@@ -66,9 +66,9 @@ export default async function handler(req, res) {
     payment_collection_status: status === 'declined'
       ? 'waived'
       : status === 'completed' && finalValue > 0
-        ? 'passage_collects'
+        ? 'payment_due'
         : status === 'accepted' || status === 'in_progress'
-          ? 'tracking_only'
+          ? 'quote_ready'
           : 'quote_needed',
     updated_at: now,
   };

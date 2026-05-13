@@ -20,6 +20,7 @@ export default function VendorAdmin() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState('');
+  const [connectDrafts, setConnectDrafts] = useState({});
 
   useEffect(() => {
     if (!supabase) {
@@ -92,10 +93,18 @@ export default function VendorAdmin() {
     setUpdating(vendorId + ':' + status);
     setError('');
     setMessage('');
+    const draft = connectDrafts[vendorId] || {};
     const res = await fetch('/api/vendors/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({ vendorId, status }),
+      body: JSON.stringify({
+        vendorId,
+        status,
+        stripeConnectAccountId: draft.stripeConnectAccountId,
+        marketplaceFeePercent: draft.marketplaceFeePercent || 12,
+        stripeChargesEnabled: !!draft.stripeConnectAccountId,
+        stripePayoutsEnabled: !!draft.stripePayoutsEnabled,
+      }),
     });
     const json = await res.json().catch(() => ({}));
     const vendor = json.vendor || vendors.find((item) => item.id === vendorId);
@@ -103,6 +112,10 @@ export default function VendorAdmin() {
     setMessage(res.ok ? statusMessage(status, vendor) : '');
     if (!res.ok) setError(json.error || 'Could not update vendor.');
     if (res.ok) load();
+  }
+
+  function updateConnectDraft(vendorId, key, value) {
+    setConnectDrafts(prev => ({ ...prev, [vendorId]: { ...prev[vendorId], [key]: value } }));
   }
 
   async function signIn() {
@@ -217,11 +230,37 @@ export default function VendorAdmin() {
                   <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{vendorCategoryLabel(vendor.category)} - {vendor.contact_email || 'no email yet'} - {(vendor.zip_codes_served || []).join(', ') || 'no ZIPs yet'}</div>
                   <div style={{ color: C.soft, fontSize: 12.5, marginTop: 5 }}>{vendor.contact_phone || 'No phone'}{vendor.website ? ` - ${vendor.website}` : ''}</div>
                   {vendor.short_description && <div style={{ color: C.mid, fontSize: 13, marginTop: 7, lineHeight: 1.5 }}>{vendor.short_description}</div>}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px,1fr) 130px 150px', gap: 8, marginTop: 10, maxWidth: 620 }}>
+                    <input
+                      value={connectDrafts[vendor.id]?.stripeConnectAccountId ?? vendor.stripe_connect_account_id ?? ''}
+                      onChange={(event) => updateConnectDraft(vendor.id, 'stripeConnectAccountId', event.target.value)}
+                      placeholder="Stripe connected account ID, acct_..."
+                      style={miniInput}
+                    />
+                    <input
+                      value={connectDrafts[vendor.id]?.marketplaceFeePercent ?? vendor.marketplace_fee_percent ?? 12}
+                      onChange={(event) => updateConnectDraft(vendor.id, 'marketplaceFeePercent', event.target.value)}
+                      type="number"
+                      min="0"
+                      max="40"
+                      step="0.1"
+                      placeholder="Fee %"
+                      style={miniInput}
+                    />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.mid, fontSize: 12.5, fontWeight: 900 }}>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(connectDrafts[vendor.id]?.stripePayoutsEnabled ?? vendor.stripe_payouts_enabled)}
+                        onChange={(event) => updateConnectDraft(vendor.id, 'stripePayoutsEnabled', event.target.checked)}
+                      />
+                      Payouts ready
+                    </label>
+                  </div>
                 </div>
                 <span style={{ color: vendor.status === 'active' ? C.sage : vendor.status === 'rejected' ? C.rose : C.soft, background: vendor.status === 'rejected' ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '5px 9px', fontSize: 12, fontWeight: 900 }}>{vendor.status}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 12 }}>
-                <div style={{ color: C.mid, fontSize: 13 }}>Availability: {vendor.rush_supported ? `rush${vendor.rush_window_hours ? ` (${vendor.rush_window_hours}h)` : ''}` : 'planned'}{vendor.planned_supported ? ' + planned' : ''}</div>
+                <div style={{ color: C.mid, fontSize: 13 }}>Availability: {vendor.rush_supported ? `rush${vendor.rush_window_hours ? ` (${vendor.rush_window_hours}h)` : ''}` : 'planned'}{vendor.planned_supported ? ' + planned' : ''} · Payment: {vendor.stripe_connect_account_id ? 'Connect linked' : 'Connect needed'} · Fee {vendor.marketplace_fee_percent ?? 12}%</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button disabled={updating === vendor.id + ':active'} onClick={() => setStatus(vendor.id, 'active')} style={{ ...smallButton, background: C.sage, color: '#fff', borderColor: C.sage }}>{updating === vendor.id + ':active' ? 'Approving...' : 'Approve vendor'}</button>
                   <button disabled={updating === vendor.id + ':inactive'} onClick={() => setStatus(vendor.id, 'inactive')} style={smallButton}>{updating === vendor.id + ':inactive' ? 'Pausing...' : 'Pause'}</button>
@@ -252,3 +291,4 @@ function statusMessage(status, vendor) {
 const emptyStyle = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, color: C.ink, marginBottom: 14 };
 const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
 const smallButton = { border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
+const miniInput = { border: '1px solid ' + C.border, background: C.bg, color: C.ink, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', fontSize: 12.5, minWidth: 0 };

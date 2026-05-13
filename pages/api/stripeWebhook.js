@@ -233,6 +233,101 @@ async function syncCheckoutToHubSpot(session) {
   });
 }
 
+async function notifyVendorPaymentPaid(request, payment) {
+  if (!process.env.RESEND_API_KEY) return;
+  const vendorEmail = request.vendors?.contact_email;
+  const coordinatorEmail = request.workflows?.coordinator_email;
+  const recipients = Array.from(new Set([vendorEmail, coordinatorEmail].filter(Boolean)));
+  if (!recipients.length) return;
+  const subject = `Vendor service paid: ${request.task_title || 'Passage request'}`;
+  const html = `
+    <div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px">
+      <div style="max-width:580px;margin:auto;background:#fffdf9;border:1px solid #e4ddd4;border-radius:18px;padding:26px;color:#1a1916">
+        <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:900">Passage vendor payment</div>
+        <h1 style="font-weight:400;font-size:25px;line-height:1.22;margin:10px 0">Payment is confirmed.</h1>
+        <p style="color:#6a6560;line-height:1.7;margin:0 0 12px">${request.vendors?.business_name || 'The vendor'} has a paid service connected to ${request.workflows?.deceased_name || request.workflows?.estate_name || request.workflows?.name || 'the family record'}.</p>
+        <p style="color:#1a1916;line-height:1.7;margin:0"><strong>Gross:</strong> $${Number(payment.gross_amount || 0).toFixed(2)}<br/><strong>Passage fee:</strong> $${Number(payment.application_fee_amount || 0).toFixed(2)}<br/><strong>Vendor balance:</strong> $${Number(payment.vendor_net_amount || 0).toFixed(2)}</p>
+      </div>
+    </div>`;
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
+      to: recipients,
+      subject,
+      html,
+    }),
+  }).catch(() => null);
+}
+
+async function recordVendorPaymentCheckout(session) {
+  const metadata = session.metadata || {};
+  const requestId = metadata.vendorRequestId;
+  if (!requestId) return;
+
+  const { data: request } = await sb
+    .from('vendor_requests')
+    .select('id,workflow_id,task_id,task_title,status,estimated_value,final_value,platform_fee_amount,passage_share_amount,funeral_home_share_amount,payout_amount,vendor_id,vendors(business_name,contact_email),workflows(name,estate_name,deceased_name,coordinator_email)')
+    .eq('id', requestId)
+    .maybeSingle();
+  if (!request) return;
+
+  const grossAmount = Number(session.amount_total || 0) / 100;
+  const applicationFeeAmount = Number(request.platform_fee_amount || 0);
+  const vendorNetAmount = Math.max(grossAmount - applicationFeeAmount, 0);
+  const now = new Date().toISOString();
+  const paymentRow = {
+    vendor_request_id: request.id,
+    vendor_id: request.vendor_id || null,
+    workflow_id: request.workflow_id,
+    task_id: request.task_id || null,
+    gross_amount: grossAmount,
+    application_fee_amount: applicationFeeAmount,
+    vendor_net_amount: vendorNetAmount,
+    currency: session.currency || 'usd',
+    stripe_checkout_session_id: session.id,
+    stripe_payment_intent_id: session.payment_intent || null,
+    stripe_transfer_destination: metadata.stripeConnectedAccountId || null,
+    status: 'paid',
+    paid_at: now,
+    updated_at: now,
+  };
+
+  const { data: existing } = await sb
+    .from('vendor_payments')
+    .select('id')
+    .eq('stripe_checkout_session_id', session.id)
+    .maybeSingle();
+  if (existing?.id) {
+    await sb.from('vendor_payments').update(paymentRow).eq('id', existing.id);
+  } else {
+    await sb.from('vendor_payments').insert([{ ...paymentRow, created_at: now }]);
+  }
+
+  await sb.from('vendor_requests').update({
+    status: 'in_progress',
+    stripe_checkout_session_id: session.id,
+    stripe_payment_intent_id: session.payment_intent || null,
+    payment_collection_status: 'paid',
+    paid_at: now,
+    in_progress_at: now,
+    payout_status: 'pending',
+    payout_amount: vendorNetAmount,
+    updated_at: now,
+  }).eq('id', request.id);
+
+  await sb.from('estate_events').insert([{
+    estate_id: request.workflow_id,
+    event_type: 'vendor_payment_confirmed',
+    title: `${request.vendors?.business_name || 'Vendor'} payment confirmed`,
+    description: `Payment for ${request.task_title || 'vendor service'} was collected through Passage. Gross $${grossAmount.toFixed(2)}; Passage fee $${applicationFeeAmount.toFixed(2)}; vendor balance $${vendorNetAmount.toFixed(2)}.`,
+    actor: 'Passage',
+  }]);
+
+  await notifyVendorPaymentPaid(request, paymentRow);
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
@@ -249,6 +344,10 @@ export default async function handler(req, res) {
     const object = event.data && event.data.object ? event.data.object : {};
 
     if (event.type === 'checkout.session.completed') {
+      if (object.metadata?.kind === 'vendor_request') {
+        await recordVendorPaymentCheckout(object);
+        return res.status(200).json({ received: true });
+      }
       const userId = object.metadata && object.metadata.userId;
       const planId = object.metadata && object.metadata.planId;
       await recordEntitlement(userId, object);

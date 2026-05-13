@@ -80,8 +80,8 @@ export default async function handler(req, res) {
   const resolvedTaskTitle = task?.title || String(taskTitle || vendorCategoryLabel(vendor.category));
   const category = categoryForTask(task || resolvedTaskTitle);
   if (category && category !== vendor.category) return res.status(400).json({ error: 'This vendor does not match this task.' });
-  const marketplaceFeePercent = Number(vendor.marketplace_fee_percent ?? 18);
-  const funeralHomeSharePercent = workflow.organization_id ? Number(vendor.funeral_home_rev_share_percent || 6) : 0;
+  const marketplaceFeePercent = Number(vendor.marketplace_fee_percent ?? 12);
+  const funeralHomeSharePercent = workflow.organization_id ? Number(vendor.funeral_home_rev_share_percent || 0) : 0;
   const passageSharePercent = Math.max(marketplaceFeePercent - funeralHomeSharePercent, 0);
 
   const { data: request, error } = await admin.from('vendor_requests').insert([{
