@@ -239,7 +239,7 @@ function requestContract(kind, estate, item) {
     payer: 'Keep confirmation numbers, deadlines, and document requests in the notes.'
   };
   return {
-    label: 'Family helper task',
+    label: 'Your part',
     action: 'Accept it if you can help, mark waiting if you are blocked, or ask for help.',
     authority: 'You are responsible for this task only, not the whole estate.',
     serviceLine,
@@ -326,16 +326,16 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     return found ? found[1] : 'Send update';
   };
   return (
-    <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, borderLeft: `5px solid ${statusTone}`, background: C.card, borderRadius: 16, padding: primary ? 15 : 13, marginTop: 12, color: C.mid, fontSize: 14, lineHeight: 1.45, boxShadow: primary ? '0 4px 18px rgba(0,0,0,.04)' : 'none' }}>
+    <div style={{ border: `1px solid ${linked ? C.sage : C.border}`, borderLeft: `5px solid ${statusTone}`, background: '#fffdf9', borderRadius: 18, padding: primary ? 18 : 15, marginTop: 12, color: C.mid, fontSize: 14, lineHeight: 1.45, boxShadow: primary ? '0 10px 26px rgba(55,45,35,.055)' : 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', marginBottom: 10 }}>
         <div>
           <div style={{ fontSize: primary ? 20 : 16, color: C.ink, fontWeight: 800, lineHeight: 1.25 }}>{itemTitle(item)}</div>
-          {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Your next responsibility</div>}
+          {primary && <div style={{ fontSize: 11, color: C.sage, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginTop: 5 }}>Your part in this family record</div>}
         </div>
         <StatusBadge status={itemStatus(item)} label={statusLabel(itemStatus(item))} />
       </div>
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: '11px 12px', marginBottom: 9 }}>
-        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>What you were asked to do</div>
+        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>What the family needs from you</div>
         <div style={{ color: C.ink, fontSize: 14, lineHeight: 1.45, fontWeight: 900 }}>{explanation.what}</div>
         <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}><strong style={{ color: C.ink }}>Your part:</strong> {contract.action}</div>
       </div>
@@ -347,7 +347,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
             action={contract.action}
             waiting={expectedUpdate}
             proof={`${estate?.coordinator_name || 'The coordinator'} sees status, note, and timestamp.`}
-            privacy="The full estate workspace, private notes, and unrelated tasks stay hidden."
+            privacy="The full estate workspace, private notes, and unrelated requests stay hidden."
           />
         </div>
       )}
@@ -377,7 +377,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         <>
           {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: 9, marginTop: 8 }}>
-            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Recommended next action</div>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Best next step</div>
             <button onClick={() => setPendingAction(recommendedAction[0])} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 42, padding: '0 12px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.8, fontWeight: 900, width: '100%', textAlign: 'left' }}>{recommendedAction[1]}</button>
             <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.4, marginTop: 6 }}>{recommendedParticipantCopy(recommendedAction[0])}</div>
           </div>
@@ -697,6 +697,7 @@ export default function ParticipatingPage() {
           .participant-layout { grid-template-columns: 1fr !important; }
           .participant-estate-summary { grid-template-columns: 1fr !important; }
           .participant-action-grid { grid-template-columns: 1fr !important; }
+          .participant-helper-points { grid-template-columns: 1fr !important; }
           .participant-shell { width: 100% !important; padding: 18px 18px 30px !important; }
           .participant-estate-card { width: 100% !important; min-width: 0 !important; }
           .participant-estate-head { padding: 15px 16px 10px !important; }
@@ -712,7 +713,7 @@ export default function ParticipatingPage() {
           <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: '0 0 7px', fontWeight: 400 }}>{user ? 'Open the family request assigned to you.' : 'Sign in to open your assigned request.'}</h1>
           <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: 0 }}>
             {user
-              ? 'This is a scoped task spine. You see only the estate, task, messages, and proof the coordinator asked you to handle.'
+              ? 'Passage shows only the part the family or coordinator asked you to handle. Work one request at a time, then leave the rest of the record private.'
               : 'This page is gated. Use the email that received the invite; unrelated estate details stay private.'}
           </p>
         </div>
@@ -771,6 +772,31 @@ export default function ParticipatingPage() {
         {user && !loading && data && (
           <div className="participant-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 14, alignItems: 'start' }}>
             <div>
+              {data.estates.length > 0 && (
+                <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 18, marginBottom: 14, boxShadow: '0 12px 34px rgba(55,45,35,.045)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'start', flexWrap: 'wrap' }}>
+                    <div style={{ maxWidth: 520 }}>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Private helper view</div>
+                      <div style={{ color: C.ink, fontSize: 22, lineHeight: 1.18, fontWeight: 900 }}>Your role is intentionally scoped.</div>
+                      <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6, margin: '7px 0 0' }}>
+                        You can answer the request, leave a note, or mark what is waiting. The coordinator sees the update; unrelated family details stay out of view.
+                      </p>
+                    </div>
+                    <div className="participant-helper-points" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(130px, 1fr))', gap: 8, flex: '1 1 390px' }}>
+                      {[
+                        ['See your request', 'Only the assigned work appears.'],
+                        ['Reply once', 'No repeated calls or side threads.'],
+                        ['Proof is saved', 'Status and notes return to the record.'],
+                      ].map(([title, body]) => (
+                        <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px' }}>
+                          <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
+                          <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.42, marginTop: 4 }}>{body}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
               {(router.query.estate || router.query.task) && (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
                   <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>The one thing to answer first</div>
@@ -838,17 +864,17 @@ export default function ParticipatingPage() {
                   const showOpenList = showOtherOpen[estate.id];
                   const allClear = openItems.length === 0;
                   return (
-                <div className="participant-estate-card" key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}`, borderRadius: 18, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
-                  <div className="participant-estate-head" style={{ width: '100%', background: 'none', border: 'none', padding: '17px 20px 12px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
-                  <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Scoped task orchestration spine</div>
+                <div className="participant-estate-card" key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}88`, borderRadius: 22, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
+                  <div className="participant-estate-head" style={{ width: '100%', background: C.sageFaint, border: 'none', padding: '20px 22px 14px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
+                  <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Family request workspace</div>
                   <div className="participant-estate-head-main" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.2, color: C.ink }}>{estate.deceased_name || estate.name || 'Estate plan'}</div>
-                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>Role: {estate.role} | Coordinator: {estate.coordinator_name || 'Family coordinator'}{estate.coordinator_email ? ` (${estate.coordinator_email})` : ''}</div>
+                      <div style={{ color: C.mid, fontSize: 13, marginTop: 5 }}>You are helping as {estate.role || 'a participant'}. Coordinator: {estate.coordinator_name || 'Family coordinator'}{estate.coordinator_email ? ` (${estate.coordinator_email})` : ''}</div>
                       <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 7 }}>
                         {allClear
-                          ? 'No action is needed right now. This is your receipt: the coordinator can see what was handled, when it changed, and where the proof lives.'
-                          : 'You can act on the assigned request, save a note, mark what is waiting, or close it with proof. The coordinator sees your response in the family record.'}
+                          ? 'Nothing else is needed from you right now. This page becomes your receipt for what was handled and when it was saved.'
+                          : 'Start with the request below. You can accept it, explain what is waiting, ask for help, or mark it done with proof.'}
                       </div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: openItems.length ? C.rose : C.sage, background: openItems.length ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{openItems.length ? `${openItems.length} need you` : 'All clear'}</span>
@@ -856,29 +882,29 @@ export default function ParticipatingPage() {
                         {estate.events.length > 0 && <span style={{ fontSize: 11, fontWeight: 800, color: C.mid, background: C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{estate.events.length} service detail{estate.events.length === 1 ? '' : 's'}</span>}
                       </div>
                     </div>
-                    <span style={{ background: estate.status === 'triggered' || estate.activation_status === 'activated' ? C.roseFaint : C.sageFaint, color: estate.status === 'triggered' ? C.rose : C.sage, borderRadius: 999, padding: '5px 10px', fontSize: 11, fontWeight: 800 }}>{estate.status || 'active'}</span>
+                    <span style={{ background: C.card, color: estate.status === 'triggered' ? C.rose : C.sage, borderRadius: 999, padding: '5px 10px', fontSize: 11, fontWeight: 800 }}>{estate.status || 'active'}</span>
                   </div>
                   </div>
 
-                    <div className="participant-estate-body" style={{ padding: '0 20px 20px' }}>
-                      <div className="participant-estate-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                    <div className="participant-estate-body" style={{ padding: '18px 22px 22px' }}>
+                      <div className="participant-estate-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 9, marginBottom: 12 }}>
                         {[
-                          ['Asked of you', allClear ? 'All assigned work is handled' : primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
-                          ['Still waiting', openItems.length],
-                          ['Saved updates', estate.coordinationSpine?.latest?.length || 0],
+                          ['Your request', allClear ? 'Everything assigned to you is handled' : primaryItem ? itemTitle(primaryItem) : 'Nothing open'],
+                          ['Needs your reply', openItems.length],
+                          ['Saved for coordinator', estate.coordinationSpine?.latest?.length || 0],
                         ].map(([label, value]) => (
-                          <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
+                          <div key={label} style={{ background: label === 'Your request' ? C.card : C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '11px 12px' }}>
                             <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-                            <div style={{ fontSize: label === 'Asked of you' ? 12.5 : 18, color: C.ink, marginTop: 3, lineHeight: 1.25, fontWeight: 800 }}>{value}</div>
+                            <div style={{ fontSize: label === 'Your request' ? 13 : 18, color: C.ink, marginTop: 3, lineHeight: 1.25, fontWeight: 800 }}>{value}</div>
                           </div>
                         ))}
                       </div>
                       {allClear && (
-                        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 16, padding: 16, marginBottom: 12, color: C.mid }}>
+                        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 18, marginBottom: 12, color: C.mid }}>
                           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>All set</div>
-                          <div style={{ color: C.ink, fontSize: 22, lineHeight: 1.18, fontWeight: 900 }}>No action is needed from you right now.</div>
+                          <div style={{ color: C.ink, fontSize: 22, lineHeight: 1.18, fontWeight: 900 }}>You are all set.</div>
                           <p style={{ fontSize: 13.5, lineHeight: 1.55, margin: '8px 0 0' }}>
-                            Your part is handled for this family record. The coordinator can see your status, timestamp, and proof in Passage. If they need anything else, it will appear here as a new request.
+                            Nothing else is needed from you on this family record right now. The coordinator can see your status, timestamp, and proof in Passage. If they need another update, Passage will bring you back to one clear request.
                           </p>
                           {primaryItem && (
                             <div style={{ marginTop: 12, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px' }}>
@@ -903,7 +929,7 @@ export default function ParticipatingPage() {
 
                       {estate.coordinationSpine?.latest?.length > 0 && (
                         <details style={{ marginTop: 12, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 12px', background: C.card }}>
-                          <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 13, fontWeight: 900 }}>Recent updates the coordinator can see</summary>
+                          <summary style={{ cursor: 'pointer', color: C.ink, fontSize: 13, fontWeight: 900 }}>Updates saved to the family record</summary>
                           <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
                             {estate.coordinationSpine.latest.slice(0, 5).map(row => (
                               <div key={row.id || row.at || row.title} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 7, color: C.mid, fontSize: 12.3, lineHeight: 1.45 }}>
