@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
+import { VENDOR_CATEGORIES } from '../../lib/vendors';
 
 const C = {
   bg: '#f6f3ee',
@@ -181,6 +182,13 @@ export default function SystemAdminPage() {
   const [partnerInviteDraft, setPartnerInviteDraft] = useState({ organizationName: '', directorName: '', directorEmail: '', supportEmail: '', supportPhone: '' });
   const [partnerInviteResult, setPartnerInviteResult] = useState(null);
   const [partnerInviteLoading, setPartnerInviteLoading] = useState(false);
+  const [vendorSetupDraft, setVendorSetupDraft] = useState({ businessName: '', category: 'florist', email: '', phone: '', zipCodes: '', website: '', description: '' });
+  const [vendorSetupResult, setVendorSetupResult] = useState(null);
+  const [vendorSetupLoading, setVendorSetupLoading] = useState(false);
+  const [resetPreview, setResetPreview] = useState(null);
+  const [resetResult, setResetResult] = useState(null);
+  const [resetPhrase, setResetPhrase] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -336,6 +344,80 @@ export default function SystemAdminPage() {
     }
   }
 
+  async function submitVendorSetup(event) {
+    event?.preventDefault?.();
+    setVendorSetupLoading(true);
+    setVendorSetupResult(null);
+    try {
+      const response = await fetch('/api/vendors/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...vendorSetupDraft,
+          zipCodes: vendorSetupDraft.zipCodes,
+          source: 'system_admin_setup',
+        }),
+      });
+      const json = await response.json().catch(() => ({}));
+      setVendorSetupResult({ ok: response.ok, status: response.status, json });
+      if (response.ok) {
+        setVendorSetupDraft({ businessName: '', category: 'florist', email: '', phone: '', zipCodes: '', website: '', description: '' });
+      }
+    } catch (error) {
+      setVendorSetupResult({ ok: false, status: 0, json: { error: error.message || 'Vendor setup failed.' } });
+    } finally {
+      setVendorSetupLoading(false);
+    }
+  }
+
+  async function loadResetPreview() {
+    if (!supabase) return;
+    setResetLoading(true);
+    setResetResult(null);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/system/resetTestData', {
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+      });
+      const json = await response.json().catch(() => ({}));
+      if (response.ok) setResetPreview(json);
+      else setResetResult({ ok: false, json });
+    } catch (error) {
+      setResetResult({ ok: false, json: { error: error.message || 'Reset preview failed.' } });
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
+  async function runProductionReset() {
+    if (!supabase) return;
+    setResetLoading(true);
+    setResetResult(null);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/system/resetTestData', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        },
+        body: JSON.stringify({ confirmPhrase: resetPhrase, includeAuthUsers: true }),
+      });
+      const json = await response.json().catch(() => ({}));
+      setResetResult({ ok: response.ok, json });
+      if (response.ok) {
+        setResetPhrase('');
+        setResetPreview(json);
+      }
+    } catch (error) {
+      setResetResult({ ok: false, json: { error: error.message || 'Production reset failed.' } });
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <style>{`
@@ -442,6 +524,97 @@ export default function SystemAdminPage() {
                       </div>
                     )}
                   </form>
+                </div>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Set up vendor</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Create a reviewed vendor record.</h2>
+                    <p style={lead}>Use this when Passage is onboarding a florist, caterer, clergy/officiant, cemetery support, printing partner, or other scoped support vendor. The vendor is created as pending so Passage can approve them before they appear inside family tasks.</p>
+                    <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
+                      Vendor commercial rule: vendor quotes should route through Passage payment collection. Passage keeps the disclosed marketplace fee and remits the vendor balance after payment clears.
+                    </div>
+                  </div>
+                  <form onSubmit={submitVendorSetup} style={{ display: 'grid', gap: 9 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 }}>
+                      <input value={vendorSetupDraft.businessName} onChange={event => setVendorSetupDraft(prev => ({ ...prev, businessName: event.target.value }))} placeholder="Vendor business name" style={inputStyle} />
+                      <select value={vendorSetupDraft.category} onChange={event => setVendorSetupDraft(prev => ({ ...prev, category: event.target.value }))} style={inputStyle}>
+                        {Object.entries(VENDOR_CATEGORIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                      </select>
+                      <input value={vendorSetupDraft.email} onChange={event => setVendorSetupDraft(prev => ({ ...prev, email: event.target.value }))} placeholder="vendor@email.com" style={inputStyle} />
+                      <input value={vendorSetupDraft.phone} onChange={event => setVendorSetupDraft(prev => ({ ...prev, phone: event.target.value }))} placeholder="Support phone" style={inputStyle} />
+                      <input value={vendorSetupDraft.zipCodes} onChange={event => setVendorSetupDraft(prev => ({ ...prev, zipCodes: event.target.value }))} placeholder="ZIPs served, comma separated" style={inputStyle} />
+                      <input value={vendorSetupDraft.website} onChange={event => setVendorSetupDraft(prev => ({ ...prev, website: event.target.value }))} placeholder="Website" style={inputStyle} />
+                    </div>
+                    <textarea value={vendorSetupDraft.description} onChange={event => setVendorSetupDraft(prev => ({ ...prev, description: event.target.value }))} placeholder="How this vendor helps families" style={{ ...inputStyle, minHeight: 74, resize: 'vertical' }} />
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <button type="submit" disabled={vendorSetupLoading} style={{ ...primaryButton, marginTop: 0, opacity: vendorSetupLoading ? .6 : 1 }}>{vendorSetupLoading ? 'Creating vendor...' : 'Create vendor for review'}</button>
+                      <Link href="/vendors/admin" style={secondaryLink}>Review vendors</Link>
+                    </div>
+                    {vendorSetupResult && (
+                      <div style={{ background: vendorSetupResult.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (vendorSetupResult.ok ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12 }}>
+                        <div style={{ color: vendorSetupResult.ok ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{vendorSetupResult.ok ? 'Vendor created' : 'Vendor setup failed'}</div>
+                        <div style={{ ...smallText, marginTop: 5 }}>{vendorSetupResult.ok ? 'Vendor is pending review. Approve them from Vendor applications to send the workspace email.' : vendorSetupResult.json?.error || 'Could not create vendor.'}</div>
+                      </div>
+                    )}
+                  </form>
+                </div>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Vendor payment spine</div>
+                <h2 style={h2}>Quote, family payment, Passage fee, vendor remittance.</h2>
+                <p style={lead}>This is the commercial loop that should ship next: vendor quotes from the task, family approves and pays through Passage, the task/event timeline updates, Passage keeps the disclosed marketplace fee, and the vendor sees paid revenue and payout status.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginTop: 12 }}>
+                  {[
+                    ['1. Quote', 'Vendor receives date/time/context and returns a price, terms, and service note.'],
+                    ['2. Approve and pay', 'Family coordinator or task owner gets an email and in-app payment CTA.'],
+                    ['3. Spine event', 'Payment and service confirmation write to the task, estate timeline, and family update.'],
+                    ['4. Payout ledger', 'Vendor sees gross revenue, Passage fee, net balance, payout status, and service history.'],
+                  ].map(([title, body]) => (
+                    <div key={title} style={subPanel}>
+                      <h3 style={h3}>{title}</h3>
+                      <p style={smallText}>{body}</p>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Production data reset</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Clear test records for a fresh canvas.</h2>
+                    <p style={lead}>Use this only while Passage has no real customers or leads. It clears operational records: estates, workflows, tasks, participants, vendors, vendor requests, funeral-home requests, organizations, leads, notifications, CRM sync rows, subscriptions, and non-admin auth users.</p>
+                    <div style={{ background: C.roseFaint, border: '1px solid #efc7c7', color: C.rose, borderRadius: 13, padding: 12, fontSize: 12.5, lineHeight: 1.45, marginTop: 10, fontWeight: 800 }}>
+                      Preserved: Passage admin emails, code, public pages, blog posts, and static site content. This is intentionally restricted to system admins.
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <button type="button" onClick={loadResetPreview} disabled={resetLoading} style={secondaryButton}>{resetLoading ? 'Checking...' : 'Preview rows to clear'}</button>
+                      <input value={resetPhrase} onChange={event => setResetPhrase(event.target.value)} placeholder="Type RESET PASSAGE TEST DATA" style={{ ...inputStyle, flex: '1 1 260px' }} />
+                      <button type="button" onClick={runProductionReset} disabled={resetLoading || resetPhrase !== 'RESET PASSAGE TEST DATA'} style={{ ...primaryButton, marginTop: 0, opacity: resetLoading || resetPhrase !== 'RESET PASSAGE TEST DATA' ? .55 : 1 }}>Reset production test data</button>
+                    </div>
+                    {resetPreview && (
+                      <div style={subPanel}>
+                        <h3 style={h3}>Rows currently in reset scope: {resetPreview.totalRows ?? resetPreview.totalDeletedRows ?? 0}</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 7, marginTop: 8 }}>
+                          {(resetPreview.tables || []).filter(row => (row.count || row.deleted || row.error) && !row.skipped).slice(0, 18).map(row => (
+                            <div key={row.table} style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 10, padding: '7px 8px', fontSize: 12.5 }}>
+                              <strong>{row.table}</strong><br />
+                              <span style={{ color: C.mid }}>{row.deleted != null ? `${row.deleted} deleted` : `${row.count || 0} rows`}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {resetResult && (
+                      <div style={{ background: resetResult.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (resetResult.ok ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12 }}>
+                        <div style={{ color: resetResult.ok ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{resetResult.ok ? 'Reset complete' : 'Reset failed'}</div>
+                        <div style={{ ...smallText, marginTop: 5 }}>{resetResult.ok ? `Deleted ${resetResult.json?.totalDeletedRows || 0} public rows and ${resetResult.json?.authUsers?.deleted || 0} non-admin auth users.` : resetResult.json?.error || 'Could not reset production data.'}</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Panel>
             </>
