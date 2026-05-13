@@ -37,7 +37,33 @@ export default async function handler(req, res) {
     .maybeSingle();
 
   if (vendorError) return res.status(500).json({ error: vendorError.message });
-  if (!vendor) {
+  let activeVendor = vendor || null;
+  let membership = null;
+
+  if (!activeVendor) {
+    const { data: teamMember, error: teamError } = await configured.admin
+      .from('vendor_team_members')
+      .select('id,email,display_name,role,status,vendor_id,vendors(*)')
+      .ilike('email', email)
+      .in('status', ['invited', 'active'])
+      .limit(1)
+      .maybeSingle();
+    if (teamError && teamError.code !== '42P01') return res.status(500).json({ error: teamError.message });
+    if (teamMember?.vendors?.status === 'active') {
+      activeVendor = teamMember.vendors;
+      membership = teamMember;
+      if (teamMember.status === 'invited') {
+        await configured.admin
+          .from('vendor_team_members')
+          .update({ status: 'active', accepted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+          .eq('id', teamMember.id)
+          .then(() => {}, () => {});
+        membership = { ...teamMember, status: 'active' };
+      }
+    }
+  }
+
+  if (!activeVendor) {
     return res.status(200).json({
       vendor: null,
       requests: [],
@@ -45,13 +71,25 @@ export default async function handler(req, res) {
     });
   }
 
+  const { data: team } = await configured.admin
+    .from('vendor_team_members')
+    .select('id,email,display_name,role,status,invited_at,accepted_at')
+    .eq('vendor_id', activeVendor.id)
+    .order('created_at', { ascending: true })
+    .then((result) => result, () => ({ data: [] }));
+
   const { data: requests, error: requestError } = await configured.admin
     .from('vendor_requests')
     .select('id,response_token,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,workflows(deceased_name,estate_name,name,organizations(name))')
-    .eq('vendor_id', vendor.id)
+    .eq('vendor_id', activeVendor.id)
     .order('requested_at', { ascending: false })
     .limit(50);
 
   if (requestError) return res.status(500).json({ error: requestError.message });
-  return res.status(200).json({ vendor, requests: requests || [] });
+  return res.status(200).json({
+    vendor: activeVendor,
+    membership: membership || { email, role: 'owner', status: 'active' },
+    team: team || [],
+    requests: requests || [],
+  });
 }

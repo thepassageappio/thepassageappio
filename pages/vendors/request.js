@@ -133,7 +133,7 @@ export default function VendorRequestPage() {
         setError(json.error || 'Could not load your vendor profile.');
         return;
       }
-      setVendorProfile(json.vendor || null);
+      setVendorProfile(json.vendor ? { ...json.vendor, membership: json.membership, team: json.team || [] } : null);
       setVendorRequests(json.requests || []);
       setVendorMessage(json.message || '');
     } catch (err) {
@@ -227,7 +227,7 @@ export default function VendorRequestPage() {
         {error && <div style={{ ...cardStyle, background: C.roseFaint, color: C.rose, borderColor: C.rose + '44' }}>{error}</div>}
         {!loading && !token && !demoMode && (
           vendorProfile ? (
-            <VendorDashboard vendor={vendorProfile} requests={vendorRequests} />
+            <VendorDashboard vendor={vendorProfile} requests={vendorRequests} authToken={userToken} onRefresh={() => loadVendorProfile(userToken)} />
           ) : (
             <div style={cardStyle}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
@@ -429,12 +429,40 @@ function noticeForAction(action, demo) {
   return prefix + 'Quote sent for review. The family and funeral home can accept it before work starts.';
 }
 
-function VendorDashboard({ vendor, requests }) {
+function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
   const openRequests = requests.filter((item) => !['completed', 'declined'].includes(item.status));
   const primaryRequest = openRequests[0] || requests[0];
+  const [invite, setInvite] = useState({ email: '', displayName: '', role: 'staff' });
+  const [inviteNotice, setInviteNotice] = useState('');
+  const [inviteError, setInviteError] = useState('');
+  const [inviteSending, setInviteSending] = useState(false);
+  const canInvite = ['owner', 'manager'].includes(vendor?.membership?.role || 'owner');
+
+  async function sendVendorInvite(event) {
+    event.preventDefault();
+    if (!authToken) return setInviteError('Sign in again before inviting a vendor employee.');
+    setInviteSending(true);
+    setInviteError('');
+    setInviteNotice('');
+    const response = await fetch('/api/vendors/team', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
+      body: JSON.stringify(invite),
+    });
+    const json = await response.json().catch(() => ({}));
+    setInviteSending(false);
+    if (!response.ok) {
+      setInviteError(json.error || 'Could not send this vendor invite.');
+      return;
+    }
+    setInviteNotice(json.invite?.skipped ? 'Invite prepared, but email sending is not configured.' : 'Vendor employee invite sent.');
+    setInvite({ email: '', displayName: '', role: 'staff' });
+    if (onRefresh) onRefresh();
+  }
+
   return (
     <div style={cardStyle}>
-      <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Approved vendor portal</div>
+      <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Private vendor workspace</div>
       <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendor.business_name}</h1>
       <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests appear only when Passage recommends you inside a relevant family task. Responding updates the same family record; this is not a public marketplace inbox.</p>
       <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginBottom: 14 }}>
@@ -447,12 +475,67 @@ function VendorDashboard({ vendor, requests }) {
         <Info label="Service area" value={(vendor.zip_codes_served || []).join(', ') || 'Not set'} />
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(260px,.75fr)', gap: 12, margin: '0 0 14px' }}>
+        <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 15, padding: 14 }}>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Request loop</div>
+          <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.22, fontWeight: 900, marginTop: 5 }}>Requested, quoted, accepted, completed.</div>
+          <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, margin: '7px 0 0' }}>
+            Every response stays attached to the case task. Families and funeral homes see status and proof without giving vendors access to the full record.
+          </p>
+        </div>
+        <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 14 }}>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Team access</div>
+          <div style={{ color: C.ink, fontSize: 17, fontWeight: 900, marginTop: 5 }}>{(vendor.team || []).length || 1} workspace user{((vendor.team || []).length || 1) === 1 ? '' : 's'}</div>
+          <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Employees sign in from the vendor front door and see the same scoped queue.</div>
+        </div>
+      </div>
+
       {primaryRequest && (
         <a href={`/vendors/request?token=${primaryRequest.response_token}`} style={{ display: 'block', background: C.sageFaint, border: '1px solid #c8deca', borderLeft: `5px solid ${C.sage}`, borderRadius: 14, padding: 13, color: C.ink, textDecoration: 'none', marginBottom: 12 }}>
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Next request</div>
           <div style={{ fontSize: 18, fontWeight: 900, lineHeight: 1.2, marginTop: 5 }}>{primaryRequest.task_title || 'Local help request'}</div>
           <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 5 }}>{primaryRequest.workflows?.deceased_name || primaryRequest.workflows?.estate_name || primaryRequest.workflows?.name || 'Family case'} - {primaryRequest.urgency === 'rush' ? 'Needed within 24 hours' : 'Planning ahead'}</div>
         </a>
+      )}
+
+      {canInvite && (
+        <details style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13, marginBottom: 12, background: C.card }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 900, fontSize: 18 }}>Invite vendor employee</summary>
+          <form onSubmit={sendVendorInvite} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+            <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
+              Invite an employee to respond to quote requests and update vendor proof. They will not see unrelated family records.
+            </div>
+            {inviteError && <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', color: C.rose, borderRadius: 11, padding: 10, fontSize: 12.5 }}>{inviteError}</div>}
+            {inviteNotice && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 11, padding: 10, fontSize: 12.5, fontWeight: 900 }}>{inviteNotice}</div>}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) 140px', gap: 8 }}>
+              <input value={invite.displayName} onChange={(event) => setInvite(prev => ({ ...prev, displayName: event.target.value }))} placeholder="Name or role" style={inputStyle} />
+              <input value={invite.email} onChange={(event) => setInvite(prev => ({ ...prev, email: event.target.value }))} type="email" placeholder="employee@vendor.com" style={inputStyle} />
+              <select value={invite.role} onChange={(event) => setInvite(prev => ({ ...prev, role: event.target.value }))} style={inputStyle}>
+                <option value="staff">Staff</option>
+                <option value="manager">Manager</option>
+                <option value="owner">Owner</option>
+              </select>
+            </div>
+            <button disabled={inviteSending} style={{ ...buttonStyle(C.sage), minHeight: 44, justifySelf: 'start' }}>{inviteSending ? 'Sending...' : 'Send vendor invite'}</button>
+          </form>
+        </details>
+      )}
+
+      {(vendor.team || []).length > 0 && (
+        <details style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13, marginBottom: 12 }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 900, fontSize: 18 }}>Vendor team ({vendor.team.length})</summary>
+          <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+            {vendor.team.map(member => (
+              <div key={member.id || member.email} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8, alignItems: 'center', background: C.bg, border: '1px solid ' + C.border, borderRadius: 12, padding: 10 }}>
+                <div>
+                  <div style={{ color: C.ink, fontWeight: 900 }}>{member.display_name || member.email}</div>
+                  <div style={{ color: C.mid, fontSize: 12.5 }}>{member.email}</div>
+                </div>
+                <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '5px 8px', fontSize: 11.5, fontWeight: 900 }}>{member.role} / {member.status}</span>
+              </div>
+            ))}
+          </div>
+        </details>
       )}
 
       <details style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13 }}>
