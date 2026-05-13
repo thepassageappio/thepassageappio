@@ -28,6 +28,16 @@ function isSystemAdmin(user) {
   return SYSTEM_ADMIN_EMAILS.includes(normalizeEmail(user?.email));
 }
 
+function sandboxHref(href, persona = 'admin-sandbox') {
+  const [path, query = ''] = String(href || '/').split('?');
+  const params = new URLSearchParams(query);
+  params.set('sandbox', '1');
+  if (!params.has('demo') && !path.startsWith('/system') && !path.includes('/login') && !path.includes('/onboard')) params.set('demo', '1');
+  if (persona && !params.has('persona')) params.set('persona', persona);
+  if (!params.has('source')) params.set('source', 'system-admin-sandbox');
+  return `${path}?${params.toString()}`;
+}
+
 const adminModules = [
   {
     title: 'Demo studio',
@@ -196,6 +206,10 @@ export default function SystemAdminPage() {
   const activePersona = useMemo(
     () => personaProfiles.find(profile => profile.id === activePersonaId) || personaProfiles[0],
     [activePersonaId]
+  );
+  const activePersonaHref = useMemo(
+    () => sandboxHref(activePersona.href, activePersona.id),
+    [activePersona]
   );
 
   useEffect(() => {
@@ -440,7 +454,10 @@ export default function SystemAdminPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(230px, .44fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
                   <div>
                     <h2 style={h2}>Open each side of the same demo story.</h2>
-                    <p style={lead}>Use these sandbox roles to demo the family, participant, funeral-home, employee, and vendor experiences without exposing production records or sending live messages.</p>
+                    <p style={lead}>Use these sandbox roles to demo the family, participant, funeral-home, employee, and vendor experiences from one admin-only cockpit.</p>
+                    <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
+                      <strong style={{ color: C.ink }}>Sandbox rule:</strong> these links carry sandbox, demo, source, and persona flags. They are for Steve/admin QA only; public users do not see this switcher.
+                    </div>
                     <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
                       {personaProfiles.map((profile) => (
                         <button key={profile.id} onClick={() => setActivePersonaId(profile.id)} style={activePersona.id === profile.id ? selectedToolButton : toolButton}>
@@ -460,18 +477,30 @@ export default function SystemAdminPage() {
                         <h2 style={{ ...h2, marginTop: 5 }}>{activePersona.label}</h2>
                         <p style={{ ...smallText, marginTop: 3 }}>{activePersona.proof}</p>
                       </div>
-                      <Link href={activePersona.href} target="_blank" style={{ ...primaryLink, flexShrink: 0 }}>Open full view</Link>
+                      <Link href={activePersonaHref} target="_blank" style={{ ...primaryLink, flexShrink: 0 }}>Open sandbox view</Link>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 10 }}>
+                      {[
+                        ['Persona', activePersona.role],
+                        ['Route mode', 'Sandbox flagged'],
+                        ['Messages', 'Demo-safe where supported'],
+                      ].map(([label, value]) => (
+                        <div key={label} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px' }}>
+                          <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                          <div style={{ color: C.ink, fontSize: 13, lineHeight: 1.3, marginTop: 3, fontWeight: 900 }}>{value}</div>
+                        </div>
+                      ))}
                     </div>
                     <iframe
-                      key={activePersona.href}
-                      src={activePersona.href}
+                      key={activePersonaHref}
+                      src={activePersonaHref}
                       title={'Passage QA preview - ' + activePersona.label}
                       style={{ width: '100%', height: 430, border: '1px solid ' + C.border, borderRadius: 14, background: C.bg }}
                     />
                   </div>
                 </div>
                 <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
-                  Admin boundary: these are shared sandbox views for demos and QA. Production impersonation remains intentionally gated until it has audit logs, scoped tokens, session expiry, and explicit owner approval.
+                  Admin boundary: this is persona simulation, not production impersonation. Use it with owned QA data to test live-feeling interactions across the spine. True customer impersonation remains gated until it has audit logs, scoped tokens, session expiry, and explicit owner approval.
                 </div>
               </Panel>
               <Panel compact>
@@ -480,10 +509,10 @@ export default function SystemAdminPage() {
                 <p style={lead}>This is the owner-only checklist for public-to-private transitions: family, participant, funeral-home director, staff, vendor, and vendor application.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 9, marginTop: 14 }}>
                   {qaFrontDoors.map(([label, href, body]) => (
-                    <Link key={href} href={href} target="_blank" style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, color: C.ink, textDecoration: 'none', display: 'grid', gap: 5 }}>
+                    <Link key={href} href={sandboxHref(href)} target="_blank" style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, color: C.ink, textDecoration: 'none', display: 'grid', gap: 5 }}>
                       <span style={{ fontSize: 17, fontWeight: 900 }}>{label}</span>
                       <span style={{ ...smallText, marginTop: 0 }}>{body}</span>
-                      <span style={{ color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Open</span>
+                      <span style={{ color: C.sage, fontSize: 12.5, fontWeight: 900 }}>Open sandbox front door</span>
                     </Link>
                   ))}
                 </div>
