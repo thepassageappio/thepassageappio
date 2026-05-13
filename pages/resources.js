@@ -131,6 +131,7 @@ export default function ResourcesPage() {
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.42, margin: 0, maxWidth: 610 }}>
               Simple guides for families, funeral homes, invited helpers, and local support partners. Choose a path, then move from the same coordination spine.
             </p>
+            <Link href="/guides" style={{ ...primaryLink, marginTop: 14 }}>Open Free Guides</Link>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 7, marginTop: 14 }}>
               {panes.map((pane, index) => (
                 <button

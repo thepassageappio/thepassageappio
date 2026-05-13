@@ -55,6 +55,7 @@ export default function BlogPost({ post }) {
             <div style={{ display: 'grid', gap: 8 }}>
               <Link href="/urgent" style={cta(C.ink, '#fff', C.ink)}>Start urgent path</Link>
               <Link href="/?start=plan" style={cta(C.sage, '#fff', C.sage)}>Plan ahead</Link>
+              <Link href="/guides" style={cta(C.sageFaint, C.sage, '#c8deca')}>Open free guides</Link>
               <a href={calendlyUrl({ source: 'blog-funeral-home' })} target="_blank" rel="noreferrer" style={cta(C.card, C.sage, '#c8deca')}>Book partner walkthrough</a>
             </div>
           </aside>

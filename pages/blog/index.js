@@ -24,6 +24,15 @@ export default function BlogIndex() {
           <p style={{ color: C.mid, fontSize: 18, lineHeight: 1.55, margin: 0 }}>Thoughtful guides for families, funeral homes, hospice teams, vendors, and helpers working through one shared transition.</p>
         </div>
 
+        <Link href="/guides" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 16, alignItems: 'center', background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 18, padding: 20, color: C.ink, textDecoration: 'none', marginBottom: 18 }}>
+          <span>
+            <span style={{ display: 'block', color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Free Guides</span>
+            <span style={{ display: 'block', fontSize: 24, lineHeight: 1.12, fontWeight: 400 }}>Need the practical checklist right now?</span>
+            <span style={{ display: 'block', color: C.mid, fontSize: 14, lineHeight: 1.45, marginTop: 5 }}>Unlock the First 24 Hours Guide, family notification playbook, executor checklist, or funeral-home meeting prep.</span>
+          </span>
+          <span style={{ color: C.sage, border: '1px solid #c8deca', background: C.card, borderRadius: 999, padding: '10px 14px', fontWeight: 900, whiteSpace: 'nowrap' }}>Open guides</span>
+        </Link>
+
         <div style={{ display: 'grid', gap: 16 }}>
           {posts.map(post => (
             <Link key={post.slug} href={`/blog/${post.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
