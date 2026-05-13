@@ -82,16 +82,16 @@ export default function MissionPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '210px minmax(0, 1fr)', gap: 8 }}>
           <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 15, padding: 8, display: 'grid', gap: 6 }}>
-            {paths.map(([label, href, , , bg, accent], index) => (
-              <Link
+            {paths.map(([label, , , , bg, accent], index) => (
+              <button
                 key={label}
-                href={href}
-                onMouseEnter={() => setActivePathIndex(index)}
+                type="button"
+                onClick={() => setActivePathIndex(index)}
                 onFocus={() => setActivePathIndex(index)}
-                style={{ border: `1px solid ${activePathIndex === index ? accent + '55' : C.border}`, background: activePathIndex === index ? bg : C.bg, color: activePathIndex === index ? accent : C.mid, borderRadius: 11, padding: '9px 10px', textAlign: 'left', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer', textDecoration: 'none' }}
+                style={{ border: `1px solid ${activePathIndex === index ? accent + '55' : C.border}`, background: activePathIndex === index ? bg : C.bg, color: activePathIndex === index ? accent : C.mid, borderRadius: 11, padding: '9px 10px', textAlign: 'left', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}
               >
                 {label}
-              </Link>
+              </button>
             ))}
           </div>
           <Link href={activePath[1]} style={{ display: 'grid', minHeight: 118, textDecoration: 'none', color: C.ink, background: activePath[4], border: `1px solid ${activePath[5]}33`, borderRadius: 16, padding: '14px 16px' }}>
