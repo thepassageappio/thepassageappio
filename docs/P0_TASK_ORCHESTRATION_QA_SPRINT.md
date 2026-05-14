@@ -35,8 +35,8 @@ Make Passage demonstrably trustworthy as a coordination system: tasks move, peop
 - Production smoke test cannot be run until `PASSAGE_INTERNAL_API_SECRET` is configured in the environment used to invoke it.
 - Public contact/footer still used a Gmail address before this sprint. The code now displays `support@thepassageapp.io`; the domain inbox and env var still need to exist in production.
 - SMS must remain treated as dry-run/paused until Twilio A2P is done.
-- We still need a single admin QA launcher that runs the coordination smoke test with QA recipient override and reports pass/fail in the UI.
-- Task orchestration is implemented, but not yet proven with an end-to-end seeded live scenario after the migration baseline reset.
+- The admin QA launcher now exercises a broader persona spine: funeral-home proof, participant waiting update, vendor request/quote, family update, SMS dry-run, Green-to-urgent same-person block, simulated second confirmation, notification logs, task status events, estate events, and cleanup.
+- Task orchestration is implemented and build-verified; production verification still depends on `PASSAGE_INTERNAL_API_SECRET`, Resend, and QA notification override being configured in the deployment environment.
 - `npx supabase db diff --linked --schema public` needs a longer clean run before the next money-moving migration; the first QA attempt timed out after two minutes.
 
 ## Sprint Loop
@@ -54,9 +54,14 @@ Technical requirements:
   - temporary case created
   - funeral-home close with proof
   - participant assignment email
+  - participant scoped waiting update
+  - vendor scoped request
+  - vendor quote status
   - reviewed family update email
   - SMS dry run
   - activation tables available
+  - same-person activation confirmation blocked
+  - simulated second activation confirmation
   - spine rows recorded
 
 Success criteria:

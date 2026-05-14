@@ -25,6 +25,38 @@ async function safeDelete(table, column, value) {
   await admin.from(table).delete().eq(column, value).then(() => {}, () => {});
 }
 
+async function cleanupCreated(created) {
+  if (!admin) return;
+  if (created.activationWorkflowId) {
+    await safeDelete('notification_log', 'workflow_id', created.activationWorkflowId);
+    await safeDelete('task_status_events', 'workflow_id', created.activationWorkflowId);
+    await safeDelete('estate_events', 'estate_id', created.activationWorkflowId);
+    await safeDelete('orchestration_events', 'workflow_id', created.activationWorkflowId);
+    await safeDelete('activation_confirmations', 'workflow_id', created.activationWorkflowId);
+    await safeDelete('activation_requests', 'workflow_id', created.activationWorkflowId);
+    await safeDelete('activation_witnesses', 'workflow_id', created.activationWorkflowId);
+    await safeDelete('tasks', 'workflow_id', created.activationWorkflowId);
+    await safeDelete('workflows', 'id', created.activationWorkflowId);
+  }
+  if (created.workflowId) {
+    await safeDelete('vendor_payments', 'workflow_id', created.workflowId);
+    await safeDelete('vendor_orders', 'workflow_id', created.workflowId);
+    await safeDelete('vendor_requests', 'workflow_id', created.workflowId);
+    await safeDelete('notification_log', 'workflow_id', created.workflowId);
+    await safeDelete('task_status_events', 'workflow_id', created.workflowId);
+    await safeDelete('estate_events', 'estate_id', created.workflowId);
+    await safeDelete('orchestration_events', 'workflow_id', created.workflowId);
+    await safeDelete('announcements', 'estate_id', created.workflowId);
+    await safeDelete('tasks', 'workflow_id', created.workflowId);
+    await safeDelete('workflows', 'id', created.workflowId);
+  }
+  if (created.vendorId) await safeDelete('vendors', 'id', created.vendorId);
+  if (created.organizationId) {
+    await safeDelete('organization_members', 'organization_id', created.organizationId);
+    await safeDelete('organizations', 'id', created.organizationId);
+  }
+}
+
 async function apiPost(path, body, bearerToken = '') {
   const response = await fetch(`${SITE_URL}${path}`, {
     method: 'POST',
@@ -54,7 +86,7 @@ export default async function handler(req, res) {
   const keepRecords = req.body?.keepRecords === true;
   const recipientEmail = clean(req.body?.recipientEmail) || STEVE_EMAIL;
   const stamp = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
-  const created = { organizationId: null, workflowId: null, taskId: null };
+  const created = { organizationId: null, workflowId: null, taskId: null, participantTaskId: null, vendorTaskId: null, vendorId: null, vendorRequestId: null, activationWorkflowId: null, activationRequestId: null };
   const checks = [];
 
   try {
@@ -182,6 +214,101 @@ export default async function handler(req, res) {
     }, requestBearerToken);
     checks.push({ name: 'sms_dry_run_no_send', ...smsDryRun });
 
+    const { data: participantTask, error: participantTaskError } = await admin.from('tasks').insert([{
+      workflow_id: workflow.id,
+      user_id: adminUserId,
+      title: 'QA participant confirms cemetery details',
+      description: 'Temporary participant task proving scoped helper actions write back to the same case spine.',
+      category: 'family_coordination',
+      priority: 'normal',
+      status: 'assigned',
+      assigned_to_name: 'QA Participant',
+      assigned_to_email: recipientEmail,
+      recipient: recipientEmail,
+      channel: 'participant',
+      automation_level: 'SEND_TRACK',
+      execution_kind: 'message',
+      waiting_on: 'family helper',
+      proof_required: 'Participant waiting point or proof recorded',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }]).select('id,title').single();
+    if (participantTaskError) throw participantTaskError;
+    created.participantTaskId = participantTask.id;
+
+    const participantWaiting = await apiPost('/api/participantAction', {
+      kind: 'task',
+      id: participantTask.id,
+      action: 'waiting',
+      notes: 'QA participant update: waiting for cemetery office confirmation and keeping the coordinator informed.',
+    }, requestBearerToken);
+    checks.push({ name: 'participant_scoped_waiting_update', ...participantWaiting });
+
+    const { data: vendorTask, error: vendorTaskError } = await admin.from('tasks').insert([{
+      workflow_id: workflow.id,
+      user_id: adminUserId,
+      title: 'QA order memorial flowers',
+      description: 'Temporary vendor task proving a scoped vendor request can be created and quoted.',
+      category: 'vendor',
+      priority: 'normal',
+      status: 'pending',
+      assigned_to_name: 'Unassigned',
+      channel: 'vendor',
+      automation_level: 'SEND_TRACK',
+      execution_kind: 'vendor_request',
+      waiting_on: 'vendor quote',
+      proof_required: 'Vendor quote and family-visible status recorded',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }]).select('id,title').single();
+    if (vendorTaskError) throw vendorTaskError;
+    created.vendorTaskId = vendorTask.id;
+
+    const { data: vendor, error: vendorError } = await admin.from('vendors').insert([{
+      business_name: `QA Florist ${stamp}`,
+      category: 'florist',
+      short_description: 'Temporary QA vendor for scoped request verification.',
+      zip_codes_served: ['12508'],
+      rush_supported: true,
+      rush_window_hours: 24,
+      planned_supported: true,
+      contact_email: recipientEmail,
+      contact_phone: '+18455797644',
+      website: 'https://www.thepassageapp.io',
+      status: 'active',
+      marketplace_fee_percent: 12,
+      passage_rev_share_percent: 12,
+      funeral_home_rev_share_percent: 0,
+      estimated_transaction_value: 475,
+      estimated_value: 475,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }]).select('id,business_name,category').single();
+    if (vendorError) throw vendorError;
+    created.vendorId = vendor.id;
+
+    const vendorRequest = await apiPost('/api/vendorRequests/create', {
+      workflowId: workflow.id,
+      taskId: vendorTask.id,
+      taskTitle: vendorTask.title,
+      vendorId: vendor.id,
+      urgency: 'planned',
+      requestNote: 'QA request: please quote memorial flowers for the service.',
+    }, requestBearerToken);
+    created.vendorRequestId = vendorRequest.json?.request?.id || null;
+    checks.push({ name: 'vendor_scoped_request_created', ...vendorRequest });
+
+    if (vendorRequest.json?.request?.response_token) {
+      const vendorQuote = await apiPost('/api/vendorRequests/respond', {
+        token: vendorRequest.json.request.response_token,
+        status: 'accepted',
+        finalValue: 475,
+      }, requestBearerToken);
+      checks.push({ name: 'vendor_quote_status_recorded', ...vendorQuote });
+    } else {
+      checks.push({ name: 'vendor_quote_status_recorded', ok: false, error: 'Vendor request did not return a response token.' });
+    }
+
     const activationTables = await Promise.all([
       admin.from('activation_witnesses').select('id').limit(1),
       admin.from('activation_requests').select('id').limit(1),
@@ -193,33 +320,146 @@ export default async function handler(req, res) {
       errors: activationTables.map((result) => result.error?.message).filter(Boolean),
     });
 
-    const [{ data: taskAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }] = await Promise.all([
+    const { data: activationWorkflow, error: activationWorkflowError } = await admin.from('workflows').insert([{
+      user_id: adminUserId,
+      name: `QA planning activation ${stamp}`,
+      estate_name: `QA planning activation ${stamp}`,
+      deceased_name: `QA Planning Person ${stamp}`,
+      coordinator_name: 'Passage QA',
+      coordinator_email: recipientEmail,
+      status: 'planning',
+      activation_status: 'ready',
+      path: 'planning',
+      mode: 'planning',
+      setup_stage: 'activation_circle_qa',
+      orchestration_summary: {
+        qa_smoke_test: true,
+        purpose: 'Temporary two-person activation circle simulation.',
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }]).select('id,deceased_name').single();
+    if (activationWorkflowError) throw activationWorkflowError;
+    created.activationWorkflowId = activationWorkflow.id;
+
+    await admin.from('activation_witnesses').upsert([
+      {
+        workflow_id: activationWorkflow.id,
+        email: recipientEmail,
+        name: 'Passage QA initiator',
+        role: 'primary_activation_contact',
+        source: 'qa_smoke_test',
+        status: 'active',
+        created_by: adminUserId,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        workflow_id: activationWorkflow.id,
+        email: `qa-second-${stamp}@example.com`,
+        name: 'Passage QA second witness',
+        role: 'second_activation_contact',
+        source: 'qa_smoke_test',
+        status: 'active',
+        created_by: adminUserId,
+        updated_at: new Date().toISOString(),
+      },
+    ], { onConflict: 'workflow_id,email' });
+
+    const activationRequest = await apiPost('/api/activationCircle', {
+      workflowId: activationWorkflow.id,
+      action: 'request',
+      reason: 'QA activation review: one trusted person started, a different trusted person must confirm.',
+    }, requestBearerToken);
+    created.activationRequestId = activationRequest.json?.request?.id || null;
+    checks.push({ name: 'green_red_activation_review_started', ...activationRequest });
+
+    const selfConfirmBlocked = created.activationRequestId
+      ? await apiPost('/api/activationCircle', {
+        workflowId: activationWorkflow.id,
+        action: 'confirm',
+        requestId: created.activationRequestId,
+        note: 'QA should not allow same-person activation.',
+      }, requestBearerToken)
+      : { ok: false, status: 0, json: { error: 'No activation request was created.' } };
+    checks.push({
+      name: 'green_red_same_person_confirmation_blocked',
+      ok: selfConfirmBlocked.status === 409,
+      status: selfConfirmBlocked.status,
+      json: selfConfirmBlocked.json,
+    });
+
+    if (created.activationRequestId) {
+      await admin.from('activation_confirmations').insert([{
+        request_id: created.activationRequestId,
+        workflow_id: activationWorkflow.id,
+        confirmed_by_email: `qa-second-${stamp}@example.com`,
+        confirmed_by_name: 'Passage QA second witness',
+        confirmation_role: 'second_activation_contact',
+        note: 'QA simulated second trusted confirmation.',
+      }]);
+      const now = new Date().toISOString();
+      await admin.from('activation_requests').update({ status: 'confirmed', confirmed_at: now, updated_at: now }).eq('id', created.activationRequestId);
+      await admin.from('workflows').update({
+        path: 'urgent',
+        mode: 'urgent',
+        status: 'triggered',
+        activation_status: 'activated',
+        triggered_at: now,
+        updated_at: now,
+      }).eq('id', activationWorkflow.id);
+      await admin.from('estate_events').insert([{
+        estate_id: activationWorkflow.id,
+        event_type: 'green_to_red_activated',
+        title: 'Planning record activated',
+        description: 'QA simulated the second trusted confirmation and verified the planning record can become active.',
+        actor: 'Passage QA',
+        notes: JSON.stringify({ activation_request_id: created.activationRequestId, qa_smoke_test: true }),
+      }]);
+      await admin.from('orchestration_events').insert([{
+        workflow_id: activationWorkflow.id,
+        event_type: 'green_to_red_activated',
+        status: 'done',
+        payload: { activation_request_id: created.activationRequestId, qa_smoke_test: true },
+        processed_at: now,
+      }]).then(() => {}, () => {});
+
+      const [{ data: activatedRecord }, { data: activationConfirmations }, { data: activationEvents }] = await Promise.all([
+        admin.from('workflows').select('id,status,activation_status,path,mode').eq('id', activationWorkflow.id).maybeSingle(),
+        admin.from('activation_confirmations').select('id,confirmed_by_email').eq('request_id', created.activationRequestId),
+        admin.from('estate_events').select('id,event_type').eq('estate_id', activationWorkflow.id).eq('event_type', 'green_to_red_activated'),
+      ]);
+      checks.push({
+        name: 'green_red_second_confirmation_activates_record',
+        ok: activatedRecord?.activation_status === 'activated' && (activationConfirmations || []).length >= 2 && (activationEvents || []).length >= 1,
+        activationStatus: activatedRecord?.activation_status || null,
+        confirmationCount: (activationConfirmations || []).length,
+        activationEventCount: (activationEvents || []).length,
+      });
+    }
+
+    const [{ data: taskAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }] = await Promise.all([
       admin.from('tasks').select('id,status,last_actor,last_action_at,completed_at,completed_by_email').eq('id', task.id).maybeSingle(),
       admin.from('notification_log').select('*').eq('workflow_id', workflow.id),
       admin.from('task_status_events').select('*').eq('workflow_id', workflow.id),
       admin.from('estate_events').select('*').eq('estate_id', workflow.id),
+      admin.from('vendor_requests').select('id,status,payment_collection_status,gross_amount,passage_fee_amount,vendor_net_amount').eq('workflow_id', workflow.id),
     ]);
 
     checks.push({
       name: 'spine_rows_recorded',
-      ok: Boolean((notificationRows || []).length && (statusEvents || []).length && (estateEvents || []).length),
+      ok: Boolean((notificationRows || []).length && (statusEvents || []).length && (estateEvents || []).length && (vendorRequestRows || []).length),
       taskStatus: taskAfter?.status || null,
       notificationCount: (notificationRows || []).length,
       statusEventCount: (statusEvents || []).length,
       estateEventCount: (estateEvents || []).length,
+      vendorRequestCount: (vendorRequestRows || []).length,
       notificationStatuses: Array.from(new Set((notificationRows || []).map((row) => row.status).filter(Boolean))),
       notificationSources: Array.from(new Set((notificationRows || []).map((row) => row.source).filter(Boolean))),
+      vendorStatuses: Array.from(new Set((vendorRequestRows || []).map((row) => row.status).filter(Boolean))),
     });
 
     if (!keepRecords) {
-      await safeDelete('notification_log', 'workflow_id', workflow.id);
-      await safeDelete('task_status_events', 'workflow_id', workflow.id);
-      await safeDelete('estate_events', 'estate_id', workflow.id);
-      await safeDelete('announcements', 'estate_id', workflow.id);
-      await safeDelete('tasks', 'workflow_id', workflow.id);
-      await safeDelete('workflows', 'id', workflow.id);
-      await safeDelete('organization_members', 'organization_id', organization.id);
-      await safeDelete('organizations', 'id', organization.id);
+      await cleanupCreated(created);
     }
 
     const passed = checks.every((check) => {
@@ -236,18 +476,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     if (!keepRecords) {
-      if (created.workflowId) {
-        await safeDelete('notification_log', 'workflow_id', created.workflowId);
-        await safeDelete('task_status_events', 'workflow_id', created.workflowId);
-        await safeDelete('estate_events', 'estate_id', created.workflowId);
-        await safeDelete('announcements', 'estate_id', created.workflowId);
-        await safeDelete('tasks', 'workflow_id', created.workflowId);
-        await safeDelete('workflows', 'id', created.workflowId);
-      }
-      if (created.organizationId) {
-        await safeDelete('organization_members', 'organization_id', created.organizationId);
-        await safeDelete('organizations', 'id', created.organizationId);
-      }
+      await cleanupCreated(created);
     }
     return res.status(500).json({
       success: false,

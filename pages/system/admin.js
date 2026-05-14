@@ -633,13 +633,13 @@ export default function SystemAdminPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
                   <div>
                     <h2 style={h2}>Prove task, communication, and notification spine.</h2>
-                    <p style={lead}>Creates a temporary QA funeral-home case, closes a task with proof, sends a participant-style assignment email, sends a reviewed family update, checks the Green-to-Red activation tables, verifies notification/status/event rows, then clears the temporary records.</p>
+                    <p style={lead}>Creates temporary QA family, funeral-home, participant, vendor, and planning-activation records. It closes funeral-home work with proof, saves a participant waiting update, requests and quotes a vendor, sends a reviewed family update, checks SMS dry-run, verifies same-person activation is blocked, simulates second confirmation, verifies notification/status/event rows, then clears the temporary records.</p>
                   </div>
                   <div style={{ display: 'grid', gap: 10 }}>
                     <button type="button" onClick={runCoordinationSmokeTest} disabled={spineSmokeLoading} style={{ ...primaryButton, marginTop: 0, justifySelf: 'start', opacity: spineSmokeLoading ? .6 : 1 }}>
                       {spineSmokeLoading ? 'Running spine test...' : 'Run spine smoke test'}
                     </button>
-                    <div style={{ ...smallText, marginTop: 0 }}>Default recipient is your signed-in admin email. The smoke test cleans up its case, tasks, and events unless a developer explicitly runs it with keepRecords.</div>
+                    <div style={{ ...smallText, marginTop: 0 }}>Default recipient is your signed-in admin email. In QA notification mode, intended recipients are preserved in the log while actual email routes to the override. The smoke test cleans up its cases, tasks, vendor request, activation records, and events unless a developer explicitly runs it with keepRecords.</div>
                     {spineSmokeResult && (
                       <div style={{ background: spineSmokeResult.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (spineSmokeResult.ok ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12 }}>
                         <div style={{ color: spineSmokeResult.ok ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{spineSmokeResult.ok ? 'Spine test complete' : 'Spine test needs review'}</div>
