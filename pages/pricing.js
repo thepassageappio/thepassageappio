@@ -252,7 +252,7 @@ export default function PricingPage() {
         )}
 
         <div style={{ marginTop: 8, background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: '9px 11px', color: C.mid, fontSize: 12, lineHeight: 1.35 }}>
-          Add-on estates become available after an active paid subscription. Passage directs 10% of proceeds to grief and family-support work; each paid urgent path also funds a remembrance tree dedication.
+          Add-on estates become available after an active paid subscription. Passage directs 10% of proceeds to grief and family-support work; each paid urgent family record also funds a remembrance tree dedication.
         </div>
 
         {message && (

@@ -138,7 +138,7 @@ export default function ContactPage() {
             <select value={form.urgency} onChange={e => set('urgency', e.target.value)} style={input}>
               <option>Normal</option>
               <option>Time sensitive</option>
-              <option>Urgent path blocked</option>
+              <option>Urgent help blocked</option>
             </select>
           </Field>
           <Field label="How can we help?">

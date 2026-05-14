@@ -154,7 +154,7 @@ export default function StoryPage() {
               Passage came from that gap. The problem was not that people did not care. The problem was that the family record did not travel cleanly.
             </p>
             <div className="story-actions">
-              <Link href="/urgent" className="story-button" style={{ background: C.ink, color: '#fff' }}>Start urgent path</Link>
+              <Link href="/urgent" className="story-button" style={{ background: C.ink, color: '#fff' }}>Start urgent help</Link>
               <Link href="/mission" className="story-button" style={{ background: C.card, color: C.sageDark, border: `1px solid ${C.sageLight}` }}>Read the mission</Link>
             </div>
           </div>

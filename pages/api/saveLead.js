@@ -70,7 +70,7 @@ export default async function handler(req, res) {
         lifecycleStage: 'lead',
       },
       deal: flow_type === 'red' || mode === 'urgent' ? {
-        name: `Urgent path lead: ${resolvedName || resolvedEmail || 'New family'}`,
+        name: `Urgent help lead: ${resolvedName || resolvedEmail || 'New family'}`,
         amount: 79,
         persona: 'red_path_family',
         description: `Urgent family lead from Passage. Loved one: ${deceased_name || 'Not provided'}. Relationship: ${relationship || 'Not provided'}.`,

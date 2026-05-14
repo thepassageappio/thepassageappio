@@ -88,7 +88,7 @@ const hospicePilotSetup = [
   ['1', 'Location or care team', 'Start with the agency, facility, or home-care team that families already know.'],
   ['2', 'Care contacts', 'Save the on-call line, social worker, chaplain, primary caregiver, and family coordinator.'],
   ['3', 'Family workspaces', 'Create one family record at a time or import a small pilot list when approved.'],
-  ['4', 'Warm tasks', 'Assign practical prep: first-hour plan, funeral-home choice, documents, visitors, and family updates.'],
+  ['4', 'Care-prep tasks', 'Assign practical prep: first-hour plan, funeral-home choice, documents, visitors, and family updates.'],
   ['5', 'Handoff', 'When death occurs, the same record moves to urgent coordination and funeral-home coordination.'],
 ];
 
@@ -517,7 +517,7 @@ export default function HospiceWarmPath() {
             <div style={{ ...eyebrow, color: C.rose }}>When death occurs</div>
             <h2 style={h2}>Urgent coordination starts from what the family already prepared.</h2>
             <p style={lead}>If this is an expected death in care, Passage should put the hospice, on-call, or facility release path first, then carry known contacts and preferences into the command center.</p>
-            <Link href="/urgent" style={{ ...primaryLink, background: C.rose, marginTop: 18 }}>Open urgent path</Link>
+            <Link href="/urgent" style={{ ...primaryLink, background: C.rose, marginTop: 18 }}>Open urgent help</Link>
           </div>
           <div style={panel}>
             <div style={eyebrow}>Funeral-home handoff packet</div>

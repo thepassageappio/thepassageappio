@@ -3745,7 +3745,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   </button>
                   <button onClick={() => window.location.href = '/urgent'} style={{ textAlign: "left", background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: "14px", cursor: "pointer", fontFamily: "inherit" }}>
                     <div style={{ fontSize: 15, fontWeight: 900, color: C.ink, marginBottom: 4 }}>Someone just passed</div>
-                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5 }}>Start the urgent path first. Passage will create the command center after the first-step plan.</div>
+                    <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.5 }}>Start urgent help first. Passage will create the command center after the first-step plan.</div>
                     <div style={{ color: C.rose, fontSize: 12.5, fontWeight: 900, marginTop: 10 }}>Start urgent guidance {'->'}</div>
                   </button>
                 </div>
@@ -4614,7 +4614,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             { q: 'Can I manage a parent and spouse separately?', a: 'Yes. Each estate should have its own command center with separate tasks, people, documents, obituary, memories, and activity history.' },
             { q: 'What happens when a plan activates?', a: 'Trusted people confirm, Passage opens the estate command center, drafts next steps, and tracks what is waiting, sent, approved, and handled.' },
             { q: 'Is this legal advice?', a: 'No. Passage organizes wishes, documents, people, and tasks. Legal decisions still belong with attorneys, funeral homes, and appropriate professionals.' },
-            { q: 'What if someone just died?', a: 'Use the urgent path. It starts with the first practical priorities and keeps choices small so the family does not face a giant checklist.' },
+            { q: 'What if someone just died?', a: 'Use urgent help. It starts with the first practical priorities and keeps choices small so the family does not face a giant checklist.' },
           ].map((item, i) => (
             <div key={i} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: C.ink, lineHeight: 1.35, marginBottom: 8 }}>{item.q}</div>
@@ -4682,7 +4682,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       cta: null,
       rows: [
         ['Green', 'Plan before crisis', 'Wishes, contacts, documents, roles, and preferences are organized early.'],
-        ['Warm', 'Prepare during care', 'Hospice, home care, senior living, or serious illness can become an earlier activation point.'],
+        ['Care prep', 'Prepare during care', 'Hospice, home care, senior living, or serious illness can become an earlier activation point.'],
         ['Red', 'Move through the first hours', 'The experience narrows to one clear action, owner, and proof.'],
         ['After', 'Carry the long tail', 'Estate, notifications, remembrance, vendors, and reporting stay tied together.'],
       ],
@@ -4796,12 +4796,12 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               Passage keeps the next step, the owner, the waiting point, and the proof in one shared family record, from preparation through death, funeral coordination, and the long tail after.
             </p>
             <div className="home-actions">
-              <button onClick={() => openPublicCta('Start urgent path', '/urgent')} className="home-action home-primary">Start urgent path</button>
+              <button onClick={() => openPublicCta('Start urgent help', '/urgent')} className="home-action home-primary">Start urgent help</button>
               <button onClick={() => openPublicCta('Prepare during care', '/hospice')} className="home-action home-secondary">Prepare during care</button>
               <button onClick={() => openPublicCta('Plan ahead', '/planning')} className="home-action home-tertiary">Plan ahead</button>
             </div>
             <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
-            <div className="home-pledge"><strong>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent path also funds a remembrance tree dedication.</div>
+            <div className="home-pledge"><strong>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent family record also funds a remembrance tree dedication.</div>
           </div>
 
           <div className="home-panel" aria-label="Passage coordination preview">

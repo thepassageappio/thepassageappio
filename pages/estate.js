@@ -3587,7 +3587,7 @@ export default function EstatePage() {
                 style={{ textAlign: 'left', border: '1px solid ' + ROSE + '33', background: ROSE_FAINT, color: INK, borderRadius: 16, padding: '17px 18px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 <div style={{ color: ROSE, fontSize: 11, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Someone just passed</div>
                 <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 5 }}>Create a Red estate</div>
-                <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.5 }}>Start the urgent path and create the command center from the first practical details.</div>
+                <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.5 }}>Start urgent help and create the command center from the first practical details.</div>
               </button>
             </div>
           </div>
@@ -3672,7 +3672,7 @@ export default function EstatePage() {
                   estate_id: estateId,
                   event_type: 'green_to_red_activated',
                   title: 'Planning record activated',
-                  description: 'Two trusted confirmations moved this planning record into the active urgent path.',
+                  description: 'Two trusted confirmations moved this planning record into active urgent coordination.',
                   actor: user?.email || coordinatorName || 'Activation circle',
                   created_at: new Date().toISOString(),
                 }].concat(prev || []).slice(0, 8);

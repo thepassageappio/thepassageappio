@@ -267,7 +267,7 @@ function ActivationReviewCard({ estate, onConfirm }) {
       <div style={{ color: C.amber, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Activation review</div>
       <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.2, fontWeight: 900 }}>Confirm whether this planning record should become active.</div>
       <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6, marginTop: 8 }}>
-        {requester} started the review. Passage requires two different trusted confirmations before a Green planning record becomes the active urgent path.
+        {requester} started the review. Passage requires two different trusted confirmations before a planning record becomes active urgent coordination.
       </div>
       {review.request.reason && (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 10 }}>

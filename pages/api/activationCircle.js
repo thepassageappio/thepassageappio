@@ -179,7 +179,7 @@ async function activateWorkflow({ workflow, request, actorEmail }) {
     estate_id: workflow.id,
     event_type: 'green_to_red_activated',
     title: 'Planning record activated',
-    description: 'Two trusted confirmations moved this planning record into the active urgent path.',
+    description: 'Two trusted confirmations moved this planning record into active urgent coordination.',
     actor: actorEmail || 'Activation circle',
     notes: JSON.stringify({ activation_request_id: request.id }),
   }]).then(() => {}, () => {});

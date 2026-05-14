@@ -777,7 +777,7 @@ export default function UrgentPage() {
             If you need to step away for a while, Passage will keep this organized. Come back to one next step, not a pile of decisions.
           </div>
           <div style={{ background: C.card, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '10px 13px', color: C.mid, fontSize: 13, lineHeight: 1.45, maxWidth: 720, margin: '10px auto 0' }}>
-            <strong style={{ color: C.sageDark }}>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent path funds a remembrance tree dedication in their name.
+            <strong style={{ color: C.sageDark }}>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent family record funds a remembrance tree dedication in their name.
           </div>
         </section>
 
@@ -786,7 +786,7 @@ export default function UrgentPage() {
             {paidSuccess && <div className="paid-success">You're in the right place. We'll guide you step by step.</div>}
             {!selectedSituation ? (
               <>
-                <div className="crisis-sequence" aria-label="Urgent path sequence">
+                <div className="crisis-sequence" aria-label="Urgent help sequence">
                   {[
                     ['Stabilize', 'Confirm the setting and official authority before anything else moves.'],
                     ['Coordinate', 'Name one owner for the next practical step and keep the family from repeating calls.'],
@@ -808,7 +808,7 @@ export default function UrgentPage() {
             ) : (
               <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '12px 13px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div>
-                  <div style={{ color: C.sageDark, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Current urgent path</div>
+                  <div style={{ color: C.sageDark, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Current urgent help</div>
                   <div style={{ color: C.ink, fontSize: 16, fontWeight: 800, marginTop: 3 }}>{situationLabels[context.deathContext] || 'Urgent coordination'}</div>
                 </div>
                 <button className="ghost" onClick={() => updateContext('deathContext', '')}>Change situation</button>

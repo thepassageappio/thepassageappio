@@ -769,7 +769,7 @@ export default async function handler(req, res) {
       last_actor: task.last_actor || coordinatorName,
       channel: 'urgent_path',
       recipient: task.last_actor || coordinatorName,
-      detail: `${task.title} - proof saved from urgent path: ${task.notes}`,
+      detail: `${task.title} - proof saved from urgent help: ${task.notes}`,
     }));
     if (events.length) await admin.from('task_status_events').insert(events).then(() => {}, () => {});
   }
