@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../../lib/adminAccess';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -55,18 +56,34 @@ async function sendVendorApprovalEmail(admin, vendor) {
       <p style="font-size:12.5px;line-height:1.6;color:#a09890;margin:18px 0 0;">You can sign in with Google or request a secure email link using this same address.</p>
     </div>
   </div>`;
+  const route = routeEmailRecipients([to]);
+  if (!route.actual.length) {
+    await insertNotificationLog(admin, {
+      channel: 'email',
+      recipient_email: to,
+      recipient_name: vendorName,
+      subject,
+      provider: 'resend',
+      provider_id: null,
+      status: 'blocked',
+      error_message: 'QA notification mode had no override email configured.',
+      source: 'vendor_approval',
+      ...qaAuditFields(route),
+    });
+    return;
+  }
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
-      to: [to],
+      to: route.actual,
       subject,
       html,
     }),
   }).catch(() => null);
   const json = response ? await response.json().catch(() => ({})) : {};
-  await admin.from('notification_log').insert([{
+  await insertNotificationLog(admin, {
     channel: 'email',
     recipient_email: to,
     recipient_name: vendorName,
@@ -76,7 +93,9 @@ async function sendVendorApprovalEmail(admin, vendor) {
     status: response?.ok ? 'sent' : 'failed',
     sent_at: response?.ok ? new Date().toISOString() : null,
     error_message: response?.ok ? null : (json?.message || json?.error || 'Vendor approval email failed'),
-  }]).then(() => {}, () => {});
+    source: 'vendor_approval',
+    ...qaAuditFields(route),
+  });
 }
 
 export default async function handler(req, res) {

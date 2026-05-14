@@ -4,6 +4,7 @@ import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import SmartAddressInput from '../../components/SmartAddressInput';
 import { supabase } from '../../lib/supabaseBrowser';
 import { friendlyAuthError, isLikelyEmail, normalizeEmail } from '../../lib/authFeedback';
+import { FUNERAL_HOME_PLAN_OPTIONS, partnerPlanFor } from '../../lib/partnerPlans';
 
 const C = {
   bg: '#f6f3ee',
@@ -39,7 +40,10 @@ export default function FuneralHomeSetupPage() {
     zip: '',
     country: '',
     placeId: '',
+    planId: 'partner_local',
   });
+
+  const selectedPlan = partnerPlanFor(form.planId);
 
   useEffect(() => {
     if (!supabase?.auth) return undefined;
@@ -100,6 +104,7 @@ export default function FuneralHomeSetupPage() {
         directorName: form.directorName,
         supportEmail: form.supportEmail || user?.email,
         supportPhone: form.supportPhone,
+        planId: form.planId,
         location: {
           name: form.locationName,
           address: form.locationAddress,
@@ -126,7 +131,7 @@ export default function FuneralHomeSetupPage() {
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Partner setup</div>
             <h1 style={{ fontSize: 52, lineHeight: 1, margin: '10px 0 12px', fontWeight: 400 }}>Create the funeral-home workspace.</h1>
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65, margin: 0 }}>
-              Start with the organization, owner, and first location. After setup, Passage opens the command center so you can add employees, create or import cases, and review warm inbound family requests.
+              Start with the organization, subscription type, owner, and first location. After setup, Passage opens the command center so you can add employees, create or import cases, and review warm inbound family requests.
             </p>
             <div style={{ display: 'grid', gap: 8, marginTop: 18 }}>
               {['1. Confirm workspace and co-branding', '2. Add locations and employees', '3. Create or import first cases', '4. Assign one next task from the case spine'].map(item => (
@@ -155,6 +160,17 @@ export default function FuneralHomeSetupPage() {
                 <input value={form.directorName} onChange={event => setForm(prev => ({ ...prev, directorName: event.target.value }))} placeholder="Director / owner name" style={inputStyle} />
                 <input value={form.supportEmail} onChange={event => setForm(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Family support email" style={inputStyle} />
                 <input value={form.supportPhone} onChange={event => setForm(prev => ({ ...prev, supportPhone: event.target.value }))} placeholder="Family support phone" style={inputStyle} />
+                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 12 }}>
+                  <label style={{ display: 'block', color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Subscription and location slots</label>
+                  <select value={form.planId} onChange={event => setForm(prev => ({ ...prev, planId: event.target.value }))} style={{ ...inputStyle, width: '100%', background: C.card }}>
+                    {Object.values(FUNERAL_HOME_PLAN_OPTIONS).map(plan => (
+                      <option key={plan.id} value={plan.id}>{plan.label} - {plan.includedLocationSlots} location{plan.includedLocationSlots === 1 ? '' : 's'} included</option>
+                    ))}
+                  </select>
+                  <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, margin: '8px 0 0' }}>
+                    {selectedPlan.description} Additional locations are tracked as paid slots at ${(selectedPlan.additionalLocationFeeCents / 100).toFixed(0)}/mo each.
+                  </p>
+                </div>
                 <input value={form.locationName} onChange={event => setForm(prev => ({ ...prev, locationName: event.target.value }))} placeholder="Main location name" style={inputStyle} />
                 <SmartAddressInput
                   label="Main location address"

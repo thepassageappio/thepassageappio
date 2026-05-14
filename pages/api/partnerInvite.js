@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../lib/adminAccess';
 import { normalizePartnerPlanId, partnerPlanFor } from '../../lib/partnerPlans';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -223,19 +224,36 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, skipped: true, organization, member, inviteUrl, message: 'Partner workspace created. Invite prepared, but Resend is not configured.' });
     }
 
+    const route = routeEmailRecipients([directorEmail]);
+    if (!route.actual.length) {
+      await insertNotificationLog(admin, {
+        channel: 'email',
+        recipient_email: directorEmail,
+        recipient_name: directorName || directorEmail,
+        subject,
+        provider: 'resend',
+        provider_id: null,
+        status: 'blocked',
+        error_message: 'QA notification mode had no override email configured.',
+        source: 'partner_owner_invite',
+        ...qaAuditFields(route),
+      });
+      return res.status(200).json({ success: true, blocked: true, organization, member, partnerPlan, inviteUrl, message: 'Partner workspace created. Invite was blocked by QA notification mode because no override email is configured.' });
+    }
+
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
-        to: [directorEmail],
+        to: route.actual,
         subject,
         html,
       }),
     });
     const emailData = await response.json().catch(() => ({}));
     const ok = response.ok && emailData.id;
-    await admin.from('notification_log').insert([{
+    await insertNotificationLog(admin, {
       channel: 'email',
       recipient_email: directorEmail,
       recipient_name: directorName || directorEmail,
@@ -245,7 +263,9 @@ export default async function handler(req, res) {
       status: ok ? 'sent' : 'failed',
       error_message: ok ? null : (emailData.message || emailData.error || JSON.stringify(emailData)),
       sent_at: new Date().toISOString(),
-    }]).then(() => {}, () => {});
+      source: 'partner_owner_invite',
+      ...qaAuditFields(route),
+    });
 
     if (!ok) return res.status(500).json({ error: emailData.message || emailData.error || 'Email provider did not accept the partner invite.', organization, inviteUrl });
     return res.status(200).json({ success: true, organization, member, partnerPlan, inviteUrl, id: emailData.id });

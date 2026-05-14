@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
 import { normalizePartnerPlanId, partnerPlanFor } from '../../lib/partnerPlans';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -402,6 +403,24 @@ async function notifyVendorPaymentPaid(request, payment) {
   const recipients = Array.from(new Set([vendorEmail, coordinatorEmail].filter(Boolean)));
   if (!recipients.length) return;
   const subject = `Vendor service paid: ${request.task_title || 'Passage request'}`;
+  const route = routeEmailRecipients(recipients);
+  if (!route.actual.length) {
+    await Promise.all(recipients.map((recipient) => insertNotificationLog(sb, {
+      workflow_id: request.workflow_id,
+      task_id: request.task_id || null,
+      channel: 'email',
+      recipient_email: recipient,
+      recipient_name: recipient,
+      subject,
+      provider: 'resend',
+      provider_id: null,
+      status: 'blocked',
+      error_message: 'QA notification mode had no override email configured.',
+      source: 'vendor_payment_confirmed',
+      ...qaAuditFields(route),
+    })));
+    return;
+  }
   const html = `
     <div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px">
       <div style="max-width:580px;margin:auto;background:#fffdf9;border:1px solid #e4ddd4;border-radius:18px;padding:26px;color:#1a1916">
@@ -411,16 +430,32 @@ async function notifyVendorPaymentPaid(request, payment) {
         <p style="color:#1a1916;line-height:1.7;margin:0"><strong>Gross:</strong> $${Number(payment.gross_amount || 0).toFixed(2)}<br/><strong>Passage fee:</strong> $${Number(payment.application_fee_amount || 0).toFixed(2)}<br/><strong>Vendor balance:</strong> $${Number(payment.vendor_net_amount || 0).toFixed(2)}</p>
       </div>
     </div>`;
-  await fetch('https://api.resend.com/emails', {
+  const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
-      to: recipients,
+      to: route.actual,
       subject,
       html,
     }),
   }).catch(() => null);
+  const json = response ? await response.json().catch(() => ({})) : {};
+  await Promise.all(recipients.map((recipient) => insertNotificationLog(sb, {
+    workflow_id: request.workflow_id,
+    task_id: request.task_id || null,
+    channel: 'email',
+    recipient_email: recipient,
+    recipient_name: recipient,
+    subject,
+    provider: 'resend',
+    provider_id: response?.ok ? json.id || null : null,
+    status: response?.ok ? 'sent' : 'failed',
+    sent_at: response?.ok ? new Date().toISOString() : null,
+    error_message: response?.ok ? null : (json?.message || json?.error || 'Vendor payment notification failed'),
+    source: 'vendor_payment_confirmed',
+    ...qaAuditFields(route),
+  })));
 }
 
 async function recordVendorPaymentCheckout(session) {

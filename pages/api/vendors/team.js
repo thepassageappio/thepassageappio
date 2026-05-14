@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { escapeHtml, passageEmailShell } from '../../../lib/brandedEmail';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -83,19 +84,35 @@ async function sendInvite(admin, { vendor, member, senderEmail }) {
     return { skipped: true, inviteUrl };
   }
 
+  const route = routeEmailRecipients([member.email]);
+  if (!route.actual.length) {
+    await insertNotificationLog(admin, {
+      channel: 'email',
+      recipient_email: member.email,
+      recipient_name: member.display_name || member.email,
+      subject,
+      provider: 'resend',
+      provider_id: null,
+      status: 'blocked',
+      error_message: 'QA notification mode had no override email configured.',
+      source: 'vendor_team_invite',
+      ...qaAuditFields(route),
+    });
+    return { blocked: true, inviteUrl };
+  }
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
-      to: [member.email],
+      to: route.actual,
       subject,
       html,
     }),
   });
   const data = await response.json().catch(() => ({}));
   const ok = response.ok && data.id;
-  await admin.from('notification_log').insert([{
+  await insertNotificationLog(admin, {
     channel: 'email',
     recipient_email: member.email,
     recipient_name: member.display_name || member.email,
@@ -105,7 +122,9 @@ async function sendInvite(admin, { vendor, member, senderEmail }) {
     status: ok ? 'sent' : 'failed',
     error_message: ok ? null : (data.message || data.error || JSON.stringify(data)),
     sent_at: new Date().toISOString(),
-  }]).then(() => {}, () => {});
+    source: 'vendor_team_invite',
+    ...qaAuditFields(route),
+  });
 
   if (!ok) throw new Error(data.message || data.error || 'Email provider did not accept the vendor invite.');
   return { id: data.id, inviteUrl };
