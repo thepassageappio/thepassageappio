@@ -31,7 +31,7 @@ function providerTypeLabel(type) {
 
 async function notifyPassage(application) {
   if (!process.env.RESEND_API_KEY) return { skipped: true };
-  const to = process.env.SUPPORT_EMAIL || process.env.RESEND_SUPPORT_EMAIL || 'thepassageappio@gmail.com';
+  const to = process.env.SUPPORT_EMAIL || process.env.RESEND_SUPPORT_EMAIL || 'support@thepassageapp.io';
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
   const html = passageEmailShell({
     eyebrow: 'Care-provider inquiry',
@@ -166,4 +166,3 @@ export default async function handler(req, res) {
 
   return res.status(200).json({ success: true });
 }
-

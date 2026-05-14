@@ -2578,7 +2578,7 @@ export default function FuneralHomeDashboard() {
                   value={partnerEmail}
                   onChange={event => setPartnerEmail(event.target.value)}
                   type="email"
-                  placeholder="demo@collinsffh.com"
+                  placeholder="director@passagefh.example"
                   autoComplete="email"
                   style={{ border: `1.5px solid ${C.border}`, borderRadius: 13, background: C.bg, padding: '12px 13px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 14 }}
                 />

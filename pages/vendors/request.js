@@ -8,7 +8,7 @@ import { vendorCategoryLabel } from '../../lib/vendors';
 import { paymentStatusLabel, vendorNextExpected, vendorStatusLabel } from '../../lib/vendorLifecycle';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
-const SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
+const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 const demoRequest = {
   status: 'requested',

@@ -5,7 +5,7 @@ import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { vendorCategoryLabel } from '../../lib/vendors';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
-const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com', 'thepassageappio@gmail.com'];
+const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 function isSystemAdmin(user) {
   return SYSTEM_ADMIN_EMAILS.includes(String(user?.email || '').trim().toLowerCase());

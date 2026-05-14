@@ -20,7 +20,7 @@ const C = {
   amberFaint: '#fbf5e8',
 };
 
-const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com', 'thepassageappio@gmail.com'];
+const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();

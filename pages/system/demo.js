@@ -19,7 +19,7 @@ const C = {
   roseFaint: '#fdf3f3',
 };
 
-const SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
+const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 const demoSteps = [
   {

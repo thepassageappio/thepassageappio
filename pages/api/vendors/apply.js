@@ -13,7 +13,7 @@ function validEmail(value) {
 async function notifyPassage(vendor) {
   if (!process.env.RESEND_API_KEY) return;
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
-  const to = process.env.PASSAGE_LEADS_EMAIL || 'thepassageappio@gmail.com';
+  const to = process.env.PASSAGE_LEADS_EMAIL || process.env.SUPPORT_EMAIL || 'support@thepassageapp.io';
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },

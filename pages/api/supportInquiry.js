@@ -78,7 +78,7 @@ export default async function handler(req, res) {
 
     const key = process.env.RESEND_API_KEY;
     if (key) {
-      const to = process.env.SUPPORT_EMAIL || process.env.RESEND_SUPPORT_EMAIL || 'thepassageappio@gmail.com';
+      const to = process.env.SUPPORT_EMAIL || process.env.RESEND_SUPPORT_EMAIL || 'support@thepassageapp.io';
       const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
       const subject = category === 'Resource guide lead' ? `New Passage resource lead: ${email}` : `Passage support inquiry: ${category}`;
       const html = [

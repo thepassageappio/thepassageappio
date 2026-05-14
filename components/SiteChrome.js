@@ -123,7 +123,7 @@ const navLink = {
   ...PASSAGE_TYPE.nav,
 };
 
-const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com', 'thepassageappio@gmail.com'];
+const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
