@@ -19,6 +19,8 @@ const RESET_TABLES = [
   'notification_log',
   'scheduled_deliveries',
   'message_deliveries',
+  'vendor_transfers',
+  'vendor_orders',
   'vendor_payments',
   'vendor_requests',
   'funeral_home_requests',

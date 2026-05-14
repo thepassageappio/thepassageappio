@@ -3,6 +3,7 @@ import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { canonicalVendorStatus } from '../../../lib/vendorLifecycle';
+import { transferGroupForVendorOrder } from '../../../lib/stripeFinancialSpine';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -36,7 +37,7 @@ export default async function handler(req, res) {
 
   const { data: request, error } = await admin
     .from('vendor_requests')
-    .select('id,workflow_id,task_id,task_title,status,estimated_value,final_value,vendor_note,marketplace_fee_percent,funeral_home_rev_share_percent,payment_collection_status,organization_id,service_date,service_start_at,service_location,service_notes,vendors(id,business_name,category,contact_email,stripe_connect_account_id,stripe_charges_enabled,stripe_payouts_enabled),workflows(id,user_id,coordinator_email,coordinator_name,organization_id,deceased_name,estate_name,name)')
+    .select('id,workflow_id,task_id,task_title,status,estimated_value,final_value,vendor_note,marketplace_fee_percent,funeral_home_rev_share_percent,payment_collection_status,organization_id,service_date,service_start_at,service_location,service_notes,vendors(id,business_name,category,contact_email,stripe_account_id,stripe_connect_account_id,stripe_charges_enabled,stripe_payouts_enabled),workflows(id,user_id,coordinator_email,coordinator_name,organization_id,deceased_name,estate_name,name)')
     .eq('id', requestId)
     .maybeSingle();
   if (error) return res.status(500).json({ error: error.message });
@@ -50,7 +51,7 @@ export default async function handler(req, res) {
   }
 
   const vendor = request.vendors;
-  const destination = vendor?.stripe_connect_account_id;
+  const destination = vendor?.stripe_account_id || vendor?.stripe_connect_account_id;
   if (!destination || vendor?.stripe_charges_enabled === false || vendor?.stripe_payouts_enabled === false) {
     return res.status(409).json({ error: 'This vendor is not payment-ready yet. Passage can still track the quote, but Stripe Connect onboarding must be complete before collecting payment.' });
   }
@@ -69,6 +70,34 @@ export default async function handler(req, res) {
   const vendorNetCents = Math.max(grossCents - applicationFeeCents, 0);
   const familyName = request.workflows?.deceased_name || request.workflows?.estate_name || request.workflows?.name || 'Family record';
   const taskTitle = request.task_title || 'Vendor service';
+  const now = new Date().toISOString();
+  const { data: order, error: orderError } = await admin.from('vendor_orders').insert([{
+    vendor_request_id: request.id,
+    vendor_id: vendor?.id || null,
+    workflow_id: request.workflow_id,
+    task_id: request.task_id || null,
+    total_amount: grossCents / 100,
+    platform_fee: applicationFeeCents / 100,
+    platform_fee_percent: Number(request.marketplace_fee_percent ?? 12),
+    net_vendor_amount: Math.round(vendorNetCents) / 100,
+    payment_status: 'checkout_created',
+    payout_status: 'automatic_transfer',
+    stripe_account_id: destination,
+    description: `${vendor?.business_name || 'Vendor'} - ${taskTitle}`,
+    metadata: {
+      source: 'vendor_requests_checkout',
+      serviceDate: request.service_date || null,
+      serviceStartAt: request.service_start_at || null,
+      serviceLocation: request.service_location || null,
+    },
+    created_by: auth.user.id,
+    created_at: now,
+    updated_at: now,
+  }]).select('id').single();
+  if (orderError) return res.status(500).json({ error: orderError.message });
+
+  const transferGroup = transferGroupForVendorOrder(order.id);
+  await admin.from('vendor_orders').update({ stripe_transfer_group: transferGroup }).eq('id', order.id);
 
   const body = new URLSearchParams({
     mode: 'payment',
@@ -83,7 +112,16 @@ export default async function handler(req, res) {
     'line_items[0][price_data][product_data][description]': `Passage coordinated service for ${familyName}.`,
     'payment_intent_data[application_fee_amount]': String(applicationFeeCents),
     'payment_intent_data[transfer_data][destination]': destination,
-    'metadata[kind]': 'vendor_request',
+    'payment_intent_data[transfer_group]': transferGroup,
+    'payment_intent_data[metadata][kind]': 'vendor_order',
+    'payment_intent_data[metadata][vendorOrderId]': order.id,
+    'payment_intent_data[metadata][vendorRequestId]': request.id,
+    'payment_intent_data[metadata][vendorId]': vendor?.id || '',
+    'payment_intent_data[metadata][workflowId]': request.workflow_id,
+    'payment_intent_data[metadata][taskId]': request.task_id || '',
+    'payment_intent_data[metadata][stripeConnectedAccountId]': destination,
+    'metadata[kind]': 'vendor_order',
+    'metadata[vendorOrderId]': order.id,
     'metadata[vendorRequestId]': request.id,
     'metadata[vendorId]': vendor?.id || '',
     'metadata[workflowId]': request.workflow_id,
@@ -104,7 +142,11 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: session.error?.message || 'Could not create vendor payment checkout.' });
   }
 
-  const now = new Date().toISOString();
+  await admin.from('vendor_orders').update({
+    stripe_checkout_session_id: session.id,
+    updated_at: now,
+  }).eq('id', order.id);
+
   await admin.from('vendor_requests').update({
     stripe_checkout_session_id: session.id,
     stripe_connected_account_id: destination,
@@ -153,5 +195,5 @@ export default async function handler(req, res) {
     visibility: 'family_funeral_home',
   });
 
-  return res.status(200).json({ url: session.url, sessionId: session.id });
+  return res.status(200).json({ url: session.url, sessionId: session.id, orderId: order.id });
 }

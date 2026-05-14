@@ -104,7 +104,9 @@ export default async function handler(req, res) {
     if (!['pending', 'active', 'inactive', 'rejected'].includes(status)) return res.status(400).json({ error: 'Invalid status.' });
     const updates = { status, updated_at: new Date().toISOString() };
     if (req.body.stripeConnectAccountId !== undefined) {
-      updates.stripe_connect_account_id = String(req.body.stripeConnectAccountId || '').trim() || null;
+      const accountId = String(req.body.stripeConnectAccountId || '').trim() || null;
+      updates.stripe_account_id = accountId;
+      updates.stripe_connect_account_id = accountId;
     }
     if (req.body.marketplaceFeePercent !== undefined) {
       const fee = Number(req.body.marketplaceFeePercent);

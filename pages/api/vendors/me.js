@@ -94,6 +94,22 @@ export default async function handler(req, res) {
     .limit(100)
     .then((result) => result, () => ({ data: [] }));
 
+  const { data: orders } = await configured.admin
+    .from('vendor_orders')
+    .select('id,vendor_request_id,workflow_id,task_id,total_amount,platform_fee,net_vendor_amount,payment_status,payout_status,paid_at,created_at,description')
+    .eq('vendor_id', activeVendor.id)
+    .order('created_at', { ascending: false })
+    .limit(100)
+    .then((result) => result, () => ({ data: [] }));
+
+  const { data: transfers } = await configured.admin
+    .from('vendor_transfers')
+    .select('id,vendor_order_id,vendor_request_id,stripe_transfer_id,amount,status,milestone,created_at')
+    .eq('vendor_id', activeVendor.id)
+    .order('created_at', { ascending: false })
+    .limit(100)
+    .then((result) => result, () => ({ data: [] }));
+
   const paymentRows = payments || [];
   const revenue = paymentRows.reduce((sum, payment) => {
     const paid = payment.status === 'paid';
@@ -112,6 +128,8 @@ export default async function handler(req, res) {
     team: team || [],
     requests: requests || [],
     payments: paymentRows,
+    orders: orders || [],
+    transfers: transfers || [],
     revenue,
   });
 }

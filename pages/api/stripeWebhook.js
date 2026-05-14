@@ -383,10 +383,109 @@ async function recordVendorPaymentCheckout(session) {
   await notifyVendorPaymentPaid(request, paymentRow);
 }
 
+async function recordVendorOrderCheckout(session) {
+  const metadata = session.metadata || {};
+  const orderId = metadata.vendorOrderId;
+  if (!orderId) return;
+
+  const { data: order } = await sb
+    .from('vendor_orders')
+    .select('id,vendor_request_id,vendor_id,workflow_id,task_id,total_amount,platform_fee,net_vendor_amount,description,vendors(business_name,contact_email),workflows(name,estate_name,deceased_name,coordinator_email)')
+    .eq('id', orderId)
+    .maybeSingle();
+  if (!order) return;
+
+  const grossAmount = Number(session.amount_total || 0) / 100;
+  const applicationFeeAmount = Number(order.platform_fee || 0);
+  const vendorNetAmount = Number(order.net_vendor_amount || Math.max(grossAmount - applicationFeeAmount, 0));
+  const now = new Date().toISOString();
+
+  await sb.from('vendor_orders').update({
+    payment_status: 'paid',
+    payout_status: 'automatic_transfer',
+    stripe_checkout_session_id: session.id,
+    stripe_payment_intent_id: session.payment_intent || null,
+    paid_at: now,
+    updated_at: now,
+  }).eq('id', order.id);
+
+  if (order.vendor_request_id) {
+    const paymentRow = {
+      vendor_request_id: order.vendor_request_id,
+      vendor_id: order.vendor_id || null,
+      workflow_id: order.workflow_id,
+      task_id: order.task_id || null,
+      gross_amount: grossAmount,
+      application_fee_amount: applicationFeeAmount,
+      vendor_net_amount: vendorNetAmount,
+      currency: session.currency || 'usd',
+      stripe_checkout_session_id: session.id,
+      stripe_payment_intent_id: session.payment_intent || null,
+      stripe_transfer_destination: metadata.stripeConnectedAccountId || null,
+      status: 'paid',
+      paid_at: now,
+      updated_at: now,
+    };
+    const { data: existing } = await sb
+      .from('vendor_payments')
+      .select('id')
+      .eq('stripe_checkout_session_id', session.id)
+      .maybeSingle();
+    if (existing?.id) {
+      await sb.from('vendor_payments').update(paymentRow).eq('id', existing.id);
+    } else {
+      await sb.from('vendor_payments').insert([{ ...paymentRow, created_at: now }]);
+    }
+
+    await sb.from('vendor_requests').update({
+      status: 'paid',
+      stripe_checkout_session_id: session.id,
+      stripe_payment_intent_id: session.payment_intent || null,
+      payment_collection_status: 'paid',
+      paid_at: now,
+      payout_status: 'pending',
+      payout_amount: vendorNetAmount,
+      gross_amount: grossAmount,
+      passage_fee_amount: applicationFeeAmount,
+      vendor_net_amount: vendorNetAmount,
+      updated_at: now,
+    }).eq('id', order.vendor_request_id);
+  }
+
+  await sb.from('estate_events').insert([{
+    estate_id: order.workflow_id,
+    event_type: 'vendor_payment_confirmed',
+    title: `${order.vendors?.business_name || 'Vendor'} payment confirmed`,
+    description: `Payment was collected through Passage. Gross $${grossAmount.toFixed(2)}; Passage fee $${applicationFeeAmount.toFixed(2)}; vendor balance $${vendorNetAmount.toFixed(2)}.`,
+    actor: 'Passage',
+  }]);
+
+  await notifyVendorPaymentPaid({
+    id: order.vendor_request_id,
+    workflow_id: order.workflow_id,
+    task_id: order.task_id,
+    task_title: order.description || 'vendor service',
+    vendors: order.vendors,
+    workflows: order.workflows,
+  }, {
+    gross_amount: grossAmount,
+    application_fee_amount: applicationFeeAmount,
+    vendor_net_amount: vendorNetAmount,
+  });
+}
+
 async function markVendorCheckoutExpired(session) {
   const requestId = session?.metadata?.vendorRequestId || session?.client_reference_id;
-  if (!requestId) return;
+  const orderId = session?.metadata?.vendorOrderId;
+  if (!requestId && !orderId) return;
   const now = new Date().toISOString();
+  if (orderId) {
+    await sb.from('vendor_orders').update({
+      payment_status: 'cancelled',
+      updated_at: now,
+    }).eq('id', orderId).eq('payment_status', 'checkout_created');
+  }
+  if (!requestId) return;
   await sb.from('vendor_requests').update({
     status: 'quoted',
     payment_collection_status: 'cancelled',
@@ -400,9 +499,21 @@ async function markVendorCheckoutExpired(session) {
 
 async function markVendorPaymentFailed(paymentIntent) {
   const requestId = paymentIntent?.metadata?.vendorRequestId;
-  if (!requestId) return;
+  const orderId = paymentIntent?.metadata?.vendorOrderId;
+  if (!requestId && !orderId) return;
   const now = new Date().toISOString();
   const message = paymentIntent?.last_payment_error?.message || 'Stripe payment failed.';
+  if (orderId) {
+    await sb.from('vendor_orders').update({
+      payment_status: 'failed',
+      stripe_payment_intent_id: paymentIntent.id || null,
+      metadata: {
+        failure_reason: message,
+      },
+      updated_at: now,
+    }).eq('id', orderId);
+  }
+  if (!requestId) return;
   await sb.from('vendor_requests').update({
     status: 'quoted',
     payment_collection_status: 'failed',
@@ -429,13 +540,15 @@ async function recordVendorConnectAccount(account) {
         ? 'onboarding'
         : 'restricted';
   await sb.from('vendors').update({
+    stripe_account_id: account.id,
+    stripe_connect_account_id: account.id,
     stripe_connect_status: status,
     stripe_charges_enabled: chargesEnabled,
     stripe_payouts_enabled: payoutsEnabled,
     stripe_details_submitted: detailsSubmitted,
     stripe_connect_last_checked_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-  }).eq('stripe_connect_account_id', account.id);
+  }).or(`stripe_connect_account_id.eq.${account.id},stripe_account_id.eq.${account.id}`);
 }
 
 export default async function handler(req, res) {
@@ -454,6 +567,10 @@ export default async function handler(req, res) {
     const object = event.data && event.data.object ? event.data.object : {};
 
     if (event.type === 'checkout.session.completed') {
+      if (object.metadata?.kind === 'vendor_order') {
+        await recordVendorOrderCheckout(object);
+        return res.status(200).json({ received: true });
+      }
       if (object.metadata?.kind === 'vendor_request') {
         await recordVendorPaymentCheckout(object);
         return res.status(200).json({ received: true });
@@ -467,11 +584,11 @@ export default async function handler(req, res) {
       await syncCheckoutToHubSpot(object);
     }
 
-    if (event.type === 'checkout.session.expired' && object.metadata?.kind === 'vendor_request') {
+    if (event.type === 'checkout.session.expired' && ['vendor_request', 'vendor_order'].includes(object.metadata?.kind)) {
       await markVendorCheckoutExpired(object);
     }
 
-    if (event.type === 'payment_intent.payment_failed' && object.metadata?.kind === 'vendor_request') {
+    if (event.type === 'payment_intent.payment_failed' && ['vendor_request', 'vendor_order'].includes(object.metadata?.kind)) {
       await markVendorPaymentFailed(object);
     }
 
