@@ -38,7 +38,7 @@ export default function BlogIndex() {
             <Link key={post.slug} href={`/blog/${post.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 14px 34px rgba(55,45,35,.05)', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 18, alignItems: 'end' }}>
                 <div>
-                  <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>{post.category} · {post.date}</div>
+                  <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>{post.category} / {post.date}</div>
                   <h2 style={{ fontSize: 31, lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400 }}>{post.title}</h2>
                   <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.55, margin: 0 }}>{post.excerpt}</p>
                 </div>
