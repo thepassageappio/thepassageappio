@@ -158,8 +158,8 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
         <div className="care-two" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(0, 1.1fr)', gap: 14 }}>
           <div style={panel}>
             <div style={eyebrow}>Business model</div>
-            <h2 style={h2}>B2B fishing rods without awkward incentives.</h2>
-            <p style={smallText}>Care partners should pay for coordination infrastructure, location rollout, family handoff quality, and reporting. We should not charge hospice per death event.</p>
+            <h2 style={h2}>Partnerships built around continuity, not referrals.</h2>
+            <p style={smallText}>Care organizations can use Passage to improve family handoffs, support location rollout, and see whether families leave care with clearer next steps. The model should protect trust by avoiding per-death referral incentives.</p>
             <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
               {CARE_PROVIDER_BUSINESS_MODEL.map(([title, body]) => (
                 <div key={title} style={rowBox}>
@@ -178,7 +178,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
               ))}
             </div>
             <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 13 }}>
-              P0 target: care provider creates or refers a family warm-path record, the family accepts ownership, and the same record can later trigger Green to Red validation and downstream handoffs.
+              Pilot goal: a care provider can help a family start a warm-path record, the family keeps ownership, and the same record can later support trusted activation and downstream handoffs.
             </div>
           </div>
         </div>
@@ -234,4 +234,3 @@ const stepCard = { background: C.card, border: '1px solid ' + C.border, borderRa
 const numberBubble = { width: 34, height: 34, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontWeight: 900 };
 const rowBox = { display: 'grid', gridTemplateColumns: '130px minmax(0,1fr)', gap: 12, background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: '12px 13px', color: C.mid, fontSize: 14, lineHeight: 1.45 };
 const statusRow = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '11px 12px', color: C.mid, fontSize: 14, lineHeight: 1.5 };
-

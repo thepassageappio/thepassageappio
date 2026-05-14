@@ -541,13 +541,13 @@ export default function HospiceWarmPath() {
 
       <section style={{ ...section, paddingBottom: 70 }}>
         <div style={panel}>
-          <div style={eyebrow}>Roadmap impact</div>
-          <h2 style={h2}>What this changes in the platform.</h2>
+          <div style={eyebrow}>Continuity impact</div>
+          <h2 style={h2}>What this gives the family and the next provider.</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 16 }}>
             {[
               ['Spine events', 'Add warm-path events such as care contact recorded, when-it-happens plan prepared, and funeral-home handoff approved.'],
               ['Task priority', 'Rank by lifecycle state, service dates, death date, unknown required dates, and who is waiting on whom.'],
-              ['Partner demo', 'Show the family arriving with context instead of making the funeral home start from zero.'],
+              ['Provider handoff', 'Help the family arrive with context instead of making the funeral home start from zero.'],
               ['Announcement batch', 'Prepare one event one-pager and recipient groups before any send queue exists.'],
             ].map(([title, body]) => (
               <div key={title} style={smallCard}>
