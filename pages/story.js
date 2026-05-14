@@ -111,7 +111,7 @@ export default function StoryPage() {
             <div className="story-kicker">Our Story</div>
             <h1 className="story-title">Passage began with a folder.</h1>
             <p className="story-lede">
-              Founder Steve Turrisi helped plan his grandmother's funeral with her while the family was also navigating Medicaid and the practical realities that come with care. The people helping were kind. The system around everyone was not built for continuity.
+              Passage's founder helped plan his grandmother's funeral with her while the family was also navigating Medicaid and the practical realities that come with care. The people helping were kind. The system around everyone was not built for continuity.
             </p>
             <p className="story-lede">
               This was not a villain story. The care was real. The burden still moved back to the family: remember this, call that person, find this document, tell everyone what changed.

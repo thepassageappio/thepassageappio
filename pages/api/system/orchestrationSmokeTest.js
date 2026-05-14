@@ -87,7 +87,7 @@ export default async function handler(req, res) {
       name: `QA coordination simulation ${stamp}`,
       estate_name: `QA coordination simulation ${stamp}`,
       deceased_name: `QA Loved One ${stamp}`,
-      coordinator_name: 'Steve QA',
+      coordinator_name: 'Passage QA',
       coordinator_email: recipientEmail,
       status: 'active',
       activation_status: 'activated',
@@ -144,7 +144,7 @@ export default async function handler(req, res) {
 
     const assignmentEmail = await apiPost('/api/sendEmail', {
       to: recipientEmail,
-      toName: 'Steve QA',
+      toName: 'Passage QA',
       subject: 'QA Passage task assignment',
       taskTitle: task.title,
       taskId: task.id,
@@ -164,13 +164,13 @@ export default async function handler(req, res) {
       message: 'QA family update: this is a temporary reviewed update proving Passage can send and record communication status on the family spine.',
       channel: 'email',
       recipients: [recipientEmail],
-      reviewedBy: 'Steve QA',
+      reviewedBy: 'Passage QA',
     }, requestBearerToken);
     checks.push({ name: 'reviewed_family_update_email', ...familyUpdate });
 
     const smsDryRun = await apiPost('/api/sendSMS', {
       to: '+18455797644',
-      toName: 'Steve QA',
+      toName: 'Passage QA',
       toEmail: recipientEmail,
       taskTitle: task.title,
       taskId: task.id,

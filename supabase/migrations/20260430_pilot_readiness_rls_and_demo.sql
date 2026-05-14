@@ -261,7 +261,7 @@ values (
   'DEMO-001',
   'Estate of Margaret Collins',
   'Margaret Collins',
-  'Steven Demo',
+  'Passage Demo',
   'thepassageappio@gmail.com',
   'active',
   'activated',
@@ -284,9 +284,9 @@ insert into public.tasks (
   waiting_on, partner_owner_role, funeral_home_eligible, proof_required, last_action_at, last_actor, channel, recipient
 )
 values
-  ('22222222-2222-4222-8222-222222222222', 'Contact the funeral home', 'Confirm transportation, documents needed, timing, and itemized pricing.', 'service', 'urgent', 0, 'waiting', 'Hudson Valley Funeral Home', 'thepassageappio@gmail.com', 'contact the funeral home', 'PARTNER_HANDOFF', 'call', 'funeral home', 'funeral_home_director', true, 'transportation or arrangement next step confirmed', now(), 'Steven Demo', 'email', 'thepassageappio@gmail.com'),
-  ('22222222-2222-4222-8222-222222222222', 'Order death certificates - minimum 15 copies', 'Confirm certificate order process and expected timing.', 'legal', 'high', 3, 'waiting', 'Hudson Valley Funeral Home', 'thepassageappio@gmail.com', 'order death certificates minimum 15 copies', 'PARTNER_HANDOFF', 'packet', 'funeral home or vital records office', 'funeral_home_director', true, 'certificate order path confirmed', now(), 'Steven Demo', 'email', 'thepassageappio@gmail.com'),
-  ('22222222-2222-4222-8222-222222222222', 'Notify immediate family members', 'Closest family should hear directly before wider announcements.', 'notifications', 'urgent', 0, 'sent', 'Ashlee Demo', 'thepassageappio@gmail.com', 'notify immediate family members', 'SEND_TRACK', 'message', 'family confirmation', null, false, 'family notified or assigned', now(), 'Steven Demo', 'email', 'thepassageappio@gmail.com')
+  ('22222222-2222-4222-8222-222222222222', 'Contact the funeral home', 'Confirm transportation, documents needed, timing, and itemized pricing.', 'service', 'urgent', 0, 'waiting', 'Hudson Valley Funeral Home', 'thepassageappio@gmail.com', 'contact the funeral home', 'PARTNER_HANDOFF', 'call', 'funeral home', 'funeral_home_director', true, 'transportation or arrangement next step confirmed', now(), 'Passage Demo', 'email', 'thepassageappio@gmail.com'),
+  ('22222222-2222-4222-8222-222222222222', 'Order death certificates - minimum 15 copies', 'Confirm certificate order process and expected timing.', 'legal', 'high', 3, 'waiting', 'Hudson Valley Funeral Home', 'thepassageappio@gmail.com', 'order death certificates minimum 15 copies', 'PARTNER_HANDOFF', 'packet', 'funeral home or vital records office', 'funeral_home_director', true, 'certificate order path confirmed', now(), 'Passage Demo', 'email', 'thepassageappio@gmail.com'),
+  ('22222222-2222-4222-8222-222222222222', 'Notify immediate family members', 'Closest family should hear directly before wider announcements.', 'notifications', 'urgent', 0, 'sent', 'Ashlee Demo', 'thepassageappio@gmail.com', 'notify immediate family members', 'SEND_TRACK', 'message', 'family confirmation', null, false, 'family notified or assigned', now(), 'Passage Demo', 'email', 'thepassageappio@gmail.com')
 on conflict (workflow_id, title) do update set
   status = excluded.status,
   assigned_to_name = excluded.assigned_to_name,
@@ -306,12 +306,12 @@ on conflict (workflow_id, title) do update set
 
 insert into public.estate_events (estate_id, event_type, title, description, actor)
 values
-  ('22222222-2222-4222-8222-222222222222', 'plan_started', 'Plan in motion', 'Funeral home outreach, family notification, and death-certificate handoff are visible in one place.', 'Steven Demo'),
-  ('22222222-2222-4222-8222-222222222222', 'task_message_sent', 'Family notification sent', 'Message sent to Ashlee Demo. Waiting for confirmation.', 'Steven Demo')
+  ('22222222-2222-4222-8222-222222222222', 'plan_started', 'Plan in motion', 'Funeral home outreach, family notification, and death-certificate handoff are visible in one place.', 'Passage Demo'),
+  ('22222222-2222-4222-8222-222222222222', 'task_message_sent', 'Family notification sent', 'Message sent to Ashlee Demo. Waiting for confirmation.', 'Passage Demo')
 on conflict do nothing;
 
 insert into public.task_status_events (workflow_id, status, last_actor, channel, recipient, detail, provider, provider_message_id, provider_event_id)
 values
-  ('22222222-2222-4222-8222-222222222222', 'sent', 'Steven Demo', 'email', 'thepassageappio@gmail.com', 'Funeral home email sent. Waiting for confirmation.', 'resend', 'demo_resend_message_001', 'demo_resend_event_sent_001'),
+  ('22222222-2222-4222-8222-222222222222', 'sent', 'Passage Demo', 'email', 'thepassageappio@gmail.com', 'Funeral home email sent. Waiting for confirmation.', 'resend', 'demo_resend_message_001', 'demo_resend_event_sent_001'),
   ('22222222-2222-4222-8222-222222222222', 'waiting', 'Passage', 'email', 'thepassageappio@gmail.com', 'Waiting for funeral home confirmation.', 'resend', 'demo_resend_message_001', 'demo_waiting_001')
 on conflict do nothing;

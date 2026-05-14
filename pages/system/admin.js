@@ -142,7 +142,7 @@ const roadmapItems = [
     timing: 'This week',
     status: 'Planned',
     title: 'Admin persona launcher with safe notification routing',
-    body: 'Let Steve create clean sandbox users and switch among family, participant, funeral home, employee, vendor, and admin without polluting public UX or emailing real people.',
+    body: 'Let an admin create clean sandbox users and switch among family, participant, funeral home, employee, vendor, and admin without polluting public UX or emailing real people.',
   },
   {
     pillar: 'CRM Spine',
@@ -794,7 +794,7 @@ export default function SystemAdminPage() {
                     <h2 style={h2}>Open each side of the same demo story.</h2>
                     <p style={lead}>Use these sandbox roles to demo the family, participant, funeral-home, employee, and vendor experiences from one admin-only cockpit.</p>
                     <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
-                      <strong style={{ color: C.ink }}>Sandbox rule:</strong> these links carry sandbox, demo, source, and persona flags. They are for Steve/admin QA only; public users do not see this switcher.
+                      <strong style={{ color: C.ink }}>Sandbox rule:</strong> these links carry sandbox, demo, source, and persona flags. They are for admin QA only; public users do not see this switcher.
                     </div>
                     <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
                       {personaProfiles.map((profile) => (

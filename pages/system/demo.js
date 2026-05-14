@@ -417,7 +417,7 @@ export default function SystemDemo() {
   }
 
   function addDemoFamily() {
-    setDemoCaseRows((rows) => [...rows, ['Turrisi Family', 'At-need', 'First 48 hours active', 'Demo location']]);
+    setDemoCaseRows((rows) => [...rows, ['Demo Family', 'At-need', 'First 48 hours active', 'Demo location']]);
     demoAction('Demo family case added locally. No real estate or Supabase row was created.');
   }
 
