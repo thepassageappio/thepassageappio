@@ -770,7 +770,7 @@ export default function UrgentPage() {
         </nav>
 
         <section className="hero">
-          <div className="kicker">Urgent Path</div>
+          <div className="kicker">Urgent Help</div>
           <h1>You do not have to hold every next step at once.</h1>
           <p className="lede">{reassurance} Passage will keep this focused: who owns the next action, what can wait, and what is already handled.</p>
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 14, padding: '14px 16px', color: C.sageDark, fontSize: 14.5, lineHeight: 1.55, maxWidth: 720, margin: '14px auto 0' }}>
