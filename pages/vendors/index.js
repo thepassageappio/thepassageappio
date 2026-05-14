@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
+import { trackEvent } from '../../lib/trackEvent';
 
 const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', amber: '#a97832', amberFaint: '#fbf5e8' };
 
@@ -23,6 +24,7 @@ export default function VendorFrontDoor() {
 
   async function signIn() {
     if (!supabase?.auth || typeof window === 'undefined') return;
+    trackEvent('vendor_sign_in_clicked', { source: 'vendor_front_door' });
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/vendors/request` } });
   }
 
@@ -64,7 +66,7 @@ export default function VendorFrontDoor() {
               Passage keeps vendor work tied to one family task: what was requested, when it is needed, what quote was shared, and what proof completed the loop.
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-              <Link href="/vendors/onboard" style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 16px', fontWeight: 900, fontSize: 14 }}>
+              <Link href="/vendors/onboard" onClick={() => trackEvent('vendor_apply_clicked', { href: '/vendors/onboard' })} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 16px', fontWeight: 900, fontSize: 14 }}>
                 Apply as a vendor
               </Link>
               <button type="button" onClick={signIn} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
@@ -77,21 +79,52 @@ export default function VendorFrontDoor() {
           </div>
           <div style={{ display: 'grid', gap: 10 }}>
             {cards.map((card) => {
-              const content = (
-                <>
-                  <span>
-                    <span style={{ display: 'block', color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{card.eyebrow}</span>
-                    <span style={{ display: 'block', color: C.ink, fontSize: 20, lineHeight: 1.15, marginTop: 4, fontWeight: 900 }}>{card.title}</span>
-                    <span style={{ display: 'block', color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 4 }}>{card.body}</span>
-                  </span>
-                  <span style={{ border: `1px solid ${C.border}`, background: C.card, color: card.tone === 'primary' ? C.sage : C.mid, borderRadius: 999, padding: '8px 11px', fontSize: 12.5, fontWeight: 900, whiteSpace: 'nowrap' }}>{card.action}</span>
-                </>
-              );
-              const style = { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center', background: card.tone === 'primary' ? C.sageFaint : C.card, border: `1px solid ${card.tone === 'primary' ? C.sage + '33' : C.border}`, borderRadius: 16, padding: '16px 17px', textDecoration: 'none', color: C.ink, boxShadow: '0 8px 24px rgba(55,45,35,.04)', width: '100%', boxSizing: 'border-box' };
+              const actionStyle = {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 40,
+                border: `1px solid ${C.border}`,
+                background: card.tone === 'primary' ? C.sage : C.card,
+                color: card.tone === 'primary' ? '#fff' : C.sage,
+                borderRadius: 999,
+                padding: '0 14px',
+                fontSize: 12.5,
+                fontWeight: 900,
+                textDecoration: 'none',
+                fontFamily: 'Georgia,serif',
+                cursor: 'pointer',
+              };
+              const cardStyle = {
+                background: card.tone === 'primary' ? C.sageFaint : C.card,
+                border: `1px solid ${card.tone === 'primary' ? C.sage + '33' : C.border}`,
+                borderRadius: 16,
+                padding: '17px 18px',
+                color: C.ink,
+                boxShadow: '0 8px 24px rgba(55,45,35,.04)',
+                width: '100%',
+                boxSizing: 'border-box',
+              };
               if (card.onClick) {
-                return <button key={card.title} onClick={card.onClick} style={{ ...style, width: '100%', textAlign: 'left', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{content}</button>;
+                return (
+                  <article key={card.title} style={cardStyle}>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{card.eyebrow}</div>
+                    <h2 style={{ color: C.ink, fontSize: 20, lineHeight: 1.15, margin: '4px 0 5px', fontWeight: 900 }}>{card.title}</h2>
+                    <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.45, margin: 0 }}>{card.body}</p>
+                    <button type="button" onClick={card.onClick} style={{ ...actionStyle, marginTop: 12 }}>{card.action}</button>
+                  </article>
+                );
               }
-              return <Link key={card.title} href={card.href} style={style}>{content}</Link>;
+              return (
+                <article key={card.title} style={cardStyle}>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{card.eyebrow}</div>
+                  <h2 style={{ color: C.ink, fontSize: 20, lineHeight: 1.15, margin: '4px 0 5px', fontWeight: 900 }}>{card.title}</h2>
+                  <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.45, margin: 0 }}>{card.body}</p>
+                  <Link href={card.href} onClick={() => trackEvent('vendor_card_clicked', { title: card.title, href: card.href, action: card.action })} style={{ ...actionStyle, marginTop: 12 }}>
+                    {card.action}
+                  </Link>
+                </article>
+              );
             })}
           </div>
         </div>

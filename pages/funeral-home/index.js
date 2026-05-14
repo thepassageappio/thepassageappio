@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { calendlyUrl } from '../../lib/scheduling';
+import { trackEvent } from '../../lib/trackEvent';
 
 const C = {
   bg: '#f6f3ee',
@@ -52,6 +53,7 @@ export default function FuneralHomePage() {
   }
 
   async function startCheckout(planId) {
+    trackEvent('funeral_home_plan_start_clicked', { planId, signedIn: Boolean(user) });
     setError('');
     if (!user) {
       window.location.href = contactHref(planId);
@@ -130,9 +132,9 @@ export default function FuneralHomePage() {
               Passage gives families one shared command center while your team keeps cases moving: fewer repeated calls, clearer owners, visible proof, approved handoffs, and clean export back to your existing workflow.
             </p>
             <div className="fh-actions">
-              <Link href="/funeral-home/login" className="fh-button fh-primary">Director sign in</Link>
-              <Link href="/funeral-home/staff" className="fh-button fh-secondary">Staff sign in</Link>
-              <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" className="fh-button fh-secondary">Book a pilot walkthrough</a>
+              <Link href="/funeral-home/login" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Director sign in', href: '/funeral-home/login' })} className="fh-button fh-primary">Director sign in</Link>
+              <Link href="/funeral-home/staff" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Staff sign in', href: '/funeral-home/staff' })} className="fh-button fh-secondary">Staff sign in</Link>
+              <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Book a pilot walkthrough' })} className="fh-button fh-secondary">Book a pilot walkthrough</a>
             </div>
             <div className="fh-note">This page is public. Active partner teams sign in to the private workspace; prospects can book a walkthrough before a workspace is created.</div>
             {error && <div style={{ marginTop: 14, background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
@@ -204,6 +206,7 @@ export default function FuneralHomePage() {
                   <Link
                     href={contactHref(planId)}
                     onClick={(event) => {
+                      trackEvent('funeral_home_plan_cta_clicked', { planId, signedIn: Boolean(user) });
                       if (!user) return;
                       event.preventDefault();
                       startCheckout(planId);

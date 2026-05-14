@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { supabase as chromeSupabase } from '../lib/supabaseBrowser';
 import { PassageLogo } from './PassageLogo';
 import { PASSAGE_FONT, PASSAGE_TYPE, typeStyle } from '../lib/typography';
+import { trackEvent } from '../lib/trackEvent';
 
 export const CHROME_COLORS = {
   bg: '#f6f3ee',
@@ -100,7 +101,7 @@ export function StatusBadge({ status = 'draft', label, compact = false }) {
 const LINKS = [
   ['Mission', '/mission'],
   ['Our story', '/story'],
-  ['Resources', '/resources'],
+  ['Resources', '/guides'],
   ['Blog', '/blog'],
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
@@ -297,7 +298,8 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
 
   async function defaultSignIn() {
     if (typeof window === 'undefined') return;
-    window.location.assign('/login');
+    const next = window.location.pathname + window.location.search;
+    window.location.assign('/login?next=' + encodeURIComponent(next));
   }
 
   async function defaultSignOut() {
@@ -364,11 +366,11 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
         <PassageLogo compact size={36} />
       </Link>
       <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, ...PASSAGE_TYPE.nav, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
+        {LINKS.map(([label, href]) => <Link key={href} href={href} onClick={() => trackEvent('public_nav_clicked', { label, href })} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
-          <Link href="/system/admin" style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
+          <Link href="/system/admin" onClick={() => trackEvent('system_admin_nav_clicked', { href: '/system/admin' })} style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
         )}
-        {currentUser && <Link href={dashboardHref} onClick={handleDashboardClick} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
+        {currentUser && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
         <span className="passage-nav-action-slot" style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
             <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign out</button>
@@ -496,7 +498,13 @@ export function SiteFooter() {
         <Link href="/trust" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Trust</Link>
         <Link href="/privacy" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Privacy</Link>
         <Link href="/terms" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Terms</Link>
-        <Link href="/contact" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>thepassageappio@gmail.com</Link>
+        <a
+          href="mailto:thepassageappio@gmail.com"
+          onClick={() => trackEvent('footer_email_clicked', { email: 'thepassageappio@gmail.com' })}
+          style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}
+        >
+          thepassageappio@gmail.com
+        </a>
       </div>
     </footer>
   );

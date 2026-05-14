@@ -6,6 +6,7 @@ import SmartAddressInput from "./SmartAddressInput";
 import { taskWorkspaceFor } from "../lib/taskWorkspace";
 import { orchestrateTasks } from "../lib/taskOrchestration";
 import { recordOnboardingProgress } from "../lib/onboardingClient";
+import { trackEvent } from "../lib/trackEvent";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thepassageapp.io").replace(/\/$/, "");
 
@@ -4713,6 +4714,11 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   const s0 = useState(0); const activePaneIndex = s0[0]; const setActivePaneIndex = s0[1];
   const activePane = panes[activePaneIndex] || panes[0];
 
+  function openPublicCta(label, href) {
+    trackEvent('homepage_cta_clicked', { label, href });
+    window.location.href = href;
+  }
+
   useEffect(function() {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
     var timer = window.setInterval(function() {
@@ -4790,9 +4796,9 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               Passage keeps the next step, the owner, the waiting point, and the proof in one shared family record, from preparation through death, funeral coordination, and the long tail after.
             </p>
             <div className="home-actions">
-              <button onClick={() => window.location.href = '/urgent'} className="home-action home-primary">Start urgent path</button>
-              <button onClick={() => window.location.href = '/hospice'} className="home-action home-secondary">Prepare during care</button>
-              <button onClick={() => window.location.href = '/planning'} className="home-action home-tertiary">Plan ahead</button>
+              <button onClick={() => openPublicCta('Start urgent path', '/urgent')} className="home-action home-primary">Start urgent path</button>
+              <button onClick={() => openPublicCta('Prepare during care', '/hospice')} className="home-action home-secondary">Prepare during care</button>
+              <button onClick={() => openPublicCta('Plan ahead', '/planning')} className="home-action home-tertiary">Plan ahead</button>
             </div>
             <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
             <div className="home-pledge"><strong>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent path also funds a remembrance tree dedication.</div>
@@ -4835,7 +4841,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               })
             )}
             {activePane.cta && (
-              <a className="home-panel-cta" href={activePane.cta.href}>{activePane.cta.label}</a>
+              <a className="home-panel-cta" href={activePane.cta.href} onClick={() => trackEvent('homepage_panel_cta_clicked', { label: activePane.cta.label, href: activePane.cta.href, pane: activePane.id })}>{activePane.cta.label}</a>
             )}
           </div>
         </section>

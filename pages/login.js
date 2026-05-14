@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
+import { trackEvent } from '../lib/trackEvent';
 
 const C = {
   bg: '#f6f3ee',
@@ -92,14 +94,24 @@ const portalCards = [
 ];
 
 export default function LoginPage() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const isAdmin = isSystemAdminUser(user);
   const visiblePortalCards = portalCards.filter(card => !card.adminOnly || isAdmin);
+  const requestedNext = typeof router.query.next === 'string' ? router.query.next : '';
+  const safeNext = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '';
 
   useEffect(() => {
     if (!supabase?.auth) return undefined;
     function routeIfAdmin(currentUser) {
-      if (isSystemAdminUser(currentUser) && typeof window !== 'undefined') {
+      if (!currentUser || typeof window === 'undefined') return;
+      const adminUser = isSystemAdminUser(currentUser);
+      const adminOnlyDestination = safeNext.startsWith('/system/');
+      if (safeNext && (!adminOnlyDestination || adminUser)) {
+        window.location.replace(safeNext);
+        return;
+      }
+      if (adminUser) {
         window.location.replace('/system/admin');
       }
     }
@@ -114,11 +126,13 @@ export default function LoginPage() {
       routeIfAdmin(currentUser);
     });
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [safeNext]);
 
   async function signIn() {
     if (!supabase?.auth || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/login' } });
+    trackEvent('login_google_clicked', { next: safeNext || '' });
+    const redirect = safeNext ? `/login?next=${encodeURIComponent(safeNext)}` : '/login';
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + redirect } });
   }
 
   async function signOut() {
@@ -149,7 +163,7 @@ export default function LoginPage() {
                   Signed in as <strong style={{ color: C.ink }}>{user.email}</strong>. Choose a workspace below.
                 </div>
               )}
-              <Link href="/urgent" style={{ minHeight: 48, display: 'inline-flex', alignItems: 'center', border: `1px solid ${C.rose}33`, background: C.roseFaint, color: C.rose, borderRadius: 13, padding: '0 18px', textDecoration: 'none', fontWeight: 900 }}>
+              <Link href="/urgent" onClick={() => trackEvent('login_urgent_clicked', { href: '/urgent' })} style={{ minHeight: 48, display: 'inline-flex', alignItems: 'center', border: `1px solid ${C.rose}33`, background: C.roseFaint, color: C.rose, borderRadius: 13, padding: '0 18px', textDecoration: 'none', fontWeight: 900 }}>
                 Someone just passed
               </Link>
             </div>
@@ -157,7 +171,7 @@ export default function LoginPage() {
 
           <div style={{ display: 'grid', gap: 10 }}>
             {visiblePortalCards.map((card) => (
-              <Link key={card.href} href={card.href} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center', background: card.tone === 'primary' ? C.sageFaint : C.card, border: `1px solid ${card.tone === 'primary' ? C.sage + '33' : C.border}`, borderRadius: 16, padding: '15px 16px', textDecoration: 'none', color: C.ink, boxShadow: '0 8px 24px rgba(55,45,35,.04)' }}>
+              <Link key={card.href} href={card.href} onClick={() => trackEvent('login_workspace_card_clicked', { title: card.title, href: card.href, action: card.action })} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center', background: card.tone === 'primary' ? C.sageFaint : C.card, border: `1px solid ${card.tone === 'primary' ? C.sage + '33' : C.border}`, borderRadius: 16, padding: '15px 16px', textDecoration: 'none', color: C.ink, boxShadow: '0 8px 24px rgba(55,45,35,.04)' }}>
                 <span>
                   <span style={{ display: 'block', color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{card.eyebrow}</span>
                   <span style={{ display: 'block', fontSize: 19, lineHeight: 1.18, marginTop: 4, fontWeight: 900 }}>{card.title}</span>

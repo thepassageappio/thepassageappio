@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { calendlyUrl, isMeetingCategory } from '../lib/scheduling';
+import { trackEvent } from '../lib/trackEvent';
 
 const C = {
   bg: '#f6f3ee', card: '#ffffff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890',
@@ -76,6 +77,7 @@ export default function ContactPage() {
 
   async function submit(e) {
     e.preventDefault();
+    trackEvent('contact_submit_clicked', { category: form.category, urgency: form.urgency, meetingReady });
     setState('sending');
     const r = await fetch('/api/supportInquiry', {
       method: 'POST',
@@ -83,9 +85,11 @@ export default function ContactPage() {
       body: JSON.stringify(form),
     });
     if (r.ok) {
+      trackEvent('contact_submit_succeeded', { category: form.category, urgency: form.urgency, meetingReady });
       setForm({ name: '', email: '', category: categories[0], urgency: 'Normal', message: '' });
       setState('sent');
     } else {
+      trackEvent('contact_submit_failed', { category: form.category, status: r.status });
       setState('error');
     }
   }
@@ -108,7 +112,7 @@ export default function ContactPage() {
             <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 5 }}>Fastest path</div>
             <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.18, marginBottom: 5 }}>Book a Passage discovery meeting.</div>
             <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.42, margin: '0 0 9px' }}>For funeral-home demos, vendor conversations, hospice/care-facility discovery, or pilot walkthroughs, skip the inbox and choose a time.</p>
-            <a href={meetingHref} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 13px', fontWeight: 900, fontSize: 12.5 }}>Book on HubSpot</a>
+            <a href={meetingHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('contact_hubspot_clicked', { category: form.category, href: meetingHref })} style={{ display: 'inline-flex', minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 13px', fontWeight: 900, fontSize: 12.5 }}>Book on HubSpot</a>
           </div>
         </div>
 
@@ -127,7 +131,7 @@ export default function ContactPage() {
           {meetingReady && (
             <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 10, color: C.mid, fontSize: 12.6, lineHeight: 1.42, marginBottom: 9 }}>
               <strong style={{ color: C.ink }}>This is a meeting request.</strong> The fastest next step is HubSpot meetings. The form below is only for context you want to send before or after booking.
-              <a href={meetingHref} target="_blank" rel="noreferrer" style={{ display: 'flex', marginTop: 8, minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 13px', fontWeight: 900 }}>Book the meeting</a>
+              <a href={meetingHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('contact_meeting_context_clicked', { category: form.category, href: meetingHref })} style={{ display: 'flex', marginTop: 8, minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 13px', fontWeight: 900 }}>Book the meeting</a>
             </div>
           )}
           <Field label="Urgency">
