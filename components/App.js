@@ -4735,8 +4735,6 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-secondary { background:${C.bgCard}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
         .home-tertiary { background:transparent; color:${C.mid}; border:1px solid ${C.border}; }
         .home-note { color:${C.soft}; font-size:12.5px; line-height:1.45; margin-top:10px; }
-        .home-demo-links { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-        .home-demo-link { display:inline-flex; align-items:center; min-height:34px; border-radius:999px; border:1px solid ${C.border}; background:${C.bgCard}; color:${C.mid}; text-decoration:none; padding:0 11px; font-size:12px; font-weight:900; }
         .home-pledge { display:inline-block; color:${C.sageDark}; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:12px; padding:8px 10px; font-size:12px; line-height:1.35; margin-top:10px; max-width:660px; }
         .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:19px; min-height: 430px; display:flex; flex-direction:column; }
         .home-panel-tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:16px; }
@@ -4766,11 +4764,6 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .lifecycle-proof { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:15px; padding:12px; }
         .lifecycle-proof b { display:block; color:${C.sageDark}; font-size:12px; margin-bottom:6px; }
         .lifecycle-proof span { display:block; color:${C.mid}; font-size:11.5px; line-height:1.35; }
-        .home-proof-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-        .home-proof-card { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:16px; padding:16px; box-shadow:0 14px 34px rgba(55,45,35,.045); }
-        .home-proof-eyebrow { color:${C.sage}; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
-        .home-proof-title { color:${C.ink}; font-size:19px; line-height:1.16; font-weight:900; margin-bottom:7px; }
-        .home-proof-body { color:${C.mid}; font-size:13px; line-height:1.55; margin:0; }
         @media (max-width: 720px) {
           .home-shell { padding: 22px 18px 50px; }
           .home-hero { grid-template-columns:1fr; min-height:auto; gap:22px; }
@@ -4784,7 +4777,6 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           .lifecycle-node { min-height:auto; display:grid; grid-template-columns:36px minmax(0,1fr); column-gap:9px; align-items:start; }
           .lifecycle-dot { grid-row:1 / span 2; margin-bottom:0; }
           .lifecycle-center { grid-template-columns:1fr; }
-          .home-spine-preview, .home-proof-grid { grid-template-columns:1fr !important; }
         }
       `}</style>
       <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} onDashboard={onDashboard} />
