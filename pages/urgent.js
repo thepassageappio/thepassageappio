@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteFooter } from '../components/SiteChrome';
+import { PassageLogo } from '../components/PassageLogo';
 import SmartAddressInput from '../components/SmartAddressInput';
 import { trackEvent } from '../lib/trackEvent';
 import { recordOnboardingProgress } from '../lib/onboardingClient';
@@ -633,7 +634,7 @@ export default function UrgentPage() {
         nav a { color: ${C.mid}; text-decoration: none; font-size: 14px; }
         .hero { max-width: 760px; margin-bottom: 10px; }
         .kicker { color: ${C.rose}; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 750; margin-bottom: 7px; }
-        h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(30px, 3.7vw, 40px); line-height: 1.04; margin: 0 0 8px; }
+        h1 { font-family: Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.04; margin: 0 0 8px; }
         .lede { font-size: 15px; line-height: 1.5; color: ${C.mid}; max-width: 720px; margin: 0; }
         .grid { display: grid; grid-template-columns: 1.5fr .8fr; gap: 14px; align-items: start; }
         .grid.grid-single { grid-template-columns: minmax(0, 760px); justify-content: center; }
@@ -647,7 +648,7 @@ export default function UrgentPage() {
         .context-title { grid-column:1 / -1; color:${C.sageDark}; font-size:11px; text-transform:uppercase; letter-spacing:.14em; font-weight:850; }
         .context-help { grid-column:1 / -1; color:${C.mid}; font-size:12.5px; line-height:1.5; margin-top:-2px; }
         .field.compact { margin:0; }
-        .field.compact label { margin-bottom:5px; font-size:10px; }
+        .field.compact label { margin-bottom:5px; font-size:10.5px; }
         .field.compact input { min-height:39px; padding:9px 11px; background:${C.card}; }
         .save-command { min-height:39px; padding:9px 12px; white-space:nowrap; }
         .save-helper { grid-column:1 / -1; color:${C.sageDark}; font-size:11.5px; line-height:1.4; margin-top:-2px; }
@@ -764,7 +765,7 @@ export default function UrgentPage() {
 
       <div className="shell">
         <nav>
-          <CandleLogo />
+          <PassageLogo showTagline size={40} />
           <a href="/">Back to Passage</a>
         </nav>
 

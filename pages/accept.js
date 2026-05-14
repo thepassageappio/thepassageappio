@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
+import { friendlyAuthError, isLikelyEmail, normalizeEmail } from '../lib/authFeedback';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
@@ -17,6 +18,7 @@ export default function AcceptInvitePage() {
   const [error, setError] = useState('');
   const [emailLogin, setEmailLogin] = useState('');
   const [magicSent, setMagicSent] = useState(false);
+  const [magicLoading, setMagicLoading] = useState(false);
   const inviteToken = String(router.query.token || router.query.invite || router.query.invite_token || '').trim();
 
   useEffect(() => {
@@ -70,15 +72,24 @@ export default function AcceptInvitePage() {
   }
 
   async function sendMagicLink() {
-    if (!emailLogin || !inviteToken) return;
+    const cleanEmail = normalizeEmail(emailLogin);
+    setMagicSent(false);
+    if (!inviteToken) return setError('This invite link is missing its token.');
+    if (!cleanEmail) return setError('Enter the email address that received this invite.');
+    if (!isLikelyEmail(cleanEmail)) return setError('Enter a valid email address, like name@example.com.');
     if (!supabase?.auth) return setError('Sign-in is not configured in this environment.');
     setError('');
+    setMagicLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
-      email: emailLogin,
+      email: cleanEmail,
       options: { emailRedirectTo: `${SITE_URL}/accept?token=${encodeURIComponent(inviteToken)}` },
     });
-    if (error) setError(error.message);
-    else setMagicSent(true);
+    setMagicLoading(false);
+    if (error) setError(friendlyAuthError(error));
+    else {
+      setEmailLogin(cleanEmail);
+      setMagicSent(true);
+    }
   }
 
   async function acceptInvite(accessToken = token) {
@@ -138,8 +149,8 @@ export default function AcceptInvitePage() {
               <button disabled={!inviteToken || loading} onClick={signIn} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 14, minHeight: 52, padding: '0 22px', fontFamily: 'Georgia,serif', fontSize: 16, fontWeight: 900, cursor: loading ? 'default' : 'pointer', opacity: loading ? .6 : 1 }}>Continue with Google</button>
               <div style={{ height: 12 }} />
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8, alignItems: 'center' }}>
-                <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter the invited email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif' }} />
-                <button disabled={!emailLogin || !inviteToken} onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, borderRadius: 13, minHeight: 48, padding: '0 16px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: emailLogin ? 'pointer' : 'not-allowed', opacity: emailLogin ? 1 : .55 }}>Email link</button>
+                <input value={emailLogin} onChange={e => { setEmailLogin(e.target.value); setError(''); setMagicSent(false); }} type="email" placeholder="Or enter the invited email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 12, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif' }} />
+                <button disabled={!emailLogin || !inviteToken || magicLoading} onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, borderRadius: 13, minHeight: 48, padding: '0 16px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: emailLogin && !magicLoading ? 'pointer' : 'not-allowed', opacity: emailLogin && !magicLoading ? 1 : .55 }}>{magicLoading ? 'Sending...' : 'Email link'}</button>
               </div>
               {magicSent && <p style={{ color: C.sage, fontSize: 13, lineHeight: 1.6, marginBottom: 0 }}>Check your email for a secure sign-in link. It will bring you back to this invite.</p>}
             </div>

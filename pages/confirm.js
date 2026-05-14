@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase as sb } from "../lib/supabaseBrowser";
+import Link from "next/link";
 import { SiteFooter } from "../components/SiteChrome";
 
 const INK = "#1a1916";
@@ -82,7 +83,15 @@ export default function ConfirmPage() {
       <div style={Object.assign({}, box, { textAlign: "center" })}>
         <div style={{ fontSize: 11, color: SAGE, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12 }}>Passage</div>
         <div style={{ fontSize: 20, color: INK, marginBottom: 12 }}>Link not found</div>
-        <div style={{ fontSize: 14, color: MID, lineHeight: 1.65 }}>This confirmation link is invalid or has expired. Please contact the family coordinator.</div>
+        <div style={{ fontSize: 14, color: MID, lineHeight: 1.65 }}>This confirmation link is invalid or has expired. Open your assigned tasks, or ask the family coordinator to resend the confirmation request.</div>
+        <div style={{ display: "grid", gap: 9, marginTop: 18 }}>
+          <Link href="/participating" style={{ minHeight: 44, borderRadius: 12, background: SAGE, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontWeight: 800 }}>
+            Open my assigned tasks
+          </Link>
+          <Link href="/contact?category=urgent" style={{ minHeight: 44, borderRadius: 12, background: CARD, color: SAGE, border: "1px solid " + BORDER, display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontWeight: 800 }}>
+            Contact Passage
+          </Link>
+        </div>
       </div>
     )
   );

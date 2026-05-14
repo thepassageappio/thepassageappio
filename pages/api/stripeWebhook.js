@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
+import { normalizePartnerPlanId, partnerPlanFor } from '../../lib/partnerPlans';
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -178,6 +179,57 @@ async function recordImpactCommitment(userId, session) {
   }]);
 }
 
+async function recordPartnerCheckout(session) {
+  const metadata = session.metadata || {};
+  if (metadata.partnerPlan !== 'true') return;
+  const userId = metadata.userId || session.client_reference_id || null;
+  if (!userId) return;
+  const planId = normalizePartnerPlanId(metadata.planId);
+  const plan = partnerPlanFor(planId);
+  const { data: member } = await sb
+    .from('organization_members')
+    .select('organization_id,email')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle();
+  if (!member?.organization_id) return;
+
+  const includedSlots = Number(metadata.includedLocationSlots || plan.includedLocationSlots || 1);
+  const isLocationAddon = metadata.locationAddon === 'true';
+  const organizationUpdate = {
+    partner_plan: isLocationAddon ? undefined : plan.id,
+    included_location_slots: isLocationAddon ? undefined : includedSlots,
+    additional_location_fee_cents: Number(metadata.additionalLocationFeeCents || plan.additionalLocationFeeCents || 9900),
+    active_case_limit: metadata.activeCaseLimit ? Number(metadata.activeCaseLimit) : plan.activeCaseLimit,
+    stripe_subscription_id: session.subscription || null,
+    updated_at: new Date().toISOString(),
+  };
+  Object.keys(organizationUpdate).forEach(key => organizationUpdate[key] === undefined && delete organizationUpdate[key]);
+  await sb.from('organizations').update(organizationUpdate).eq('id', member.organization_id).then(() => {}, () => {});
+
+  const partnerRow = {
+    organization_id: member.organization_id,
+    email: member.email || session.customer_email || '',
+    contact_email: member.email || session.customer_email || '',
+    plan: plan.id,
+    monthly_fee_cents: Number(session.amount_total || plan.monthlyFeeCents || 0),
+    included_location_slots: includedSlots,
+    additional_location_fee_cents: Number(metadata.additionalLocationFeeCents || plan.additionalLocationFeeCents || 9900),
+    active_case_limit: metadata.activeCaseLimit ? Number(metadata.activeCaseLimit) : plan.activeCaseLimit,
+    stripe_customer_id: session.customer || null,
+    stripe_subscription_id: session.subscription || null,
+    subscribed_at: new Date().toISOString(),
+    status: 'active',
+    updated_at: new Date().toISOString(),
+  };
+  const { data: existing } = await sb.from('funeral_home_partners').select('id').eq('organization_id', member.organization_id).maybeSingle();
+  const query = existing?.id
+    ? sb.from('funeral_home_partners').update(partnerRow).eq('id', existing.id)
+    : sb.from('funeral_home_partners').insert([partnerRow]);
+  await query.then(() => {}, () => {});
+}
+
 async function updateWorkflowAfterCheckout(metadata) {
   const workflowId = metadata && metadata.workflowId;
   if (!workflowId) return;
@@ -306,14 +358,17 @@ async function recordVendorPaymentCheckout(session) {
   }
 
   await sb.from('vendor_requests').update({
-    status: 'in_progress',
+    status: 'paid',
     stripe_checkout_session_id: session.id,
     stripe_payment_intent_id: session.payment_intent || null,
     payment_collection_status: 'paid',
     paid_at: now,
-    in_progress_at: now,
+    in_progress_at: null,
     payout_status: 'pending',
     payout_amount: vendorNetAmount,
+    gross_amount: grossAmount,
+    passage_fee_amount: applicationFeeAmount,
+    vendor_net_amount: vendorNetAmount,
     updated_at: now,
   }).eq('id', request.id);
 
@@ -326,6 +381,61 @@ async function recordVendorPaymentCheckout(session) {
   }]);
 
   await notifyVendorPaymentPaid(request, paymentRow);
+}
+
+async function markVendorCheckoutExpired(session) {
+  const requestId = session?.metadata?.vendorRequestId || session?.client_reference_id;
+  if (!requestId) return;
+  const now = new Date().toISOString();
+  await sb.from('vendor_requests').update({
+    status: 'quoted',
+    payment_collection_status: 'cancelled',
+    updated_at: now,
+  }).eq('id', requestId).eq('payment_collection_status', 'checkout_created');
+  await sb.from('vendor_payments').update({
+    status: 'cancelled',
+    updated_at: now,
+  }).eq('stripe_checkout_session_id', session.id);
+}
+
+async function markVendorPaymentFailed(paymentIntent) {
+  const requestId = paymentIntent?.metadata?.vendorRequestId;
+  if (!requestId) return;
+  const now = new Date().toISOString();
+  const message = paymentIntent?.last_payment_error?.message || 'Stripe payment failed.';
+  await sb.from('vendor_requests').update({
+    status: 'quoted',
+    payment_collection_status: 'failed',
+    updated_at: now,
+  }).eq('id', requestId);
+  await sb.from('vendor_payments').update({
+    status: 'failed',
+    failure_reason: message,
+    stripe_payment_intent_id: paymentIntent.id || null,
+    updated_at: now,
+  }).eq('vendor_request_id', requestId);
+}
+
+async function recordVendorConnectAccount(account) {
+  if (!account?.id) return;
+  const chargesEnabled = !!account.charges_enabled;
+  const payoutsEnabled = !!account.payouts_enabled;
+  const detailsSubmitted = !!account.details_submitted;
+  const status = payoutsEnabled
+    ? 'payouts_enabled'
+    : chargesEnabled
+      ? 'charges_enabled'
+      : detailsSubmitted
+        ? 'onboarding'
+        : 'restricted';
+  await sb.from('vendors').update({
+    stripe_connect_status: status,
+    stripe_charges_enabled: chargesEnabled,
+    stripe_payouts_enabled: payoutsEnabled,
+    stripe_details_submitted: detailsSubmitted,
+    stripe_connect_last_checked_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }).eq('stripe_connect_account_id', account.id);
 }
 
 export default async function handler(req, res) {
@@ -351,9 +461,22 @@ export default async function handler(req, res) {
       const userId = object.metadata && object.metadata.userId;
       const planId = object.metadata && object.metadata.planId;
       await recordEntitlement(userId, object);
+      await recordPartnerCheckout(object);
       await updateWorkflowAfterCheckout(object.metadata || {});
       await recordImpactCommitment(userId, object);
       await syncCheckoutToHubSpot(object);
+    }
+
+    if (event.type === 'checkout.session.expired' && object.metadata?.kind === 'vendor_request') {
+      await markVendorCheckoutExpired(object);
+    }
+
+    if (event.type === 'payment_intent.payment_failed' && object.metadata?.kind === 'vendor_request') {
+      await markVendorPaymentFailed(object);
+    }
+
+    if (event.type === 'account.updated') {
+      await recordVendorConnectAccount(object);
     }
 
     if (event.type === 'customer.subscription.deleted') {

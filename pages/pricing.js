@@ -165,8 +165,8 @@ export default function PricingPage() {
       <section className="pricing-page-section" style={{ maxWidth: 1080, margin: '0 auto', padding: '4px 22px 8px' }}>
         <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 13, boxShadow: '0 10px 28px rgba(55,45,35,.04)', display: 'grid', gridTemplateColumns: 'minmax(0,.68fr) minmax(360px,.92fr)', gap: 13, alignItems: 'start' }} className="pricing-hero-grid">
           <div style={{ alignSelf: 'center' }}>
-            <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Pricing</div>
-            <h1 style={{ fontSize: 'clamp(30px, 3.55vw, 44px)', lineHeight: .98, margin: '0 0 7px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
+            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Pricing</div>
+            <h1 style={{ fontSize: 32, lineHeight: .98, margin: '0 0 7px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
             <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.36, margin: 0, maxWidth: 560 }}>Start urgent if someone just passed. Plan ahead by choosing the number of family records you need.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 6, marginTop: 10 }}>
               {[['urgent', 'Urgent help'], ...groups.map(g => [g.key, g.label])].map(([key, label]) => (
@@ -178,7 +178,7 @@ export default function PricingPage() {
             <div style={{ display: 'grid', gap: 5, marginTop: 10 }}>
               {readiness.map(([label, body]) => (
                 <div key={label} style={{ display: 'grid', gridTemplateColumns: '108px minmax(0,1fr)', gap: 8, color: C.mid, fontSize: 12, lineHeight: 1.28 }}>
-                  <strong style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</strong>
+                  <strong style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</strong>
                   <span>{body}</span>
                 </div>
               ))}
@@ -188,7 +188,7 @@ export default function PricingPage() {
             {showingUrgent ? (
               <>
                 <div style={{ fontSize: 11, color: C.rose, textTransform: 'uppercase', letterSpacing: '.17em', fontWeight: 900, marginBottom: 6 }}>Someone just passed</div>
-                <div style={{ fontSize: 'clamp(32px, 4vw, 44px)', lineHeight: .98, marginBottom: 7 }}>Get help now.</div>
+                <div style={{ fontSize: 32, lineHeight: .98, marginBottom: 7 }}>Get help now.</div>
                 <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.34, marginBottom: 9 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
                 <div style={{ background: C.card, border: `1px solid ${C.rose}22`, borderRadius: 11, padding: '7px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.28, marginBottom: 9 }}>
                   Includes a remembrance tree dedication and contributes to the 10% Passage family pledge.

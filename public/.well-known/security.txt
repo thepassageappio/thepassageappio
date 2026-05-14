@@ -1,0 +1,5 @@
+Contact: mailto:thepassageappio@gmail.com
+Preferred-Languages: en
+Canonical: https://www.thepassageapp.io/.well-known/security.txt
+Policy: https://www.thepassageapp.io/trust
+

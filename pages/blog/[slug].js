@@ -42,7 +42,7 @@ export default function BlogPost({ post }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 28, alignItems: 'start' }}>
           <div>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>{post.category} · {post.date}</div>
-            <h1 style={{ fontSize: 'clamp(40px, 6vw, 74px)', lineHeight: .94, fontWeight: 400, margin: '0 0 14px' }}>{post.title}</h1>
+            <h1 style={{ fontSize: 52, lineHeight: .94, fontWeight: 400, margin: '0 0 14px' }}>{post.title}</h1>
             <p style={{ color: C.mid, fontSize: 19, lineHeight: 1.5, margin: '0 0 18px' }}>{post.excerpt}</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
               {post.audience.map(item => <span key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 999, padding: '6px 10px', fontSize: 12, fontWeight: 900 }}>{item}</span>)}

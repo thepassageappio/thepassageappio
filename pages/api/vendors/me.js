@@ -80,16 +80,38 @@ export default async function handler(req, res) {
 
   const { data: requests, error: requestError } = await configured.admin
     .from('vendor_requests')
-    .select('id,response_token,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,workflows(deceased_name,estate_name,name,organizations(name))')
+    .select('id,response_token,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,payment_collection_status,gross_amount,passage_fee_amount,vendor_net_amount,payout_status,paid_at,service_date,service_start_at,service_location,workflows(deceased_name,estate_name,name,organizations(name))')
     .eq('vendor_id', activeVendor.id)
     .order('requested_at', { ascending: false })
     .limit(50);
 
   if (requestError) return res.status(500).json({ error: requestError.message });
+  const { data: payments } = await configured.admin
+    .from('vendor_payments')
+    .select('id,vendor_request_id,gross_amount,application_fee_amount,vendor_net_amount,status,payout_status,paid_at,created_at')
+    .eq('vendor_id', activeVendor.id)
+    .order('created_at', { ascending: false })
+    .limit(100)
+    .then((result) => result, () => ({ data: [] }));
+
+  const paymentRows = payments || [];
+  const revenue = paymentRows.reduce((sum, payment) => {
+    const paid = payment.status === 'paid';
+    return {
+      grossPaid: sum.grossPaid + (paid ? Number(payment.gross_amount || 0) : 0),
+      passageFees: sum.passageFees + (paid ? Number(payment.application_fee_amount || 0) : 0),
+      vendorNet: sum.vendorNet + (paid ? Number(payment.vendor_net_amount || 0) : 0),
+      pendingPayout: sum.pendingPayout + (paid && payment.payout_status !== 'paid' ? Number(payment.vendor_net_amount || 0) : 0),
+      paidJobs: sum.paidJobs + (paid ? 1 : 0),
+    };
+  }, { grossPaid: 0, passageFees: 0, vendorNet: 0, pendingPayout: 0, paidJobs: 0 });
+
   return res.status(200).json({
     vendor: activeVendor,
     membership: membership || { email, role: 'owner', status: 'active' },
     team: team || [],
     requests: requests || [],
+    payments: paymentRows,
+    revenue,
   });
 }

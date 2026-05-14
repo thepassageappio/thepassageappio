@@ -3,6 +3,7 @@ import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 import { isPassageAdmin } from '../../lib/adminAccess';
 import { taskActionConfirmation } from '../../lib/taskActions';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -138,20 +139,21 @@ export default async function handler(req, res) {
             <p style="color:#6a6560;line-height:1.7">This update is saved in the Passage case record.</p>
           </div>
         </div>`;
-      const response = await fetch('https://api.resend.com/emails', {
+      const route = routeEmailRecipients([workflow.coordinator_email]);
+      const response = route.actual.length ? await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from,
-          to: [workflow.coordinator_email],
+          to: route.actual,
           subject: `${orgName} handled: ${task.title}`,
           html,
         }),
-      });
-      const json = await response.json().catch(() => ({}));
-      if (response.ok && json.id) {
+      }) : null;
+      const json = response ? await response.json().catch(() => ({})) : {};
+      if (response?.ok && json.id) {
         emailSent = true;
-        await admin.from('notification_log').insert([{
+        await insertNotificationLog(admin, {
           workflow_id: workflow.id,
           channel: 'email',
           recipient_email: workflow.coordinator_email,
@@ -161,9 +163,11 @@ export default async function handler(req, res) {
           provider_id: json.id,
           status: 'sent',
           sent_at: new Date().toISOString(),
-        }]).then(() => {}, () => {});
+          source: 'funeral_home_task_proof',
+          ...qaAuditFields(route),
+        });
       } else {
-        await admin.from('notification_log').insert([{
+        await insertNotificationLog(admin, {
           workflow_id: workflow.id,
           channel: 'email',
           recipient_email: workflow.coordinator_email,
@@ -171,9 +175,11 @@ export default async function handler(req, res) {
           subject: `${orgName} handled: ${task.title}`,
           provider: 'resend',
           provider_id: null,
-          status: 'failed',
-          error_message: json?.message || json?.error || 'Family notification failed after partner action.',
-        }]).then(() => {}, () => {});
+          status: route.actual.length ? 'failed' : 'blocked',
+          error_message: route.actual.length ? (json?.message || json?.error || 'Family notification failed after partner action.') : 'QA notification mode had no override email configured.',
+          source: 'funeral_home_task_proof',
+          ...qaAuditFields(route),
+        });
       }
     }
 

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase as chromeSupabase } from '../lib/supabaseBrowser';
+import { PassageLogo } from './PassageLogo';
+import { PASSAGE_FONT, PASSAGE_TYPE, typeStyle } from '../lib/typography';
 
 export const CHROME_COLORS = {
   bg: '#f6f3ee',
@@ -20,17 +22,17 @@ export function SpineTrustStrip({ eyebrow = 'Shared record', title = 'What stays
     <div style={{ background: CHROME_COLORS.card, border: '1px solid ' + CHROME_COLORS.border, borderRadius: compact ? 14 : 16, padding: compact ? 11 : 13, color: CHROME_COLORS.mid }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', marginBottom: safeRows.length ? 8 : 0 }}>
         <div>
-          <div style={{ color: CHROME_COLORS.sage, fontSize: 10, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>{eyebrow}</div>
-          <div style={{ color: CHROME_COLORS.ink, fontSize: compact ? 14 : 16, lineHeight: 1.25, fontWeight: 900, marginTop: 2 }}>{title}</div>
+          <div style={{ ...PASSAGE_TYPE.meta, color: CHROME_COLORS.sage }}>{eyebrow}</div>
+          <div style={{ ...PASSAGE_TYPE.h3, color: CHROME_COLORS.ink, fontSize: compact ? 14 : 16, marginTop: 2 }}>{title}</div>
         </div>
-        <span style={{ border: '1px solid #c8deca', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, fontWeight: 900, whiteSpace: 'nowrap' }}>Proof-first</span>
+        <span style={{ ...PASSAGE_TYPE.badge, border: '1px solid #c8deca', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, whiteSpace: 'nowrap' }}>Proof-first</span>
       </div>
       {safeRows.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 7 }}>
           {safeRows.map(([label, body]) => (
             <div key={label} style={{ background: CHROME_COLORS.sageFaint, border: '1px solid ' + CHROME_COLORS.border, borderRadius: 11, padding: '8px 9px' }}>
-              <div style={{ color: CHROME_COLORS.sage, fontSize: 9.8, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-              <div style={{ color: CHROME_COLORS.mid, fontSize: compact ? 11.5 : 12, lineHeight: 1.4, marginTop: 3 }}>{body}</div>
+              <div style={{ ...PASSAGE_TYPE.meta, color: CHROME_COLORS.sage, fontSize: 10.5 }}>{label}</div>
+              <div style={{ ...PASSAGE_TYPE.caption, color: CHROME_COLORS.mid, fontSize: compact ? 11.5 : 12, marginTop: 3 }}>{body}</div>
             </div>
           ))}
         </div>
@@ -51,12 +53,12 @@ export function RoleActionStrip({ role = 'Your role', action = 'Take the next ac
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 7 }}>
         {rows.map(([label, body]) => (
           <div key={label} style={{ background: CHROME_COLORS.card, border: '1px solid ' + CHROME_COLORS.border, borderRadius: 11, padding: compact ? '7px 8px' : '8px 9px' }}>
-            <div style={{ color: CHROME_COLORS.sage, fontSize: 9.8, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-            <div style={{ color: CHROME_COLORS.ink, fontSize: compact ? 11.7 : 12.2, lineHeight: 1.35, marginTop: 3, fontWeight: 800 }}>{body}</div>
+            <div style={{ ...PASSAGE_TYPE.meta, color: CHROME_COLORS.sage, fontSize: 10.5 }}>{label}</div>
+            <div style={{ ...PASSAGE_TYPE.caption, color: CHROME_COLORS.ink, fontSize: compact ? 11.7 : 12.2, lineHeight: 1.35, marginTop: 3, fontWeight: 800 }}>{body}</div>
           </div>
         ))}
       </div>
-      <div style={{ color: CHROME_COLORS.mid, fontSize: compact ? 11.5 : 12, lineHeight: 1.42, marginTop: 8 }}>
+      <div style={{ ...PASSAGE_TYPE.caption, color: CHROME_COLORS.mid, fontSize: compact ? 11.5 : 12, lineHeight: 1.42, marginTop: 8 }}>
         <strong style={{ color: CHROME_COLORS.ink }}>Access boundary:</strong> {privacy}
       </div>
     </div>
@@ -84,7 +86,7 @@ export function StatusBadge({ status = 'draft', label, compact = false }) {
       color: state.color,
       borderRadius: 999,
       padding: compact ? '3px 7px' : '5px 9px',
-      fontSize: compact ? 10.5 : 11.5,
+      fontSize: compact ? 10.5 : PASSAGE_TYPE.badge.fontSize,
       lineHeight: 1,
       fontWeight: 900,
       whiteSpace: 'nowrap',
@@ -103,6 +105,7 @@ const LINKS = [
   ['Pricing', '/pricing'],
   ['Contact', '/contact'],
   ['Funeral homes', '/funeral-home'],
+  ['Care providers', '/care-providers'],
   ['Participants', '/participants'],
   ['Vendors', '/vendors'],
 ];
@@ -115,6 +118,7 @@ const navLink = {
   minHeight: 38,
   display: 'inline-flex',
   alignItems: 'center',
+  ...PASSAGE_TYPE.nav,
 };
 
 const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com', 'thepassageappio@gmail.com'];
@@ -330,6 +334,8 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
     display: 'inline-flex',
     alignItems: 'center',
     fontWeight: 800,
+    fontSize: PASSAGE_TYPE.nav.fontSize,
+    lineHeight: PASSAGE_TYPE.nav.lineHeight,
   };
   const quietMyEstate = {
     color: CHROME_COLORS.mid,
@@ -341,9 +347,11 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
     display: 'inline-flex',
     alignItems: 'center',
     fontWeight: 800,
+    fontSize: PASSAGE_TYPE.nav.fontSize,
+    lineHeight: PASSAGE_TYPE.nav.lineHeight,
   };
   return (
-    <nav style={{ width: 'min(1180px, 100%)', boxSizing: 'border-box', maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
+    <nav style={{ width: 'min(1180px, 100%)', boxSizing: 'border-box', maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, fontFamily: PASSAGE_FONT.family }}>
       <style>{`
         @media (max-width: 720px) {
           .passage-nav-secondary { display: none !important; }
@@ -352,8 +360,10 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
           .passage-nav-action-slot { width: auto !important; }
         }
       `}</style>
-      <Link href="/" onClick={handleHomeClick} style={{ color: CHROME_COLORS.ink, textDecoration: 'none', fontSize: 24, fontWeight: 700 }}>Passage</Link>
-      <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, fontSize: 13.5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      <Link href="/" onClick={handleHomeClick} aria-label="Passage home" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', flex: '0 0 auto' }}>
+        <PassageLogo compact size={36} />
+      </Link>
+      <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, ...PASSAGE_TYPE.nav, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {LINKS.map(([label, href]) => <Link key={href} href={href} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
           <Link href="/system/admin" style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
@@ -361,10 +371,10 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
         {currentUser && <Link href={dashboardHref} onClick={handleDashboardClick} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
         <span className="passage-nav-action-slot" style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {currentUser && (
-            <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign out</button>
+            <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign out</button>
           )}
           {!currentUser && (
-            <button onClick={signInHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Sign in</button>
+            <button onClick={signInHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign in</button>
           )}
         </span>
       </div>
@@ -451,27 +461,27 @@ function DemoCoach({ step }) {
         <div style={{ position: 'absolute', top: targetRect.top, left: targetRect.left, width: targetRect.width, height: targetRect.height, border: '3px solid #6b8f71', borderRadius: 18, boxShadow: '0 0 0 9999px rgba(26,25,22,.18), 0 18px 50px rgba(0,0,0,.2)', background: 'rgba(240,245,241,.08)' }} />
       </div>
     )}
-    <div data-demo-coach="funeral-home" style={{ position: 'fixed', ...(placement.left != null ? { left: placement.left } : { right: placement.right ?? 24 }), ...(placement.top != null ? { top: placement.top } : { bottom: placement.bottom ?? 24 }), zIndex: 2147483601, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)' }}>
+    <div data-demo-coach="funeral-home" style={{ position: 'fixed', ...(placement.left != null ? { left: placement.left } : { right: placement.right ?? 24 }), ...(placement.top != null ? { top: placement.top } : { bottom: placement.bottom ?? 24 }), zIndex: 2147483601, width: 'min(390px, calc(100vw - 32px))', background: '#1a1916', color: '#fff', borderRadius: 20, padding: 18, boxShadow: '0 18px 55px rgba(0,0,0,.28)', border: '1px solid rgba(255,255,255,.12)', fontFamily: PASSAGE_FONT.family }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
         <div>
-          <div style={{ color: '#b9d2bd', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Sample walkthrough</div>
-          <div style={{ fontSize: 22, lineHeight: 1.15, marginTop: 6 }}>{step.title}</div>
+          <div style={{ ...PASSAGE_TYPE.eyebrow, color: '#b9d2bd' }}>Sample walkthrough</div>
+          <div style={{ ...PASSAGE_TYPE.h2, color: '#fff', fontSize: 22, marginTop: 6 }}>{step.title}</div>
         </div>
-        <button onClick={exitDemo} style={{ border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#d8d0c7', borderRadius: 999, minWidth: 58, minHeight: 32, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>Exit</button>
+        <button onClick={exitDemo} style={{ border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#d8d0c7', borderRadius: 999, minWidth: 58, minHeight: 32, padding: '0 10px', ...typeStyle('button', { fontSize: 12 }), cursor: 'pointer' }}>Exit</button>
       </div>
-      <p style={{ color: '#d8d0c7', fontSize: 13.5, lineHeight: 1.5, margin: '10px 0 10px' }}>{step.body}</p>
+      <p style={{ ...PASSAGE_TYPE.bodySmall, color: '#d8d0c7', fontSize: 13.5, lineHeight: 1.5, margin: '10px 0 10px' }}>{step.body}</p>
       <div style={{ display: 'grid', gap: 7, marginBottom: 12 }}>
-        {step.point && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>Why it matters:</strong> {step.point}</div>}
-        {step.evidence && <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>What to look at:</strong> {step.evidence}</div>}
+        {step.point && <div style={{ ...PASSAGE_TYPE.caption, background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>Why it matters:</strong> {step.point}</div>}
+        {step.evidence && <div style={{ ...PASSAGE_TYPE.caption, background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 11, padding: '8px 9px', color: '#eee9e2', fontSize: 12.2, lineHeight: 1.38 }}><strong style={{ color: '#b9d2bd' }}>What to look at:</strong> {step.evidence}</div>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ color: '#b9d2bd', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>Step {Math.max(1, stepIndex + 1)} / {DEMO_TOUR_STEPS.length}</span>
+        <span style={{ ...PASSAGE_TYPE.caption, color: '#b9d2bd', fontWeight: 900, whiteSpace: 'nowrap' }}>Step {Math.max(1, stepIndex + 1)} / {DEMO_TOUR_STEPS.length}</span>
         {previousStep && (
           <Link href={previousStep.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.08)', color: '#eee9e2', borderRadius: 12, textDecoration: 'none', fontWeight: 900, padding: '0 12px', whiteSpace: 'nowrap' }}>{'<'} Back</Link>
         )}
         <Link onClick={handleAdvance} href={step.href} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: 46, background: CHROME_COLORS.sage, color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 900 }}>{step.cta} {'->'}</Link>
       </div>
-      <div style={{ color: '#aaa39a', fontSize: 11.2, lineHeight: 1.35, marginTop: 9 }}>This walkthrough uses sample data. No messages are sent from the tour.</div>
+      <div style={{ ...PASSAGE_TYPE.caption, color: '#aaa39a', fontSize: 11.2, lineHeight: 1.35, marginTop: 9 }}>This walkthrough uses sample data. No messages are sent from the tour.</div>
     </div>
     </>
   );
@@ -479,7 +489,7 @@ function DemoCoach({ step }) {
 
 export function SiteFooter() {
   return (
-    <footer style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px 12px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', fontSize: 12, color: CHROME_COLORS.soft }}>
+    <footer style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px 12px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', ...PASSAGE_TYPE.caption, color: CHROME_COLORS.soft, fontFamily: PASSAGE_FONT.family }}>
       <div>Passage coordinates life-to-death transitions with care.</div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         <Link href="/faq" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>FAQ</Link>

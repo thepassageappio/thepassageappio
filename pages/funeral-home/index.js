@@ -85,8 +85,8 @@ export default function FuneralHomePage() {
         .fh-shell, .fh-shell * { box-sizing:border-box; }
         .fh-shell { max-width:980px; margin:0 auto; padding:0 28px 6px; }
         .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,.55fr); gap:16px; align-items:center; padding:2px 0 8px; }
-        .fh-kicker { color:${C.sage}; font-size:9.5px; letter-spacing:.17em; text-transform:uppercase; font-weight:900; margin-bottom:6px; }
-        .fh-title { font-size:clamp(31px,3.15vw,40px); line-height:.98; margin:0 0 8px; font-weight:400; letter-spacing:0; max-width:560px; }
+        .fh-kicker { color:${C.sage}; font-size:10.5px; letter-spacing:.17em; text-transform:uppercase; font-weight:900; margin-bottom:6px; }
+        .fh-title { font-size:32px; line-height:.98; margin:0 0 8px; font-weight:400; letter-spacing:0; max-width:560px; }
         .fh-lede { color:${C.mid}; font-size:13.2px; line-height:1.36; max-width:540px; margin:0; }
         .fh-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
         .fh-button { min-height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; padding:0 13px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; font-size:12.5px; }
@@ -98,9 +98,9 @@ export default function FuneralHomePage() {
         .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:13px; padding:9px; margin-bottom:7px; }
         .fh-case-title { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; margin-bottom:7px; }
         .fh-case-title b { font-size:15px; line-height:1.12; }
-        .fh-pill { border-radius:999px; padding:3px 7px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:10px; font-weight:900; white-space:nowrap; }
+        .fh-pill { border-radius:999px; padding:3px 7px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:10.5px; font-weight:900; white-space:nowrap; }
         .fh-row { display:grid; grid-template-columns:76px minmax(0,1fr); gap:8px; padding:4px 0; border-top:1px solid ${C.sageLight}; }
-        .fh-row-label { color:${C.sageDark}; font-size:9px; letter-spacing:.11em; text-transform:uppercase; font-weight:900; }
+        .fh-row-label { color:${C.sageDark}; font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; font-weight:900; }
         .fh-row-value { color:${C.mid}; font-size:11.4px; line-height:1.25; }
         .fh-proof { border-top:1px solid ${C.border}; padding-top:8px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
         .fh-proof-card { background:${C.card}; border:1px solid ${C.border}; border-radius:13px; padding:9px 10px; min-height:66px; }
@@ -181,7 +181,7 @@ export default function FuneralHomePage() {
         <section className="fh-pilot">
           <div>
             <div className="fh-kicker">Pilot</div>
-            <h2 style={{ fontSize: 'clamp(20px,2.2vw,25px)', lineHeight: 1.03, margin: '0 0 6px', fontWeight: 400 }}>Start with a few real cases.</h2>
+            <h2 style={{ fontSize: 24, lineHeight: 1.03, margin: '0 0 6px', fontWeight: 400 }}>Start with a few real cases.</h2>
             <p style={{ color: C.mid, fontSize: 12, lineHeight: 1.32, margin: 0 }}>
               We help set up the workspace, load a small case set, move one family-facing task, and show how a family-approved handoff carries context into your case pane before you expand.
             </p>

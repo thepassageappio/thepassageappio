@@ -178,7 +178,7 @@ export default function PacketDemo() {
         <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 18, alignItems: 'end', marginBottom: 20 }}>
           <div>
             <div style={eyebrow}>Passage outputs</div>
-            <h1 style={{ fontSize: 'clamp(34px, 4.4vw, 56px)', lineHeight: 1.02, margin: '8px 0 10px', fontWeight: 400 }}>Prepared outputs from the family record.</h1>
+            <h1 style={{ fontSize: 52, lineHeight: 1.02, margin: '8px 0 10px', fontWeight: 400 }}>Prepared outputs from the family record.</h1>
             <p style={lead}>Every packet starts from the same spine: dates, owner, message, proof, and approval boundary. Nothing sends automatically; a person reviews the output before it leaves Passage.</p>
             <div style={{ display: 'inline-flex', marginTop: 12, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 10px', fontSize: 12, fontWeight: 900 }}>{loading ? 'Generating...' : displaySourceLabel}</div>
           </div>
@@ -254,7 +254,7 @@ export default function PacketDemo() {
                 ['Before sharing', 'Human review'],
               ].map(([label, value]) => (
                 <div key={label} style={{ border: '1px solid ' + C.border, borderRadius: 12, padding: '8px 10px', background: C.card }}>
-                  <div style={{ color: C.sage, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                   <div style={{ color: C.ink, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{value}</div>
                 </div>
               ))}
@@ -266,7 +266,7 @@ export default function PacketDemo() {
                 ['Proof path', 'Copy, print, or download only', C.sageFaint],
               ].map(([label, value, bg]) => (
                 <div key={label} style={{ background: bg, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px' }}>
-                  <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                   <div style={{ color: C.ink, fontSize: 13, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{value}</div>
                 </div>
               ))}

@@ -112,8 +112,8 @@ export default function ContentPage() {
       <SiteHeader />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '6px 22px 16px' }}>
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Help guides</div>
-          <h1 style={{ fontSize: 'clamp(28px, 2.8vw, 36px)', lineHeight: 1.02, margin: '0 0 7px', fontWeight: 400 }}>Pick the guide you need right now.</h1>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Help guides</div>
+          <h1 style={{ fontSize: 32, lineHeight: 1.02, margin: '0 0 7px', fontWeight: 400 }}>Pick the guide you need right now.</h1>
           <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.42, margin: 0, maxWidth: 660 }}>Choose the guide first. If it is locked, unlock it in place and keep reading here.</p>
         </div>
 
@@ -123,7 +123,7 @@ export default function ContentPage() {
               const active = selected.title === g.title;
               return (
                 <button key={g.title} onClick={() => { setInterest(g.title); setUnlocked(leadUnlocked); }} style={{ textAlign: 'left', background: active ? C.sageFaint : '#fff', border: `1px solid ${active ? C.sage : C.border}`, borderRadius: 12, padding: '9px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
-                  <div style={{ fontSize: 8.8, color: active ? C.sage : C.gold, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 3 }}>{g.type}</div>
+                  <div style={{ fontSize: 10.5, color: active ? C.sage : C.gold, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 3 }}>{g.type}</div>
                   <div style={{ fontSize: 14.2, color: C.ink, lineHeight: 1.12 }}>{g.title}</div>
                   <div style={{ fontSize: 11, color: C.mid, lineHeight: 1.28, marginTop: 3 }}>{g.audience}</div>
                 </button>
@@ -134,8 +134,8 @@ export default function ContentPage() {
           <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 13, boxShadow: '0 12px 34px rgba(55,45,35,.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', borderBottom: `1px solid ${C.border}`, paddingBottom: 10, marginBottom: 10 }}>
               <div>
-                <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 5 }}>{selected.type}</div>
-                <h2 style={{ fontSize: 'clamp(20px, 2vw, 25px)', lineHeight: 1.05, margin: '0 0 5px', fontWeight: 400 }}>{selected.fullTitle}</h2>
+                <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 5 }}>{selected.type}</div>
+                <h2 style={{ fontSize: 24, lineHeight: 1.05, margin: '0 0 5px', fontWeight: 400 }}>{selected.fullTitle}</h2>
                 <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.36, margin: 0 }}>{selected.subtitle}</p>
               </div>
               {!unlocked && <span style={{ color: C.rose, background: C.roseFaint, borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 800, whiteSpace: 'nowrap' }}>Locked</span>}
@@ -160,7 +160,7 @@ export default function ContentPage() {
                       <div style={{ display: 'grid', gap: 6 }}>
                         {items.map((item, index) => (
                           <div key={index} style={{ display: 'grid', gridTemplateColumns: '20px minmax(0,1fr)', gap: 8, alignItems: 'start', color: C.mid, fontSize: 12.4, lineHeight: 1.38 }}>
-                            <span style={{ width: 20, height: 20, borderRadius: '50%', background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900 }}>{index + 1}</span>
+                            <span style={{ width: 20, height: 20, borderRadius: '50%', background: C.sageFaint, color: C.sage, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 900 }}>{index + 1}</span>
                             <span>{item}</span>
                           </div>
                         ))}

@@ -1,25 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 200" role="img" aria-label="Passage">
-  <title>Passage</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Passage">
+
   <defs>
-    
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="75%">
+      <stop offset="0%" stop-color="#faf6ec"></stop>
+      <stop offset="100%" stop-color="#ece3d1"></stop>
+    </radialGradient>
+    <radialGradient id="bigGrad" cx="32%" cy="28%" r="85%">
+      <stop offset="0%" stop-color="#3a322c"></stop>
+      <stop offset="100%" stop-color="#15110e"></stop>
+    </radialGradient>
+    <radialGradient id="smallGrad" cx="32%" cy="28%" r="85%">
+      <stop offset="0%" stop-color="#f3c089"></stop>
+      <stop offset="100%" stop-color="#b8783a"></stop>
+    </radialGradient>
+    <clipPath id="sq"><path d="M 512 0 C 850 0 1024 174 1024 512 C 1024 850 850 1024 512 1024 C 174 1024 0 850 0 512 C 0 174 174 0 512 0 Z"></path></clipPath>
   </defs>
-  <rect width="760" height="200" fill="#f6f3ee"></rect>
-
-  
-  <g transform="translate(78 100) scale(1.0455)">
-    
-    <path d="M -28 38 L -28 0 A 28 28 0 0 1 28 0 L 28 38" fill="none" stroke="#5b7a63" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-
-    
-    <ellipse cx="0" cy="6" rx="9" ry="13" fill="#b8783a" opacity="0.14"></ellipse>
-    <line x1="0" y1="24" x2="0" y2="18" stroke="#5b7a63" stroke-width="0.9" stroke-linecap="round" opacity="0.7"></line>
-    <g transform="translate(0 18)">
-      <path d="M 0 0 C -7.65 -1, -9 -6, -7.02 -10 C -4.95 -14.4, -1.62 -18, 0 -20 C 1.62 -18, 4.95 -14.4, 7.02 -10 C 9 -6, 7.65 -1, 0 0 Z" fill="#b8783a"></path>
-      <path d="M 0 -1.6 C -3.978 -2, -4.68 -6, -3.65 -9 C -2.34 -12.4, -0.749 -13.744, 0 -14.8 C 0.749 -13.744, 2.34 -12.4, 3.65 -9 C 4.68 -6, 3.978 -2, 0 -1.6 Z" fill="#fde7c0" opacity="0.75"></path>
+  <path d="M 512 0 C 850 0 1024 174 1024 512 C 1024 850 850 1024 512 1024 C 174 1024 0 850 0 512 C 0 174 174 0 512 0 Z" fill="url(#bgGrad)"></path>
+  <g clip-path="url(#sq)">
+    <g>
+      <circle cx="430" cy="540" r="270" fill="url(#bigGrad)"></circle>
+    </g>
+    <g>
+      <circle cx="650" cy="440" r="180" fill="url(#smallGrad)"></circle>
+      <ellipse cx="600" cy="395" rx="40" ry="18" fill="#fff3d8" opacity="0.4"></ellipse>
     </g>
   </g>
-
-  
-  <text x="150" y="118" class="pg-text" fill="#5b7a63">PASSAGE</text>
 </svg>

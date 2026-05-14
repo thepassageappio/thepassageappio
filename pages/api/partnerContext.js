@@ -3,6 +3,7 @@ import { enrichTaskWithPlaybook, partnerTaskPriority } from '../../lib/taskPlayb
 import { isPassageAdmin } from '../../lib/adminAccess';
 import { buildCoordinationSpine, selectNextTask } from '../../lib/communicationCenter';
 import { orchestrateTasks } from '../../lib/taskOrchestration';
+import { locationUsageForPlan, normalizePartnerPlanId } from '../../lib/partnerPlans';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -172,10 +173,14 @@ function billingStatusFor(partner) {
 
 function serializePartnerPlan(partner) {
   if (!partner) return null;
+  const planId = normalizePartnerPlanId(partner.plan);
   return {
     id: partner.id || null,
-    plan: partner.plan || null,
+    plan: planId,
     monthlyFeeCents: Number(partner.monthly_fee_cents || 0),
+    includedLocationSlots: Number(partner.included_location_slots || 1),
+    additionalLocationFeeCents: Number(partner.additional_location_fee_cents || 9900),
+    activeCaseLimit: partner.active_case_limit == null ? null : Number(partner.active_case_limit || 0),
     trialStartedAt: partner.trial_started_at || null,
     trialEndsAt: partner.trial_ends_at || null,
     subscribedAt: partner.subscribed_at || null,
@@ -358,7 +363,7 @@ export default async function handler(req, res) {
   let memberships = [];
   let memberError = null;
   const membershipSelections = [
-    'organization_id, role, status, email, organizations(id,type,name,logo_url,primary_color,white_label_enabled,support_email,support_phone,from_name,family_portal_name)',
+    'organization_id, role, status, email, organizations(id,type,name,logo_url,primary_color,white_label_enabled,support_email,support_phone,from_name,family_portal_name,partner_plan,included_location_slots,additional_location_fee_cents,active_case_limit)',
     'organization_id, role, status, email, organizations(id,type,name,logo_url,primary_color,white_label_enabled,support_email,from_name)',
     'organization_id, role, status, email, organizations(id,type,name)',
   ];
@@ -600,6 +605,11 @@ export default async function handler(req, res) {
     ...partnerLocations.map(location => [String(location.name || '').toLowerCase(), location]),
     ...locations.map(location => [String(location || '').toLowerCase(), { name: location, organization_id: primaryMembership?.organization_id || null, source: 'case data', status: 'active' }]),
   ].filter(([key]) => key)).values());
+  const planIdForSlots = primaryPartner?.plan || primaryOrg?.partner_plan || 'partner_local';
+  const locationSlots = locationUsageForPlan(planIdForSlots, managedLocations.length, {
+    includedLocationSlots: primaryPartner?.included_location_slots ?? primaryOrg?.included_location_slots,
+    additionalLocationFeeCents: primaryPartner?.additional_location_fee_cents ?? primaryOrg?.additional_location_fee_cents,
+  });
   const totalCaseValue = cases.reduce((sum, item) => sum + caseValueNumber(item), 0);
   const prepaidCaseValue = cases.reduce((sum, item) => sum + prepaidValueNumber(item), 0);
   const byLocation = locations.map(location => {
@@ -673,6 +683,7 @@ export default async function handler(req, res) {
   return res.status(200).json({
     organizations: memberships || [],
     partnerPlan,
+    locationSlots,
     activationStatus,
     billingStatus: billingStatusFor(primaryPartner),
     trialEndsAt: primaryPartner?.trial_ends_at || null,

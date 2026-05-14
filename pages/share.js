@@ -650,7 +650,7 @@ export default function SharePage() {
                 return (
                   <button key={p.id} onClick={function() { share(p.id); }}
                     style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 13, border: "1.5px solid " + (isCopied ? SAGE_LIGHT : BORDER), background: isCopied ? SAGE_FAINT : CARD, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 10, background: p.bgColor, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13, fontWeight: 900, color: p.color, fontFamily: "sans-serif" }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: p.bgColor, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13, fontWeight: 900, color: p.color, fontFamily: 'inherit' }}>
                       {p.id === "email" ? "Email" : p.id === "facebook" ? "f" : p.id === "linkedin" ? "in" : p.id === "twitter" ? "X" : p.id === "instagram" ? "Ig" : "SMS"}
                     </div>
                     <div style={{ flex: 1 }}>

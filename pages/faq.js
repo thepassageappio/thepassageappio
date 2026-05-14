@@ -107,7 +107,7 @@ export default function FAQPage() {
 }
 
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
-const h1 = { fontSize: 'clamp(34px, 5vw, 58px)', lineHeight: 1.03, margin: '8px 0 10px', fontWeight: 400, maxWidth: 760 };
+const h1 = { fontSize: 52, lineHeight: 1.03, margin: '8px 0 10px', fontWeight: 400, maxWidth: 760 };
 const h2 = { fontSize: 28, lineHeight: 1.12, margin: '0 0 12px', fontWeight: 400 };
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth: 760 };
 const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,.04)' };

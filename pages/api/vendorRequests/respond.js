@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { vendorCategoryLabel } from '../../../lib/vendors';
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
+import { canonicalVendorStatus } from '../../../lib/vendorLifecycle';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -55,7 +56,7 @@ export default async function handler(req, res) {
     hasFuneralHome: !!request.organization_id,
   });
   const update = {
-    status,
+    status: status === 'accepted' ? 'quoted' : status === 'in_progress' ? 'scheduled' : status,
     responded_at: status === 'accepted' || status === 'declined' || resetFromDeclined ? now : request.responded_at || now,
     in_progress_at: status === 'declined' || status === 'accepted' ? null : status === 'in_progress' || resetFromDeclined ? now : request.in_progress_at || now,
     completed_at: status === 'completed' ? now : null,
@@ -63,10 +64,14 @@ export default async function handler(req, res) {
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
     passage_share_amount: economics.passageShareAmount,
+    gross_amount: finalValue > 0 ? finalValue : null,
+    passage_fee_percent: Number(request.marketplace_fee_percent ?? 12),
+    passage_fee_amount: economics.platformFeeAmount,
+    vendor_net_amount: economics.platformFeeAmount ? Math.max(finalValue - economics.platformFeeAmount, 0) : null,
     payment_collection_status: status === 'declined'
-      ? 'waived'
+      ? 'not_required'
       : status === 'completed' && finalValue > 0
-        ? 'payment_due'
+        ? 'payment_pending'
         : status === 'accepted' || status === 'in_progress'
           ? 'quote_ready'
           : 'quote_needed',
@@ -86,7 +91,7 @@ export default async function handler(req, res) {
       : `${vendorName} declined`;
   const detail = status === 'accepted'
     ? `${category} quote for ${request.task_title || 'this task'} is ready for review.${finalValue > 0 ? ` Value: $${Math.round(finalValue)}.` : ''}`
-    : `${category} request for ${request.task_title || 'this task'} was ${status}.`;
+    : `${category} request for ${request.task_title || 'this task'} was ${canonicalVendorStatus(status).replace('_', ' ')}.`;
   await recordTaskCommunicationEvent({
     verb: status === 'completed' ? 'prove' : status === 'declined' ? 'escalate' : 'update',
     workflowId: request.workflow_id,

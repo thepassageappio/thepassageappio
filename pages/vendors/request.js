@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { supabase } from '../../lib/supabaseBrowser';
 import { RoleActionStrip, SiteFooter, SiteHeader, SpineTrustStrip } from '../../components/SiteChrome';
 import { money } from '../../lib/vendorEconomics';
 import { vendorCategoryLabel } from '../../lib/vendors';
+import { paymentStatusLabel, vendorNextExpected, vendorStatusLabel } from '../../lib/vendorLifecycle';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
 const SYSTEM_ADMIN_EMAILS = ['thepassageappio@gmail.com', 'steventurrisi@gmail.com'];
@@ -50,6 +52,10 @@ export default function VendorRequestPage() {
   const [estimatedValue, setEstimatedValue] = useState('');
   const [finalValue, setFinalValue] = useState('');
   const [vendorNote, setVendorNote] = useState('');
+  const [serviceDate, setServiceDate] = useState('');
+  const [serviceStartAt, setServiceStartAt] = useState('');
+  const [serviceLocation, setServiceLocation] = useState('');
+  const [serviceNotes, setServiceNotes] = useState('');
   const [pendingVendorAction, setPendingVendorAction] = useState('');
 
   useEffect(() => {
@@ -120,6 +126,10 @@ export default function VendorRequestPage() {
     setEstimatedValue(json.request?.estimated_value || '');
     setFinalValue(json.request?.final_value || '');
     setVendorNote(json.request?.vendor_note || '');
+    setServiceDate(json.request?.service_date || '');
+    setServiceStartAt(toLocalInputValue(json.request?.service_start_at));
+    setServiceLocation(json.request?.service_location || '');
+    setServiceNotes(json.request?.service_notes || '');
   }
 
   async function loadVendorProfile(accessToken = userToken) {
@@ -133,7 +143,7 @@ export default function VendorRequestPage() {
         setError(json.error || 'Could not load your vendor profile.');
         return;
       }
-      setVendorProfile(json.vendor ? { ...json.vendor, membership: json.membership, team: json.team || [] } : null);
+      setVendorProfile(json.vendor ? { ...json.vendor, membership: json.membership, team: json.team || [], revenue: json.revenue || {}, payments: json.payments || [] } : null);
       setVendorRequests(json.requests || []);
       setVendorMessage(json.message || '');
     } catch (err) {
@@ -145,7 +155,7 @@ export default function VendorRequestPage() {
 
   async function update(action) {
     if (!token) {
-      const next = applyVendorRequestTransition(request, action, { estimatedValue, finalValue, vendorNote });
+      const next = applyVendorRequestTransition(request, action, { estimatedValue, finalValue, vendorNote, serviceDate, serviceStartAt, serviceLocation, serviceNotes });
       setRequest(next);
       setNotice(noticeForAction(action, true));
       setPendingVendorAction('');
@@ -157,7 +167,17 @@ export default function VendorRequestPage() {
     const res = await fetch('/api/vendorRequests/portal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, action, estimatedValue, finalValue, vendorNote }),
+      body: JSON.stringify({
+        token,
+        action,
+        estimatedValue,
+        finalValue,
+        vendorNote,
+        serviceDate,
+        serviceStartAt: fromLocalInputValue(serviceStartAt),
+        serviceLocation,
+        serviceNotes,
+      }),
     });
     const json = await res.json().catch(() => ({}));
     setUpdating('');
@@ -175,16 +195,9 @@ export default function VendorRequestPage() {
   const demoMode = !token && isSystemAdmin(user) && demoQuery;
   const requestStatus = labelForStatus(request?.status);
   const urgencyLabel = request?.urgency === 'rush' ? 'Needed within 24 hours' : 'Planning ahead';
-  const nextExpected = request?.status === 'completed'
-    ? 'Completed. Passage will show the family and funeral home this request is handled.'
-    : request?.status === 'in_progress'
-      ? 'Quote accepted. Update again when the service is completed or if details are missing.'
-      : request?.status === 'accepted'
-        ? 'Quote ready. The family or funeral home can accept it before work starts.'
-        : request?.status === 'declined'
-          ? 'Declined. Passage will keep the request visible so another option can be found.'
-        : 'Waiting for your response. Send a quote, ask for details, or decline if you cannot help.';
-  const ownerLabel = request?.status === 'requested'
+  const nextExpected = vendorNextExpected(request?.status, request?.payment_collection_status);
+  const canonicalStatus = request?.status === 'accepted' ? 'quoted' : request?.status === 'in_progress' ? 'scheduled' : request?.status;
+  const ownerLabel = ['requested', 'viewed'].includes(canonicalStatus)
     ? vendorName
     : request?.status === 'declined'
       ? 'Passage coordinator'
@@ -193,9 +206,11 @@ export default function VendorRequestPage() {
     ? 'Nothing. Proof is saved.'
     : request?.status === 'declined'
       ? 'Another support option'
-      : request?.status === 'accepted'
+      : ['quoted', 'accepted'].includes(request?.status)
         ? 'Family or funeral-home quote approval'
-        : request?.status === 'in_progress'
+        : ['family_accepted', 'payment_pending'].includes(canonicalStatus)
+        ? 'Family payment'
+        : ['paid', 'scheduled', 'in_progress'].includes(canonicalStatus)
         ? 'Completion update from vendor'
         : 'Vendor response';
   const proofLabel = request?.status === 'completed'
@@ -203,9 +218,9 @@ export default function VendorRequestPage() {
     : request?.status === 'declined'
       ? 'Decline reason/status stays visible for replacement.'
       : 'Viewed/responded timestamps and status changes report back to the case.';
-  const recommendedVendorAction = request?.status === 'accepted'
+  const recommendedVendorAction = ['quoted', 'accepted'].includes(request?.status)
     ? ['in_progress', 'Mark scheduled']
-    : request?.status === 'in_progress'
+    : ['paid', 'scheduled', 'in_progress'].includes(canonicalStatus)
       ? ['completed', 'Mark completed']
       : request?.status === 'completed'
         ? null
@@ -231,9 +246,20 @@ export default function VendorRequestPage() {
           ) : (
             <div style={cardStyle}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
-              <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{user ? 'No approved vendor profile yet.' : 'Sign in to manage vendor requests.'}</h1>
+              <h1 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{user ? 'No approved vendor profile yet.' : 'Sign in to manage vendor requests.'}</h1>
               <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first. Once approved, the primary contact can sign in here to respond to scoped task requests. Vendors do not browse families or cases.'}</p>
-              {!user && <button onClick={() => supabase?.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } })} style={buttonStyle(C.sage)}>Sign in</button>}
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+                {!user && <button onClick={() => supabase?.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } })} style={buttonStyle(C.sage)}>Sign in</button>}
+                <Link href="/vendors/onboard" style={{ ...buttonStyle(C.sage), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
+                  Apply as a vendor
+                </Link>
+                <Link href="/contact?category=vendor" style={{ ...buttonStyle(C.card), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: C.sage, border: '1px solid ' + C.sage + '33', textDecoration: 'none' }}>
+                  Ask a question
+                </Link>
+              </div>
+              <div style={{ marginTop: 13, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: '11px 12px', color: C.mid, fontSize: 13.2, lineHeight: 1.45 }}>
+                If you already applied, use the same email you submitted. If you have not applied yet, start with the vendor application so Passage can review your category, service area, payout setup, and response expectations.
+              </div>
             </div>
           )
         )}
@@ -241,7 +267,7 @@ export default function VendorRequestPage() {
           <div data-demo-anchor="demo-vendor-request" style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: 22, borderBottom: '1px solid ' + C.border, background: C.card }}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Sample scoped vendor request' : 'Scoped local support request'}</div>
-              <h1 style={{ fontSize: 'clamp(30px, 5vw, 44px)', lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
+              <h1 style={{ fontSize: 32, lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
               <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Sample request for an admin walkthrough. No live family record is changed.' : 'One scoped request connected to the family record. You only see what is needed to answer this request.'}</p>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 12 }}>
                 <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After your quote:</strong> the family or funeral home accepts it before work begins.
@@ -361,7 +387,13 @@ export default function VendorRequestPage() {
                     <label style={labelStyle}>Estimated quote<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                     <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                   </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 9 }}>
+                    <label style={labelStyle}>Service date<input type="date" value={serviceDate} onChange={(e) => setServiceDate(e.target.value)} style={inputStyle} /></label>
+                    <label style={labelStyle}>Service time<input type="datetime-local" value={serviceStartAt} onChange={(e) => setServiceStartAt(e.target.value)} style={inputStyle} /></label>
+                    <label style={labelStyle}>Location<input value={serviceLocation} onChange={(e) => setServiceLocation(e.target.value)} placeholder="Venue, cemetery, home..." style={inputStyle} /></label>
+                  </div>
                   <label style={{ ...labelStyle, marginTop: 9 }}>Quote note / availability<textarea value={vendorNote} onChange={(e) => setVendorNote(e.target.value)} placeholder="Available Friday afternoon. Quote includes setup, service coverage, and delivery of recording." style={{ ...inputStyle, minHeight: 74, resize: 'vertical' }} /></label>
+                  <label style={{ ...labelStyle, marginTop: 9 }}>Service instructions<textarea value={serviceNotes} onChange={(e) => setServiceNotes(e.target.value)} placeholder="Arrival instructions, delivery details, proof expected, or what the family should know." style={{ ...inputStyle, minHeight: 62, resize: 'vertical' }} /></label>
                   {(request.platform_fee_amount || request.funeral_home_share_amount || request.passage_share_amount) && (
                     <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9, fontSize: 12.5, color: C.mid }}>
                       {request.platform_fee_amount && <span>Tracked platform fee: <strong>{money(request.platform_fee_amount)}</strong></span>}
@@ -395,6 +427,10 @@ function applyVendorRequestTransition(current, action, values = {}) {
     estimated_value: values.estimatedValue,
     final_value: values.finalValue,
     vendor_note: values.vendorNote || current?.vendor_note || '',
+    service_date: values.serviceDate || current?.service_date || '',
+    service_start_at: fromLocalInputValue(values.serviceStartAt) || current?.service_start_at || '',
+    service_location: values.serviceLocation || current?.service_location || '',
+    service_notes: values.serviceNotes || current?.service_notes || '',
   };
   if (status === 'accepted') {
     next.responded_at = now;
@@ -421,6 +457,21 @@ function applyVendorRequestTransition(current, action, values = {}) {
   return next;
 }
 
+function toLocalInputValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (number) => String(number).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function fromLocalInputValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString();
+}
+
 function noticeForAction(action, demo) {
   const prefix = demo ? 'Demo update saved locally. ' : '';
   if (action === 'completed') return prefix + 'Marked completed. Passage will show the family and funeral home that this is handled.';
@@ -432,11 +483,35 @@ function noticeForAction(action, demo) {
 function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
   const openRequests = requests.filter((item) => !['completed', 'declined'].includes(item.status));
   const primaryRequest = openRequests[0] || requests[0];
+  const payoutReady = vendor?.stripe_charges_enabled && vendor?.stripe_payouts_enabled;
+  const revenue = vendor?.revenue || {};
   const [invite, setInvite] = useState({ email: '', displayName: '', role: 'staff' });
   const [inviteNotice, setInviteNotice] = useState('');
   const [inviteError, setInviteError] = useState('');
   const [inviteSending, setInviteSending] = useState(false);
+  const [connectLoading, setConnectLoading] = useState(false);
+  const [connectError, setConnectError] = useState('');
   const canInvite = ['owner', 'manager'].includes(vendor?.membership?.role || 'owner');
+
+  async function startConnect() {
+    if (!authToken) {
+      setConnectError('Sign in again before setting up payouts.');
+      return;
+    }
+    setConnectLoading(true);
+    setConnectError('');
+    const response = await fetch('/api/vendors/connect/start', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + authToken },
+    });
+    const json = await response.json().catch(() => ({}));
+    setConnectLoading(false);
+    if (!response.ok || !json.url) {
+      setConnectError(json.error || 'Could not start Stripe payout setup.');
+      return;
+    }
+    window.location.href = json.url;
+  }
 
   async function sendVendorInvite(event) {
     event.preventDefault();
@@ -463,7 +538,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
   return (
     <div style={cardStyle}>
       <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Private vendor workspace</div>
-      <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendor.business_name}</h1>
+      <h1 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendor.business_name}</h1>
       <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests appear only when Passage recommends you inside a relevant family task. Responding updates the same family record; this is not a public marketplace inbox.</p>
       <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginBottom: 14 }}>
         <strong style={{ color: C.ink }}>Vendor scope:</strong> see the request, urgency, family-facing context, and response status. The family record keeps approvals, proof, and broader coordination.
@@ -473,6 +548,23 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
         <Info label="Category" value={vendorCategoryLabel(vendor.category)} />
         <Info label="Open requests" value={openRequests.length} />
         <Info label="Service area" value={(vendor.zip_codes_served || []).join(', ') || 'Not set'} />
+      </div>
+
+      <div style={{ background: payoutReady ? C.sageFaint : C.amberFaint, border: '1px solid ' + (payoutReady ? '#c8deca' : '#ead4ac'), borderRadius: 15, padding: 14, marginBottom: 14, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
+        <div>
+          <div style={{ color: payoutReady ? C.sage : C.amber, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Payout readiness</div>
+          <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, marginTop: 4 }}>{payoutReady ? 'Stripe payouts are ready.' : 'Finish payout setup before paid jobs can be collected.'}</div>
+          <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>Passage collects the family payment, keeps the marketplace fee, and routes the vendor balance through Stripe Connect.</div>
+          {connectError && <div style={{ color: C.rose, fontSize: 12.5, marginTop: 6 }}>{connectError}</div>}
+        </div>
+        {!payoutReady && <button onClick={startConnect} disabled={connectLoading} style={buttonStyle(C.sage)}>{connectLoading ? 'Opening...' : 'Set up payouts'}</button>}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginBottom: 14 }}>
+        <Info label="Paid jobs" value={revenue.paidJobs || 0} />
+        <Info label="Gross paid" value={money(revenue.grossPaid) || '$0'} />
+        <Info label="Passage fees" value={money(revenue.passageFees) || '$0'} />
+        <Info label="Vendor balance" value={money(revenue.vendorNet) || '$0'} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(260px,.75fr)', gap: 12, margin: '0 0 14px' }}>
@@ -585,11 +677,7 @@ function Pill({ label, time }) {
 }
 
 function labelForStatus(status) {
-  if (status === 'completed') return 'Completed';
-  if (status === 'in_progress') return 'Quote accepted';
-  if (status === 'accepted') return 'Quote ready';
-  if (status === 'declined') return 'Declined';
-  return 'Quote requested';
+  return vendorStatusLabel(status);
 }
 
 function buttonStyle(background) {

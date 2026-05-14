@@ -27,7 +27,7 @@ const categories = [
 function Field({ label, children }) {
   return (
     <label style={{ display: 'block', marginBottom: 9 }}>
-      <div style={{ fontSize: 10, color: C.soft, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 5 }}>{label}</div>
       {children}
     </label>
   );
@@ -40,9 +40,8 @@ const SUPPORT_DOMAIN = 'gmail.com';
 function SupportEmail() {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
-  if (!ready) return <span>support email loading</span>;
   const email = SUPPORT_USER + '@' + SUPPORT_DOMAIN;
-  return <a href={'mailto:' + email} style={{ color: C.ink }}>{email}</a>;
+  return <a href={'mailto:' + email} style={{ color: C.ink }}>{ready ? email : 'thepassageappio@gmail.com'}</a>;
 }
 
 export default function ContactPage() {
@@ -97,8 +96,8 @@ export default function ContactPage() {
 
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '6px 22px 10px', display: 'grid', gridTemplateColumns: 'minmax(0,.9fr) minmax(360px,1fr)', gap: 16, alignItems: 'start' }}>
         <div>
-          <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Contact Passage</div>
-          <h1 style={{ fontSize: 'clamp(30px, 3.4vw, 44px)', lineHeight: .98, margin: '0 0 8px', fontWeight: 400 }}>How can we help right now?</h1>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Contact Passage</div>
+          <h1 style={{ fontSize: 32, lineHeight: .98, margin: '0 0 8px', fontWeight: 400 }}>How can we help right now?</h1>
           <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: 0 }}>Book demos and partner conversations immediately. Use the form for support, billing, bugs, feature requests, urgent-flow feedback, or anything that can wait for a written reply.</p>
           <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px', color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
             <strong style={{ color: C.ink }}>Emergencies:</strong> contact local emergency services or the appropriate funeral, medical, legal, or government office directly.<br />
@@ -106,7 +105,7 @@ export default function ContactPage() {
             <strong style={{ color: C.ink }}>Vendors:</strong> use the approval flow. <Link href="/vendors/onboard" style={{ color: C.sage, fontWeight: 900 }}>Apply as a vendor</Link>
           </div>
           <div style={{ marginTop: 10, background: '#fffdf9', border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px' }}>
-            <div style={{ fontSize: 10, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 5 }}>Fastest path</div>
+            <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 5 }}>Fastest path</div>
             <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.18, marginBottom: 5 }}>Book a Passage discovery meeting.</div>
             <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.42, margin: '0 0 9px' }}>For funeral-home demos, vendor conversations, hospice/care-facility discovery, or pilot walkthroughs, skip the inbox and choose a time.</p>
             <a href={meetingHref} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 13px', fontWeight: 900, fontSize: 12.5 }}>Book on HubSpot</a>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { VENDOR_CATEGORIES } from '../../lib/vendors';
+import { FUNERAL_HOME_PLAN_OPTIONS, partnerPlanFor } from '../../lib/partnerPlans';
 
 const C = {
   bg: '#f6f3ee',
@@ -37,6 +38,11 @@ function sandboxHref(href, persona = 'admin-sandbox') {
   if (persona && !params.has('persona')) params.set('persona', persona);
   if (!params.has('source')) params.set('source', 'system-admin-sandbox');
   return `${path}?${params.toString()}`;
+}
+
+function money(amount) {
+  const value = Number(amount || 0);
+  return value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: value % 1 ? 2 : 0 });
 }
 
 const adminModules = [
@@ -95,6 +101,65 @@ const reportingMetrics = [
   'Vendor response times',
   'Marketplace value and rev share',
   'Raw CSV behind every report',
+];
+
+const roadmapItems = [
+  {
+    pillar: 'Vendor Commerce',
+    priority: 'P0',
+    timing: 'Today',
+    status: 'In sprint',
+    title: 'Vendor quote, family invoice, and Stripe Connect payout loop',
+    body: 'Complete the money-moving loop from task request to vendor quote, family payment, Passage fee, vendor net, paid status, reminders, and dashboard revenue proof.',
+  },
+  {
+    pillar: 'Green to Red Trust Spine',
+    priority: 'P0',
+    timing: 'Today',
+    status: 'Build verification',
+    title: 'Two-person activation and post-trigger orchestration',
+    body: 'Make the planning-to-active transition crystal clear: one trusted person starts, a second confirms, everyone sees the reason, and missing first-hour tasks become assigned work.',
+  },
+  {
+    pillar: 'Funeral Home Operations',
+    priority: 'P0',
+    timing: 'Today',
+    status: 'In progress',
+    title: 'Subscription tiers, location slots, staff scope, and My Day',
+    body: 'Tie plan type to location capacity, employee scope, case creation, reporting, and upgrade paths so single-location and multi-location partners operate from the same spine.',
+  },
+  {
+    pillar: 'Communications',
+    priority: 'P0',
+    timing: 'This week',
+    status: 'Needs QA',
+    title: 'Family updates, bulk recipients, and event announcements',
+    body: 'Create a clean communication center for funeral, wake, cemetery, service, vendor, and family updates with recipient review, delivery logs, and response visibility.',
+  },
+  {
+    pillar: 'Demo and QA Sandbox',
+    priority: 'P1',
+    timing: 'This week',
+    status: 'Planned',
+    title: 'Admin persona launcher with safe notification routing',
+    body: 'Let Steve create clean sandbox users and switch among family, participant, funeral home, employee, vendor, and admin without polluting public UX or emailing real people.',
+  },
+  {
+    pillar: 'CRM Spine',
+    priority: 'P1',
+    timing: 'Next week',
+    status: 'Needs HubSpot IDs',
+    title: 'HubSpot contact, company, deal, and pipeline routing',
+    body: 'Route family leads, funeral-home warm inbounds, vendor applications, care facilities, paid customers, and marketplace transactions into the right HubSpot records.',
+  },
+  {
+    pillar: 'Mobile Companion',
+    priority: 'P2',
+    timing: 'Next week',
+    status: 'Scoped',
+    title: 'Role-based mobile action layer',
+    body: 'Define the first Expo app around My Day, assigned work, proof upload, invitations, vendor quote status, and push notifications without cloning the full web command center.',
+  },
 ];
 
 const personaProfiles = [
@@ -179,7 +244,9 @@ export default function SystemAdminPage() {
   const [dryRunDraft, setDryRunDraft] = useState({ email: '', phone: '', channel: 'email' });
   const [dryRunResult, setDryRunResult] = useState(null);
   const [dryRunLoading, setDryRunLoading] = useState(false);
-  const [partnerInviteDraft, setPartnerInviteDraft] = useState({ organizationName: '', directorName: '', directorEmail: '', supportEmail: '', supportPhone: '' });
+  const [spineSmokeLoading, setSpineSmokeLoading] = useState(false);
+  const [spineSmokeResult, setSpineSmokeResult] = useState(null);
+  const [partnerInviteDraft, setPartnerInviteDraft] = useState({ organizationName: '', directorName: '', directorEmail: '', supportEmail: '', supportPhone: '', planId: 'partner_local' });
   const [partnerInviteResult, setPartnerInviteResult] = useState(null);
   const [partnerInviteLoading, setPartnerInviteLoading] = useState(false);
   const [vendorSetupDraft, setVendorSetupDraft] = useState({ businessName: '', category: 'florist', email: '', phone: '', zipCodes: '', website: '', description: '' });
@@ -188,6 +255,7 @@ export default function SystemAdminPage() {
   const [resetPreview, setResetPreview] = useState(null);
   const [resetResult, setResetResult] = useState(null);
   const [resetPhrase, setResetPhrase] = useState('');
+  const [resetSafetyChecked, setResetSafetyChecked] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
@@ -316,6 +384,33 @@ export default function SystemAdminPage() {
     }
   }
 
+  async function runCoordinationSmokeTest() {
+    if (!supabase) return;
+    setSpineSmokeLoading(true);
+    setSpineSmokeResult(null);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/system/orchestrationSmokeTest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        },
+        body: JSON.stringify({
+          recipientEmail: user?.email || 'steventurrisi@gmail.com',
+          keepRecords: false,
+        }),
+      });
+      const json = await response.json().catch(() => ({}));
+      setSpineSmokeResult({ ok: response.ok, status: response.status, json });
+    } catch (error) {
+      setSpineSmokeResult({ ok: false, status: 0, json: { error: error.message || 'Coordination smoke test failed.' } });
+    } finally {
+      setSpineSmokeLoading(false);
+    }
+  }
+
   async function sendPartnerInvite(event) {
     event?.preventDefault?.();
     if (!supabase) return;
@@ -335,7 +430,7 @@ export default function SystemAdminPage() {
       const json = await response.json().catch(() => ({}));
       setPartnerInviteResult({ ok: response.ok, status: response.status, json });
       if (response.ok) {
-        setPartnerInviteDraft({ organizationName: '', directorName: '', directorEmail: '', supportEmail: '', supportPhone: '' });
+        setPartnerInviteDraft({ organizationName: '', directorName: '', directorEmail: '', supportEmail: '', supportPhone: '', planId: 'partner_local' });
       }
     } catch (error) {
       setPartnerInviteResult({ ok: false, status: 0, json: { error: error.message || 'Partner invite failed.' } });
@@ -392,6 +487,10 @@ export default function SystemAdminPage() {
 
   async function runProductionReset() {
     if (!supabase) return;
+    if (resetPhrase !== 'RESET PASSAGE TEST DATA' || !resetSafetyChecked) {
+      setResetResult({ ok: false, json: { error: 'Preview the scope, check the safety confirmation, and type the exact reset phrase before clearing production test data.' } });
+      return;
+    }
     setResetLoading(true);
     setResetResult(null);
     try {
@@ -403,12 +502,13 @@ export default function SystemAdminPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: 'Bearer ' + token } : {}),
         },
-        body: JSON.stringify({ confirmPhrase: resetPhrase, includeAuthUsers: true }),
+        body: JSON.stringify({ confirmPhrase: resetPhrase, includeAuthUsers: true, confirmedNoRealData: resetSafetyChecked }),
       });
       const json = await response.json().catch(() => ({}));
       setResetResult({ ok: response.ok, json });
       if (response.ok) {
         setResetPhrase('');
+        setResetSafetyChecked(false);
         setResetPreview(json);
       }
     } catch (error) {
@@ -501,20 +601,67 @@ export default function SystemAdminPage() {
                 </div>
               </Panel>
               <Panel compact>
+                <div style={eyebrow}>Coordination smoke test</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Prove task, communication, and notification spine.</h2>
+                    <p style={lead}>Creates a temporary QA funeral-home case, closes a task with proof, sends a participant-style assignment email, sends a reviewed family update, checks the Green-to-Red activation tables, verifies notification/status/event rows, then clears the temporary records.</p>
+                  </div>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <button type="button" onClick={runCoordinationSmokeTest} disabled={spineSmokeLoading} style={{ ...primaryButton, marginTop: 0, justifySelf: 'start', opacity: spineSmokeLoading ? .6 : 1 }}>
+                      {spineSmokeLoading ? 'Running spine test...' : 'Run spine smoke test'}
+                    </button>
+                    <div style={{ ...smallText, marginTop: 0 }}>Default recipient is your signed-in admin email. The smoke test cleans up its case, tasks, and events unless a developer explicitly runs it with keepRecords.</div>
+                    {spineSmokeResult && (
+                      <div style={{ background: spineSmokeResult.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (spineSmokeResult.ok ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12 }}>
+                        <div style={{ color: spineSmokeResult.ok ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{spineSmokeResult.ok ? 'Spine test complete' : 'Spine test needs review'}</div>
+                        <div style={{ ...smallText, marginTop: 5 }}>
+                          {spineSmokeResult.json?.success ? 'Temporary case exercised and cleaned up.' : spineSmokeResult.json?.error || 'One or more checks failed.'}
+                        </div>
+                        {Array.isArray(spineSmokeResult.json?.checks) && (
+                          <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
+                            {spineSmokeResult.json.checks.map(check => (
+                              <div key={check.name} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 9px', fontSize: 12.5, color: C.mid }}>
+                                <strong style={{ color: check.ok === false || check.status >= 400 ? C.rose : C.sage }}>{check.name}</strong>
+                                <span> {check.status ? `status ${check.status}` : ''}</span>
+                                {check.notificationCount != null && <span> · {check.notificationCount} notifications · {check.statusEventCount} status events · {check.estateEventCount} estate events</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Panel>
+              <Panel compact>
                 <div style={eyebrow}>Invite funeral home</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
                   <div>
                     <h2 style={h2}>Send the partner-owner setup email.</h2>
-                    <p style={lead}>This creates or updates the funeral-home organization, saves the director as owner, and emails a setup link into the co-branded partner workspace.</p>
+                    <p style={lead}>This creates or updates the funeral-home organization, saves the director as owner, assigns the subscription/location-slot model, and emails a setup link into the co-branded partner workspace.</p>
                   </div>
                   <form onSubmit={sendPartnerInvite} style={{ display: 'grid', gap: 9 }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 }}>
                       <input value={partnerInviteDraft.organizationName} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, organizationName: event.target.value }))} placeholder="Funeral home name" style={inputStyle} />
                       <input value={partnerInviteDraft.directorName} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, directorName: event.target.value }))} placeholder="Director / owner name" style={inputStyle} />
                       <input value={partnerInviteDraft.directorEmail} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, directorEmail: event.target.value }))} placeholder="director@funeralhome.com" style={inputStyle} />
+                      <select value={partnerInviteDraft.planId} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, planId: event.target.value }))} style={inputStyle} aria-label="Funeral home subscription type">
+                        {Object.values(FUNERAL_HOME_PLAN_OPTIONS).map(plan => (
+                          <option key={plan.id} value={plan.id}>{plan.label} - {plan.includedLocationSlots} location{plan.includedLocationSlots === 1 ? '' : 's'}</option>
+                        ))}
+                      </select>
                       <input value={partnerInviteDraft.supportPhone} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, supportPhone: event.target.value }))} placeholder="Support phone" style={inputStyle} />
                       <input value={partnerInviteDraft.supportEmail} onChange={event => setPartnerInviteDraft(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Family support email (optional)" style={inputStyle} />
                     </div>
+                    {(() => {
+                      const plan = partnerPlanFor(partnerInviteDraft.planId);
+                      return (
+                        <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: '10px 11px', color: C.mid, fontSize: 12.5, lineHeight: 1.5 }}>
+                          <strong style={{ color: C.sage }}>{plan.label}:</strong> {plan.description} Includes {plan.includedLocationSlots} location slot{plan.includedLocationSlots === 1 ? '' : 's'}; additional locations are {money(plan.additionalLocationFeeCents / 100)}/mo each unless moved to a group plan.
+                        </div>
+                      );
+                    })()}
                     <button type="submit" disabled={partnerInviteLoading} style={{ ...primaryButton, marginTop: 0, justifySelf: 'start', opacity: partnerInviteLoading ? .6 : 1 }}>{partnerInviteLoading ? 'Sending invite...' : 'Create workspace + send invite'}</button>
                     {partnerInviteResult && (
                       <div style={{ background: partnerInviteResult.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (partnerInviteResult.ok ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12 }}>
@@ -562,21 +709,30 @@ export default function SystemAdminPage() {
                 </div>
               </Panel>
               <Panel compact>
-                <div style={eyebrow}>Vendor payment spine</div>
-                <h2 style={h2}>Quote, family payment, Passage fee, vendor remittance.</h2>
-                <p style={lead}>This is the commercial loop that should ship next: vendor quotes from the task, family approves and pays through Passage, the task/event timeline updates, Passage keeps the disclosed marketplace fee, and the vendor sees paid revenue and payout status.</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginTop: 12 }}>
-                  {[
-                    ['1. Quote', 'Vendor receives date/time/context and returns a price, terms, and service note.'],
-                    ['2. Approve and pay', 'Family coordinator or task owner gets an email and in-app payment CTA.'],
-                    ['3. Spine event', 'Payment and service confirmation write to the task, estate timeline, and family update.'],
-                    ['4. Payout ledger', 'Vendor sees gross revenue, Passage fee, net balance, payout status, and service history.'],
-                  ].map(([title, body]) => (
-                    <div key={title} style={subPanel}>
-                      <h3 style={h3}>{title}</h3>
-                      <p style={smallText}>{body}</p>
-                    </div>
-                  ))}
+                <div style={eyebrow}>Admin roadmap</div>
+                <h2 style={h2}>What we are sprinting next.</h2>
+                <p style={lead}>High-level product spine, priority, target window, and current status. This replaces one-off internal notes with a visible owner-only roadmap that can be updated as items are signed off.</p>
+                <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
+                  {roadmapItems.map(item => {
+                    const priorityColor = item.priority === 'P0' ? C.rose : item.priority === 'P1' ? C.amber : C.sage;
+                    const statusTone = /complete|signed/i.test(item.status) ? C.sage : /needs/i.test(item.status) ? C.amber : priorityColor;
+                    return (
+                      <div key={item.title} style={{ ...subPanel, display: 'grid', gap: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                          <div>
+                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{item.pillar}</div>
+                            <h3 style={{ ...h3, marginTop: 5 }}>{item.title}</h3>
+                          </div>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                            <span style={{ border: `1px solid ${priorityColor}44`, background: item.priority === 'P0' ? C.roseFaint : item.priority === 'P1' ? C.amberFaint : C.sageFaint, color: priorityColor, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.priority}</span>
+                            <span style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.timing}</span>
+                            <span style={{ border: `1px solid ${statusTone}44`, background: C.card, color: statusTone, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.status}</span>
+                          </div>
+                        </div>
+                        <p style={{ ...smallText, margin: 0 }}>{item.body}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </Panel>
               <Panel compact>
@@ -593,8 +749,17 @@ export default function SystemAdminPage() {
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                       <button type="button" onClick={loadResetPreview} disabled={resetLoading} style={secondaryButton}>{resetLoading ? 'Checking...' : 'Preview rows to clear'}</button>
                       <input value={resetPhrase} onChange={event => setResetPhrase(event.target.value)} placeholder="Type RESET PASSAGE TEST DATA" style={{ ...inputStyle, flex: '1 1 260px' }} />
-                      <button type="button" onClick={runProductionReset} disabled={resetLoading || resetPhrase !== 'RESET PASSAGE TEST DATA'} style={{ ...primaryButton, marginTop: 0, opacity: resetLoading || resetPhrase !== 'RESET PASSAGE TEST DATA' ? .55 : 1 }}>Reset production test data</button>
+                      <button type="button" onClick={runProductionReset} disabled={resetLoading || resetPhrase !== 'RESET PASSAGE TEST DATA' || !resetSafetyChecked} style={{ ...primaryButton, marginTop: 0, opacity: resetLoading || resetPhrase !== 'RESET PASSAGE TEST DATA' || !resetSafetyChecked ? .55 : 1 }}>Reset production test data</button>
                     </div>
+                    <label style={{ display: 'flex', gap: 9, alignItems: 'flex-start', background: C.roseFaint, border: '1px solid #efc7c7', borderRadius: 13, padding: 12, color: C.rose, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                      <input
+                        type="checkbox"
+                        checked={resetSafetyChecked}
+                        onChange={event => setResetSafetyChecked(event.target.checked)}
+                        style={{ marginTop: 2, width: 16, height: 16 }}
+                      />
+                      <span>I reviewed the row preview and verified Passage has no real customers, leads, estates, vendor jobs, or partner records that should be preserved.</span>
+                    </label>
                     {resetPreview && (
                       <div style={subPanel}>
                         <h3 style={h3}>Rows currently in reset scope: {resetPreview.totalRows ?? resetPreview.totalDeletedRows ?? 0}</h3>
@@ -659,7 +824,7 @@ export default function SystemAdminPage() {
                         ['Messages', 'Demo-safe where supported'],
                       ].map(([label, value]) => (
                         <div key={label} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px' }}>
-                          <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                           <div style={{ color: C.ink, fontSize: 13, lineHeight: 1.3, marginTop: 3, fontWeight: 900 }}>{value}</div>
                         </div>
                       ))}
@@ -879,7 +1044,7 @@ function formatAdminMetricValue(item) {
 }
 
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
-const h1 = { fontSize: 'clamp(34px, 5vw, 56px)', lineHeight: 1.04, margin: '8px 0 10px', fontWeight: 400, maxWidth: 820 };
+const h1 = { fontSize: 52, lineHeight: 1.04, margin: '8px 0 10px', fontWeight: 400, maxWidth: 820 };
 const h2 = { fontSize: 28, lineHeight: 1.12, margin: '8px 0 10px', fontWeight: 400 };
 const h3 = { fontSize: 22, lineHeight: 1.15, fontWeight: 900 };
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth: 760 };

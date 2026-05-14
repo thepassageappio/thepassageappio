@@ -241,7 +241,7 @@ export default function HospiceWarmPath() {
         <div className="warm-hero-grid" data-demo-anchor="demo-warm-record" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .86fr) minmax(360px, 1fr)', gap: 14, alignItems: 'stretch' }}>
           <div style={heroCard}>
             <div style={eyebrow}>{activeMode.eyebrow}</div>
-            <h1 style={{ fontSize: 'clamp(30px, 3.55vw, 42px)', lineHeight: 1.02, margin: '7px 0 9px', fontWeight: 400 }}>
+            <h1 style={{ fontSize: 32, lineHeight: 1.02, margin: '7px 0 9px', fontWeight: 400 }}>
               {activeMode.title}
             </h1>
             <p style={{ ...lead, fontSize: 13.2, lineHeight: 1.38 }}>
@@ -270,6 +270,7 @@ export default function HospiceWarmPath() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
               <a href="#start-warm-workspace" style={primaryLink}>Start care-prep record</a>
               <Link href="/urgent" style={secondaryLink}>Death has occurred</Link>
+              <Link href="/care-providers" style={secondaryLink}>Care-provider partnerships</Link>
               <a href={calendlyUrl({ source: 'Hospice or care-facility discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Discuss care-team pilot</a>
             </div>
           </div>
@@ -576,7 +577,7 @@ function WarmDate({ label, value, onChange }) {
 const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: '18px 20px', boxShadow: '0 14px 34px rgba(55,45,35,.045)' };
 const section = { maxWidth: 1040, margin: '0 auto', padding: '8px 28px 14px' };
 const sectionHeader = { maxWidth: 760, marginBottom: 16 };
-const eyebrow = { color: C.sage, fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
+const eyebrow = { color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const h2 = { fontSize: 34, lineHeight: 1.1, margin: '8px 0 10px', fontWeight: 400 };
 const h3 = { fontSize: 19, lineHeight: 1.18, margin: '8px 0 6px' };
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.62, margin: 0 };

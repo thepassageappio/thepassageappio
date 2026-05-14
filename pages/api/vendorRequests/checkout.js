@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
+import { canonicalVendorStatus } from '../../../lib/vendorLifecycle';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -35,7 +36,7 @@ export default async function handler(req, res) {
 
   const { data: request, error } = await admin
     .from('vendor_requests')
-    .select('id,workflow_id,task_id,task_title,status,estimated_value,final_value,vendor_note,marketplace_fee_percent,funeral_home_rev_share_percent,payment_collection_status,organization_id,vendors(id,business_name,category,contact_email,stripe_connect_account_id,stripe_charges_enabled),workflows(id,user_id,coordinator_email,coordinator_name,organization_id,deceased_name,estate_name,name)')
+    .select('id,workflow_id,task_id,task_title,status,estimated_value,final_value,vendor_note,marketplace_fee_percent,funeral_home_rev_share_percent,payment_collection_status,organization_id,service_date,service_start_at,service_location,service_notes,vendors(id,business_name,category,contact_email,stripe_connect_account_id,stripe_charges_enabled,stripe_payouts_enabled),workflows(id,user_id,coordinator_email,coordinator_name,organization_id,deceased_name,estate_name,name)')
     .eq('id', requestId)
     .maybeSingle();
   if (error) return res.status(500).json({ error: error.message });
@@ -43,12 +44,15 @@ export default async function handler(req, res) {
 
   const allowed = await userCanAccessWorkflow(auth.user, request.workflows);
   if (!allowed) return res.status(403).json({ error: 'You do not have access to this family record.' });
-  if (request.status !== 'accepted') return res.status(409).json({ error: 'A vendor quote must be ready before payment.' });
+  const currentStatus = canonicalVendorStatus(request.status);
+  if (!['quoted', 'family_accepted', 'payment_pending'].includes(currentStatus)) {
+    return res.status(409).json({ error: 'A vendor quote must be ready before payment.' });
+  }
 
   const vendor = request.vendors;
   const destination = vendor?.stripe_connect_account_id;
-  if (!destination || vendor?.stripe_charges_enabled === false) {
-    return res.status(409).json({ error: 'This vendor is not payment-ready yet. Passage can still track the quote, but Connect onboarding is required before collecting payment.' });
+  if (!destination || vendor?.stripe_charges_enabled === false || vendor?.stripe_payouts_enabled === false) {
+    return res.status(409).json({ error: 'This vendor is not payment-ready yet. Passage can still track the quote, but Stripe Connect onboarding must be complete before collecting payment.' });
   }
 
   const grossDollars = Number(request.final_value || request.estimated_value || 0);
@@ -105,11 +109,17 @@ export default async function handler(req, res) {
     stripe_checkout_session_id: session.id,
     stripe_connected_account_id: destination,
     quote_approved_at: now,
+    family_accepted_at: now,
     payment_url_created_at: now,
+    status: 'payment_pending',
     payment_collection_status: 'checkout_created',
+    gross_amount: grossCents / 100,
+    passage_fee_percent: Number(request.marketplace_fee_percent ?? 12),
+    passage_fee_amount: applicationFeeCents / 100,
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
     passage_share_amount: economics.passageShareAmount,
+    vendor_net_amount: Math.round(vendorNetCents) / 100,
     payout_amount: Math.round(vendorNetCents) / 100,
     payout_status: 'pending',
     updated_at: now,

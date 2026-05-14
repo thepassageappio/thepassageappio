@@ -567,6 +567,7 @@ export default function FuneralHomeDashboard() {
   const [reportStaff, setReportStaff] = useState('all');
   const [reportDates, setReportDates] = useState({ from: '', to: '' });
   const [caseDetailTabs, setCaseDetailTabs] = useState({});
+  const [staffCaseContextOpen, setStaffCaseContextOpen] = useState(false);
   const [showAllCases, setShowAllCases] = useState(false);
   const [latestFamilyLink, setLatestFamilyLink] = useState(null);
   const [latestStaffInvite, setLatestStaffInvite] = useState(null);
@@ -586,6 +587,7 @@ export default function FuneralHomeDashboard() {
     funeralHomeName: '',
     caseType: 'immediate',
     personName: '',
+    locationId: '',
     locationName: '',
     locationAddress: '',
     locationCity: '',
@@ -1349,10 +1351,12 @@ export default function FuneralHomeDashboard() {
     if (!caseId) return;
     setShowPilotGuide(false);
     setShowTools(false);
+    setStaffCaseContextOpen(true);
     setActivePartnerView('work');
     setSelectedLocation('all');
     setExpandedCaseId(caseId);
-    setNotice('Opening the case work queue.');
+    setCaseDetailTabs(prev => ({ ...prev, [caseId]: prev[caseId] || 'family' }));
+    setNotice(isDirectorRole ? 'Opening the full case context.' : 'Opening the scoped case context.');
     const scrollToCase = () => {
       const panel = document.getElementById('partner-case-' + caseId);
       if (panel) {
@@ -1369,6 +1373,7 @@ export default function FuneralHomeDashboard() {
   function openPartnerPane(view, targetId, message) {
     setShowPilotGuide(false);
     setShowTools(false);
+    if (view !== 'work') setStaffCaseContextOpen(false);
     setActivePartnerView(view);
     if (message) setNotice(message);
     scrollPartnerDemoTarget(targetId);
@@ -1377,6 +1382,7 @@ export default function FuneralHomeDashboard() {
   function openPartnerManagement(message = 'Opening locations, employees, roles, and permissions.') {
     setShowPilotGuide(false);
     setShowTools(false);
+    setStaffCaseContextOpen(false);
     setActivePartnerView('manage');
     if (message) setNotice(message);
     scrollPartnerDemoTarget('partner-management-section');
@@ -1712,7 +1718,7 @@ export default function FuneralHomeDashboard() {
       setShowNewCase(false);
       trackEvent('partner_case_created_demo', { caseType: normalizedCaseType, isPrepaid: Boolean(caseForm.isPrepaid), hasCaseValue: Boolean(caseForm.totalCaseValue), hasFamilyEmail: Boolean(caseForm.coordinatorEmail) });
       setExpandedCaseId(id);
-      setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', locationName: '', locationAddress: '', locationCity: '', locationState: '', locationZip: '', locationCountry: '', locationPlaceId: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
+      setCaseForm({ funeralHomeName: org?.name || '', caseType: 'immediate', personName: '', locationId: '', locationName: '', locationAddress: '', locationCity: '', locationState: '', locationZip: '', locationCountry: '', locationPlaceId: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
       return;
     }
     setCreating(true);
@@ -1746,7 +1752,7 @@ export default function FuneralHomeDashboard() {
         : 'Case created. Family access was not prepared yet; use the family view or coordinator email to complete the handoff.');
     }
     setShowNewCase(false);
-    setCaseForm({ funeralHomeName: '', caseType: 'immediate', personName: '', locationName: '', locationAddress: '', locationCity: '', locationState: '', locationZip: '', locationCountry: '', locationPlaceId: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
+    setCaseForm({ funeralHomeName: org?.name || '', caseType: 'immediate', personName: '', locationId: '', locationName: '', locationAddress: '', locationCity: '', locationState: '', locationZip: '', locationCountry: '', locationPlaceId: '', dateOfDeath: '', coordinatorName: '', coordinatorEmail: '', coordinatorPhone: '', caseReference: '', isPrepaid: false, totalCaseValue: '', prepaidAmount: '', pronouncementDate: '', releaseDate: '', arrangementDate: '', visitationDate: '', funeralDate: '', burialDate: '', shivaDate: '', receptionDate: '', obituaryDeadline: '' });
     await load(token);
   }
 
@@ -1875,6 +1881,15 @@ export default function FuneralHomeDashboard() {
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://www.thepassageapp.io';
   const activationStatus = data?.activationStatus || 'inactive';
   const partnerPlan = data?.partnerPlan || null;
+  const locationSlots = data?.locationSlots || {
+    planId: partnerPlan?.plan || 'partner_local',
+    planLabel: partnerPlan?.name || partnerPlan?.plan || 'Single location',
+    includedLocationSlots: partnerPlan?.includedLocationSlots || 1,
+    usedLocationSlots: 0,
+    remainingLocationSlots: 1,
+    needsUpgradeForNextLocation: false,
+    additionalLocationFeeCents: partnerPlan?.additionalLocationFeeCents || 9900,
+  };
   const billingStatus = data?.billingStatus || (partnerPlan?.status === 'demo' ? 'demo' : 'not_configured');
   const partnerTrialExpired = user && data && activationStatus === 'trial_expired';
 
@@ -1932,9 +1947,29 @@ export default function FuneralHomeDashboard() {
     return item.location_name || item.branch_name || item.funeral_home_location || 'Main location';
   }
 
+  function locationPatchForCaseForm(location = {}) {
+    return {
+      locationId: location.id || '',
+      locationName: location.name || location.location_name || 'Main location',
+      locationAddress: location.address || location.location_address || '',
+      locationCity: location.city || '',
+      locationState: location.state || '',
+      locationZip: location.zip || location.postal_code || '',
+      locationCountry: location.country || '',
+      locationPlaceId: location.placeId || location.place_id || '',
+    };
+  }
+
   function openCasePanel(caseType = 'immediate') {
     const normalizedCaseType = caseType === 'prepaid' ? 'preneed' : caseType;
-    setCaseForm(prev => ({ ...prev, caseType: normalizedCaseType, isPrepaid: caseType === 'prepaid' ? true : prev.isPrepaid }));
+    const defaultLocation = caseLocationOptions[0] || {};
+    setCaseForm(prev => ({
+      ...prev,
+      caseType: normalizedCaseType,
+      funeralHomeName: prev.funeralHomeName || org?.name || '',
+      isPrepaid: caseType === 'prepaid' ? true : prev.isPrepaid,
+      ...(!prev.locationName && !prev.locationAddress ? locationPatchForCaseForm(defaultLocation) : {}),
+    }));
     setShowNewCase(true);
     setShowTools(false);
     setNotice(normalizedCaseType === 'immediate'
@@ -1986,6 +2021,25 @@ export default function FuneralHomeDashboard() {
       || /waiting|needs help|failed|request|asked|declined|quote|accepted|in progress/.test(text);
   }).slice(0, 6);
   const currentMembership = (partnerStaff || []).find(member => String(member.email || '').toLowerCase() === String(user?.email || '').toLowerCase()) || null;
+  const allPartnerLocationOptions = savedPartnerLocations
+    .map(location => ({
+      id: location.id || '',
+      name: location.name || location.location_name || 'Main location',
+      address: location.address || location.location_address || '',
+      city: location.city || '',
+      state: location.state || '',
+      zip: location.zip || location.postal_code || '',
+      country: location.country || '',
+      placeId: location.place_id || location.placeId || '',
+    }))
+    .filter(location => location.name);
+  const currentLocationScope = String(currentMembership?.location_scope || currentMembership?.locationScope || 'all').trim();
+  const scopedPartnerLocationOptions = currentLocationScope && currentLocationScope !== 'all'
+    ? allPartnerLocationOptions.filter(location => String(location.name || '').toLowerCase() === currentLocationScope.toLowerCase() || String(location.id || '') === currentLocationScope)
+    : allPartnerLocationOptions;
+  const caseLocationOptions = scopedPartnerLocationOptions.length
+    ? scopedPartnerLocationOptions
+    : (locations.length ? locations.map(name => ({ id: '', name, address: '', city: '', state: '', zip: '', country: '', placeId: '' })) : [{ id: '', name: 'Main location', address: '', city: '', state: '', zip: '', country: '', placeId: '' }]);
   const currentRole = String(currentMembership?.role || data?.organizations?.[0]?.role || 'staff').toLowerCase();
   const isDirectorRole = /owner|admin|director|manager|location/i.test(currentRole);
   const currentUserEmail = String(user?.email || '').toLowerCase();
@@ -2382,9 +2436,9 @@ export default function FuneralHomeDashboard() {
   }, [demoMode, router.query.demoTour, router.query.demoStep, loading, firstOpenCase?.id]);
 
   useEffect(() => {
-    if (loading || !data || isDirectorRole || activePartnerView !== 'work') return;
+    if (loading || !data || isDirectorRole || activePartnerView !== 'work' || staffCaseContextOpen) return;
     setActivePartnerView('staff');
-  }, [loading, data, isDirectorRole, activePartnerView]);
+  }, [loading, data, isDirectorRole, activePartnerView, staffCaseContextOpen]);
 
   useEffect(() => {
     if (loading || !data || activePartnerView !== 'work' || expandedCaseId || casePaneAutoOpened || !focusedDisplayCases[0]?.id) return;
@@ -2447,7 +2501,7 @@ export default function FuneralHomeDashboard() {
           <div>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Private partner workspace</div>
             <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 620, marginTop: 8 }}>Start with My Day, then open the case, task, owner, proof, or report that needs attention.</p>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 680, marginTop: 8 }}>{needsFirstDaySetup ? 'First finish setup: confirm locations, add employees, and create or import the first case. My Day becomes useful after real work exists.' : 'Start with My Day, then open the case, task, owner, proof, or report that needs attention.'}</p>
             {user && org && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 10px', color: C.sage, fontSize: 12, fontWeight: 900 }}>
                 Family-facing view: {partnerBrand.familyPortalName || org.name} + Passage
@@ -2621,10 +2675,14 @@ export default function FuneralHomeDashboard() {
                 {
                   label: 'Staff',
                   value: `${activeEmployeeRows.length || partnerStaff.length} employee${(activeEmployeeRows.length || partnerStaff.length) === 1 ? '' : 's'}`,
-                  detail: `${staffWorkloads.filter(member => member.open > 0).length} with open assigned work`,
+                  detail: (activeEmployeeRows.length || partnerStaff.length)
+                    ? `${staffWorkloads.filter(member => member.open > 0).length} with open assigned work`
+                    : 'Set up employees before assigning case work',
                   tone: C.sage,
                   bg: C.sageFaint,
-                  action: () => setActivePartnerView('staff'),
+                  action: () => (activeEmployeeRows.length || partnerStaff.length)
+                    ? setActivePartnerView('staff')
+                    : openPartnerManagement('Opening employee setup. Add the director first, then managers and staff.'),
                 },
                 {
                   label: 'Reporting',
@@ -2636,7 +2694,7 @@ export default function FuneralHomeDashboard() {
                 },
               ].map(item => (
                 <button key={item.label} onClick={item.action} style={{ textAlign: 'left', border: `1px solid ${item.tone}33`, background: item.bg, borderRadius: 14, padding: '11px 12px', minHeight: 98, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
-                  <div style={{ color: item.tone, fontSize: 10.2, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{item.label}</div>
+                  <div style={{ color: item.tone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{item.label}</div>
                   <div style={{ color: C.ink, fontSize: 19, lineHeight: 1.12, fontWeight: 900, marginTop: 5 }}>{item.value}</div>
                   <div style={{ color: C.mid, fontSize: 12.1, lineHeight: 1.35, marginTop: 5 }}>{item.detail}</div>
                 </button>
@@ -2711,17 +2769,33 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {false && user && !loading && data && needsFirstDaySetup && !showPilotGuide && (
-          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 12, marginBottom: 10, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
+        {user && !loading && data && isDirectorRole && needsFirstDaySetup && !showPilotGuide && (
+          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 14, marginBottom: 12, boxShadow: '0 8px 26px rgba(55,45,35,.04)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
             <div>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>First-day setup</div>
-              <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.25, fontWeight: 900, marginTop: 3 }}>{nextDirectorStep.label}: {nextDirectorStep.next}</div>
-              <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>The full guide stays tucked away. Start with one case, one owner, one proof event, then export.</div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>Director onboarding</div>
+              <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.2, fontWeight: 900, marginTop: 3 }}>Finish setup before My Day becomes useful.</div>
+              <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 4 }}>Confirm the workspace, add at least one location, add employees, then create or import the first case. After that, My Day becomes the daily operating view.</div>
             </div>
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowPilotGuide(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Open guide</button>
-              <button onClick={() => openCasePanel('immediate')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create case</button>
-              <button onClick={() => openPartnerManagement('Opening locations, employees, roles, and permissions.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Add staff</button>
+              <button onClick={() => openPartnerManagement('Opening locations, employees, roles, and permissions.')} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Set up locations and employees</button>
+              <button onClick={() => openCasePanel('immediate')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Create first case</button>
+            </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8, marginTop: 12 }}>
+              {visiblePilotLaunchRows.map(([n, title, body, done]) => (
+                <button key={title} onClick={() => {
+                  if (title === 'Locations' || title === 'Employees') openPartnerManagement('Opening locations, employees, roles, and permissions.');
+                  else if (title === 'Cases') openCasePanel('immediate');
+                  else if (title === 'Workspace') setShowPilotGuide(true);
+                  else setShowPilotGuide(true);
+                }} style={{ textAlign: 'left', background: done ? C.card : C.bg, border: `1px solid ${done ? C.sage + '33' : C.border}`, borderRadius: 12, padding: '10px 11px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+                  <span style={{ display: 'inline-flex', width: 22, height: 22, borderRadius: 999, alignItems: 'center', justifyContent: 'center', background: done ? C.sage : C.card, color: done ? '#fff' : C.soft, fontSize: 11, fontWeight: 900, marginRight: 7 }}>{n}</span>
+                  <span style={{ color: C.ink, fontSize: 13.2, fontWeight: 900 }}>{title}</span>
+                  <span style={{ display: 'block', color: C.mid, fontSize: 12, lineHeight: 1.35, marginTop: 5 }}>{body}</span>
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -2785,7 +2859,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
                   {pilotReadyGates.map(([label, done, value]) => (
                     <div key={label} style={{ display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'center', background: done ? C.sageFaint : C.amberFaint, border: `1px solid ${done ? C.sage + '22' : C.amber + '33'}`, borderRadius: 11, padding: '8px 9px' }}>
-                      <span style={{ width: 18, height: 18, borderRadius: 999, background: done ? C.sage : C.amber, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 900 }}>{done ? 'OK' : '!'}</span>
+                      <span style={{ width: 18, height: 18, borderRadius: 999, background: done ? C.sage : C.amber, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 900 }}>{done ? 'OK' : '!'}</span>
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: 'block', color: C.ink, fontSize: 12.5, fontWeight: 900 }}>{label}</span>
                         <span style={{ display: 'block', color: C.mid, fontSize: 11.8, lineHeight: 1.35 }}>{value}</span>
@@ -2944,7 +3018,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
               {glanceItems.slice(0, 4).map(([label, value]) => (
                 <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 12px', minHeight: 58 }} title={label === 'Estimated calls avoided' ? 'Based on messages sent and assignments coordinated through Passage.' : ''}>
-                  <div style={{ color: C.sage, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
+                  <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
                   <div style={{ color: C.ink, fontSize: 22, marginTop: 2 }}>{value}</div>
                 </div>
               ))}
@@ -2989,7 +3063,7 @@ export default function FuneralHomeDashboard() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 8 }}>
                 {detailGlanceItems.map(([label, value]) => (
                   <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '8px 10px' }}>
-                    <div style={{ color: C.soft, fontSize: 9.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
+                    <div style={{ color: C.soft, fontSize: 10.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
                     <div style={{ color: C.ink, fontSize: 17, marginTop: 2 }}>{value}</div>
                   </div>
                 ))}
@@ -3002,7 +3076,7 @@ export default function FuneralHomeDashboard() {
                   <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', display: 'grid', gridTemplateColumns: '24px minmax(0, 1fr)', gap: 8, alignItems: 'start' }}>
                     <span style={{ width: 22, height: 22, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</span>
                     <span style={{ minWidth: 0 }}>
-                      <span style={{ display: 'block', color: C.soft, fontSize: 9.5, letterSpacing: '.09em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</span>
+                      <span style={{ display: 'block', color: C.soft, fontSize: 10.5, letterSpacing: '.09em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</span>
                       <span style={{ display: 'block', color: C.ink, fontSize: 12.2, lineHeight: 1.3, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</span>
                     </span>
                   </div>
@@ -3021,7 +3095,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 10 }}>
                   {partnerSetupRows.map(([label, value, done]) => (
                     <div key={label} style={{ background: done ? C.sageFaint : C.card, border: `1px solid ${done ? C.sage + '22' : C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 64 }}>
-                      <div style={{ color: done ? C.sage : C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                      <div style={{ color: done ? C.sage : C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                       <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.3, marginTop: 5, fontWeight: 900 }}>{value}</div>
                     </div>
                   ))}
@@ -3089,7 +3163,7 @@ export default function FuneralHomeDashboard() {
                   ['Estimated value', moneyDisplay(warmInbounds.reduce((sum, request) => sum + Number(request.estimated_case_value || 0), 0))],
                 ].map(([label, value]) => (
                   <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '9px 10px' }}>
-                    <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                     <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, marginTop: 3 }}>{value}</div>
                   </div>
                 ))}
@@ -3128,15 +3202,15 @@ export default function FuneralHomeDashboard() {
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginTop: 10 }}>
                         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
-                          <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Permission</div>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Permission</div>
                           <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{request.family_permission_to_contact ? 'Family approved contact through Passage.' : 'Review before contacting outside Passage.'}</div>
                         </div>
                         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
-                          <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Source</div>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Source</div>
                           <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{String(request.source || 'family record').replace(/_/g, ' ')}</div>
                         </div>
                         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
-                          <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Value</div>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Value</div>
                           <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{request.estimated_case_value ? moneyDisplay(request.estimated_case_value) : 'Add value once known'}</div>
                         </div>
                       </div>
@@ -3165,7 +3239,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5, maxWidth: 720 }}>Set this up once. The same roster feeds case creation, owner dropdowns, staff queues, reporting, and exports.</div>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowLocationSetup(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add location</button>
+                <button onClick={() => setShowLocationSetup(true)} style={{ border: `1px solid ${locationSlots.needsUpgradeForNextLocation ? C.amber + '55' : C.sage + '33'}`, background: locationSlots.needsUpgradeForNextLocation ? C.amberFaint : C.sageFaint, color: locationSlots.needsUpgradeForNextLocation ? C.amber : C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{locationSlots.needsUpgradeForNextLocation ? 'Upgrade / add location' : 'Add location'}</button>
                 <button onClick={() => setShowStaffSetup(true)} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
               </div>
             </div>
@@ -3219,7 +3293,7 @@ export default function FuneralHomeDashboard() {
                 {pilotLaunchRows.map(([n, title, body, done]) => (
                   <div key={`manage_${title}`} style={{ background: done ? C.card : C.amberFaint, border: `1px solid ${done ? C.border : C.amber + '33'}`, borderRadius: 11, padding: '9px 10px', minHeight: 72 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                      <div style={{ color: done ? C.sage : C.amber, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
+                      <div style={{ color: done ? C.sage : C.amber, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
                       <span style={{ color: done ? C.sage : C.amber, fontSize: 11, fontWeight: 900 }}>{done ? 'Ready' : n}</span>
                     </div>
                     <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 6 }}>{body}</div>
@@ -3236,7 +3310,10 @@ export default function FuneralHomeDashboard() {
                       <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Locations</div>
                       <div style={{ color: C.ink, fontSize: 17, fontWeight: 900, marginTop: 3 }}>Scope work by chapel, branch, or care market.</div>
                     </div>
-                    <button onClick={() => setShowLocationSetup(true)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>New location</button>
+                    <button onClick={() => setShowLocationSetup(true)} style={{ border: `1px solid ${locationSlots.needsUpgradeForNextLocation ? C.amber + '55' : C.sage + '33'}`, background: C.card, color: locationSlots.needsUpgradeForNextLocation ? C.amber : C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{locationSlots.needsUpgradeForNextLocation ? 'Upgrade' : 'New location'}</button>
+                  </div>
+                  <div style={{ background: C.card, border: `1px solid ${locationSlots.needsUpgradeForNextLocation ? C.amber + '44' : C.border}`, borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.3, lineHeight: 1.45 }}>
+                    <strong style={{ color: locationSlots.needsUpgradeForNextLocation ? C.amber : C.sage }}>{locationSlots.planLabel || 'Location slots'}:</strong> {managedLocationRows.length} of {locationSlots.includedLocationSlots || 1} included location slot{Number(locationSlots.includedLocationSlots || 1) === 1 ? '' : 's'} used. {locationSlots.needsUpgradeForNextLocation ? `Add a paid location slot (${moneyDisplay((locationSlots.additionalLocationFeeCents || 9900) / 100)}/mo) or move this partner to multi-location before adding another branch.` : 'Additional branches will trigger the upgrade path before they can be saved.'}
                   </div>
                   <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
                     {managedLocationRows.length === 0 ? (
@@ -3247,9 +3324,9 @@ export default function FuneralHomeDashboard() {
                           <div style={{ color: C.ink, fontSize: 13.2, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis' }}>{location.name}</div>
                           <div style={{ color: C.mid, fontSize: 11.6, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{location.address || location.source}</div>
                         </div>
-                        <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Cases</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.cases}</div></div>
-                        <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Staff</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.employees}</div></div>
-                        <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Value</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.caseValue ? moneyDisplay(location.caseValue) : '$0'}</div></div>
+                        <div><div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Cases</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.cases}</div></div>
+                        <div><div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Staff</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.employees}</div></div>
+                        <div><div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Value</div><div style={{ color: C.ink, fontWeight: 900 }}>{location.caseValue ? moneyDisplay(location.caseValue) : '$0'}</div></div>
                       </div>
                     ))}
                   </div>
@@ -3273,8 +3350,8 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.ink, fontSize: 13.2, fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.label || member.email}</div>
                             <div style={{ color: C.mid, fontSize: 11.7, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.email}</div>
                           </div>
-                          <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Role</div><div style={{ color: C.ink, fontSize: 12.2, fontWeight: 900 }}>{roleLabel(member.role)}</div></div>
-                          <div><div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Scope</div><div style={{ color: C.mid, fontSize: 12.2 }}>{member.locationScope === 'all' ? 'All locations' : member.locationScope || 'All locations'}</div></div>
+                          <div><div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Role</div><div style={{ color: C.ink, fontSize: 12.2, fontWeight: 900 }}>{roleLabel(member.role)}</div></div>
+                          <div><div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Scope</div><div style={{ color: C.mid, fontSize: 12.2 }}>{member.locationScope === 'all' ? 'All locations' : member.locationScope || 'All locations'}</div></div>
                           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                             <button onClick={() => { setStaffDraft({ name: member.label === member.email ? '' : member.label || '', email: member.email || '', role: member.role || 'staff', locationScope: member.locationScope || 'all', annualSalary: member.annualSalary || '', hourlyCost: member.hourlyCost || '' }); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Edit</button>
                             <button onClick={() => copyText(staffInviteMessage(member), 'Staff invite message copied.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Copy invite</button>
@@ -3393,6 +3470,15 @@ export default function FuneralHomeDashboard() {
                     <button type="button" onClick={() => setShowLocationSetup(false)} aria-label="Close location setup" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                   </div>
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>Locations scope cases, employees, reports, imports, and exports. Use a real branch, chapel, care market, or operating location.</div>
+                  {locationSlots.needsUpgradeForNextLocation && (
+                    <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}44`, borderRadius: 13, padding: '11px 12px', color: C.mid, fontSize: 12.5, lineHeight: 1.5, marginBottom: 10 }}>
+                      <strong style={{ color: C.amber }}>Location slot needed.</strong> This {locationSlots.planLabel || 'single-location'} workspace already uses its included location slot. Upgrade to multi-location or add a paid location slot before saving another location.
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
+                        <button type="button" onClick={() => startPartnerCheckout('partner_group')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Upgrade to multi-location</button>
+                        <button type="button" onClick={() => setShowLocationSetup(false)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Not now</button>
+                      </div>
+                    </div>
+                  )}
                   <input value={locationDraft.name} onChange={event => setLocationDraft(prev => ({ ...prev, name: event.target.value }))} placeholder="Location name, e.g. Main location" style={{ ...inputStyle, marginBottom: 10, width: '100%', boxSizing: 'border-box' }} />
                   <SmartAddressInput
                     compact
@@ -3414,7 +3500,7 @@ export default function FuneralHomeDashboard() {
                     hint="Choose a suggestion to attach city, state, ZIP, and country."
                   />
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                    <button disabled={updating === 'partner_location'} style={{ border: 'none', background: updating === 'partner_location' ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_location' ? 'wait' : 'pointer' }}>{updating === 'partner_location' ? 'Saving...' : 'Save location'}</button>
+                    <button disabled={updating === 'partner_location' || locationSlots.needsUpgradeForNextLocation} style={{ border: 'none', background: updating === 'partner_location' || locationSlots.needsUpgradeForNextLocation ? C.border : C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: updating === 'partner_location' || locationSlots.needsUpgradeForNextLocation ? 'not-allowed' : 'pointer' }}>{updating === 'partner_location' ? 'Saving...' : locationSlots.needsUpgradeForNextLocation ? 'Upgrade needed' : 'Save location'}</button>
                     <button type="button" onClick={() => setShowLocationSetup(false)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Close</button>
                   </div>
                 </form>
@@ -3445,7 +3531,7 @@ export default function FuneralHomeDashboard() {
                   ['Needs help', assignedWorkQueue.filter(taskNeedsHelp).length],
                 ].map(([label, value]) => (
                   <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 11px' }}>
-                    <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                     <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.1, marginTop: 4, fontWeight: 900 }}>{value}</div>
                   </div>
                 ))}
@@ -3530,11 +3616,11 @@ export default function FuneralHomeDashboard() {
                           <div style={{ color: C.mid, fontSize: 11.7, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.email}</div>
                         </div>
                         <div>
-                          <div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Role</div>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Role</div>
                           <div style={{ color: C.ink, fontSize: 12.2, fontWeight: 900 }}>{roleLabel(member.role)}</div>
                         </div>
                         <div>
-                          <div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Location</div>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Location</div>
                           <div style={{ color: C.mid, fontSize: 12.2 }}>{member.locationScope === 'all' ? 'All locations' : member.locationScope || 'All locations'}</div>
                         </div>
                         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
@@ -3629,7 +3715,7 @@ export default function FuneralHomeDashboard() {
                     return (
                     <div key={`${task.caseId}_${task.id}`} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '44' : C.border}`, borderLeft: `5px solid ${tone}`, borderRadius: 13, padding: 13, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
                       <div>
-                        <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{task.caseName} - {task.locationName}</div>
+                        <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{task.caseName} - {task.locationName}</div>
                         <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3, lineHeight: 1.25 }}>{sharedTaskTitle(task)}</div>
                         <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{task.assigned_to_name || task.assigned_to_email || task.last_actor || 'Unassigned'}</strong> - {statusLabel(task.status)}</div>
                         <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '7px 8px', marginTop: 8, color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
@@ -3751,7 +3837,7 @@ export default function FuneralHomeDashboard() {
                 ['Waiting + blocked', reportWaitingTasks.length + reportBlockedTasks.length],
               ].map(([label, value]) => (
                 <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
-                  <div style={{ color: C.sage, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
+                  <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
                   <div style={{ color: C.ink, fontSize: 20, marginTop: 3 }}>{value}</div>
                 </div>
               ))}
@@ -3904,22 +3990,48 @@ export default function FuneralHomeDashboard() {
                   <input type={key === 'dateOfDeath' ? 'date' : 'text'} value={caseForm[key]} onChange={e => setCaseForm(prev => ({ ...prev, [key]: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
                 </label>
               ))}
-              {!org?.id && (
-                <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
-                  Funeral home name
-                  <input value={caseForm.funeralHomeName} onChange={e => setCaseForm(prev => ({ ...prev, funeralHomeName: e.target.value }))} style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }} />
-                </label>
-              )}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 8, marginTop: 10 }}>
+              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                Funeral home
+                <input
+                  readOnly={Boolean(org?.id)}
+                  value={caseForm.funeralHomeName || org?.name || ''}
+                  onChange={e => setCaseForm(prev => ({ ...prev, funeralHomeName: e.target.value }))}
+                  placeholder={org?.name || 'Funeral home name'}
+                  style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: org?.id ? C.sageFaint : C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
+                Location
+                <select
+                  value={caseForm.locationId || caseForm.locationName || caseLocationOptions[0]?.name || ''}
+                  onChange={event => {
+                    const value = event.target.value;
+                    const selected = caseLocationOptions.find(location => String(location.id || location.name) === value || String(location.name) === value) || { name: value };
+                    setCaseForm(prev => ({ ...prev, ...locationPatchForCaseForm(selected) }));
+                  }}
+                  style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.bg, padding: '9px 10px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink }}
+                >
+                  {caseLocationOptions.map(location => {
+                    const value = location.id || location.name;
+                    return <option key={`${value}-${location.name}`} value={value}>{location.name}</option>;
+                  })}
+                </select>
+              </label>
+            </div>
+            <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>
+              This case will be created under {caseForm.funeralHomeName || org?.name || 'your funeral-home workspace'}{caseForm.locationName ? ` - ${caseForm.locationName}` : ''}. Staff see only the work their role and location allow.
             </div>
             <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 11, marginTop: 10 }}>
               <SmartAddressInput
                 compact
-                label="Service / case location"
+                label="Service / case address"
                 value={caseForm.locationAddress}
                 onChange={(value, parsed = {}) => setCaseForm(prev => ({
                   ...prev,
                   locationAddress: value,
-                  locationName: parsed.placeName || prev.locationName,
+                  locationName: prev.locationName || parsed.placeName || 'Main location',
                   locationCity: parsed.city || '',
                   locationState: parsed.state || '',
                   locationZip: parsed.postalCode || '',
@@ -3928,8 +4040,8 @@ export default function FuneralHomeDashboard() {
                 }))}
                 colors={C}
                 inputStyle={{ background: C.card }}
-                placeholder="Start typing funeral home, chapel, cemetery, or family address"
-                hint="Choose a suggestion to keep location, city, state, ZIP, and country attached to the case."
+                placeholder="Start typing a service address, cemetery, chapel, or family address"
+                hint="Choose a Google suggestion when available. Passage saves city, state, ZIP, country, and place context with the case."
               />
             </div>
             <div style={{ background: C.sageFaint, border: `1px solid ${caseForm.totalCaseValue || caseForm.isPrepaid ? C.sage : C.sage + '22'}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
@@ -4041,7 +4153,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 8, marginTop: 12 }}>
                   {glanceItems.slice(0, 4).map(([label, value]) => (
                     <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 55 }}>
-                      <div style={{ color: C.sage, fontSize: 9.6, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                       <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.1, marginTop: 3 }}>{value}</div>
                     </div>
                   ))}
@@ -4077,7 +4189,7 @@ export default function FuneralHomeDashboard() {
                         else if (title === 'Cases') openCasePanel('immediate');
                         else if (title === 'Proof loop') moveDirectorFocus();
                       }} style={{ textAlign: 'left', border: `1px solid ${done ? C.sage + '22' : C.amber + '33'}`, background: done ? C.sageFaint : C.amberFaint, borderRadius: 10, padding: '7px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'center', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
-                        <span style={{ width: 18, height: 18, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: done ? C.sage : C.amber, color: '#fff', fontSize: 9, fontWeight: 900 }}>{done ? 'OK' : n}</span>
+                        <span style={{ width: 18, height: 18, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: done ? C.sage : C.amber, color: '#fff', fontSize: 10.5, fontWeight: 900 }}>{done ? 'OK' : n}</span>
                         <span style={{ minWidth: 0 }}>
                           <span style={{ display: 'block', color: C.ink, fontSize: 12.2, fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
                           <span style={{ display: 'block', color: C.mid, fontSize: 11.4, lineHeight: 1.3, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{body}</span>
@@ -4233,6 +4345,7 @@ export default function FuneralHomeDashboard() {
                       <button onClick={() => {
                         if (isExpanded) {
                           setExpandedCaseId('');
+                          if (!isDirectorRole) setStaffCaseContextOpen(false);
                           setCasePaneAutoOpened(true);
                           setShowAllCases(true);
                           setNotice('Work pane closed. Showing the case list again.');
@@ -4278,7 +4391,7 @@ export default function FuneralHomeDashboard() {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 84px), 1fr))', gap: 7 }}>
                         {[['Done', handledCount, C.sage], ['Waiting', waitingCount + blocked, waitingCount + blocked ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
                           <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
-                            <div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                            <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                             <div style={{ color, fontSize: 18, fontWeight: 900, marginTop: 2 }}>{value}</div>
                           </div>
                         ))}
@@ -4484,7 +4597,7 @@ export default function FuneralHomeDashboard() {
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
                             {loopRows.map(([label, body, tone]) => (
                               <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 72 }}>
-                                <div style={{ color: tone, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                                <div style={{ color: tone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                                 <div style={{ color: label === 'Owner' ? tone : C.mid, fontSize: 11.6, lineHeight: 1.35, marginTop: 5, fontWeight: label === 'Owner' ? 900 : 500 }}>{body}</div>
                               </div>
                             ))}
@@ -4493,7 +4606,7 @@ export default function FuneralHomeDashboard() {
                             {coordinationRows.map(row => (
                               <div key={row.label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                                  <span style={{ color: C.soft, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row.label}</span>
+                                  <span style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row.label}</span>
                                   <span style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{row.count}</span>
                                 </div>
                                 <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.4, marginTop: 5 }}>{row.body}</div>
@@ -4591,7 +4704,7 @@ export default function FuneralHomeDashboard() {
                       {orchestration.progress.slice(0, 5).map(row => (
                         <div key={row.category} style={{ background: C.bg, border: `1px solid ${row.needsHelp ? C.rose + '44' : row.waiting ? C.amber + '33' : C.border}`, borderRadius: 11, padding: '8px 9px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
-                            <div style={{ color: C.soft, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row.category}</div>
+                            <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row.category}</div>
                             <div style={{ color: row.needsHelp ? C.rose : row.waiting ? C.amber : C.sage, fontSize: 11, fontWeight: 900 }}>{row.percent}%</div>
                           </div>
                           <div style={{ height: 5, borderRadius: 999, background: C.border, marginTop: 6, overflow: 'hidden' }}>
@@ -4623,7 +4736,7 @@ export default function FuneralHomeDashboard() {
                         ['Waiting', waitingCount + blocked],
                       ].map(([label, value]) => (
                         <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 10px' }}>
-                          <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                          <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                           <div style={{ fontSize: 18, marginTop: 2 }}>{value}</div>
                         </div>
                       ))}
@@ -5153,8 +5266,8 @@ function PartnerAttentionInbox({ items, onOpenCase }) {
               <button key={`${item.caseId}_${item.id}`} onClick={() => onOpenCase(item.caseId)} style={{ textAlign: 'left', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 12, alignItems: 'center', border: `1px solid ${urgent ? C.rose + '44' : C.border}`, borderLeft: `5px solid ${tone}`, background: C.bg, borderRadius: 12, padding: 12, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ color: tone, background: bg, borderRadius: 999, padding: '3px 8px', fontSize: 10, letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 900 }}>{item.attentionLabel || kind}</span>
-                    <span style={{ color: C.soft, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{item.caseName} - {item.locationName}</span>
+                    <span style={{ color: tone, background: bg, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 900 }}>{item.attentionLabel || kind}</span>
+                    <span style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{item.caseName} - {item.locationName}</span>
                   </div>
                   <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, marginTop: 3 }}>{item.title || 'Update recorded'}</div>
                   <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>{item.detail || item.statusLabel || 'Open the case to respond or record proof.'}</div>

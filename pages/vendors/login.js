@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { supabase } from '../../lib/supabaseBrowser';
+import { friendlyAuthError, isLikelyEmail, normalizeEmail } from '../../lib/authFeedback';
 
 const C = {
   bg: '#f6f3ee',
@@ -45,6 +46,7 @@ export default function VendorLogin() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const [magicLoading, setMagicLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase?.auth) return undefined;
@@ -59,15 +61,23 @@ export default function VendorLogin() {
   }
 
   async function sendMagicLink() {
-    if (!email) return setError('Enter the email connected to your vendor profile or request.');
+    const cleanEmail = normalizeEmail(email);
+    setSent(false);
+    if (!cleanEmail) return setError('Enter the email connected to your vendor profile or request.');
+    if (!isLikelyEmail(cleanEmail)) return setError('Enter a valid email address, like name@example.com.');
     if (!supabase?.auth || typeof window === 'undefined') return setError('Sign-in is not configured in this environment.');
     setError('');
+    setMagicLoading(true);
     const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
+      email: cleanEmail,
       options: { emailRedirectTo: `${window.location.origin}/vendors/request` },
     });
-    if (authError) setError(authError.message);
-    else setSent(true);
+    setMagicLoading(false);
+    if (authError) setError(friendlyAuthError(authError));
+    else {
+      setEmail(cleanEmail);
+      setSent(true);
+    }
   }
 
   async function signOut() {
@@ -83,7 +93,7 @@ export default function VendorLogin() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.78fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor workspace</div>
-            <h1 style={{ fontSize: 'clamp(34px,4.6vw,56px)', lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Respond only to the work requested.</h1>
+            <h1 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Respond only to the work requested.</h1>
             <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
               Vendor access is scoped. You do not browse family records; you see the request, timing, quote fields, and proof needed to complete one service.
             </p>
@@ -97,8 +107,8 @@ export default function VendorLogin() {
                   Continue with Google
                 </button>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8 }}>
-                  <input value={email} onChange={event => setEmail(event.target.value)} type="email" placeholder="vendor@example.com" style={{ border: `1.5px solid ${C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
-                  <button onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Email link</button>
+                  <input value={email} onChange={event => { setEmail(event.target.value); setError(''); setSent(false); }} type="email" placeholder="vendor@example.com" style={{ border: `1.5px solid ${error ? '#c47a7a' : C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
+                  <button disabled={magicLoading} onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: magicLoading ? 'wait' : 'pointer', opacity: magicLoading ? .65 : 1 }}>{magicLoading ? 'Sending...' : 'Email link'}</button>
                 </div>
                 {sent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45 }}>Check your email. The secure link opens your vendor workspace.</div>}
               </div>

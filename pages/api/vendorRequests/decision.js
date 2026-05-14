@@ -39,17 +39,18 @@ export default async function handler(req, res) {
   const allowed = await userCanAccessWorkflow(auth.user, request.workflows);
   if (!allowed) return res.status(403).json({ error: 'You do not have access to this family record.' });
 
-  if (request.status !== 'accepted' && action === 'approve_quote') {
+  if (!['accepted', 'quoted'].includes(request.status) && action === 'approve_quote') {
     return res.status(409).json({ error: 'A vendor quote must be ready before it can be accepted.' });
   }
 
   const now = new Date().toISOString();
-  const nextStatus = action === 'approve_quote' ? 'in_progress' : 'declined';
+  const nextStatus = action === 'approve_quote' ? 'family_accepted' : 'declined';
   const update = {
     status: nextStatus,
-    in_progress_at: action === 'approve_quote' ? now : null,
+    family_accepted_at: action === 'approve_quote' ? now : null,
+    in_progress_at: null,
     completed_at: null,
-    payment_collection_status: action === 'approve_quote' ? 'tracking_only' : 'waived',
+    payment_collection_status: action === 'approve_quote' ? 'family_accepted' : 'not_required',
     updated_at: now,
   };
   const { error: updateError } = await admin.from('vendor_requests').update(update).eq('id', request.id);
@@ -59,7 +60,7 @@ export default async function handler(req, res) {
   const category = vendorCategoryLabel(request.vendors?.category);
   const value = Number(request.final_value || request.estimated_value || 0);
   const detail = action === 'approve_quote'
-    ? `${vendorName} quote accepted for ${request.task_title || category}. ${value > 0 ? `Tracked value: $${Math.round(value)}.` : 'Value not recorded yet.'}`
+    ? `${vendorName} quote accepted for ${request.task_title || category}. ${value > 0 ? `Payment is the next step for $${Math.round(value)}.` : 'Value not recorded yet.'}`
     : `${vendorName} quote was not accepted for ${request.task_title || category}; another local option is needed.`;
 
   await recordTaskCommunicationEvent({
@@ -67,7 +68,7 @@ export default async function handler(req, res) {
     workflowId: request.workflow_id,
     taskId: request.task_id,
     taskTitle: request.task_title,
-    status: action === 'approve_quote' ? 'acknowledged' : 'blocked',
+    status: action === 'approve_quote' ? 'waiting' : 'blocked',
     actor: auth.user.email || 'Family coordinator',
     actorRole: request.workflows?.organization_id ? 'funeral_home' : 'family_coordinator',
     channel: 'vendor',
@@ -79,7 +80,7 @@ export default async function handler(req, res) {
 
   const { data: updated } = await admin
     .from('vendor_requests')
-    .select('id,vendor_id,task_id,task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,vendor_note,payment_collection_status,vendors(business_name,category)')
+    .select('id,vendor_id,task_id,task_title,status,urgency,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,vendor_note,payment_collection_status,gross_amount,passage_fee_amount,vendor_net_amount,payout_status,vendors(business_name,category)')
     .eq('id', request.id)
     .maybeSingle();
 

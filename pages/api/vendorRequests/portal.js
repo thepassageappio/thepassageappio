@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { recordStatusEvent } from '../../../lib/taskStatus';
 import { vendorCategoryLabel } from '../../../lib/vendors';
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
+import { canonicalVendorStatus } from '../../../lib/vendorLifecycle';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -9,7 +11,7 @@ async function loadRequest(token) {
   if (!token) return null;
   const { data } = await admin
     .from('vendor_requests')
-    .select('id,workflow_id,task_id,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,marketplace_fee_percent,funeral_home_rev_share_percent,payment_collection_status,organization_id,vendors(business_name,category,contact_email,contact_phone,website),workflows(deceased_name,estate_name,name,coordinator_name,coordinator_email,organizations(name))')
+    .select('id,workflow_id,task_id,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,marketplace_fee_percent,funeral_home_rev_share_percent,payment_collection_status,organization_id,service_date,service_start_at,service_end_at,service_location,service_notes,family_contact_name,family_contact_phone,gross_amount,passage_fee_percent,passage_fee_amount,stripe_fee_estimate,vendor_net_amount,payout_status,vendors(business_name,category,contact_email,contact_phone,website),workflows(deceased_name,estate_name,name,coordinator_name,coordinator_email,organizations(name))')
     .eq('response_token', token)
     .maybeSingle();
   return data;
@@ -20,8 +22,10 @@ async function notifyOwner(request, title, detail) {
     request.workflows?.coordinator_email,
   ].filter(Boolean)));
   if (!recipients.length) return { status: 'skipped', reason: 'No coordinator email.' };
+  const route = routeEmailRecipients(recipients);
+  if (!route.actual.length) return { status: 'skipped', reason: 'No routed recipient.' };
   if (!process.env.RESEND_API_KEY) {
-    await admin.from('notification_log').insert([{
+    await insertNotificationLog(admin, {
       workflow_id: request.workflow_id,
       channel: 'email',
       recipient_email: recipients[0],
@@ -30,7 +34,9 @@ async function notifyOwner(request, title, detail) {
       provider: 'resend',
       status: 'skipped',
       error_message: 'RESEND_API_KEY is not configured.',
-    }]).then(() => {}, () => {});
+      source: 'vendor_request_update',
+      ...qaAuditFields(route),
+    });
     return { status: 'skipped', reason: 'Resend is not configured.' };
   }
   const response = await fetch('https://api.resend.com/emails', {
@@ -38,13 +44,13 @@ async function notifyOwner(request, title, detail) {
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
-      to: recipients,
+      to: route.actual,
       subject: title,
       html: `<div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e4ddd4;border-radius:16px;padding:24px"><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800">Passage local support</div><h1 style="font-weight:400;color:#1a1916;font-size:24px;line-height:1.25">${title}</h1><p style="color:#6a6560;line-height:1.7">${detail}</p><p style="color:#6b8f71;font-weight:800">We are tracking this in Passage.</p></div></div>`,
     }),
   }).catch(() => null);
   const json = response ? await response.json().catch(() => ({})) : {};
-  await admin.from('notification_log').insert([{
+  await insertNotificationLog(admin, {
     workflow_id: request.workflow_id,
     channel: 'email',
     recipient_email: recipients[0],
@@ -55,7 +61,9 @@ async function notifyOwner(request, title, detail) {
     status: response?.ok ? 'sent' : 'failed',
     sent_at: response?.ok ? new Date().toISOString() : null,
     error_message: response?.ok ? null : (json?.message || json?.error || 'Vendor update notification failed.'),
-  }]).then(() => {}, () => {});
+    source: 'vendor_request_update',
+    ...qaAuditFields(route),
+  });
   return { status: response?.ok ? 'sent' : 'failed' };
 }
 
@@ -69,7 +77,9 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     if (!request.viewed_at) {
       const now = new Date().toISOString();
-      await admin.from('vendor_requests').update({ viewed_at: now, updated_at: now }).eq('id', request.id);
+      const viewedUpdate = { viewed_at: now, updated_at: now };
+      if (canonicalVendorStatus(request.status) === 'requested') viewedUpdate.status = 'viewed';
+      await admin.from('vendor_requests').update(viewedUpdate).eq('id', request.id);
       await admin.from('estate_events').insert([{
         estate_id: request.workflow_id,
         event_type: 'vendor_help_viewed',
@@ -101,6 +111,11 @@ export default async function handler(req, res) {
   const estimatedValue = Number(req.body?.estimatedValue || request.estimated_value || 0);
   const finalValue = Number(req.body?.finalValue || request.final_value || 0);
   const vendorNote = String(req.body?.vendorNote || '').trim();
+  const serviceDate = String(req.body?.serviceDate || '').trim();
+  const serviceStartAt = String(req.body?.serviceStartAt || '').trim();
+  const serviceEndAt = String(req.body?.serviceEndAt || '').trim();
+  const serviceLocation = String(req.body?.serviceLocation || '').trim();
+  const serviceNotes = String(req.body?.serviceNotes || '').trim();
   const valueForFee = action === 'completed' ? finalValue : estimatedValue;
   const resetFromDeclined = request.status === 'declined' && action !== 'declined';
   const economics = calculateVendorEconomics({
@@ -109,8 +124,13 @@ export default async function handler(req, res) {
     funeralHomeSharePercent: request.funeral_home_rev_share_percent || 0,
     hasFuneralHome: !!request.organization_id,
   });
+  const nextStatus = action === 'accepted'
+    ? 'quoted'
+    : action === 'in_progress'
+      ? (canonicalVendorStatus(request.status) === 'paid' ? 'scheduled' : 'scheduled')
+      : action;
   const update = {
-    status: action,
+    status: nextStatus,
     viewed_at: request.viewed_at || now,
     responded_at: ['accepted', 'declined'].includes(action) || resetFromDeclined ? now : request.responded_at || now,
     in_progress_at: action === 'declined' || action === 'accepted' ? null : action === 'in_progress' || resetFromDeclined ? now : request.in_progress_at || now,
@@ -118,16 +138,27 @@ export default async function handler(req, res) {
     estimated_value: estimatedValue > 0 ? estimatedValue : request.estimated_value,
     final_value: action === 'declined' ? null : finalValue > 0 ? finalValue : request.final_value,
     vendor_note: vendorNote || request.vendor_note || null,
+    service_date: serviceDate || request.service_date || null,
+    service_start_at: serviceStartAt || request.service_start_at || null,
+    service_end_at: serviceEndAt || request.service_end_at || null,
+    service_location: serviceLocation || request.service_location || null,
+    service_notes: serviceNotes || request.service_notes || null,
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
     passage_share_amount: economics.passageShareAmount,
+    gross_amount: valueForFee > 0 ? valueForFee : request.gross_amount || null,
+    passage_fee_percent: Number(request.marketplace_fee_percent ?? 12),
+    passage_fee_amount: economics.platformFeeAmount,
+    vendor_net_amount: economics.platformFeeAmount ? Math.max(valueForFee - economics.platformFeeAmount, 0) : null,
     payment_collection_status: action === 'declined'
-      ? 'waived'
-      : action === 'completed' && finalValue > 0
-        ? 'payment_due'
-        : action === 'accepted' || action === 'in_progress'
+      ? 'not_required'
+      : action === 'completed' && finalValue > 0 && request.payment_collection_status !== 'paid'
+        ? 'payment_pending'
+        : action === 'accepted'
           ? 'quote_ready'
-          : request.payment_collection_status || 'quote_needed',
+          : action === 'in_progress'
+            ? (request.payment_collection_status === 'paid' ? 'paid' : 'quote_ready')
+            : request.payment_collection_status || 'quote_needed',
     updated_at: now,
   };
   const { error } = await admin.from('vendor_requests').update(update).eq('id', request.id);
@@ -142,8 +173,8 @@ export default async function handler(req, res) {
         ? `${vendorName} completed request`
         : `${vendorName} declined`;
   const detail = action === 'accepted'
-    ? `${vendorCategoryLabel(request.vendors?.category)} quote for ${request.task_title || 'this task'} is ready for family or funeral-home review.${estimatedValue > 0 ? ` Estimated value: $${Math.round(estimatedValue)}.` : ''}${vendorNote ? ` Note: ${vendorNote}` : ''}`
-    : `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this task'} was ${action.replace('_', ' ')}.`;
+    ? `${vendorCategoryLabel(request.vendors?.category)} quote for ${request.task_title || 'this task'} is ready for family or funeral-home review.${estimatedValue > 0 ? ` Estimated value: $${Math.round(estimatedValue)}.` : ''}${serviceStartAt ? ` Service timing: ${serviceStartAt}.` : ''}${vendorNote ? ` Note: ${vendorNote}` : ''}`
+    : `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this task'} was ${nextStatus.replace('_', ' ')}.`;
   await admin.from('estate_events').insert([{
     estate_id: request.workflow_id,
     event_type: action === 'completed' ? 'vendor_help_completed' : 'vendor_help_updated',

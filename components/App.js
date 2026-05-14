@@ -976,7 +976,7 @@ const Card = ({ children, maxWidth = 520 }) => (
 );
 
 const Eyebrow = ({ text, color = C.sage }) => (
-  <div style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color, fontWeight: 700, marginBottom: 8 }}>{text}</div>
+  <div style={{ fontSize: 10.5, letterSpacing: "0.2em", textTransform: "uppercase", color, fontWeight: 700, marginBottom: 8 }}>{text}</div>
 );
 
 const Heading = ({ children, size = 24 }) => (
@@ -1009,7 +1009,7 @@ const CandleLogo = ({ size = 24, nameSize = 16 }) => (
       <div style={{ position: "absolute", left: "50%", top: "46%", width: size * 1.12, height: size * 1.12, borderRadius: "50%", background: "radial-gradient(circle, rgba(213,165,83,.28) 0%, rgba(213,165,83,.1) 38%, rgba(213,165,83,0) 68%)", animation: "passageGlow 4.8s ease-in-out infinite" }} />
       <img src="/passage-icon-light-onbg.svg" alt="" style={{ position: "relative", display: "block", width: size, height: size, borderRadius: Math.max(8, size * 0.24), animation: "passageMarkFlicker 5.2s ease-in-out infinite" }} />
     </div>
-    <span style={{ fontFamily: '"SF Pro Display", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: nameSize, color: "#5b7a63", letterSpacing: "0.02em", fontWeight: 620, animation: "passageWordFlicker 5.8s ease-in-out infinite" }}>PASSAGE</span>
+    <span style={{ fontFamily: 'Georgia, serif', fontSize: nameSize, color: "#5b7a63", letterSpacing: 0, fontWeight: 620, animation: "passageWordFlicker 5.8s ease-in-out infinite" }}>PASSAGE</span>
   </div>
 );
 
@@ -1628,18 +1628,18 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
         <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Passage prepared the next action. You can handle it yourself or assign it to someone else.</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 8, marginBottom: 14 }}>
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "10px 12px" }}>
-            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.sage, marginBottom: 4 }}>Passage can do</div>
+            <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.sage, marginBottom: 4 }}>Passage can do</div>
             <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{playbook.executionModeLabel || playbook.automationLabel}</div>
             <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{playbook.whatPassageDoes || playbook.automationExplanation}</div>
           </div>
           <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px" }}>
-            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.soft, marginBottom: 4 }}>Your part</div>
+            <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.soft, marginBottom: 4 }}>Your part</div>
             <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>Waiting on {playbook.waitingOn || "recipient"}</div>
             <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{playbook.whatUserDoes || ("Proof needed: " + (playbook.proofRequired || "confirmation"))}</div>
           </div>
           {playbook.funeralHomeEligible && (
             <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}40`, borderRadius: 12, padding: "10px 12px" }}>
-              <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.gold, marginBottom: 4 }}>Partner ready</div>
+              <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.gold, marginBottom: 4 }}>Partner ready</div>
               <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>Funeral home can help</div>
               <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>This is visible in the partner command center when linked.</div>
             </div>
@@ -1994,7 +1994,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
               <div>
                 {savedPeople.length > 0 && (
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: C.soft, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 7 }}>Saved people</div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: C.soft, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 7 }}>Saved people</div>
                     <div style={{ display: "grid", gap: 7 }}>
                       {savedPeople.slice(0, 8).map(person => {
                         const fullName = [person.first_name, person.last_name].filter(Boolean).join(' ');
@@ -2013,7 +2013,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
                 )}
                 {PEOPLE_ROLES.map(group => (
                   <div key={group.group} style={{ marginBottom: 14 }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: C.soft, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 7 }}>{group.group}</div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: C.soft, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 7 }}>{group.group}</div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {group.roles.map(r => (
                         <button key={r} onClick={() => handleRoleSelect(r)} style={{ padding: "6px 13px", borderRadius: 18, fontSize: 12, fontWeight: 500, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>{r}</button>
@@ -2383,8 +2383,8 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: task.completed ? 500 : 600, color: task.completed ? C.mid : C.ink, lineHeight: 1.4, marginBottom: 2 }}>
                             {task.title}
-                            {task.isCustom && <span style={{ fontSize: 9, color: C.sage, fontWeight: 700, background: C.sageFaint, padding: "1px 6px", borderRadius: 5, marginLeft: 7, textDecoration: "none" }}>CUSTOM</span>}
-                            {task.status === 'not_applicable' && <span style={{ fontSize: 9, color: C.soft, fontWeight: 700, background: C.bgSubtle, padding: "1px 6px", borderRadius: 5, marginLeft: 7 }}>NOT APPLICABLE</span>}
+                            {task.isCustom && <span style={{ fontSize: 10.5, color: C.sage, fontWeight: 700, background: C.sageFaint, padding: "1px 6px", borderRadius: 5, marginLeft: 7, textDecoration: "none" }}>CUSTOM</span>}
+                            {task.status === 'not_applicable' && <span style={{ fontSize: 10.5, color: C.soft, fontWeight: 700, background: C.bgSubtle, padding: "1px 6px", borderRadius: 5, marginLeft: 7 }}>NOT APPLICABLE</span>}
                           </div>
                           {task.desc && !task.completed && <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.5, marginBottom: task.assignedTo ? 5 : 0 }}>{task.desc}</div>}
                           {task.playbook && !task.completed && (
@@ -2415,9 +2415,9 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
                           {task.completed && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>That's taken care of. You're all set here.</div>}
                           {task.assignedTo && (
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "2px 9px", marginTop: 4 }}>
-                              <span style={{ fontSize: 10 }}>👤</span>
+                              <span style={{ fontSize: 10.5 }}>👤</span>
                               <span style={{ fontSize: 11, color: C.sage, fontWeight: 600 }}>{task.assignedTo}</span>
-                              {task.assignedEmail && <span style={{ fontSize: 10, color: C.soft }}>· {task.assignedEmail}</span>}
+                              {task.assignedEmail && <span style={{ fontSize: 10.5, color: C.soft }}>· {task.assignedEmail}</span>}
                             </div>
                           )}
                         </div>
@@ -3733,7 +3733,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
 
             {!hasAnyEstate && (
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-                <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 6 }}>Start one estate workspace</div>
+                <div style={{ fontSize: 10.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 6 }}>Start one estate workspace</div>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.2, marginBottom: 6 }}>Create the estate before adding wishes, people, documents, memories, or tasks.</div>
                 <Sub>Each estate gets its own file, task spine, participants, messages, proof, and exports. Nothing should float loose on this index page.</Sub>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 10, marginTop: 14 }}>
@@ -3756,12 +3756,12 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "16px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                 <div>
-                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, fontWeight: 900, marginBottom: 5 }}>{selectedDashboardEstate?.path === 'green' ? 'Planning record' : 'Active estate'}</div>
+                  <div style={{ fontSize: 10.5, letterSpacing: "0.15em", textTransform: "uppercase", color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, fontWeight: 900, marginBottom: 5 }}>{selectedDashboardEstate?.path === 'green' ? 'Planning record' : 'Active estate'}</div>
                   <div style={{ fontFamily: "Georgia, serif", fontSize: 23, color: C.ink, lineHeight: 1.15 }}>{selectedDashboardEstate?.name || "Select an estate"}</div>
                   <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{selectedEstateStateBody}</div>
                 </div>
                 {activeWorkflows.length > 1 && (
-                  <label style={{ display: "grid", gap: 5, minWidth: 240, color: C.soft, fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900 }}>
+                  <label style={{ display: "grid", gap: 5, minWidth: 240, color: C.soft, fontSize: 10.5, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900 }}>
                     Switch family record
                     <select
                       value={String(selectedDashboardEstate?.id || "")}
@@ -3781,7 +3781,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 )}
               </div>
               {false && <div style={{ background: selectedDashboardEstate?.path === 'green' ? C.sageFaint : C.roseFaint, border: `1px solid ${selectedDashboardEstate?.path === 'green' ? C.sageLight : C.rose + '30'}`, borderRadius: 13, padding: "11px 12px", marginBottom: 12 }}>
-                <div style={{ fontSize: 9.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900, marginBottom: 4 }}>Current state</div>
+                <div style={{ fontSize: 10.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900, marginBottom: 4 }}>Current state</div>
                 <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 800 }}>{selectedEstateState}</div>
                 <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>{selectedEstateStateBody}</div>
               </div>}
@@ -3811,7 +3811,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
                     <div>
                       <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 7 }}>
-                        <span style={{ fontSize: 10, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, background: C.bgCard, borderRadius: 999, padding: "3px 8px", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{selectedDashboardEstate?.path === 'green' ? 'Planning' : 'Active estate'}</span>
+                        <span style={{ fontSize: 10.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, background: C.bgCard, borderRadius: 999, padding: "3px 8px", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{selectedDashboardEstate?.path === 'green' ? 'Planning' : 'Active estate'}</span>
                         <span style={{ fontSize: 10.5, color: selectedDashboardTask.assignedTo ? C.sage : C.amber, background: C.bgCard, borderRadius: 999, padding: "3px 8px", fontWeight: 900 }}>{selectedDashboardTask.assignedTo || selectedDashboardTask.assignedEmail || 'Needs owner'}</span>
                       </div>
                       <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.22 }}>{selectedDashboardTask.title}</div>
@@ -3837,14 +3837,14 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
                 {[{l:"This estate",v:selectedDashboardEstate?.path === 'green' ? 'Planning' : 'Active'},{l:"Tasks handled",v:selectedDashboardStats.required ? `${selectedDashboardStats.completed || 0}/${selectedDashboardStats.required}` : "0"},{l:"Estate records",v:activeWorkflows.length}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 10, padding: "10px 11px" }}>
-                    <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
+                    <div style={{ fontSize: 10.5, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{i.v}</div>
                   </div>
                 ))}
               </div>
               <div style={{ marginTop: 12, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "12px 13px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 12, alignItems: "center" }}>
                 <div>
-                  <div style={{ fontSize: 9.5, color: C.sage, letterSpacing: ".13em", textTransform: "uppercase", fontWeight: 900, marginBottom: 4 }}>Family record slots</div>
+                  <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: ".13em", textTransform: "uppercase", fontWeight: 900, marginBottom: 4 }}>Family record slots</div>
                   <div style={{ color: C.ink, fontSize: 15, fontWeight: 900, lineHeight: 1.25 }}>{usedGreenSeats}/{estateSeatLimit} planning records used</div>
                   <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 3 }}>
                     Planning slots are for green/prep records. Urgent help can still start separately when someone has passed.
@@ -3866,7 +3866,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               {false && <div style={{ marginTop: 12, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: "11px 12px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
                   <div>
-                    <div style={{ fontSize: 9.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900 }}>Family first-day path</div>
+                    <div style={{ fontSize: 10.5, color: selectedDashboardEstate?.path === 'green' ? C.sage : C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900 }}>Family first-day path</div>
                     <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 3 }}>
                       {selectedDashboardEstate?.path === 'green'
                         ? "Set up once: wishes, trusted people, documents, future activator, and the first planning task."
@@ -3903,7 +3903,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             <div style={{ background: C.bgCard, borderRadius: 18, padding: "16px", border: `1px solid ${C.border}`, marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 9.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 900, marginBottom: 5 }}>Portfolio review</div>
+                  <div style={{ fontSize: 10.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 900, marginBottom: 5 }}>Portfolio review</div>
                   <div style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink, lineHeight: 1.18 }}>Other attention across your estates.</div>
                 </div>
                 {totalRequired > 0 && (
@@ -3947,7 +3947,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 13, alignItems: "start" }}>
                         <div style={{ minWidth: 0 }}>
                           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 7 }}>
-                            <span style={{ fontSize: 10, color: item.workflow.path === 'green' ? C.sage : C.rose, background: item.workflow.path === 'green' ? C.sageFaint : C.roseFaint, borderRadius: 999, padding: "3px 8px", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{item.workflow.path === 'green' ? 'Planning' : 'Urgent'}</span>
+                            <span style={{ fontSize: 10.5, color: item.workflow.path === 'green' ? C.sage : C.rose, background: item.workflow.path === 'green' ? C.sageFaint : C.roseFaint, borderRadius: 999, padding: "3px 8px", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{item.workflow.path === 'green' ? 'Planning' : 'Urgent'}</span>
                             <span style={{ fontSize: 10.5, color: statusTone, background: statusBg, borderRadius: 999, padding: "3px 8px", fontWeight: 900 }}>{ownerLabel}</span>
                           </div>
                           <div style={{ fontSize: 15.5, fontWeight: 900, color: C.ink, lineHeight: 1.25 }}>{item.title}</div>
@@ -3980,7 +3980,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
                 {[{l:"Active estates",v:activeWorkflows.length},{l:"Tasks handled",v:totalRequired ? `${totalHandled}/${totalRequired}` : "0"},{l:"Participants",v:taskStatValues.reduce((sum, s) => sum + (s.assigned || 0), 0)}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 10, padding: "10px 11px" }}>
-                    <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
+                    <div style={{ fontSize: 10.5, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{i.v}</div>
                   </div>
                 ))}
@@ -3997,7 +3997,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: plan === 'free' ? 10 : 0 }}>
                 {[{l:"Status",v:isPaidPlan ? 'Active' : 'Free'},{l:"Estate Seats",v:`${usedGreenSeats}/${estateSeatLimit} used`},{l:"Renewal",v:pd.renewal}].map(i => (
                   <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 9, padding: "9px 11px" }}>
-                    <div style={{ fontSize: 9, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600, marginBottom: 3 }}>{i.l}</div>
+                    <div style={{ fontSize: 10.5, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600, marginBottom: 3 }}>{i.l}</div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.ink }}>{i.v}</div>
                   </div>
                 ))}
@@ -4013,7 +4013,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                     </button>
                   </div>
                   <div style={{ border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 11, background: C.sageFaint }}>
-                    <div style={{ fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 4 }}>Upgrade when ready</div>
+                    <div style={{ fontSize: 10.5, letterSpacing: "0.14em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 4 }}>Upgrade when ready</div>
                     <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.4, marginBottom: 9 }}>Choose estate seats on pricing. Your next action stays above.</div>
                     <button onClick={() => window.location.href = '/pricing'} style={{ width: "100%", padding: "11px", background: C.sage, color: "#fff", border: "none", borderRadius: 11, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
                       Upgrade now →
@@ -4402,11 +4402,11 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 
       {/* ── HERO ── */}
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '52px 24px 20px', textAlign: 'center', opacity: 1, transform: 'none', transition: 'all 0.7s ease' }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 5vw, 52px)', lineHeight: 1.15, color: C.ink, marginBottom: 20, fontWeight: 400 }}>
+        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 52, lineHeight: 1.15, color: C.ink, marginBottom: 20, fontWeight: 400 }}>
           When someone dies, your family needs{' '}
           <em style={{ color: C.sage }}>a clear next step.</em>
         </h1>
-        <p style={{ fontSize: 'clamp(15px, 2vw, 17px)', color: C.mid, lineHeight: 1.8, maxWidth: 520, margin: '0 auto 12px' }}>
+        <p style={{ fontSize: 16, color: C.mid, lineHeight: 1.8, maxWidth: 520, margin: '0 auto 12px' }}>
           Passage helps families know what matters first, who owns each task, and what is already handled — without forcing anyone to figure it out while they're grieving.
         </p>
         {/* Split path CTAs */}
@@ -4456,7 +4456,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           ].map(function(item, i) {
             return (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderTop: `1px solid ${C.border}` }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: item.urgent ? C.roseFaint : C.bgSubtle, border: `1.5px solid ${item.urgent ? C.rose : C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: item.urgent ? C.rose : C.soft, flexShrink: 0 }}>{i+1}</div>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: item.urgent ? C.roseFaint : C.bgSubtle, border: `1.5px solid ${item.urgent ? C.rose : C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700, color: item.urgent ? C.rose : C.soft, flexShrink: 0 }}>{i+1}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, color: C.ink, fontWeight: 600, lineHeight: 1.3 }}>{item.title}</div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
@@ -4489,7 +4489,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <div key={i} style={{ background: C.bgCard, borderRadius: 18, padding: 24, border: `1px solid ${C.border}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
                   <span style={{ fontSize: 24 }}>{s.icon}</span>
-                  <span style={{ fontSize: 9.5, color: C.sage, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{s.n}</span>
+                  <span style={{ fontSize: 10.5, color: C.sage, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{s.n}</span>
                 </div>
                 <div style={{ fontFamily: 'Georgia, serif', fontSize: 17, color: C.ink, marginBottom: 9, lineHeight: 1.3 }}>{s.title}</div>
                 <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.7 }}>{s.body}</div>
@@ -4513,7 +4513,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               return (
                 <div key={i} style={{ background: C.bgCard, borderRadius: 11, padding: '12px 6px', textAlign: 'center', border: `1px solid ${C.border}` }}>
                   <div style={{ fontSize: 19, marginBottom: 4 }}>{item[0]}</div>
-                  <div style={{ fontSize: 10, color: C.mid, fontWeight: 600 }}>{item[1]}</div>
+                  <div style={{ fontSize: 10.5, color: C.mid, fontWeight: 600 }}>{item[1]}</div>
                 </div>
               );
             })}
@@ -4568,7 +4568,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
                 {group.options.map(option => (
                   <div key={option.id} style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 11, padding: 10 }}>
                     <div style={{ fontSize: 11, color: C.soft, fontWeight: 800 }}>{option.label}</div>
-                    <div style={{ fontSize: 16, color: option.price === 'Soon' ? C.soft : C.ink, fontWeight: 800 }}>{option.price}<span style={{ fontSize: 10, color: C.soft }}> {option.per}</span></div>
+                    <div style={{ fontSize: 16, color: option.price === 'Soon' ? C.soft : C.ink, fontWeight: 800 }}>{option.price}<span style={{ fontSize: 10.5, color: C.soft }}> {option.per}</span></div>
                   </div>
                 ))}
               </div>
@@ -4710,7 +4710,7 @@ function ProductSpinePreview() {
     <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 48px' }}>
       <div style={{ maxWidth: 720, marginBottom: 18 }}>
         <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>See the spine in action</div>
-        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(28px, 3.4vw, 40px)', lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400, color: C.ink }}>Not a checklist. A living coordination spine.</h2>
+        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 32, lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400, color: C.ink }}>Not a checklist. A living coordination spine.</h2>
         <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.65, margin: 0 }}>One task carries the owner, request, conversation, proof, notification delivery, status, and next expected update. Each party sees the slice they need.</p>
       </div>
 
@@ -4742,7 +4742,7 @@ function ProductSpinePreview() {
             ].map(function(row) {
               return (
                 <div key={row[0]} style={{ background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, padding: 10 }}>
-                  <div style={{ color: '#b9d2bd', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>{row[0]}</div>
+                  <div style={{ color: '#b9d2bd', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>{row[0]}</div>
                   <div style={{ color: '#fff', fontSize: 12.5, fontWeight: 800, marginTop: 4 }}>{row[1]}</div>
                 </div>
               );
@@ -4849,7 +4849,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-shell { max-width: 1180px; margin: 0 auto; padding: 18px 28px 24px; }
         .home-hero { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(360px, .86fr); gap: 34px; align-items: center; min-height: calc(100vh - 164px); padding: 0; }
         .home-kicker { color:${C.sage}; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:10px; }
-        .home-title { font-family: Georgia, serif; font-size: clamp(44px, 5.5vw, 76px); line-height: .98; color:${C.ink}; margin:0 0 18px; font-weight:400; letter-spacing:0; }
+        .home-title { font-family: Georgia, serif; font-size: 52px; line-height: .98; color:${C.ink}; margin:0 0 18px; font-weight:400; letter-spacing:0; }
         .home-lede { color:${C.mid}; font-size:17px; line-height:1.52; max-width:680px; margin:0; }
         .home-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
         .home-action { min-height:50px; border-radius:13px; padding:0 18px; font-family:inherit; font-size:14px; font-weight:900; cursor:pointer; }
@@ -4882,12 +4882,17 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .lifecycle-node span { display:block; font-size:10.8px; line-height:1.28; color:${C.mid}; }
         .lifecycle-center { display:grid; grid-template-columns:minmax(0, .75fr) minmax(0, 1fr); gap:8px; align-items:stretch; margin-top:8px; }
         .lifecycle-record { background:${C.bgDark}; color:white; border-radius:15px; padding:13px; }
-        .lifecycle-record small { display:block; color:#b9d2bd; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
+        .lifecycle-record small { display:block; color:#b9d2bd; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
         .lifecycle-record strong { display:block; font-size:17px; line-height:1.12; margin-bottom:6px; }
         .lifecycle-record span { display:block; color:#d8d0c7; font-size:11.5px; line-height:1.35; }
         .lifecycle-proof { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:15px; padding:12px; }
         .lifecycle-proof b { display:block; color:${C.sageDark}; font-size:12px; margin-bottom:6px; }
         .lifecycle-proof span { display:block; color:${C.mid}; font-size:11.5px; line-height:1.35; }
+        .home-proof-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+        .home-proof-card { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:16px; padding:16px; box-shadow:0 14px 34px rgba(55,45,35,.045); }
+        .home-proof-eyebrow { color:${C.sage}; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
+        .home-proof-title { color:${C.ink}; font-size:19px; line-height:1.16; font-weight:900; margin-bottom:7px; }
+        .home-proof-body { color:${C.mid}; font-size:13px; line-height:1.55; margin:0; }
         @media (max-width: 720px) {
           .home-shell { padding: 22px 18px 50px; }
           .home-hero { grid-template-columns:1fr; min-height:auto; gap:22px; }
@@ -4901,6 +4906,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           .lifecycle-node { min-height:auto; display:grid; grid-template-columns:36px minmax(0,1fr); column-gap:9px; align-items:start; }
           .lifecycle-dot { grid-row:1 / span 2; margin-bottom:0; }
           .lifecycle-center { grid-template-columns:1fr; }
+          .home-spine-preview, .home-proof-grid { grid-template-columns:1fr !important; }
         }
       `}</style>
       <SiteHeader user={user} onSignIn={handleSignInWithGoogle} onSignOut={onSignOut} onDashboard={onDashboard} />
@@ -4916,7 +4922,11 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             <div className="home-actions">
               <button onClick={() => window.location.href = '/urgent'} className="home-action home-primary">Start urgent path</button>
               <button onClick={() => window.location.href = '/hospice'} className="home-action home-secondary">Prepare during care</button>
-              <button onClick={onPlan} className="home-action home-tertiary">Plan ahead</button>
+              <button onClick={() => window.location.href = '/planning'} className="home-action home-tertiary">Plan ahead</button>
+            </div>
+            <div className="home-demo-links" aria-label="Product proof links">
+              <a className="home-demo-link" href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard">Open sample funeral-home console</a>
+              <a className="home-demo-link" href="/contact?category=Funeral%20home%20walkthrough">Book 15-min walkthrough</a>
             </div>
             <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
             <div className="home-pledge"><strong>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent path also funds a remembrance tree dedication.</div>
@@ -4965,6 +4975,10 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         </section>
       </div>
 
+      <ProductSpinePreview />
+      <FuneralHomePublicProof />
+      <PublicTrustConversion />
+
       <SiteFooter />
     </div>
   );
@@ -5008,6 +5022,82 @@ function LifecycleMap() {
   );
 }
 
+function FuneralHomePublicProof() {
+  const cards = [
+    ['My Day', 'A director sees unassigned cases, blocked work, warm inbounds, staff load, and the next few items that need attention.'],
+    ['Task workspace', 'Each task keeps the family request, owner, waiting point, prepared output, proof, and next expected update together.'],
+    ['Role-scoped access', 'Staff, family participants, and vendors see only the slice they need. Directors keep the broader operating view.'],
+  ];
+
+  return (
+    <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 48px' }}>
+      <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 20, padding: 22, boxShadow: '0 14px 34px rgba(55,45,35,.04)' }}>
+        <div style={{ color: C.sageDark, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>For funeral homes</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.72fr) minmax(280px,1fr)', gap: 18, alignItems: 'start' }} className="home-spine-preview">
+          <div>
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 32, lineHeight: 1.08, margin: '0 0 10px', fontWeight: 400, color: C.ink }}>A family coordination layer on top of the work you already do.</h2>
+            <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.65, margin: '0 0 14px' }}>
+              Passage helps families arrive with clearer information, fewer repeated calls, cleaner owner assignment, visible proof, and exportable case context for the systems a funeral home already uses.
+            </p>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <a href="/funeral-home" style={{ background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 13, padding: '13px 16px', fontSize: 13.5, fontWeight: 900 }}>See funeral-home page</a>
+              <a href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard" style={{ background: C.bgCard, color: C.sageDark, textDecoration: 'none', border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: '13px 16px', fontSize: 13.5, fontWeight: 900 }}>Open sample console</a>
+            </div>
+          </div>
+          <div className="home-proof-grid" style={{ gridTemplateColumns: '1fr', gap: 10 }}>
+            {cards.map(function(card) {
+              return (
+                <div className="home-proof-card" key={card[0]}>
+                  <div className="home-proof-eyebrow">Workspace proof</div>
+                  <div className="home-proof-title">{card[0]}</div>
+                  <p className="home-proof-body">{card[1]}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PublicTrustConversion() {
+  const rows = [
+    ['Approval-first', 'Nothing sends or shares until the family or responsible professional reviews the exact action.'],
+    ['Private by role', 'Participants, staff, vendors, and coordinators get different views from the same spine.'],
+    ['Exportable proof', 'Messages, dates, owners, files, and completion proof stay tied to the task and can be exported.'],
+  ];
+
+  return (
+    <section style={{ maxWidth: 1040, margin: '0 auto', padding: '0 24px 56px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.85fr) minmax(300px,1fr)', gap: 16, alignItems: 'stretch' }} className="home-spine-preview">
+        <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 20, padding: 22, boxShadow: '0 14px 34px rgba(55,45,35,.04)' }}>
+          <div style={{ color: C.sage, fontSize: 11, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 8 }}>Founder note</div>
+          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 32, lineHeight: 1.1, margin: '0 0 10px', fontWeight: 400, color: C.ink }}>The goal is not to make grief tidy.</h2>
+          <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.65, margin: 0 }}>
+            Passage is being built for the practical burden that lands on families and professionals when everything is urgent, emotional, and scattered. The product keeps asking one quiet question: what is the next step, who owns it, and how will everyone know it happened?
+          </p>
+        </div>
+        <div className="home-proof-grid" style={{ gridTemplateColumns: '1fr', gap: 10 }}>
+          {rows.map(function(row) {
+            return (
+              <div className="home-proof-card" key={row[0]}>
+                <div className="home-proof-eyebrow">Trust signal</div>
+                <div className="home-proof-title">{row[0]}</div>
+                <p className="home-proof-body">{row[1]}</p>
+              </div>
+            );
+          })}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <a href="/trust" style={{ background: C.bgCard, color: C.sageDark, textDecoration: 'none', border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 15px', fontSize: 13, fontWeight: 900 }}>Read trust model</a>
+            <a href="/pricing" style={{ background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 13, padding: '12px 15px', fontSize: 13, fontWeight: 900 }}>View pricing</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Success({ mode, onDashboard, workflowId }) {
   const isPreview = mode === 'preview';
   const isGreenPlan = !isPreview;
@@ -5016,7 +5106,7 @@ function Success({ mode, onDashboard, workflowId }) {
       <div style={{ width: '100%', maxWidth: isGreenPlan ? 660 : 560, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 20, padding: '28px 24px', textAlign: 'center', boxShadow: '0 18px 50px rgba(55,45,35,.08)' }}>
         <div style={{ fontSize: 34, marginBottom: 12 }}>✓</div>
         <div style={{ fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: C.sage, fontWeight: 800, marginBottom: 10 }}>{isPreview ? 'Plan preview built' : 'Planning complete'}</div>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: isGreenPlan ? 'clamp(30px, 4vw, 42px)' : 26, color: C.ink, lineHeight: 1.08, marginBottom: 10 }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: isGreenPlan ? 32 : 26, color: C.ink, lineHeight: 1.08, marginBottom: 10 }}>
           {isPreview ? 'Your first steps are ready.' : 'Your plan is ready.'}
         </div>
         <div style={{ fontSize: 14, color: C.mid, lineHeight: 1.7, marginBottom: 20 }}>

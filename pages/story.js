@@ -81,13 +81,13 @@ export default function StoryPage() {
         .story-tab { border:1px solid ${C.border}; background:${C.card}; color:${C.mid}; border-radius:999px; min-height:34px; font-family:inherit; font-size:12px; font-weight:900; cursor:pointer; }
         .story-tab-active { background:${C.sageFaint}; border-color:${C.sageLight}; color:${C.sageDark}; }
         .story-kicker { color:${C.sage}; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:10px; }
-        .story-title { font-size:clamp(36px,4.6vw,58px); line-height:.98; margin:0 0 12px; font-weight:400; letter-spacing:0; max-width:700px; }
+        .story-title { font-size:52px; line-height:.98; margin:0 0 12px; font-weight:400; letter-spacing:0; max-width:700px; }
         .story-lede { color:${C.mid}; font-size:15px; line-height:1.55; margin:0 0 14px; max-width:760px; }
         .story-artifact { display:grid; gap:9px; margin-top:3px; }
         .story-artifact-row { display:grid; grid-template-columns:86px minmax(0,1fr); gap:10px; align-items:center; border-top:1px solid ${C.sageLight}; padding-top:9px; color:${C.mid}; font-size:13.2px; line-height:1.35; }
         .story-artifact-row:first-child { border-top:none; padding-top:0; }
         .story-artifact-row strong { color:${C.ink}; font-size:13.5px; }
-        .story-folder-note { color:${C.sageDark}; font-size:clamp(23px,2.4vw,32px); line-height:1.06; margin:0; }
+        .story-folder-note { color:${C.sageDark}; font-size:24px; line-height:1.06; margin:0; }
         .story-body { margin:12px auto 0; }
         .story-copy { background:${C.card}; border:1px solid ${C.border}; border-radius:18px; padding:16px 18px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; }
         .story-copy p { color:${C.mid}; font-size:14px; line-height:1.52; margin:0; max-width:760px; }

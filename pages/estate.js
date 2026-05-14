@@ -1801,7 +1801,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         ].map(function(row) {
           return (
             <div key={row[0]} style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '8px 10px' }}>
-              <div style={{ color: SAGE, fontSize: 10.3, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
+              <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
               <div style={{ color: MID, fontSize: 11.6, lineHeight: 1.35, marginTop: 3 }}>{row[1]}</div>
             </div>
           );
@@ -1861,7 +1861,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                   ].map(function(row) {
                     return (
                       <div key={row[0]} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 11, padding: '8px 9px' }}>
-                        <div style={{ color: SAGE, fontSize: 9.8, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
+                        <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
                         <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.35, marginTop: 4 }}>{row[1]}</div>
                       </div>
                     );
@@ -1924,7 +1924,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               {[['Conversation', conversationCount], ['Proof', proofCount], ['Notifications', notificationCount]].map(function(row) {
                 return (
                   <div key={row[0]} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '9px 10px' }}>
-                    <div style={{ color: SOFT, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
+                    <div style={{ color: SOFT, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
                     <div style={{ color: INK, fontSize: 17, fontWeight: 900, marginTop: 2 }}>{row[1]}</div>
                   </div>
                 );
@@ -2317,6 +2317,207 @@ function ProofPanel({ actions, tasks, events }) {
   );
 }
 
+function ActivationCirclePanel({ estateId, estate, people, authToken, onActivated }) {
+  var c0 = useState(null); var circle = c0[0]; var setCircle = c0[1];
+  var c1 = useState(false); var loadingCircle = c1[0]; var setLoadingCircle = c1[1];
+  var c2 = useState(false); var saving = c2[0]; var setSaving = c2[1];
+  var c3 = useState(''); var message = c3[0]; var setMessage = c3[1];
+  var c4 = useState(''); var reason = c4[0]; var setReason = c4[1];
+  var c5 = useState({}); var selected = c5[0]; var setSelected = c5[1];
+
+  function normalizeEmail(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function localCandidates() {
+    var seen = {};
+    return (people || []).map(function(person) {
+      var email = normalizeEmail(person.email);
+      if (!email || seen[email]) return null;
+      seen[email] = true;
+      return {
+        id: person.id || email,
+        email: email,
+        name: textValue(person.name || [person.first_name, person.last_name].filter(Boolean).join(' ') || person.email, person.email),
+        role: textValue(person.role || person.estate_role_label || person.relationship, 'Participant'),
+        source: person.source || 'person',
+      };
+    }).filter(Boolean);
+  }
+
+  var serverCandidates = circle?.candidates || [];
+  var candidates = serverCandidates.length ? serverCandidates : localCandidates();
+  var witnesses = circle?.witnesses || [];
+  var activeRequest = circle?.activeRequest;
+  var confirmations = circle?.confirmations || [];
+  var activated = ['activated', 'triggered'].includes(String(estate?.activation_status || estate?.status || '').toLowerCase());
+  var unavailable = circle?.unavailable;
+
+  useEffect(function() {
+    if (!estateId || !authToken) return;
+    setLoadingCircle(true);
+    fetch('/api/activationCircle?workflowId=' + encodeURIComponent(estateId), {
+      headers: { Authorization: 'Bearer ' + authToken },
+    })
+      .then(function(res) { return res.json().then(function(json) { return { ok: res.ok, json: json }; }); })
+      .then(function(result) {
+        if (result.ok) {
+          setCircle(result.json);
+          var initial = {};
+          (result.json.witnesses || []).forEach(function(w) { initial[normalizeEmail(w.email)] = true; });
+          setSelected(initial);
+        } else {
+          setMessage(result.json?.error || 'Activation circle could not be loaded.');
+        }
+      })
+      .catch(function(err) { setMessage(err.message || 'Activation circle could not be loaded.'); })
+      .finally(function() { setLoadingCircle(false); });
+  }, [estateId, authToken]);
+
+  function selectedWitnesses() {
+    return candidates
+      .filter(function(candidate) { return selected[normalizeEmail(candidate.email)]; })
+      .map(function(candidate) {
+        return {
+          email: candidate.email,
+          name: candidate.name,
+          role: /executor|proxy|trusted|witness|spouse|partner|child|daughter|son/i.test(candidate.role || '') ? candidate.role : 'Activation witness',
+          source: candidate.source || 'person',
+          sourceId: candidate.id,
+        };
+      });
+  }
+
+  async function callActivation(action, body) {
+    if (!authToken) {
+      setMessage('Sign in to update the activation circle.');
+      return null;
+    }
+    setSaving(true);
+    setMessage('');
+    try {
+      var response = await fetch('/api/activationCircle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
+        body: JSON.stringify(Object.assign({ workflowId: estateId, action: action }, body || {})),
+      });
+      var json = await response.json().catch(function() { return {}; });
+      if (!response.ok) throw new Error(json.error || 'Activation update failed.');
+      var reload = await fetch('/api/activationCircle?workflowId=' + encodeURIComponent(estateId), { headers: { Authorization: 'Bearer ' + authToken } });
+      var next = await reload.json().catch(function() { return null; });
+      if (reload.ok && next) setCircle(next);
+      if (json.activated && onActivated) onActivated();
+      return json;
+    } catch (err) {
+      setMessage(err.message || 'Activation update failed.');
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveWitnesses() {
+    var picked = selectedWitnesses();
+    if (!picked.length) {
+      setMessage('Choose at least one trusted person who can provide the second confirmation.');
+      return;
+    }
+    var json = await callActivation('set_witnesses', { witnesses: picked });
+    if (json) setMessage('Activation circle saved. These people can provide the second confirmation.');
+  }
+
+  async function requestActivation() {
+    var picked = selectedWitnesses();
+    var saved = await callActivation('set_witnesses', { witnesses: picked });
+    if (!saved) return;
+    var json = await callActivation('request', {
+      reason: reason || 'The family is ready to activate this planning record.',
+      proofSource: 'trusted_family_review',
+    });
+    if (json) setMessage(json.alreadyPending ? 'Activation review is already open.' : 'Activation review started. Passage notified the other trusted confirmation contacts.');
+  }
+
+  if (!estateId || !estate) return null;
+  if (!String(estate?.path || estate?.mode || '').toLowerCase().includes('green') && !String(estate?.activation_status || '').toLowerCase().includes('draft') && !activeRequest && !witnesses.length) return null;
+
+  return (
+    <section id="activation-circle" style={{ background: activated ? SAGE_FAINT : CARD, border: '1px solid ' + (activated ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 18, padding: '18px 20px', marginBottom: 20, boxShadow: '0 12px 34px rgba(55,45,35,.045)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 12 }}>
+        <div>
+          <div style={{ color: activated ? SAGE : AMBER, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Green-to-red activation circle</div>
+          <div style={{ color: INK, fontSize: 24, lineHeight: 1.12, fontWeight: 900 }}>{activated ? 'This planning record is active.' : 'Two trusted confirmations before anything becomes urgent.'}</div>
+          <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.6, marginTop: 7, maxWidth: 720 }}>
+            Passage protects planning records from accidental activation. One trusted person can start review. A different designated person confirms before the Red path opens.
+          </div>
+        </div>
+        <span style={{ background: activated ? CARD : AMBER_FAINT, color: activated ? SAGE : AMBER, border: '1px solid ' + (activated ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 900 }}>
+          {activated ? 'Activated' : activeRequest?.status === 'pending' ? 'Waiting on second confirmation' : 'Not active'}
+        </span>
+      </div>
+
+      {unavailable ? (
+        <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER_BORDER, borderRadius: 12, padding: 12, color: AMBER, fontSize: 13, fontWeight: 800 }}>
+          Activation tables need to be applied in Supabase before this control can save.
+        </div>
+      ) : loadingCircle ? (
+        <div style={{ color: SOFT, fontSize: 13 }}>Loading activation circle...</div>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 9, marginBottom: 12 }}>
+            <div style={{ background: SAGE_FAINT, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 11px' }}>
+              <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Confirmations</div>
+              <div style={{ color: INK, fontSize: 18, fontWeight: 900, marginTop: 3 }}>{confirmations.length || (activeRequest ? 1 : 0)} / 2</div>
+            </div>
+            <div style={{ background: SAGE_FAINT, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 11px' }}>
+              <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Designated witnesses</div>
+              <div style={{ color: INK, fontSize: 18, fontWeight: 900, marginTop: 3 }}>{witnesses.length || selectedWitnesses().length}</div>
+            </div>
+            <div style={{ background: SAGE_FAINT, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 11px' }}>
+              <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Status</div>
+              <div style={{ color: INK, fontSize: 13, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{activated ? 'Red path open' : activeRequest ? 'Review in progress' : 'Circle ready'}</div>
+            </div>
+          </div>
+
+          {!activated && (
+            <>
+              <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 14, padding: 13, marginBottom: 12 }}>
+                <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Who can be the second confirmation</div>
+                {candidates.length === 0 ? (
+                  <div style={{ color: MID, fontSize: 13, lineHeight: 1.5 }}>Add family contacts or participants first. Executors, healthcare proxies, trusted contacts, and selected helpers can be designated here.</div>
+                ) : (
+                  <div style={{ display: 'grid', gap: 7 }}>
+                    {candidates.slice(0, 8).map(function(candidate) {
+                      var email = normalizeEmail(candidate.email);
+                      return (
+                        <label key={email} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', background: selected[email] ? SAGE_FAINT : CARD, border: '1px solid ' + (selected[email] ? SAGE_LIGHT : BORDER), borderRadius: 12, padding: '9px 10px', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={!!selected[email]} onChange={function(e) { setSelected(function(prev) { return Object.assign({}, prev, { [email]: e.target.checked }); }); }} style={{ marginTop: 3 }} />
+                          <span>
+                            <span style={{ display: 'block', color: INK, fontSize: 13.5, fontWeight: 900 }}>{candidate.name}</span>
+                            <span style={{ display: 'block', color: MID, fontSize: 12, lineHeight: 1.4 }}>{candidate.email} - {candidate.role}</span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <textarea value={reason} onChange={function(e) { setReason(e.target.value); }} placeholder="Optional note for the activation circle: what changed, who confirmed, or what source prompted review." style={{ width: '100%', minHeight: 76, border: '1px solid ' + BORDER, borderRadius: 13, padding: '11px 12px', resize: 'vertical', fontFamily: 'inherit', fontSize: 13.5, color: INK, marginBottom: 10 }} />
+
+              {message && <div style={{ background: message.includes('failed') || message.includes('Choose') || message.includes('could not') ? ROSE_FAINT : SAGE_FAINT, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', color: message.includes('failed') || message.includes('Choose') || message.includes('could not') ? ROSE : SAGE, fontSize: 12.8, lineHeight: 1.45, fontWeight: 800, marginBottom: 10 }}>{message}</div>}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8 }}>
+                <button onClick={saveWitnesses} disabled={saving || selectedWitnesses().length === 0} style={{ border: '1px solid ' + SAGE_LIGHT, background: CARD, color: SAGE, borderRadius: 12, padding: '11px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: saving ? 'wait' : 'pointer', opacity: selectedWitnesses().length ? 1 : .55 }}>Save activation circle</button>
+                <button onClick={requestActivation} disabled={saving || activeRequest?.status === 'pending' || selectedWitnesses().length === 0} style={{ border: 'none', background: activeRequest?.status === 'pending' ? SOFT : SAGE, color: '#fff', borderRadius: 12, padding: '11px 12px', fontFamily: 'inherit', fontWeight: 900, cursor: saving ? 'wait' : 'pointer', opacity: selectedWitnesses().length ? 1 : .55 }}>{activeRequest?.status === 'pending' ? 'Review already started' : 'Start activation review'}</button>
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function EstatePage() {
   var params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   var estateId = params.get('id') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('passage_last_estate_id') : null);
@@ -2356,11 +2557,41 @@ export default function EstatePage() {
   var s29 = useState(''); var openedInitialTaskKey = s29[0]; var setOpenedInitialTaskKey = s29[1];
   var s30 = useState(''); var authToken = s30[0]; var setAuthToken = s30[1];
   var s31 = useState(null); var packetModal = s31[0]; var setPacketModal = s31[1];
+  var s32 = useState(false); var authChecked = s32[0]; var setAuthChecked = s32[1];
 
   async function signInToEstate() {
     if (!sb?.auth || typeof window === 'undefined') return;
     await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
   }
+
+  useEffect(function() {
+    if (!sb?.auth) {
+      setAuthChecked(true);
+      return undefined;
+    }
+    var active = true;
+    function applySession(session) {
+      if (!active) return;
+      setUser(session?.user || null);
+      setAuthToken(session?.access_token || '');
+      setAuthChecked(true);
+      if (session?.user?.id) {
+        sb.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', session.user.id).then(function() {});
+      }
+    }
+    sb.auth.getSession().then(function(r) {
+      applySession(r.data?.session || null);
+    }).catch(function() {
+      if (active) setAuthChecked(true);
+    });
+    var authSubscription = sb.auth.onAuthStateChange(function(_event, session) {
+      applySession(session || null);
+    });
+    return function() {
+      active = false;
+      authSubscription?.data?.subscription?.unsubscribe?.();
+    };
+  }, []);
 
   useEffect(function() {
     if (!estateId) { setLoading(false); return; }
@@ -3309,7 +3540,7 @@ export default function EstatePage() {
     taskActionFromCommand(task, initialTaskIntent === 'assign' ? 'assign' : 'open');
   }, [loading, initialTaskId, initialTaskIntent, tasks.length, openedInitialTaskKey]);
 
-  if (loading) return (
+  if (loading || !authChecked) return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
       <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -3339,13 +3570,26 @@ export default function EstatePage() {
             </button>
           </div>
         ) : (
-          <div style={{ width: '100%', maxWidth: 520, textAlign: 'center', background: CARD, border: '1px solid ' + BORDER, borderRadius: 20, padding: '28px 26px' }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 24, color: INK, marginBottom: 8 }}>Record not found</div>
-            <div style={{ fontSize: 14, color: SOFT, marginBottom: 24, lineHeight: 1.6 }}>This link may have expired, the record may have been archived, or you may need to open it from your estate list.</div>
-            <button onClick={function() { window.location.href = '/?dashboard=1'; }}
-              style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: SAGE, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-              Open My estate
-            </button>
+          <div style={{ width: '100%', maxWidth: 760, background: CARD, border: '1px solid ' + BORDER, borderRadius: 20, padding: '30px 28px', boxShadow: '0 18px 54px rgba(55,45,35,.06)' }}>
+            <div style={{ fontSize: 11, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 12 }}>Your first estate workspace</div>
+            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 30, lineHeight: 1.12, color: INK, margin: '0 0 10px', fontWeight: 400 }}>Create the first family record.</h1>
+            <div style={{ fontSize: 15, color: MID, lineHeight: 1.65, margin: '0 0 22px', maxWidth: 620 }}>
+              You are signed in as <strong style={{ color: INK }}>{user.email}</strong>, but there are no estate records attached to this account yet. Start with the path that matches the moment.
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12 }}>
+              <button onClick={function() { window.location.href = '/planning'; }}
+                style={{ textAlign: 'left', border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: INK, borderRadius: 16, padding: '17px 18px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Plan ahead</div>
+                <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 5 }}>Create a Green estate</div>
+                <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.5 }}>Add wishes, documents, trusted people, providers, and activation contacts before it is urgent.</div>
+              </button>
+              <button onClick={function() { window.location.href = '/urgent'; }}
+                style={{ textAlign: 'left', border: '1px solid ' + ROSE + '33', background: ROSE_FAINT, color: INK, borderRadius: 16, padding: '17px 18px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ color: ROSE, fontSize: 11, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Someone just passed</div>
+                <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 5 }}>Create a Red estate</div>
+                <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.5 }}>Start the urgent path and create the command center from the first practical details.</div>
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -3413,6 +3657,30 @@ export default function EstatePage() {
           coordinatorName={coordinatorName}
           defaultNear={estate?.city || estate?.state || estate?.location_name || ''}
         />
+
+        {isPlanningEstate && (
+          <ActivationCirclePanel
+            estateId={estateId}
+            estate={estate}
+            people={people}
+            authToken={authToken}
+            onActivated={function() {
+              setEstate(function(prev) { return Object.assign({}, prev || {}, { path: 'red', mode: 'red', status: 'triggered', activation_status: 'activated' }); });
+              setEvents(function(prev) {
+                return [{
+                  id: 'local_activation_' + Date.now(),
+                  estate_id: estateId,
+                  event_type: 'green_to_red_activated',
+                  title: 'Planning record activated',
+                  description: 'Two trusted confirmations moved this planning record into the active urgent path.',
+                  actor: user?.email || coordinatorName || 'Activation circle',
+                  created_at: new Date().toISOString(),
+                }].concat(prev || []).slice(0, 8);
+              });
+              showToast('Activation confirmed. This planning record is now active.');
+            }}
+          />
+        )}
 
         <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">
           <TaskSpineCommandCenter
@@ -3503,11 +3771,11 @@ export default function EstatePage() {
                     <div style={{ fontSize: 12.8, color: INK, lineHeight: 1.45, fontWeight: 800 }}>{explanation.what}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginTop: 8 }}>
                       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
-                        <div style={{ fontSize: 9.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>Why it matters</div>
+                        <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>Why it matters</div>
                         <div style={{ fontSize: 12, color: MID, lineHeight: 1.4, marginTop: 3 }}>{explanation.why}</div>
                       </div>
                       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
-                        <div style={{ fontSize: 9.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>What done means</div>
+                        <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>What done means</div>
                         <div style={{ fontSize: 12, color: MID, lineHeight: 1.4, marginTop: 3 }}>{explanation.done}</div>
                       </div>
                     </div>

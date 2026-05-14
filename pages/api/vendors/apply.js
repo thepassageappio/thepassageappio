@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { cleanZipList, normalizeVendorCategory, vendorCategoryLabel } from '../../../lib/vendors';
 import { escapeHtml, passageEmailShell } from '../../../lib/brandedEmail';
+import { detailRows, sendSubmissionReceipt } from '../../../lib/submissionReceipts';
 import { syncLeadToHubSpot } from '../../../lib/hubspot';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -40,6 +41,34 @@ async function notifyPassage(vendor) {
   }).catch(() => null);
 }
 
+async function sendApplicantReceipt(vendor) {
+  return sendSubmissionReceipt({
+    to: vendor.contact_email,
+    subject: 'We received your Passage vendor application',
+    eyebrow: 'Vendor application received',
+    title: 'Thanks for applying to work with Passage.',
+    intro: 'We received your vendor application. Passage reviews each vendor before making them available for family or partner requests, and we will get back to you as soon as possible.',
+    sections: [
+      {
+        label: 'Application summary',
+        html: detailRows({
+          Business: vendor.business_name,
+          Category: vendorCategoryLabel(vendor.category),
+          'Service ZIPs': (vendor.zip_codes_served || []).join(', '),
+          Phone: vendor.contact_phone || 'Not provided',
+        }),
+      },
+      {
+        label: 'What happens next',
+        text: 'We review service fit, coverage area, quality details, and payout readiness before approving vendors for scoped Passage requests.',
+        tone: 'soft',
+      },
+    ],
+    ctaLabel: 'Return to vendor page',
+    ctaPath: '/vendors',
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const body = req.body || {};
@@ -66,13 +95,13 @@ export default async function handler(req, res) {
     contact_phone: phone || null,
     website: String(body.website || '').trim() || null,
     status: 'pending',
-    marketplace_fee_percent: 18,
-    passage_rev_share_percent: 18,
+    marketplace_fee_percent: 12,
+    passage_rev_share_percent: 12,
     funeral_home_rev_share_percent: 0,
     estimated_value: null,
   };
 
-  const { data, error } = await supabase.from('vendors').insert([vendorRow]).select('id,business_name,category,contact_email,zip_codes_served').single();
+  const { data, error } = await supabase.from('vendors').insert([vendorRow]).select('id,business_name,category,contact_email,contact_phone,zip_codes_served').single();
   if (error) return res.status(500).json({ error: error.message });
   await syncLeadToHubSpot({
     admin: supabase,
@@ -100,5 +129,6 @@ export default async function handler(req, res) {
     payload: { vendorId: data.id, category, zipCodes, rushSupported: vendorRow.rush_supported },
   });
   await notifyPassage(data);
+  await sendApplicantReceipt({ ...vendorRow, ...data }).catch(err => console.warn('vendor applicant receipt not sent:', err?.message || err));
   return res.status(200).json({ success: true, vendor: data });
 }

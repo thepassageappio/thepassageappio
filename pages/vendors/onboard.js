@@ -48,8 +48,8 @@ export default function VendorOnboard() {
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '2px 22px 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(340px, 1fr)', gap: 14, alignItems: 'start' }}>
           <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 15, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
-            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Trusted local support</div>
-            <h1 style={{ fontSize: 'clamp(28px, 3.8vw, 40px)', lineHeight: 1, margin: 0, fontWeight: 400 }}>Help when a family actually needs you.</h1>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Trusted local support</div>
+            <h1 style={{ fontSize: 32, lineHeight: 1, margin: 0, fontWeight: 400 }}>Help when a family actually needs you.</h1>
             <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.35, margin: '8px 0 0' }}>Passage suggests local support only inside the task where it helps. No public directory, no bidding wall, no browsing family records.</p>
             <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
               {['Families see your help only when it fits the next step.', 'You receive one scoped request with the details needed to answer.', 'Your response updates the case so nobody has to chase status.'].map((item) => (
@@ -115,6 +115,6 @@ export default function VendorOnboard() {
   );
 }
 
-const labelStyle = { display: 'grid', gap: 3, fontSize: 9.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 };
+const labelStyle = { display: 'grid', gap: 3, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 };
 const inputStyle = { border: '1px solid ' + C.border, borderRadius: 10, background: C.bg, padding: '7px 10px', fontFamily: 'Georgia,serif', fontSize: 12.5, color: C.ink, minWidth: 0 };
 const checkStyle = { display: 'flex', alignItems: 'center', gap: 7, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 10, padding: '7px 10px', color: C.mid, fontSize: 12.2, marginBottom: 5 };

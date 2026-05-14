@@ -164,7 +164,7 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', borderBottom: `1px solid ${C.border}`, paddingBottom: 12, marginBottom: 12 }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={mark}>P</span>
+                    <img src="/brand/passage-held-light.svg" alt="" width="28" height="28" style={mark} />
                     <div>
                       <div style={{ color: C.ink, fontSize: 17, fontWeight: 900 }}>Passage</div>
                       <div style={{ color: C.mid, fontSize: 11.5 }}>Family coordination spine</div>
@@ -202,8 +202,13 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
             <div id="passage-packet-print" style={printPacket}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${C.border}`, paddingBottom: 12, marginBottom: 18 }}>
                 <div>
-                  <div style={{ fontSize: 22, fontWeight: 900 }}>Passage</div>
-                  <div style={{ color: C.mid, fontSize: 12 }}>Family coordination spine</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <img src="/brand/passage-held-light.svg" alt="" width="28" height="28" style={{ borderRadius: 7 }} />
+                    <div>
+                      <div style={{ fontSize: 22, fontWeight: 900 }}>Passage</div>
+                      <div style={{ color: C.mid, fontSize: 12 }}>Family coordination spine</div>
+                    </div>
+                  </div>
                 </div>
                 <div style={{ color: C.mid, fontSize: 11, textAlign: 'right' }}>Powered by Passage<br />thepassageapp.io</div>
               </div>
@@ -279,8 +284,8 @@ const closeButton = {
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const quietBox = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 14, padding: 14, fontSize: 14, fontWeight: 800 };
 const metaBox = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 };
-const metaLabel = { color: C.sage, fontSize: 10, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 4 };
-const mark = { width: 24, height: 24, borderRadius: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.bg, border: `1px solid ${C.border}`, color: C.sage, fontSize: 13, fontWeight: 900 };
+const metaLabel = { color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 4 };
+const mark = { width: 28, height: 28, borderRadius: 8, display: 'block', background: C.bg, border: `1px solid ${C.border}`, objectFit: 'contain' };
 const brandPreview = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 15, marginBottom: 12 };
 const printPacket = { display: 'none' };
 const textarea = {

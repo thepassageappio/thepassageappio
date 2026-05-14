@@ -18,6 +18,25 @@ const C = {
   amberFaint: '#fbf5e8',
 };
 
+const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com', 'thepassageappio@gmail.com'];
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function systemAdminEmails() {
+  const configured = String(process.env.NEXT_PUBLIC_PASSAGE_ADMIN_EMAILS || '')
+    .split(',')
+    .map(normalizeEmail)
+    .filter(Boolean);
+  return Array.from(new Set([...DEFAULT_SYSTEM_ADMIN_EMAILS, ...configured]));
+}
+
+function isSystemAdminUser(user) {
+  const email = normalizeEmail(user?.email);
+  return !!email && systemAdminEmails().includes(email);
+}
+
 const portalCards = [
   {
     eyebrow: 'Family record',
@@ -45,7 +64,7 @@ const portalCards = [
     eyebrow: 'Funeral home staff',
     title: 'Open assigned funeral-home work',
     body: 'For arrangers, location managers, and staff working assigned tasks with proof and case context.',
-    href: '/partner/accept?role=staff',
+    href: '/funeral-home/staff',
     action: 'Staff sign in',
   },
   {
@@ -68,22 +87,38 @@ const portalCards = [
     body: 'For internal QA, sandbox walkthroughs, vendor review, metrics, and operational controls.',
     href: '/system/admin',
     action: 'Admin sign in',
+    adminOnly: true,
   },
 ];
 
 export default function LoginPage() {
   const [user, setUser] = useState(null);
+  const isAdmin = isSystemAdminUser(user);
+  const visiblePortalCards = portalCards.filter(card => !card.adminOnly || isAdmin);
 
   useEffect(() => {
     if (!supabase?.auth) return undefined;
-    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
+    function routeIfAdmin(currentUser) {
+      if (isSystemAdminUser(currentUser) && typeof window !== 'undefined') {
+        window.location.replace('/system/admin');
+      }
+    }
+    supabase.auth.getSession().then(({ data }) => {
+      const currentUser = data.session?.user || null;
+      setUser(currentUser);
+      routeIfAdmin(currentUser);
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      routeIfAdmin(currentUser);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
   async function signIn() {
     if (!supabase?.auth || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/login' } });
   }
 
   async function signOut() {
@@ -99,9 +134,9 @@ export default function LoginPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.76fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage sign in</div>
-            <h1 style={{ fontSize: 'clamp(34px,4.6vw,58px)', lineHeight: .98, fontWeight: 400, margin: '10px 0 12px' }}>Choose the workspace you need.</h1>
+            <h1 style={{ fontSize: 52, lineHeight: .98, fontWeight: 400, margin: '10px 0 12px' }}>Choose the workspace you need.</h1>
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.62, margin: 0 }}>
-              Passage has separate front doors for families, invited helpers, funeral-home teams, vendor partners, and internal admins. The same spine connects the work after you sign in.
+              Passage has separate front doors for families, invited helpers, funeral-home teams, and vendor partners. The same spine connects the work after you sign in.
             </p>
             <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 18 }}>
               {!user && (
@@ -121,7 +156,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ display: 'grid', gap: 10 }}>
-            {portalCards.map((card) => (
+            {visiblePortalCards.map((card) => (
               <Link key={card.href} href={card.href} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 14, alignItems: 'center', background: card.tone === 'primary' ? C.sageFaint : C.card, border: `1px solid ${card.tone === 'primary' ? C.sage + '33' : C.border}`, borderRadius: 16, padding: '15px 16px', textDecoration: 'none', color: C.ink, boxShadow: '0 8px 24px rgba(55,45,35,.04)' }}>
                 <span>
                   <span style={{ display: 'block', color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{card.eyebrow}</span>

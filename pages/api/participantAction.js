@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionRequiresNote, taskActionStatus } from '../../lib/taskActions';
 import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 import { escapeHtml, passageEmailShell } from '../../lib/brandedEmail';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -45,18 +46,36 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     ctaUrl: `${SITE_URL}/estate?id=${workflowId}`,
   });
 
+  const route = routeEmailRecipients([to]);
+  if (!route.actual.length) {
+    await insertNotificationLog(admin, {
+      workflow_id: workflowId,
+      channel: 'email',
+      recipient_email: to,
+      recipient_name: workflow.coordinator_name || to,
+      subject: `Passage update: ${taskTitle || 'task updated'}`,
+      provider: 'resend',
+      provider_id: null,
+      status: 'blocked',
+      error_message: 'QA notification mode had no override email configured.',
+      source: 'participant_coordinator_update',
+      ...qaAuditFields(route),
+    });
+    return;
+  }
+
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
-      to: [to],
+      to: route.actual,
       subject: `Passage update: ${taskTitle || 'task updated'}`,
       html,
     }),
   }).catch(() => null);
   const json = response ? await response.json().catch(() => ({})) : {};
-  await admin.from('notification_log').insert([{
+  await insertNotificationLog(admin, {
     workflow_id: workflowId,
     channel: 'email',
     recipient_email: to,
@@ -67,7 +86,9 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     status: response?.ok ? 'sent' : 'failed',
     sent_at: response?.ok ? new Date().toISOString() : null,
     error_message: response?.ok ? null : (json?.message || json?.error || 'Coordinator notification failed'),
-  }]).then(() => {}, () => {});
+    source: 'participant_coordinator_update',
+    ...qaAuditFields(route),
+  });
 }
 
 function schemaColumnError(error) {

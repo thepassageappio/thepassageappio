@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
 import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { categoryForTask, vendorCategoryLabel } from '../../../lib/vendors';
+import { routeEmailRecipients } from '../../../lib/notificationSafety';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -23,6 +24,8 @@ async function userCanAccessWorkflow(user, workflow) {
 
 async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
   if (!process.env.RESEND_API_KEY || !vendor.contact_email) return false;
+  const route = routeEmailRecipients([vendor.contact_email]);
+  if (!route.actual.length) return false;
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
   const encodedToken = encodeURIComponent(request.response_token || '');
   const portalUrl = `${BASE_URL}/vendors/request?token=${encodedToken}`;
@@ -49,7 +52,7 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from,
-      to: [vendor.contact_email],
+      to: route.actual,
       subject: `Passage request: ${taskTitle || vendorCategoryLabel(vendor.category)}`,
       html,
     }),

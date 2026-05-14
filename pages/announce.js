@@ -138,6 +138,7 @@ export default function AnnouncePage() {
   var s9 = useState(false); var done = s9[0]; var setDone = s9[1];
   var s10 = useState('draft'); var savedStatus = s10[0]; var setSavedStatus = s10[1];
   var s11 = useState([]); var serviceEvents = s11[0]; var setServiceEvents = s11[1];
+  var s12 = useState(''); var recipientText = s12[0]; var setRecipientText = s12[1];
 
   function estateHref() {
     return estateId ? '/estate?id=' + encodeURIComponent(estateId) : '/';
@@ -258,7 +259,40 @@ export default function AnnouncePage() {
       return;
     }
 
-    // SMS or email - save as approved and persist the prepared output.
+    if (channel === 'email') {
+      var sessionResult = await sb.auth.getSession();
+      var token = sessionResult && sessionResult.data && sessionResult.data.session ? sessionResult.data.session.access_token : '';
+      if (!token) {
+        setFeedback('Sign in before sending an email update from Passage.');
+        setSending(false);
+        return;
+      }
+      var response = await fetch('/api/familyUpdate', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { Authorization: 'Bearer ' + token } : {}),
+        body: JSON.stringify({
+          workflowId: estateId,
+          audience: audience,
+          tone: tone,
+          message: message,
+          channel: 'email',
+          recipients: recipientText,
+          reviewedBy: reviewerName || null,
+        }),
+      });
+      var data = await response.json().catch(function() { return {}; });
+      if (!response.ok) {
+        setFeedback(data.error || 'This family update could not be sent. Review the recipients and try again.');
+        setSending(false);
+        return;
+      }
+      setFeedback('Family update sent to ' + (data.sent || 0) + ' recipient' + ((data.sent || 0) === 1 ? '' : 's') + (data.failed ? '. Some recipients need review.' : '.'));
+      setSending(false);
+      setDone(true);
+      return;
+    }
+
+    // SMS or other non-copy output - save as approved and persist the prepared output.
     if (estateId) {
       await sb.from('announcements').insert([{
         estate_id: estateId,
@@ -302,12 +336,14 @@ export default function AnnouncePage() {
       <div style={{ textAlign: 'center', paddingTop: 52 }}>
         <div style={{ fontSize: 52, marginBottom: 24 }}>🕊️</div>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: INK, lineHeight: 1.3, marginBottom: 16 }}>
-          {channel === 'copy' ? 'Copied to clipboard.' : 'Message saved.'}
+          {channel === 'copy' ? 'Copied to clipboard.' : channel === 'email' ? 'Family update sent.' : 'Message saved.'}
         </div>
         <div style={{ fontSize: 15, color: MID, lineHeight: 1.75, maxWidth: 380, margin: '0 auto 36px' }}>
           {channel === 'copy'
           ? 'Paste it wherever the coordinator chooses. You can come back to prepare another version for a different audience.'
-            : 'Your message is saved to the family record. Nothing was sent automatically. You are in control of when and how this reaches people.'}
+            : channel === 'email'
+              ? 'Passage recorded the reviewed recipients, delivery status, and family-record proof so everyone can see what happened.'
+              : 'Your message is saved to the family record. Nothing was sent automatically. You are in control of when and how this reaches people.'}
         </div>
         <div style={{ maxWidth: 380, margin: '0 auto' }}>
           <PrimaryBtn onClick={returnToEstate}>
@@ -440,7 +476,21 @@ export default function AnnouncePage() {
         {CHANNELS.map(function(c) {
           return <Option key={c.id} label={c.label} sub={c.sub} selected={channel === c.id} disabled={c.disabled} onClick={function() { setChannel(c.id); }} />;
         })}
-        {channel && channel !== 'copy' && (
+          {channel === 'email' && (
+            <div style={{ marginTop: 10 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Recipients</label>
+              <textarea
+                value={recipientText}
+                onChange={function(e) { setRecipientText(e.target.value); }}
+                placeholder={'Add one email per line, or separate with commas.\nExample: alex@example.com, Jordan <jordan@example.com>'}
+                style={{ width: '100%', minHeight: 92, boxSizing: 'border-box', border: '1.5px solid ' + BORDER, borderRadius: 12, background: CARD, padding: '12px 13px', fontFamily: 'Georgia, serif', fontSize: 13.5, color: INK, lineHeight: 1.5, resize: 'vertical' }}
+              />
+              <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: SAGE, fontWeight: 700, lineHeight: 1.5, marginTop: 8 }}>
+                Passage sends only to the recipients you review here and records delivery status on the family spine.
+              </div>
+            </div>
+          )}
+        {channel && channel !== 'copy' && channel !== 'email' && (
           <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER + '35', borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: AMBER, fontWeight: 700, lineHeight: 1.5, marginTop: 8 }}>
             Selected: {channelLabel}. No hidden recipient list, and no provider send happens from this review screen.
           </div>
@@ -453,8 +503,8 @@ export default function AnnouncePage() {
         </div>
       ) : null}
 
-      <PrimaryBtn onClick={send} disabled={!channel || channel === 'social_pending' || sending}>
-        {sending ? 'Saving...' : channel === 'copy' ? 'Copy message' : 'Save output to record'}
+      <PrimaryBtn onClick={send} disabled={!channel || channel === 'social_pending' || sending || (channel === 'email' && !recipientText.trim())}>
+        {sending ? 'Sending...' : channel === 'copy' ? 'Copy message' : channel === 'email' ? 'Send reviewed update' : 'Save output to record'}
       </PrimaryBtn>
       <GhostBtn onClick={saveDraft}>Save as draft</GhostBtn>
       <GhostBtn onClick={returnToEstate}>Back to family record</GhostBtn>

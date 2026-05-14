@@ -66,14 +66,15 @@ export default async function handler(req, res) {
     }
 
     if (focusEstateId) {
-      const [{ data: estateTasks }, { data: estateActions }, { data: focusLog }] = await Promise.all([
+      const [{ data: estateTasks }, { data: estateActions }, { data: focusLog }, { data: focusActivationWitness }] = await Promise.all([
         admin.from('tasks').select(taskSelect).eq('workflow_id', focusEstateId).ilike('assigned_to_email', email).order('created_at', { ascending: false }),
         admin.from('workflow_actions').select(actionSelect).eq('workflow_id', focusEstateId).ilike('recipient_email', email).order('created_at', { ascending: false }),
         admin.from('notification_log').select('workflow_id').eq('workflow_id', focusEstateId).ilike('recipient_email', email).limit(1),
+        admin.from('activation_witnesses').select('workflow_id').eq('workflow_id', focusEstateId).ilike('email', email).eq('status', 'active').limit(1),
       ]);
       (estateTasks || []).forEach(t => { if (!tasks.some(existing => existing.id === t.id)) tasks.push(t); });
       (estateActions || []).forEach(a => { if (!actions.some(existing => existing.id === a.id)) actions.push(a); });
-      if ((estateTasks || []).length || (estateActions || []).length || (focusLog || []).length) extraWorkflowIds.push(focusEstateId);
+      if ((estateTasks || []).length || (estateActions || []).length || (focusLog || []).length || (focusActivationWitness || []).length) extraWorkflowIds.push(focusEstateId);
     }
 
     const workflowIds = unique([
@@ -88,8 +89,11 @@ export default async function handler(req, res) {
     let statusEvents = [];
     let communications = [];
     let vendorRequests = [];
+    let activationWitnesses = [];
+    let activationRequests = [];
+    let activationConfirmations = [];
     if (workflowIds.length > 0) {
-      const [{ data: wfData }, { data: eventData }, { data: statusEventData }, { data: communicationData }, { data: vendorRequestData }] = await Promise.all([
+      const [{ data: wfData }, { data: eventData }, { data: statusEventData }, { data: communicationData }, { data: vendorRequestData }, witnessResult, requestResult] = await Promise.all([
         admin.from('workflows')
           .select('id, name, deceased_name, coordinator_name, coordinator_email, status, path, activation_status, created_at, updated_at')
           .in('id', workflowIds),
@@ -112,12 +116,33 @@ export default async function handler(req, res) {
           .in('workflow_id', workflowIds)
           .order('requested_at', { ascending: false })
           .limit(40),
+        admin.from('activation_witnesses')
+          .select('id,workflow_id,email,name,role,status')
+          .in('workflow_id', workflowIds)
+          .ilike('email', email)
+          .eq('status', 'active')
+          .limit(40),
+        admin.from('activation_requests')
+          .select('id,workflow_id,status,requested_by_email,requested_by_name,reason,proof_source,created_at,confirmed_at')
+          .in('workflow_id', workflowIds)
+          .order('created_at', { ascending: false })
+          .limit(20),
       ]);
       workflows = (wfData || []).filter(w => w.status !== 'archived');
       events = eventData || [];
       statusEvents = statusEventData || [];
       communications = communicationData || [];
       vendorRequests = vendorRequestData || [];
+      activationWitnesses = witnessResult.error ? [] : (witnessResult.data || []);
+      activationRequests = requestResult.error ? [] : (requestResult.data || []);
+      const requestIds = activationRequests.map(row => row.id).filter(Boolean);
+      if (requestIds.length > 0) {
+        const { data: confirmationData } = await admin
+          .from('activation_confirmations')
+          .select('id,request_id,workflow_id,confirmed_by_email,confirmed_by_name,confirmation_role,note,created_at')
+          .in('request_id', requestIds);
+        activationConfirmations = confirmationData || [];
+      }
     }
 
     const estates = workflows.map(w => {
@@ -126,6 +151,9 @@ export default async function handler(req, res) {
       const estateStatusEvents = statusEvents.filter(e => e.workflow_id === w.id);
       const estateCommunications = communications.filter(c => c.workflow_id === w.id);
       const estateVendorRequests = vendorRequests.filter(v => v.workflow_id === w.id);
+      const estateActivationWitness = activationWitnesses.find(a => a.workflow_id === w.id);
+      const estateActivationRequest = activationRequests.find(a => a.workflow_id === w.id && a.status === 'pending') || activationRequests.find(a => a.workflow_id === w.id) || null;
+      const estateActivationConfirmations = estateActivationRequest ? activationConfirmations.filter(c => c.request_id === estateActivationRequest.id) : [];
       const coordinationSpine = buildCoordinationSpine({
         tasks: estateTasks.concat(estateActions),
         statusEvents: estateStatusEvents,
@@ -147,6 +175,13 @@ export default async function handler(req, res) {
         communications: estateCommunications,
         vendorRequests: estateVendorRequests,
         coordinationSpine,
+        activationReview: estateActivationWitness && estateActivationRequest ? {
+          witness: estateActivationWitness,
+          request: estateActivationRequest,
+          confirmations: estateActivationConfirmations,
+          alreadyConfirmed: estateActivationConfirmations.some(c => String(c.confirmed_by_email || '').toLowerCase() === email),
+          needsSecondConfirmation: estateActivationRequest.status === 'pending' && estateActivationRequest.requested_by_email && String(estateActivationRequest.requested_by_email).toLowerCase() !== email,
+        } : null,
         nextTask: selectNextTask(estateTasks.concat(estateActions), 'participant'),
       };
     });

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
+import { detailRows, sendSubmissionReceipt } from '../../lib/submissionReceipts';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -101,6 +102,31 @@ export default async function handler(req, res) {
         console.warn('supportInquiry email not sent:', detail);
       }
     }
+
+    await sendSubmissionReceipt({
+      to: email,
+      subject: category === 'Resource guide lead' ? 'We received your Passage guide request' : 'We received your Passage inquiry',
+      eyebrow: category === 'Resource guide lead' ? 'Guide request received' : 'Inquiry received',
+      title: 'Thanks for reaching out to Passage.',
+      intro: 'We received your request. A real person will review it and get back to you as soon as possible.',
+      sections: [
+        {
+          label: 'What we received',
+          html: detailRows({
+            Category: category,
+            Urgency: urgency,
+            Name: name || 'Not provided',
+          }),
+        },
+        {
+          label: 'Your note',
+          text: message || 'No note supplied.',
+          tone: 'soft',
+        },
+      ],
+      ctaLabel: 'Return to Passage',
+      ctaPath: '/',
+    }).catch(err => console.warn('supportInquiry receipt not sent:', err?.message || err));
 
     return res.status(200).json({ success: true });
   } catch (err) {

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { locationUsageForPlan } from '../../lib/partnerPlans';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -29,6 +30,49 @@ async function getAdminMembership(user) {
   return data || null;
 }
 
+async function getLocationSlotUsage(organizationId, nextName) {
+  let partner = null;
+  const { data: partnerRow } = await admin
+    .from('funeral_home_partners')
+    .select('plan,included_location_slots,additional_location_fee_cents')
+    .eq('organization_id', organizationId)
+    .maybeSingle();
+  partner = partnerRow || null;
+  if (!partner) {
+    const { data: orgRow } = await admin
+      .from('organizations')
+      .select('partner_plan,included_location_slots,additional_location_fee_cents')
+      .eq('id', organizationId)
+      .maybeSingle();
+    partner = {
+      plan: orgRow?.partner_plan || 'partner_local',
+      included_location_slots: orgRow?.included_location_slots,
+      additional_location_fee_cents: orgRow?.additional_location_fee_cents,
+    };
+  }
+
+  let existingLocations = [];
+  for (const table of ['organization_locations', 'partner_locations']) {
+    const { data, error } = await admin
+      .from(table)
+      .select('name,status')
+      .eq('organization_id', organizationId)
+      .neq('status', 'archived');
+    if (!error) {
+      existingLocations = data || [];
+      break;
+    }
+    if (!schemaError(error)) break;
+  }
+  const normalizedNext = cleanText(nextName).toLowerCase();
+  const alreadyExists = existingLocations.some(location => cleanText(location.name).toLowerCase() === normalizedNext);
+  const usage = locationUsageForPlan(partner?.plan || 'partner_local', existingLocations.length, {
+    includedLocationSlots: partner?.included_location_slots,
+    additionalLocationFeeCents: partner?.additional_location_fee_cents,
+  });
+  return { ...usage, alreadyExists };
+}
+
 export default async function handler(req, res) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return res.status(401).json({ error: 'Please sign in first.' });
@@ -41,6 +85,14 @@ export default async function handler(req, res) {
 
   const name = cleanText(req.body?.name);
   if (!name) return res.status(400).json({ error: 'Name the location before saving it.' });
+  const slotUsage = await getLocationSlotUsage(membership.organization_id, name);
+  if (slotUsage.needsUpgradeForNextLocation && !slotUsage.alreadyExists) {
+    return res.status(402).json({
+      error: `This ${slotUsage.planLabel} workspace includes ${slotUsage.includedLocationSlots} location slot${slotUsage.includedLocationSlots === 1 ? '' : 's'}. Upgrade to multi-location or add another location slot before saving this location.`,
+      code: 'LOCATION_SLOT_UPGRADE_REQUIRED',
+      locationSlots: slotUsage,
+    });
+  }
 
   const row = {
     organization_id: membership.organization_id,
@@ -73,6 +125,7 @@ export default async function handler(req, res) {
         location: { ...(data || attempt.row), source: 'partner setup' },
         confirmation: 'Location saved. It is now available in staff scope, case setup, reporting, and exports.',
         persisted: true,
+        locationSlots: { ...slotUsage, usedLocationSlots: slotUsage.alreadyExists ? slotUsage.usedLocationSlots : slotUsage.usedLocationSlots + 1 },
       });
     }
     if (!schemaError(error)) return res.status(500).json({ error: error.message });
@@ -82,5 +135,6 @@ export default async function handler(req, res) {
     location: { ...row, source: 'prepared' },
     confirmation: 'Location prepared in this workspace. Add the partner location table to persist it across sessions.',
     persisted: false,
+    locationSlots: slotUsage,
   });
 }

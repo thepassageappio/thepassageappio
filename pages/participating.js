@@ -7,6 +7,7 @@ import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
 import { taskExplanationFor, taskWorkspaceFor } from '../lib/taskWorkspace';
+import { friendlyAuthError, isLikelyEmail, normalizeEmail } from '../lib/authFeedback';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3', amber: '#b07d2e', amberFaint: '#fdf8ee' };
@@ -255,6 +256,51 @@ function statusForParticipantAction(action) {
   return taskActionStatus(action) || 'needs_review';
 }
 
+function ActivationReviewCard({ estate, onConfirm }) {
+  const review = estate?.activationReview;
+  if (!review?.request || review.request.status !== 'pending') return null;
+  const requester = review.request.requested_by_name || review.request.requested_by_email || 'Someone in the activation circle';
+  const already = review.alreadyConfirmed;
+  const needsSecond = review.needsSecondConfirmation;
+  return (
+    <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}55`, borderRadius: 18, padding: 16, marginBottom: 14 }}>
+      <div style={{ color: C.amber, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Activation review</div>
+      <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.2, fontWeight: 900 }}>Confirm whether this planning record should become active.</div>
+      <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6, marginTop: 8 }}>
+        {requester} started the review. Passage requires two different trusted confirmations before a Green planning record becomes the active urgent path.
+      </div>
+      {review.request.reason && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 10 }}>
+          <strong style={{ color: C.ink }}>Reason shared:</strong> {review.request.reason}
+        </div>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8, marginTop: 10 }}>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Your role</div>
+          <div style={{ color: C.ink, fontSize: 12.5, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{review.witness?.role || 'Activation witness'}</div>
+        </div>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Progress</div>
+          <div style={{ color: C.ink, fontSize: 12.5, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{review.confirmations?.length || 1} of 2 confirmations saved</div>
+        </div>
+      </div>
+      {already ? (
+        <div style={{ color: C.sage, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px', fontSize: 13, fontWeight: 900, lineHeight: 1.45, marginTop: 10 }}>
+          Your confirmation is saved. Passage is waiting for a second trusted person before activation completes.
+        </div>
+      ) : needsSecond ? (
+        <button onClick={() => onConfirm(estate.id, review.request.id)} style={{ width: '100%', minHeight: 46, border: 'none', borderRadius: 13, background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, fontSize: 14, cursor: 'pointer', marginTop: 12 }}>
+          Confirm activation
+        </button>
+      ) : (
+        <div style={{ color: C.amber, fontSize: 12.8, lineHeight: 1.5, fontWeight: 800, marginTop: 10 }}>
+          A second trusted person must confirm. The person who started the request cannot be the second validator.
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, estate }) {
   const handled = isHandled(item);
   const kind = roleKind(estate?.role, item);
@@ -354,22 +400,22 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 7, marginTop: 9 }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
-            <div style={{ color: C.sage, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Why it matters</div>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Why it matters</div>
             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{explanation.why}</div>
           </div>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
-            <div style={{ color: C.sage, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>What done means</div>
+            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>What done means</div>
             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{explanation.done}</div>
           </div>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(160px, .8fr)', gap: 8, marginBottom: 9 }}>
         <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-          <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{contract.label}</div>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{contract.label}</div>
           <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.38, fontWeight: 800, marginTop: 3 }}>{contract.action}</div>
         </div>
         <div style={{ background: statusBg, border: `1px solid ${statusTone}33`, borderRadius: 12, padding: '9px 10px' }}>
-          <div style={{ fontSize: 10, color: statusTone, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting point</div>
+          <div style={{ fontSize: 10.5, color: statusTone, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting point</div>
           <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.38, marginTop: 3 }}>{expectedUpdate}</div>
         </div>
       </div>
@@ -459,6 +505,8 @@ export default function ParticipatingPage() {
   const [error, setError] = useState('');
   const [emailLogin, setEmailLogin] = useState('');
   const [magicSent, setMagicSent] = useState(false);
+  const [magicLoading, setMagicLoading] = useState(false);
+  const [magicError, setMagicError] = useState('');
   const [notesByItem, setNotesByItem] = useState({});
   const [expandedEstateId, setExpandedEstateId] = useState('');
   const [showHandled, setShowHandled] = useState({});
@@ -668,6 +716,31 @@ export default function ParticipatingPage() {
     await load(token);
   }
 
+  async function confirmActivation(estateId, requestId) {
+    if (!supabase?.auth) {
+      setActionNotice('Sign in to confirm activation.');
+      return;
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) return;
+    const response = await fetch('/api/activationCircle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({
+        workflowId: estateId,
+        action: 'confirm',
+        requestId,
+        note: 'Reviewed and confirmed from the participant workspace.',
+      }),
+    });
+    const json = await response.json().catch(() => ({}));
+    setActionNotice(response.ok
+      ? (json.activated ? 'Activation confirmed. The planning record is now active.' : 'Your activation confirmation is saved. Passage is waiting for the second trusted confirmation.')
+      : (json.error || 'Passage could not save this activation confirmation.'));
+    await load(token);
+  }
+
   async function signOut() {
     if (!supabase?.auth) return;
     await supabase.auth.signOut();
@@ -676,14 +749,29 @@ export default function ParticipatingPage() {
   }
 
   async function sendMagicLink() {
-    if (!emailLogin) return;
-    if (!supabase?.auth) {
-      setError('Sign-in is not configured in this environment.');
+    const cleanEmail = normalizeEmail(emailLogin);
+    setMagicError('');
+    setMagicSent(false);
+    if (!cleanEmail) {
+      setMagicError('Enter the email address that received the invite.');
       return;
     }
-    const { error } = await supabase.auth.signInWithOtp({ email: emailLogin, options: { emailRedirectTo: SITE_URL + (router.asPath || '/participating') } });
-    if (error) setError(error.message);
-    else setMagicSent(true);
+    if (!isLikelyEmail(cleanEmail)) {
+      setMagicError('Enter a valid email address, like name@example.com.');
+      return;
+    }
+    if (!supabase?.auth) {
+      setMagicError('Sign-in is not configured in this environment.');
+      return;
+    }
+    setMagicLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({ email: cleanEmail, options: { emailRedirectTo: SITE_URL + (router.asPath || '/participating') } });
+    setMagicLoading(false);
+    if (error) setMagicError(friendlyAuthError(error));
+    else {
+      setEmailLogin(cleanEmail);
+      setMagicSent(true);
+    }
   }
 
   return (
@@ -722,7 +810,7 @@ export default function ParticipatingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.78fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Participant access</div>
-              <h2 style={{ fontSize: 'clamp(34px,4.6vw,56px)', lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Help with one request, without opening the whole record.</h2>
+              <h2 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Help with one request, without opening the whole record.</h2>
               <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
                 Participants are relatives, friends, clergy, vendors, or helpers invited to handle one specific responsibility. Passage shows the task, waiting point, and proof needed. The full estate workspace stays private.
               </p>
@@ -741,8 +829,9 @@ export default function ParticipatingPage() {
                 <div style={{ height: 12 }} />
                 {!magicSent ? (
                   <>
-                    <input value={emailLogin} onChange={e => setEmailLogin(e.target.value)} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 13, border: `1.5px solid ${C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
-                    <button onClick={sendMagicLink} style={{ width: '100%', border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Email me a sign-in link</button>
+                    <input value={emailLogin} onChange={e => { setEmailLogin(e.target.value); setMagicError(''); setMagicSent(false); }} type="email" placeholder="Or enter your email" style={{ width: '100%', boxSizing: 'border-box', padding: '13px 14px', borderRadius: 13, border: `1.5px solid ${magicError ? C.rose : C.border}`, fontFamily: 'Georgia,serif', marginBottom: 8 }} />
+                    {magicError && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 12, padding: 10, fontSize: 13, lineHeight: 1.45, marginBottom: 8 }}>{magicError}</div>}
+                    <button disabled={magicLoading} onClick={sendMagicLink} style={{ width: '100%', border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: magicLoading ? 'wait' : 'pointer', opacity: magicLoading ? .65 : 1 }}>{magicLoading ? 'Sending...' : 'Email me a sign-in link'}</button>
                   </>
                 ) : (
                   <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '14px 15px', color: C.mid, fontSize: 13.2, lineHeight: 1.55 }}>
@@ -789,7 +878,7 @@ export default function ParticipatingPage() {
                         ['Proof is saved', 'Status and notes return to the record.'],
                       ].map(([title, body]) => (
                         <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px' }}>
-                          <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
+                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
                           <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.42, marginTop: 4 }}>{body}</div>
                         </div>
                       ))}
@@ -894,7 +983,7 @@ export default function ParticipatingPage() {
                           ['Saved for coordinator', estate.coordinationSpine?.latest?.length || 0],
                         ].map(([label, value]) => (
                           <div key={label} style={{ background: label === 'Your request' ? C.card : C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '11px 12px' }}>
-                            <div style={{ fontSize: 10, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                             <div style={{ fontSize: label === 'Your request' ? 13 : 18, color: C.ink, marginTop: 3, lineHeight: 1.25, fontWeight: 800 }}>{value}</div>
                           </div>
                         ))}
@@ -908,7 +997,7 @@ export default function ParticipatingPage() {
                           </p>
                           {primaryItem && (
                             <div style={{ marginTop: 12, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px' }}>
-                              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Most recent handled item</div>
+                              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Most recent handled item</div>
                               <div style={{ color: C.ink, fontSize: 15, fontWeight: 900, marginTop: 4 }}>{itemTitle(primaryItem)}</div>
                               <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>{taskExpectedUpdate(primaryItem, 'participant') || 'Saved to the family record.'}</div>
                             </div>
@@ -926,6 +1015,8 @@ export default function ParticipatingPage() {
                           primary
                         />
                       )}
+
+                      <ActivationReviewCard estate={estate} onConfirm={confirmActivation} />
 
                       {estate.coordinationSpine?.latest?.length > 0 && (
                         <details style={{ marginTop: 12, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 12px', background: C.card }}>

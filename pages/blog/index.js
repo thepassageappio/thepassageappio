@@ -20,7 +20,7 @@ export default function BlogIndex() {
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '34px 24px 70px' }}>
         <div style={{ maxWidth: 760, marginBottom: 26 }}>
           <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 10 }}>Passage Blog</div>
-          <h1 style={{ fontSize: 'clamp(42px, 6vw, 76px)', lineHeight: .94, letterSpacing: 0, fontWeight: 400, margin: '0 0 14px' }}>Calm guidance for the practical side of loss.</h1>
+          <h1 style={{ fontSize: 52, lineHeight: .94, letterSpacing: 0, fontWeight: 400, margin: '0 0 14px' }}>Calm guidance for the practical side of loss.</h1>
           <p style={{ color: C.mid, fontSize: 18, lineHeight: 1.55, margin: 0 }}>Thoughtful guides for families, funeral homes, hospice teams, vendors, and helpers working through one shared transition.</p>
         </div>
 

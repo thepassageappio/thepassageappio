@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import SmartAddressInput from '../../components/SmartAddressInput';
 import { supabase } from '../../lib/supabaseBrowser';
+import { friendlyAuthError, isLikelyEmail, normalizeEmail } from '../../lib/authFeedback';
 
 const C = {
   bg: '#f6f3ee',
@@ -23,6 +24,7 @@ export default function FuneralHomeSetupPage() {
   const [token, setToken] = useState('');
   const [email, setEmail] = useState('');
   const [magicSent, setMagicSent] = useState(false);
+  const [magicLoading, setMagicLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
@@ -66,15 +68,23 @@ export default function FuneralHomeSetupPage() {
   }
 
   async function sendMagicLink() {
-    if (!email) return setError('Enter your work email first.');
+    const cleanEmail = normalizeEmail(email);
+    setMagicSent(false);
+    if (!cleanEmail) return setError('Enter your work email first.');
+    if (!isLikelyEmail(cleanEmail)) return setError('Enter a valid email address, like name@example.com.');
     if (!supabase?.auth || typeof window === 'undefined') return setError('Sign-in is not configured in this environment.');
     setError('');
+    setMagicLoading(true);
     const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
+      email: cleanEmail,
       options: { emailRedirectTo: window.location.href },
     });
-    if (authError) setError(authError.message);
-    else setMagicSent(true);
+    setMagicLoading(false);
+    if (authError) setError(friendlyAuthError(authError));
+    else {
+      setEmail(cleanEmail);
+      setMagicSent(true);
+    }
   }
 
   async function createWorkspace(event) {
@@ -114,7 +124,7 @@ export default function FuneralHomeSetupPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.8fr) minmax(320px,1fr)', gap: 16, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 26, boxShadow: '0 14px 38px rgba(55,45,35,.06)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Partner setup</div>
-            <h1 style={{ fontSize: 'clamp(34px,5vw,58px)', lineHeight: 1, margin: '10px 0 12px', fontWeight: 400 }}>Create the funeral-home workspace.</h1>
+            <h1 style={{ fontSize: 52, lineHeight: 1, margin: '10px 0 12px', fontWeight: 400 }}>Create the funeral-home workspace.</h1>
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65, margin: 0 }}>
               Start with the organization, owner, and first location. After setup, Passage opens the command center so you can add employees, create or import cases, and review warm inbound family requests.
             </p>
@@ -133,8 +143,8 @@ export default function FuneralHomeSetupPage() {
                 {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 12, padding: 10, fontSize: 13, lineHeight: 1.45, marginBottom: 10 }}>{error}</div>}
                 <button onClick={signInGoogle} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 13, minHeight: 50, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', width: '100%', marginBottom: 9 }}>Continue with Google</button>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8 }}>
-                  <input value={email} onChange={event => setEmail(event.target.value)} type="email" placeholder="director@funeralhome.com" style={{ border: `1.5px solid ${C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
-                  <button onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Email link</button>
+                  <input value={email} onChange={event => { setEmail(event.target.value); setError(''); setMagicSent(false); }} type="email" placeholder="director@funeralhome.com" style={{ border: `1.5px solid ${error ? C.rose : C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
+                  <button disabled={magicLoading} onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: magicLoading ? 'wait' : 'pointer', opacity: magicLoading ? .65 : 1 }}>{magicLoading ? 'Sending...' : 'Email link'}</button>
                 </div>
                 {magicSent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45, marginTop: 10 }}>Check your email. Come back here after signing in.</div>}
               </div>

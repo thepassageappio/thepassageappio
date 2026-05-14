@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { smsDeliveryState } from '../../lib/smsReadiness';
+import { insertNotificationLog, isQaNotificationMode, qaOverrideEmail } from '../../lib/notificationSafety';
 
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -133,6 +134,38 @@ export default async function handler(req, res) {
       actionType: actionType || 'assignment',
       message: 'Dry run only. No SMS was sent, no provider was called, no fallback email was sent, and no production record was changed.',
     });
+  }
+
+  if (isQaNotificationMode()) {
+    const intendedPhone = to.startsWith('+') ? to : '+1' + to.replace(/\D/g, '');
+    const override = qaOverrideEmail();
+    await insertNotificationLog(supabase, {
+      workflow_id: workflowId || null,
+      channel: 'sms',
+      recipient_phone: intendedPhone,
+      recipient_name: toName || null,
+      intended_recipient_phone: intendedPhone,
+      actual_recipient_email: override || null,
+      body_preview: String(messageText || taskTitle || actionType || 'Passage SMS').slice(0, 100),
+      provider: 'qa_sms_blocked',
+      status: 'blocked',
+      source: actionType || 'task_sms',
+      qa_override_active: true,
+      error_message: 'QA notification mode is active. SMS was blocked instead of sent.',
+      sent_at: new Date().toISOString(),
+    });
+    await recordTaskStatus({
+      workflowId,
+      taskId,
+      actionId,
+      status: 'waiting',
+      actor: coordinatorName || 'Passage',
+      channel: 'sms',
+      recipient: toName || intendedPhone,
+      provider: 'qa_sms_blocked',
+      detail: 'QA mode blocked SMS to ' + (toName || intendedPhone) + '. Intended recipient is preserved in the notification log.',
+    });
+    return res.status(200).json({ success: true, qaOverride: true, smsBlocked: true, intendedRecipient: intendedPhone, actualRecipient: override || null });
   }
 
   const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;

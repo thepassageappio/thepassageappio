@@ -53,7 +53,7 @@ export default function ParticipantsPage() {
         .participants-hero { display:grid; grid-template-columns:minmax(0,.9fr) minmax(300px,.72fr); gap:18px; align-items:stretch; }
         .participants-card { background:${C.card}; border:1px solid ${C.border}; border-radius:18px; padding:24px; box-shadow:0 12px 34px rgba(55,45,35,.055); }
         .participants-kicker { color:${C.sage}; font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:900; }
-        .participants-title { font-size:clamp(36px,5vw,64px); line-height:.96; margin:10px 0 12px; font-weight:400; letter-spacing:0; }
+        .participants-title { font-size:52px; line-height:.96; margin:10px 0 12px; font-weight:400; letter-spacing:0; }
         .participants-lede { color:${C.mid}; font-size:16px; line-height:1.58; margin:0; max-width:680px; }
         .participants-actions { display:flex; gap:9px; flex-wrap:wrap; margin-top:18px; }
         .participants-button { min-height:46px; border-radius:13px; display:inline-flex; align-items:center; justify-content:center; padding:0 17px; font-weight:900; text-decoration:none; font-family:inherit; font-size:13.5px; }

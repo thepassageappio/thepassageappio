@@ -125,7 +125,7 @@ export default function ResourcesPage() {
         <section style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,.82fr) minmax(360px,.9fr)', gap: 18, alignItems: 'stretch' }} className="resources-hero-grid">
           <div>
             <div style={eyebrow}>Resources</div>
-            <h1 style={{ fontSize: 'clamp(34px, 4vw, 50px)', lineHeight: .98, margin: '0 0 9px', fontWeight: 400 }}>
+            <h1 style={{ fontSize: 52, lineHeight: .98, margin: '0 0 9px', fontWeight: 400 }}>
               Start with the question you are carrying.
             </h1>
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.42, margin: 0, maxWidth: 610 }}>
@@ -147,7 +147,7 @@ export default function ResourcesPage() {
           </div>
           <div style={{ background: activePane.bg, border: `1px solid ${activePane.tone}22`, borderRadius: 17, padding: 16, display: 'flex', flexDirection: 'column', minHeight: 290 }}>
             <div style={{ ...eyebrow, color: activePane.tone }}>{activePane.eyebrow}</div>
-            <h2 style={{ ...sectionTitle, fontSize: 'clamp(24px, 2.6vw, 32px)' }}>{activePane.title}</h2>
+            <h2 style={{ ...sectionTitle, fontSize: 24 }}>{activePane.title}</h2>
             <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: '7px 0 11px' }}>{activePane.body}</p>
             {activePane.rows.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: activePane.rows.length > 2 ? 'repeat(2, minmax(0,1fr))' : '1fr', gap: 7, marginBottom: 11 }}>
@@ -186,7 +186,7 @@ const eyebrow = {
 };
 
 const sectionTitle = {
-  fontSize: 'clamp(24px, 2.7vw, 34px)',
+  fontSize: 24,
   lineHeight: 1.02,
   margin: 0,
   fontWeight: 400,

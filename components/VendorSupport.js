@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
 import { RoleActionStrip, StatusBadge } from './SiteChrome';
 import { vendorAvailabilityLabel, vendorCategoryLabel } from '../lib/vendors';
+import { paymentStatusLabel, vendorNextExpected, vendorStatusLabel } from '../lib/vendorLifecycle';
 
 const C = {
   card: '#ffffff',
@@ -26,6 +27,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
   const [message, setMessage] = useState('');
   const [requesting, setRequesting] = useState('');
   const [deciding, setDeciding] = useState('');
+  const [paymentReview, setPaymentReview] = useState(null);
   const [urgency, setUrgency] = useState('planned');
   const [token, setToken] = useState(authToken || '');
 
@@ -175,7 +177,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
                   <div style={{ fontSize: 14, fontWeight: 900, color: C.ink, lineHeight: 1.25 }}>{vendor.business_name}</div>
                   <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{vendor.short_description || 'Local support for this step.'}</div>
                 </div>
-                {vendor.preferred_by_funeral_home && <span style={{ fontSize: 10, color: C.sage, fontWeight: 900, whiteSpace: 'nowrap' }}>Preferred</span>}
+                {vendor.preferred_by_funeral_home && <span style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, whiteSpace: 'nowrap' }}>Preferred</span>}
               </div>
               <div style={{ fontSize: 11.5, color: C.amber, fontWeight: 800, marginTop: 7 }}>{vendorAvailabilityLabel(vendor)}</div>
               {vendor.preferred_by_funeral_home && (
@@ -208,23 +210,31 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
           {requests.map((request) => (
             <div key={request.id} style={{ display: 'grid', gap: 5, padding: '6px 0', borderTop: '1px solid ' + C.sageLight }}>
               <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 900 }}>{request.vendors?.business_name || 'Local support'} - {vendorRequestLabel(request.status)}</div>
+              <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45 }}>{vendorNextExpected(request.status, request.payment_collection_status)}</div>
               {request.vendor_note && <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45 }}>{request.vendor_note}</div>}
               {(request.estimated_value || request.final_value) && (
                 <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 900 }}>
                   Quote/value: ${Math.round(Number(request.final_value || request.estimated_value || 0))}
                 </div>
               )}
+              {request.payment_collection_status && (
+                <div style={{ fontSize: 11.5, color: C.amber, fontWeight: 900 }}>
+                  Payment: {paymentStatusLabel(request.payment_collection_status)}
+                </div>
+              )}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {request.requested_at && <ProofPill status="sent" label="Sent" time={request.requested_at} />}
                 {request.viewed_at && <ProofPill status="viewed" label="Viewed" time={request.viewed_at} />}
-                {(request.responded_at || ['accepted', 'in_progress', 'completed'].includes(request.status)) && <ProofPill status="accepted" label="Quote ready" time={request.responded_at} />}
-                {(request.in_progress_at || request.status === 'in_progress' || request.status === 'completed') && <ProofPill status="waiting" label="Scheduled" time={request.in_progress_at || request.responded_at} />}
+                {(request.responded_at || ['accepted', 'quoted', 'family_accepted', 'payment_pending', 'paid', 'scheduled', 'in_progress', 'completed'].includes(request.status)) && <ProofPill status="accepted" label="Quote ready" time={request.responded_at} />}
+                {(['payment_pending'].includes(request.status) || request.payment_collection_status === 'checkout_created') && <ProofPill status="waiting" label="Payment pending" time={request.family_accepted_at || request.payment_url_created_at} />}
+                {(['paid', 'scheduled', 'in_progress', 'completed'].includes(request.status) || request.payment_collection_status === 'paid') && <ProofPill status="completed" label="Paid" time={request.paid_at} />}
+                {(request.in_progress_at || ['scheduled', 'in_progress', 'completed'].includes(request.status)) && <ProofPill status="waiting" label="Scheduled" time={request.in_progress_at || request.responded_at} />}
                 {request.completed_at && <ProofPill status="completed" label="Completed" time={request.completed_at} />}
               </div>
-              {request.status === 'accepted' && (
+              {['accepted', 'quoted', 'family_accepted', 'payment_pending'].includes(request.status) && request.payment_collection_status !== 'paid' && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <button onClick={() => decideQuote(request, 'approve_quote')} disabled={deciding === request.id + ':approve_quote'} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 9px', fontFamily: 'Georgia,serif', fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
-                    {deciding === request.id + ':approve_quote' ? 'Opening payment...' : 'Accept and pay'}
+                  <button onClick={() => setPaymentReview(request)} disabled={deciding === request.id + ':approve_quote'} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 9px', fontFamily: 'Georgia,serif', fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
+                    {deciding === request.id + ':approve_quote' ? 'Opening payment...' : request.payment_collection_status === 'checkout_created' ? 'Return to payment' : 'Review and pay'}
                   </button>
                   <button onClick={() => decideQuote(request, 'decline_quote')} disabled={deciding === request.id + ':decline_quote'} style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 9px', fontFamily: 'Georgia,serif', fontSize: 11.5, fontWeight: 900, cursor: 'pointer' }}>
                     Need another option
@@ -234,8 +244,8 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
               {request.status === 'requested' && (
                 <div style={{ fontSize: 11.5, color: C.mid }}>Waiting for a quote or availability response. If we do not hear back, Passage keeps it visible here.</div>
               )}
-              {request.status === 'in_progress' && (
-                <div style={{ fontSize: 11.5, color: C.mid }}>Quote accepted. Waiting for completion proof from the vendor.</div>
+              {['paid', 'scheduled', 'in_progress'].includes(request.status) && (
+                <div style={{ fontSize: 11.5, color: C.mid }}>Payment is tracked. Waiting for service completion proof from the vendor.</div>
               )}
             </div>
           ))}
@@ -243,6 +253,35 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
       )}
       {message && <div style={{ marginTop: 9, background: message.includes('sent') ? C.sageFaint : C.roseFaint, border: '1px solid ' + (message.includes('sent') ? C.sageLight : C.rose + '33'), color: message.includes('sent') ? C.sage : C.rose, borderRadius: 10, padding: '8px 10px', fontSize: 12.5, fontWeight: 800 }}>{message}</div>}
       <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.45, marginTop: 9 }}>Vendor help is optional. You can use anyone you choose.</div>
+      {paymentReview && (
+        <div onClick={() => setPaymentReview(null)} style={{ position: 'fixed', inset: 0, zIndex: 240, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+          <div role="dialog" aria-modal="true" aria-label="Review vendor quote" onClick={(event) => event.stopPropagation()} style={{ width: 'min(560px, 100%)', background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Review before payment</div>
+            <h3 style={{ color: C.ink, fontSize: 25, lineHeight: 1.15, margin: '6px 0 8px' }}>{paymentReview.vendors?.business_name || 'Vendor'} quote</h3>
+            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6, margin: '0 0 12px' }}>Passage will open secure Stripe checkout. After payment, the vendor sees the paid status and this task keeps the payment proof, service details, and next update in one place.</p>
+            <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+              <InfoRow label="Request" value={paymentReview.task_title || taskTitle || 'Vendor service'} />
+              <InfoRow label="Quote" value={'$' + Math.round(Number(paymentReview.final_value || paymentReview.estimated_value || 0))} />
+              {paymentReview.service_start_at && <InfoRow label="Service time" value={new Date(paymentReview.service_start_at).toLocaleString()} />}
+              {paymentReview.service_location && <InfoRow label="Location" value={paymentReview.service_location} />}
+              {paymentReview.vendor_note && <InfoRow label="Vendor note" value={paymentReview.vendor_note} />}
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button onClick={() => decideQuote(paymentReview, 'approve_quote')} disabled={deciding === paymentReview.id + ':approve_quote'} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{deciding === paymentReview.id + ':approve_quote' ? 'Opening payment...' : 'Continue to secure payment'}</button>
+              <button onClick={() => setPaymentReview(null)} style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Review later</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div style={{ background: C.sageFaint, border: '1px solid ' + C.sageLight, borderRadius: 11, padding: '9px 10px' }}>
+      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+      <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900, marginTop: 3 }}>{value}</div>
     </div>
   );
 }
@@ -254,9 +293,6 @@ function ProofPill({ status, label, time }) {
 }
 
 function vendorRequestLabel(status) {
-  if (status === 'completed') return 'Completed';
-  if (status === 'in_progress') return 'Quote accepted';
-  if (status === 'accepted') return 'Quote ready';
-  if (status === 'declined') return 'Needs another option';
-  return 'Quote requested';
+  const label = vendorStatusLabel(status);
+  return label === 'Declined' ? 'Needs another option' : label;
 }

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../lib/adminAccess';
+import { normalizePartnerPlanId, partnerPlanFor } from '../../lib/partnerPlans';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -36,8 +37,9 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-async function upsertOrganization({ name, slug, supportEmail, supportPhone }) {
+async function upsertOrganization({ name, slug, supportEmail, supportPhone, planId }) {
   const now = new Date().toISOString();
+  const plan = partnerPlanFor(planId);
   const base = { name, slug, updated_at: now };
   const attempts = [
     {
@@ -50,11 +52,15 @@ async function upsertOrganization({ name, slug, supportEmail, supportPhone }) {
         support_phone: supportPhone || null,
         family_portal_name: name,
         white_label_enabled: true,
+        partner_plan: plan.id,
+        included_location_slots: plan.includedLocationSlots,
+        additional_location_fee_cents: plan.additionalLocationFeeCents,
+        active_case_limit: plan.activeCaseLimit,
       },
-      select: 'id,name,slug,type,status,from_name,support_email,support_phone,family_portal_name,white_label_enabled',
+      select: 'id,name,slug,type,status,from_name,support_email,support_phone,family_portal_name,white_label_enabled,partner_plan,included_location_slots,additional_location_fee_cents,active_case_limit',
     },
     {
-      row: { ...base, type: 'funeral_home', support_email: supportEmail || null, from_name: name, white_label_enabled: true },
+      row: { ...base, type: 'funeral_home', support_email: supportEmail || null, from_name: name, white_label_enabled: true, partner_plan: plan.id, included_location_slots: plan.includedLocationSlots },
       select: 'id,name,slug,type,support_email,from_name,white_label_enabled',
     },
     { row: base, select: 'id,name,slug' },
@@ -70,6 +76,46 @@ async function upsertOrganization({ name, slug, supportEmail, supportPhone }) {
     if (!schemaColumnError(error)) throw error;
   }
   throw new Error('Could not create partner organization.');
+}
+
+async function upsertPartnerPlan({ organization, directorEmail, supportEmail, supportPhone, planId }) {
+  if (!organization?.id) return null;
+  const plan = partnerPlanFor(planId);
+  const now = new Date().toISOString();
+  const base = {
+    organization_id: organization.id,
+    name: organization.name,
+    brand_name: organization.name,
+    email: directorEmail,
+    contact_email: directorEmail,
+    support_email: supportEmail || directorEmail,
+    support_phone: supportPhone || null,
+    plan: plan.id,
+    monthly_fee_cents: plan.monthlyFeeCents,
+    included_location_slots: plan.includedLocationSlots,
+    additional_location_fee_cents: plan.additionalLocationFeeCents,
+    active_case_limit: plan.activeCaseLimit,
+    status: 'invited',
+    updated_at: now,
+  };
+  const attempts = [
+    { row: base, select: 'id,organization_id,plan,monthly_fee_cents,included_location_slots,additional_location_fee_cents,active_case_limit,status' },
+    { row: { name: organization.name, email: directorEmail, plan: plan.id, monthly_fee_cents: plan.monthlyFeeCents, updated_at: now }, select: 'id,plan,monthly_fee_cents' },
+  ];
+  for (const attempt of attempts) {
+    const { data: existing } = await admin
+      .from('funeral_home_partners')
+      .select('id')
+      .eq('organization_id', organization.id)
+      .maybeSingle();
+    const query = existing?.id
+      ? admin.from('funeral_home_partners').update(attempt.row).eq('id', existing.id)
+      : admin.from('funeral_home_partners').insert([attempt.row]);
+    const { data, error } = await query.select(attempt.select).maybeSingle();
+    if (!error) return data;
+    if (!schemaColumnError(error)) throw error;
+  }
+  return null;
 }
 
 async function upsertOwnerMember({ organizationId, directorEmail, directorName }) {
@@ -139,6 +185,7 @@ export default async function handler(req, res) {
   const directorName = cleanText(req.body?.directorName);
   const supportEmail = normalizeEmail(req.body?.supportEmail || directorEmail);
   const supportPhone = cleanText(req.body?.supportPhone);
+  const planId = normalizePartnerPlanId(req.body?.planId);
   if (!organizationName) return res.status(400).json({ error: 'Add the funeral home name.' });
   if (!directorEmail || !directorEmail.includes('@')) return res.status(400).json({ error: 'Add a valid director email.' });
 
@@ -148,7 +195,9 @@ export default async function handler(req, res) {
       slug: slugify(organizationName),
       supportEmail,
       supportPhone,
+      planId,
     });
+    const partnerPlan = await upsertPartnerPlan({ organization, directorEmail, supportEmail, supportPhone, planId });
     const member = await upsertOwnerMember({
       organizationId: organization.id,
       directorEmail,
@@ -199,7 +248,7 @@ export default async function handler(req, res) {
     }]).then(() => {}, () => {});
 
     if (!ok) return res.status(500).json({ error: emailData.message || emailData.error || 'Email provider did not accept the partner invite.', organization, inviteUrl });
-    return res.status(200).json({ success: true, organization, member, inviteUrl, id: emailData.id });
+    return res.status(200).json({ success: true, organization, member, partnerPlan, inviteUrl, id: emailData.id });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Could not create this partner invite.' });
   }

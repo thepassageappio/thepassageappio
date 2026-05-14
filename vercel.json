@@ -7,6 +7,10 @@
     {
       "path": "/api/processTaskReminders",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/processVendorReminders",
+      "schedule": "0 15 * * *"
     }
   ]
 }

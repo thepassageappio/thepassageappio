@@ -74,7 +74,7 @@ export default async function handler(req, res) {
 
   const { data: requestRows } = await admin
     .from('vendor_requests')
-    .select('id,vendor_id,task_id,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,estimated_value,final_value,payment_collection_status,vendors(business_name,category)')
+    .select('id,vendor_id,task_id,task_title,status,urgency,request_note,vendor_note,requested_at,viewed_at,responded_at,in_progress_at,completed_at,family_accepted_at,payment_url_created_at,paid_at,service_date,service_start_at,service_location,estimated_value,final_value,payment_collection_status,gross_amount,passage_fee_amount,vendor_net_amount,payout_status,vendors(business_name,category)')
     .eq('workflow_id', workflowId)
     .order('requested_at', { ascending: false })
     .limit(12);

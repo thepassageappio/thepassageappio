@@ -48,7 +48,7 @@ export default function FuneralHomeLogin() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.78fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Funeral home workspace</div>
-            <h1 style={{ fontSize: 'clamp(34px,4.5vw,56px)', lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Choose the role you are opening.</h1>
+            <h1 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Choose the role you are opening.</h1>
             <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
               Passage separates the sales page from the working console. Directors manage the business view; staff see the work assigned to them.
             </p>
