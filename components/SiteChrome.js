@@ -5,6 +5,7 @@ import { supabase as chromeSupabase } from '../lib/supabaseBrowser';
 import { PassageLogo } from './PassageLogo';
 import { PASSAGE_FONT, PASSAGE_TYPE, typeStyle } from '../lib/typography';
 import { trackEvent } from '../lib/trackEvent';
+import { PASSAGE_BRAND } from '../lib/brand';
 
 export const CHROME_COLORS = {
   bg: '#f6f3ee',
@@ -499,11 +500,11 @@ export function SiteFooter() {
         <Link href="/privacy" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Privacy</Link>
         <Link href="/terms" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Terms</Link>
         <a
-          href="mailto:thepassageappio@gmail.com"
-          onClick={() => trackEvent('footer_email_clicked', { email: 'thepassageappio@gmail.com' })}
+          href={`mailto:${PASSAGE_BRAND.supportEmail}`}
+          onClick={() => trackEvent('footer_email_clicked', { email: PASSAGE_BRAND.supportEmail })}
           style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}
         >
-          thepassageappio@gmail.com
+          {PASSAGE_BRAND.supportEmail}
         </a>
       </div>
     </footer>

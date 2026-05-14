@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { calendlyUrl, isMeetingCategory } from '../lib/scheduling';
 import { trackEvent } from '../lib/trackEvent';
+import { PASSAGE_BRAND } from '../lib/brand';
 
 const C = {
   bg: '#f6f3ee', card: '#ffffff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890',
@@ -35,14 +36,10 @@ function Field({ label, children }) {
 }
 
 const input = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 11, padding: '8px 12px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink, outline: 'none', background: '#fff' };
-const SUPPORT_USER = 'thepassageappio';
-const SUPPORT_DOMAIN = 'gmail.com';
 
 function SupportEmail() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => setReady(true), []);
-  const email = SUPPORT_USER + '@' + SUPPORT_DOMAIN;
-  return <a href={'mailto:' + email} style={{ color: C.ink }}>{ready ? email : 'thepassageappio@gmail.com'}</a>;
+  const email = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || PASSAGE_BRAND.supportEmail;
+  return <a href={'mailto:' + email} style={{ color: C.ink }}>{email}</a>;
 }
 
 export default function ContactPage() {
