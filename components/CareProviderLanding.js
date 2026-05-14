@@ -4,6 +4,7 @@ import { SiteFooter, SiteHeader } from './SiteChrome';
 import { calendlyUrl } from '../lib/scheduling';
 import {
   CARE_PROVIDER_BUSINESS_MODEL,
+  CARE_PROVIDER_PRICING,
   CARE_PROVIDER_SCOPE_BOUNDARIES,
   CARE_PROVIDER_SPINE_STEPS,
   CARE_PROVIDER_TYPES,
@@ -184,6 +185,39 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
         </div>
       </section>
 
+      <section style={section}>
+        <div style={sectionHeader}>
+          <div style={eyebrow}>Care provider plans</div>
+          <h2 style={h2}>Simple pricing by care team or location.</h2>
+          <p style={lead}>Start with a pilot, then scale by location. Passage is priced as continuity infrastructure, not as a referral fee or per-death charge.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(238px, 1fr))', gap: 12 }}>
+          {CARE_PROVIDER_PRICING.map(plan => (
+            <article key={plan.tier} style={{ ...pricingCard, borderColor: plan.preferred ? '#9bbf9f' : C.border, background: plan.preferred ? C.sageFaint : C.card }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+                <div style={smallEyebrow}>{plan.tier}</div>
+                {plan.preferred && <span style={preferredPill}>Most common</span>}
+              </div>
+              <div style={{ margin: '10px 0 8px' }}>
+                <span style={{ fontSize: plan.price === 'Custom' ? 35 : 42, lineHeight: 1, fontWeight: 400 }}>{plan.price}</span>
+                {plan.cadence && <span style={{ color: C.mid, fontSize: 15, fontWeight: 800 }}> {plan.cadence}</span>}
+                <div style={{ color: C.soft, fontSize: 13, marginTop: 4 }}>{plan.subprice}</div>
+              </div>
+              <p style={smallText}>{plan.description}</p>
+              <div style={{ display: 'grid', gap: 7, marginTop: 13 }}>
+                {plan.features.map(feature => (
+                  <div key={feature} style={featureRow}>{feature}</div>
+                ))}
+              </div>
+              <a href="#care-provider-inquiry" style={{ ...primaryLink, width: '100%', boxSizing: 'border-box', marginTop: 15 }}>{plan.cta}</a>
+            </article>
+          ))}
+        </div>
+        <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 12 }}>
+          Care-provider partnerships are reviewed before checkout so scope, locations, family ownership, and rollout expectations are clear before billing begins.
+        </div>
+      </section>
+
       <section style={{ ...section, paddingBottom: 64 }}>
         <div style={panel}>
           <div style={eyebrow}>Front doors</div>
@@ -234,3 +268,6 @@ const stepCard = { background: C.card, border: '1px solid ' + C.border, borderRa
 const numberBubble = { width: 34, height: 34, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontWeight: 900 };
 const rowBox = { display: 'grid', gridTemplateColumns: '130px minmax(0,1fr)', gap: 12, background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: '12px 13px', color: C.mid, fontSize: 14, lineHeight: 1.45 };
 const statusRow = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '11px 12px', color: C.mid, fontSize: 14, lineHeight: 1.5 };
+const pricingCard = { border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 10px 30px rgba(55,45,35,.04)' };
+const preferredPill = { background: C.card, border: '1px solid #c8deca', color: C.sage, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 };
+const featureRow = { background: C.card, border: '1px solid ' + C.border, borderRadius: 11, padding: '8px 10px', color: C.mid, fontSize: 13, lineHeight: 1.35 };
