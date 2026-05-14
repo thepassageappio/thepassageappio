@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 
 const ADMIN_PATHS = ['/system/admin', '/system/demo'];
 const ADMIN_EMAILS = new Set(['steventurrisi@gmail.com', 'thepassageappio@gmail.com']);
+const SUPABASE_PROJECT_REF =
+  process.env.NEXT_PUBLIC_SUPABASE_URL?.match(/https:\/\/([^.]+)\.supabase\.co/i)?.[1] ||
+  'qsveqfchwylsbncsfgxe';
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
@@ -17,15 +20,27 @@ function base64UrlDecode(value) {
   }
 }
 
+function readCookieValue(request, name) {
+  const direct = request.cookies.get(name)?.value;
+  if (direct) return direct;
+
+  let combined = '';
+  for (let index = 0; index < 10; index += 1) {
+    const chunk = request.cookies.get(`${name}.${index}`)?.value;
+    if (!chunk) break;
+    combined += chunk;
+  }
+  return combined;
+}
+
 function readSupabaseEmail(request) {
-  const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.match(/https:\/\/([^.]+)\.supabase\.co/i)?.[1];
   const cookieNames = [
-    projectRef ? `sb-${projectRef}-auth-token` : '',
+    `sb-${SUPABASE_PROJECT_REF}-auth-token`,
     'sb-auth-token',
   ].filter(Boolean);
 
   for (const name of cookieNames) {
-    const raw = request.cookies.get(name)?.value;
+    const raw = readCookieValue(request, name);
     if (!raw) continue;
     const decoded = raw.startsWith('base64-') ? base64UrlDecode(raw.slice(7)) : decodeURIComponent(raw);
     try {
