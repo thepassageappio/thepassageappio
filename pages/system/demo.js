@@ -239,9 +239,9 @@ const demoRail = [
 
 const ecosystemPaths = [
   {
-    title: 'Warm path',
+    title: 'Care preparation',
     body: 'Hospice or serious illness preparation: first-hour plan, family update list, and funeral-home handoff packet.',
-    label: 'Open warm path',
+    label: 'Open care-prep workspace',
     href: '/hospice?demoTour=funeral-home&demoStep=warm',
   },
   {
@@ -282,7 +282,7 @@ const readinessChecks = [
   'Guided coach stays in dummy demo data and does not depend on real estates.',
   'Family, participant, funeral-home, and vendor surfaces reuse the same task/proof/audit language and task authority guidance.',
   'The family dashboard opens as an estate operating spine, not a detached index or portfolio dashboard.',
-  'Warm path, announcements, packets, vendors, and funeral-home work all attach to one family record instead of becoming separate product islands.',
+  'Care preparation, announcements, packets, vendors, and funeral-home work all attach to one family record instead of becoming separate product islands.',
   'First-day launch rails exist for family, funeral-home partner, employee, vendor, participant, and future hospice/assisted-care setup patterns.',
   'Import mapping, preview, case-summary export, and full-spine export remain the adoption-trust close.',
   'Demo notification states stay exact: prepared, requested, copied, failed, delivered, and sent are not interchangeable.',
@@ -290,7 +290,7 @@ const readinessChecks = [
 ];
 
 const productionReadiness = [
-  ['Mission lock', 'Strong', 'Passage is now the family continuity and orchestration layer across green, warm, red, funeral-home, vendor, announcement, participant, and aftercare surfaces.'],
+  ['Mission lock', 'Strong', 'Passage is now the family continuity and orchestration layer across planning, care preparation, urgent help, funeral-home, vendor, announcement, participant, and aftercare surfaces.'],
   ['Orchestration believability', 'Medium-high', 'The demo now has the spine: owner, request, waiting, proof, output, lifecycle state, and reporting. Keep tightening until every task feels authoritative.'],
   ['Funeral-home founder-led sales', 'Ready', 'Pitch and demo the coordination layer now: first-day setup, import/create, assign owner, record proof, and export back out. Founder should guide onboarding.'],
   ['Notification QA', 'Dry-run ready', 'Email/SMS endpoints can be exercised without contacting a real recipient or changing production records. Live sends still require explicit controlled approval.'],
@@ -300,12 +300,12 @@ const productionReadiness = [
 
 const salesReadiness = [
   ['Sell now', 'Progressive independent funeral homes', 'Founder-led pilot with 3-10 cases, CSV bridge, staff setup, family task handoff, proof, and export.'],
-  ['Discover now', 'Hospice and senior living', 'Validate family coordination burden, warm-path setup, and handoff value without entering clinical workflow.'],
+  ['Discover now', 'Hospice and senior living', 'Validate family coordination burden, care-prep setup, and handoff value without entering clinical workflow.'],
   ['Do not sell yet', 'Self-serve enterprise rollout', 'Wait for support playbooks, instrumentation, live delivery audit, deeper outputs, and admin tooling.'],
 ];
 
 const nextSprintQueue = [
-  ['Sprint 1: first-day setup', 'Signed pilot owner, employee, participant, vendor, red-path family, and green-path planner know what to do first without founder narration.'],
+  ['Sprint 1: first-day setup', 'Signed pilot owner, employee, participant, vendor, urgent family, and planning-ahead user know what to do first without founder narration.'],
   ['Sprint 2: action consistency', 'Case creation, task actions, participant updates, vendor responses, staff setup, and exports use the same bounded action pattern.'],
   ['Sprint 3: trust and outputs', 'Permission visibility, proof destinations, prepared outputs, CSVs, family updates, and reporting all feel safe and explicit.'],
   ['Sprint 4: full QA and grade', 'Walk every persona on desktop/mobile, smoke production, grade pilot readiness, and separate blockers from broader scale work.'],
@@ -686,13 +686,13 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
     return (
       <Panel>
         <div style={eyebrow}>Demo screen</div>
-        <h2 style={h2}>Warm path continuity.</h2>
+        <h2 style={h2}>Care-prep continuity.</h2>
         <p style={{ ...lead, marginBottom: 14 }}>Use this stop to show that Passage can start before the death event without becoming hospice, facility, or clinical software. The family owns the record, prepares the first-hour plan, and approves any handoff.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginBottom: 14 }}>
           {[
             ['Family enters during care', 'Hospice or facility contact, caregiver, family coordinator, and preferred funeral home if known.'],
             ['Passage prepares', 'First-hour plan, family update list, and funeral-home handoff packet.'],
-            ['Red path activates', 'When death occurs, the urgent path starts with existing context.'],
+            ['Urgent help activates', 'When death occurs, urgent coordination starts with existing context.'],
             ['Funeral home receives context', 'Director sees dates, authority, preferences, blockers, and missing items after family approval.'],
           ].map(([title, body]) => (
             <div key={title} style={smallCard}>
@@ -702,7 +702,7 @@ function DemoStage({ activeStepId, selectedChat, setSelectedChat, demoAction, st
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Link href="/hospice?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Open warm path</Link>
+          <Link href="/hospice?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Open care-prep workspace</Link>
           <Link href="/share?dn=Jack%20Taylor&cn=Taylor%20family" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show family-record one-pager</Link>
           <Link href="/packet?demoTour=funeral-home&demoStep=warm" style={{ ...tinyButton, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Show packet outputs</Link>
           <button onClick={() => demoAction('Demo: care preparation becomes a reviewed handoff packet. Nothing is shared until the family approves it.')} style={tinyButton}>Explain handoff</button>

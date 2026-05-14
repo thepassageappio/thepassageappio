@@ -1,11 +1,11 @@
 // pages/api/confirmTrigger.js
 // The two-person death confirmation system.
 //
-// GREEN PATH: User set up plan in advance. When they die, 2 designated people
+// PLANNING: User set up plan in advance. When they die, 2 designated people
 // must independently confirm at thepassageapp.io/confirm?token=XYZ before 
 // the waterfall fires. Prevents accidental or malicious activation.
 //
-// RED PATH: Someone is already dead. Coordinator already going through flow.
+// URGENT: Someone is already dead. Coordinator already going through flow.
 // Confirmation still fires the notification waterfall to all assigned people.
 //
 // Flow:

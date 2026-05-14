@@ -4045,7 +4045,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
             </>
             )}
 
-            {/* Red path active plans */}
+            {/* Urgent active plans */}
             {false && redWorkflows.length > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
@@ -4119,7 +4119,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               </div>
             )}
 
-            {/* Green path estate file */}
+            {/* Planning estate file */}
             {false && hasAnyEstate && estateSeatLimit > 0 && (
               <div style={{ background: C.bgCard, borderRadius: 16, padding: "14px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>

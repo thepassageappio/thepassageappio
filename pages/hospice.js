@@ -22,7 +22,7 @@ const C = {
 
 const lifecycle = [
   ['1', 'Preparing during care', 'Start the family record with people, hospice/on-call contact, likely dates, and the first-hour plan.'],
-  ['2', 'Death occurs', 'Start red-path guidance from the same family record instead of asking the family to rebuild context.'],
+  ['2', 'Death occurs', 'Start urgent guidance from the same family record instead of asking the family to rebuild context.'],
   ['3', 'Funeral-home handoff', 'Invite the funeral home into the record with contacts, dates, preferences, blockers, and proof needs.'],
   ['4', 'Aftercare continues', 'Estate, benefits, accounts, family updates, grief support, and anniversaries stay in one record.'],
 ];
@@ -89,7 +89,7 @@ const hospicePilotSetup = [
   ['2', 'Care contacts', 'Save the on-call line, social worker, chaplain, primary caregiver, and family coordinator.'],
   ['3', 'Family workspaces', 'Create one family record at a time or import a small pilot list when approved.'],
   ['4', 'Warm tasks', 'Assign practical prep: first-hour plan, funeral-home choice, documents, visitors, and family updates.'],
-  ['5', 'Handoff', 'When death occurs, the same record moves to red path and funeral-home coordination.'],
+  ['5', 'Handoff', 'When death occurs, the same record moves to urgent coordination and funeral-home coordination.'],
 ];
 
 const careModes = {
@@ -201,13 +201,13 @@ export default function HospiceWarmPath() {
         }),
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || 'Could not save warm-path workspace.');
-      setNotice('Warm-path workspace saved. Opening the command center.');
+      if (!res.ok) throw new Error(json.error || 'Could not save care-prep workspace.');
+      setNotice('Care-prep workspace saved. Opening the command center.');
       window.setTimeout(() => {
         window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
       }, 600);
     } catch (err) {
-      setError(err.message || 'Could not save warm-path workspace.');
+      setError(err.message || 'Could not save care-prep workspace.');
     } finally {
       setSaving(false);
     }
@@ -322,7 +322,7 @@ export default function HospiceWarmPath() {
               </details>
               {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{error}</div>}
               {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{notice}</div>}
-              <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save warm-path workspace' : 'Sign in and save workspace'}</button>
+              <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save care-prep workspace' : 'Sign in and save workspace'}</button>
             </div>
           </div>
         </div>
@@ -387,7 +387,7 @@ export default function HospiceWarmPath() {
                 {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{error}</div>}
                 {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{notice}</div>}
                 {!user && <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>Sign in once so Passage can save this to your family command center.</div>}
-                <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save warm-path workspace' : 'Sign in and save workspace'}</button>
+                <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save care-prep workspace' : 'Sign in and save workspace'}</button>
               </div>
             </div>
           </div>
@@ -438,7 +438,7 @@ export default function HospiceWarmPath() {
       <section style={section}>
         <div style={sectionHeader}>
           <div style={eyebrow}>Lifecycle spine</div>
-          <h2 style={h2}>The warm path is the bridge between planning and red path.</h2>
+          <h2 style={h2}>Care preparation is the bridge between planning ahead and urgent coordination.</h2>
           <p style={lead}>This is not hospice, facility, or medical software. It is family coordination continuity before, during, and after the institutional handoff.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
@@ -515,7 +515,7 @@ export default function HospiceWarmPath() {
         <div className="warm-two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(0, 1.1fr)', gap: 16, alignItems: 'stretch' }}>
           <div style={{ ...panel, background: C.roseFaint, borderColor: '#efcaca' }}>
             <div style={{ ...eyebrow, color: C.rose }}>When death occurs</div>
-            <h2 style={h2}>Red path starts from what the family already prepared.</h2>
+            <h2 style={h2}>Urgent coordination starts from what the family already prepared.</h2>
             <p style={lead}>If this is an expected death in care, Passage should put the hospice, on-call, or facility release path first, then carry known contacts and preferences into the command center.</p>
             <Link href="/urgent" style={{ ...primaryLink, background: C.rose, marginTop: 18 }}>Open urgent path</Link>
           </div>
@@ -545,7 +545,7 @@ export default function HospiceWarmPath() {
           <h2 style={h2}>What this gives the family and the next provider.</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 16 }}>
             {[
-              ['Spine events', 'Add warm-path events such as care contact recorded, when-it-happens plan prepared, and funeral-home handoff approved.'],
+              ['Spine events', 'Add care-prep events such as care contact recorded, when-it-happens plan prepared, and funeral-home handoff approved.'],
               ['Task priority', 'Rank by lifecycle state, service dates, death date, unknown required dates, and who is waiting on whom.'],
               ['Provider handoff', 'Help the family arrive with context instead of making the funeral home start from zero.'],
               ['Announcement batch', 'Prepare one event one-pager and recipient groups before any send queue exists.'],

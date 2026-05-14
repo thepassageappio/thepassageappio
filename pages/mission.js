@@ -18,9 +18,9 @@ const C = {
 };
 
 const paths = [
-  ['Red path', '/urgent', 'Someone just passed', 'Start with the few actions that matter tonight: who calls, who is notified, what is waiting, and what is already handled.', C.roseFaint, C.rose],
-  ['Green path', '/planning', 'Plan before it is needed', 'Gather people, wishes, documents, and confirmation contacts so your family is not starting from zero later.', C.sageFaint, C.sage],
-  ['Partner path', '/contact?category=funeral-home&plan=partner_pilot', 'For funeral homes', 'Apply to join, book a pilot walkthrough, or tell us how your team wants to receive family handoffs.', C.goldFaint, C.amber],
+  ['Urgent help', '/urgent', 'Someone just passed', 'Start with the few actions that matter tonight: who calls, who is notified, what is waiting, and what is already handled.', C.roseFaint, C.rose],
+  ['Plan ahead', '/planning', 'Plan before it is needed', 'Gather people, wishes, documents, and confirmation contacts so your family is not starting from zero later.', C.sageFaint, C.sage],
+  ['Funeral homes', '/contact?category=funeral-home&plan=partner_pilot', 'For funeral homes', 'Apply to join, book a pilot walkthrough, or tell us how your team wants to receive family handoffs.', C.goldFaint, C.amber],
 ];
 
 const proof = [
@@ -29,7 +29,7 @@ const proof = [
   ['Proven', 'How we know it happened'],
 ];
 
-const pledgeCopy = 'Passage directs 10% of proceeds to grief and family-support work. For each paid urgent-path command center, we also fund a remembrance tree dedication in the person\'s name.';
+const pledgeCopy = 'Passage directs 10% of proceeds to grief and family-support work. For each paid urgent family command center, we also fund a remembrance tree dedication in the person\'s name.';
 
 export default function MissionPage() {
   const s0 = useState(0); const activePathIndex = s0[0]; const setActivePathIndex = s0[1];

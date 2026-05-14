@@ -84,14 +84,14 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
               <a href="#care-provider-inquiry" style={primaryLink}>Start a care partner conversation</a>
-              <Link href="/hospice#start-warm-workspace" style={secondaryLink}>Create a family warm-path record</Link>
+              <Link href="/hospice#start-warm-workspace" style={secondaryLink}>Create a family care-prep record</Link>
               <a href={calendlyUrl({ source: 'Care provider discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Book walkthrough</a>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 10, marginTop: 18 }} className="care-proof-grid">
               {[
                 ['Family-owned', 'The family controls permissions and keeps the record after the care handoff.'],
                 ['Provider-scoped', 'Care teams see the context and work they are invited to support.'],
-                ['Downstream-ready', 'The same record can activate red path, funeral-home handoff, and vendor tasks.'],
+                ['Downstream-ready', 'The same record can open urgent coordination, funeral-home handoff, and vendor tasks.'],
               ].map(([title, body]) => (
                 <div key={title} style={miniCard}>
                   <div style={smallEyebrow}>{title}</div>
@@ -142,7 +142,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
         <div style={sectionHeader}>
           <div style={eyebrow}>One shared spine</div>
           <h2 style={h2}>Care providers are upstream continuity partners.</h2>
-          <p style={lead}>They are not vendors, and they are not funeral homes. They help the family start earlier, then Passage carries the record into red path, funeral-home coordination, participants, vendors, and aftercare when needed.</p>
+          <p style={lead}>They are not vendors, and they are not funeral homes. They help the family start earlier, then Passage carries the record into urgent coordination, funeral-home coordination, participants, vendors, and aftercare when needed.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
           {CARE_PROVIDER_SPINE_STEPS.map(([n, title, body]) => (
@@ -179,7 +179,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
               ))}
             </div>
             <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 13 }}>
-              Pilot goal: a care provider can help a family start a warm-path record, the family keeps ownership, and the same record can later support trusted activation and downstream handoffs.
+              Pilot goal: a care provider can help a family start a care-prep record, the family keeps ownership, and the same record can later support trusted activation and downstream handoffs.
             </div>
           </div>
         </div>

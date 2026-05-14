@@ -1,5 +1,5 @@
 // pages/estate.js
-// Estate command center — single-estate view for red path users
+// Estate command center - single-estate view for urgent users
 // Route: /estate?id=:estateId
 // Replaces generic dashboard for post-urgent users
 
@@ -2444,10 +2444,10 @@ function ActivationCirclePanel({ estateId, estate, people, authToken, onActivate
     <section id="activation-circle" style={{ background: activated ? SAGE_FAINT : CARD, border: '1px solid ' + (activated ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 18, padding: '18px 20px', marginBottom: 20, boxShadow: '0 12px 34px rgba(55,45,35,.045)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 12 }}>
         <div>
-          <div style={{ color: activated ? SAGE : AMBER, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Green-to-red activation circle</div>
+          <div style={{ color: activated ? SAGE : AMBER, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Planning activation circle</div>
           <div style={{ color: INK, fontSize: 24, lineHeight: 1.12, fontWeight: 900 }}>{activated ? 'This planning record is active.' : 'Two trusted confirmations before anything becomes urgent.'}</div>
           <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.6, marginTop: 7, maxWidth: 720 }}>
-            Passage protects planning records from accidental activation. One trusted person can start review. A different designated person confirms before the Red path opens.
+            Passage protects planning records from accidental activation. One trusted person can start review. A different designated person confirms before urgent coordination opens.
           </div>
         </div>
         <span style={{ background: activated ? CARD : AMBER_FAINT, color: activated ? SAGE : AMBER, border: '1px solid ' + (activated ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 900 }}>
@@ -2474,7 +2474,7 @@ function ActivationCirclePanel({ estateId, estate, people, authToken, onActivate
             </div>
             <div style={{ background: SAGE_FAINT, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 11px' }}>
               <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Status</div>
-              <div style={{ color: INK, fontSize: 13, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{activated ? 'Red path open' : activeRequest ? 'Review in progress' : 'Circle ready'}</div>
+              <div style={{ color: INK, fontSize: 13, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{activated ? 'Urgent coordination open' : activeRequest ? 'Review in progress' : 'Circle ready'}</div>
             </div>
           </div>
 

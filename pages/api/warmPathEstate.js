@@ -175,7 +175,7 @@ async function getUser(req) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const { user } = await getUser(req);
-  if (!user?.id || !user?.email) return res.status(401).json({ error: 'Sign in once so Passage can save this warm-path workspace.' });
+  if (!user?.id || !user?.email) return res.status(401).json({ error: 'Sign in once so Passage can save this care-prep workspace.' });
   const admin = adminClient();
   if (!admin) return res.status(500).json({ error: 'Supabase service role is not configured.' });
 
@@ -278,7 +278,7 @@ export default async function handler(req, res) {
       ? await admin.from('workflows').update(workflowRow).eq('id', existing.id).select().single()
       : await admin.from('workflows').insert([{ ...workflowRow, created_at: now }]).select().single();
     if (workflowResult.error || !workflowResult.data?.id) {
-      return res.status(500).json({ error: workflowResult.error?.message || 'Passage could not save this warm-path workspace yet.' });
+      return res.status(500).json({ error: workflowResult.error?.message || 'Passage could not save this care-prep workspace yet.' });
     }
 
     const workflow = workflowResult.data;
@@ -337,7 +337,7 @@ export default async function handler(req, res) {
       updated_at: now,
     }));
     const { error: taskError } = await admin.from('tasks').upsert(tasks, { onConflict: 'workflow_id,title', ignoreDuplicates: false });
-    if (taskError) return res.status(500).json({ error: taskError.message || 'Could not save warm-path tasks.' });
+    if (taskError) return res.status(500).json({ error: taskError.message || 'Could not save care-prep tasks.' });
 
     if (timelineAnchors.length) {
       const eventTypes = timelineAnchors.map(item => item.event_type);
@@ -373,6 +373,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ estateId: workflow.id, workflow });
   } catch (err) {
-    return res.status(500).json({ error: err.message || 'Could not save warm-path workspace.' });
+    return res.status(500).json({ error: err.message || 'Could not save care-prep workspace.' });
   }
 }
