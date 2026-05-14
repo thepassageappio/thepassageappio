@@ -60,6 +60,13 @@ export default function TrustPage() {
             <Link href="/faq" style={secondaryLink}>FAQ</Link>
           </div>
         </section>
+
+        <section style={{ ...panel, marginTop: 16 }}>
+          <h2 style={h2}>Compliance posture</h2>
+          <p style={bodyText}>
+            Passage is not currently claiming HIPAA compliance, SOC 1 compliance, or SOC 2 compliance. The product is being built with role-scoped access, audit trails, review-before-share workflows, security headers, and formal compliance readiness in mind. Covered-entity, hospice, care-facility, or enterprise partner diligence should be handled through a formal security and legal review before production use.
+          </p>
+        </section>
       </section>
       <SiteFooter />
     </main>

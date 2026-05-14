@@ -241,7 +241,7 @@ export default async function handler(req, res) {
       coordinator_name: user.user_metadata?.full_name || user.email,
       coordinator_email: user.email,
       status: 'ready',
-      activation_status: 'activated',
+      activation_status: 'ready',
       trigger_type: 'death_confirmed',
       path: 'green',
       mode: 'green',
@@ -345,6 +345,17 @@ export default async function handler(req, res) {
         updated_at: now,
       }], { onConflict: 'workflow_id,email', ignoreDuplicates: false }).then(() => {}, () => {});
     }
+
+    await admin.from('activation_witnesses').upsert(inviteSeed.map((contact, index) => ({
+      workflow_id: workflow.id,
+      email: contact.email,
+      name: contact.name,
+      role: index === 0 ? 'primary_activation_contact' : 'second_activation_contact',
+      source: 'planning_setup',
+      status: 'active',
+      created_by: user.id,
+      updated_at: now,
+    })), { onConflict: 'workflow_id,email' }).then(() => {}, () => {});
 
     const inviteResults = [];
     for (const action of createdActions) {

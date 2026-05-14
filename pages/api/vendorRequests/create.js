@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
 import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { categoryForTask, vendorCategoryLabel } from '../../../lib/vendors';
-import { routeEmailRecipients } from '../../../lib/notificationSafety';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -56,6 +56,22 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
       subject: `Passage request: ${taskTitle || vendorCategoryLabel(vendor.category)}`,
       html,
     }),
+  });
+  const json = await response.json().catch(() => ({}));
+  await insertNotificationLog(admin, {
+    workflow_id: workflow.id,
+    task_id: request.task_id || null,
+    channel: 'email',
+    recipient_email: vendor.contact_email,
+    recipient_name: vendor.business_name,
+    subject: `Passage request: ${taskTitle || vendorCategoryLabel(vendor.category)}`,
+    provider: 'resend',
+    provider_id: response.ok ? json.id || null : null,
+    status: response.ok ? 'sent' : 'failed',
+    sent_at: response.ok ? new Date().toISOString() : null,
+    error_message: response.ok ? null : json.message || json.error || 'Vendor request email failed',
+    source: 'vendor_request',
+    ...qaAuditFields(route),
   });
   return response.ok;
 }
