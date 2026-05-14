@@ -238,6 +238,9 @@ export default function SystemAdminPage() {
   const [metricsError, setMetricsError] = useState('');
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [metricsRangeDays, setMetricsRangeDays] = useState(30);
+  const [complianceSnapshot, setComplianceSnapshot] = useState(null);
+  const [complianceLoading, setComplianceLoading] = useState(false);
+  const [complianceError, setComplianceError] = useState('');
   const [adminView, setAdminView] = useState('operations');
   const [activePersonaId, setActivePersonaId] = useState(personaProfiles[0].id);
   const [activeModuleTitle, setActiveModuleTitle] = useState(adminModules[0].title);
@@ -346,6 +349,31 @@ export default function SystemAdminPage() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  }
+
+  async function loadComplianceSnapshot() {
+    if (!supabase) return;
+    setComplianceLoading(true);
+    setComplianceError('');
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/system/complianceReadiness', {
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setComplianceError(json.error || 'Compliance readiness could not load.');
+        setComplianceSnapshot(null);
+        return;
+      }
+      setComplianceSnapshot(json);
+    } catch (error) {
+      setComplianceError(error.message || 'Compliance readiness could not load.');
+      setComplianceSnapshot(null);
+    } finally {
+      setComplianceLoading(false);
+    }
   }
 
   async function runNotificationDryRun(channel) {
@@ -959,6 +987,44 @@ export default function SystemAdminPage() {
                   <Link href="/terms" style={secondaryLink}>Terms</Link>
                   <Link href="/contact" style={secondaryLink}>Contact intake</Link>
                 </div>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Compliance readiness</div>
+                <h2 style={h2}>Check HIPAA/SOC posture before partner conversations.</h2>
+                <p style={lead}>This is an engineering readiness snapshot, not a certification. It checks sensitive RLS policy hazards, required production environment flags, notification safety, and the claims Passage should avoid until formal review.</p>
+                <button type="button" onClick={loadComplianceSnapshot} disabled={complianceLoading} style={{ ...primaryButton, opacity: complianceLoading ? .6 : 1 }}>
+                  {complianceLoading ? 'Checking readiness...' : 'Run compliance readiness check'}
+                </button>
+                {complianceError && <div style={{ ...smallText, color: C.rose }}>{complianceError}</div>}
+                {complianceSnapshot && (
+                  <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+                    <div style={{ background: complianceSnapshot.status === 'needs_work' ? C.roseFaint : C.sageFaint, border: '1px solid ' + (complianceSnapshot.status === 'needs_work' ? '#efc7c7' : '#c8deca'), borderRadius: 13, padding: 12 }}>
+                      <div style={{ color: complianceSnapshot.status === 'needs_work' ? C.rose : C.sage, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{complianceSnapshot.status === 'needs_work' ? 'Needs work' : 'Ready for readiness review'}</div>
+                      <p style={{ ...smallText, marginTop: 5 }}>Public claim posture: do not claim HIPAA, SOC 1, or SOC 2 compliance. Use “role-scoped, audit-oriented, review-before-share, preparing for formal compliance review.”</p>
+                    </div>
+                    {(complianceSnapshot.blockers || []).length > 0 && (
+                      <div style={subPanel}>
+                        <h3 style={h3}>Blockers</h3>
+                        {(complianceSnapshot.blockers || []).map(item => <MetricRow key={item} label={item} value="P0" />)}
+                      </div>
+                    )}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+                      <div style={subPanel}>
+                        <h3 style={h3}>RLS</h3>
+                        <MetricRow label="Sensitive allow-all policies" value={(complianceSnapshot.snapshot?.sensitive_allow_all_policies || []).length} />
+                        <MetricRow label="RLS disabled tables" value={(complianceSnapshot.snapshot?.rls_disabled || []).length} />
+                        <MetricRow label="Zero-policy tables to classify" value={(complianceSnapshot.snapshot?.zero_policy_tables || []).length} />
+                      </div>
+                      <div style={subPanel}>
+                        <h3 style={h3}>Environment</h3>
+                        <MetricRow label="Resend" value={complianceSnapshot.env?.resend && complianceSnapshot.env?.resendFrom ? 'Configured' : 'Missing'} />
+                        <MetricRow label="Internal smoke secret" value={complianceSnapshot.env?.internalSecret ? 'Configured' : 'Missing'} />
+                        <MetricRow label="QA notification override" value={complianceSnapshot.env?.qaNotificationMode && complianceSnapshot.env?.qaNotificationOverride ? 'Enabled' : 'Missing'} />
+                        <MetricRow label="SMS live" value={complianceSnapshot.env?.twilioLiveReady ? 'Approved' : 'Dry-run only'} />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </Panel>
               <Panel compact>
                 <div style={eyebrow}>Notification dry-run QA</div>
