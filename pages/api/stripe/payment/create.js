@@ -141,6 +141,8 @@ export default async function handler(req, res) {
 
   const session = await stripeRequest('/v1/checkout/sessions', {
     mode: 'payment',
+    'automatic_tax[enabled]': 'true',
+    customer_creation: 'always',
     success_url: `${SITE_URL}/estate?vendor_payment=success&order=${encodeURIComponent(order.id)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${SITE_URL}/estate?vendor_payment=cancelled&order=${encodeURIComponent(order.id)}`,
     client_reference_id: order.id,

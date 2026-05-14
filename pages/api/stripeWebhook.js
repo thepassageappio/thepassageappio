@@ -82,8 +82,118 @@ function amountForPlan(planId, fallback) {
     addon_monthly: 499,
     addon_annual: 3999,
     urgent: 7999,
+    partner_pilot: 9900,
+    partner_local: 24999,
+    partner_group: 34999,
+    partner_location_addon: 9900,
   };
   return amounts[planId] || fallback || 0;
+}
+
+function intervalForPlan(planId, metadata = {}) {
+  if (planId === 'urgent' || metadata.addOn === 'once') return 'once';
+  if (String(planId || '').includes('annual')) return 'year';
+  return 'month';
+}
+
+function normalizedStripeStatus(status) {
+  const value = String(status || '').toLowerCase();
+  if (['active', 'trialing', 'past_due'].includes(value)) return value;
+  if (['canceled', 'cancelled'].includes(value)) return 'cancelled';
+  if (['unpaid', 'incomplete', 'incomplete_expired', 'paused'].includes(value)) return 'past_due';
+  return 'active';
+}
+
+async function recordSubscriptionMirror(userId, session) {
+  if (!userId || !session?.id) return;
+  const metadata = session.metadata || {};
+  const planId = metadata.planId || 'monthly';
+  const isSubscription = Boolean(session.subscription);
+  const now = new Date().toISOString();
+  const amountCents = session.amount_total != null
+    ? Number(session.amount_total || 0)
+    : amountForPlan(planId, 0);
+  const interval = isSubscription ? intervalForPlan(planId, metadata) : 'once';
+  const status = normalizedStripeStatus(session.subscription_status || session.status || 'active');
+  const common = {
+    user_id: userId,
+    plan: planId,
+    status,
+    amount_cents: amountCents,
+    currency: session.currency || 'usd',
+    interval,
+    stripe_customer_id: session.customer || null,
+    stripe_subscription_id: session.subscription || null,
+    stripe_checkout_session_id: session.id || null,
+    started_at: now,
+    last_payment_date: now,
+    last_payment_amount: amountCents,
+    updated_at: now,
+    metadata: {
+      source: 'stripe_webhook',
+      checkout_session_id: session.id || null,
+      mode: session.mode || null,
+      payment_status: session.payment_status || null,
+      automatic_tax: session.automatic_tax || null,
+      metadata,
+    },
+  };
+
+  const lookupColumn = session.subscription ? 'stripe_subscription_id' : 'stripe_checkout_session_id';
+  const lookupValue = session.subscription || session.id;
+  const { data: existing } = await sb
+    .from('subscriptions')
+    .select('id')
+    .eq(lookupColumn, lookupValue)
+    .maybeSingle();
+  if (existing?.id) {
+    await sb.from('subscriptions').update(common).eq('id', existing.id);
+  } else {
+    await sb.from('subscriptions').insert([{ ...common, created_at: now }]);
+  }
+
+  if (session.subscription) {
+    const stripeSubscriptionRow = {
+      user_id: userId,
+      stripe_customer_id: session.customer || null,
+      stripe_subscription_id: session.subscription || null,
+      plan: planId,
+      status,
+      updated_at: now,
+    };
+    const { data: existingStripeSub } = await sb
+      .from('stripe_subscriptions')
+      .select('id')
+      .eq('stripe_subscription_id', session.subscription)
+      .maybeSingle();
+    if (existingStripeSub?.id) {
+      await sb.from('stripe_subscriptions').update(stripeSubscriptionRow).eq('id', existingStripeSub.id);
+    } else {
+      const { error } = await sb.from('stripe_subscriptions').insert([{ ...stripeSubscriptionRow, created_at: now }]);
+      if (error && session.customer) {
+        await sb.from('stripe_subscriptions').update(stripeSubscriptionRow).eq('stripe_customer_id', session.customer).then(() => {}, () => {});
+      }
+    }
+  }
+}
+
+async function updateSubscriptionMirrorFromStripeObject(stripeObject, status, paymentPatch = {}) {
+  const subscriptionId = stripeObject?.subscription || stripeObject?.id;
+  if (!subscriptionId) return;
+  const now = new Date().toISOString();
+  const updates = {
+    status: normalizedStripeStatus(status),
+    updated_at: now,
+    ...paymentPatch,
+  };
+  await sb.from('subscriptions').update(updates).eq('stripe_subscription_id', subscriptionId);
+  await sb.from('stripe_subscriptions').update({
+    status: updates.status,
+    current_period_start: stripeObject.current_period_start ? new Date(stripeObject.current_period_start * 1000).toISOString() : undefined,
+    current_period_end: stripeObject.current_period_end ? new Date(stripeObject.current_period_end * 1000).toISOString() : undefined,
+    cancel_at_period_end: stripeObject.cancel_at_period_end,
+    updated_at: now,
+  }).eq('stripe_subscription_id', subscriptionId).then(() => {}, () => {});
 }
 
 function isAddon(planId, metadata) {
@@ -577,6 +687,7 @@ export default async function handler(req, res) {
       }
       const userId = object.metadata && object.metadata.userId;
       const planId = object.metadata && object.metadata.planId;
+      await recordSubscriptionMirror(userId, object);
       await recordEntitlement(userId, object);
       await recordPartnerCheckout(object);
       await updateWorkflowAfterCheckout(object.metadata || {});
@@ -597,6 +708,9 @@ export default async function handler(req, res) {
     }
 
     if (event.type === 'customer.subscription.deleted') {
+      await updateSubscriptionMirrorFromStripeObject(object, 'cancelled', {
+        cancelled_at: new Date().toISOString(),
+      });
       await sb.from('users').update({
         plan: 'free',
         plan_status: 'cancelled',
@@ -605,6 +719,11 @@ export default async function handler(req, res) {
     }
 
     if (event.type === 'invoice.payment_succeeded' && object.subscription) {
+      await updateSubscriptionMirrorFromStripeObject(object, 'active', {
+        last_payment_date: new Date().toISOString(),
+        last_payment_amount: object.amount_paid || object.total || null,
+        failed_payment_count: 0,
+      });
       await sb.from('users').update({
         plan_status: 'active',
         updated_at: new Date().toISOString(),
@@ -612,6 +731,10 @@ export default async function handler(req, res) {
     }
 
     if (event.type === 'invoice.payment_failed' && object.subscription) {
+      await updateSubscriptionMirrorFromStripeObject(object, 'past_due', {
+        failed_payment_count: 1,
+        last_failed_payment_at: new Date().toISOString(),
+      });
       await sb.from('users').update({
         plan_status: 'past_due',
         updated_at: new Date().toISOString(),

@@ -6,6 +6,7 @@ node_modules/
 .next/
 .env*
 output/
+supabase/.temp/
 
 .vercel
 .env*.local

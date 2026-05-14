@@ -386,6 +386,7 @@ export default async function handler(req, res) {
 
     const body = new URLSearchParams({
       mode: plan.mode,
+      'automatic_tax[enabled]': 'true',
       success_url: plan.partnerPlan
         ? BASE + '/funeral-home/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}'
         : planId === 'urgent'
@@ -410,6 +411,10 @@ export default async function handler(req, res) {
       'line_items[0][quantity]': '1',
       submit_type: plan.mode === 'subscription' ? 'subscribe' : 'pay',
     });
+
+    if (plan.mode === 'payment') {
+      body.set('customer_creation', 'always');
+    }
 
     const configuredPrice = getConfiguredPrice(plan, participantEligible);
     const usingParticipantPrice = participantEligible && participantPriceEnvKeys(plan).includes(configuredPrice.key);

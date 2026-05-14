@@ -101,6 +101,8 @@ export default async function handler(req, res) {
 
   const body = new URLSearchParams({
     mode: 'payment',
+    'automatic_tax[enabled]': 'true',
+    customer_creation: 'always',
     success_url: `${BASE}/estate?vendor_payment=success&request=${encodeURIComponent(request.id)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE}/estate?vendor_payment=cancelled&request=${encodeURIComponent(request.id)}`,
     client_reference_id: request.id,
