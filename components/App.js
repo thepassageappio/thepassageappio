@@ -3848,7 +3848,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                   <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: ".13em", textTransform: "uppercase", fontWeight: 900, marginBottom: 4 }}>Family record slots</div>
                   <div style={{ color: C.ink, fontSize: 15, fontWeight: 900, lineHeight: 1.25 }}>{usedGreenSeats}/{estateSeatLimit} planning records used</div>
                   <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 3 }}>
-                    Planning slots are for green/prep records. Urgent help can still start separately when someone has passed.
+                    Planning slots are for preparation records. Urgent help can still start separately when someone has passed.
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -3874,7 +3874,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                         : "Stabilize first: one next action, one owner, what is waiting, and proof before closing anything."}
                     </div>
                   </div>
-                  <div style={{ color: C.soft, fontSize: 11.5, fontWeight: 800 }}>Same record across green, red, partner, and participant views.</div>
+                  <div style={{ color: C.soft, fontSize: 11.5, fontWeight: 800 }}>Same record across planning, urgent, partner, and participant views.</div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))", gap: 7, marginTop: 9 }}>
                   {[

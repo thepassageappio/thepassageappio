@@ -3580,13 +3580,13 @@ export default function EstatePage() {
               <button onClick={function() { window.location.href = '/planning'; }}
                 style={{ textAlign: 'left', border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: INK, borderRadius: 16, padding: '17px 18px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Plan ahead</div>
-                <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 5 }}>Create a Green estate</div>
+                <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 5 }}>Create a planning record</div>
                 <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.5 }}>Add wishes, documents, trusted people, providers, and activation contacts before it is urgent.</div>
               </button>
               <button onClick={function() { window.location.href = '/urgent'; }}
                 style={{ textAlign: 'left', border: '1px solid ' + ROSE + '33', background: ROSE_FAINT, color: INK, borderRadius: 16, padding: '17px 18px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 <div style={{ color: ROSE, fontSize: 11, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Someone just passed</div>
-                <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 5 }}>Create a Red estate</div>
+                <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 5 }}>Create an urgent record</div>
                 <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.5 }}>Start urgent help and create the command center from the first practical details.</div>
               </button>
             </div>

@@ -278,7 +278,7 @@ function isActivePath(current, href) {
 export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   const router = useRouter();
   const path = router?.pathname || '';
-  const dashboardHref = '/?dashboard=1';
+  const dashboardHref = '/estate';
   const [hydrated, setHydrated] = useState(false);
   const activePath = hydrated ? path : '';
   const estateActive = isActivePath(activePath, '/estate') || (hydrated && router?.query?.dashboard === '1');

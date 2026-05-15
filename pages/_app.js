@@ -70,7 +70,7 @@ class PassageErrorBoundary extends Component {
             </div>
           )}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => { window.location.href = '/?dashboard=1'; }} style={{ border: 'none', borderRadius: 11, background: '#6b8f71', color: '#fff', padding: '11px 14px', fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>Open My estate</button>
+            <button type="button" onClick={() => { window.location.href = '/estate'; }} style={{ border: 'none', borderRadius: 11, background: '#6b8f71', color: '#fff', padding: '11px 14px', fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>Open My estate</button>
             <button type="button" onClick={() => { window.location.reload(); }} style={{ border: '1px solid #e4ddd4', borderRadius: 11, background: '#fff', color: '#6a6560', padding: '10px 14px', fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>Reload</button>
           </div>
         </div>

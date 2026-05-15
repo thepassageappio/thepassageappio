@@ -185,7 +185,7 @@ export default function PlanningPage() {
           </p>
           <div style={{ display: 'grid', gap: 10 }}>
             {[
-              ['Two trusted confirmations', 'A Green record cannot quietly turn Red from one person alone.'],
+              ['Two trusted confirmations', 'A planning record cannot quietly become urgent from one person alone.'],
               ['Nothing sends automatically', 'Contacts are saved so the family knows who can confirm, review, and help.'],
               ['One calm family record', 'The planning record becomes the same task spine families use when support is actually needed.'],
             ].map(([title, body]) => (
@@ -199,7 +199,7 @@ export default function PlanningPage() {
 
         <form onSubmit={e => { e.preventDefault(); savePlanningEstate(); }} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 22, boxShadow: '0 18px 54px rgba(55,45,35,.055)' }}>
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Planning Setup</div>
-          <h2 style={{ margin: '0 0 6px', fontSize: 28, fontWeight: 400, lineHeight: 1.1 }}>Create the Green record.</h2>
+          <h2 style={{ margin: '0 0 6px', fontSize: 28, fontWeight: 400, lineHeight: 1.1 }}>Create the planning record.</h2>
           <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.5, margin: '0 0 16px' }}>Start with the person, the coordinator, and two trusted contacts. You can fill in the rest inside the estate.</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
