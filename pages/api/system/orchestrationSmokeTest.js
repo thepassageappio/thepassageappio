@@ -241,6 +241,9 @@ export default async function handler(req, res) {
       kind: 'task',
       id: participantTask.id,
       action: 'waiting',
+      actorUserId: adminUserId,
+      actorEmail: recipientEmail,
+      actorName: 'Passage QA Participant',
       notes: 'QA participant update: waiting for cemetery office confirmation and keeping the coordinator informed.',
     }, requestBearerToken);
     checks.push({ name: 'participant_scoped_waiting_update', ...participantWaiting });
@@ -293,6 +296,9 @@ export default async function handler(req, res) {
       taskId: vendorTask.id,
       taskTitle: vendorTask.title,
       vendorId: vendor.id,
+      actorUserId: adminUserId,
+      actorEmail: recipientEmail,
+      actorName: 'Passage QA Coordinator',
       urgency: 'planned',
       requestNote: 'QA request: please quote memorial flowers for the service.',
     }, requestBearerToken);
@@ -328,7 +334,7 @@ export default async function handler(req, res) {
       deceased_name: `QA Planning Person ${stamp}`,
       coordinator_name: 'Passage QA',
       coordinator_email: recipientEmail,
-      status: 'planning',
+      status: 'planning_active',
       activation_status: 'ready',
       trigger_type: 'death_confirmed',
       path: 'green',

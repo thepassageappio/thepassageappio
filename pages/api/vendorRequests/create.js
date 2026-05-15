@@ -79,7 +79,15 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const auth = await verifyDeliveryRequest(req);
-  if (!auth.ok || !auth.user) return res.status(auth.status || 401).json({ error: auth.error || 'Please sign in first.' });
+  if (!auth.ok) return res.status(auth.status || 401).json({ error: auth.error || 'Please sign in first.' });
+  const actor = auth.user || (auth.source === 'internal' && req.body?.actorEmail
+    ? {
+      id: req.body.actorUserId || null,
+      email: String(req.body.actorEmail).trim().toLowerCase(),
+      user_metadata: { full_name: req.body.actorName || req.body.actorEmail },
+    }
+    : null);
+  if (!actor?.email) return res.status(401).json({ error: auth.error || 'Please sign in first.' });
 
   const { workflowId, taskId, taskTitle, vendorId, urgency } = req.body || {};
   const requestNote = String(req.body?.requestNote || '').trim();
@@ -93,7 +101,7 @@ export default async function handler(req, res) {
   ]);
   if (!workflow) return res.status(404).json({ error: 'Estate not found.' });
   if (!vendor) return res.status(404).json({ error: 'Vendor is not available.' });
-  const allowed = await userCanAccessWorkflow(auth.user, workflow);
+  const allowed = await userCanAccessWorkflow(actor, workflow);
   if (!allowed) return res.status(403).json({ error: 'You do not have access to this estate.' });
 
   const resolvedTaskTitle = task?.title || String(taskTitle || vendorCategoryLabel(vendor.category));
@@ -109,9 +117,9 @@ export default async function handler(req, res) {
     task_id: task?.id || null,
     task_title: resolvedTaskTitle,
     organization_id: workflow.organization_id || null,
-    requested_by_user_id: auth.user.id,
-    requested_by_email: auth.user.email,
-    requested_by_name: auth.user.user_metadata?.full_name || auth.user.email,
+    requested_by_user_id: actor.id,
+    requested_by_email: actor.email,
+    requested_by_name: actor.user_metadata?.full_name || actor.email,
     status: 'requested',
     urgency: urgency === 'rush' ? 'rush' : 'planned',
     request_note: requestNote || null,
@@ -133,7 +141,7 @@ export default async function handler(req, res) {
     taskId: task?.id || null,
     taskTitle: resolvedTaskTitle,
     status: 'waiting',
-    actor: auth.user.email || 'Passage',
+    actor: actor.email || 'Passage',
     actorRole: workflow.organization_id ? 'funeral_home' : 'family_coordinator',
     channel: 'vendor',
     recipient: vendor.business_name,

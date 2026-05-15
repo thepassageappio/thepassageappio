@@ -3,6 +3,7 @@ import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, task
 import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 import { escapeHtml, passageEmailShell } from '../../lib/brandedEmail';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
+import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -246,10 +247,19 @@ async function updateParticipantRecord({ table, kind, emailColumn, id, email, up
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (!token) return res.status(401).json({ error: 'Please sign in first.' });
-
-  const { data: userData, error: userError } = await authClient.auth.getUser(token);
-  if (userError || !userData?.user?.email) return res.status(401).json({ error: 'Session could not be verified.' });
+  let userData = null;
+  if (token) {
+    const result = await authClient.auth.getUser(token);
+    if (result.error || !result.data?.user?.email) return res.status(401).json({ error: 'Session could not be verified.' });
+    userData = result.data;
+  } else {
+    const internalAuth = await verifyDeliveryRequest(req);
+    const actorEmail = String(req.body?.actorEmail || '').trim().toLowerCase();
+    if (!internalAuth.ok || internalAuth.source !== 'internal' || !actorEmail) {
+      return res.status(401).json({ error: 'Please sign in first.' });
+    }
+    userData = { user: { id: req.body?.actorUserId || null, email: actorEmail, user_metadata: { full_name: req.body?.actorName || actorEmail } } };
+  }
 
   const email = userData.user.email.toLowerCase();
   const { kind, id, action, notes, outcomeStatus, followUpAt } = req.body || {};
