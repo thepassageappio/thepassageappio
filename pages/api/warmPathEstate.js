@@ -228,7 +228,7 @@ export default async function handler(req, res) {
       .from('workflows')
       .select('*')
       .eq('user_id', user.id)
-      .eq('path', 'warm')
+      .eq('path', 'green')
       .eq('estate_name', lovedOneName)
       .neq('status', 'archived')
       .order('updated_at', { ascending: false })
@@ -246,9 +246,9 @@ export default async function handler(req, res) {
       status: 'active',
       activation_status: 'activated',
       trigger_type: 'death_confirmed',
-      path: 'warm',
-      mode: 'warm',
-      setup_stage: 'care_preparation',
+      path: 'green',
+      mode: 'green',
+      setup_stage: 'ready',
       orchestration_summary: {
         ...(existing?.orchestration_summary || {}),
         lifecycle_phase: 'care_preparation',

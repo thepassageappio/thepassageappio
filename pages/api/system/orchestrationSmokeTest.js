@@ -331,7 +331,7 @@ export default async function handler(req, res) {
       status: 'planning',
       activation_status: 'ready',
       trigger_type: 'death_confirmed',
-      path: 'planning',
+      path: 'green',
       mode: 'green',
       setup_stage: 'ready',
       orchestration_summary: {
@@ -402,7 +402,7 @@ export default async function handler(req, res) {
       const now = new Date().toISOString();
       await admin.from('activation_requests').update({ status: 'confirmed', confirmed_at: now, updated_at: now }).eq('id', created.activationRequestId);
       await admin.from('workflows').update({
-        path: 'urgent',
+        path: 'red',
         mode: 'red',
         status: 'triggered',
         activation_status: 'activated',
