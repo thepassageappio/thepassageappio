@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     resend: present(process.env.RESEND_API_KEY),
     resendFrom: present(process.env.RESEND_FROM_EMAIL),
     stripeSecret: present(process.env.STRIPE_SECRET_KEY),
-    stripeWebhook: present(process.env.STRIPE_WEBHOOK_SECRET),
+    stripeWebhook: present(process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET2),
     internalSecret: present(process.env.PASSAGE_INTERNAL_API_SECRET),
     qaNotificationMode: process.env.QA_NOTIFICATION_MODE === 'true' || process.env.QA_NOTIFICATION_MODE === '1' || process.env.PASSAGE_QA_MODE === 'true' || process.env.PASSAGE_QA_MODE === '1',
     qaNotificationOverride: present(process.env.QA_NOTIFICATION_OVERRIDE_EMAIL),

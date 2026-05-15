@@ -396,6 +396,13 @@ async function syncCheckoutToHubSpot(session) {
   });
 }
 
+function stripeWebhookSecrets() {
+  return [
+    process.env.STRIPE_WEBHOOK_SECRET2,
+    process.env.STRIPE_WEBHOOK_SECRET,
+  ].map(value => String(value || '').trim()).filter(Boolean);
+}
+
 async function notifyVendorPaymentPaid(request, payment) {
   if (!process.env.RESEND_API_KEY) return;
   const vendorEmail = request.vendors?.contact_email;
@@ -698,14 +705,15 @@ async function recordVendorConnectAccount(account) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  const webhookSecrets = stripeWebhookSecrets();
+  if (!webhookSecrets.length) {
     return res.status(500).json({ error: 'Stripe webhook secret is not configured.' });
   }
 
   try {
     const raw = await getRawBody(req);
     const signature = req.headers['stripe-signature'] || '';
-    const valid = verifyStripeSignature(raw, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    const valid = webhookSecrets.some(secret => verifyStripeSignature(raw, signature, secret));
     if (!valid) return res.status(400).json({ error: 'Bad signature' });
 
     const event = JSON.parse(raw.toString());
