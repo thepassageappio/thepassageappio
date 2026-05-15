@@ -4681,9 +4681,9 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       body: 'Care teams, funeral homes, vendors, attorneys, helpers, and executors may all rotate in. The family record remains continuous.',
       cta: null,
       rows: [
-        ['Green', 'Plan before crisis', 'Wishes, contacts, documents, roles, and preferences are organized early.'],
+        ['Planning', 'Plan before crisis', 'Wishes, contacts, documents, roles, and preferences are organized early.'],
         ['Care prep', 'Prepare during care', 'Hospice, home care, senior living, or serious illness can become an earlier activation point.'],
-        ['Red', 'Move through the first hours', 'The experience narrows to one clear action, owner, and proof.'],
+        ['Urgent', 'Move through the first hours', 'The experience narrows to one clear action, owner, and proof.'],
         ['After', 'Carry the long tail', 'Estate, notifications, remembrance, vendors, and reporting stay tied together.'],
       ],
     },

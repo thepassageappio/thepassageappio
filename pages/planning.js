@@ -108,7 +108,7 @@ export default function PlanningPage() {
     if (!form.personName.trim()) return 'Add the name this plan protects.';
     if (!cleanEmail(form.coordinatorEmail)) return 'Add your email so Passage can save the planning record.';
     if (!cleanEmail(form.executorEmail)) return 'Add the primary trusted contact email.';
-    if (!cleanEmail(form.secondConfirmerEmail)) return 'Add a second trusted contact email. Green activation should never depend on one person.';
+    if (!cleanEmail(form.secondConfirmerEmail)) return 'Add a second trusted contact email. Planning activation should never depend on one person.';
     if (cleanEmail(form.executorEmail) === cleanEmail(form.secondConfirmerEmail)) return 'Use two different trusted contacts.';
     return '';
   }
@@ -178,7 +178,7 @@ export default function PlanningPage() {
       <SiteHeader user={user} onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }} />
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '14px 28px 28px', display: 'grid', gridTemplateColumns: 'minmax(0,.72fr) minmax(380px,1fr)', gap: 18, alignItems: 'start' }}>
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: '28px 30px', boxShadow: '0 18px 54px rgba(55,45,35,.055)' }}>
-          <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Green Path</div>
+          <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Planning path</div>
           <h1 style={{ fontSize: 52, lineHeight: .96, fontWeight: 400, margin: '0 0 12px' }}>Start a planning record before it is needed.</h1>
           <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.55, margin: '0 0 18px' }}>
             Passage saves wishes, trusted people, documents, and first-call context now, then requires trusted confirmation before a planning record becomes active later.
