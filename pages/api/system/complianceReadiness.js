@@ -40,6 +40,7 @@ export default async function handler(req, res) {
     resendFrom: present(process.env.RESEND_FROM_EMAIL),
     stripeSecret: present(process.env.STRIPE_SECRET_KEY),
     stripeWebhook: present(process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET2),
+    hubspot: present(process.env.HUBSPOT_PRIVATE_APP_TOKEN || process.env.HUBSPOT_SERVICE_API_KEY || process.env.HUBSPOT_SERVICE_KEY || process.env.HUBSPOT_ACCESS_TOKEN),
     internalSecret: present(process.env.PASSAGE_INTERNAL_API_SECRET),
     qaNotificationMode: process.env.QA_NOTIFICATION_MODE === 'true' || process.env.QA_NOTIFICATION_MODE === '1' || process.env.PASSAGE_QA_MODE === 'true' || process.env.PASSAGE_QA_MODE === '1',
     qaNotificationOverride: present(process.env.QA_NOTIFICATION_OVERRIDE_EMAIL),
