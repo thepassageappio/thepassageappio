@@ -125,7 +125,7 @@ export default async function handler(req, res) {
       activation_status: 'activated',
       trigger_type: 'death_confirmed',
       path: 'red',
-      mode: 'urgent',
+      mode: 'red',
       setup_stage: 'qa_coordination_smoke',
       orchestration_summary: {
         qa_smoke_test: true,
@@ -332,7 +332,7 @@ export default async function handler(req, res) {
       activation_status: 'ready',
       trigger_type: 'death_confirmed',
       path: 'planning',
-      mode: 'planning',
+      mode: 'green',
       setup_stage: 'activation_circle_qa',
       orchestration_summary: {
         qa_smoke_test: true,
@@ -403,7 +403,7 @@ export default async function handler(req, res) {
       await admin.from('activation_requests').update({ status: 'confirmed', confirmed_at: now, updated_at: now }).eq('id', created.activationRequestId);
       await admin.from('workflows').update({
         path: 'urgent',
-        mode: 'urgent',
+        mode: 'red',
         status: 'triggered',
         activation_status: 'activated',
         triggered_at: now,
