@@ -376,6 +376,9 @@ export default async function handler(req, res) {
     const activationRequest = await apiPost('/api/activationCircle', {
       workflowId: activationWorkflow.id,
       action: 'request',
+      actorUserId: adminUserId,
+      actorEmail: recipientEmail,
+      actorName: 'Passage QA initiator',
       reason: 'QA activation review: one trusted person started, a different trusted person must confirm.',
     }, requestBearerToken);
     created.activationRequestId = activationRequest.json?.request?.id || null;
@@ -386,6 +389,9 @@ export default async function handler(req, res) {
         workflowId: activationWorkflow.id,
         action: 'confirm',
         requestId: created.activationRequestId,
+        actorUserId: adminUserId,
+        actorEmail: recipientEmail,
+        actorName: 'Passage QA initiator',
         note: 'QA should not allow same-person activation.',
       }, requestBearerToken)
       : { ok: false, status: 0, json: { error: 'No activation request was created.' } };

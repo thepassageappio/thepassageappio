@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { escapeHtml, passageEmailShell } from '../../lib/brandedEmail';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
+import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -24,7 +25,18 @@ function schemaMissing(error) {
 
 async function getUser(req) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
-  if (!token) return null;
+  if (!token) {
+    const internalAuth = await verifyDeliveryRequest(req);
+    const actorEmail = emailOf(req.body?.actorEmail || req.query.actorEmail);
+    if (internalAuth.ok && internalAuth.source === 'internal' && actorEmail) {
+      return {
+        id: clean(req.body?.actorUserId || req.query.actorUserId, 120) || null,
+        email: actorEmail,
+        user_metadata: { full_name: clean(req.body?.actorName || req.query.actorName || actorEmail, 160) },
+      };
+    }
+    return null;
+  }
   const { data } = await authClient.auth.getUser(token);
   return data?.user || null;
 }

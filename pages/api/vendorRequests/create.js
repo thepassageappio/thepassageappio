@@ -89,8 +89,17 @@ export default async function handler(req, res) {
     : null);
   if (!actor?.email) return res.status(401).json({ error: auth.error || 'Please sign in first.' });
 
-  const { workflowId, taskId, taskTitle, vendorId, urgency } = req.body || {};
+  const body = req.body || {};
+  let workflowId = body.workflowId || body.workflow_id || body.estateId || body.estate_id;
+  const taskId = body.taskId || body.task_id;
+  const taskTitle = body.taskTitle || body.task_title;
+  const vendorId = body.vendorId || body.vendor_id;
+  const urgency = body.urgency;
   const requestNote = String(req.body?.requestNote || '').trim();
+  if (!isUuid(workflowId) && isUuid(taskId)) {
+    const { data: taskForWorkflow } = await admin.from('tasks').select('workflow_id').eq('id', taskId).maybeSingle();
+    workflowId = taskForWorkflow?.workflow_id || workflowId;
+  }
   if (!isUuid(workflowId)) return res.status(400).json({ error: 'Missing estate.' });
   if (!isUuid(vendorId)) return res.status(400).json({ error: 'Choose a vendor.' });
 
