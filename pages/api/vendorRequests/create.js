@@ -127,6 +127,12 @@ export default async function handler(req, res) {
     error: 'Missing estate.',
     received: {
       keys: Object.keys(body || {}),
+      workflowType: typeof workflowId,
+      workflowLength: String(workflowId || '').length,
+      taskType: typeof taskId,
+      taskLength: String(taskId || '').length,
+      vendorType: typeof vendorId,
+      vendorLength: String(vendorId || '').length,
       hasTaskId: isUuid(taskId),
       qaSmokeTest: Boolean(body.qaSmokeTest),
       source: auth.source,
