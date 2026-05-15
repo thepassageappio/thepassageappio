@@ -126,7 +126,7 @@ export default async function handler(req, res) {
       trigger_type: 'death_confirmed',
       path: 'red',
       mode: 'red',
-      setup_stage: 'qa_coordination_smoke',
+      setup_stage: 'active',
       orchestration_summary: {
         qa_smoke_test: true,
         purpose: 'Temporary coordination, communication, and notification spine simulation.',
@@ -333,7 +333,7 @@ export default async function handler(req, res) {
       trigger_type: 'death_confirmed',
       path: 'planning',
       mode: 'green',
-      setup_stage: 'activation_circle_qa',
+      setup_stage: 'ready',
       orchestration_summary: {
         qa_smoke_test: true,
         purpose: 'Temporary two-person activation circle simulation.',
