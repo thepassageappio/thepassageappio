@@ -293,9 +293,15 @@ export default async function handler(req, res) {
 
     const vendorRequest = await apiPost('/api/vendorRequests/create', {
       workflowId: workflow.id,
+      workflow_id: workflow.id,
+      estateId: workflow.id,
+      estate_id: workflow.id,
       taskId: vendorTask.id,
+      task_id: vendorTask.id,
       taskTitle: vendorTask.title,
+      task_title: vendorTask.title,
       vendorId: vendor.id,
+      vendor_id: vendor.id,
       actorUserId: adminUserId,
       actorEmail: recipientEmail,
       actorName: 'Passage QA Coordinator',
@@ -427,7 +433,6 @@ export default async function handler(req, res) {
         title: 'Planning record activated',
         description: 'QA simulated the second trusted confirmation and verified the planning record can become active.',
         actor: 'Passage QA',
-        notes: JSON.stringify({ activation_request_id: created.activationRequestId, qa_smoke_test: true }),
       }]);
       await admin.from('orchestration_events').insert([{
         workflow_id: activationWorkflow.id,

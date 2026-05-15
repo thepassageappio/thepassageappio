@@ -193,7 +193,6 @@ async function activateWorkflow({ workflow, request, actorEmail }) {
     title: 'Planning record activated',
     description: 'Two trusted confirmations moved this planning record into active urgent coordination.',
     actor: actorEmail || 'Activation circle',
-    notes: JSON.stringify({ activation_request_id: request.id }),
   }]).then(() => {}, () => {});
   await admin.from('orchestration_events').insert([{
     workflow_id: workflow.id,
