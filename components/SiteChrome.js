@@ -284,6 +284,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   const estateActive = isActivePath(activePath, '/estate') || (hydrated && router?.query?.dashboard === '1');
   const controlled = typeof user !== 'undefined';
   const [localUser, setLocalUser] = useState(null);
+  const [localAuthReady, setLocalAuthReady] = useState(controlled);
   const currentUser = controlled ? user : localUser;
 
   useEffect(() => {
@@ -291,10 +292,33 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   }, []);
 
   useEffect(() => {
-    if (controlled || !chromeSupabase) return undefined;
-    chromeSupabase.auth.getSession().then(({ data }) => setLocalUser(data.session?.user || null));
-    const { data } = chromeSupabase.auth.onAuthStateChange((_event, session) => setLocalUser(session?.user || null));
-    return () => data.subscription.unsubscribe();
+    if (controlled) {
+      setLocalAuthReady(true);
+      return undefined;
+    }
+    if (!chromeSupabase) {
+      setLocalAuthReady(true);
+      return undefined;
+    }
+    let active = true;
+    function applySession(session) {
+      if (!active) return;
+      setLocalUser(prev => {
+        const prevKey = prev ? `${prev.id || ''}:${prev.email || ''}` : '';
+        const nextUser = session?.user || null;
+        const nextKey = nextUser ? `${nextUser.id || ''}:${nextUser.email || ''}` : '';
+        return prevKey === nextKey ? prev : nextUser;
+      });
+      setLocalAuthReady(true);
+    }
+    chromeSupabase.auth.getSession().then(({ data }) => applySession(data.session || null)).catch(() => {
+      if (active) setLocalAuthReady(true);
+    });
+    const { data } = chromeSupabase.auth.onAuthStateChange((_event, session) => applySession(session || null));
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
   }, [controlled]);
 
   async function defaultSignIn() {
@@ -373,10 +397,13 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
         )}
         {currentUser && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
         <span className="passage-nav-action-slot" style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
-          {currentUser && (
+          {!localAuthReady && (
+            <span aria-hidden="true" style={{ width: 92, minHeight: 38, display: 'inline-flex' }} />
+          )}
+          {localAuthReady && currentUser && (
             <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign out</button>
           )}
-          {!currentUser && (
+          {localAuthReady && !currentUser && (
             <button onClick={signInHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign in</button>
           )}
         </span>
