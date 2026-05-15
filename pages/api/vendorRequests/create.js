@@ -10,6 +10,18 @@ const admin = createClient(url, service);
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
+function requestBody(req) {
+  if (!req?.body) return {};
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body);
+    } catch {
+      return {};
+    }
+  }
+  return req.body;
+}
+
 async function userCanAccessWorkflow(user, workflow) {
   if (!user?.email || !workflow) return false;
   const email = user.email.toLowerCase();
@@ -78,24 +90,24 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const body = requestBody(req);
   const auth = await verifyDeliveryRequest(req);
   if (!auth.ok) return res.status(auth.status || 401).json({ error: auth.error || 'Please sign in first.' });
-  const actor = auth.user || (auth.source === 'internal' && req.body?.actorEmail
+  const actor = auth.user || (auth.source === 'internal' && body.actorEmail
     ? {
-      id: req.body.actorUserId || null,
-      email: String(req.body.actorEmail).trim().toLowerCase(),
-      user_metadata: { full_name: req.body.actorName || req.body.actorEmail },
+      id: body.actorUserId || null,
+      email: String(body.actorEmail).trim().toLowerCase(),
+      user_metadata: { full_name: body.actorName || body.actorEmail },
     }
     : null);
   if (!actor?.email) return res.status(401).json({ error: auth.error || 'Please sign in first.' });
 
-  const body = req.body || {};
   let workflowId = body.workflowId || body.workflow_id || body.estateId || body.estate_id;
   const taskId = body.taskId || body.task_id;
   const taskTitle = body.taskTitle || body.task_title;
   const vendorId = body.vendorId || body.vendor_id;
   const urgency = body.urgency;
-  const requestNote = String(req.body?.requestNote || '').trim();
+  const requestNote = String(body.requestNote || body.request_note || '').trim();
   if (!isUuid(workflowId) && isUuid(taskId)) {
     const { data: taskForWorkflow } = await admin.from('tasks').select('workflow_id').eq('id', taskId).maybeSingle();
     workflowId = taskForWorkflow?.workflow_id || workflowId;
