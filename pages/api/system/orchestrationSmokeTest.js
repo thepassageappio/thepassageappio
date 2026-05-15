@@ -305,6 +305,7 @@ export default async function handler(req, res) {
       actorUserId: adminUserId,
       actorEmail: recipientEmail,
       actorName: 'Passage QA Coordinator',
+      qaSmokeTest: true,
       urgency: 'planned',
       requestNote: 'QA request: please quote memorial flowers for the service.',
     }, requestBearerToken);

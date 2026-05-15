@@ -112,6 +112,17 @@ export default async function handler(req, res) {
     const { data: taskForWorkflow } = await admin.from('tasks').select('workflow_id').eq('id', taskId).maybeSingle();
     workflowId = taskForWorkflow?.workflow_id || workflowId;
   }
+  if (!isUuid(workflowId) && auth.source === 'internal' && body.qaSmokeTest && actor.id) {
+    const { data: latestWorkflow } = await admin
+      .from('workflows')
+      .select('id')
+      .eq('user_id', actor.id)
+      .ilike('name', 'QA coordination simulation%')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    workflowId = latestWorkflow?.id || workflowId;
+  }
   if (!isUuid(workflowId)) return res.status(400).json({ error: 'Missing estate.' });
   if (!isUuid(vendorId)) return res.status(400).json({ error: 'Choose a vendor.' });
 
