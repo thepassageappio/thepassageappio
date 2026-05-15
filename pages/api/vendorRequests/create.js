@@ -123,21 +123,7 @@ export default async function handler(req, res) {
       .maybeSingle();
     workflowId = latestWorkflow?.id || workflowId;
   }
-  if (!isUuid(workflowId)) return res.status(400).json({
-    error: 'Missing estate.',
-    received: {
-      keys: Object.keys(body || {}),
-      workflowType: typeof workflowId,
-      workflowLength: String(workflowId || '').length,
-      taskType: typeof taskId,
-      taskLength: String(taskId || '').length,
-      vendorType: typeof vendorId,
-      vendorLength: String(vendorId || '').length,
-      hasTaskId: isUuid(taskId),
-      qaSmokeTest: Boolean(body.qaSmokeTest),
-      source: auth.source,
-    },
-  });
+  if (!isUuid(workflowId)) return res.status(400).json({ error: 'Missing estate.' });
   if (!isUuid(vendorId)) return res.status(400).json({ error: 'Choose a vendor.' });
 
   const [{ data: workflow }, { data: task }, { data: vendor }] = await Promise.all([

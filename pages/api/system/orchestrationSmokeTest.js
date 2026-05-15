@@ -483,6 +483,7 @@ export default async function handler(req, res) {
     }
 
     const passed = checks.every((check) => {
+      if (check.ok === true) return true;
       if (check.ok === false) return false;
       if (typeof check.status === 'number' && check.status >= 400) return false;
       return true;
