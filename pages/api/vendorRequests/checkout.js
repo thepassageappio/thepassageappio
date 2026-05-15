@@ -7,7 +7,7 @@ import { transferGroupForVendorOrder } from '../../../lib/stripeFinancialSpine';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
-const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
+const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
 async function userCanAccessWorkflow(user, workflow) {
   if (!user?.email || !workflow) return false;
@@ -102,6 +102,7 @@ export default async function handler(req, res) {
   const body = new URLSearchParams({
     mode: 'payment',
     'automatic_tax[enabled]': 'true',
+    billing_address_collection: 'required',
     customer_creation: 'always',
     success_url: `${BASE}/estate?vendor_payment=success&request=${encodeURIComponent(request.id)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${BASE}/estate?vendor_payment=cancelled&request=${encodeURIComponent(request.id)}`,
@@ -110,6 +111,7 @@ export default async function handler(req, res) {
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': 'usd',
     'line_items[0][price_data][unit_amount]': String(grossCents),
+    'line_items[0][price_data][tax_behavior]': 'exclusive',
     'line_items[0][price_data][product_data][name]': `${vendor?.business_name || 'Vendor'} - ${taskTitle}`,
     'line_items[0][price_data][product_data][description]': `Passage coordinated service for ${familyName}.`,
     'payment_intent_data[application_fee_amount]': String(applicationFeeCents),

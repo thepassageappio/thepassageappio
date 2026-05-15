@@ -6,7 +6,7 @@ import { canonicalVendorStatus } from '../../../../lib/vendorLifecycle';
 import { centsToDollars, dollarsToCents, SITE_URL, stripeRequest, transferGroupForVendorOrder, vendorIsPaymentReady, vendorStripeAccountId } from '../../../../lib/stripeFinancialSpine';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
+const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
 async function userCanAccessWorkflow(user, workflow) {
   if (!user?.email || !workflow) return false;
@@ -142,6 +142,7 @@ export default async function handler(req, res) {
   const session = await stripeRequest('/v1/checkout/sessions', {
     mode: 'payment',
     'automatic_tax[enabled]': 'true',
+    billing_address_collection: 'required',
     customer_creation: 'always',
     success_url: `${SITE_URL}/estate?vendor_payment=success&order=${encodeURIComponent(order.id)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${SITE_URL}/estate?vendor_payment=cancelled&order=${encodeURIComponent(order.id)}`,
@@ -150,6 +151,7 @@ export default async function handler(req, res) {
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': 'usd',
     'line_items[0][price_data][unit_amount]': String(grossCents),
+    'line_items[0][price_data][tax_behavior]': 'exclusive',
     'line_items[0][price_data][product_data][name]': `${context.vendor?.business_name || 'Vendor'} - ${context.taskTitle}`,
     'line_items[0][price_data][product_data][description]': context.description || `Passage coordinated service for ${familyName}.`,
     'payment_intent_data[application_fee_amount]': String(applicationFeeCents),

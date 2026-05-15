@@ -387,6 +387,7 @@ export default async function handler(req, res) {
     const body = new URLSearchParams({
       mode: plan.mode,
       'automatic_tax[enabled]': 'true',
+      billing_address_collection: 'required',
       success_url: plan.partnerPlan
         ? BASE + '/funeral-home/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}'
         : planId === 'urgent'
@@ -451,6 +452,7 @@ export default async function handler(req, res) {
       body.set('line_items[0][price_data][currency]', 'usd');
       body.set('line_items[0][price_data][product_data][name]', plan.label);
       body.set('line_items[0][price_data][unit_amount]', String(plan.amount));
+      body.set('line_items[0][price_data][tax_behavior]', 'exclusive');
       if (plan.interval) {
         body.set('line_items[0][price_data][recurring][interval]', plan.interval);
         if (plan.intervalCount) {
