@@ -797,8 +797,11 @@ export default function SystemAdminPage() {
               </Panel>
               <Panel compact>
                 <div style={eyebrow}>Admin roadmap</div>
-                <h2 style={h2}>What we are sprinting next.</h2>
-                <p style={lead}>High-level product spine, priority, target window, and current status. This replaces one-off internal notes with a visible owner-only roadmap that can be updated as items are signed off.</p>
+                <h2 style={h2}>The source of truth for P0 sprints.</h2>
+                <p style={lead}>Every Passage sprint starts here and ends here: assess the current roadmap, define technical requirements and success criteria, ship the work, run QA, then update this console as items are signed off. This replaces one-off internal notes with an owner-only roadmap tied to the product spine.</p>
+                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
+                  <strong style={{ color: C.ink }}>Sprint rule:</strong> if a P0 loop changes vendor commerce, Green-to-urgent activation, funeral-home operations, participants, communications, CRM, or demo readiness, update this roadmap before calling the sprint complete.
+                </div>
                 <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
                   {roadmapItems.map(item => {
                     const priorityColor = item.priority === 'P0' ? C.rose : item.priority === 'P1' ? C.amber : C.sage;
