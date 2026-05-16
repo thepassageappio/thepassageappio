@@ -124,9 +124,9 @@ const roadmapItems = [
     pillar: 'Funeral Home Operations',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Ready to QA',
+    status: 'Chrome-verified',
     title: 'Subscription tiers, location slots, staff scope, and My Day',
-    body: 'Director and employee workspaces now surface the same plan/location-slot truth, organization identity, location scope, Google-backed address capture, staff assignment, reporting, and upgrade path so single-location and multi-location partners operate from one spine.',
+    body: 'Director and employee workspaces now surface the same plan/location-slot truth, organization identity, location scope, Google-backed address capture, staff assignment, reporting, and upgrade path so single-location and multi-location partners operate from one spine. Chrome QA verified director and staff demo personas land in distinct workspaces.',
   },
   {
     pillar: 'Communications',
