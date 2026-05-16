@@ -105,6 +105,14 @@ const reportingMetrics = [
 
 const roadmapItems = [
   {
+    pillar: 'Production Readiness Control',
+    priority: 'P0',
+    timing: 'Done today',
+    status: 'Build-ready',
+    title: 'One-click P0 readiness loop from admin roadmap',
+    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, and a visible rollup of blockers, warnings, and pass/fail status before demos or launches.',
+  },
+  {
     pillar: 'Auth and First-Record Self-Service',
     priority: 'P0',
     timing: 'Done today',
@@ -278,6 +286,8 @@ export default function SystemAdminPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const [paymentReadiness, setPaymentReadiness] = useState(null);
   const [paymentReadinessLoading, setPaymentReadinessLoading] = useState(false);
+  const [p0Readiness, setP0Readiness] = useState(null);
+  const [p0ReadinessLoading, setP0ReadinessLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -476,6 +486,76 @@ export default function SystemAdminPage() {
     }
   }
 
+  async function runP0ReadinessLoop() {
+    if (!supabase) return;
+    setP0ReadinessLoading(true);
+    setP0Readiness(null);
+    const startedAt = new Date().toISOString();
+    const steps = [];
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
+
+      const spineResponse = await fetch('/api/system/orchestrationSmokeTest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
+          recipientEmail: user?.email || 'steventurrisi@gmail.com',
+          keepRecords: false,
+        }),
+      });
+      const spineJson = await spineResponse.json().catch(() => ({}));
+      const spineStep = { key: 'spine', label: 'Task orchestration and notifications', ok: spineResponse.ok && spineJson.success === true, status: spineResponse.status, json: spineJson };
+      steps.push(spineStep);
+      setSpineSmokeResult({ ok: spineResponse.ok, status: spineResponse.status, json: spineJson });
+
+      const paymentResponse = await fetch('/api/system/paymentCrmReadiness', { headers: authHeaders });
+      const paymentJson = await paymentResponse.json().catch(() => ({}));
+      const paymentStep = { key: 'payment', label: 'Vendor payment and HubSpot readiness', ok: paymentResponse.ok && paymentJson.status === 'ready', status: paymentResponse.status, json: paymentJson };
+      steps.push(paymentStep);
+      setPaymentReadiness({ ok: paymentResponse.ok, status: paymentResponse.status, json: paymentJson });
+
+      const complianceResponse = await fetch('/api/system/complianceReadiness', { headers: authHeaders });
+      const complianceJson = await complianceResponse.json().catch(() => ({}));
+      const complianceStep = { key: 'compliance', label: 'Compliance and RLS readiness', ok: complianceResponse.ok && !complianceJson.blockers?.length, status: complianceResponse.status, json: complianceJson };
+      steps.push(complianceStep);
+      if (complianceResponse.ok) {
+        setComplianceSnapshot(complianceJson);
+        setComplianceError('');
+      } else {
+        setComplianceError(complianceJson.error || 'Compliance readiness could not load.');
+      }
+
+      const blockers = steps.flatMap(step => {
+        if (step.ok) return [];
+        const explicit = step.json?.blockers || [];
+        if (explicit.length) return explicit.map(item => `${step.label}: ${item}`);
+        return [`${step.label}: ${step.json?.error || 'needs review'}`];
+      });
+      const warnings = steps.flatMap(step => (step.json?.warnings || []).map(item => `${step.label}: ${item}`));
+      setP0Readiness({
+        startedAt,
+        completedAt: new Date().toISOString(),
+        ok: blockers.length === 0,
+        steps,
+        blockers,
+        warnings,
+      });
+    } catch (error) {
+      setP0Readiness({
+        startedAt,
+        completedAt: new Date().toISOString(),
+        ok: false,
+        steps,
+        blockers: [error.message || 'P0 readiness loop failed.'],
+        warnings: [],
+      });
+    } finally {
+      setP0ReadinessLoading(false);
+    }
+  }
+
   async function sendPartnerInvite(event) {
     event?.preventDefault?.();
     if (!supabase) return;
@@ -643,6 +723,44 @@ export default function SystemAdminPage() {
 
             {adminView === 'operations' && (
             <>
+              <Panel compact>
+                <div style={eyebrow}>P0 readiness loop</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Run the demo and production spine proof.</h2>
+                    <p style={lead}>This is the admin roadmap source-of-truth check before demos: task orchestration, notifications, participant action, funeral-home proof, vendor quote/payment dry run, HubSpot, Stripe, RLS, and compliance posture.</p>
+                    <button type="button" onClick={runP0ReadinessLoop} disabled={p0ReadinessLoading} style={{ ...primaryButton, opacity: p0ReadinessLoading ? .6 : 1 }}>
+                      {p0ReadinessLoading ? 'Running P0 loop...' : 'Run full P0 readiness loop'}
+                    </button>
+                  </div>
+                  <div style={{ background: p0Readiness ? (p0Readiness.ok ? C.sageFaint : C.roseFaint) : C.bg, border: '1px solid ' + (p0Readiness ? (p0Readiness.ok ? '#c8deca' : '#efc7c7') : C.border), borderRadius: 16, padding: 15 }}>
+                    <div style={{ color: p0Readiness?.ok ? C.sage : p0Readiness ? C.rose : C.mid, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>
+                      {p0Readiness ? (p0Readiness.ok ? 'P0 loop passed' : 'P0 loop needs review') : 'Ready to run'}
+                    </div>
+                    <p style={{ ...smallText, marginTop: 7 }}>
+                      {p0Readiness ? `Completed ${p0Readiness.steps?.length || 0} checks at ${new Date(p0Readiness.completedAt).toLocaleString()}.` : 'Run this after every sprint that touches auth, notifications, task orchestration, vendor commerce, HubSpot, Stripe, compliance, or public demo readiness.'}
+                    </p>
+                    {p0Readiness?.steps?.length > 0 && (
+                      <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
+                        {p0Readiness.steps.map(step => (
+                          <div key={step.key} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 9px', fontSize: 12.5, color: C.mid }}>
+                            <strong style={{ color: step.ok ? C.sage : C.rose }}>{step.ok ? 'Pass' : 'Review'}:</strong> {step.label}
+                            <span> {step.status ? `(status ${step.status})` : ''}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {p0Readiness?.blockers?.length > 0 && (
+                      <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
+                        {p0Readiness.blockers.map(item => <MetricRow key={item} label={item} value="P0" />)}
+                      </div>
+                    )}
+                    {p0Readiness?.warnings?.length > 0 && (
+                      <div style={{ ...smallText, color: C.amber, marginTop: 10 }}>{p0Readiness.warnings.join(' ')}</div>
+                    )}
+                  </div>
+                </div>
+              </Panel>
               <Panel compact>
                 <div style={eyebrow}>Operations</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(210px, .42fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
