@@ -114,16 +114,17 @@ export default async function handler(req, res) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return res.status(200).json({ success: true, skipped: true, reason: 'Email provider is not configured.' });
 
-  const { data: announcement } = await admin.from('announcements').insert([{
+  const { data: announcement, error: announcementError } = await admin.from('announcements').insert([{
     estate_id: workflowId,
     audience,
     tone,
     content: message,
-    status: 'sending',
+    status: 'approved',
     requires_review: Boolean(reviewer),
     reviewed_by: reviewer || null,
     channel: 'email',
   }]).select('id').maybeSingle();
+  if (announcementError) return res.status(500).json({ error: announcementError.message });
 
   let sent = 0;
   let failed = 0;
@@ -199,7 +200,7 @@ export default async function handler(req, res) {
   }
 
   await admin.from('announcements').update({
-    status: failed ? (sent ? 'partially_sent' : 'failed') : 'sent',
+    status: sent ? 'sent' : 'cancelled',
     updated_at: new Date().toISOString(),
   }).eq('id', announcement?.id || '');
 

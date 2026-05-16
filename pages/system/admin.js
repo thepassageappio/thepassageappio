@@ -131,10 +131,10 @@ const roadmapItems = [
   {
     pillar: 'Communications',
     priority: 'P0',
-    timing: 'This week',
-    status: 'Needs QA',
+    timing: 'Done today',
+    status: 'Smoke-tested',
     title: 'Family updates, bulk recipients, and event announcements',
-    body: 'Create a clean communication center for funeral, wake, cemetery, service, vendor, and family updates with recipient review, delivery logs, and response visibility.',
+    body: 'Reviewed family updates now use canonical announcement statuses, explicit recipient parsing, delivery logs, task/status events, and smoke-test proof that sent announcements stay attached to the same family spine.',
   },
   {
     pillar: 'Demo and QA Sandbox',

@@ -457,25 +457,28 @@ export default async function handler(req, res) {
       });
     }
 
-    const [{ data: taskAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }] = await Promise.all([
+    const [{ data: taskAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }, { data: announcementRows }] = await Promise.all([
       admin.from('tasks').select('id,status,last_actor,last_action_at,completed_at,completed_by_email').eq('id', task.id).maybeSingle(),
       admin.from('notification_log').select('*').eq('workflow_id', workflow.id),
       admin.from('task_status_events').select('*').eq('workflow_id', workflow.id),
       admin.from('estate_events').select('*').eq('estate_id', workflow.id),
       admin.from('vendor_requests').select('id,status,payment_collection_status,gross_amount,passage_fee_amount,vendor_net_amount').eq('workflow_id', workflow.id),
+      admin.from('announcements').select('id,status,audience,channel').eq('estate_id', workflow.id),
     ]);
 
     checks.push({
       name: 'spine_rows_recorded',
-      ok: Boolean((notificationRows || []).length && (statusEvents || []).length && (estateEvents || []).length && (vendorRequestRows || []).length),
+      ok: Boolean((notificationRows || []).length && (statusEvents || []).length && (estateEvents || []).length && (vendorRequestRows || []).length && (announcementRows || []).some((row) => row.status === 'sent')),
       taskStatus: taskAfter?.status || null,
       notificationCount: (notificationRows || []).length,
       statusEventCount: (statusEvents || []).length,
       estateEventCount: (estateEvents || []).length,
       vendorRequestCount: (vendorRequestRows || []).length,
+      announcementCount: (announcementRows || []).length,
       notificationStatuses: Array.from(new Set((notificationRows || []).map((row) => row.status).filter(Boolean))),
       notificationSources: Array.from(new Set((notificationRows || []).map((row) => row.source).filter(Boolean))),
       vendorStatuses: Array.from(new Set((vendorRequestRows || []).map((row) => row.status).filter(Boolean))),
+      announcementStatuses: Array.from(new Set((announcementRows || []).map((row) => row.status).filter(Boolean))),
     });
 
     if (!keepRecords) {
