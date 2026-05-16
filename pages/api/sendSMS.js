@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { smsDeliveryState } from '../../lib/smsReadiness';
 import { insertNotificationLog, isQaNotificationMode, qaOverrideEmail } from '../../lib/notificationSafety';
+import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -50,9 +51,23 @@ async function sendFallbackEmail({ toEmail, toName, taskTitle, workflowId, taskI
         ? deceased + "'s estate plan has been activated. View details: " + taskUrl
         : coordinator + ' asked you to help with ' + (taskTitle || 'an estate task') + '. Open: ' + taskUrl);
   const subject = actionType === 'invite'
-    ? 'You are a confirmation contact in Passage'
-    : 'Passage update' + (taskTitle ? ': ' + taskTitle : '');
-  const html = '<div style="font-family:Georgia,serif;background:#f6f3ee;padding:28px 16px;"><div style="max-width:540px;margin:0 auto;background:#fff;border:1px solid #e4ddd4;border-radius:18px;padding:28px;"><div style="font-size:12px;color:#6b8f71;letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:18px;">Passage</div><h1 style="font-size:24px;line-height:1.25;margin:0 0 12px;color:#1a1916;">SMS is not available yet, so we sent this by email.</h1><p style="font-size:15px;line-height:1.7;color:#6a6560;margin:0 0 16px;">' + escapeHtml(bodyText) + '</p>' + (inviteUrl || taskUrl ? '<a href="' + escapeHtml(inviteUrl || taskUrl) + '" style="display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;border-radius:12px;padding:12px 18px;font-weight:700;">Open in Passage</a>' : '') + '<p style="font-size:12px;line-height:1.6;color:#a09890;margin-top:18px;">We are tracking this in Passage. SMS reason: ' + escapeHtml(reason || 'provider unavailable') + '</p></div></div>';
+    ? passageSubject('Confirmation contact', deceased)
+    : passageSubject('Text fallback', taskTitle || 'Passage message');
+  const html = passageEmailShell({
+    eyebrow: 'Text fallback',
+    title: 'SMS is not available yet, so we sent this by email.',
+    intro: bodyText,
+    preheader: bodyText,
+    sections: [
+      {
+        label: 'Why email',
+        text: `Text message delivery is paused or unavailable. Reason: ${reason || 'provider unavailable'}`,
+        tone: 'soft',
+      },
+    ],
+    ctaLabel: 'Open in Passage',
+    ctaUrl: inviteUrl || taskUrl,
+  });
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',

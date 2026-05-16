@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
+import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -35,6 +36,10 @@ function rows(form) {
   )).join('');
 }
 
+function rowsTable(form) {
+  return '<table style="width:100%;border-collapse:collapse;margin:4px 0;font-size:14px">' + rows(form) + '</table>';
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const auth = await verifyDeliveryRequest(req);
@@ -47,22 +52,31 @@ export default async function handler(req, res) {
   const KEY = process.env.RESEND_API_KEY;
   if (!KEY) return res.status(200).json({ success: true, skipped: true });
 
-  const subject = 'Funeral home meeting preparation summary';
+  const subject = passageSubject('Preparation summary', form.deceasedName || 'funeral home meeting');
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
-  const html = [
-    '<div style="font-family:Georgia,serif;background:#f6f3ee;padding:28px">',
-    '<div style="background:#fff;border-radius:16px;padding:28px;max-width:720px;margin:auto;border:1px solid #e4ddd4">',
-    '<div style="font-size:11px;color:#6b8f71;letter-spacing:.16em;text-transform:uppercase;font-weight:800">Prepared with Passage</div>',
-    '<h1 style="font-size:26px;line-height:1.18;color:#1a1916;margin:10px 0">Funeral home meeting preparation</h1>',
-    '<p style="color:#6a6560;line-height:1.7">Here is the information to help begin arrangements. Anything marked "To be added" can be filled in later.</p>',
-    '<table style="width:100%;border-collapse:collapse;margin:18px 0;font-size:14px">',
-    rows(form),
-    '</table>',
-    missing.length ? '<div style="background:#fdf8ee;border-radius:12px;padding:12px;color:#b07d2e;font-size:13px;line-height:1.5"><strong>Still okay to send:</strong> missing ' + missing.map(x => clean(x, 80)).join(', ') + '.</div>' : '',
-    '<div style="background:#f0f5f1;border-radius:12px;padding:12px;color:#6b8f71;font-weight:800;margin-top:16px">You have everything most funeral homes need to get started.</div>',
-    '<p style="color:#a09890;font-size:12px;line-height:1.6;margin-top:20px">Prepared with Passage. Based on standard funeral home intake information.</p>',
-    '</div></div>',
-  ].join('');
+  const html = passageEmailShell({
+    eyebrow: 'Prepared with Passage',
+    title: 'Funeral home meeting preparation',
+    intro: 'Here is the information to help begin arrangements. Anything marked "To be added" can be filled in later.',
+    preheader: 'Funeral home meeting details prepared from the Passage family record.',
+    sections: [
+      {
+        label: 'Family details',
+        html: rowsTable(form),
+      },
+      missing.length ? {
+        label: 'Still okay to send',
+        text: 'Missing: ' + missing.map(x => clean(x, 80)).join(', ') + '. These can be filled in later.',
+        tone: 'soft',
+      } : {
+        label: 'Ready',
+        text: 'You have everything most funeral homes need to get started.',
+        tone: 'soft',
+      },
+    ],
+    ctaLabel: 'Open family record',
+    ctaUrl: `${(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '')}/estate?id=${encodeURIComponent(estateId)}`,
+  });
 
   try {
     const r = await fetch('https://api.resend.com/emails', {

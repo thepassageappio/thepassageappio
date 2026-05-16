@@ -4,10 +4,12 @@ import { vendorCategoryLabel } from '../../../lib/vendors';
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 import { canonicalVendorStatus } from '../../../lib/vendorLifecycle';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
+import { passageEmailShell, passageSubject } from '../../../lib/brandedEmail';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
-async function sendStatusEmail({ request, title, detail }) {
+async function sendStatusEmail({ request, title, detail, ctaUrl, subject }) {
   if (!process.env.RESEND_API_KEY) return;
   const { data: workflow } = await admin
     .from('workflows')
@@ -38,14 +40,29 @@ async function sendStatusEmail({ request, title, detail }) {
     return;
   }
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
+  const html = passageEmailShell({
+    eyebrow: 'Vendor update',
+    title,
+    intro: detail,
+    preheader: detail,
+    sections: [
+      {
+        label: 'Saved to the spine',
+        text: 'The family and any connected funeral home can see this status, the vendor, and the next expected action in Passage.',
+        tone: 'soft',
+      },
+    ],
+    ctaLabel: 'Open in Passage',
+    ctaUrl,
+  });
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from,
       to: route.actual,
-      subject: title,
-      html: `<div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e4ddd4;border-radius:16px;padding:24px"><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800">Passage update</div><h1 style="font-weight:400;color:#1a1916;font-size:24px;line-height:1.25">${title}</h1><p style="color:#6a6560;line-height:1.7">${detail}</p><p style="color:#6b8f71;font-weight:800">We are tracking this in Passage.</p></div></div>`,
+      subject,
+      html,
     }),
   }).catch(() => null);
   const json = response ? await response.json().catch(() => ({})) : {};
@@ -53,9 +70,9 @@ async function sendStatusEmail({ request, title, detail }) {
     workflow_id: request.workflow_id,
     task_id: request.task_id || null,
     channel: 'email',
-    recipient_email: recipient,
-    recipient_name: recipient,
-    subject: title,
+      recipient_email: recipient,
+      recipient_name: recipient,
+      subject,
     provider: 'resend',
     provider_id: response?.ok ? json.id || null : null,
     status: response?.ok ? 'sent' : 'failed',
@@ -127,6 +144,8 @@ export default async function handler(req, res) {
   const detail = status === 'accepted'
     ? `${category} quote for ${request.task_title || 'this task'} is ready for review.${finalValue > 0 ? ` Value: $${Math.round(finalValue)}.` : ''}`
     : `${category} request for ${request.task_title || 'this task'} was ${canonicalVendorStatus(status).replace('_', ' ')}.`;
+  const ctaUrl = `${SITE_URL}${request.organization_id ? '/funeral-home/dashboard' : '/estate'}?workflow=${encodeURIComponent(request.workflow_id)}&vendor_request=${encodeURIComponent(request.id)}`;
+  const subject = passageSubject(status === 'accepted' ? 'Vendor quote ready' : 'Vendor update', request.task_title || category);
   await recordTaskCommunicationEvent({
     verb: status === 'completed' ? 'prove' : status === 'declined' ? 'escalate' : 'update',
     workflowId: request.workflow_id,
@@ -141,7 +160,7 @@ export default async function handler(req, res) {
     detail,
     visibility: 'family_funeral_home',
   });
-  await sendStatusEmail({ request, title, detail });
+  await sendStatusEmail({ request, title, detail, ctaUrl, subject });
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   return res.status(200).send(`

@@ -3,6 +3,7 @@ import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
 import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { categoryForTask, vendorCategoryLabel } from '../../../lib/vendors';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
+import { passageEmailShell, passageSubject } from '../../../lib/brandedEmail';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -44,28 +45,35 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
   const acceptUrl = `${BASE_URL}/api/vendorRequests/respond?token=${encodedToken}&status=accepted`;
   const declineUrl = `${BASE_URL}/api/vendorRequests/respond?token=${encodedToken}&status=declined`;
   const completeUrl = `${BASE_URL}/api/vendorRequests/respond?token=${encodedToken}&status=completed`;
-  const html = `
-    <div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px">
-      <div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e4ddd4;border-radius:16px;padding:24px">
-        <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800">Passage request</div>
-        <h1 style="font-weight:400;color:#1a1916;font-size:25px;line-height:1.25">A family asked for help with ${taskTitle || vendorCategoryLabel(vendor.category)}.</h1>
-        <p style="color:#6a6560;line-height:1.6">This request came through Passage so the family and any connected funeral home can see what is waiting, what you accepted, and what is handled. Open the request to share a quote or mark progress.</p>
-        <p style="color:#1a1916;line-height:1.6"><strong>Family case:</strong> ${workflow.deceased_name || workflow.estate_name || workflow.name || 'Family case'}<br/><strong>Task:</strong> ${taskTitle || vendorCategoryLabel(vendor.category)}<br/><strong>Urgency:</strong> ${request.urgency === 'rush' ? 'Rush' : 'Planned'}</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
-          <a href="${portalUrl}" style="background:#6b8f71;color:white;text-decoration:none;border-radius:10px;padding:11px 14px;font-weight:800">Open request</a>
-          <a href="${acceptUrl}" style="background:#f0f5f1;color:#6b8f71;text-decoration:none;border:1px solid #c8deca;border-radius:10px;padding:10px 14px;font-weight:800">Accept</a>
-          <a href="${declineUrl}" style="background:#fff;color:#6a6560;text-decoration:none;border:1px solid #e4ddd4;border-radius:10px;padding:10px 14px;font-weight:800">Decline</a>
-          <a href="${completeUrl}" style="background:#fff;color:#6a6560;text-decoration:none;border:1px solid #e4ddd4;border-radius:10px;padding:10px 14px;font-weight:800">Mark completed</a>
-        </div>
-      </div>
-    </div>`;
+  const requestTitle = taskTitle || vendorCategoryLabel(vendor.category);
+  const familyName = workflow.deceased_name || workflow.estate_name || workflow.name || 'Family case';
+  const subject = passageSubject('Vendor request', requestTitle);
+  const html = passageEmailShell({
+    eyebrow: 'Vendor request',
+    title: `A family asked for help with ${requestTitle}.`,
+    intro: 'This scoped request came through Passage so the family and any connected funeral home can see what is waiting, what you accepted, and what is handled.',
+    preheader: `Open the request to quote, decline, or mark progress for ${requestTitle}.`,
+    sections: [
+      {
+        label: 'Request',
+        html: `<strong style="color:#1a1916;">Family case:</strong> ${familyName}<br><strong style="color:#1a1916;">Task:</strong> ${requestTitle}<br><strong style="color:#1a1916;">Urgency:</strong> ${request.urgency === 'rush' ? 'Rush' : 'Planned'}`,
+      },
+      {
+        label: 'Quick actions',
+        html: `<a href="${acceptUrl}" style="color:#6b8f71;font-weight:900;">Accept or send quote</a><br><a href="${declineUrl}" style="color:#6a6560;font-weight:900;">Decline request</a><br><a href="${completeUrl}" style="color:#6a6560;font-weight:900;">Mark completed</a>`,
+        tone: 'soft',
+      },
+    ],
+    ctaLabel: 'Open vendor request',
+    ctaUrl: portalUrl,
+  });
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from,
       to: route.actual,
-      subject: `Passage request: ${taskTitle || vendorCategoryLabel(vendor.category)}`,
+      subject,
       html,
     }),
   });
@@ -76,7 +84,7 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
     channel: 'email',
     recipient_email: vendor.contact_email,
     recipient_name: vendor.business_name,
-    subject: `Passage request: ${taskTitle || vendorCategoryLabel(vendor.category)}`,
+    subject,
     provider: 'resend',
     provider_id: response.ok ? json.id || null : null,
     status: response.ok ? 'sent' : 'failed',

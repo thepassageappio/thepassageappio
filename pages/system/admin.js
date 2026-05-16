@@ -132,9 +132,9 @@ const roadmapItems = [
     pillar: 'Communications',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Smoke-tested',
-    title: 'Family updates, bulk recipients, and event announcements',
-    body: 'Reviewed family updates now use canonical announcement statuses, explicit recipient parsing, delivery logs, task/status events, and smoke-test proof that sent announcements stay attached to the same family spine.',
+    status: 'Format hardening',
+    title: 'Email consistency, deep links, family updates, and event announcements',
+    body: 'Reviewed family updates use canonical announcement statuses, explicit recipient parsing, delivery logs, task/status events, and smoke-test proof. The current loop standardizes operational emails so vendor requests, vendor quote updates, task assignments, activation requests, and funeral-home proof emails use one Passage shell with mobile-safe formatting, clear subjects, CTA buttons, fallback links, and spine destinations.',
   },
   {
     pillar: 'Demo and QA Sandbox',

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
 import { normalizePartnerPlanId, partnerPlanFor } from '../../lib/partnerPlans';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
+import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -409,7 +410,7 @@ async function notifyVendorPaymentPaid(request, payment) {
   const coordinatorEmail = request.workflows?.coordinator_email;
   const recipients = Array.from(new Set([vendorEmail, coordinatorEmail].filter(Boolean)));
   if (!recipients.length) return;
-  const subject = `Vendor service paid: ${request.task_title || 'Passage request'}`;
+  const subject = passageSubject('Vendor service paid', request.task_title || 'Passage request');
   const route = routeEmailRecipients(recipients);
   if (!route.actual.length) {
     await Promise.all(recipients.map((recipient) => insertNotificationLog(sb, {
@@ -428,15 +429,22 @@ async function notifyVendorPaymentPaid(request, payment) {
     })));
     return;
   }
-  const html = `
-    <div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px">
-      <div style="max-width:580px;margin:auto;background:#fffdf9;border:1px solid #e4ddd4;border-radius:18px;padding:26px;color:#1a1916">
-        <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:900">Passage vendor payment</div>
-        <h1 style="font-weight:400;font-size:25px;line-height:1.22;margin:10px 0">Payment is confirmed.</h1>
-        <p style="color:#6a6560;line-height:1.7;margin:0 0 12px">${request.vendors?.business_name || 'The vendor'} has a paid service connected to ${request.workflows?.deceased_name || request.workflows?.estate_name || request.workflows?.name || 'the family record'}.</p>
-        <p style="color:#1a1916;line-height:1.7;margin:0"><strong>Gross:</strong> $${Number(payment.gross_amount || 0).toFixed(2)}<br/><strong>Passage fee:</strong> $${Number(payment.application_fee_amount || 0).toFixed(2)}<br/><strong>Vendor balance:</strong> $${Number(payment.vendor_net_amount || 0).toFixed(2)}</p>
-      </div>
-    </div>`;
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+  const html = passageEmailShell({
+    eyebrow: 'Vendor payment',
+    title: 'Payment is confirmed.',
+    intro: `${request.vendors?.business_name || 'The vendor'} has a paid service connected to ${request.workflows?.deceased_name || request.workflows?.estate_name || request.workflows?.name || 'the family record'}.`,
+    preheader: 'Vendor service payment is confirmed in Passage.',
+    sections: [
+      {
+        label: 'Payment',
+        html: `<strong style="color:#1a1916;">Gross:</strong> $${Number(payment.gross_amount || 0).toFixed(2)}<br/><strong style="color:#1a1916;">Passage fee:</strong> $${Number(payment.application_fee_amount || 0).toFixed(2)}<br/><strong style="color:#1a1916;">Vendor balance:</strong> $${Number(payment.vendor_net_amount || 0).toFixed(2)}`,
+        tone: 'soft',
+      },
+    ],
+    ctaLabel: 'Open in Passage',
+    ctaUrl: `${siteUrl}${vendorEmail ? '/vendors/login' : '/estate'}?workflow=${encodeURIComponent(request.workflow_id || '')}`,
+  });
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },

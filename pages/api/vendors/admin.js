@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../../lib/adminAccess';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
+import { passageEmailShell, passageSubject } from '../../../lib/brandedEmail';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -31,31 +32,31 @@ async function requireAdmin(req) {
   return { ok: true, user: data.user, admin: configured.admin };
 }
 
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 async function sendVendorApprovalEmail(admin, vendor) {
   const to = String(vendor?.contact_email || '').trim().toLowerCase();
   if (!to || !process.env.RESEND_API_KEY) return;
   const vendorName = vendor?.business_name || 'your business';
   const inviteUrl = `${SITE_URL}/vendors/accept?email=${encodeURIComponent(to)}`;
-  const subject = `${vendorName} is approved for Passage vendor requests`;
-  const html = `
-  <div style="font-family:Georgia,serif;background:#f6f3ee;padding:28px 16px;">
-    <div style="max-width:560px;margin:0 auto;background:#fffdf9;border:1px solid #e4ddd4;border-radius:18px;padding:28px;color:#1a1916;">
-      <div style="font-size:12px;color:#6b8f71;letter-spacing:.18em;text-transform:uppercase;font-weight:900;margin-bottom:18px;">Passage vendor approval</div>
-      <h1 style="font-size:26px;line-height:1.2;margin:0 0 12px;font-weight:400;">${escapeHtml(vendorName)} can now receive scoped requests.</h1>
-      <p style="font-size:15px;line-height:1.7;color:#6a6560;margin:0 0 16px;">Sign in with ${escapeHtml(to)} to review quote requests, update availability, and save completion proof. Vendors only see the request connected to their service.</p>
-      <a href="${escapeHtml(inviteUrl)}" style="display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;border-radius:13px;padding:13px 18px;font-size:15px;font-weight:900;">Open vendor workspace</a>
-      <p style="font-size:12.5px;line-height:1.6;color:#a09890;margin:18px 0 0;">You can sign in with Google or request a secure email link using this same address.</p>
-    </div>
-  </div>`;
+  const subject = passageSubject('Vendor approved', vendorName);
+  const html = passageEmailShell({
+    eyebrow: 'Vendor approval',
+    title: `${vendorName} can now receive scoped requests.`,
+    intro: `Sign in with ${to} to review quote requests, update availability, and save completion proof.`,
+    preheader: 'Your Passage vendor workspace is ready.',
+    sections: [
+      {
+        label: 'Access boundary',
+        text: 'Vendors only see the request connected to their service. You do not browse family records.',
+        tone: 'soft',
+      },
+      {
+        label: 'Sign in with',
+        text: to,
+      },
+    ],
+    ctaLabel: 'Open vendor workspace',
+    ctaUrl: inviteUrl,
+  });
   const route = routeEmailRecipients([to]);
   if (!route.actual.length) {
     await insertNotificationLog(admin, {

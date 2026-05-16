@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { escapeHtml, passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
@@ -13,44 +14,22 @@ function isAuthorized(req) {
   return false;
 }
 
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
 function emailHtml(item) {
-  const recipient = escapeHtml(item.to_name || 'there');
-  const title = escapeHtml(item.title || 'A message from Passage');
-  const body = escapeHtml(item.content_text || '').replace(/\n/g, '<br>');
-  const event = item.delivery_event ? '<p class="p"><strong>Milestone:</strong> ' + escapeHtml(item.delivery_event) + '</p>' : '';
-  const attachment = item.content_url
-    ? '<div class="note">An attachment was saved with this message. Sign in to Passage to review the full stored memory.</div>'
-    : '';
-
-  return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
-    'body{font-family:Georgia,serif;background:#f6f3ee;margin:0;padding:32px 16px;color:#1a1916}' +
-    '.card{background:#fff;border-radius:16px;padding:34px 30px;max-width:560px;margin:0 auto;box-shadow:0 2px 18px rgba(0,0,0,.06)}' +
-    '.logo{font-size:11px;color:#a09890;letter-spacing:.2em;text-transform:uppercase;margin-bottom:24px}' +
-    '.tag{display:inline-block;background:#f0f5f1;border:1px solid #c8deca;border-radius:8px;padding:3px 10px;font-size:11px;color:#6b8f71;font-weight:700;letter-spacing:.05em;margin-bottom:18px}' +
-    '.h1{font-size:23px;line-height:1.35;font-weight:400;margin:0 0 14px}' +
-    '.p{font-size:14px;line-height:1.75;color:#6a6560;margin:0 0 14px}' +
-    '.message{white-space:normal;background:#f6f3ee;border-radius:12px;padding:16px 18px;font-size:15px;line-height:1.8;color:#1a1916;margin:18px 0}' +
-    '.note{background:#f0f5f1;border:1px solid #c8deca;border-radius:10px;padding:12px 14px;color:#6b8f71;font-size:13px;line-height:1.55;margin:16px 0}' +
-    '.btn{display:inline-block;background:#6b8f71;color:white;text-decoration:none;padding:13px 24px;border-radius:11px;font-size:15px;font-weight:700;margin-top:12px}' +
-    '.footer{font-size:11px;color:#a09890;margin-top:26px;padding-top:18px;border-top:1px solid #f0ece5;line-height:1.6}' +
-    '</style></head><body><div class="card"><div class="logo">Passage</div><div class="tag">Scheduled message</div>' +
-    '<div class="h1">' + title + '</div>' +
-    '<p class="p">' + recipient + ', this message was saved in Passage to be delivered at this time.</p>' +
-    event +
-    '<div class="message">' + body + '</div>' +
-    attachment +
-    '<a class="btn" href="' + SITE_URL + '/participating">Open Passage</a>' +
-    '<div class="footer">Passage keeps family instructions, documents, roles, and messages together when timing matters.</div>' +
-    '</div></body></html>';
+  const recipient = item.to_name || 'there';
+  return passageEmailShell({
+    eyebrow: 'Scheduled message',
+    title: item.title || 'A message from Passage',
+    intro: `${recipient}, this message was saved in Passage to be delivered at this time.`,
+    preheader: item.content_text || item.title || 'A scheduled Passage message is ready.',
+    sections: [
+      item.delivery_event ? { label: 'Milestone', text: item.delivery_event } : null,
+      { label: 'Message', html: escapeHtml(item.content_text || '').replace(/\n/g, '<br>'), tone: 'soft' },
+      item.content_url ? { label: 'Attachment', text: 'An attachment was saved with this message. Sign in to Passage to review the full stored memory.' } : null,
+    ].filter(Boolean),
+    ctaLabel: 'Open Passage',
+    ctaUrl: `${SITE_URL}/participating`,
+    footer: 'Passage keeps family instructions, documents, roles, and messages together when timing matters.',
+  });
 }
 
 async function sendEmail(item, key, from) {
@@ -61,7 +40,7 @@ async function sendEmail(item, key, from) {
     body: JSON.stringify({
       from,
       to: [item.to_email],
-      subject: item.title || 'A scheduled Passage message',
+      subject: passageSubject('Scheduled message', item.title || 'Passage'),
       html: emailHtml(item),
     }),
   });
@@ -171,7 +150,7 @@ export default async function handler(req, res) {
         recipient_email: delivery.channel === 'email' ? item.to_email : null,
         recipient_phone: delivery.channel === 'sms' ? item.to_phone : null,
         recipient_name: item.to_name || null,
-        subject: item.title || 'A scheduled Passage message',
+        subject: passageSubject('Scheduled message', item.title || 'Passage'),
         provider: delivery.channel === 'email' ? 'resend' : 'twilio',
         provider_id: delivery.id,
         status: 'sent',

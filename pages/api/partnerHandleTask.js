@@ -4,6 +4,7 @@ import { isPassageAdmin } from '../../lib/adminAccess';
 import { taskActionConfirmation } from '../../lib/taskActions';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
+import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -129,16 +130,23 @@ export default async function handler(req, res) {
     let emailSent = false;
     if (sendFamilyEmail === true && workflow.coordinator_email && process.env.RESEND_API_KEY) {
       const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
-      const html = `
-        <div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px">
-          <div style="max-width:560px;margin:auto;background:#fffdf9;border:1px solid #e4ddd4;border-radius:16px;padding:26px">
-            <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#6b8f71;font-weight:700">Passage update</div>
-            <h1 style="font-weight:400;color:#1a1916;font-size:24px;line-height:1.25">Handled for the family</h1>
-            <p style="color:#6a6560;line-height:1.7">${escapeHtml(orgName)} recorded a completed update for ${escapeHtml(subjectName)}.</p>
-            <div style="background:#f0f5f1;border:1px solid #c8deca;border-radius:12px;padding:14px;color:#1a1916"><strong>${escapeHtml(task.title)}</strong><br><span style="color:#6a6560">${escapeHtml(detail)}</span></div>
-            <p style="color:#6a6560;line-height:1.7">This update is saved in the Passage case record.</p>
-          </div>
-        </div>`;
+      const ctaUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io'}/estate?workflow=${encodeURIComponent(workflow.id)}&task=${encodeURIComponent(task.id)}`;
+      const subject = passageSubject('Task handled', task.title);
+      const html = passageEmailShell({
+        eyebrow: 'Task handled',
+        title: 'Handled for the family.',
+        intro: `${orgName} recorded a completed update for ${subjectName}.`,
+        preheader: `${orgName} handled ${task.title}.`,
+        sections: [
+          {
+            label: 'Proof saved',
+            html: `<strong style="color:#1a1916;">${escapeHtml(task.title)}</strong><br>${escapeHtml(detail)}`,
+            tone: 'soft',
+          },
+        ],
+        ctaLabel: 'Open family record',
+        ctaUrl,
+      });
       const route = routeEmailRecipients([workflow.coordinator_email]);
       const response = route.actual.length ? await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -146,7 +154,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           from,
           to: route.actual,
-          subject: `${orgName} handled: ${task.title}`,
+          subject,
           html,
         }),
       }) : null;
@@ -158,7 +166,7 @@ export default async function handler(req, res) {
           channel: 'email',
           recipient_email: workflow.coordinator_email,
           recipient_name: workflow.coordinator_name || workflow.coordinator_email,
-          subject: `${orgName} handled: ${task.title}`,
+          subject,
           provider: 'resend',
           provider_id: json.id,
           status: 'sent',
@@ -172,7 +180,7 @@ export default async function handler(req, res) {
           channel: 'email',
           recipient_email: workflow.coordinator_email,
           recipient_name: workflow.coordinator_name || workflow.coordinator_email,
-          subject: `${orgName} handled: ${task.title}`,
+          subject,
           provider: 'resend',
           provider_id: null,
           status: route.actual.length ? 'failed' : 'blocked',

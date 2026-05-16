@@ -4,8 +4,10 @@ import { vendorCategoryLabel } from '../../../lib/vendors';
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 import { canonicalVendorStatus } from '../../../lib/vendorLifecycle';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
+import { escapeHtml, passageEmailShell, passageSubject } from '../../../lib/brandedEmail';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
 async function loadRequest(token) {
   if (!token) return null;
@@ -24,13 +26,29 @@ async function notifyOwner(request, title, detail) {
   if (!recipients.length) return { status: 'skipped', reason: 'No coordinator email.' };
   const route = routeEmailRecipients(recipients);
   if (!route.actual.length) return { status: 'skipped', reason: 'No routed recipient.' };
+  const subject = passageSubject('Vendor update', request.task_title || title);
+  const ctaUrl = `${SITE_URL}${request.organization_id ? '/funeral-home/dashboard' : '/estate'}?workflow=${encodeURIComponent(request.workflow_id)}&vendor_request=${encodeURIComponent(request.id)}`;
+  const html = passageEmailShell({
+    eyebrow: 'Vendor update',
+    title,
+    intro: detail,
+    preheader: detail,
+    sections: [
+      {
+        label: 'Request',
+        html: `Task: <strong style="color:#1a1916;">${escapeHtml(request.task_title || 'Vendor request')}</strong><br/>Vendor: <strong style="color:#1a1916;">${escapeHtml(request.vendors?.business_name || 'Vendor')}</strong>`,
+      },
+    ],
+    ctaLabel: 'Open in Passage',
+    ctaUrl,
+  });
   if (!process.env.RESEND_API_KEY) {
     await insertNotificationLog(admin, {
       workflow_id: request.workflow_id,
       channel: 'email',
       recipient_email: recipients[0],
       recipient_name: request.workflows?.coordinator_name || recipients[0],
-      subject: title,
+      subject,
       provider: 'resend',
       status: 'skipped',
       error_message: 'RESEND_API_KEY is not configured.',
@@ -45,8 +63,8 @@ async function notifyOwner(request, title, detail) {
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
       to: route.actual,
-      subject: title,
-      html: `<div style="font-family:Georgia,serif;background:#f6f3ee;padding:24px"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e4ddd4;border-radius:16px;padding:24px"><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800">Passage local support</div><h1 style="font-weight:400;color:#1a1916;font-size:24px;line-height:1.25">${title}</h1><p style="color:#6a6560;line-height:1.7">${detail}</p><p style="color:#6b8f71;font-weight:800">We are tracking this in Passage.</p></div></div>`,
+      subject,
+      html,
     }),
   }).catch(() => null);
   const json = response ? await response.json().catch(() => ({})) : {};
@@ -55,7 +73,7 @@ async function notifyOwner(request, title, detail) {
     channel: 'email',
     recipient_email: recipients[0],
     recipient_name: request.workflows?.coordinator_name || recipients[0],
-    subject: title,
+    subject,
     provider: 'resend',
     provider_id: response?.ok ? json.id || null : null,
     status: response?.ok ? 'sent' : 'failed',

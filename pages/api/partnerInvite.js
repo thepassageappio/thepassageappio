@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../lib/adminAccess';
 import { normalizePartnerPlanId, partnerPlanFor } from '../../lib/partnerPlans';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
+import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -153,23 +154,25 @@ async function upsertOwnerMember({ organizationId, directorEmail, directorName }
 }
 
 function partnerInviteHtml({ organizationName, directorName, directorEmail, inviteUrl, senderEmail }) {
-  const safeOrg = escapeHtml(organizationName);
-  const safeName = escapeHtml(directorName || directorEmail);
-  const safeUrl = escapeHtml(inviteUrl);
-  return `
-  <div style="font-family:Georgia,serif;background:#f6f3ee;padding:28px 16px;">
-    <div style="max-width:580px;margin:0 auto;background:#fffdf9;border:1px solid #e4ddd4;border-radius:18px;padding:30px;color:#1a1916;">
-      <div style="font-size:12px;color:#6b8f71;letter-spacing:.18em;text-transform:uppercase;font-weight:900;margin-bottom:18px;">Passage partner setup</div>
-      <h1 style="font-size:27px;line-height:1.18;margin:0 0 12px;font-weight:400;">${safeOrg} has a Passage partner workspace.</h1>
-      <p style="font-size:15px;line-height:1.7;color:#6a6560;margin:0 0 16px;">Hi ${safeName}, Passage is ready for your team to set up the workspace families and staff will use together.</p>
-      <div style="background:#f0f5f1;border:1px solid #c8deca;border-radius:14px;padding:15px 16px;margin:18px 0;">
-        <div style="font-size:12px;color:#6b8f71;letter-spacing:.14em;text-transform:uppercase;font-weight:900;margin-bottom:6px;">First setup steps</div>
-        <p style="font-size:14px;line-height:1.65;color:#4f5b50;margin:0;">Confirm the co-branded family view, add locations, invite employees, create or import first cases, then assign one next task from the case spine.</p>
-      </div>
-      <a href="${safeUrl}" style="display:inline-block;background:#6b8f71;color:#fff;text-decoration:none;border-radius:13px;padding:13px 18px;font-size:15px;font-weight:900;">Open partner workspace</a>
-      <p style="font-size:12.5px;line-height:1.6;color:#a09890;margin:18px 0 0;">Sign in with Google or the same email address: ${escapeHtml(directorEmail)}. Invited by ${escapeHtml(senderEmail || 'Passage')}.</p>
-    </div>
-  </div>`;
+  return passageEmailShell({
+    eyebrow: 'Partner setup',
+    title: `${organizationName} has a Passage partner workspace.`,
+    intro: `Hi ${directorName || directorEmail}, Passage is ready for your team to set up the workspace families and staff will use together.`,
+    preheader: 'Open Passage to confirm your workspace, add locations, invite employees, and create the first case.',
+    sections: [
+      {
+        label: 'First setup steps',
+        text: 'Confirm the co-branded family view, add locations, invite employees, create or import first cases, then assign one next task from the case spine.',
+        tone: 'soft',
+      },
+      {
+        label: 'Sign in with',
+        html: `Email: <strong style="color:#1a1916;">${escapeHtml(directorEmail)}</strong><br/>Invited by: <strong style="color:#1a1916;">${escapeHtml(senderEmail || 'Passage')}</strong>`,
+      },
+    ],
+    ctaLabel: 'Open partner workspace',
+    ctaUrl: inviteUrl,
+  });
 }
 
 export default async function handler(req, res) {
@@ -206,7 +209,7 @@ export default async function handler(req, res) {
     });
 
     const inviteUrl = `${SITE_URL}/partner/accept?role=director&email=${encodeURIComponent(directorEmail)}`;
-    const subject = `${organizationName}: set up your Passage partner workspace`;
+    const subject = passageSubject('Partner setup', organizationName);
     const html = partnerInviteHtml({ organizationName, directorName, directorEmail, inviteUrl, senderEmail: adminEmail });
 
     const key = process.env.RESEND_API_KEY;

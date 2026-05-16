@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
 import { detailRows, sendSubmissionReceipt } from '../../lib/submissionReceipts';
+import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -80,18 +81,30 @@ export default async function handler(req, res) {
     if (key) {
       const to = process.env.SUPPORT_EMAIL || process.env.RESEND_SUPPORT_EMAIL || 'support@thepassageapp.io';
       const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
-      const subject = category === 'Resource guide lead' ? `New Passage resource lead: ${email}` : `Passage support inquiry: ${category}`;
-      const html = [
-        '<div style="font-family:Georgia,serif;background:#f6f3ee;padding:28px">',
-        '<div style="background:#fff;border-radius:16px;padding:28px;max-width:640px;margin:auto">',
-        '<div style="font-size:11px;color:#6b8f71;letter-spacing:.18em;text-transform:uppercase;font-weight:700">Passage inquiry</div>',
-        `<h1 style="font-size:24px;color:#1a1916">${category}</h1>`,
-        `<p><strong>Name:</strong> ${name || 'Not provided'}</p>`,
-        `<p><strong>Email:</strong> ${email}</p>`,
-        `<p><strong>Urgency:</strong> ${urgency}</p>`,
-        `<p style="white-space:pre-wrap;line-height:1.7;color:#6a6560">${message}</p>`,
-        '</div></div>',
-      ].join('');
+      const subject = category === 'Resource guide lead' ? passageSubject('Resource lead', email) : passageSubject('Support inquiry', category);
+      const html = passageEmailShell({
+        eyebrow: 'Passage inquiry',
+        title: category,
+        intro: 'A website inquiry was submitted and saved to Passage.',
+        preheader: `${name || email} submitted ${category}.`,
+        sections: [
+          {
+            label: 'Contact',
+            html: detailRows({
+              Name: name || 'Not provided',
+              Email: email,
+              Urgency: urgency,
+            }),
+          },
+          {
+            label: 'Message',
+            text: message,
+            tone: 'soft',
+          },
+        ],
+        ctaLabel: 'Open Passage admin',
+        ctaUrl: `${SITE_URL}/system/admin`,
+      });
       const emailRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },

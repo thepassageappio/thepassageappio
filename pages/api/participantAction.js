@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { normalizeTaskAction, taskActionConfirmation, taskActionEventTitle, taskActionEventType, taskActionOutcomeStatus, taskActionRequiresNote, taskActionStatus } from '../../lib/taskActions';
 import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
-import { escapeHtml, passageEmailShell } from '../../lib/brandedEmail';
+import { escapeHtml, passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 
@@ -46,6 +46,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     ctaLabel: 'Open family record',
     ctaUrl: `${SITE_URL}/estate?id=${workflowId}`,
   });
+  const subject = passageSubject('Participant update', taskTitle || 'task updated');
 
   const route = routeEmailRecipients([to]);
   if (!route.actual.length) {
@@ -54,7 +55,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
       channel: 'email',
       recipient_email: to,
       recipient_name: workflow.coordinator_name || to,
-      subject: `Passage update: ${taskTitle || 'task updated'}`,
+      subject,
       provider: 'resend',
       provider_id: null,
       status: 'blocked',
@@ -71,7 +72,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>',
       to: route.actual,
-      subject: `Passage update: ${taskTitle || 'task updated'}`,
+      subject,
       html,
     }),
   }).catch(() => null);
@@ -81,7 +82,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     channel: 'email',
     recipient_email: to,
     recipient_name: workflow.coordinator_name || to,
-    subject: `Passage update: ${taskTitle || 'task updated'}`,
+    subject,
     provider: 'resend',
     provider_id: response?.ok ? json.id || null : null,
     status: response?.ok ? 'sent' : 'failed',
