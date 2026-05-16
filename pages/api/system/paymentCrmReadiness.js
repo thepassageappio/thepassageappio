@@ -14,10 +14,10 @@ function present(value) {
 }
 
 function hubspotToken() {
-  return process.env.HUBSPOT_PRIVATE_APP_TOKEN
-    || process.env.HUBSPOT_SERVICE_API_KEY
+  return process.env.HUBSPOT_SERVICE_API_KEY
     || process.env.HUBSPOT_SERVICE_KEY
     || process.env.HUBSPOT_ACCESS_TOKEN
+    || process.env.HUBSPOT_PRIVATE_APP_TOKEN
     || '';
 }
 
