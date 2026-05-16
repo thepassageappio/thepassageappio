@@ -468,6 +468,12 @@ function demoPartnerContextForPersona(persona = '', email = '') {
   return context;
 }
 
+const publicDemoUser = {
+  id: 'public-funeral-home-demo',
+  email: 'sample@thepassageapp.io',
+  user_metadata: { full_name: 'Sample funeral-home director' },
+};
+
 function exportCsvCell(value) {
   let text = value == null ? '' : String(value);
   const trimmed = text.replace(/^\s+/, '');
@@ -673,14 +679,21 @@ export default function FuneralHomeDashboard() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const sessionUser = session?.user || null;
       const sessionToken = session?.access_token || '';
-      if (requestedDemoMode && isPassageAdmin(sessionUser?.email)) {
+      if (requestedDemoMode) {
         const persona = router.query.persona || router.query.role || '';
-        const personaContext = demoPartnerContextForPersona(persona, sessionUser?.email || 'staff@passagefh.example');
+        const adminDemo = isPassageAdmin(sessionUser?.email);
+        const demoEmail = sessionUser?.email || (/employee|staff/.test(String(persona || router.query.role || '').toLowerCase()) ? 'arranger@samplefuneralhome.example' : 'director@samplefuneralhome.example');
+        const personaContext = demoPartnerContextForPersona(persona, demoEmail);
+        personaContext.demoData = true;
+        personaContext.isPassageAdmin = adminDemo;
+        personaContext.demoLabel = adminDemo
+          ? 'Passage admin demo workspace. Actions are simulated unless you leave demo mode.'
+          : 'Sample funeral-home workspace. Actions are simulated and no live records or messages are changed.';
         setDemoMode(true);
-        setUser(sessionUser);
-        setToken(sessionToken || 'demo-token');
+        setUser(sessionUser || publicDemoUser);
+        setToken(sessionToken || '');
         setData(personaContext);
-        setPartnerEmail(sessionUser?.email || 'maria@hvfg.demo');
+        setPartnerEmail(demoEmail);
         setVendorPrefs({
           vendors: [{ id: 'demo-vendor', business_name: 'Hudson Valley Livestream', category: 'livestream', status: 'active' }],
           preferred: [{ vendor_id: 'demo-vendor', category: 'livestream', active: true }],
@@ -697,7 +710,6 @@ export default function FuneralHomeDashboard() {
         loadPreferredVendors(sessionToken);
       }
       else {
-        if (requestedDemoMode) setNotice('Sign in as a Passage system admin to open the guided demo workspace.');
         setLoading(false);
       }
     });
@@ -2448,6 +2460,7 @@ export default function FuneralHomeDashboard() {
       ['work', 'Case context', 'Family record'],
       ['reports', 'Proof trail', 'Reports'],
     ];
+  const headerUser = user?.id === publicDemoUser.id ? null : user;
 
   useEffect(() => {
     function handleDemoStep(event) {
@@ -2530,7 +2543,7 @@ export default function FuneralHomeDashboard() {
           .partner-case-body { padding: 0 16px 16px !important; }
         }
       `}</style>
-      <SiteHeader user={user} onSignOut={user ? signOut : null} />
+      <SiteHeader user={headerUser} onSignOut={headerUser ? signOut : null} />
       <section className="partner-dashboard-shell" data-demo-anchor="demo-page-primary">
         <div className="partner-dashboard-hero" style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
           <div>
