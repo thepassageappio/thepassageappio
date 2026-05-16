@@ -5,6 +5,7 @@ import { verifyDeliveryRequest, internalHeaders } from '../../../lib/deliveryAut
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { transferGroupForVendorOrder } from '../../../lib/stripeFinancialSpine';
+import { summarizePersonaContracts } from '../../../lib/personaOrchestrationContracts';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -656,6 +657,7 @@ export default async function handler(req, res) {
       recipientEmail,
       cleanedUp: !keepRecords,
       checks,
+      personaContracts: summarizePersonaContracts(checks),
     });
   } catch (error) {
     if (!keepRecords) {
@@ -667,6 +669,7 @@ export default async function handler(req, res) {
       error: error.message || 'Coordination smoke test failed.',
       created,
       checks,
+      personaContracts: summarizePersonaContracts(checks),
     });
   }
 }

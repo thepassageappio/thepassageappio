@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { VENDOR_CATEGORIES } from '../../lib/vendors';
 import { FUNERAL_HOME_PLAN_OPTIONS, partnerPlanFor } from '../../lib/partnerPlans';
+import { personaOrchestrationContracts } from '../../lib/personaOrchestrationContracts';
 
 const C = {
   bg: '#f6f3ee',
@@ -124,9 +125,9 @@ const roadmapItems = [
     pillar: 'Production Readiness Control',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Internal auth hardened',
+    status: 'Persona contracts live',
     title: 'One-click P0 readiness loop from admin roadmap',
-    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: public-surface copy and CTA checks, task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, and a visible rollup of blockers, warnings, and pass/fail status before demos or launches. Internal readiness routes accept the canonical internal header plus the older system-secret alias and return a clear mismatch message when production env is out of sync.',
+    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: public-surface copy and CTA checks, task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, and a visible rollup of blockers, warnings, pass/fail status, and persona orchestration contracts before demos or launches. Internal readiness routes accept the canonical internal header plus the older system-secret alias and return a clear mismatch message when production env is out of sync.',
   },
   {
     pillar: 'Auth and First-Record Self-Service',
@@ -783,6 +784,25 @@ export default function SystemAdminPage() {
                 </div>
               </Panel>
               <Panel compact>
+                <div style={eyebrow}>Persona orchestration contract</div>
+                <h2 style={h2}>Every role gets one job, one proof path, and one next state.</h2>
+                <p style={lead}>Use this as the demo and QA script. Each row names what the person can do, what gets written to the spine, which communication route proves it, and how the next owner sees progress.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10, marginTop: 14 }}>
+                  {personaOrchestrationContracts.map((contract) => (
+                    <div key={contract.id} style={{ ...subPanel, display: 'grid', gap: 7 }}>
+                      <div>
+                        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{contract.entry}</div>
+                        <h3 style={{ ...h3, marginTop: 5 }}>{contract.persona}</h3>
+                      </div>
+                      <div style={{ color: C.ink, fontSize: 12.5, lineHeight: 1.42 }}><strong>Action:</strong> {contract.action}</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.42 }}><strong style={{ color: C.ink }}>Proof:</strong> {contract.proof}</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.42 }}><strong style={{ color: C.ink }}>Communication:</strong> {contract.notification}</div>
+                      <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 10, padding: '8px 9px', fontSize: 12.5, lineHeight: 1.35, fontWeight: 800 }}>{contract.nextState}</div>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+              <Panel compact>
                 <div style={eyebrow}>Operations</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(210px, .42fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
                   <div style={{ display: 'grid', gap: 7 }}>
@@ -829,6 +849,17 @@ export default function SystemAdminPage() {
                                 <strong style={{ color: check.ok === false || check.status >= 400 ? C.rose : C.sage }}>{check.name}</strong>
                                 <span> {check.status ? `status ${check.status}` : ''}</span>
                                 {check.notificationCount != null && <span> · {check.notificationCount} notifications · {check.statusEventCount} status events · {check.estateEventCount} estate events</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {Array.isArray(spineSmokeResult.json?.personaContracts) && (
+                          <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Persona proof</div>
+                            {spineSmokeResult.json.personaContracts.map(contract => (
+                              <div key={contract.id} style={{ background: contract.ok ? C.sageFaint : C.roseFaint, border: '1px solid ' + (contract.ok ? '#c8deca' : '#efc7c7'), borderRadius: 10, padding: '8px 9px', fontSize: 12.5, color: C.mid }}>
+                                <strong style={{ color: contract.ok ? C.sage : C.rose }}>{contract.ok ? 'Pass' : 'Review'}:</strong> {contract.persona}
+                                <span> - {contract.results?.filter(result => result.ok).length || 0}/{contract.results?.length || 0} proof checks</span>
                               </div>
                             ))}
                           </div>
