@@ -132,9 +132,9 @@ const roadmapItems = [
     pillar: 'Auth and First-Record Self-Service',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Chrome-verified',
+    status: 'Live/API verified',
     title: 'Stable sign-in state and empty-estate handoff',
-    body: 'The shared navigation now waits for Supabase auth readiness before showing Sign in or Sign out on controlled pages. Login, planning, and estate entry screens no longer flash between states while sessions hydrate, and signed-in users with no estate are guided to create a planning or urgent record instead of feeling bounced back to sign-in.',
+    body: 'The shared navigation now waits for Supabase auth readiness before showing Sign in or Sign out on controlled pages. Login, planning, and estate entry screens no longer flash between states while sessions hydrate, and signed-in users with no estate are guided to create a planning or urgent record instead of feeling bounced back to sign-in. Current verification is live/API based until the local Chrome native bridge is repaired.',
   },
   {
     pillar: 'Public Site and Demo Proof',
@@ -164,9 +164,9 @@ const roadmapItems = [
     pillar: 'Funeral Home Operations',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Chrome-verified',
+    status: 'Demo/API verified',
     title: 'Subscription tiers, location slots, staff scope, and My Day',
-    body: 'Director and employee workspaces now surface the same plan/location-slot truth, organization identity, location scope, Google-backed address capture, staff assignment, reporting, and upgrade path so single-location and multi-location partners operate from one spine. Chrome QA verified director and staff demo personas land in distinct workspaces.',
+    body: 'Director and employee workspaces now surface the same plan/location-slot truth, organization identity, location scope, Google-backed address capture, staff assignment, reporting, and upgrade path so single-location and multi-location partners operate from one spine. The no-login sample console and readiness APIs are verified; full Chrome persona QA is blocked locally until the Chrome plugin native bridge is repaired.',
   },
   {
     pillar: 'Communications',
@@ -180,9 +180,9 @@ const roadmapItems = [
     pillar: 'Demo and QA Sandbox',
     priority: 'P1',
     timing: 'This week',
-    status: 'Safe-routing visible',
+    status: 'QA constraints visible',
     title: 'Admin persona launcher with safe notification routing',
-    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit now shows QA notification override status beside each persona route so Steve can see whether outbound emails/SMS are protected before running live-feeling demos.',
+    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit now shows QA notification override status, database release-gate state, and Chrome/browser automation state so Steve can see what was actually verified before running live-feeling demos.',
   },
   {
     pillar: 'CRM Spine',
@@ -1086,6 +1086,14 @@ export default function SystemAdminPage() {
                 </div>
                 <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
                   Admin boundary: this is persona simulation, not production impersonation. Use it with owned QA data to test live-feeling interactions across the spine. True customer impersonation remains gated until it has audit logs, scoped tokens, session expiry, and explicit owner approval.
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 10 }}>
+                  <div style={{ background: C.roseFaint, border: '1px solid #efc7c7', color: C.rose, borderRadius: 13, padding: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                    Browser QA: local Chrome automation is blocked until the Codex Chrome native host bridge is repaired. Treat current persona confidence as live API plus no-login demo verification, not full Chrome walkthrough proof.
+                  </div>
+                  <div style={{ background: C.roseFaint, border: '1px solid #efc7c7', color: C.rose, borderRadius: 13, padding: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                    Database QA: Supabase migrations are aligned, but the local Docker engine is returning 500 errors. The release-gate script now stops before db diff or schema dump until Docker Desktop is healthy.
+                  </div>
                 </div>
                 <div style={{ background: complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? C.sageFaint : C.roseFaint, border: '1px solid ' + (complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? '#c8deca' : '#efc7c7'), color: complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? C.sage : C.rose, borderRadius: 13, padding: 12, marginTop: 10, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
                   Notification safety: {complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride
