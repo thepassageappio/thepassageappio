@@ -4798,7 +4798,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               Passage keeps the next step, the owner, the waiting point, and the proof in one shared family record, from preparation through death, funeral coordination, and the long tail after.
             </p>
             <div className="home-actions">
-              <button onClick={() => openPublicCta('Start urgent help', '/urgent')} className="home-action home-primary">Start urgent help</button>
+              <button onClick={() => openPublicCta('Start urgent path', '/urgent')} className="home-action home-primary">Start urgent path</button>
               <button onClick={() => openPublicCta('Prepare during care', '/hospice')} className="home-action home-secondary">Prepare during care</button>
               <button onClick={() => openPublicCta('Plan ahead', '/planning')} className="home-action home-tertiary">Plan ahead</button>
             </div>

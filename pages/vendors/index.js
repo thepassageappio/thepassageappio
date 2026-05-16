@@ -43,7 +43,7 @@ export default function VendorFrontDoor() {
       title: 'Apply to be recommended in Passage tasks',
       body: 'Tell us what you provide, where you serve, and whether you support urgent or planned requests.',
       href: '/vendors/onboard',
-      action: 'Apply',
+      action: 'Apply to join',
     },
     {
       eyebrow: 'Scoped access',
@@ -67,7 +67,7 @@ export default function VendorFrontDoor() {
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
               <Link href="/vendors/onboard" onClick={() => trackEvent('vendor_apply_clicked', { href: '/vendors/onboard' })} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 16px', fontWeight: 900, fontSize: 14 }}>
-                Apply as a vendor
+                Apply to join
               </Link>
               <button type="button" onClick={signIn} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
                 Vendor sign in

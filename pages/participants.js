@@ -81,7 +81,8 @@ export default function ParticipantsPage() {
               Passage is used when a family asks a relative, friend, clergy member, vendor, or trusted helper to handle one specific piece of work. You see the responsibility, the context needed to act, and the safest way to update the coordinator.
             </p>
             <div className="participants-actions">
-              <Link href="/participating" onClick={() => trackEvent('participant_public_cta_clicked', { label: 'Open My Private Request', href: '/participating' })} className="participants-button participants-primary">Open My Private Request</Link>
+              <Link href="/participating" onClick={() => trackEvent('participant_public_cta_clicked', { label: 'Open your assigned request', href: '/participating' })} className="participants-button participants-primary">Open your assigned request</Link>
+              <Link href="/login?next=/participating" onClick={() => trackEvent('participant_public_cta_clicked', { label: 'Participant sign in', href: '/login?next=/participating' })} className="participants-button participants-secondary">Participant sign in</Link>
               <Link href="/trust" onClick={() => trackEvent('participant_public_cta_clicked', { label: 'Read the Access Model', href: '/trust' })} className="participants-button participants-secondary">Read the Access Model</Link>
             </div>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
