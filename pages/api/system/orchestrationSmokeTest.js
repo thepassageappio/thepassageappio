@@ -2,6 +2,9 @@ import { randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../../lib/adminAccess';
 import { verifyDeliveryRequest, internalHeaders } from '../../../lib/deliveryAuth';
+import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
+import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
+import { transferGroupForVendorOrder } from '../../../lib/stripeFinancialSpine';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -86,7 +89,7 @@ export default async function handler(req, res) {
   const keepRecords = req.body?.keepRecords === true;
   const recipientEmail = clean(req.body?.recipientEmail) || STEVE_EMAIL;
   const stamp = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
-  const created = { organizationId: null, workflowId: null, taskId: null, participantTaskId: null, vendorTaskId: null, vendorId: null, vendorRequestId: null, activationWorkflowId: null, activationRequestId: null };
+  const created = { organizationId: null, workflowId: null, taskId: null, participantTaskId: null, vendorTaskId: null, vendorId: null, vendorRequestId: null, vendorOrderId: null, vendorPaymentId: null, activationWorkflowId: null, activationRequestId: null };
   const checks = [];
 
   try {
@@ -323,6 +326,157 @@ export default async function handler(req, res) {
       checks.push({ name: 'vendor_quote_status_recorded', ok: false, error: 'Vendor request did not return a response token.' });
     }
 
+    if (created.vendorRequestId) {
+      const grossAmount = 475;
+      const economics = calculateVendorEconomics({
+        value: grossAmount,
+        marketplaceFeePercent: 12,
+        funeralHomeSharePercent: 0,
+        hasFuneralHome: false,
+      });
+      const passageFee = economics.passageShareAmount;
+      const vendorNet = Math.round((grossAmount - passageFee) * 100) / 100;
+      const now = new Date().toISOString();
+      const dryRunSessionId = `cs_dryrun_${stamp}_${randomUUID().slice(0, 12)}`;
+
+      const { data: vendorOrder, error: vendorOrderError } = await admin.from('vendor_orders').insert([{
+        vendor_request_id: created.vendorRequestId,
+        vendor_id: vendor.id,
+        workflow_id: workflow.id,
+        task_id: vendorTask.id,
+        total_amount: grossAmount,
+        platform_fee: passageFee,
+        platform_fee_percent: 12,
+        net_vendor_amount: vendorNet,
+        payment_status: 'checkout_created',
+        payout_status: 'automatic_transfer',
+        stripe_account_id: 'acct_dry_run_vendor_connect',
+        stripe_checkout_session_id: dryRunSessionId,
+        stripe_transfer_group: null,
+        description: 'QA dry-run vendor invoice. No money moved.',
+        metadata: { qa_smoke_test: true, no_money_moved: true, source: 'orchestrationSmokeTest' },
+        created_by: adminUserId,
+        created_at: now,
+        updated_at: now,
+      }]).select('id,total_amount,platform_fee,net_vendor_amount,payment_status,payout_status').single();
+      if (vendorOrderError) throw vendorOrderError;
+      created.vendorOrderId = vendorOrder.id;
+      const transferGroup = transferGroupForVendorOrder(vendorOrder.id);
+      await admin.from('vendor_orders').update({ stripe_transfer_group: transferGroup }).eq('id', vendorOrder.id);
+
+      const { data: vendorPayment, error: vendorPaymentError } = await admin.from('vendor_payments').insert([{
+        vendor_request_id: created.vendorRequestId,
+        vendor_id: vendor.id,
+        workflow_id: workflow.id,
+        task_id: vendorTask.id,
+        gross_amount: grossAmount,
+        application_fee_amount: passageFee,
+        vendor_net_amount: vendorNet,
+        stripe_checkout_session_id: dryRunSessionId,
+        stripe_transfer_destination: 'acct_dry_run_vendor_connect',
+        status: 'checkout_created',
+        payout_status: 'pending',
+        created_at: now,
+        updated_at: now,
+      }]).select('id,gross_amount,application_fee_amount,vendor_net_amount,status,payout_status').single();
+      if (vendorPaymentError) throw vendorPaymentError;
+      created.vendorPaymentId = vendorPayment.id;
+
+      await admin.from('vendor_requests').update({
+        status: 'payment_pending',
+        payment_collection_status: 'checkout_created',
+        family_accepted_at: now,
+        payment_url_created_at: now,
+        stripe_checkout_session_id: dryRunSessionId,
+        stripe_connected_account_id: 'acct_dry_run_vendor_connect',
+        gross_amount: grossAmount,
+        passage_fee_percent: 12,
+        passage_fee_amount: passageFee,
+        platform_fee_amount: passageFee,
+        passage_share_amount: passageFee,
+        vendor_net_amount: vendorNet,
+        payout_amount: vendorNet,
+        payout_status: 'pending',
+        updated_at: now,
+      }).eq('id', created.vendorRequestId);
+
+      await recordTaskCommunicationEvent({
+        verb: 'update',
+        workflowId: workflow.id,
+        taskId: vendorTask.id,
+        taskTitle: vendorTask.title,
+        status: 'waiting',
+        actor: 'Passage QA Coordinator',
+        actorRole: 'family_coordinator',
+        channel: 'vendor_payment',
+        recipient: vendor.business_name,
+        recipientRole: 'vendor',
+        detail: `QA dry run: vendor invoice created for $${grossAmount.toFixed(2)}; Passage fee $${passageFee.toFixed(2)}; vendor net $${vendorNet.toFixed(2)}. No money moved.`,
+        visibility: 'family_funeral_home',
+      });
+
+      await admin.from('vendor_orders').update({
+        payment_status: 'paid',
+        payout_status: 'automatic_transfer',
+        paid_at: now,
+        updated_at: now,
+      }).eq('id', vendorOrder.id);
+      await admin.from('vendor_payments').update({
+        status: 'paid',
+        payout_status: 'available',
+        paid_at: now,
+        payout_available_at: now,
+        updated_at: now,
+      }).eq('id', vendorPayment.id);
+      await admin.from('vendor_requests').update({
+        status: 'paid',
+        payment_collection_status: 'paid',
+        paid_at: now,
+        payout_status: 'available',
+        updated_at: now,
+      }).eq('id', created.vendorRequestId);
+
+      await recordTaskCommunicationEvent({
+        verb: 'prove',
+        workflowId: workflow.id,
+        taskId: vendorTask.id,
+        taskTitle: vendorTask.title,
+        status: 'handled',
+        actor: 'Passage QA Stripe webhook simulation',
+        actorRole: 'system',
+        channel: 'vendor_payment',
+        recipient: vendor.business_name,
+        recipientRole: 'vendor',
+        detail: `QA dry run: payment state recorded as paid and vendor payout available for $${vendorNet.toFixed(2)}. No money moved.`,
+        visibility: 'family_funeral_home',
+      });
+
+      const [{ data: paidOrder }, { data: paidPayment }, { data: paidRequest }] = await Promise.all([
+        admin.from('vendor_orders').select('id,total_amount,platform_fee,net_vendor_amount,payment_status,payout_status,stripe_transfer_group').eq('id', vendorOrder.id).maybeSingle(),
+        admin.from('vendor_payments').select('id,gross_amount,application_fee_amount,vendor_net_amount,status,payout_status').eq('id', vendorPayment.id).maybeSingle(),
+        admin.from('vendor_requests').select('id,status,payment_collection_status,gross_amount,passage_fee_amount,vendor_net_amount,payout_status').eq('id', created.vendorRequestId).maybeSingle(),
+      ]);
+      checks.push({
+        name: 'vendor_commerce_no_money_dry_run',
+        ok: paidOrder?.payment_status === 'paid'
+          && paidPayment?.status === 'paid'
+          && paidRequest?.status === 'paid'
+          && Number(paidRequest?.gross_amount) === grossAmount
+          && Number(paidRequest?.passage_fee_amount) === passageFee
+          && Number(paidRequest?.vendor_net_amount) === vendorNet
+          && Boolean(paidOrder?.stripe_transfer_group),
+        grossAmount,
+        passageFee,
+        vendorNet,
+        orderStatus: paidOrder?.payment_status || null,
+        paymentStatus: paidPayment?.status || null,
+        requestStatus: paidRequest?.status || null,
+        payoutStatus: paidRequest?.payout_status || null,
+      });
+    } else {
+      checks.push({ name: 'vendor_commerce_no_money_dry_run', ok: false, error: 'Vendor request was not created, so payment dry run could not run.' });
+    }
+
     const activationTables = await Promise.all([
       admin.from('activation_witnesses').select('id').limit(1),
       admin.from('activation_requests').select('id').limit(1),
@@ -457,27 +611,32 @@ export default async function handler(req, res) {
       });
     }
 
-    const [{ data: taskAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }, { data: announcementRows }] = await Promise.all([
+    const [{ data: taskAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }, { data: vendorOrderRows }, { data: vendorPaymentRows }, { data: announcementRows }] = await Promise.all([
       admin.from('tasks').select('id,status,last_actor,last_action_at,completed_at,completed_by_email').eq('id', task.id).maybeSingle(),
       admin.from('notification_log').select('*').eq('workflow_id', workflow.id),
       admin.from('task_status_events').select('*').eq('workflow_id', workflow.id),
       admin.from('estate_events').select('*').eq('estate_id', workflow.id),
       admin.from('vendor_requests').select('id,status,payment_collection_status,gross_amount,passage_fee_amount,vendor_net_amount').eq('workflow_id', workflow.id),
+      admin.from('vendor_orders').select('id,payment_status,payout_status,total_amount,platform_fee,net_vendor_amount').eq('workflow_id', workflow.id),
+      admin.from('vendor_payments').select('id,status,payout_status,gross_amount,application_fee_amount,vendor_net_amount').eq('workflow_id', workflow.id),
       admin.from('announcements').select('id,status,audience,channel').eq('estate_id', workflow.id),
     ]);
 
     checks.push({
       name: 'spine_rows_recorded',
-      ok: Boolean((notificationRows || []).length && (statusEvents || []).length && (estateEvents || []).length && (vendorRequestRows || []).length && (announcementRows || []).some((row) => row.status === 'sent')),
+      ok: Boolean((notificationRows || []).length && (statusEvents || []).length && (estateEvents || []).length && (vendorRequestRows || []).length && (vendorOrderRows || []).length && (vendorPaymentRows || []).length && (announcementRows || []).some((row) => row.status === 'sent')),
       taskStatus: taskAfter?.status || null,
       notificationCount: (notificationRows || []).length,
       statusEventCount: (statusEvents || []).length,
       estateEventCount: (estateEvents || []).length,
       vendorRequestCount: (vendorRequestRows || []).length,
+      vendorOrderCount: (vendorOrderRows || []).length,
+      vendorPaymentCount: (vendorPaymentRows || []).length,
       announcementCount: (announcementRows || []).length,
       notificationStatuses: Array.from(new Set((notificationRows || []).map((row) => row.status).filter(Boolean))),
       notificationSources: Array.from(new Set((notificationRows || []).map((row) => row.source).filter(Boolean))),
       vendorStatuses: Array.from(new Set((vendorRequestRows || []).map((row) => row.status).filter(Boolean))),
+      vendorPaymentStatuses: Array.from(new Set((vendorPaymentRows || []).map((row) => row.status).filter(Boolean))),
       announcementStatuses: Array.from(new Set((announcementRows || []).map((row) => row.status).filter(Boolean))),
     });
 

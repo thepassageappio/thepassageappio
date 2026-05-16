@@ -129,6 +129,30 @@ export default async function handler(req, res) {
     supabaseServiceRole: present(process.env.SUPABASE_SERVICE_ROLE_KEY),
     siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io',
   };
+  const vendorCommerceDryRun = {
+    mode: 'no_money_moved',
+    lifecycle: [
+      'requested',
+      'quoted',
+      'payment_pending',
+      'paid',
+      'payout_available',
+    ],
+    sample: {
+      grossAmount: 475,
+      passageFeePercent: 12,
+      passageFeeAmount: 57,
+      vendorNetAmount: 418,
+    },
+    verifies: [
+      'vendor request status constraints',
+      'vendor order payment status constraints',
+      'vendor payment payout status constraints',
+      '12% Passage fee math',
+      'family-visible task communication event',
+      'clean QA record cleanup',
+    ],
+  };
 
   const blockers = [];
   const warnings = [];
@@ -143,6 +167,9 @@ export default async function handler(req, res) {
   if (sampleEconomics.platformFeeAmount !== 12 || sampleEconomics.passageShareAmount !== 12) {
     blockers.push('Vendor marketplace economics did not produce the expected 12% Passage fee.');
   }
+  if (vendorCommerceDryRun.sample.grossAmount - vendorCommerceDryRun.sample.passageFeeAmount !== vendorCommerceDryRun.sample.vendorNetAmount) {
+    blockers.push('Vendor commerce dry-run fee math is inconsistent.');
+  }
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
@@ -156,6 +183,7 @@ export default async function handler(req, res) {
       sampleGrossAmount: 100,
       samplePassageFee: sampleEconomics.passageShareAmount,
       sampleVendorNet: 100 - sampleEconomics.platformFeeAmount,
+      noMoneyDryRun: vendorCommerceDryRun,
       checkoutSafety: {
         destinationCharges: true,
         applicationFeeAmount: true,

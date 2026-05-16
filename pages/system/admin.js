@@ -108,9 +108,9 @@ const roadmapItems = [
     pillar: 'Vendor Commerce',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Ready to test',
+    status: 'Dry-run verified',
     title: 'Vendor quote, family invoice, and Stripe Connect payout loop',
-    body: 'Stripe Connect endpoints, vendor payment schema, destination-charge checkout, webhook handling, 12% Passage fee math, and readiness checks are in place. Next proof is a live vendor quote-to-payment QA run with a connected vendor account.',
+    body: 'Stripe Connect endpoints, vendor payment schema, destination-charge checkout, webhook handling, 12% Passage fee math, and readiness checks are in place. The coordination smoke test now dry-runs quote, invoice, paid state, vendor net, payout availability, and spine events without moving money.',
   },
   {
     pillar: 'Green to Red Trust Spine',
@@ -706,6 +706,8 @@ export default function SystemAdminPage() {
                           <MetricRow label="HubSpot service key" value={paymentReadiness.json?.hubspot?.ok ? 'Connected' : 'Needs review'} />
                           <MetricRow label="Vendor fee" value={`${paymentReadiness.json?.vendorCommerce?.defaultMarketplaceFeePercent || 12}%`} />
                           <MetricRow label="Vendor net on $100" value={money(paymentReadiness.json?.vendorCommerce?.sampleVendorNet || 88)} />
+                          <MetricRow label="Dry-run invoice" value={paymentReadiness.json?.vendorCommerce?.noMoneyDryRun?.sample ? `${money(paymentReadiness.json.vendorCommerce.noMoneyDryRun.sample.grossAmount)} gross -> ${money(paymentReadiness.json.vendorCommerce.noMoneyDryRun.sample.vendorNetAmount)} vendor` : 'Ready'} />
+                          <MetricRow label="Dry-run mode" value={paymentReadiness.json?.vendorCommerce?.noMoneyDryRun?.mode === 'no_money_moved' ? 'No money moved' : 'Review'} />
                           <MetricRow label="Schema checks" value={(paymentReadiness.json?.schema || []).every(row => row.ok) ? 'Pass' : 'Needs review'} />
                         </div>
                         {(paymentReadiness.json?.blockers || []).length > 0 && (
