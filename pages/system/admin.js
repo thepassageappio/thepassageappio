@@ -110,7 +110,7 @@ const roadmapItems = [
     timing: 'Done today',
     status: 'Chrome-verified',
     title: 'One-click P0 readiness loop from admin roadmap',
-    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, and a visible rollup of blockers, warnings, and pass/fail status before demos or launches.',
+    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: public-surface copy and CTA checks, task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, and a visible rollup of blockers, warnings, and pass/fail status before demos or launches.',
   },
   {
     pillar: 'Auth and First-Record Self-Service',
@@ -497,6 +497,11 @@ export default function SystemAdminPage() {
       const token = session?.data?.session?.access_token || '';
       const authHeaders = token ? { Authorization: 'Bearer ' + token } : {};
 
+      const publicResponse = await fetch('/api/system/publicSurfaceReadiness', { headers: authHeaders });
+      const publicJson = await publicResponse.json().catch(() => ({}));
+      const publicStep = { key: 'public', label: 'Public pages, CTAs, and copy safety', ok: publicResponse.ok && publicJson.status === 'ready', status: publicResponse.status, json: publicJson };
+      steps.push(publicStep);
+
       const spineResponse = await fetch('/api/system/orchestrationSmokeTest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
@@ -728,7 +733,7 @@ export default function SystemAdminPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
                   <div>
                     <h2 style={h2}>Run the demo and production spine proof.</h2>
-                    <p style={lead}>This is the admin roadmap source-of-truth check before demos: task orchestration, notifications, participant action, funeral-home proof, vendor quote/payment dry run, HubSpot, Stripe, RLS, and compliance posture.</p>
+                    <p style={lead}>This is the admin roadmap source-of-truth check before demos: public CTAs and copy safety, task orchestration, notifications, participant action, funeral-home proof, vendor quote/payment dry run, HubSpot, Stripe, RLS, and compliance posture.</p>
                     <button type="button" onClick={runP0ReadinessLoop} disabled={p0ReadinessLoading} style={{ ...primaryButton, opacity: p0ReadinessLoading ? .6 : 1 }}>
                       {p0ReadinessLoading ? 'Running P0 loop...' : 'Run full P0 readiness loop'}
                     </button>
