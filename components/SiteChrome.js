@@ -275,7 +275,7 @@ function isActivePath(current, href) {
   return current === href || current.startsWith(href + '/');
 }
 
-export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
+export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDashboard, onHome }) {
   const router = useRouter();
   const path = router?.pathname || '';
   const dashboardHref = '/estate';
@@ -284,7 +284,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
   const estateActive = isActivePath(activePath, '/estate') || (hydrated && router?.query?.dashboard === '1');
   const controlled = typeof user !== 'undefined';
   const [localUser, setLocalUser] = useState(null);
-  const [localAuthReady, setLocalAuthReady] = useState(controlled);
+  const [localAuthReady, setLocalAuthReady] = useState(controlled ? !!authReady : false);
   const currentUser = controlled ? user : localUser;
 
   useEffect(() => {
@@ -293,7 +293,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
 
   useEffect(() => {
     if (controlled) {
-      setLocalAuthReady(true);
+      setLocalAuthReady(!!authReady);
       return undefined;
     }
     if (!chromeSupabase) {
@@ -319,7 +319,7 @@ export function SiteHeader({ user, onSignIn, onSignOut, onDashboard, onHome }) {
       active = false;
       data.subscription.unsubscribe();
     };
-  }, [controlled]);
+  }, [controlled, authReady]);
 
   async function defaultSignIn() {
     if (typeof window === 'undefined') return;

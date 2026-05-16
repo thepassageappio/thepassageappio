@@ -96,13 +96,17 @@ const portalCards = [
 export default function LoginPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const isAdmin = isSystemAdminUser(user);
   const visiblePortalCards = portalCards.filter(card => !card.adminOnly || isAdmin);
   const requestedNext = typeof router.query.next === 'string' ? router.query.next : '';
   const safeNext = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '';
 
   useEffect(() => {
-    if (!supabase?.auth) return undefined;
+    if (!supabase?.auth) {
+      setAuthChecked(true);
+      return undefined;
+    }
     function routeIfAdmin(currentUser) {
       if (!currentUser || typeof window === 'undefined') return;
       const adminUser = isSystemAdminUser(currentUser);
@@ -118,11 +122,15 @@ export default function LoginPage() {
     supabase.auth.getSession().then(({ data }) => {
       const currentUser = data.session?.user || null;
       setUser(currentUser);
+      setAuthChecked(true);
       routeIfAdmin(currentUser);
+    }).catch(() => {
+      setAuthChecked(true);
     });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUser = session?.user || null;
       setUser(currentUser);
+      setAuthChecked(true);
       routeIfAdmin(currentUser);
     });
     return () => data.subscription.unsubscribe();
@@ -143,7 +151,7 @@ export default function LoginPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
-      <SiteHeader user={user} onSignOut={user ? signOut : null} />
+      <SiteHeader user={user} authReady={authChecked} onSignOut={user ? signOut : null} />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '26px 24px 46px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.76fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>

@@ -3542,7 +3542,7 @@ export default function EstatePage() {
 
   if (loading || !authChecked) return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
-      <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
+      <SiteHeader user={user} authReady={authChecked} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
       <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: SOFT, fontSize: 14 }}>Loading...</div>
       </div>
@@ -3553,7 +3553,7 @@ export default function EstatePage() {
   // No estate
   if (!estateId || !estate) return (
     <div style={{ background: BG, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
-      <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
+      <SiteHeader user={user} authReady={authChecked} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
       <div style={{ minHeight: 'calc(100vh - 94px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         {!user ? (
           <div style={{ width: '100%', maxWidth: 520, textAlign: 'center', background: CARD, border: '1px solid ' + BORDER, borderRadius: 20, padding: '30px 28px', boxShadow: '0 18px 54px rgba(55,45,35,.06)' }}>
@@ -3609,7 +3609,7 @@ export default function EstatePage() {
       )}
 
       <div style={{ background: CARD, borderBottom: '1px solid ' + BORDER, position: 'sticky', top: 0, zIndex: 40 }}>
-        <SiteHeader user={user} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
+        <SiteHeader user={user} authReady={authChecked} onSignOut={async function() { await sb.auth.signOut(); setUser(null); window.location.href = '/'; }} />
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 22px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <button onClick={function() { window.location.href = '/?dashboard=1'; }}
             style={{ border: 'none', background: 'transparent', color: SOFT, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>

@@ -66,6 +66,7 @@ export default function PlanningPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [magicSent, setMagicSent] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -79,13 +80,17 @@ export default function PlanningPage() {
         if (!active) return;
         const currentUser = session?.user || null;
         setUser(currentUser);
+        setAuthChecked(true);
         if (currentUser?.email) {
           setForm(prev => ({ ...prev, coordinatorEmail: prev.coordinatorEmail || currentUser.email }));
         }
+      }).catch(() => {
+        if (active) setAuthChecked(true);
       });
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         const currentUser = session?.user || null;
         setUser(currentUser);
+        setAuthChecked(true);
         if (currentUser?.email) {
           setForm(prev => ({ ...prev, coordinatorEmail: prev.coordinatorEmail || currentUser.email }));
         }
@@ -95,6 +100,7 @@ export default function PlanningPage() {
         data?.subscription?.unsubscribe?.();
       };
     }
+    setAuthChecked(true);
     return () => { active = false; };
   }, []);
 
@@ -175,7 +181,7 @@ export default function PlanningPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
-      <SiteHeader user={user} onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }} />
+      <SiteHeader user={user} authReady={authChecked} onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }} />
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '14px 28px 28px', display: 'grid', gridTemplateColumns: 'minmax(0,.72fr) minmax(380px,1fr)', gap: 18, alignItems: 'start' }}>
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: '28px 30px', boxShadow: '0 18px 54px rgba(55,45,35,.055)' }}>
           <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>Planning path</div>
