@@ -4751,9 +4751,9 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-panel-head { border-bottom:1px solid ${C.border}; padding-bottom:14px; margin-bottom:10px; }
         .home-panel-title { font-size:28px; line-height:1.1; color:${C.ink}; margin:0 0 8px; font-weight:400; }
         .home-panel-body { color:${C.mid}; font-size:14px; line-height:1.55; margin:0; max-width:560px; }
-        .home-step { display:grid; grid-template-columns:48px minmax(0,1fr); gap:12px; align-items:start; padding:11px 0; border-bottom:1px solid ${C.border}; }
+        .home-step { display:grid; grid-template-columns:minmax(86px, max-content) minmax(0,1fr); gap:12px; align-items:start; padding:11px 0; border-bottom:1px solid ${C.border}; }
         .home-step:last-child { border-bottom:none; }
-        .home-num { min-width:42px; height:28px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background:${C.sageFaint}; color:${C.sageDark}; font-size:12px; font-weight:900; padding:0 8px; }
+        .home-num { min-width:42px; max-width:100%; min-height:28px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background:${C.sageFaint}; color:${C.sageDark}; font-size:12px; font-weight:900; padding:6px 10px; line-height:1.15; white-space:normal; text-align:center; overflow-wrap:anywhere; }
         .home-step b { display:block; color:${C.ink}; font-size:16px; margin-bottom:4px; }
         .home-step span { display:block; color:${C.mid}; font-size:13.5px; line-height:1.5; }
         .home-panel-cta { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; margin-top:auto; align-self:flex-start; min-height:42px; border-radius:12px; padding:0 14px; background:${C.ink}; color:white; font-size:13px; font-weight:900; }
@@ -4779,7 +4779,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
           .home-action { width:100%; }
           .home-panel { padding:18px; min-height:auto; }
           .home-panel-tabs { grid-template-columns:1fr; }
-          .home-step { grid-template-columns:42px minmax(0,1fr); }
+          .home-step { grid-template-columns:minmax(78px, max-content) minmax(0,1fr); }
+          .home-num { font-size:11.5px; padding:6px 9px; }
           .lifecycle-track { grid-template-columns:1fr; }
           .lifecycle-track-line { display:none; }
           .lifecycle-node { min-height:auto; display:grid; grid-template-columns:36px minmax(0,1fr); column-gap:9px; align-items:start; }
