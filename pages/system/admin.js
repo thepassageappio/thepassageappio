@@ -105,6 +105,14 @@ const reportingMetrics = [
 
 const roadmapItems = [
   {
+    pillar: 'Compliance and Security Readiness',
+    priority: 'P0',
+    timing: 'Done today',
+    status: 'Build-ready',
+    title: 'Internal compliance check joins the P0 readiness loop',
+    body: 'Compliance readiness now supports internal server checks, separates hard blockers from QA-mode warnings, and feeds the one-click P0 loop so RLS posture, sensitive policy hazards, production email configuration, internal orchestration secret, and claim boundaries are visible before partner conversations.',
+  },
+  {
     pillar: 'Production Readiness Control',
     priority: 'P0',
     timing: 'Done today',

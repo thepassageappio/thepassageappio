@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../../lib/adminAccess';
+import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -13,6 +14,9 @@ function present(value) {
 }
 
 async function requireAdmin(req) {
+  const internal = await verifyDeliveryRequest(req);
+  if (internal.ok && internal.source === 'internal') return { ok: true, user: null, source: 'internal' };
+
   if (!authClient || !admin) return { ok: false, status: 500, error: 'Supabase admin clients are not configured.' };
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return { ok: false, status: 401, error: 'Please sign in first.' };
@@ -20,7 +24,7 @@ async function requireAdmin(req) {
   const email = String(data?.user?.email || '').toLowerCase();
   if (error || !email) return { ok: false, status: 401, error: 'Session could not be verified.' };
   if (!isPassageAdmin(email)) return { ok: false, status: 403, error: 'System admin access required.' };
-  return { ok: true, user: data.user };
+  return { ok: true, user: data.user, source: 'admin' };
 }
 
 export default async function handler(req, res) {
@@ -49,11 +53,13 @@ export default async function handler(req, res) {
   };
 
   const blockers = [];
+  const warnings = [];
   if ((snapshot?.rls_disabled || []).length) blockers.push('One or more public tables do not have RLS enabled.');
   if ((snapshot?.sensitive_allow_all_policies || []).length) blockers.push('One or more sensitive tables has an allow-all policy.');
   if (!env.resend || !env.resendFrom) blockers.push('Resend production email is not fully configured.');
   if (!env.internalSecret) blockers.push('PASSAGE_INTERNAL_API_SECRET is missing, so server orchestration smoke tests cannot run as internal jobs.');
-  if (!env.qaNotificationMode || !env.qaNotificationOverride) blockers.push('QA notification safety is not fully enabled for production testing.');
+  if (env.qaNotificationMode && !env.qaNotificationOverride) blockers.push('QA notification mode is enabled but QA_NOTIFICATION_OVERRIDE_EMAIL is missing.');
+  if (!env.qaNotificationMode) warnings.push('QA notification mode is off. That is appropriate for real production sends, but use the override before broad QA with synthetic recipients.');
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
@@ -66,6 +72,8 @@ export default async function handler(req, res) {
     snapshot,
     env,
     blockers,
+    warnings,
+    accessedBy: access.source || 'admin',
     status: blockers.length ? 'needs_work' : 'ready_for_readiness_review',
   });
 }
