@@ -108,9 +108,9 @@ const roadmapItems = [
     pillar: 'Database Hygiene and Release Safety',
     priority: 'P0',
     timing: 'Today',
-    status: 'Docker engine blocked',
+    status: 'Release gate scripted',
     title: 'Restore Supabase diff and dump as pre-deploy gates',
-    body: 'Migration history is aligned between local and production, but Docker Desktop is returning engine 500 errors for the Supabase Postgres shadow image, so db diff and db dump cannot complete yet. Success criteria: Docker version responds cleanly, supabase db diff --linked runs before release, supabase db dump --linked creates a non-empty backup before production migrations, and the admin readiness loop records the result.',
+    body: 'Migration history is aligned between local and production, and scripts/db-release-gate.ps1 now runs the repeatable database release gate: Docker engine, Supabase migration list, db diff, and a non-empty production schema backup. Docker Desktop is still returning engine 500 errors on both desktop-linux and default contexts, so db diff and db dump correctly fail before release instead of creating empty backup artifacts. Success criteria remains: Docker version responds cleanly, supabase db diff --linked runs before release, supabase db dump --linked creates a non-empty backup before production migrations, and the admin readiness loop records the result.',
   },
   {
     pillar: 'Compliance and Security Readiness',
