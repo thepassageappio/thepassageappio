@@ -180,9 +180,9 @@ const roadmapItems = [
     pillar: 'Demo and QA Sandbox',
     priority: 'P1',
     timing: 'This week',
-    status: 'Live cockpit',
+    status: 'Safe-routing visible',
     title: 'Admin persona launcher with safe notification routing',
-    body: 'Let an admin create clean sandbox users and switch among family, participant, funeral home, employee, vendor, and admin without polluting public UX or emailing real people.',
+    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit now shows QA notification override status beside each persona route so Steve can see whether outbound emails/SMS are protected before running live-feeling demos.',
   },
   {
     pillar: 'CRM Spine',
@@ -1068,7 +1068,7 @@ export default function SystemAdminPage() {
                       {[
                         ['Persona', activePersona.role],
                         ['Route mode', 'Sandbox flagged'],
-                        ['Messages', 'Demo-safe where supported'],
+                        ['Messages', complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? 'QA override enabled' : complianceSnapshot ? 'Live routing caution' : 'Check readiness first'],
                       ].map(([label, value]) => (
                         <div key={label} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px' }}>
                           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
@@ -1086,6 +1086,13 @@ export default function SystemAdminPage() {
                 </div>
                 <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
                   Admin boundary: this is persona simulation, not production impersonation. Use it with owned QA data to test live-feeling interactions across the spine. True customer impersonation remains gated until it has audit logs, scoped tokens, session expiry, and explicit owner approval.
+                </div>
+                <div style={{ background: complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? C.sageFaint : C.roseFaint, border: '1px solid ' + (complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? '#c8deca' : '#efc7c7'), color: complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? C.sage : C.rose, borderRadius: 13, padding: 12, marginTop: 10, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                  Notification safety: {complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride
+                    ? 'QA override is active, so outbound demo emails route to the configured QA inbox and SMS is blocked where supported.'
+                    : complianceSnapshot
+                      ? 'QA override is not active. Only use owned test recipients until this is enabled.'
+                      : 'Run the P0 readiness loop or compliance check before sending demo notifications.'}
                 </div>
               </Panel>
               <Panel compact>
