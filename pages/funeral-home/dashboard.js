@@ -1986,7 +1986,9 @@ export default function FuneralHomeDashboard() {
     ...savedPartnerLocations.map(location => location.name || location.location_name || '').filter(Boolean),
     ...cases.map(locationNameFor).filter(Boolean),
   ]));
-  const isMultiLocation = locations.length > 1 || /group|multi/i.test(String(org?.name || '') + ' ' + String(org?.plan || ''));
+  const planSupportsMultipleLocations = Number(locationSlots.includedLocationSlots || 1) > 1
+    || /group|multi/i.test(String(locationSlots.planId || '') + ' ' + String(locationSlots.planLabel || '') + ' ' + String(partnerPlan?.plan || ''));
+  const isMultiLocation = locations.length > 1 || planSupportsMultipleLocations;
   const displayCases = isMultiLocation && selectedLocation !== 'all' ? cases.filter(item => locationNameFor(item) === selectedLocation) : cases;
   const caseOrchestrationRows = displayCases.map(item => ({
     caseItem: item,
@@ -2042,6 +2044,7 @@ export default function FuneralHomeDashboard() {
     : (locations.length ? locations.map(name => ({ id: '', name, address: '', city: '', state: '', zip: '', country: '', placeId: '' })) : [{ id: '', name: 'Main location', address: '', city: '', state: '', zip: '', country: '', placeId: '' }]);
   const currentRole = String(currentMembership?.role || data?.organizations?.[0]?.role || 'staff').toLowerCase();
   const isDirectorRole = /owner|admin|director|manager|location/i.test(currentRole);
+  const currentScopeLabel = currentLocationScope && currentLocationScope !== 'all' ? currentLocationScope : 'All locations';
   const currentUserEmail = String(user?.email || '').toLowerCase();
   const allPartnerTasks = displayCases.flatMap(item => (item.tasks || []).map(task => ({
     ...task,
@@ -2505,6 +2508,16 @@ export default function FuneralHomeDashboard() {
             {user && org && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 10px', color: C.sage, fontSize: 12, fontWeight: 900 }}>
                 Family-facing view: {partnerBrand.familyPortalName || org.name} + Passage
+              </div>
+            )}
+            {user && org && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', background: C.card, border: `1px solid ${C.border}`, borderRadius: 999, padding: '6px 10px', color: C.mid, fontSize: 12, fontWeight: 900 }}>
+                  Plan: {locationSlots.planLabel || partnerPlan?.plan || 'Single location'}
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', background: locationSlots.needsUpgradeForNextLocation ? C.amberFaint : C.sageFaint, border: `1px solid ${locationSlots.needsUpgradeForNextLocation ? C.amber + '44' : C.sage + '22'}`, borderRadius: 999, padding: '6px 10px', color: locationSlots.needsUpgradeForNextLocation ? C.amber : C.sage, fontSize: 12, fontWeight: 900 }}>
+                  Locations: {locationSlots.usedLocationSlots ?? locations.length} of {locationSlots.includedLocationSlots || 1} included
+                </span>
               </div>
             )}
           </div>
@@ -3523,6 +3536,31 @@ export default function FuneralHomeDashboard() {
               </div>
               {isDirectorRole && <button onClick={() => openPartnerManagement('Opening locations, employees, roles, and permissions.')} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Manage people</button>}
             </div>
+            {!isDirectorRole && (
+              <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12, marginBottom: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(180px,.55fr)', gap: 10, alignItems: 'end' }}>
+                  <div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Workspace</div>
+                    <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>{org?.name || 'Funeral home'} staff workspace</div>
+                    <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.4, marginTop: 4 }}>Role: {roleLabel(currentRole)}. Location scope: {currentScopeLabel}. Directors control location access in Management.</div>
+                  </div>
+                  <label style={{ display: 'grid', gap: 4, color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>
+                    Location view
+                    <select
+                      value={currentLocationScope && currentLocationScope !== 'all' ? currentLocationScope : selectedLocation}
+                      onChange={event => setSelectedLocation(event.target.value)}
+                      disabled={currentLocationScope && currentLocationScope !== 'all'}
+                      style={{ ...inputStyle, background: currentLocationScope && currentLocationScope !== 'all' ? C.bg : C.card }}
+                    >
+                      {(!currentLocationScope || currentLocationScope === 'all') && <option value="all">All assigned locations</option>}
+                      {(currentLocationScope && currentLocationScope !== 'all' ? [currentLocationScope] : locations).map(location => (
+                        <option key={location} value={location}>{location}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </div>
+            )}
             {!isDirectorRole && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 145px), 1fr))', gap: 8, marginBottom: 12 }}>
                 {[

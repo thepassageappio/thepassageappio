@@ -123,10 +123,10 @@ const roadmapItems = [
   {
     pillar: 'Funeral Home Operations',
     priority: 'P0',
-    timing: 'Today',
-    status: 'In progress',
+    timing: 'Done today',
+    status: 'Ready to QA',
     title: 'Subscription tiers, location slots, staff scope, and My Day',
-    body: 'Tie plan type to location capacity, employee scope, case creation, reporting, and upgrade paths so single-location and multi-location partners operate from the same spine.',
+    body: 'Director and employee workspaces now surface the same plan/location-slot truth, organization identity, location scope, Google-backed address capture, staff assignment, reporting, and upgrade path so single-location and multi-location partners operate from one spine.',
   },
   {
     pillar: 'Communications',
