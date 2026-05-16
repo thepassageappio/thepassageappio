@@ -107,18 +107,18 @@ const roadmapItems = [
   {
     pillar: 'Vendor Commerce',
     priority: 'P0',
-    timing: 'Today',
-    status: 'In sprint',
+    timing: 'Done today',
+    status: 'Ready to test',
     title: 'Vendor quote, family invoice, and Stripe Connect payout loop',
-    body: 'Complete the money-moving loop from task request to vendor quote, family payment, Passage fee, vendor net, paid status, reminders, and dashboard revenue proof.',
+    body: 'Stripe Connect endpoints, vendor payment schema, destination-charge checkout, webhook handling, 12% Passage fee math, and readiness checks are in place. Next proof is a live vendor quote-to-payment QA run with a connected vendor account.',
   },
   {
     pillar: 'Green to Red Trust Spine',
     priority: 'P0',
-    timing: 'Today',
-    status: 'Build verification',
+    timing: 'Done today',
+    status: 'Smoke-tested',
     title: 'Two-person activation and post-trigger orchestration',
-    body: 'Make the planning-to-active transition crystal clear: one trusted person starts, a second confirms, everyone sees the reason, and missing first-hour tasks become assigned work.',
+    body: 'Activation-circle tables, witness management, second-confirmation email, participant review card, and orchestration proof events are live. The coordination smoke test verifies same-person activation is blocked and second confirmation flips the record active.',
   },
   {
     pillar: 'Funeral Home Operations',
@@ -140,17 +140,17 @@ const roadmapItems = [
     pillar: 'Demo and QA Sandbox',
     priority: 'P1',
     timing: 'This week',
-    status: 'Planned',
+    status: 'Live cockpit',
     title: 'Admin persona launcher with safe notification routing',
     body: 'Let an admin create clean sandbox users and switch among family, participant, funeral home, employee, vendor, and admin without polluting public UX or emailing real people.',
   },
   {
     pillar: 'CRM Spine',
     priority: 'P1',
-    timing: 'Next week',
-    status: 'Needs HubSpot IDs',
+    timing: 'Done today',
+    status: 'Connected',
     title: 'HubSpot contact, company, deal, and pipeline routing',
-    body: 'Route family leads, funeral-home warm inbounds, vendor applications, care facilities, paid customers, and marketplace transactions into the right HubSpot records.',
+    body: 'HubSpot service-key authentication is wired and verified. Lead, vendor, care-provider, funeral-home, and checkout sync paths can now be tested from production forms without using deprecated private-app auth.',
   },
   {
     pillar: 'Mobile Companion',
@@ -260,6 +260,8 @@ export default function SystemAdminPage() {
   const [resetPhrase, setResetPhrase] = useState('');
   const [resetSafetyChecked, setResetSafetyChecked] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [paymentReadiness, setPaymentReadiness] = useState(null);
+  const [paymentReadinessLoading, setPaymentReadinessLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -436,6 +438,25 @@ export default function SystemAdminPage() {
       setSpineSmokeResult({ ok: false, status: 0, json: { error: error.message || 'Coordination smoke test failed.' } });
     } finally {
       setSpineSmokeLoading(false);
+    }
+  }
+
+  async function runPaymentCrmReadiness() {
+    if (!supabase) return;
+    setPaymentReadinessLoading(true);
+    setPaymentReadiness(null);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/system/paymentCrmReadiness', {
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+      });
+      const json = await response.json().catch(() => ({}));
+      setPaymentReadiness({ ok: response.ok, status: response.status, json });
+    } catch (error) {
+      setPaymentReadiness({ ok: false, status: 0, json: { error: error.message || 'Payment and CRM readiness check failed.' } });
+    } finally {
+      setPaymentReadinessLoading(false);
     }
   }
 
@@ -656,6 +677,44 @@ export default function SystemAdminPage() {
                               </div>
                             ))}
                           </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Payment and CRM readiness</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .45fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Prove Stripe, vendor commerce, and HubSpot are connected.</h2>
+                    <p style={lead}>Checks the live Stripe account, webhook-secret posture, HubSpot service-key access, vendor payment tables, CRM sync table, and the default 12% Passage marketplace fee math.</p>
+                  </div>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <button type="button" onClick={runPaymentCrmReadiness} disabled={paymentReadinessLoading} style={{ ...primaryButton, marginTop: 0, justifySelf: 'start', opacity: paymentReadinessLoading ? .6 : 1 }}>
+                      {paymentReadinessLoading ? 'Checking payment spine...' : 'Run payment + CRM check'}
+                    </button>
+                    <div style={{ ...smallText, marginTop: 0 }}>Use this before vendor-payment demos and after changing Stripe, HubSpot, or Supabase payment schema. It does not charge cards or create customer-facing records.</div>
+                    {paymentReadiness && (
+                      <div style={{ background: paymentReadiness.json?.status === 'ready' ? C.sageFaint : C.roseFaint, border: '1px solid ' + (paymentReadiness.json?.status === 'ready' ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12 }}>
+                        <div style={{ color: paymentReadiness.json?.status === 'ready' ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>
+                          {paymentReadiness.json?.status === 'ready' ? 'Payment and CRM ready' : 'Needs review'}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 10 }}>
+                          <MetricRow label="Stripe account" value={paymentReadiness.json?.stripe?.ok ? `${paymentReadiness.json.stripe.mode || 'live'} ready` : 'Needs review'} />
+                          <MetricRow label="Stripe webhook secrets" value={paymentReadiness.json?.env?.stripeWebhookSecret ? `${paymentReadiness.json.env.stripeWebhookSecretCount || 1} configured` : 'Missing'} />
+                          <MetricRow label="HubSpot service key" value={paymentReadiness.json?.hubspot?.ok ? 'Connected' : 'Needs review'} />
+                          <MetricRow label="Vendor fee" value={`${paymentReadiness.json?.vendorCommerce?.defaultMarketplaceFeePercent || 12}%`} />
+                          <MetricRow label="Vendor net on $100" value={money(paymentReadiness.json?.vendorCommerce?.sampleVendorNet || 88)} />
+                          <MetricRow label="Schema checks" value={(paymentReadiness.json?.schema || []).every(row => row.ok) ? 'Pass' : 'Needs review'} />
+                        </div>
+                        {(paymentReadiness.json?.blockers || []).length > 0 && (
+                          <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
+                            {paymentReadiness.json.blockers.map(item => <MetricRow key={item} label={item} value="P0" />)}
+                          </div>
+                        )}
+                        {(paymentReadiness.json?.warnings || []).length > 0 && (
+                          <div style={{ ...smallText, marginTop: 10, color: C.amber }}>{paymentReadiness.json.warnings.join(' ')}</div>
                         )}
                       </div>
                     )}
