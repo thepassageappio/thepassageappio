@@ -4693,7 +4693,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       eyebrow: 'For care teams',
       title: 'A clearer way to keep families and staff aligned.',
       body: 'Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to existing tools.',
-      cta: { href: '/funeral-home', label: 'Funeral-home workflow' },
+      cta: { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard', label: 'Open sample console' },
       rows: [
         ['Case', 'Create or import', 'Start fresh or bring cases in by CSV without changing the current case system.'],
         ['Work', 'Assign the owner', 'Staff, family coordinators, and participants stay tied to the same task spine.'],
@@ -4741,6 +4741,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-secondary { background:${C.bgCard}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
         .home-tertiary { background:transparent; color:${C.mid}; border:1px solid ${C.border}; }
         .home-note { color:${C.soft}; font-size:12.5px; line-height:1.45; margin-top:10px; }
+        .home-proof-links { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+        .home-proof-link { display:inline-flex; align-items:center; min-height:34px; border-radius:999px; border:1px solid ${C.sageLight}; background:${C.bgCard}; color:${C.sageDark}; text-decoration:none; padding:0 11px; font-size:12px; font-weight:900; }
         .home-pledge { display:inline-block; color:${C.sageDark}; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:12px; padding:8px 10px; font-size:12px; line-height:1.35; margin-top:10px; max-width:660px; }
         .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:19px; min-height: 430px; display:flex; flex-direction:column; }
         .home-panel-tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:16px; }
@@ -4801,6 +4803,22 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <button onClick={() => openPublicCta('Plan ahead', '/planning')} className="home-action home-tertiary">Plan ahead</button>
             </div>
             <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
+            <div className="home-proof-links" aria-label="See Passage examples">
+              <a
+                className="home-proof-link"
+                href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard"
+                onClick={() => trackEvent('homepage_sample_console_clicked', { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard' })}
+              >
+                Open sample funeral-home console
+              </a>
+              <a
+                className="home-proof-link"
+                href="/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor"
+                onClick={() => trackEvent('homepage_sample_vendor_clicked', { href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor' })}
+              >
+                See vendor request example
+              </a>
+            </div>
             <div className="home-pledge"><strong>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent family record also funds a remembrance tree dedication.</div>
           </div>
 

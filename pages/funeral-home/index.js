@@ -94,6 +94,7 @@ export default function FuneralHomePage() {
         .fh-button { min-height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; padding:0 13px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; font-size:12.5px; }
         .fh-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
         .fh-secondary { background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
+        .fh-sample { background:${C.sage}; color:white; border:1px solid ${C.sage}; }
         .fh-note { color:${C.soft}; font-size:11px; line-height:1.3; margin-top:7px; }
         .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:17px; padding:12px; box-shadow:0 12px 34px rgba(55,45,35,.06); }
         .fh-panel h2 { font-size:19px; line-height:1.08; margin:0 0 8px; font-weight:400; }
@@ -134,9 +135,10 @@ export default function FuneralHomePage() {
             <div className="fh-actions">
               <Link href="/funeral-home/login" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Director sign in', href: '/funeral-home/login' })} className="fh-button fh-primary">Director sign in</Link>
               <Link href="/funeral-home/staff" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Staff sign in', href: '/funeral-home/staff' })} className="fh-button fh-secondary">Staff sign in</Link>
+              <Link href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Open sample console', href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard' })} className="fh-button fh-sample">Open sample console</Link>
               <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Book a pilot walkthrough' })} className="fh-button fh-secondary">Book a pilot walkthrough</a>
             </div>
-            <div className="fh-note">This page is public. Active partner teams sign in to the private workspace; prospects can book a walkthrough before a workspace is created.</div>
+            <div className="fh-note">This page is public. Active partner teams sign in to the private workspace; prospects can open the sample console or book a walkthrough before a workspace is created.</div>
             {error && <div style={{ marginTop: 14, background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
           </div>
 

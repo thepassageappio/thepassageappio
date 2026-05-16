@@ -105,6 +105,14 @@ const reportingMetrics = [
 
 const roadmapItems = [
   {
+    pillar: 'Public Site and Demo Proof',
+    priority: 'P0',
+    timing: 'Done today',
+    status: 'Chrome-ready',
+    title: 'Public CTAs and no-login funeral-home sample console',
+    body: 'Homepage and funeral-home pages now give prospects a direct, no-login path into the sample operating console while preserving the primary urgent, care-prep, planning, sign-in, and booking routes. This sprint makes the product visible from the public trust layer instead of relying only on copy.',
+  },
+  {
     pillar: 'Vendor Commerce',
     priority: 'P0',
     timing: 'Done today',
