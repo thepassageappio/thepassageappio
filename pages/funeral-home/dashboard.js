@@ -438,6 +438,36 @@ const demoPartnerContext = {
   reports: {},
 };
 
+function demoPartnerContextForPersona(persona = '', email = '') {
+  const cleanPersona = String(persona || '').toLowerCase();
+  const staffPersona = /employee|staff/.test(cleanPersona);
+  const staffEmail = String(email || 'staff@passagefh.example').toLowerCase();
+  const context = JSON.parse(JSON.stringify(demoPartnerContext));
+  if (!staffPersona) return context;
+
+  context.organizations = (context.organizations || []).map(row => ({
+    ...row,
+    role: 'staff',
+  }));
+  context.staff = [
+    { email: staffEmail, role: 'staff', scope: 'assigned_work', status: 'active', display_name: 'Demo staff member', location_scope: 'Main location', hourly_cost: '32' },
+    ...(context.staff || []),
+  ];
+  context.cases = (context.cases || []).map(item => ({
+    ...item,
+    tasks: (item.tasks || []).map(task => {
+      const assigned = String(task.assigned_to_email || '').toLowerCase();
+      if (assigned && !/robert|staff|hvfg/.test(assigned)) return task;
+      return {
+        ...task,
+        assigned_to_name: 'Demo staff member',
+        assigned_to_email: staffEmail,
+      };
+    }),
+  }));
+  return context;
+}
+
 function exportCsvCell(value) {
   let text = value == null ? '' : String(value);
   const trimmed = text.replace(/^\s+/, '');
@@ -644,10 +674,12 @@ export default function FuneralHomeDashboard() {
       const sessionUser = session?.user || null;
       const sessionToken = session?.access_token || '';
       if (requestedDemoMode && isPassageAdmin(sessionUser?.email)) {
+        const persona = router.query.persona || router.query.role || '';
+        const personaContext = demoPartnerContextForPersona(persona, sessionUser?.email || 'staff@passagefh.example');
         setDemoMode(true);
         setUser(sessionUser);
         setToken(sessionToken || 'demo-token');
-        setData(demoPartnerContext);
+        setData(personaContext);
         setPartnerEmail(sessionUser?.email || 'maria@hvfg.demo');
         setVendorPrefs({
           vendors: [{ id: 'demo-vendor', business_name: 'Hudson Valley Livestream', category: 'livestream', status: 'active' }],
