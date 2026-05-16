@@ -108,7 +108,7 @@ const roadmapItems = [
     pillar: 'Auth and First-Record Self-Service',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Build-ready',
+    status: 'Chrome-verified',
     title: 'Stable sign-in state and empty-estate handoff',
     body: 'The shared navigation now waits for Supabase auth readiness before showing Sign in or Sign out on controlled pages. Login, planning, and estate entry screens no longer flash between states while sessions hydrate, and signed-in users with no estate are guided to create a planning or urgent record instead of feeling bounced back to sign-in.',
   },
