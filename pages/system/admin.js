@@ -105,6 +105,14 @@ const reportingMetrics = [
 
 const roadmapItems = [
   {
+    pillar: 'Database Hygiene and Release Safety',
+    priority: 'P0',
+    timing: 'Today',
+    status: 'Docker engine blocked',
+    title: 'Restore Supabase diff and dump as pre-deploy gates',
+    body: 'Migration history is aligned between local and production, but Docker Desktop is returning engine 500 errors for the Supabase Postgres shadow image, so db diff and db dump cannot complete yet. Success criteria: Docker version responds cleanly, supabase db diff --linked runs before release, supabase db dump --linked creates a non-empty backup before production migrations, and the admin readiness loop records the result.',
+  },
+  {
     pillar: 'Compliance and Security Readiness',
     priority: 'P0',
     timing: 'Done today',
