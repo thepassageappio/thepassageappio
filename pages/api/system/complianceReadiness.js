@@ -8,6 +8,7 @@ const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const authClient = url && anon ? createClient(url, anon) : null;
 const admin = url && service ? createClient(url, service) : null;
+const DEFAULT_RESEND_FROM = 'Passage <notifications@thepassageapp.io>';
 
 function present(value) {
   return Boolean(String(value || '').trim());
@@ -41,7 +42,9 @@ export default async function handler(req, res) {
     supabaseAnon: present(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
     supabaseServiceRole: present(process.env.SUPABASE_SERVICE_ROLE_KEY),
     resend: present(process.env.RESEND_API_KEY),
-    resendFrom: present(process.env.RESEND_FROM_EMAIL),
+    resendFrom: present(process.env.RESEND_FROM_EMAIL || DEFAULT_RESEND_FROM),
+    resendFromUsesDefault: !present(process.env.RESEND_FROM_EMAIL),
+    resendFromValue: process.env.RESEND_FROM_EMAIL || DEFAULT_RESEND_FROM,
     stripeSecret: present(process.env.STRIPE_SECRET_KEY),
     stripeWebhook: present(process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET2),
     hubspot: present(process.env.HUBSPOT_SERVICE_API_KEY || process.env.HUBSPOT_SERVICE_KEY || process.env.HUBSPOT_ACCESS_TOKEN || process.env.HUBSPOT_PRIVATE_APP_TOKEN),
@@ -60,6 +63,7 @@ export default async function handler(req, res) {
   if (!env.internalSecret) blockers.push('PASSAGE_INTERNAL_API_SECRET is missing, so server orchestration smoke tests cannot run as internal jobs.');
   if (env.qaNotificationMode && !env.qaNotificationOverride) blockers.push('QA notification mode is enabled but QA_NOTIFICATION_OVERRIDE_EMAIL is missing.');
   if (!env.qaNotificationMode) warnings.push('QA notification mode is off. That is appropriate for real production sends, but use the override before broad QA with synthetic recipients.');
+  if (env.resendFromUsesDefault) warnings.push(`RESEND_FROM_EMAIL is not set; Passage is using the default sender ${DEFAULT_RESEND_FROM}.`);
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
