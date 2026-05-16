@@ -124,9 +124,9 @@ const roadmapItems = [
     pillar: 'Production Readiness Control',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Chrome-verified',
+    status: 'Internal auth hardened',
     title: 'One-click P0 readiness loop from admin roadmap',
-    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: public-surface copy and CTA checks, task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, and a visible rollup of blockers, warnings, and pass/fail status before demos or launches.',
+    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: public-surface copy and CTA checks, task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, and a visible rollup of blockers, warnings, and pass/fail status before demos or launches. Internal readiness routes accept the canonical internal header plus the older system-secret alias and return a clear mismatch message when production env is out of sync.',
   },
   {
     pillar: 'Auth and First-Record Self-Service',
