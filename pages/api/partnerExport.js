@@ -1,10 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const authClient = createClient(url, anon);
 const admin = createClient(url, service);
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
 function csvCell(value) {
   let text = value == null ? '' : String(value);
@@ -294,22 +297,72 @@ export default async function handler(req, res) {
       const key = process.env.RESEND_API_KEY;
       if (!key) return res.status(200).json({ success: true, skipped: true, message: 'CSV generated, email skipped because Resend is not configured.' });
       const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
+      const subject = summaryView ? passageSubject('Case summary export', orgName) : passageSubject('Full spine export', orgName);
+      const dashboardUrl = `${SITE_URL}/funeral-home/dashboard`;
+      const route = routeEmailRecipients([user.email]);
+      if (!route.actual.length) {
+        await insertNotificationLog(admin, {
+          channel: 'email',
+          recipient_email: user.email,
+          recipient_name: user.email,
+          subject,
+          provider: 'resend',
+          provider_id: null,
+          status: 'blocked',
+          error_message: 'QA notification mode had no override email configured.',
+          source: summaryView ? 'partner_case_summary_export' : 'partner_full_spine_export',
+          ...qaAuditFields(route),
+        });
+        return res.status(200).json({ success: true, skipped: true, qaOverride: route.qaOverride });
+      }
+      const html = passageEmailShell({
+        eyebrow: summaryView ? 'Case summary export' : 'Full spine export',
+        title: summaryView ? 'Your case summary export is ready.' : 'Your full spine export is ready.',
+        intro: summaryView
+          ? 'The attached CSV includes case contacts, references, lifecycle dates, and task counts for your funeral-home workspace.'
+          : 'The attached CSV includes cases, family contacts, task status, messages, vendor requests, proof requirements, and last action details.',
+        preheader: 'Your Passage export is attached and the workspace link is below.',
+        sections: [
+          {
+            label: 'Export',
+            text: filename,
+          },
+          {
+            label: 'Access boundary',
+            text: 'This export is generated from the partner workspace connected to your signed-in account.',
+            tone: 'soft',
+          },
+        ],
+        ctaLabel: 'Open partner workspace',
+        ctaUrl: dashboardUrl,
+      });
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from,
-          to: [user.email],
-          subject: summaryView ? 'Your Passage funeral home case summary export' : 'Your Passage funeral home full spine export',
-          html: summaryView
-            ? `<p>Your Passage case summary export is attached.</p><p>This includes case contacts, references, lifecycle dates, and task counts.</p>`
-            : `<p>Your Passage full spine export is attached.</p><p>This includes cases, family contacts, task status, messages, vendor requests, proof requirements, and last action details.</p>`,
+          to: route.actual,
+          subject,
+          html,
           attachments: [{ filename, content: Buffer.from(csv, 'utf8').toString('base64') }],
         }),
       });
       const json = await response.json().catch(() => ({}));
+      await insertNotificationLog(admin, {
+        channel: 'email',
+        recipient_email: user.email,
+        recipient_name: user.email,
+        subject,
+        provider: 'resend',
+        provider_id: response.ok ? json.id || null : null,
+        status: response.ok ? 'sent' : 'failed',
+        sent_at: response.ok ? new Date().toISOString() : null,
+        error_message: response.ok ? null : json.message || json.error || 'Could not email CSV export.',
+        source: summaryView ? 'partner_case_summary_export' : 'partner_full_spine_export',
+        ...qaAuditFields(route),
+      });
       if (!response.ok) return res.status(500).json({ error: json.message || json.error || 'Could not email CSV export.' });
-      return res.status(200).json({ success: true, emailedTo: user.email });
+      return res.status(200).json({ success: true, emailedTo: user.email, actualRecipient: route.actual[0], qaOverride: route.qaOverride });
     }
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');

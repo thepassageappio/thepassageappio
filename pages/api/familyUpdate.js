@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { escapeHtml, passageEmailShell } from '../../lib/brandedEmail';
+import { escapeHtml, passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 import { recordStatusEvent } from '../../lib/taskStatus';
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
   if (!(await canAccessWorkflow(user, workflow))) return res.status(403).json({ error: 'You do not have access to this family record.' });
 
   const subjectName = workflow.deceased_name || workflow.estate_name || workflow.name || 'the family';
-  const subject = req.body?.subject || `Family update for ${subjectName}`;
+  const subject = req.body?.subject || passageSubject('Family update', subjectName);
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return res.status(200).json({ success: true, skipped: true, reason: 'Email provider is not configured.' });

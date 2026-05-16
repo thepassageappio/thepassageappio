@@ -164,9 +164,9 @@ const roadmapItems = [
     pillar: 'Communications',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Format hardening',
+    status: 'Format standardized',
     title: 'Email consistency, deep links, family updates, and event announcements',
-    body: 'Reviewed family updates use canonical announcement statuses, explicit recipient parsing, delivery logs, task/status events, and smoke-test proof. The current loop standardizes operational emails so vendor requests, vendor quote updates, task assignments, activation requests, and funeral-home proof emails use one Passage shell with mobile-safe formatting, clear subjects, CTA buttons, fallback links, and spine destinations.',
+    body: 'Reviewed family updates, vendor requests, vendor quote updates, task assignments, activation requests, funeral-home proof emails, and partner exports now use the Passage operational shell pattern: consistent Passage subject prefix, mobile-safe formatting, primary CTA button, fallback link, recipient safety routing, and notification-log proof where the action leaves the system.',
   },
   {
     pillar: 'Demo and QA Sandbox',
