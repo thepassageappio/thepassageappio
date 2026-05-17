@@ -109,9 +109,9 @@ const roadmapItems = [
     pillar: 'Database Hygiene and Release Safety',
     priority: 'P0',
     timing: 'Today',
-    status: 'Release gate scripted',
+    status: 'Release gate passing',
     title: 'Restore Supabase diff and dump as pre-deploy gates',
-    body: 'Migration history is aligned between local and production, and scripts/db-release-gate.ps1 now runs the repeatable database release gate: Docker engine, Supabase migration list, db diff, and a non-empty production schema backup. Docker Desktop is still returning engine 500 errors on both desktop-linux and default contexts, so db diff and db dump correctly fail before release instead of creating empty backup artifacts. Success criteria remains: Docker version responds cleanly, supabase db diff --linked runs before release, supabase db dump --linked creates a non-empty backup before production migrations, and the admin readiness loop records the result.',
+    body: 'Migration history is aligned between local and production, and scripts/db-release-gate.ps1 now runs the repeatable database release gate: Docker engine, Supabase migration list, db diff, and a non-empty production schema backup. Docker Desktop is healthy again, Supabase diff completed, and the latest production schema backup was written successfully. Success criteria remains: run this gate before production migrations and review any diff before applying database changes.',
   },
   {
     pillar: 'Compliance and Security Readiness',
@@ -133,9 +133,9 @@ const roadmapItems = [
     pillar: 'Auth and First-Record Self-Service',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Live/API verified',
+    status: 'Browser/API verified',
     title: 'Stable sign-in state and empty-estate handoff',
-    body: 'The shared navigation now waits for Supabase auth readiness before showing Sign in or Sign out on controlled pages. Login, planning, and estate entry screens no longer flash between states while sessions hydrate, and signed-in users with no estate are guided to create a planning or urgent record instead of feeling bounced back to sign-in. Current verification is live/API based until the local Chrome native bridge is repaired.',
+    body: 'The shared navigation now waits for Supabase auth readiness before showing Sign in or Sign out on controlled pages. Login, planning, and estate entry screens no longer flash between states while sessions hydrate, and signed-in users with no estate are guided to create a planning or urgent record instead of feeling bounced back to sign-in. Browser QA is working again and confirmed the signed-out homepage does not expose System Admin.',
   },
   {
     pillar: 'Public Site and Demo Proof',
@@ -165,9 +165,9 @@ const roadmapItems = [
     pillar: 'Funeral Home Operations',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Demo/API verified',
+    status: 'Browser/API verified',
     title: 'Subscription tiers, location slots, staff scope, and My Day',
-    body: 'Director and employee workspaces now surface the same plan/location-slot truth, organization identity, location scope, Google-backed address capture, staff assignment, reporting, and upgrade path so single-location and multi-location partners operate from one spine. The no-login sample console and readiness APIs are verified; full Chrome persona QA is blocked locally until the Chrome plugin native bridge is repaired.',
+    body: 'Director and employee workspaces now surface the same plan/location-slot truth, organization identity, location scope, Google-backed address capture, staff assignment, reporting, and upgrade path so single-location and multi-location partners operate from one spine. Browser QA confirmed the no-login sample console hydrates into the simulated Hudson Valley Funeral Group workspace, shows My Day, opens the family request/case context, and does not leak admin controls.',
   },
   {
     pillar: 'Communications',
@@ -181,17 +181,17 @@ const roadmapItems = [
     pillar: 'Demo and QA Sandbox',
     priority: 'P1',
     timing: 'This week',
-    status: 'QA constraints visible',
+    status: 'Browser gate restored',
     title: 'Admin persona launcher with safe notification routing',
-    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit now shows QA notification override status, database release-gate state, and Chrome/browser automation state so Steve can see what was actually verified before running live-feeling demos.',
+    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit shows QA notification override status, database release-gate state, and browser automation state so Steve can see what was actually verified before running live-feeling demos. Browser automation and the Docker-backed database release gate are both working again.',
   },
   {
     pillar: 'CRM Spine',
     priority: 'P1',
     timing: 'Done today',
-    status: 'Connected',
+    status: 'Sync visibility live',
     title: 'HubSpot contact, company, deal, and pipeline routing',
-    body: 'HubSpot service-key authentication is wired and verified. Lead, vendor, care-provider, funeral-home, and checkout sync paths can now be tested from production forms without using deprecated private-app auth.',
+    body: 'HubSpot service-key authentication is wired and verified. Lead, vendor, care-provider, funeral-home, and checkout sync paths can now be tested from production forms without using deprecated private-app auth, and the admin Metrics tab shows CRM sync status, source, recent IDs, and failures from crm_sync_events.',
   },
   {
     pillar: 'Mobile Companion',
@@ -1119,11 +1119,11 @@ export default function SystemAdminPage() {
                   Admin boundary: this is persona simulation, not production impersonation. Use it with owned QA data to test live-feeling interactions across the spine. True customer impersonation remains gated until it has audit logs, scoped tokens, session expiry, and explicit owner approval.
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 10 }}>
-                  <div style={{ background: C.roseFaint, border: '1px solid #efc7c7', color: C.rose, borderRadius: 13, padding: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
-                    Browser QA: local Chrome automation is blocked until the Codex Chrome native host bridge is repaired. Treat current persona confidence as live API plus no-login demo verification, not full Chrome walkthrough proof.
+                  <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 13, padding: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                    Browser QA: restored. Use the persona launcher plus the P0 readiness loop before demos; the no-login funeral-home sample console has been checked in-browser.
                   </div>
-                  <div style={{ background: C.roseFaint, border: '1px solid #efc7c7', color: C.rose, borderRadius: 13, padding: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
-                    Database QA: Supabase migrations are aligned, but the local Docker engine is returning 500 errors. The release-gate script now stops before db diff or schema dump until Docker Desktop is healthy.
+                  <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 13, padding: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                    Database QA: restored. Docker is healthy, migrations are aligned, Supabase diff runs, and the release-gate script writes a non-empty production schema backup.
                   </div>
                 </div>
                 <div style={{ background: complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? C.sageFaint : C.roseFaint, border: '1px solid ' + (complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? '#c8deca' : '#efc7c7'), color: complianceSnapshot?.env?.qaNotificationMode && complianceSnapshot?.env?.qaNotificationOverride ? C.sage : C.rose, borderRadius: 13, padding: 12, marginTop: 10, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
@@ -1201,6 +1201,46 @@ export default function SystemAdminPage() {
                         {(metrics.leads.recent || []).length ? metrics.leads.recent.slice(0, 6).map((item) => (
                           <MetricRow key={item.email + item.createdAt} label={(item.type || 'Inquiry') + (item.urgency ? ' - ' + item.urgency : '')} value={item.email || 'No email'} />
                         )) : <div style={smallText}>No recent inquiries yet.</div>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {metrics?.crmSync && (
+                  <div style={{ marginTop: 18 }}>
+                    <div style={eyebrow}>HubSpot sync health</div>
+                    <p style={{ ...smallText, marginTop: 4 }}>Every website-to-HubSpot attempt lands here: synced, skipped, or failed. Use this after contact, vendor, care-provider, funeral-home, and checkout tests.</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10, marginTop: 10 }}>
+                      <div style={subPanel}>
+                        <h3 style={h3}>By sync status</h3>
+                        {(metrics.crmSync.byStatus || []).length ? metrics.crmSync.byStatus.slice(0, 8).map((item) => (
+                          <MetricRow key={item.label} label={item.label} value={item.count} />
+                        )) : <div style={smallText}>No CRM sync attempts yet.</div>}
+                      </div>
+                      <div style={subPanel}>
+                        <h3 style={h3}>By source</h3>
+                        {(metrics.crmSync.bySource || []).length ? metrics.crmSync.bySource.slice(0, 8).map((item) => (
+                          <MetricRow key={item.label} label={item.label} value={item.count} />
+                        )) : <div style={smallText}>No CRM source rows yet.</div>}
+                      </div>
+                      <div style={subPanel}>
+                        <h3 style={h3}>Recent syncs</h3>
+                        {(metrics.crmSync.recent || []).length ? metrics.crmSync.recent.slice(0, 8).map((item) => (
+                          <MetricRow
+                            key={(item.id || item.email || item.companyName) + item.createdAt}
+                            label={[item.source || item.eventType || 'CRM', item.status || 'unknown'].filter(Boolean).join(' - ')}
+                            value={item.email || item.companyName || item.hubspotContactId || 'No contact'}
+                          />
+                        )) : <div style={smallText}>No recent CRM sync rows yet.</div>}
+                      </div>
+                      <div style={subPanel}>
+                        <h3 style={h3}>Failures</h3>
+                        {(metrics.crmSync.failures || []).length ? metrics.crmSync.failures.slice(0, 8).map((item) => (
+                          <MetricRow
+                            key={(item.id || item.email || item.companyName) + item.createdAt + 'failure'}
+                            label={item.error || item.eventType || 'Needs review'}
+                            value={item.email || item.companyName || item.status || 'Failed'}
+                          />
+                        )) : <div style={smallText}>No CRM sync failures in the latest rows.</div>}
                       </div>
                     </div>
                   </div>

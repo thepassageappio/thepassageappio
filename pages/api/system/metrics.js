@@ -94,6 +94,29 @@ async function fetchRecentNotifications(admin) {
   return { rows: [], error: 'notification_log schema is not readable.', source: 'notification_log' };
 }
 
+async function fetchRecentCrmSyncEvents(admin) {
+  const selections = [
+    'id,source,event_type,source_id,email,company_name,hubspot_contact_id,hubspot_company_id,hubspot_deal_id,status,error,created_at,updated_at',
+    'id,source,event_type,email,company_name,status,error,created_at',
+  ];
+  for (const selection of selections) {
+    try {
+      const { data, error } = await admin
+        .from('crm_sync_events')
+        .select(selection)
+        .order('created_at', { ascending: false })
+        .limit(80);
+      if (!error) return { rows: data || [], error: null, source: 'crm_sync_events' };
+      if (error.code !== '42703' && !String(error.message || '').toLowerCase().includes('schema cache')) {
+        return { rows: [], error: error.message, source: 'crm_sync_events' };
+      }
+    } catch (error) {
+      return { rows: [], error: error.message, source: 'crm_sync_events' };
+    }
+  }
+  return { rows: [], error: 'crm_sync_events schema is not readable.', source: 'crm_sync_events' };
+}
+
 function sinceFromQuery(days) {
   const parsed = Math.max(1, Math.min(365, Number(days || 30) || 30));
   const since = new Date(Date.now() - parsed * 24 * 60 * 60 * 1000).toISOString();
@@ -275,6 +298,49 @@ function summarizeNotifications(result = {}) {
   };
 }
 
+function summarizeCrmSync(result = {}) {
+  const rows = result.rows || [];
+  const byStatus = {};
+  const bySource = {};
+  const failures = [];
+  rows.forEach((row) => {
+    const status = row.status || 'unknown';
+    const source = row.source || row.event_type || 'unknown';
+    byStatus[status] = (byStatus[status] || 0) + 1;
+    bySource[source] = (bySource[source] || 0) + 1;
+    if (status === 'failed' || row.error) failures.push(row);
+  });
+  return {
+    error: result.error || null,
+    source: result.source || 'crm_sync_events',
+    byStatus: Object.entries(byStatus).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
+    bySource: Object.entries(bySource).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
+    recent: rows.slice(0, 12).map((row) => ({
+      id: row.id || '',
+      source: row.source || '',
+      eventType: row.event_type || '',
+      email: row.email || '',
+      companyName: row.company_name || '',
+      status: row.status || '',
+      error: row.error || '',
+      hubspotContactId: row.hubspot_contact_id || '',
+      hubspotCompanyId: row.hubspot_company_id || '',
+      hubspotDealId: row.hubspot_deal_id || '',
+      createdAt: row.created_at || row.updated_at || '',
+    })),
+    failures: failures.slice(0, 8).map((row) => ({
+      id: row.id || '',
+      source: row.source || '',
+      eventType: row.event_type || '',
+      email: row.email || '',
+      companyName: row.company_name || '',
+      status: row.status || '',
+      error: row.error || '',
+      createdAt: row.created_at || row.updated_at || '',
+    })),
+  };
+}
+
 function inRange(value, since) {
   if (!since) return true;
   const time = value ? new Date(value).getTime() : 0;
@@ -336,7 +402,7 @@ function csvEscape(value) {
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
-function toRawCsv(metrics, leadSummary, notificationSummary) {
+function toRawCsv(metrics, leadSummary, notificationSummary, crmSyncSummary) {
   const rows = [['section', 'label', 'value', 'unit', 'status', 'source', 'error']];
   metrics.forEach((item) => rows.push(['metrics', item.label, formatMetricValue(item) || item.value, item.unit, item.status, item.source, item.error]));
   (leadSummary.byType || []).forEach((item) => rows.push(['lead_type', item.label, item.count, '', 'real', 'leads.notes.category', '']));
@@ -345,6 +411,9 @@ function toRawCsv(metrics, leadSummary, notificationSummary) {
   (notificationSummary.byStatus || []).forEach((item) => rows.push(['notification_status', item.label, item.count, '', 'real', notificationSummary.source, notificationSummary.error || '']));
   (notificationSummary.byChannel || []).forEach((item) => rows.push(['notification_channel', item.label, item.count, '', 'real', notificationSummary.source, notificationSummary.error || '']));
   (notificationSummary.recent || []).forEach((item) => rows.push(['recent_notification', item.channel, item.recipient, item.status, 'real', item.provider, item.error || item.sentAt]));
+  (crmSyncSummary.byStatus || []).forEach((item) => rows.push(['crm_sync_status', item.label, item.count, '', 'real', crmSyncSummary.source, crmSyncSummary.error || '']));
+  (crmSyncSummary.bySource || []).forEach((item) => rows.push(['crm_sync_source', item.label, item.count, '', 'real', crmSyncSummary.source, crmSyncSummary.error || '']));
+  (crmSyncSummary.recent || []).forEach((item) => rows.push(['recent_crm_sync', item.source || item.eventType, item.email || item.companyName, item.status, 'real', crmSyncSummary.source, item.error || item.createdAt]));
   return rows.map((row) => row.map(csvEscape).join(',')).join('\n');
 }
 
@@ -382,6 +451,7 @@ export default async function handler(req, res) {
     funeralHomeRequestsAccepted,
     recentLeads,
     recentNotifications,
+    recentCrmSync,
     subscriptionRows,
     userProfiles,
     authUsers,
@@ -413,12 +483,14 @@ export default async function handler(req, res) {
     countRows(auth.admin, 'funeral_home_requests', [{ op: 'in', column: 'status', value: ['accepted', 'converted'] }]),
     fetchRecentLeads(auth.admin),
     fetchRecentNotifications(auth.admin),
+    fetchRecentCrmSyncEvents(auth.admin),
     fetchSubscriptionRows(auth.admin),
     fetchUserProfiles(auth.admin),
     fetchAuthUsers(auth.admin),
   ]);
   const leadSummary = summarizeLeads(recentLeads.rows);
   const notificationSummary = summarizeNotifications(recentNotifications);
+  const crmSyncSummary = summarizeCrmSync(recentCrmSync);
   const revenue = summarizeRevenue(subscriptionRows);
   const userFunnel = summarizeUserFunnel(userProfiles, authUsers, range.since);
 
@@ -461,7 +533,7 @@ export default async function handler(req, res) {
   if (req.query.format === 'csv') {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="passage-system-metrics.csv"');
-    return res.status(200).send(toRawCsv(metrics, leadSummary, notificationSummary));
+    return res.status(200).send(toRawCsv(metrics, leadSummary, notificationSummary, crmSyncSummary));
   }
 
   return res.status(200).json({
@@ -472,5 +544,6 @@ export default async function handler(req, res) {
     funnel: userFunnel,
     leads: Object.assign({ error: recentLeads.error || null }, leadSummary),
     notifications: notificationSummary,
+    crmSync: crmSyncSummary,
   });
 }
