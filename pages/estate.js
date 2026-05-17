@@ -2257,6 +2257,92 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
   );
 }
 
+function PostActivationReviewPanel({ estate, actions, tasks, outcomes, events, serviceEvents }) {
+  var activated = ['activated', 'approved', 'in_motion', 'triggered'].includes(String(estate?.activation_status || estate?.status || '').toLowerCase());
+  if (!activated) return null;
+  var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o); });
+  var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t); });
+  var missingOwners = openOutcomes.filter(function(o) { return !o.owner_label; }).length +
+    openTasks.filter(function(t) { return ownerForTask(t) === 'Needs owner'; }).length;
+  var waitingMessages = (actions || []).filter(function(a) {
+    var status = a.status || a.delivery_status || '';
+    return (status === 'sent' || a.sent_at) && !['acknowledged', 'handled', 'delivered'].includes(a.delivery_status || a.status || '');
+  });
+  var activationEvents = (events || []).filter(function(event) {
+    return /activation|green_to_red|trigger/i.test(String(event.event_type || event.title || ''));
+  });
+  var upcomingServiceEvents = (serviceEvents || []).filter(function(event) {
+    return event?.date || event?.start_at || event?.time || event?.location_name || event?.location_address;
+  });
+  var nextOpen = openOutcomes[0] || openTasks[0] || null;
+  var nextTitle = nextOpen ? displayTaskTitle(nextOpen) : 'No urgent task is waiting right now';
+  var nextOwner = nextOpen ? ownerForTask(nextOpen) : 'Passage is monitoring the record';
+  var statusRows = [
+    ['Activated', activationEvents.length ? 'Proof event saved' : 'Two-person confirmation saved'],
+    ['Needs owner', missingOwners ? String(missingOwners) : 'None'],
+    ['Waiting replies', waitingMessages.length ? String(waitingMessages.length) : 'None'],
+    ['Service events', upcomingServiceEvents.length ? String(upcomingServiceEvents.length) : 'Add when known'],
+  ];
+
+  return (
+    <section id="post-activation-review" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 18, padding: '18px 20px', marginBottom: 20, boxShadow: '0 12px 34px rgba(55,45,35,.045)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 14 }}>
+        <div>
+          <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>After activation</div>
+          <div style={{ color: INK, fontSize: 24, lineHeight: 1.12, fontWeight: 900 }}>What changed, what is waiting, and who owns the next move.</div>
+          <div style={{ color: MID, fontSize: 13.2, lineHeight: 1.55, marginTop: 6 }}>
+            The planning record is now active. Passage keeps the activation proof, the urgent task spine, service dates, and family updates together so nobody has to guess what happened.
+          </div>
+        </div>
+        <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 900, whiteSpace: 'nowrap' }}>Active urgent coordination</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginBottom: 12 }}>
+        {statusRows.map(function(row) {
+          var warn = row[0] === 'Needs owner' && row[1] !== 'None' || row[0] === 'Service events' && row[1] === 'Add when known';
+          return (
+            <div key={row[0]} style={{ background: warn ? AMBER_FAINT : SAGE_FAINT, border: '1px solid ' + (warn ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 13, padding: '10px 11px' }}>
+              <div style={{ color: warn ? AMBER : SAGE, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>{row[0]}</div>
+              <div style={{ color: INK, fontSize: 15, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>{row[1]}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 10 }} className="estate-two-col">
+        <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: 13 }}>
+          <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Best next move</div>
+          <div style={{ color: INK, fontSize: 17, lineHeight: 1.2, fontWeight: 900, marginTop: 5 }}>{nextTitle}</div>
+          <div style={{ color: MID, fontSize: 13, lineHeight: 1.45, marginTop: 6 }}>Owner: <strong style={{ color: INK }}>{nextOwner}</strong></div>
+          <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>If this is not the right owner, open the task spine and assign the case or task before asking the family for more information.</div>
+        </div>
+        <div style={{ background: upcomingServiceEvents.length ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (upcomingServiceEvents.length ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 14, padding: 13 }}>
+          <div style={{ color: upcomingServiceEvents.length ? SAGE : AMBER, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Service broadcast readiness</div>
+          <div style={{ color: INK, fontSize: 17, lineHeight: 1.2, fontWeight: 900, marginTop: 5 }}>
+            {upcomingServiceEvents.length ? 'Known dates are ready to share from the spine.' : 'Add funeral, wake, cemetery, or reception details when confirmed.'}
+          </div>
+          <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>
+            Service updates should be sent once from Passage, then tracked with delivery, waiting, and proof instead of scattering across separate texts.
+          </div>
+        </div>
+      </div>
+      {activationEvents.length > 0 && (
+        <details style={{ marginTop: 10, background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '9px 11px' }}>
+          <summary style={{ color: SAGE, fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>Activation proof the family can audit</summary>
+          <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+            {activationEvents.slice(0, 3).map(function(event) {
+              return (
+                <div key={event.id || event.created_at || event.title} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 11, padding: '9px 10px' }}>
+                  <div style={{ color: INK, fontSize: 13.2, fontWeight: 900 }}>{event.title || 'Planning record activated'}</div>
+                  <div style={{ color: MID, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>{event.description || 'Two trusted confirmations moved this record into active coordination.'}</div>
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
+    </section>
+  );
+}
+
 function ProofPanel({ actions, tasks, events }) {
   var rows = proofRowsFor(actions, tasks, events);
   var sent = rows.filter(function(r) { return r.status === 'Sent' || r.status === 'Handled' || r.status === 'Recorded'; }).length;
@@ -3681,6 +3767,15 @@ export default function EstatePage() {
             }}
           />
         )}
+
+        <PostActivationReviewPanel
+          estate={estate}
+          actions={actions}
+          tasks={tasks}
+          outcomes={outcomes}
+          events={events}
+          serviceEvents={serviceEvents}
+        />
 
         <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">
           <TaskSpineCommandCenter

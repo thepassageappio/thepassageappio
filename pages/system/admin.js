@@ -157,9 +157,9 @@ const roadmapItems = [
     pillar: 'Green to Red Trust Spine',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Smoke-tested',
-    title: 'Two-person activation and post-trigger orchestration',
-    body: 'Activation-circle tables, witness management, second-confirmation email, participant review card, and orchestration proof events are live. The coordination smoke test verifies same-person activation is blocked and second confirmation flips the record active.',
+    status: 'Post-activation review live',
+    title: 'Two-person activation, post-trigger review, and service-event readiness',
+    body: 'Activation-circle tables, witness management, second-confirmation email, participant review card, and orchestration proof events are live. The coordination smoke test verifies same-person activation is blocked and second confirmation flips the record active. The estate spine now shows a post-activation review panel with what changed, activation proof, missing owners, waiting replies, best next move, and service-broadcast readiness so families know what happened immediately after a planning record becomes urgent.',
   },
   {
     pillar: 'Funeral Home Operations',
@@ -293,7 +293,7 @@ const roadmapExecutionDetails = {
       'Trusted people know who must confirm, what happened, and what tasks became active after confirmation.',
       'Family can announce key service events once and see delivery/proof/status across participants and providers.',
     ],
-    sprintLoop: 'Next loop: build the post-activation "what changed and what needs completion" review panel plus service-event broadcast proof.',
+    sprintLoop: 'Next loop: browser QA an activated planning record and tighten the service-event broadcast action so funeral, wake, cemetery, reception, and vendor obligations can be shared once with visible proof.',
   },
   'Funeral Home Operations': {
     technicalRequirements: [
