@@ -157,9 +157,9 @@ const roadmapItems = [
     pillar: 'Green to Red Trust Spine',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Broadcast bridge live',
+    status: 'Delivery proof visible',
     title: 'Two-person activation, post-trigger review, and service-event readiness',
-    body: 'Activation-circle tables, witness management, second-confirmation email, participant review card, and orchestration proof events are live. The coordination smoke test verifies same-person activation is blocked and second confirmation flips the record active. The estate spine now shows a post-activation review panel with what changed, activation proof, missing owners, waiting replies, best next move, saved family-update proof, and service-broadcast CTAs for preparing an update or building the service one-pager.',
+    body: 'Activation-circle tables, witness management, second-confirmation email, participant review card, and orchestration proof events are live. The coordination smoke test verifies same-person activation is blocked and second confirmation flips the record active. The estate spine now shows a post-activation review panel with what changed, activation proof, missing owners, waiting replies, best next move, saved family-update proof, service-broadcast CTAs, and notification-log delivery proof for family/service updates.',
   },
   {
     pillar: 'Funeral Home Operations',
@@ -293,7 +293,7 @@ const roadmapExecutionDetails = {
       'Trusted people know who must confirm, what happened, and what tasks became active after confirmation.',
       'Family can announce key service events once and see delivery/proof/status across participants and providers.',
     ],
-    sprintLoop: 'Next loop: browser QA an activated planning record, then connect service-event broadcasts back into notification_log rows so sent/saved/failed proof is visible from the estate without opening the announcement page.',
+    sprintLoop: 'Next loop: browser QA an activated planning record with real family-update sends in QA override mode, then tighten failed-recipient retry/repair from the estate spine.',
   },
   'Funeral Home Operations': {
     technicalRequirements: [

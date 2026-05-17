@@ -2257,7 +2257,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
   );
 }
 
-function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorName, actions, tasks, outcomes, events, serviceEvents, announcements }) {
+function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorName, actions, tasks, outcomes, events, serviceEvents, announcements, communications }) {
   var activated = ['activated', 'approved', 'in_motion', 'triggered'].includes(String(estate?.activation_status || estate?.status || '').toLowerCase());
   if (!activated) return null;
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o); });
@@ -2275,6 +2275,11 @@ function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorNa
     return event?.date || event?.start_at || event?.time || event?.location_name || event?.location_address;
   });
   var savedAnnouncements = (announcements || []).filter(function(row) { return row?.status || row?.content || row?.channel; });
+  var notificationProof = (communications || []).filter(function(row) {
+    return /family_update|announcement|share|service/i.test(String(row?.source || row?.subject || row?.channel || ''));
+  });
+  var sentProof = notificationProof.filter(function(row) { return ['sent', 'delivered'].includes(String(row.status || '').toLowerCase()); }).length;
+  var failedProof = notificationProof.filter(function(row) { return ['failed', 'blocked', 'cancelled'].includes(String(row.status || '').toLowerCase()); }).length;
   var nextOpen = openOutcomes[0] || openTasks[0] || null;
   var nextTitle = nextOpen ? displayTaskTitle(nextOpen) : 'No urgent task is waiting right now';
   var nextOwner = nextOpen ? ownerForTask(nextOpen) : 'Passage is monitoring the record';
@@ -2284,6 +2289,7 @@ function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorNa
     ['Waiting replies', waitingMessages.length ? String(waitingMessages.length) : 'None'],
     ['Service events', upcomingServiceEvents.length ? String(upcomingServiceEvents.length) : 'Add when known'],
     ['Family updates', savedAnnouncements.length ? String(savedAnnouncements.length) + ' saved' : 'Not prepared yet'],
+    ['Delivery proof', notificationProof.length ? `${sentProof} sent / ${failedProof} review` : 'No sends yet'],
   ];
   function openAnnouncement() {
     if (!estateId) return;
@@ -2342,6 +2348,26 @@ function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorNa
         <div style={{ marginTop: 10, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '10px 12px', color: SAGE, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
           Family update proof exists: {savedAnnouncements.slice(0, 2).map(function(row) { return statusText(row.status || row.channel || 'saved'); }).join(', ')}. Return to announcements when service details change.
         </div>
+      )}
+      {notificationProof.length > 0 && (
+        <details style={{ marginTop: 10, background: failedProof ? ROSE_FAINT : SAGE_FAINT, border: '1px solid ' + (failedProof ? ROSE + '30' : SAGE_LIGHT), borderRadius: 13, padding: '9px 11px' }}>
+          <summary style={{ color: failedProof ? ROSE : SAGE, fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>Family update delivery proof</summary>
+          <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+            {notificationProof.slice(0, 5).map(function(row) {
+              var status = statusText(row.status || 'recorded');
+              var recipient = textValue(row.recipient_name || row.recipient_email || row.recipient_phone, 'Recipient');
+              return (
+                <div key={row.id || row.provider_id || row.created_at || recipient} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 11, padding: '9px 10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                    <div style={{ color: INK, fontSize: 13.2, fontWeight: 900 }}>{recipient}</div>
+                    <div style={{ color: ['failed', 'blocked'].includes(String(row.status || '').toLowerCase()) ? ROSE : SAGE, fontSize: 11.5, fontWeight: 900 }}>{status}</div>
+                  </div>
+                  <div style={{ color: MID, fontSize: 12.2, lineHeight: 1.45, marginTop: 3 }}>{row.subject || row.source || 'Family update'}{row.error_message ? ': ' + row.error_message : ''}</div>
+                </div>
+              );
+            })}
+          </div>
+        </details>
       )}
       {activationEvents.length > 0 && (
         <details style={{ marginTop: 10, background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '9px 11px' }}>
@@ -3798,6 +3824,7 @@ export default function EstatePage() {
           events={events}
           serviceEvents={serviceEvents}
           announcements={announcements}
+          communications={communications}
         />
 
         <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">
