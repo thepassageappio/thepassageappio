@@ -22,34 +22,21 @@ export default function VendorFrontDoor() {
     setUser(null);
   }
 
-  async function signIn() {
-    if (!supabase?.auth || typeof window === 'undefined') return;
-    trackEvent('vendor_sign_in_clicked', { source: 'vendor_front_door' });
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/vendors/request` } });
-  }
-
-  function openVendorWork(event) {
-    if (user) return;
-    event.preventDefault();
-    signIn();
-  }
-
   const cards = [
     {
       eyebrow: 'Vendor owner',
-      title: 'Open the vendor workspace',
-      body: 'For approved owners and managers. Review assigned requests, invite vendor employees, set payout readiness, quote, schedule, and save proof.',
-      href: '/vendors/request',
-      action: user ? 'Open vendor workspace' : 'Vendor owner sign in',
-      onClick: openVendorWork,
+      title: 'Sign in to manage the vendor profile',
+      body: 'For approved owners and managers. Review requests, invite employees, confirm payout readiness, see gross revenue, Passage fee, vendor net, and saved proof.',
+      href: user ? '/vendors/request' : '/vendors/login',
+      action: user ? 'Open owner workspace' : 'Owner sign in',
       tone: 'primary',
     },
     {
       eyebrow: 'Vendor employee',
-      title: 'Open assigned vendor work',
-      body: 'For team members added to a vendor profile or request. Use the invited email to see only the request, timing, quote fields, and proof needed.',
+      title: 'Open one assigned request',
+      body: 'For employees or service team members. Use the invited email or request link to see only the job, date, location, quote fields, payment status, and proof needed.',
       href: '/vendors/accept',
-      action: 'Vendor employee sign in',
+      action: 'Open assigned work',
     },
     {
       eyebrow: 'New support partner',
@@ -82,15 +69,15 @@ export default function VendorFrontDoor() {
               <Link href="/vendors/onboard" onClick={() => trackEvent('vendor_apply_clicked', { href: '/vendors/onboard' })} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 16px', fontWeight: 900, fontSize: 14 }}>
                 Apply to join
               </Link>
-              <button type="button" onClick={signIn} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+              <Link href="/vendors/login" onClick={() => trackEvent('vendor_owner_sign_in_clicked', { href: '/vendors/login' })} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, textDecoration: 'none' }}>
                 Vendor owner sign in
-              </button>
+              </Link>
               <Link href="/vendors/accept" onClick={() => trackEvent('vendor_employee_sign_in_clicked', { href: '/vendors/accept' })} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, textDecoration: 'none' }}>
-                Vendor employee sign in
+                Open assigned vendor work
               </Link>
             </div>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
-              New vendors apply first. Vendor owners manage the workspace. Vendor employees open only assigned requests. Nobody browses families or unrelated cases.
+              New vendors apply first. Approved vendor owners manage the business profile and payout setup. Vendor employees open only assigned work. Nobody browses families or unrelated cases.
             </div>
           </div>
           <div style={{ display: 'grid', gap: 10 }}>

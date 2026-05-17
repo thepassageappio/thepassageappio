@@ -149,9 +149,9 @@ const roadmapItems = [
     pillar: 'Vendor Commerce',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Dry-run verified',
-    title: 'Vendor quote, family invoice, and Stripe Connect payout loop',
-    body: 'Stripe Connect endpoints, vendor payment schema, destination-charge checkout, webhook handling, 12% Passage fee math, and readiness checks are in place. The coordination smoke test now dry-runs quote, invoice, paid state, vendor net, payout availability, and spine events without moving money.',
+    status: 'Doorways clarified',
+    title: 'Vendor quote, family invoice, Stripe Connect payout, and role entry loop',
+    body: 'Stripe Connect endpoints, vendor payment schema, destination-charge checkout, webhook handling, 12% Passage fee math, and readiness checks are in place. The coordination smoke test dry-runs quote, invoice, paid state, vendor net, payout availability, and spine events without moving money. Vendor public entry now separates new applications, approved owner sign-in, and employee/request-specific work so vendors understand whether they are managing the business profile or opening one scoped job.',
   },
   {
     pillar: 'Green to Red Trust Spine',
@@ -181,9 +181,9 @@ const roadmapItems = [
     pillar: 'Demo and QA Sandbox',
     priority: 'P1',
     timing: 'This week',
-    status: 'Browser gate restored',
+    status: 'Secure launcher live',
     title: 'Admin persona launcher with safe notification routing',
-    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit shows QA notification override status, database release-gate state, and browser automation state so Steve can see what was actually verified before running live-feeling demos. Browser automation and the Docker-backed database release gate are both working again.',
+    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit shows QA notification override status, database release-gate state, and browser automation state so Steve can see what was actually verified before running live-feeling demos. The broken iframe preview was removed because Passage security headers intentionally block framing; the launcher now uses a secure route preview and open-in-new-tab flow.',
   },
   {
     pillar: 'CRM Spine',
@@ -280,7 +280,7 @@ const roadmapExecutionDetails = {
       'Vendor dashboard shows gross, Passage fee, net, payout readiness, paid jobs, and upcoming obligations.',
       'No vendor can browse family records; every vendor view is request-scoped or vendor-owned.',
     ],
-    sprintLoop: 'Next loop: browser QA the vendor application/login/request pages and add clearer public/gated explanation of how vendors get work and get paid.',
+    sprintLoop: 'Next loop: browser QA the vendor application/login/request pages after the owner-versus-employee doorway cleanup, then tighten any payment/status language that still needs narration.',
   },
   'Green to Red Trust Spine': {
     technicalRequirements: [
@@ -325,11 +325,11 @@ const roadmapExecutionDetails = {
     technicalRequirements: [
       'Keep admin-only persona launcher for family, participant, funeral-home director, employee, vendor, and admin paths.',
       'Separate simulation from production impersonation until scoped tokens, audit logs, expiry, and customer approval exist.',
-      'Maintain browser QA gates for homepage, funeral-home sample console, participant, vendor, and admin readiness paths.',
+      'Maintain browser QA gates for homepage, funeral-home sample console, participant, vendor, and admin readiness paths without iframe previews because production security headers block framing by design.',
     ],
     successCriteria: [
       'Steve can demo the complete story without polluting production UX or exposing internal controls publicly.',
-      'Persona sandbox clearly shows notification safety, browser QA state, and database release-gate state.',
+      'Persona sandbox clearly shows notification safety, browser QA state, database release-gate state, and a secure route preview for every role.',
       'A guided demo can be run in under 12 minutes with no major hand-holding.',
     ],
     sprintLoop: 'Next loop: add a "Run guided demo story" script that steps through urgent setup, participant action, funeral-home proof, vendor quote, family update, and the new funeral-home tour stops.',
@@ -1293,12 +1293,31 @@ export default function SystemAdminPage() {
                         </div>
                       ))}
                     </div>
-                    <iframe
-                      key={activePersonaHref}
-                      src={activePersonaHref}
-                      title={'Passage QA preview - ' + activePersona.label}
-                      style={{ width: '100%', height: 430, border: '1px solid ' + C.border, borderRadius: 14, background: C.bg }}
-                    />
+                    <div style={{ minHeight: 310, border: '1px solid ' + C.border, borderRadius: 14, background: C.card, padding: 18, display: 'grid', alignContent: 'center', gap: 14 }}>
+                      <div>
+                        <div style={eyebrow}>Secure preview</div>
+                        <h3 style={{ ...h3, marginTop: 6 }}>{activePersona.label} opens in a real tab.</h3>
+                        <p style={{ ...smallText, marginTop: 6 }}>
+                          Passage blocks iframe embedding with production security headers, so persona QA uses the actual route instead of a framed preview. This avoids the broken preview box and keeps the admin sandbox aligned with our clickjacking protection.
+                        </p>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+                        {[
+                          ['Role', activePersona.role],
+                          ['Route', activePersonaHref.replace(/^https?:\/\/[^/]+/i, '')],
+                          ['Expected proof', activePersona.proof],
+                        ].map(([label, value]) => (
+                          <div key={label} style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 12, padding: '10px 11px' }}>
+                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                            <div style={{ color: C.ink, fontSize: 12.6, lineHeight: 1.35, marginTop: 4, fontWeight: 800, overflowWrap: 'anywhere' }}>{value}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
+                        <Link href={activePersonaHref} target="_blank" style={primaryLink}>Open sandbox view</Link>
+                        <button type="button" onClick={() => navigator.clipboard?.writeText(activePersonaHref)} style={secondaryButton}>Copy route</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div style={{ background: C.amberFaint, border: '1px solid #ead8b8', color: C.amber, borderRadius: 13, padding: 12, marginTop: 12, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
