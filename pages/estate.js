@@ -2356,6 +2356,9 @@ function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorNa
             {notificationProof.slice(0, 5).map(function(row) {
               var status = statusText(row.status || 'recorded');
               var recipient = textValue(row.recipient_name || row.recipient_email || row.recipient_phone, 'Recipient');
+              var needsRepair = ['failed', 'blocked', 'cancelled'].includes(String(row.status || '').toLowerCase());
+              var repairRecipient = row.recipient_email || row.intended_recipient_email || row.recipient_phone || '';
+              var repairHref = '/announce?estate=' + encodeURIComponent(estateId || '') + '&retryRecipient=' + encodeURIComponent(repairRecipient) + '&sourceNotification=' + encodeURIComponent(row.id || '');
               return (
                 <div key={row.id || row.provider_id || row.created_at || recipient} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 11, padding: '9px 10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
@@ -2363,6 +2366,11 @@ function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorNa
                     <div style={{ color: ['failed', 'blocked'].includes(String(row.status || '').toLowerCase()) ? ROSE : SAGE, fontSize: 11.5, fontWeight: 900 }}>{status}</div>
                   </div>
                   <div style={{ color: MID, fontSize: 12.2, lineHeight: 1.45, marginTop: 3 }}>{row.subject || row.source || 'Family update'}{row.error_message ? ': ' + row.error_message : ''}</div>
+                  {needsRepair && (
+                    <button onClick={function() { window.location.href = repairHref; }} style={{ marginTop: 8, border: '1px solid ' + ROSE + '44', background: ROSE_FAINT, color: ROSE, borderRadius: 9, padding: '7px 9px', fontSize: 11.5, fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+                      Repair recipient and resend
+                    </button>
+                  )}
                 </div>
               );
             })}

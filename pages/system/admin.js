@@ -157,9 +157,9 @@ const roadmapItems = [
     pillar: 'Green to Red Trust Spine',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Delivery proof visible',
+    status: 'Retry repair live',
     title: 'Two-person activation, post-trigger review, and service-event readiness',
-    body: 'Activation-circle tables, witness management, second-confirmation email, participant review card, and orchestration proof events are live. The coordination smoke test verifies same-person activation is blocked and second confirmation flips the record active. The estate spine now shows a post-activation review panel with what changed, activation proof, missing owners, waiting replies, best next move, saved family-update proof, service-broadcast CTAs, and notification-log delivery proof for family/service updates.',
+    body: 'Activation-circle tables, witness management, second-confirmation email, participant review card, and orchestration proof events are live. The coordination smoke test verifies same-person activation is blocked and second confirmation flips the record active. The estate spine now shows a post-activation review panel with what changed, activation proof, missing owners, waiting replies, best next move, saved family-update proof, service-broadcast CTAs, notification-log delivery proof, and a repair handoff for failed family/service-update recipients.',
   },
   {
     pillar: 'Funeral Home Operations',
@@ -293,7 +293,7 @@ const roadmapExecutionDetails = {
       'Trusted people know who must confirm, what happened, and what tasks became active after confirmation.',
       'Family can announce key service events once and see delivery/proof/status across participants and providers.',
     ],
-    sprintLoop: 'Next loop: browser QA an activated planning record with real family-update sends in QA override mode, then tighten failed-recipient retry/repair from the estate spine.',
+    sprintLoop: 'Next loop: browser QA an activated planning record with real family-update sends in QA override mode, including one failed-recipient repair path from the estate spine back into the reviewed announcement screen.',
   },
   'Funeral Home Operations': {
     technicalRequirements: [

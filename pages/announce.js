@@ -125,6 +125,7 @@ export default function AnnouncePage() {
   var params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
   var estateId = params.get('estate');
   var deceasedName = params.get('name') || '';
+  var retryRecipient = params.get('retryRecipient') || '';
 
   var s0 = useState(1); var step = s0[0]; var setStep = s0[1];
   var s1 = useState(null); var audience = s1[0]; var setAudience = s1[1];
@@ -166,6 +167,32 @@ export default function AnnouncePage() {
       setServiceEvents(merged);
     });
   }, [estateId]);
+
+  useEffect(function() {
+    if (!estateId || !retryRecipient) return;
+    setAudience('immediate_family');
+    setTone('simple');
+    setChannel('email');
+    setRecipientText(retryRecipient);
+    sb.from('announcements')
+      .select('content,audience,tone')
+      .eq('estate_id', estateId)
+      .in('status', ['approved', 'sent', 'cancelled', 'draft'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(function(result) {
+        var row = result && result.data;
+        if (row?.audience) setAudience(row.audience);
+        if (row?.tone) setTone(row.tone);
+        if (row?.content) {
+          setMessage(row.content);
+          setStep(3);
+        } else {
+          setStep(2);
+        }
+      });
+  }, [estateId, retryRecipient]);
 
   function back() { setStep(function(s) { return Math.max(1, s - 1); }); }
 
@@ -422,6 +449,12 @@ export default function AnnouncePage() {
   if (step === 3) return (
     <Shell step={3} total={3} onBack={back}>
       <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Review before this leaves the record</div>
+
+      {retryRecipient ? (
+        <div style={{ background: ROSE + '10', border: '1px solid ' + ROSE + '40', borderRadius: 12, padding: '13px 16px', marginBottom: 14, fontSize: 14, color: ROSE, lineHeight: 1.55, fontWeight: 700 }}>
+          Repairing a previous delivery issue for {retryRecipient}. Review the message and recipient, then resend only when it looks right.
+        </div>
+      ) : null}
 
       <div style={{ background: AMBER_FAINT, border: '1px solid ' + AMBER + '40', borderRadius: 12, padding: '13px 16px', marginBottom: 20, fontSize: 14, color: AMBER, lineHeight: 1.55, fontWeight: 600 }}>
         Nothing will be sent until you confirm below.
