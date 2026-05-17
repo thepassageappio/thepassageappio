@@ -1051,10 +1051,52 @@ function advisorLabel(value) {
   return String(value || '');
 }
 
+function urgentContextLabel(key, value) {
+  var map = {
+    deathContext: {
+      unexpected: 'At home and unexpected',
+      hospice: 'Under hospice care',
+      hospital: 'In a hospital',
+      facility: 'In a care facility',
+      home_expected: 'Expected at home',
+      past: 'Past first official steps',
+    },
+    withPersonNow: {
+      me: 'Coordinator is there',
+      family: 'Family or friend is there',
+      staff: 'Hospice or facility staff is there',
+      unsure: 'Not sure who is there',
+    },
+    pronouncementStatus: {
+      confirmed: 'Officially confirmed',
+      needed: 'Needs confirmation',
+      unsure: 'Not sure yet',
+    },
+    authorityStatus: {
+      self: 'Coordinator can decide',
+      someone_else: 'Someone else can decide',
+      unsure: 'Authority unclear',
+    },
+    funeralHomeHandoffIntent: {
+      known: 'Funeral home known',
+      request_help: 'Needs help choosing',
+      not_ready: 'Not ready yet',
+    },
+  };
+  return map[key]?.[value] || textValue(value, '');
+}
+
 function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people, actions, announcements, tasks, outcomes }) {
   var summary = estate?.orchestration_summary || {};
   var context = summary.chaplain_context || summary.planning_context || {};
   var trusted = summary.trusted_advisors || {};
+  var urgentContextItems = [
+    ['Situation', urgentContextLabel('deathContext', context.deathContext)],
+    ['Who is with them', urgentContextLabel('withPersonNow', context.withPersonNow)],
+    ['Pronouncement', urgentContextLabel('pronouncementStatus', context.pronouncementStatus)],
+    ['Decision authority', urgentContextLabel('authorityStatus', context.authorityStatus)],
+    ['Funeral-home readiness', urgentContextLabel('funeralHomeHandoffIntent', context.funeralHomeHandoffIntent)],
+  ].filter(function(item) { return item[1]; });
   var advisorItems = [
     ['Healthcare proxy', trusted.healthcare_proxy || trusted.healthcare_proxy_or_decision_maker || context.authorityName || context.healthcare_proxy?.name],
     ['Executor', trusted.executor],
@@ -1095,6 +1137,17 @@ function EstateOrchestrationMap({ estate, estateId, name, serviceEvents, people,
         <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 5 }}>Next clear move</div>
         <div style={{ fontSize: 13.5, color: INK, lineHeight: 1.55 }}>{nextMove}</div>
       </div>
+      {urgentContextItems.length > 0 && (
+        <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '12px 13px', marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Urgent stabilization</div>
+          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+            {urgentContextItems.map(function(item) {
+              return <span key={item[0]} style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 999, padding: '6px 9px', fontSize: 11.5, color: MID }}><strong style={{ color: INK }}>{item[0]}:</strong> {item[1]}</span>;
+            })}
+          </div>
+          <div style={{ color: SAGE, fontSize: 12.5, lineHeight: 1.45, marginTop: 8, fontWeight: 800 }}>This is the handoff from urgent intake. Keep uncertainty visible until proof closes it.</div>
+        </div>
+      )}
       {advisorItems.length > 0 && (
         <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '12px 13px', marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Trusted advisor map</div>

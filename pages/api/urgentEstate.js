@@ -147,6 +147,7 @@ function cleanContext(raw) {
   const input = raw && typeof raw === 'object' ? raw : {};
   return {
     deathContext: clean(input.deathContext),
+    withPersonNow: clean(input.withPersonNow),
     pronouncementStatus: clean(input.pronouncementStatus),
     authorityStatus: clean(input.authorityStatus),
     emergencyCalled: clean(input.emergencyCalled),
@@ -171,6 +172,11 @@ function cleanContext(raw) {
     clergyName: clean(input.clergyName),
     authorityName: clean(input.authorityName),
     hospitalOrHospiceContact: clean(input.hospitalOrHospiceContact),
+    hospitalOrHospiceAddress: clean(input.hospitalOrHospiceAddress),
+    hospitalOrHospiceCity: clean(input.hospitalOrHospiceCity),
+    hospitalOrHospiceState: clean(input.hospitalOrHospiceState),
+    hospitalOrHospiceZip: clean(input.hospitalOrHospiceZip),
+    hospitalOrHospiceCountry: clean(input.hospitalOrHospiceCountry),
     medicalRecordsLocation: clean(input.medicalRecordsLocation),
     pronouncementDate: clean(input.pronouncementDate),
     releaseDate: clean(input.releaseDate),

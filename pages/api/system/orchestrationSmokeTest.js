@@ -134,6 +134,13 @@ export default async function handler(req, res) {
       orchestration_summary: {
         qa_smoke_test: true,
         purpose: 'Temporary coordination, communication, and notification spine simulation.',
+        chaplain_context: {
+          deathContext: 'hospice',
+          withPersonNow: 'family',
+          pronouncementStatus: 'needed',
+          authorityStatus: 'someone_else',
+          funeralHomeHandoffIntent: 'request_help',
+        },
       },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -612,8 +619,9 @@ export default async function handler(req, res) {
       });
     }
 
-    const [{ data: taskAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }, { data: vendorOrderRows }, { data: vendorPaymentRows }, { data: announcementRows }] = await Promise.all([
+    const [{ data: taskAfter }, { data: workflowAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }, { data: vendorOrderRows }, { data: vendorPaymentRows }, { data: announcementRows }] = await Promise.all([
       admin.from('tasks').select('id,status,last_actor,last_action_at,completed_at,completed_by_email').eq('id', task.id).maybeSingle(),
+      admin.from('workflows').select('id,orchestration_summary').eq('id', workflow.id).maybeSingle(),
       admin.from('notification_log').select('*').eq('workflow_id', workflow.id),
       admin.from('task_status_events').select('*').eq('workflow_id', workflow.id),
       admin.from('estate_events').select('*').eq('estate_id', workflow.id),
@@ -622,6 +630,16 @@ export default async function handler(req, res) {
       admin.from('vendor_payments').select('id,status,payout_status,gross_amount,application_fee_amount,vendor_net_amount').eq('workflow_id', workflow.id),
       admin.from('announcements').select('id,status,audience,channel').eq('estate_id', workflow.id),
     ]);
+
+    const smokeContext = workflowAfter?.orchestration_summary?.chaplain_context || {};
+    checks.push({
+      name: 'urgent_stabilization_context_visible_in_spine',
+      ok: smokeContext.deathContext === 'hospice' && smokeContext.withPersonNow === 'family' && smokeContext.pronouncementStatus === 'needed' && smokeContext.funeralHomeHandoffIntent === 'request_help',
+      deathContext: smokeContext.deathContext || null,
+      withPersonNow: smokeContext.withPersonNow || null,
+      pronouncementStatus: smokeContext.pronouncementStatus || null,
+      funeralHomeHandoffIntent: smokeContext.funeralHomeHandoffIntent || null,
+    });
 
     checks.push({
       name: 'spine_rows_recorded',
