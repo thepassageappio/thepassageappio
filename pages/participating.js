@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
 import { RoleActionStrip, SiteHeader, SiteFooter, StatusBadge } from '../components/SiteChrome';
-import { isPassageAdmin } from '../lib/adminAccess';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
@@ -528,34 +527,30 @@ export default function ParticipatingPage() {
 
   useEffect(() => {
     if (!router.isReady) return;
+    if (requestedDemoMode) {
+      setDemoMode(true);
+      setData(demoParticipantContext);
+      setExpandedEstateId('demo-participant-estate');
+      setLoading(false);
+      if (supabase?.auth) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) setUser(session.user);
+        }).catch(() => {});
+      }
+      return undefined;
+    }
     if (!supabase?.auth) {
       setLoading(false);
       setError('Sign-in is not configured in this environment.');
       return undefined;
     }
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (requestedDemoMode && isPassageAdmin(session?.user?.email)) {
-        setDemoMode(true);
-        setUser(session.user);
-        setData(demoParticipantContext);
-        setExpandedEstateId('demo-participant-estate');
-        setLoading(false);
-        return;
-      }
       setDemoMode(false);
       setUser(session?.user || null);
       if (session?.access_token) load(session.access_token);
       else setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (requestedDemoMode && isPassageAdmin(session?.user?.email)) {
-        setDemoMode(true);
-        setUser(session.user);
-        setData(demoParticipantContext);
-        setExpandedEstateId('demo-participant-estate');
-        setLoading(false);
-        return;
-      }
       setDemoMode(false);
       setUser(session?.user || null);
       if (session?.access_token) load(session.access_token);
@@ -798,9 +793,9 @@ export default function ParticipatingPage() {
       <section className="participant-shell">
         <div style={{ maxWidth: 760, marginBottom: 16 }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Private participant workspace</div>
-          <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: '0 0 7px', fontWeight: 400 }}>{user ? 'Open the family request assigned to you.' : 'Sign in to open your assigned request.'}</h1>
+          <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: '0 0 7px', fontWeight: 400 }}>{user || demoMode ? 'Open the family request assigned to you.' : 'Sign in to open your assigned request.'}</h1>
           <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: 0 }}>
-            {user
+            {user || demoMode
               ? 'Passage shows only the part the family or coordinator asked you to handle. Work one request at a time, then leave the rest of the record private.'
               : 'This page is gated. Use the email that received the invite; unrelated estate details stay private.'}
           </p>
@@ -855,10 +850,10 @@ export default function ParticipatingPage() {
         )}
 
         {demoMode && <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, color: C.amber, borderRadius: 14, padding: 13, marginBottom: 14, fontWeight: 900 }}>Demo participant view. Updates change this screen only; no email, SMS, or production record is changed.</div>}
-        {user && loading && <div style={{ color: C.soft }}>Loading participating estates...</div>}
-        {user && error && <div style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16 }}>{error}</div>}
+        {(user || demoMode) && loading && <div style={{ color: C.soft }}>Loading participating estates...</div>}
+        {(user || demoMode) && error && <div style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16 }}>{error}</div>}
 
-        {user && !loading && data && (
+        {(user || demoMode) && !loading && data && (
           <div className="participant-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 14, alignItems: 'start' }}>
             <div>
               {data.estates.length > 0 && (

@@ -28,14 +28,20 @@ export default function VendorFrontDoor() {
     await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/vendors/request` } });
   }
 
+  function openVendorWork(event) {
+    if (user) return;
+    event.preventDefault();
+    signIn();
+  }
+
   const cards = [
     {
       eyebrow: 'Approved vendor',
-      title: 'Open your request portal',
-      body: 'Respond to family or funeral-home requests, share quotes, mark scheduled, and save completion proof.',
+      title: 'Open assigned vendor work',
+      body: 'For approved vendors and vendor employees. Sign in with the email on your vendor profile to see assigned requests, quote, schedule, and save proof.',
       href: '/vendors/request',
-      action: user ? 'Open vendor work' : 'Vendor sign in',
-      onClick: user ? null : signIn,
+      action: user ? 'Open assigned work' : 'Sign in to see assigned work',
+      onClick: openVendorWork,
       tone: 'primary',
     },
     {
@@ -70,11 +76,11 @@ export default function VendorFrontDoor() {
                 Apply to join
               </Link>
               <button type="button" onClick={signIn} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
-                Vendor sign in
+                Sign in as approved vendor
               </button>
             </div>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
-              Vendor employees use the same portal. Approved vendor teams can respond from the request link or sign in with the email connected to their vendor profile.
+              New vendors apply first. Approved vendors and vendor employees use sign-in to open assigned work. They do not browse families or cases.
             </div>
           </div>
           <div style={{ display: 'grid', gap: 10 }}>
@@ -105,22 +111,15 @@ export default function VendorFrontDoor() {
                 width: '100%',
                 boxSizing: 'border-box',
               };
-              if (card.onClick) {
-                return (
-                  <article key={card.title} style={cardStyle}>
-                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{card.eyebrow}</div>
-                    <h2 style={{ color: C.ink, fontSize: 20, lineHeight: 1.15, margin: '4px 0 5px', fontWeight: 900 }}>{card.title}</h2>
-                    <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.45, margin: 0 }}>{card.body}</p>
-                    <button type="button" onClick={card.onClick} style={{ ...actionStyle, marginTop: 12 }}>{card.action}</button>
-                  </article>
-                );
-              }
               return (
                 <article key={card.title} style={cardStyle}>
                   <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{card.eyebrow}</div>
                   <h2 style={{ color: C.ink, fontSize: 20, lineHeight: 1.15, margin: '4px 0 5px', fontWeight: 900 }}>{card.title}</h2>
                   <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.45, margin: 0 }}>{card.body}</p>
-                  <Link href={card.href} onClick={() => trackEvent('vendor_card_clicked', { title: card.title, href: card.href, action: card.action })} style={{ ...actionStyle, marginTop: 12 }}>
+                  <Link href={card.href} onClick={(event) => {
+                    trackEvent('vendor_card_clicked', { title: card.title, href: card.href, action: card.action });
+                    if (card.onClick) card.onClick(event);
+                  }} style={{ ...actionStyle, marginTop: 12 }}>
                     {card.action}
                   </Link>
                 </article>
