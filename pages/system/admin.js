@@ -108,10 +108,10 @@ const roadmapItems = [
   {
     pillar: 'Database Hygiene and Release Safety',
     priority: 'P0',
-    timing: 'Today',
-    status: 'Release gate passing',
+    timing: 'Done today',
+    status: 'Managed drift classified',
     title: 'Restore Supabase diff and dump as pre-deploy gates',
-    body: 'Migration history is aligned between local and production, and scripts/db-release-gate.ps1 now runs the repeatable database release gate: Docker engine, Supabase migration list, db diff, and a non-empty production schema backup. Docker Desktop is healthy again, Supabase diff completed, and the latest production schema backup was written successfully. Success criteria remains: run this gate before production migrations and review any diff before applying database changes.',
+    body: 'Migration history is aligned between local and production, and scripts/db-release-gate.ps1 now runs the repeatable database release gate: Docker engine, Supabase migration list, public-schema diff, managed integration drift classification, and a non-empty production schema backup. Docker Desktop is healthy again, public Supabase diff returns no Passage-owned drift, and Stripe/Supabase-managed schema output is classified as informational so it does not get copied into Passage migrations.',
   },
   {
     pillar: 'Compliance and Security Readiness',
@@ -215,7 +215,7 @@ const roadmapExecutionDetails = {
       'No production migration ships without a reviewed diff and rollback/backup file.',
       'Admin roadmap reflects the latest gate result instead of stale confidence.',
     ],
-    sprintLoop: 'Next loop: classify the new Supabase-managed Stripe schema diff so the release gate can distinguish expected extension drift from Passage-owned schema changes.',
+    sprintLoop: 'Next loop: run this gate before any vendor-payment, activation-spine, or RLS-sensitive migration; if public drift appears, stop and create a reviewed migration before deploy.',
   },
   'Compliance and Security Readiness': {
     technicalRequirements: [

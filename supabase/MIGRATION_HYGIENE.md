@@ -29,6 +29,14 @@ Expected healthy state:
 - `db diff` returns `No schema changes found` before new work.
 - `db push --dry-run` returns `Remote database is up to date` before new work.
 
+Use the repeatable gate when preparing a real release:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/db-release-gate.ps1
+```
+
+The gate treats `public` schema drift as a blocker because that is Passage-owned application data. Broad diffs may show Supabase-managed integration schemas such as `stripe`, `pgmq`, `storage`, or extension objects after dashboard integrations are enabled. Those are classified as informational unless the broad diff also includes `public` schema changes.
+
 ## Before applying production migrations
 
 Run a schema backup first:
@@ -57,3 +65,4 @@ npx supabase db diff --linked --schema public
 - Keep production data out of migration files.
 - Keep seed/demo data out of production migrations unless the migration name and code make that intent explicit.
 - Treat `db diff` failures as a blocker before Stripe Connect, vendor payments, activation-spine, or RLS-sensitive work.
+- Do not copy Supabase-managed Stripe schema, `pgmq`, or extension drift into Passage-owned migrations. Keep those managed by the integration that created them.
