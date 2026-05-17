@@ -125,9 +125,9 @@ const roadmapItems = [
     pillar: 'Production Readiness Control',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Persona contracts live',
+    status: 'Scorecards live',
     title: 'One-click P0 readiness loop from admin roadmap',
-    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: public-surface copy and CTA checks, task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, and a visible rollup of blockers, warnings, pass/fail status, and persona orchestration contracts before demos or launches. Internal readiness routes accept the canonical internal header plus the older system-secret alias and return a clear mismatch message when production env is out of sync.',
+    body: 'The admin console now runs the core readiness sequence from the roadmap source of truth: public-surface copy and CTA checks, task orchestration smoke test, vendor payment and HubSpot readiness, compliance snapshot, dangerous-middle scorecards, and persona orchestration contracts before demos or launches. Internal readiness routes accept the canonical internal header plus the older system-secret alias and return a clear mismatch message when production env is out of sync.',
   },
   {
     pillar: 'Auth and First-Record Self-Service',
@@ -175,7 +175,7 @@ const roadmapItems = [
     timing: 'Done today',
     status: 'Format standardized',
     title: 'Email consistency, deep links, family updates, and event announcements',
-    body: 'Reviewed family updates, vendor requests, vendor quote updates, task assignments, activation requests, funeral-home proof emails, and partner exports now use the Passage operational shell pattern: consistent Passage subject prefix, mobile-safe formatting, primary CTA button, fallback link, recipient safety routing, and notification-log proof where the action leaves the system.',
+    body: 'Reviewed family updates, vendor requests, vendor quote updates, task assignments, activation requests, funeral-home proof emails, partner exports, and urgent-path proof notes now use the Passage operational shell pattern: consistent Passage subject prefix, mobile-safe formatting, primary CTA button, fallback link, recipient safety routing, and notification-log proof where the action leaves the system.',
   },
   {
     pillar: 'Demo and QA Sandbox',
@@ -239,9 +239,9 @@ const roadmapExecutionDetails = {
     successCriteria: [
       'P0 readiness loop passes with public, spine, payment/CRM, compliance, and persona-contract checks green.',
       'Each persona has a visible action, proof path, notification path, and next state.',
-      'Admin can tell what is API-verified, browser-verified, dry-run verified, or still requires live-money/customer QA.',
+      'Admin can tell what is API-verified, browser-verified, dry-run verified, or still requires live-money/customer QA from the scorecards.',
     ],
-    sprintLoop: 'Next loop: add "dangerous middle" scorecards for operational trust, self-service, demo readiness, and production readiness directly beside the P0 loop.',
+    sprintLoop: 'Next loop: run scorecards after each sprint and turn any amber score into the next P0 patch or configuration task.',
   },
   'Auth and First-Record Self-Service': {
     technicalRequirements: [
@@ -507,6 +507,7 @@ export default function SystemAdminPage() {
     priority,
     items: detailedRoadmapItems.filter((item) => item.priority === priority),
   })).filter((group) => group.items.length), []);
+  const dangerousMiddleScorecards = useMemo(() => buildDangerousMiddleScorecards(p0Readiness), [p0Readiness]);
 
   useEffect(() => {
     if (!admin || !supabase) return undefined;
@@ -866,16 +867,16 @@ export default function SystemAdminPage() {
       `}</style>
       <SiteHeader user={user} onSignIn={signIn} onSignOut={user ? signOut : null} />
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '22px 28px 36px' }}>
-        <div style={eyebrow}>Passage system admin</div>
-        <h1 style={h1}>Internal operating spine.</h1>
-        <p style={lead}>Owner-only controls for demos, vendor approval, dry-run QA, metrics export, and trust review. Separate from family, funeral-home, vendor, and estate admin views.</p>
+        <div style={eyebrow}>{admin ? 'Passage system admin' : 'Private Passage workspace'}</div>
+        <h1 style={h1}>{admin ? 'Internal operating spine.' : 'Sign in to continue.'}</h1>
+        <p style={lead}>{admin ? 'Owner-only controls for demos, vendor approval, dry-run QA, metrics export, and trust review. Separate from family, funeral-home, vendor, and estate admin views.' : 'This area is restricted to authorized Passage operators.'}</p>
 
         {loading && <Panel>Checking system-admin access...</Panel>}
 
         {!loading && !user && (
           <Panel>
-            <h2 style={h2}>Sign in to continue.</h2>
-            <p style={lead}>Demo, vendor approval, internal reporting, support inbox, and QA shortcuts are restricted to Passage system admins.</p>
+            <h2 style={h2}>Use your approved Passage account.</h2>
+            <p style={lead}>If you are looking for your estate, participant request, funeral-home workspace, or vendor portal, use the main sign-in page instead.</p>
             <button onClick={signIn} style={primaryButton}>Sign in with Google</button>
           </Panel>
         )}
@@ -953,6 +954,11 @@ export default function SystemAdminPage() {
                       <div style={{ ...smallText, color: C.amber, marginTop: 10 }}>{p0Readiness.warnings.join(' ')}</div>
                     )}
                   </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 14 }}>
+                  {dangerousMiddleScorecards.map((card) => (
+                    <ReadinessScorecard key={card.id} card={card} />
+                  ))}
                 </div>
               </Panel>
               <Panel compact>
@@ -1613,6 +1619,81 @@ function RoadmapCard({ item, compact = false }) {
             )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function buildDangerousMiddleScorecards(p0Readiness) {
+  const steps = p0Readiness?.steps || [];
+  const stepByKey = Object.fromEntries(steps.map((step) => [step.key, step]));
+  const blockers = p0Readiness?.blockers || [];
+  const warnings = p0Readiness?.warnings || [];
+  const publicBlockerText = blockers.filter((item) => item.includes('Public pages'));
+  const googleAddressBlocked = blockers.some((item) => /Google address autocomplete/i.test(item));
+  const smsWarning = warnings.some((item) => /SMS|Twilio|A2P|trial/i.test(item));
+  const spineOk = stepByKey.spine?.ok === true;
+  const publicOk = stepByKey.public?.ok === true;
+  const paymentOk = stepByKey.payment?.ok === true;
+  const complianceOk = stepByKey.compliance?.ok === true;
+  const hasRun = Boolean(p0Readiness);
+
+  const cards = [
+    {
+      id: 'operational-trust',
+      label: 'Operational trust',
+      score: hasRun ? (spineOk ? 92 : 68) : 76,
+      status: hasRun ? (spineOk ? 'API proof green' : 'Needs orchestration review') : 'Run P0 loop',
+      proof: spineOk ? 'Task orchestration, participant action, vendor dry run, and notification proof passed.' : 'Waiting for the orchestration smoke test to prove actions write back to the spine.',
+      next: spineOk ? 'Keep browser-QAing live role flows after each sprint.' : 'Fix the failed smoke-test row before demoing task coordination.',
+    },
+    {
+      id: 'self-service',
+      label: 'Self-service readiness',
+      score: hasRun ? (publicOk ? 88 : googleAddressBlocked ? 72 : 76) : 70,
+      status: publicOk ? 'Public handoffs green' : googleAddressBlocked ? 'Address key needed' : 'CTA/copy blocker',
+      proof: publicOk ? 'Public CTAs and copy-safety checks are green.' : googleAddressBlocked ? 'Smart address UI is built, but Vercel still needs GOOGLE_PLACES_API_KEY or GOOGLE_MAPS_API_KEY.' : (publicBlockerText[0] || 'Run the P0 loop to identify the self-service blocker.'),
+      next: publicOk ? 'Browser-QA first-record creation and auth-return states.' : googleAddressBlocked ? 'Add the Google Places/Maps server key in Vercel production, redeploy, then rerun P0 loop.' : 'Resolve public CTA/copy blocker and rerun readiness.',
+    },
+    {
+      id: 'demo-readiness',
+      label: 'Demo readiness',
+      score: hasRun ? (spineOk && (publicOk || googleAddressBlocked) ? 86 : 74) : 78,
+      status: spineOk ? 'Founder-led demo usable' : 'Narration required',
+      proof: spineOk ? 'The core coordination story has API proof; remaining gaps are config or live browser friction.' : 'The demo story still needs a clean role-flow proof run.',
+      next: 'Next sprint should walk the funeral-home sample story in browser: My Day, case context, owner, proof, participant/vendor update.',
+    },
+    {
+      id: 'production-readiness',
+      label: 'Production readiness',
+      score: hasRun ? (publicOk && spineOk && paymentOk && complianceOk && !smsWarning ? 90 : 73) : 66,
+      status: hasRun ? (publicOk && spineOk && paymentOk && complianceOk ? 'Engineering close' : 'Controlled-launch only') : 'Not yet scored',
+      proof: hasRun ? `${[publicOk, spineOk, paymentOk, complianceOk].filter(Boolean).length}/4 readiness gates green${smsWarning ? '; SMS still needs carrier/A2P caution.' : '.'}` : 'Run the full P0 readiness loop to score launch posture.',
+      next: publicOk && spineOk && paymentOk && complianceOk ? 'Keep live-money/vendor payout QA separate from demo readiness.' : 'Clear open readiness blockers before opening cold self-service traffic.',
+    },
+  ];
+
+  return cards.map((card) => ({
+    ...card,
+    tone: card.score >= 88 ? 'good' : card.score >= 76 ? 'warn' : 'risk',
+  }));
+}
+
+function ReadinessScorecard({ card }) {
+  const toneColor = card.tone === 'good' ? C.sage : card.tone === 'warn' ? C.amber : C.rose;
+  const toneBg = card.tone === 'good' ? C.sageFaint : card.tone === 'warn' ? C.amberFaint : C.roseFaint;
+  return (
+    <div style={{ background: toneBg, border: `1px solid ${toneColor}33`, borderRadius: 14, padding: 13, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ color: toneColor, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{card.label}</div>
+          <div style={{ color: C.ink, fontSize: 16, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>{card.status}</div>
+        </div>
+        <div style={{ color: toneColor, fontSize: 28, lineHeight: 1, fontWeight: 900 }}>{card.score}</div>
+      </div>
+      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.4 }}>{card.proof}</div>
+      <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 9px', color: C.ink, fontSize: 12.5, lineHeight: 1.35 }}>
+        <strong>Next:</strong> {card.next}
       </div>
     </div>
   );
