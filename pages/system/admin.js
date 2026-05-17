@@ -203,6 +203,170 @@ const roadmapItems = [
   },
 ];
 
+const roadmapExecutionDetails = {
+  'Database Hygiene and Release Safety': {
+    technicalRequirements: [
+      'Run scripts/db-release-gate.ps1 before any production migration or payment-spine schema change.',
+      'Review Supabase diff output and separate managed Stripe schema drift from Passage public-schema changes.',
+      'Keep a non-empty production schema backup artifact for every database release.',
+    ],
+    successCriteria: [
+      'Docker engine responds, migration list is aligned, db diff completes, and schema dump is non-empty.',
+      'No production migration ships without a reviewed diff and rollback/backup file.',
+      'Admin roadmap reflects the latest gate result instead of stale confidence.',
+    ],
+    sprintLoop: 'Next loop: classify the new Supabase-managed Stripe schema diff so the release gate can distinguish expected extension drift from Passage-owned schema changes.',
+  },
+  'Compliance and Security Readiness': {
+    technicalRequirements: [
+      'Keep RLS, public-policy, sensitive-table, env-var, notification-safety, and integration checks callable from admin readiness.',
+      'Maintain trust copy that avoids HIPAA, SOC 1, or SOC 2 claims until formal review exists.',
+      'Track legal/compliance gaps separately from engineering readiness so demo language stays honest.',
+    ],
+    successCriteria: [
+      'Readiness API returns zero blockers for engineering posture before demos.',
+      'Public pages and product flows use role-scoped, review-before-share, audit-oriented language.',
+      'Enterprise claims stay gated until legal policies, BAA posture, subprocessor list, and audit retention are reviewed.',
+    ],
+    sprintLoop: 'Next loop: add a formal Trust checklist panel for Privacy, Terms, BAA path, subprocessors, incident response, retention, and security contact.',
+  },
+  'Production Readiness Control': {
+    technicalRequirements: [
+      'Keep public surface, orchestration smoke test, payment/CRM readiness, compliance readiness, and persona contracts in one admin loop.',
+      'Return persona-by-persona pass/fail proof from the smoke test instead of raw technical rows only.',
+      'Expose blockers, warnings, and proof counts in the admin console before founder-led demos.',
+    ],
+    successCriteria: [
+      'P0 readiness loop passes with public, spine, payment/CRM, compliance, and persona-contract checks green.',
+      'Each persona has a visible action, proof path, notification path, and next state.',
+      'Admin can tell what is API-verified, browser-verified, dry-run verified, or still requires live-money/customer QA.',
+    ],
+    sprintLoop: 'Next loop: add "dangerous middle" scorecards for operational trust, self-service, demo readiness, and production readiness directly beside the P0 loop.',
+  },
+  'Auth and First-Record Self-Service': {
+    technicalRequirements: [
+      'Preserve intended destination through Google/magic-link/password auth across estate, participant, funeral-home, vendor, and admin doors.',
+      'Give signed-in users with no estate an immediate create-planning/create-urgent handoff instead of a dead sign-in loop.',
+      'Add explicit empty-state reassurance and error feedback for auth failures, missing invite scope, and no-record states.',
+    ],
+    successCriteria: [
+      'A new family user can sign in, create their first planning or urgent record, and land in the correct workspace.',
+      'A participant or staff member without scope sees a warm explanation and the correct next step, not a generic blank panel.',
+      'Browser QA confirms no sign-in/sign-out flicker and no public System Admin leakage.',
+    ],
+    sprintLoop: 'Next loop: run browser QA through first-record creation and document every auth-return URL that still creates a cognitive bump.',
+  },
+  'Public Site and Demo Proof': {
+    technicalRequirements: [
+      'Keep public CTAs routed to concrete actions: urgent path, planning path, care-provider path, vendor application, funeral-home sample console, or HubSpot booking.',
+      'Add operational proof to sales pages: screenshots, sample screens, workflow diagrams, ROI cards, and "what happens next" sections.',
+      'Keep all internal roadmap/demo/admin language out of public pages and public emails.',
+    ],
+    successCriteria: [
+      'A funeral director can open the sample console without login and understand My Day, warm inbounds, staff, reporting, and proof.',
+      'Homepage and role pages show the operating system, not just the philosophy.',
+      'Every public primary CTA resolves, explains auth/payment if needed, or fails with a clear support path.',
+    ],
+    sprintLoop: 'Next loop: add a guided 90-second funeral-home sample tour with screenshots/proof cards and explicit ROI story.',
+  },
+  'Vendor Commerce': {
+    technicalRequirements: [
+      'Keep one canonical vendor request lifecycle from request to quote, family acceptance, payment pending, paid, scheduled, completed, and payout status.',
+      'Use Stripe Connect destination-charge/payment records with 12% Passage fee and vendor net recorded in vendor_orders/vendor_payments/vendor_requests.',
+      'Show vendor what work arrived, what they quoted, whether family paid, what they net, and when reminders fire.',
+    ],
+    successCriteria: [
+      'Family can request a vendor from task context, vendor can quote, family can review/pay, and all state changes write to the spine.',
+      'Vendor dashboard shows gross, Passage fee, net, payout readiness, paid jobs, and upcoming obligations.',
+      'No vendor can browse family records; every vendor view is request-scoped or vendor-owned.',
+    ],
+    sprintLoop: 'Next loop: browser QA the vendor application/login/request pages and add clearer public/gated explanation of how vendors get work and get paid.',
+  },
+  'Green to Red Trust Spine': {
+    technicalRequirements: [
+      'Maintain two-person activation with a different trusted witness, audit events, and participant-side confirmation card.',
+      'After activation, promote incomplete planning data into visible urgent tasks with owners, waiting points, and next expected updates.',
+      'Add bulk event announcement tooling for wake, funeral, cemetery, reception, hospice, care-facility, and vendor obligations.',
+    ],
+    successCriteria: [
+      'One person cannot silently activate a planning record alone.',
+      'Trusted people know who must confirm, what happened, and what tasks became active after confirmation.',
+      'Family can announce key service events once and see delivery/proof/status across participants and providers.',
+    ],
+    sprintLoop: 'Next loop: build the post-activation "what changed and what needs completion" review panel plus service-event broadcast proof.',
+  },
+  'Funeral Home Operations': {
+    technicalRequirements: [
+      'Make director onboarding self-service: plan, location slots, first location, staff invite, first case/import, and My Day setup.',
+      'Keep employee workspace focused on assigned work only, with location scope, case context, waiting point, and proof action.',
+      'Add dynamic ROI metrics from call avoidance, task closure, staff load, family updates, exports, and aftercare follow-through.',
+    ],
+    successCriteria: [
+      'Director can create workspace, add locations within plan limits, invite staff, create/import first case, assign work, and see My Day.',
+      'Employee can sign in and know exactly what needs attention today without director clutter.',
+      'Demo proves operational relief: fewer repeated calls, clearer owners, visible proof, and exportable case context.',
+    ],
+    sprintLoop: 'Next loop: tighten funeral-home onboarding from blank account to first staff assignment and make ROI cards feel earned, not hypothetical.',
+  },
+  Communications: {
+    technicalRequirements: [
+      'Standardize every outbound email with Passage brand shell, one CTA button, fallback link, recipient role, and "what happens next."',
+      'Write notification_log rows with intended recipient, actual recipient, source workflow/task, provider status, and QA override metadata.',
+      'Add in-product reassurance states for sent, delivered, waiting, failed, completed, and no-action-needed.',
+    ],
+    successCriteria: [
+      'Family, participant, funeral home, vendor, and admin can see what was sent, to whom, and what changed afterward.',
+      'Urgent users receive calm confirmation that they are not doing it wrong and can see the next expected update.',
+      'No external message sends without review/approval when the action leaves the family record.',
+    ],
+    sprintLoop: 'Next loop: audit the full email inbox set against the template contract and add missing CTA/deep-link coverage.',
+  },
+  'Demo and QA Sandbox': {
+    technicalRequirements: [
+      'Keep admin-only persona launcher for family, participant, funeral-home director, employee, vendor, and admin paths.',
+      'Separate simulation from production impersonation until scoped tokens, audit logs, expiry, and customer approval exist.',
+      'Maintain browser QA gates for homepage, funeral-home sample console, participant, vendor, and admin readiness paths.',
+    ],
+    successCriteria: [
+      'Steve can demo the complete story without polluting production UX or exposing internal controls publicly.',
+      'Persona sandbox clearly shows notification safety, browser QA state, and database release-gate state.',
+      'A guided demo can be run in under 12 minutes with no major hand-holding.',
+    ],
+    sprintLoop: 'Next loop: add a "Run guided demo story" script that steps through urgent setup, participant action, funeral-home proof, vendor quote, and family update.',
+  },
+  'CRM Spine': {
+    technicalRequirements: [
+      'Route family, funeral-home, vendor, care-provider, guide, support, and checkout events into HubSpot contact/company/deal rules.',
+      'Log every CRM sync attempt in crm_sync_events with status, source, IDs, error, and payload context.',
+      'Expose sync status, failures, recent rows, and source grouping in admin Metrics.',
+    ],
+    successCriteria: [
+      'Website submissions create or update the expected HubSpot objects and show a CRM sync row in admin.',
+      'Failed or skipped syncs are visible without digging through Supabase.',
+      'Founder can test lead capture before campaigns and know whether HubSpot caught the lead.',
+    ],
+    sprintLoop: 'Next loop: run one owned test through contact, vendor, care-provider, and funeral-home inquiry and verify HubSpot object creation plus admin sync rows.',
+  },
+  'Mobile Companion': {
+    technicalRequirements: [
+      'Design mobile-first screens for participant task, family My Day, funeral-home employee queue, vendor request, proof upload, and notifications.',
+      'Expose mobile-safe APIs for my-work, task action, participant action, vendor request action, upload proof, and push-token registration.',
+      'Keep mobile as the action layer, not a clone of the full command center.',
+    ],
+    successCriteria: [
+      'Participant can open a phone link, understand one task, respond, and leave proof in under one minute.',
+      'Funeral-home employee sees "what needs attention today" with no director clutter.',
+      'Vendor can quote/respond from phone with date, time, location, payment status, and obligation reminders clear.',
+    ],
+    sprintLoop: 'Next loop: create mobile companion technical plan and first prototype scope for participant plus staff My Day.',
+  },
+};
+
+const detailedRoadmapItems = roadmapItems.map((item) => ({
+  ...item,
+  ...(roadmapExecutionDetails[item.pillar] || {}),
+}));
+
 const personaProfiles = [
   {
     id: 'red-family',
@@ -335,6 +499,14 @@ export default function SystemAdminPage() {
     () => sandboxHref(activePersona.href, activePersona.id),
     [activePersona]
   );
+  const completedRoadmapItems = useMemo(() => detailedRoadmapItems.filter((item) => {
+    const marker = `${item.timing || ''} ${item.status || ''}`;
+    return /done|verified|fixed|standardized|passing|smoke-tested|visibility live/i.test(marker);
+  }), []);
+  const roadmapPriorityGroups = useMemo(() => ['P0', 'P1', 'P2', 'P3', 'P4'].map((priority) => ({
+    priority,
+    items: detailedRoadmapItems.filter((item) => item.priority === priority),
+  })).filter((group) => group.items.length), []);
 
   useEffect(() => {
     if (!admin || !supabase) return undefined;
@@ -988,29 +1160,37 @@ export default function SystemAdminPage() {
                 <h2 style={h2}>The source of truth for P0 sprints.</h2>
                 <p style={lead}>Every Passage sprint starts here and ends here: assess the current roadmap, define technical requirements and success criteria, ship the work, run QA, then update this console as items are signed off. This replaces one-off internal notes with an owner-only roadmap tied to the product spine.</p>
                 <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
-                  <strong style={{ color: C.ink }}>Sprint rule:</strong> if a P0 loop changes vendor commerce, Green-to-urgent activation, funeral-home operations, participants, communications, CRM, or demo readiness, update this roadmap before calling the sprint complete.
+                  <strong style={{ color: C.ink }}>Sprint rule:</strong> if a P0 loop changes vendor commerce, planning-to-urgent activation, funeral-home operations, participants, communications, CRM, or demo readiness, update this roadmap before calling the sprint complete.
                 </div>
                 <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
-                  {roadmapItems.map(item => {
-                    const priorityColor = item.priority === 'P0' ? C.rose : item.priority === 'P1' ? C.amber : C.sage;
-                    const statusTone = /complete|signed/i.test(item.status) ? C.sage : /needs/i.test(item.status) ? C.amber : priorityColor;
-                    return (
-                      <div key={item.title} style={{ ...subPanel, display: 'grid', gap: 8 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                          <div>
-                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{item.pillar}</div>
-                            <h3 style={{ ...h3, marginTop: 5 }}>{item.title}</h3>
+                  <details open style={accordionPanel}>
+                    <summary style={accordionSummary}>
+                      <span>Completed or verified sprint items</span>
+                      <span style={countPill}>{completedRoadmapItems.length}</span>
+                    </summary>
+                    <div style={{ display: 'grid', gap: 9, marginTop: 10 }}>
+                      {completedRoadmapItems.map((item) => <RoadmapCard key={'complete-' + item.title} item={item} compact />)}
+                    </div>
+                  </details>
+                  <details open style={accordionPanel}>
+                    <summary style={accordionSummary}>
+                      <span>Active roadmap by priority</span>
+                      <span style={countPill}>{detailedRoadmapItems.length}</span>
+                    </summary>
+                    <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
+                      {roadmapPriorityGroups.map((group) => (
+                        <details key={group.priority} open={group.priority === 'P0'} style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 10 }}>
+                          <summary style={{ ...accordionSummary, padding: '4px 2px' }}>
+                            <span>{group.priority} sprint loop</span>
+                            <span style={countPill}>{group.items.length}</span>
+                          </summary>
+                          <div style={{ display: 'grid', gap: 9, marginTop: 10 }}>
+                            {group.items.map((item) => <RoadmapCard key={group.priority + '-' + item.title} item={item} />)}
                           </div>
-                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                            <span style={{ border: `1px solid ${priorityColor}44`, background: item.priority === 'P0' ? C.roseFaint : item.priority === 'P1' ? C.amberFaint : C.sageFaint, color: priorityColor, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.priority}</span>
-                            <span style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.timing}</span>
-                            <span style={{ border: `1px solid ${statusTone}44`, background: C.card, color: statusTone, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.status}</span>
-                          </div>
-                        </div>
-                        <p style={{ ...smallText, margin: 0 }}>{item.body}</p>
-                      </div>
-                    );
-                  })}
+                        </details>
+                      ))}
+                    </div>
+                  </details>
                 </div>
               </Panel>
               <Panel compact>
@@ -1305,7 +1485,7 @@ export default function SystemAdminPage() {
                   <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
                     <div style={{ background: complianceSnapshot.status === 'needs_work' ? C.roseFaint : C.sageFaint, border: '1px solid ' + (complianceSnapshot.status === 'needs_work' ? '#efc7c7' : '#c8deca'), borderRadius: 13, padding: 12 }}>
                       <div style={{ color: complianceSnapshot.status === 'needs_work' ? C.rose : C.sage, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{complianceSnapshot.status === 'needs_work' ? 'Needs work' : 'Ready for readiness review'}</div>
-                      <p style={{ ...smallText, marginTop: 5 }}>Public claim posture: do not claim HIPAA, SOC 1, or SOC 2 compliance. Use “role-scoped, audit-oriented, review-before-share, preparing for formal compliance review.”</p>
+                      <p style={{ ...smallText, marginTop: 5 }}>Public claim posture: do not claim HIPAA, SOC 1, or SOC 2 compliance. Use "role-scoped, audit-oriented, review-before-share, preparing for formal compliance review."</p>
                     </div>
                     {(complianceSnapshot.blockers || []).length > 0 && (
                       <div style={subPanel}>
@@ -1397,6 +1577,47 @@ function Panel({ children, compact = false, tone = 'default' }) {
   return <div style={{ background: tone === 'sage' ? C.sageFaint : C.card, border: '1px solid ' + (tone === 'sage' ? '#c8deca' : C.border), borderRadius: 18, padding: compact ? 18 : 22, boxShadow: '0 4px 20px rgba(0,0,0,.04)', marginTop: compact ? 0 : 18 }}>{children}</div>;
 }
 
+function RoadmapCard({ item, compact = false }) {
+  const priorityColor = item.priority === 'P0' ? C.rose : item.priority === 'P1' ? C.amber : C.sage;
+  const statusTone = /complete|signed|verified|fixed|passing|standardized|smoke-tested|live/i.test(item.status) ? C.sage : /needs|blocked/i.test(item.status) ? C.amber : priorityColor;
+  const detailRows = [
+    ['Technical requirements', item.technicalRequirements],
+    ['Success criteria', item.successCriteria],
+    ['Sprint loop', item.sprintLoop],
+  ].filter(([, value]) => value && (!Array.isArray(value) || value.length));
+
+  return (
+    <div style={{ ...subPanel, display: 'grid', gap: compact ? 7 : 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{item.pillar}</div>
+          <h3 style={{ ...h3, marginTop: 5, fontSize: compact ? 18 : h3.fontSize }}>{item.title}</h3>
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <span style={{ border: `1px solid ${priorityColor}44`, background: item.priority === 'P0' ? C.roseFaint : item.priority === 'P1' ? C.amberFaint : C.sageFaint, color: priorityColor, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.priority}</span>
+          <span style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.timing}</span>
+          <span style={{ border: `1px solid ${statusTone}44`, background: C.card, color: statusTone, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>{item.status}</span>
+        </div>
+      </div>
+      <p style={{ ...smallText, margin: 0 }}>{item.body}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: compact ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+        {detailRows.map(([label, value]) => (
+          <div key={label} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: 10 }}>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+            {Array.isArray(value) ? (
+              <ul style={{ margin: '7px 0 0', paddingLeft: 17, color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
+                {value.map((row) => <li key={row}>{row}</li>)}
+              </ul>
+            ) : (
+              <p style={{ ...smallText, fontSize: 12.5, margin: '7px 0 0' }}>{value}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function MetricRow({ label, value }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, borderTop: '1px solid ' + C.border, padding: '8px 0', alignItems: 'flex-start' }}>
@@ -1434,6 +1655,9 @@ const plannedPill = { background: C.amberFaint, color: C.amber, border: '1px sol
 const metricCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.sage, fontWeight: 900, fontSize: 14 };
 const unavailableMetricCard = { background: C.amberFaint, border: '1px solid #ead8b8', borderRadius: 13, padding: 12, color: C.amber, fontWeight: 900, fontSize: 14 };
 const subPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
+const accordionPanel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 12 };
+const accordionSummary = { cursor: 'pointer', color: C.ink, fontSize: 15, fontWeight: 900, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' };
+const countPill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 900, whiteSpace: 'nowrap' };
 const previewPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 16, padding: 14 };
 const fieldLabel = { display: 'grid', gap: 5, color: C.soft, fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 };
 const inputStyle = { border: '1px solid ' + C.border, background: C.bg, borderRadius: 12, padding: '11px 12px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 14 };
