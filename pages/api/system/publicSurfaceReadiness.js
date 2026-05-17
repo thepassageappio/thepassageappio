@@ -18,7 +18,7 @@ const publicChecks = [
   },
   {
     path: '/vendors',
-    requires: ['Apply to join', 'Sign in as approved vendor'],
+    requires: ['Apply to join', 'Vendor owner sign in', 'Vendor employee sign in'],
   },
   {
     path: '/participants',

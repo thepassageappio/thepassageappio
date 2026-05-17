@@ -36,13 +36,20 @@ export default function VendorFrontDoor() {
 
   const cards = [
     {
-      eyebrow: 'Approved vendor',
-      title: 'Open assigned vendor work',
-      body: 'For approved vendors and vendor employees. Sign in with the email on your vendor profile to see assigned requests, quote, schedule, and save proof.',
+      eyebrow: 'Vendor owner',
+      title: 'Open the vendor workspace',
+      body: 'For approved owners and managers. Review assigned requests, invite vendor employees, set payout readiness, quote, schedule, and save proof.',
       href: '/vendors/request',
-      action: user ? 'Open assigned work' : 'Sign in to see assigned work',
+      action: user ? 'Open vendor workspace' : 'Vendor owner sign in',
       onClick: openVendorWork,
       tone: 'primary',
+    },
+    {
+      eyebrow: 'Vendor employee',
+      title: 'Open assigned vendor work',
+      body: 'For team members added to a vendor profile or request. Use the invited email to see only the request, timing, quote fields, and proof needed.',
+      href: '/vendors/accept',
+      action: 'Vendor employee sign in',
     },
     {
       eyebrow: 'New support partner',
@@ -76,11 +83,14 @@ export default function VendorFrontDoor() {
                 Apply to join
               </Link>
               <button type="button" onClick={signIn} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
-                Sign in as approved vendor
+                Vendor owner sign in
               </button>
+              <Link href="/vendors/accept" onClick={() => trackEvent('vendor_employee_sign_in_clicked', { href: '/vendors/accept' })} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, textDecoration: 'none' }}>
+                Vendor employee sign in
+              </Link>
             </div>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
-              New vendors apply first. Approved vendors and vendor employees use sign-in to open assigned work. They do not browse families or cases.
+              New vendors apply first. Vendor owners manage the workspace. Vendor employees open only assigned requests. Nobody browses families or unrelated cases.
             </div>
           </div>
           <div style={{ display: 'grid', gap: 10 }}>

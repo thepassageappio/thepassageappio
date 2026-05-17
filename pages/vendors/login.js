@@ -18,19 +18,19 @@ const C = {
 
 const vendorCards = [
   {
-    eyebrow: 'Approved vendor',
-    title: 'Manage request queue',
-    body: 'Sign in with the email connected to your approved vendor profile to see quote requests and completion proof.',
+    eyebrow: 'Vendor owner',
+    title: 'Manage the vendor workspace',
+    body: 'Owners and managers sign in with the approved vendor email to see requests, invite employees, review payout readiness, and track completion proof.',
     href: '/vendors/request',
-    action: 'Vendor sign in',
+    action: 'Owner sign in',
     tone: 'primary',
   },
   {
-    eyebrow: 'Request link',
-    title: 'Open one scoped request',
-    body: 'If Passage sent you a request link, open it directly from the email or text. You will see only that task.',
-    href: '/vendors/request',
-    action: 'Open request',
+    eyebrow: 'Vendor employee',
+    title: 'Open assigned vendor work',
+    body: 'Team members use the invited email or request link to see only the request, timing, quote fields, and proof needed.',
+    href: '/vendors/accept',
+    action: 'Employee sign in',
   },
   {
     eyebrow: 'New vendor',
@@ -95,10 +95,10 @@ export default function VendorLogin() {
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor workspace</div>
             <h1 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Respond only to the work requested.</h1>
             <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
-              Vendor access is scoped. You do not browse family records; you see the request, timing, quote fields, and proof needed to complete one service.
+              Vendor owners manage the workspace. Vendor employees open assigned work. Both are scoped to requests, timing, quote fields, and proof, never unrelated family records.
             </p>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
-              Approved vendor teams can sign in with Google. New vendors apply first so Passage can review service area, category, and response expectations.
+              Approved vendor owners sign in here. Vendor employees can use the employee doorway or the link sent to their email. New vendors apply first so Passage can review service area, category, and response expectations.
             </div>
             {!user && (
               <div style={{ display: 'grid', gap: 9, marginTop: 16 }}>
