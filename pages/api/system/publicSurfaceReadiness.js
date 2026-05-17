@@ -6,6 +6,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const authClient = supabaseUrl && supabaseAnon ? createClient(supabaseUrl, supabaseAnon) : null;
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+const GOOGLE_ADDRESS_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 const publicChecks = [
   {
@@ -123,11 +124,18 @@ export default async function handler(req, res) {
       return notes;
     });
 
+  if (!GOOGLE_ADDRESS_KEY) {
+    blockers.push('Google address autocomplete is not configured. Add GOOGLE_PLACES_API_KEY or GOOGLE_MAPS_API_KEY in Vercel production.');
+  }
+
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
     accessedBy: access.source,
     status: blockers.length ? 'needs_work' : 'ready',
     results,
+    integrations: {
+      googleAddressAutocomplete: Boolean(GOOGLE_ADDRESS_KEY),
+    },
     blockers,
   });
 }
