@@ -141,9 +141,9 @@ const roadmapItems = [
     pillar: 'Public Site and Demo Proof',
     priority: 'P0',
     timing: 'Done today',
-    status: 'No-login fixed',
-    title: 'Public CTAs and no-login funeral-home sample console',
-    body: 'Homepage and funeral-home pages now give prospects a direct, no-login path into the sample operating console while preserving the primary urgent, care-prep, planning, sign-in, and booking routes. The sample console uses simulated local data, hides Passage-admin-only demo controls unless Steve is signed in as admin, and lets a funeral director see My Day, cases, owner assignment, proof, exports, staff, locations, and reporting before booking.',
+    status: 'Guided sample tour live',
+    title: 'Public CTAs and guided funeral-home sample console',
+    body: 'Homepage and funeral-home pages now give prospects a direct, no-login path into the sample operating console while preserving the primary urgent, care-prep, planning, sign-in, and booking routes. The sample console uses simulated local data, hides Passage-admin-only demo controls unless Steve is signed in as admin, and now includes a 90-second guided tour through My Day, task spine, communication proof, reports/export, staff, locations, and rollout before booking.',
   },
   {
     pillar: 'Vendor Commerce',
@@ -267,7 +267,7 @@ const roadmapExecutionDetails = {
       'Homepage and role pages show the operating system, not just the philosophy.',
       'Every public primary CTA resolves, explains auth/payment if needed, or fails with a clear support path.',
     ],
-    sprintLoop: 'Next loop: add a guided 90-second funeral-home sample tour with screenshots/proof cards and explicit ROI story.',
+    sprintLoop: 'Next loop: browser-walk the sample console as a funeral director and tighten any tour stop that still needs narration to make the ROI obvious.',
   },
   'Vendor Commerce': {
     technicalRequirements: [
@@ -332,7 +332,7 @@ const roadmapExecutionDetails = {
       'Persona sandbox clearly shows notification safety, browser QA state, and database release-gate state.',
       'A guided demo can be run in under 12 minutes with no major hand-holding.',
     ],
-    sprintLoop: 'Next loop: add a "Run guided demo story" script that steps through urgent setup, participant action, funeral-home proof, vendor quote, and family update.',
+    sprintLoop: 'Next loop: add a "Run guided demo story" script that steps through urgent setup, participant action, funeral-home proof, vendor quote, family update, and the new funeral-home tour stops.',
   },
   'CRM Spine': {
     technicalRequirements: [

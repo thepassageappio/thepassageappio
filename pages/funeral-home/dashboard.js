@@ -2461,6 +2461,13 @@ export default function FuneralHomeDashboard() {
       ['reports', 'Proof trail', 'Reports'],
     ];
   const headerUser = user?.id === publicDemoUser.id ? null : user;
+  const guidedDemoSteps = [
+    ['dashboard', '1', 'My Day', 'See blocked work, waiting families, warm inbounds, staff load, and ROI from one operating floor.'],
+    ['task', '2', 'Task spine', 'Open the next case and show owner, waiting point, prepared output, proof, and family-visible status.'],
+    ['chat', '3', 'Communication proof', 'Show how notes, family updates, and notifications stay attached to the case instead of living in inboxes.'],
+    ['export', '4', 'Reports and export', 'Close with CSV/reporting proof: calls avoided, time saved, staff workload, and case export.'],
+    ['team', '5', 'Locations and staff', 'Show the rollout path: locations, employee scope, invites, and plan limits.'],
+  ];
 
   useEffect(() => {
     function handleDemoStep(event) {
@@ -2673,6 +2680,38 @@ export default function FuneralHomeDashboard() {
         {user && !loading && data?.demoData && (
           <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 14, color: C.amber, marginBottom: 10, lineHeight: 1.45, fontWeight: 900 }}>
             {data.demoLabel || 'Sample data is loaded for this walkthrough. No email, SMS, or production record is changed by sample actions.'}
+          </div>
+        )}
+        {user && !loading && data?.demoData && isDirectorRole && (
+          <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 14, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>90-second funeral-home tour</div>
+                <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Demo the operating loop without hunting.</div>
+                <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>Use these stops in order: director floor, task action, communication proof, reporting/export, then rollout setup.</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => focusPartnerDemoStep('dashboard')}
+                style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 40, padding: '0 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}
+              >
+                Start tour
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginTop: 12 }}>
+              {guidedDemoSteps.map(([step, number, label, body]) => (
+                <button
+                  key={step}
+                  type="button"
+                  onClick={() => focusPartnerDemoStep(step)}
+                  style={{ textAlign: 'left', border: `1px solid ${C.border}`, background: C.bg, borderRadius: 13, padding: '10px 11px', minHeight: 104, cursor: 'pointer', fontFamily: 'Georgia,serif' }}
+                >
+                  <span style={{ display: 'inline-flex', width: 22, height: 22, borderRadius: 999, alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontSize: 11, fontWeight: 900, marginBottom: 7 }}>{number}</span>
+                  <span style={{ display: 'block', color: C.ink, fontSize: 14.5, lineHeight: 1.18, fontWeight: 900 }}>{label}</span>
+                  <span style={{ display: 'block', color: C.mid, fontSize: 11.8, lineHeight: 1.35, marginTop: 4 }}>{body}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {user && latestFamilyLink?.url && (
