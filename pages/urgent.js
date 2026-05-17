@@ -425,6 +425,7 @@ export default function UrgentPage() {
   const [handoff, setHandoff] = useState(false);
   const [proofByOutcome, setProofByOutcome] = useState({});
   const [proofError, setProofError] = useState('');
+  const [proofSaved, setProofSaved] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -482,6 +483,23 @@ export default function UrgentPage() {
     }
     setProofError('');
     setOutcomes(prev => prev.map(o => o.id === id ? { ...o, status: 'handled', proof } : o));
+  };
+
+  const saveProofNote = (id) => {
+    const proof = String(proofByOutcome[id] || '').trim();
+    if (!proof) {
+      setProofError('Add a note, proof, reference, or next instruction before saving.');
+      return;
+    }
+    setProofError('');
+    setProofSaved(id);
+    setOutcomes(prev => {
+      const next = prev.map(o => o.id === id ? { ...o, proof, status: o.status === 'needs_owner' ? o.status : 'in_progress' } : o);
+      try {
+        localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, context, outcomes: next, people, proofByOutcome: { ...proofByOutcome, [id]: proof } }));
+      } catch {}
+      return next;
+    });
   };
 
   const signIn = async () => {
@@ -1121,13 +1139,17 @@ export default function UrgentPage() {
                     onChange={e => {
                       setProofByOutcome(prev => ({ ...prev, [primary.id]: e.target.value }));
                       setProofError('');
+                      setProofSaved('');
                     }}
                     placeholder="Example: Spoke with hospice nurse Maria; she will call back with pronouncement time."
                   />
                 </div>
                 <div style={{ color: proofError ? C.rose : C.mid, fontSize: 12.5, lineHeight: 1.45, fontWeight: proofError ? 800 : 400 }}>
-                  {proofError || 'Passage keeps handled items tied to proof, not just a checked box.'}
+                  {proofError || (proofSaved === primary.id ? 'Saved. This note stays with the task even if it is not ready to close yet.' : 'Passage keeps handled items tied to proof, not just a checked box.')}
                 </div>
+                <button className="ghost" style={{ marginTop: 12 }} onClick={() => saveProofNote(primary.id)}>
+                  Save note
+                </button>
               </div>
             )}
 
