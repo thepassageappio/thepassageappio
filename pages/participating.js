@@ -331,6 +331,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const responseDialogOpen = Boolean(pendingAction || detailsOpen);
   const availableActions = actionSet(kind);
   const recommendedAction = recommendedParticipantAction(availableActions, itemStatus(item));
+  const savedNote = String(item.notes || '').trim();
   useEffect(() => {
     if (!responseDialogOpen || typeof window === 'undefined') return undefined;
     const previousOverflow = document.body.style.overflow;
@@ -421,6 +422,13 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       {!handled && (
         <>
           {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
+          {savedNote && (
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 11px', marginTop: 8, color: C.mid, fontSize: 12.6, lineHeight: 1.45 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Saved note the coordinator can see</div>
+              <div style={{ color: C.ink, fontWeight: 800 }}>{savedNote}</div>
+              {item.last_action_at && <div style={{ color: C.soft, fontSize: 11.5, marginTop: 5 }}>Saved {new Date(item.last_action_at).toLocaleString()}</div>}
+            </div>
+          )}
           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: 9, marginTop: 8 }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Best next step</div>
             <button onClick={() => setPendingAction(recommendedAction[0])} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 42, padding: '0 12px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.8, fontWeight: 900, width: '100%', textAlign: 'left' }}>{recommendedAction[1]}</button>
