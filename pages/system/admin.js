@@ -117,9 +117,9 @@ const roadmapItems = [
     pillar: 'Compliance and Security Readiness',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Trust checklist live',
+    status: 'Evidence mapped',
     title: 'Internal compliance check joins the P0 readiness loop',
-    body: 'Live API check is ready for readiness review: RLS is enabled across public tables, no sensitive allow-all policies are present, Resend, Stripe, HubSpot, and the internal orchestration secret are configured, and QA-mode/default-sender warnings are separated from true blockers. The public Trust page now includes a formal readiness checklist for Privacy, Terms, subprocessors, review-before-share, role-scoped access, audit/proof trail, export/deletion requests, incident/security contact, BAA review path, and SOC 1/SOC 2 non-claim language.',
+    body: 'Live API check is ready for readiness review: RLS is enabled across public tables, no sensitive allow-all policies are present, Resend, Stripe, HubSpot, and the internal orchestration secret are configured, and QA-mode/default-sender warnings are separated from true blockers. The public Trust page now includes a formal readiness checklist for Privacy, Terms, subprocessors, review-before-share, role-scoped access, audit/proof trail, export/deletion requests, incident/security contact, BAA review path, and SOC 1/SOC 2 non-claim language. The admin Trust tab maps those public promises to backend evidence rows so Steve can see what is live, what is a warning, and what remains legal/partner review.',
   },
   {
     pillar: 'Production Readiness Control',
@@ -228,7 +228,7 @@ const roadmapExecutionDetails = {
       'Public pages and product flows use role-scoped, review-before-share, audit-oriented language.',
       'Enterprise claims stay gated until legal policies, BAA posture, subprocessor list, and audit retention are reviewed.',
     ],
-    sprintLoop: 'Next loop: map each Trust checklist item to admin evidence rows from the compliance snapshot so Steve can see public promise, backend proof, and remaining legal review in one place.',
+    sprintLoop: 'Next loop: run the compliance check after live env changes and add formal owner/due-date tracking for BAA, SOC evidence, retention policy, incident response, and security inbox setup.',
   },
   'Production Readiness Control': {
     technicalRequirements: [
@@ -1533,6 +1533,23 @@ export default function SystemAdminPage() {
                         <MetricRow label="SMS live" value={complianceSnapshot.env?.twilioLiveReady ? 'Approved' : 'Dry-run only'} />
                       </div>
                     </div>
+                    <div style={subPanel}>
+                      <h3 style={h3}>Trust checklist evidence</h3>
+                      <p style={{ ...smallText, margin: '2px 0 10px' }}>This maps the public Trust page promises to the current backend proof and the next review step. Use this before pilots so the story and the system stay aligned.</p>
+                      <div style={{ display: 'grid', gap: 8 }}>
+                        {buildTrustEvidence(complianceSnapshot).map((item) => (
+                          <div key={item.label} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: 10 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                              <strong style={{ color: C.ink, fontSize: 13.5 }}>{item.label}</strong>
+                              <span style={{ ...countPill, color: item.tone === 'good' ? C.sage : item.tone === 'warn' ? C.amber : C.rose, background: item.tone === 'good' ? C.sageFaint : item.tone === 'warn' ? C.amberFaint : C.roseFaint, border: `1px solid ${(item.tone === 'good' ? C.sage : item.tone === 'warn' ? C.amber : C.rose)}33` }}>{item.status}</span>
+                            </div>
+                            <MetricRow label="Public promise" value={item.promise} />
+                            <MetricRow label="Backend proof" value={item.proof} />
+                            <MetricRow label="Next review" value={item.next} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </Panel>
@@ -1696,6 +1713,96 @@ function buildDangerousMiddleScorecards(p0Readiness) {
     ...card,
     tone: card.score >= 88 ? 'good' : card.score >= 76 ? 'warn' : 'risk',
   }));
+}
+
+function buildTrustEvidence(snapshot) {
+  const rlsDisabled = snapshot?.snapshot?.rls_disabled || [];
+  const allowAll = snapshot?.snapshot?.sensitive_allow_all_policies || [];
+  const zeroPolicy = snapshot?.snapshot?.zero_policy_tables || [];
+  const env = snapshot?.env || {};
+  const blockers = snapshot?.blockers || [];
+  const warnings = snapshot?.warnings || [];
+  const noRlsBlockers = rlsDisabled.length === 0 && allowAll.length === 0;
+  const qaSafe = Boolean(env.qaNotificationMode && env.qaNotificationOverride);
+  const emailReady = Boolean(env.resend && env.resendFrom);
+  const paymentReady = Boolean(env.stripeSecret && env.stripeWebhook);
+  const crmReady = Boolean(env.hubspot);
+  const hasSupport = Boolean(env.supportEmail);
+
+  return [
+    {
+      label: 'Privacy and terms',
+      status: 'Public pages live',
+      tone: 'good',
+      promise: 'Plain-language Privacy, Terms, and Trust boundaries are public.',
+      proof: 'Routes /privacy, /terms, and /trust build as static production pages.',
+      next: 'Keep legal counsel review separate from engineering readiness before enterprise signatures.',
+    },
+    {
+      label: 'Subprocessors',
+      status: 'Listed',
+      tone: 'good',
+      promise: 'Supabase, Vercel, Resend, Google services, HubSpot, Stripe, and Twilio are disclosed by operating role.',
+      proof: `Configured now: Resend ${emailReady ? 'yes' : 'no'}, Stripe ${paymentReady ? 'yes' : 'no'}, HubSpot ${crmReady ? 'yes' : 'no'}, Twilio live ${env.twilioLiveReady ? 'yes' : 'no'}.`,
+      next: 'Review this list whenever a new integration or processor is added.',
+    },
+    {
+      label: 'Role-scoped access',
+      status: noRlsBlockers ? 'No blocker' : 'Needs work',
+      tone: noRlsBlockers ? 'good' : 'risk',
+      promise: 'Families, participants, funeral homes, vendors, and admins see scoped context.',
+      proof: `${rlsDisabled.length} RLS-disabled public tables; ${allowAll.length} sensitive allow-all policies; ${zeroPolicy.length} zero-policy tables to classify.`,
+      next: noRlsBlockers ? 'Continue persona QA for route-level and API-level leakage.' : 'Fix RLS/policy blockers before any new customer data.',
+    },
+    {
+      label: 'Audit and proof trail',
+      status: blockers.length ? 'Review' : 'Ready check',
+      tone: blockers.length ? 'warn' : 'good',
+      promise: 'Task and communication actions should leave actor, timestamp, status, recipient, and proof.',
+      proof: blockers.length ? blockers.join(' ') : 'Compliance snapshot has no engineering blockers.',
+      next: 'Keep orchestration smoke test paired with compliance readiness after each P0 sprint.',
+    },
+    {
+      label: 'Notification safety',
+      status: qaSafe ? 'QA safe' : 'Live caution',
+      tone: qaSafe ? 'good' : 'warn',
+      promise: 'QA sends should route to Steve only; production sends should be intentional.',
+      proof: qaSafe ? `QA override active to ${env.qaNotificationOverride ? 'configured address' : 'missing address'}.` : 'QA override is not active or not configured.',
+      next: qaSafe ? 'Use QA mode for synthetic persona tests.' : 'Enable QA_NOTIFICATION_OVERRIDE_EMAIL before broad synthetic testing.',
+    },
+    {
+      label: 'Incident and security contact',
+      status: hasSupport ? 'Routed' : 'Missing',
+      tone: hasSupport ? 'good' : 'risk',
+      promise: 'Security, privacy, and suspected incident reports route through Contact/support.',
+      proof: hasSupport ? `Support email configured as ${env.supportEmail}.` : 'No support email detected in readiness env.',
+      next: 'Move to security@thepassageapp.io once the domain inbox is fully verified.',
+    },
+    {
+      label: 'BAA and HIPAA path',
+      status: 'Not claimed',
+      tone: 'warn',
+      promise: 'Passage does not claim HIPAA compliance today.',
+      proof: snapshot?.claims?.hipaa || 'Do not claim HIPAA compliance.',
+      next: 'Use partner-specific legal/security review before covered-entity production use.',
+    },
+    {
+      label: 'SOC 1 and SOC 2',
+      status: 'Not certified',
+      tone: 'warn',
+      promise: 'Passage does not claim SOC 1 or SOC 2 certification today.',
+      proof: [snapshot?.claims?.soc1, snapshot?.claims?.soc2].filter(Boolean).join(' ') || 'Do not claim SOC 1 or SOC 2 compliance.',
+      next: 'Start evidence mapping and control ownership before enterprise procurement.',
+    },
+    {
+      label: 'Warnings',
+      status: warnings.length ? `${warnings.length} warning${warnings.length === 1 ? '' : 's'}` : 'None',
+      tone: warnings.length ? 'warn' : 'good',
+      promise: 'Warnings should be visible without being confused for legal certifications.',
+      proof: warnings.length ? warnings.join(' ') : 'No readiness warnings returned.',
+      next: warnings.length ? 'Resolve warning or document why it is acceptable for controlled demo.' : 'Keep running the check after every integration change.',
+    },
+  ];
 }
 
 function ReadinessScorecard({ card }) {
