@@ -2257,7 +2257,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
   );
 }
 
-function PostActivationReviewPanel({ estate, actions, tasks, outcomes, events, serviceEvents }) {
+function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorName, actions, tasks, outcomes, events, serviceEvents, announcements }) {
   var activated = ['activated', 'approved', 'in_motion', 'triggered'].includes(String(estate?.activation_status || estate?.status || '').toLowerCase());
   if (!activated) return null;
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o); });
@@ -2274,6 +2274,7 @@ function PostActivationReviewPanel({ estate, actions, tasks, outcomes, events, s
   var upcomingServiceEvents = (serviceEvents || []).filter(function(event) {
     return event?.date || event?.start_at || event?.time || event?.location_name || event?.location_address;
   });
+  var savedAnnouncements = (announcements || []).filter(function(row) { return row?.status || row?.content || row?.channel; });
   var nextOpen = openOutcomes[0] || openTasks[0] || null;
   var nextTitle = nextOpen ? displayTaskTitle(nextOpen) : 'No urgent task is waiting right now';
   var nextOwner = nextOpen ? ownerForTask(nextOpen) : 'Passage is monitoring the record';
@@ -2282,7 +2283,16 @@ function PostActivationReviewPanel({ estate, actions, tasks, outcomes, events, s
     ['Needs owner', missingOwners ? String(missingOwners) : 'None'],
     ['Waiting replies', waitingMessages.length ? String(waitingMessages.length) : 'None'],
     ['Service events', upcomingServiceEvents.length ? String(upcomingServiceEvents.length) : 'Add when known'],
+    ['Family updates', savedAnnouncements.length ? String(savedAnnouncements.length) + ' saved' : 'Not prepared yet'],
   ];
+  function openAnnouncement() {
+    if (!estateId) return;
+    window.location.href = '/announce?estate=' + encodeURIComponent(estateId) + '&name=' + encodeURIComponent(estateName || estate?.deceased_name || estate?.estate_name || estate?.name || '');
+  }
+  function openOnePager() {
+    if (!estateId) return;
+    window.location.href = '/share?wid=' + encodeURIComponent(estateId) + '&dn=' + encodeURIComponent(estateName || estate?.deceased_name || estate?.estate_name || estate?.name || '') + '&cn=' + encodeURIComponent(coordinatorName || estate?.coordinator_name || 'the family');
+  }
 
   return (
     <section id="post-activation-review" style={{ background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 18, padding: '18px 20px', marginBottom: 20, boxShadow: '0 12px 34px rgba(55,45,35,.045)' }}>
@@ -2322,8 +2332,17 @@ function PostActivationReviewPanel({ estate, actions, tasks, outcomes, events, s
           <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>
             Service updates should be sent once from Passage, then tracked with delivery, waiting, and proof instead of scattering across separate texts.
           </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+            <button type="button" onClick={openAnnouncement} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'inherit', fontSize: 12.3, fontWeight: 900, cursor: 'pointer' }}>Prepare family update</button>
+            <button type="button" onClick={openOnePager} style={{ border: '1px solid ' + BORDER, background: CARD, color: SAGE, borderRadius: 11, padding: '10px 12px', fontFamily: 'inherit', fontSize: 12.3, fontWeight: 900, cursor: 'pointer' }}>Build service one-pager</button>
+          </div>
         </div>
       </div>
+      {savedAnnouncements.length > 0 && (
+        <div style={{ marginTop: 10, background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '10px 12px', color: SAGE, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+          Family update proof exists: {savedAnnouncements.slice(0, 2).map(function(row) { return statusText(row.status || row.channel || 'saved'); }).join(', ')}. Return to announcements when service details change.
+        </div>
+      )}
       {activationEvents.length > 0 && (
         <details style={{ marginTop: 10, background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '9px 11px' }}>
           <summary style={{ color: SAGE, fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>Activation proof the family can audit</summary>
@@ -3769,12 +3788,16 @@ export default function EstatePage() {
         )}
 
         <PostActivationReviewPanel
+          estateId={estateId}
           estate={estate}
+          estateName={name}
+          coordinatorName={coordinatorName}
           actions={actions}
           tasks={tasks}
           outcomes={outcomes}
           events={events}
           serviceEvents={serviceEvents}
+          announcements={announcements}
         />
 
         <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">
