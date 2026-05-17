@@ -283,6 +283,7 @@ const defaultContext = {
   hospitalOrHospiceZip: '',
   hospitalOrHospiceCountry: '',
   medicalRecordsLocation: '',
+  withPersonNow: '',
 };
 
 function CandleLogo({ size = 34 }) {
@@ -693,6 +694,17 @@ export default function UrgentPage() {
         .authority-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:9px; }
         .authority-options button { border:1px solid ${C.sageLight}; background:${C.card}; color:${C.sageDark}; border-radius:999px; padding:8px 10px; cursor:pointer; font-weight:800; font-size:12px; }
         .authority-options button.active { background:${C.sage}; color:white; border-color:${C.sage}; }
+        .stabilize-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:14px; margin-bottom:14px; }
+        .stabilize-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:10px; }
+        .stabilize-title { font-family:Georgia,serif; font-size:22px; line-height:1.15; color:${C.ink}; }
+        .stabilize-copy { color:${C.mid}; font-size:13px; line-height:1.5; margin-top:5px; max-width:650px; }
+        .stabilize-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+        .stabilize-group { background:${C.bg}; border:1px solid ${C.border}; border-radius:14px; padding:11px; }
+        .stabilize-label { color:${C.sageDark}; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; font-weight:900; margin-bottom:8px; }
+        .quick-buttons { display:grid; gap:7px; }
+        .quick-choice { border:1px solid ${C.border}; background:${C.card}; color:${C.mid}; border-radius:999px; min-height:34px; padding:7px 10px; cursor:pointer; font-size:12px; font-weight:850; text-align:left; }
+        .quick-choice.active { background:${C.sage}; color:white; border-color:${C.sage}; }
+        .certainty-strip { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:11px 12px; color:${C.sageDark}; font-size:13px; line-height:1.5; font-weight:750; margin-top:10px; }
         .handoff-choice-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
         .handoff-choice { border:1px solid ${C.border}; background:${C.bg}; color:${C.ink}; border-radius:12px; padding:10px 11px; text-align:left; cursor:pointer; transition:background .12s ease,border-color .12s ease; }
         .handoff-choice:hover { border-color:${C.sageLight}; background:${C.card}; }
@@ -764,7 +776,7 @@ export default function UrgentPage() {
           .grid { grid-template-columns: 1fr; }
           .save-strip { grid-template-columns: 1fr; }
           .context-grid { grid-template-columns:1fr; }
-          .triage-grid, .authority-options, .phase-rail, .crisis-sequence, .handoff-choice-grid { grid-template-columns:1fr; }
+          .triage-grid, .authority-options, .phase-rail, .crisis-sequence, .handoff-choice-grid, .stabilize-grid { grid-template-columns:1fr; }
           .save-command { width:100%; }
           .primary-card { padding: 22px; }
           .field.two { grid-template-columns: 1fr; }
@@ -896,6 +908,71 @@ export default function UrgentPage() {
 
             {selectedSituation ? (
               <>
+            <div className="stabilize-panel">
+              <div className="stabilize-head">
+                <div>
+                  <div className="kicker" style={{ marginBottom: 5 }}>Right now</div>
+                  <div className="stabilize-title">Answer only what affects the next move.</div>
+                  <div className="stabilize-copy">You do not need the whole plan yet. These answers help Passage keep the first official step, decision authority, and funeral-home handoff clear.</div>
+                </div>
+                <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 999, color: C.sageDark, fontSize: 12, fontWeight: 900, padding: '7px 10px' }}>
+                  This is normal to not know
+                </div>
+              </div>
+              <div className="stabilize-grid">
+                <div className="stabilize-group">
+                  <div className="stabilize-label">Who is with them?</div>
+                  <div className="quick-buttons">
+                    {[
+                      ['me', 'I am here'],
+                      ['family', 'Family or friend'],
+                      ['staff', 'Hospice/facility staff'],
+                      ['unsure', 'Not sure'],
+                    ].map(([value, label]) => (
+                      <button type="button" key={value} className={context.withPersonNow === value ? 'quick-choice active' : 'quick-choice'} onClick={() => updateContext('withPersonNow', value)}>{label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="stabilize-group">
+                  <div className="stabilize-label">Official pronouncement</div>
+                  <div className="quick-buttons">
+                    {[
+                      ['confirmed', 'Already confirmed'],
+                      ['needed', 'Need to confirm'],
+                      ['unsure', 'Not sure yet'],
+                    ].map(([value, label]) => (
+                      <button type="button" key={value} className={context.pronouncementStatus === value ? 'quick-choice active' : 'quick-choice'} onClick={() => updateContext('pronouncementStatus', value)}>{label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="stabilize-group">
+                  <div className="stabilize-label">Funeral home</div>
+                  <div className="quick-buttons">
+                    {[
+                      ['known', 'We have one'],
+                      ['request_help', 'Need help choosing'],
+                      ['not_ready', 'Not ready yet'],
+                    ].map(([value, label]) => (
+                      <button type="button" key={value} className={context.funeralHomeHandoffIntent === value ? 'quick-choice active' : 'quick-choice'} onClick={() => updateContext('funeralHomeHandoffIntent', value)}>{label}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="certainty-strip">
+                {context.pronouncementStatus === 'confirmed'
+                  ? 'Good. Passage will keep the official confirmation tied to the next transportation and funeral-home steps.'
+                  : context.pronouncementStatus === 'needed'
+                    ? 'Start with pronouncement before transportation, paperwork, or pickup. Passage will keep that waiting point visible.'
+                    : 'If you are not sure whether pronouncement happened, that is the right thing to clarify first. You are not behind.'}
+              </div>
+              <div className="next-preview">
+                <div className="next-preview-title">What usually happens next</div>
+                {(nextPreview[context.deathContext] || []).map((item, index) => (
+                  <div key={item}>{index + 1}. {item}</div>
+                ))}
+                <div>Passage will keep the family focused on one owned step at a time.</div>
+              </div>
+            </div>
             <div className="phase-rail" aria-label="Urgent work sequence">
               {['Minutes', 'Today', 'Next 72 hours'].map((label) => {
                 const items = outcomes.filter(item => phaseLabel(item.phase) === label);

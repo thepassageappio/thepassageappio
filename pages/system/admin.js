@@ -138,6 +138,14 @@ const roadmapItems = [
     body: 'The shared navigation now waits for Supabase auth readiness before showing Sign in or Sign out on controlled pages. Login, planning, and estate entry screens no longer flash between states while sessions hydrate, and signed-in users with no estate are guided to create a planning or urgent record instead of feeling bounced back to sign-in. Browser QA is working again and confirmed the signed-out homepage does not expose System Admin.',
   },
   {
+    pillar: 'Core Flow Trust Continuity',
+    priority: 'P0',
+    timing: 'Done today',
+    status: 'Urgent stabilization live',
+    title: 'Make the death-occurs to aftercare loop behave as maturely as it sounds',
+    body: 'The next launch-readiness gap is trust continuity across the actual flow: death occurs, family enters, triage starts, tasks are created, owners are assigned, funeral-home or provider context is captured, participants/vendors are coordinated, proof is collected, status is visible, and aftercare continues. The highest-risk first pass is now live: urgent path has a visible stabilization layer for who is with the person, official pronouncement, funeral-home readiness, what usually happens next, and explicit reassurance that uncertainty is normal and Passage will keep the waiting point visible.',
+  },
+  {
     pillar: 'Public Site and Demo Proof',
     priority: 'P0',
     timing: 'Done today',
@@ -255,6 +263,19 @@ const roadmapExecutionDetails = {
       'Browser QA confirms no sign-in/sign-out flicker and no public System Admin leakage.',
     ],
     sprintLoop: 'Next loop: run browser QA through first-record creation and document every auth-return URL that still creates a cognitive bump.',
+  },
+  'Core Flow Trust Continuity': {
+    technicalRequirements: [
+      'Put immediate triage, pronouncement state, decision authority, funeral-home readiness, owner, proof, and next expected update in one visible operational layer.',
+      'Create reassurance states that tell urgent users what is normal, what is waiting, what can wait, and what Passage will preserve.',
+      'Carry those same states into estate, participant, funeral-home, and vendor views so the spine does not feel like separate products.',
+    ],
+    successCriteria: [
+      'A grieving user sees what to do right now before any conceptual product language.',
+      'Every critical first-day task has one owner, one waiting point, one proof slot, and a visible next state.',
+      'The same event is understandable from family, participant, funeral-home, vendor, and admin perspectives without founder narration.',
+    ],
+    sprintLoop: 'Next loop: browser/API QA through save command center, participant assignment, funeral-home context, vendor request, and family update proof so the same state is understandable from every persona surface.',
   },
   'Public Site and Demo Proof': {
     technicalRequirements: [
