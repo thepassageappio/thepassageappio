@@ -117,9 +117,9 @@ const roadmapItems = [
     pillar: 'Compliance and Security Readiness',
     priority: 'P0',
     timing: 'Done today',
-    status: 'API-verified',
+    status: 'Trust checklist live',
     title: 'Internal compliance check joins the P0 readiness loop',
-    body: 'Live API check is ready for readiness review: RLS is enabled across public tables, no sensitive allow-all policies are present, Resend, Stripe, HubSpot, and the internal orchestration secret are configured, and QA-mode/default-sender warnings are separated from true blockers.',
+    body: 'Live API check is ready for readiness review: RLS is enabled across public tables, no sensitive allow-all policies are present, Resend, Stripe, HubSpot, and the internal orchestration secret are configured, and QA-mode/default-sender warnings are separated from true blockers. The public Trust page now includes a formal readiness checklist for Privacy, Terms, subprocessors, review-before-share, role-scoped access, audit/proof trail, export/deletion requests, incident/security contact, BAA review path, and SOC 1/SOC 2 non-claim language.',
   },
   {
     pillar: 'Production Readiness Control',
@@ -228,7 +228,7 @@ const roadmapExecutionDetails = {
       'Public pages and product flows use role-scoped, review-before-share, audit-oriented language.',
       'Enterprise claims stay gated until legal policies, BAA posture, subprocessor list, and audit retention are reviewed.',
     ],
-    sprintLoop: 'Next loop: add a formal Trust checklist panel for Privacy, Terms, BAA path, subprocessors, incident response, retention, and security contact.',
+    sprintLoop: 'Next loop: map each Trust checklist item to admin evidence rows from the compliance snapshot so Steve can see public promise, backend proof, and remaining legal review in one place.',
   },
   'Production Readiness Control': {
     technicalRequirements: [
