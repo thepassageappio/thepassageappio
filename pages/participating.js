@@ -501,6 +501,35 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   );
 }
 
+function participantUrgentContext(estate = {}) {
+  const context = estate?.scopedUrgentContext || estate?.orchestration_summary?.chaplain_context || estate?.orchestration_summary?.planning_context || {};
+  const maps = {
+    deathContext: {
+      unexpected: 'At home and unexpected',
+      hospice: 'Under hospice care',
+      hospital: 'In a hospital',
+      facility: 'In a care facility',
+      home_expected: 'Expected at home',
+      past: 'Past first official steps',
+    },
+    pronouncementStatus: {
+      confirmed: 'Officially confirmed',
+      needed: 'Needs confirmation',
+      unsure: 'Not sure yet',
+    },
+    funeralHomeHandoffIntent: {
+      known: 'Funeral home known',
+      request_help: 'Family needs help choosing',
+      not_ready: 'Not ready yet',
+    },
+  };
+  return [
+    ['Situation', maps.deathContext[context.deathContext] || context.deathContext],
+    ['Pronouncement', maps.pronouncementStatus[context.pronouncementStatus] || context.pronouncementStatus],
+    ['Funeral home', maps.funeralHomeHandoffIntent[context.funeralHomeHandoffIntent] || context.funeralHomeHandoffIntent],
+  ].filter(([, value]) => String(value || '').trim());
+}
+
 export default function ParticipatingPage() {
   const router = useRouter();
   const [clientSearch, setClientSearch] = useState('');
@@ -955,6 +984,7 @@ export default function ParticipatingPage() {
                   const otherOpen = openItems.filter(item => item.id !== primaryItem?.id);
                   const showOpenList = showOtherOpen[estate.id];
                   const allClear = openItems.length === 0;
+                  const urgentContext = participantUrgentContext(estate);
                   return (
                 <div className="participant-estate-card" key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}88`, borderRadius: 22, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
                   <div className="participant-estate-head" style={{ width: '100%', background: C.sageFaint, border: 'none', padding: '20px 22px 14px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
@@ -976,6 +1006,19 @@ export default function ParticipatingPage() {
                     </div>
                     <span style={{ background: C.card, color: estate.status === 'triggered' ? C.rose : C.sage, borderRadius: 999, padding: '5px 10px', fontSize: 11, fontWeight: 800 }}>{estate.status || 'active'}</span>
                   </div>
+                  {urgentContext.length > 0 && (
+                    <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '10px 11px', marginTop: 12 }}>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Context for your request</div>
+                      <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 5 }}>The coordinator is asking for help from an active family record. You only see the context needed for your assigned work.</div>
+                      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
+                        {urgentContext.map(([label, value]) => (
+                          <span key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 999, padding: '5px 8px', color: C.mid, fontSize: 11.5 }}>
+                            <strong style={{ color: C.ink }}>{label}:</strong> {value}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   </div>
 
                     <div className="participant-estate-body" style={{ padding: '18px 22px 22px' }}>

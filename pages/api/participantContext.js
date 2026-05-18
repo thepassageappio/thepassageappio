@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     if (workflowIds.length > 0) {
       const [{ data: wfData }, { data: eventData }, { data: statusEventData }, { data: communicationData }, { data: vendorRequestData }, witnessResult, requestResult] = await Promise.all([
         admin.from('workflows')
-          .select('id, name, deceased_name, coordinator_name, coordinator_email, status, path, activation_status, created_at, updated_at')
+          .select('id, name, deceased_name, coordinator_name, coordinator_email, status, path, activation_status, orchestration_summary, created_at, updated_at')
           .in('id', workflowIds),
         admin.from('workflow_events')
           .select('id, workflow_id, event_type, name, date, time, location_name, location_address, notes')
@@ -146,6 +146,13 @@ export default async function handler(req, res) {
     }
 
     const estates = workflows.map(w => {
+      const { orchestration_summary: orchestrationSummary, ...safeWorkflow } = w;
+      const summaryContext = orchestrationSummary?.chaplain_context || orchestrationSummary?.planning_context || {};
+      const scopedUrgentContext = {
+        deathContext: summaryContext.deathContext || '',
+        pronouncementStatus: summaryContext.pronouncementStatus || '',
+        funeralHomeHandoffIntent: summaryContext.funeralHomeHandoffIntent || '',
+      };
       const estateTasks = tasks.filter(t => t.workflow_id === w.id);
       const estateActions = actions.filter(a => a.workflow_id === w.id);
       const estateStatusEvents = statusEvents.filter(e => e.workflow_id === w.id);
@@ -163,7 +170,8 @@ export default async function handler(req, res) {
         role: 'participant',
       });
       return {
-        ...w,
+        ...safeWorkflow,
+        scopedUrgentContext,
         role: access.find(a => a.workflow_id === w.id)?.role ||
           people.find(p => p.email && p.email.toLowerCase() === email)?.estate_role_label ||
           people.find(p => p.email && p.email.toLowerCase() === email)?.relationship ||

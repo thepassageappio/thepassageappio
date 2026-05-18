@@ -141,9 +141,9 @@ const roadmapItems = [
     pillar: 'Core Flow Trust Continuity',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Spine handoff visible',
+    status: 'Participant context visible',
     title: 'Make the death-occurs to aftercare loop behave as maturely as it sounds',
-    body: 'The next launch-readiness gap is trust continuity across the actual flow: death occurs, family enters, triage starts, tasks are created, owners are assigned, funeral-home or provider context is captured, participants/vendors are coordinated, proof is collected, status is visible, and aftercare continues. The highest-risk first pass is now live: urgent path has a visible stabilization layer for who is with the person, official pronouncement, funeral-home readiness, what usually happens next, and explicit reassurance that uncertainty is normal and Passage will keep the waiting point visible. The estate map now shows the saved urgent stabilization context after handoff, and the orchestration smoke test checks that this context stays on the spine.',
+    body: 'The next launch-readiness gap is trust continuity across the actual flow: death occurs, family enters, triage starts, tasks are created, owners are assigned, funeral-home or provider context is captured, participants/vendors are coordinated, proof is collected, status is visible, and aftercare continues. The highest-risk first pass is now live: urgent path has a visible stabilization layer for who is with the person, official pronouncement, funeral-home readiness, what usually happens next, and explicit reassurance that uncertainty is normal and Passage will keep the waiting point visible. The estate map now shows the saved urgent stabilization context after handoff, the orchestration smoke test checks that this context stays on the spine, and participant workspaces now show scoped urgent context so helpers understand why the request matters without opening the full estate.',
   },
   {
     pillar: 'Public Site and Demo Proof',
@@ -275,7 +275,7 @@ const roadmapExecutionDetails = {
       'Every critical first-day task has one owner, one waiting point, one proof slot, and a visible next state.',
       'The same event is understandable from family, participant, funeral-home, vendor, and admin perspectives without founder narration.',
     ],
-    sprintLoop: 'Next loop: browser/API QA through participant assignment, funeral-home context, vendor request, and family update proof so the same urgent state is understandable from every persona surface.',
+    sprintLoop: 'Next loop: browser/API QA funeral-home context, vendor request, and family update proof so the same urgent state is understandable from every persona surface.',
   },
   'Public Site and Demo Proof': {
     technicalRequirements: [
