@@ -5,6 +5,7 @@ import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { VENDOR_CATEGORIES } from '../../lib/vendors';
 import { FUNERAL_HOME_PLAN_OPTIONS, partnerPlanFor } from '../../lib/partnerPlans';
 import { personaOrchestrationContracts } from '../../lib/personaOrchestrationContracts';
+import { mobileCompanionApiSurface, mobileCompanionPersonas, mobileCompanionSuccessCriteria } from '../../lib/mobileCompanionContract';
 
 const C = {
   bg: '#f6f3ee',
@@ -204,10 +205,10 @@ const roadmapItems = [
   {
     pillar: 'Mobile Companion',
     priority: 'P2',
-    timing: 'Next week',
-    status: 'Scoped',
+    timing: 'This week',
+    status: 'Contract live',
     title: 'Role-based mobile action layer',
-    body: 'Define the first Expo app around My Day, assigned work, proof upload, invitations, vendor quote status, and push notifications without cloning the full web command center.',
+    body: 'The first mobile app is now scoped as a companion action layer, not a second command center. The admin console lists the mobile personas, screens, API contracts, proof requirements, and readiness checks for participant task action, family My Day, funeral-home staff queue, director My Day, vendor request response, proof upload, and eventual push-token registration. Email remains the production notification path until native push is built.',
   },
 ];
 
@@ -557,6 +558,8 @@ export default function SystemAdminPage() {
   const [paymentReadinessLoading, setPaymentReadinessLoading] = useState(false);
   const [crmRoutingReadiness, setCrmRoutingReadiness] = useState(null);
   const [crmRoutingLoading, setCrmRoutingLoading] = useState(false);
+  const [mobileReadiness, setMobileReadiness] = useState(null);
+  const [mobileReadinessLoading, setMobileReadinessLoading] = useState(false);
   const [p0Readiness, setP0Readiness] = useState(null);
   const [p0ReadinessLoading, setP0ReadinessLoading] = useState(false);
 
@@ -790,6 +793,25 @@ export default function SystemAdminPage() {
       setCrmRoutingReadiness({ ok: false, status: 0, json: { error: error.message || 'CRM routing readiness check failed.' } });
     } finally {
       setCrmRoutingLoading(false);
+    }
+  }
+
+  async function runMobileReadiness() {
+    if (!supabase) return;
+    setMobileReadinessLoading(true);
+    setMobileReadiness(null);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/system/mobileCompanionReadiness', {
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+      });
+      const json = await response.json().catch(() => ({}));
+      setMobileReadiness({ ok: response.ok, status: response.status, json });
+    } catch (error) {
+      setMobileReadiness({ ok: false, status: 0, json: { error: error.message || 'Mobile companion readiness check failed.' } });
+    } finally {
+      setMobileReadinessLoading(false);
     }
   }
 
@@ -1258,6 +1280,66 @@ export default function SystemAdminPage() {
                           ))}
                         </div>
                       )}
+                    </div>
+                  </div>
+                </div>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Mobile companion</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, .42fr) minmax(0, 1fr)', gap: 14, alignItems: 'start' }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Keep mobile as the calm action layer.</h2>
+                    <p style={lead}>The mobile app should not clone the web command center. It should resolve the person, show the one thing that needs attention, collect proof, and write the same spine events the web app already uses.</p>
+                    <button type="button" onClick={runMobileReadiness} disabled={mobileReadinessLoading} style={{ ...primaryButton, marginTop: 12, opacity: mobileReadinessLoading ? .6 : 1 }}>
+                      {mobileReadinessLoading ? 'Checking mobile spine...' : 'Run mobile readiness check'}
+                    </button>
+                  </div>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 }}>
+                      {mobileCompanionPersonas.map(persona => (
+                        <div key={persona.id} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: 11 }}>
+                          <div style={eyebrow}>{persona.primaryScreen}</div>
+                          <strong style={{ color: C.ink }}>{persona.label}</strong>
+                          <div style={{ ...smallText, marginTop: 5 }}>{persona.promise}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12 }}>
+                      <div style={eyebrow}>API contract</div>
+                      <div style={{ display: 'grid', gap: 7, marginTop: 8 }}>
+                        {mobileCompanionApiSurface.map(item => (
+                          <MetricRow key={item.id} label={item.plannedEndpoint} value={item.label} />
+                        ))}
+                      </div>
+                    </div>
+                    {mobileReadiness && (
+                      <div style={{ background: mobileReadiness.json?.status === 'scoped' ? C.sageFaint : C.roseFaint, border: '1px solid ' + (mobileReadiness.json?.status === 'scoped' ? '#c8deca' : '#efc7c7'), borderRadius: 13, padding: 12 }}>
+                        <div style={{ color: mobileReadiness.json?.status === 'scoped' ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>
+                          {mobileReadiness.json?.status === 'scoped' ? 'Mobile companion scoped' : 'Mobile companion needs review'}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 10 }}>
+                          <MetricRow label="Personas" value={(mobileReadiness.json?.personas || []).length || mobileCompanionPersonas.length} />
+                          <MetricRow label="API contracts" value={(mobileReadiness.json?.apiSurface || []).length || mobileCompanionApiSurface.length} />
+                          <MetricRow label="Push token table" value={mobileReadiness.json?.schema?.mobile_push_tokens ? 'Ready' : 'Later'} />
+                          <MetricRow label="Warnings" value={(mobileReadiness.json?.warnings || []).length} />
+                        </div>
+                        {(mobileReadiness.json?.checks || []).length > 0 && (
+                          <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
+                            {mobileReadiness.json.checks.map(check => (
+                              <MetricRow key={check.id} label={check.label} value={check.ok ? 'Ready' : 'Planned'} />
+                            ))}
+                          </div>
+                        )}
+                        {(mobileReadiness.json?.warnings || []).length > 0 && (
+                          <div style={{ ...smallText, marginTop: 10, color: C.amber }}>{mobileReadiness.json.warnings.join(' ')}</div>
+                        )}
+                      </div>
+                    )}
+                    <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 13, padding: 12 }}>
+                      <div style={eyebrow}>Mobile success criteria</div>
+                      <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
+                        {mobileCompanionSuccessCriteria.map(item => <div key={item} style={smallText}>{item}</div>)}
+                      </div>
                     </div>
                   </div>
                 </div>
