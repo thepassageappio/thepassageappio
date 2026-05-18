@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseBrowser';
-import { RoleActionStrip, SiteFooter, SiteHeader, SpineTrustStrip } from '../../components/SiteChrome';
+import { SiteFooter, SiteHeader, SpineTrustStrip } from '../../components/SiteChrome';
 import { money } from '../../lib/vendorEconomics';
 import { vendorCategoryLabel } from '../../lib/vendors';
 import { paymentStatusLabel, vendorNextExpected, vendorStatusLabel } from '../../lib/vendorLifecycle';
@@ -300,15 +300,17 @@ export default function VendorRequestPage() {
             )}
 
             <div style={{ padding: 22 }}>
-            <div style={{ marginBottom: 14 }}>
-              <RoleActionStrip
-                compact
-                role="Scoped support provider"
-                action={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus}
-                waiting={waitingLabel}
-                proof={proofLabel}
-                privacy="You can respond to this request only. Private family notes, unrelated tasks, and the estate workspace stay hidden."
-              />
+            <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 15, padding: '12px 13px', marginBottom: 14 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Simple request spine</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
+                <Info label="Asked of you" value={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus} />
+                <Info label="Owner" value={ownerLabel} />
+                <Info label="Waiting" value={waitingLabel} />
+                <Info label="Proof and notify" value={proofLabel} />
+              </div>
+              <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
+                <strong style={{ color: C.ink }}>Access boundary:</strong> You can respond to this request only. Private family notes, unrelated tasks, and the estate workspace stay hidden.
+              </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(220px, .8fr)', gap: 12, marginBottom: 14 }}>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 15 }}>

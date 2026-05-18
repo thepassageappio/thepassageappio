@@ -152,7 +152,7 @@ const roadmapItems = [
     timing: 'Done today',
     status: 'Plain spine cards live',
     title: 'Make every task card explain the ask, owner, waiting point, proof, and notification path',
-    body: 'The active task UI now leads with a plain-language spine instead of dense internal framing. Participant cards show Start here, Asked of you, Owner, Waiting, and Proof and notify before any secondary context; saved notes remain visible even after completion. Estate task panels now use the same contract so coordinators see the owner, waiting point, proof, and notification state before marking handled, waiting, blocked, assigning, or sending.',
+    body: 'The active task UI now leads with a plain-language spine instead of dense internal framing. Participant cards show Start here, Asked of you, Owner, Waiting, and Proof and notify before any secondary context; saved notes remain visible even after completion. Estate, funeral-home, and vendor task panels now use the same contract so coordinators, staff, and scoped vendors see the owner, waiting point, proof, and notification state before marking handled, waiting, blocked, assigning, quoting, or sending.',
   },
   {
     pillar: 'Public Site and Demo Proof',
@@ -297,7 +297,7 @@ const roadmapExecutionDetails = {
       'A coordinator can tell who owns the next move, what is waiting, what proof will be saved, and whether a notification/handoff is ready before clicking.',
       'Saved participant notes and handled proof are visible on the card and recorded into the same spine event path.',
     ],
-    sprintLoop: 'Next loop: QA participant, urgent estate, funeral-home staff, and vendor request task cards against the same five-part contract; remove any remaining dense panels or duplicate action language.',
+    sprintLoop: 'Next loop: run browser QA on participant, urgent estate, funeral-home staff, and vendor request task cards; then remove any remaining dense list/detail panels that do not start with the five-part spine.',
   },
   'Public Site and Demo Proof': {
     technicalRequirements: [

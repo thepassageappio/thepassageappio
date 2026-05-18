@@ -5341,15 +5341,27 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
           <button onClick={onClose} aria-label="Close task action" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
         </div>
         <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 6 }}>{taskDraft.prompt}</div>
-        <div style={{ marginTop: 9 }}>
-          <RoleActionStrip
-            compact
-            role="Partner task owner"
-            action={saveLabel}
-            waiting={taskExpectedUpdate(task, 'funeral_home')}
-            proof={proofDestination}
-            privacy="This updates the case spine and reports. It does not send live email or SMS from this dialog."
-          />
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '11px 12px', marginTop: 9 }}>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Simple task spine</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
+              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Asked of staff</div>
+              <div style={{ color: C.ink, fontSize: 12.1, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{saveLabel}</div>
+            </div>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
+              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Owner</div>
+              <div style={{ color: C.ink, fontSize: 12.1, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{task.assigned_to_name || task.assigned_to_email || 'Partner task owner'}</div>
+            </div>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
+              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting</div>
+              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{taskExpectedUpdate(task, 'funeral_home')}</div>
+            </div>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
+              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Proof and notify</div>
+              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>Saves to case spine, reports, and family-visible status when approved.</div>
+            </div>
+          </div>
+          <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 8 }}><strong style={{ color: C.ink }}>Proof destination:</strong> {proofDestination}</div>
         </div>
         {taskDraft.output && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
