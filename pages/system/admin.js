@@ -147,6 +147,14 @@ const roadmapItems = [
     body: 'The next launch-readiness gap is trust continuity across the actual flow: death occurs, family enters, triage starts, tasks are created, owners are assigned, funeral-home or provider context is captured, participants/vendors are coordinated, proof is collected, status is visible, and aftercare continues. The highest-risk first pass is now live: urgent path has a visible stabilization layer for who is with the person, official pronouncement, funeral-home readiness, what usually happens next, and explicit reassurance that uncertainty is normal and Passage will keep the waiting point visible. The estate map now shows the saved urgent stabilization context after handoff, the orchestration smoke test checks that this context stays on the spine, participant workspaces show scoped urgent context, the funeral-home case pane surfaces the same family handoff context, vendor request pages show scoped timing/location/payment context, and reviewed family-update emails now include the focus task, owner, waiting point, proof, and next expected update.',
   },
   {
+    pillar: 'Task Cards and Orchestration Simplicity',
+    priority: 'P0',
+    timing: 'Done today',
+    status: 'Plain spine cards live',
+    title: 'Make every task card explain the ask, owner, waiting point, proof, and notification path',
+    body: 'The active task UI now leads with a plain-language spine instead of dense internal framing. Participant cards show Start here, Asked of you, Owner, Waiting, and Proof and notify before any secondary context; saved notes remain visible even after completion. Estate task panels now use the same contract so coordinators see the owner, waiting point, proof, and notification state before marking handled, waiting, blocked, assigning, or sending.',
+  },
+  {
     pillar: 'Public Site and Demo Proof',
     priority: 'P0',
     timing: 'Done today',
@@ -277,6 +285,19 @@ const roadmapExecutionDetails = {
       'The same event is understandable from family, participant, funeral-home, vendor, and admin perspectives without founder narration.',
     ],
     sprintLoop: 'Next loop: browser/API QA the guided demo story end-to-end and tighten any remaining visual or routing friction in the persona launcher, funeral-home sample console, and vendor/participant pages.',
+  },
+  'Task Cards and Orchestration Simplicity': {
+    technicalRequirements: [
+      'Every task card must show one ask, one owner, one waiting point, one proof destination, and one notification/visibility statement before secondary detail.',
+      'Participant task notes, proof, and completion state must remain visible after saving so users know where their update went.',
+      'Estate/coordinator task panels must make it obvious whether the user is saving a note, assigning an owner, sending a handoff, marking waiting, or closing with proof.',
+    ],
+    successCriteria: [
+      'A participant can open one task and understand what to do in under 10 seconds. ',
+      'A coordinator can tell who owns the next move, what is waiting, what proof will be saved, and whether a notification/handoff is ready before clicking.',
+      'Saved participant notes and handled proof are visible on the card and recorded into the same spine event path.',
+    ],
+    sprintLoop: 'Next loop: QA participant, urgent estate, funeral-home staff, and vendor request task cards against the same five-part contract; remove any remaining dense panels or duplicate action language.',
   },
   'Public Site and Demo Proof': {
     technicalRequirements: [

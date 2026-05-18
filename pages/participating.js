@@ -332,6 +332,16 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const availableActions = actionSet(kind);
   const recommendedAction = recommendedParticipantAction(availableActions, itemStatus(item));
   const savedNote = String(item.notes || '').trim();
+  const coordinatorLabel = estate?.coordinator_name || 'The coordinator';
+  const assignedIdentity = String(item.assigned_to_name || item.assigned_to_email || item.recipient_name || item.recipient_email || '').trim();
+  const ownerSummary = handled
+    ? 'Handled by you'
+    : assignedIdentity
+      ? `Assigned to ${assignedIdentity}`
+      : 'Assigned to you';
+  const notificationSummary = handled
+    ? `${coordinatorLabel} can see the proof, timestamp, and note.`
+    : `${coordinatorLabel} receives your update. Nothing is shared with everyone else from this card.`;
   useEffect(() => {
     if (!responseDialogOpen || typeof window === 'undefined') return undefined;
     const previousOverflow = document.body.style.overflow;
@@ -380,24 +390,30 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         </div>
         <StatusBadge status={itemStatus(item)} label={statusLabel(itemStatus(item))} />
       </div>
-      <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: '11px 12px', marginBottom: 9 }}>
-        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>What the family needs from you</div>
-        <div style={{ color: C.ink, fontSize: 14, lineHeight: 1.45, fontWeight: 900 }}>{explanation.what}</div>
-        <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}><strong style={{ color: C.ink }}>Your part:</strong> {contract.action}</div>
-      </div>
-      {primary && (
-        <div style={{ marginBottom: 9 }}>
-          <RoleActionStrip
-            compact
-            role={contract.label}
-            action={contract.action}
-            waiting={expectedUpdate}
-            proof={`${estate?.coordinator_name || 'The coordinator'} sees status, note, and timestamp.`}
-            privacy="The full estate workspace, private notes, and unrelated requests stay hidden."
-          />
+      <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: primary ? '14px 15px' : '12px 13px', marginBottom: 10 }}>
+        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Start here</div>
+        <div style={{ color: C.ink, fontSize: primary ? 16 : 14, lineHeight: 1.42, fontWeight: 900 }}>{explanation.what}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8, marginTop: 11 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Asked of you</div>
+            <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{contract.action}</div>
+          </div>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Owner</div>
+            <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{ownerSummary}</div>
+          </div>
+          <div style={{ background: statusBg, border: `1px solid ${statusTone}33`, borderRadius: 12, padding: '9px 10px' }}>
+            <div style={{ color: statusTone, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting</div>
+            <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{expectedUpdate}</div>
+          </div>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Proof and notify</div>
+            <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{notificationSummary}</div>
+          </div>
         </div>
-      )}
-      <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9 }}>
+      </div>
+      <details style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', marginBottom: 9 }}>
+        <summary style={{ color: C.sage, cursor: 'pointer', fontSize: 12.5, fontWeight: 900 }}>Why this matters and what done means</summary>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 7, marginTop: 9 }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Why it matters</div>
@@ -408,27 +424,19 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>{explanation.done}</div>
           </div>
         </div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(160px, .8fr)', gap: 8, marginBottom: 9 }}>
-        <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{contract.label}</div>
-          <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.38, fontWeight: 800, marginTop: 3 }}>{contract.action}</div>
+        <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>
+          <strong style={{ color: C.ink }}>Access boundary:</strong> The full estate workspace, private notes, and unrelated requests stay hidden.
         </div>
-        <div style={{ background: statusBg, border: `1px solid ${statusTone}33`, borderRadius: 12, padding: '9px 10px' }}>
-          <div style={{ fontSize: 10.5, color: statusTone, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting point</div>
-          <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.38, marginTop: 3 }}>{expectedUpdate}</div>
+      </details>
+      {(savedPulse || savedNote) && (
+        <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 11px', marginTop: 8, marginBottom: 9, color: C.mid, fontSize: 12.6, lineHeight: 1.45 }}>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>{savedPulse ? 'Saved to the spine' : 'Saved note the coordinator can see'}</div>
+          <div style={{ color: C.ink, fontWeight: 800 }}>{savedNote || 'Your note was saved to Passage.'}</div>
+          {item.last_action_at && <div style={{ color: C.soft, fontSize: 11.5, marginTop: 5 }}>Saved {new Date(item.last_action_at).toLocaleString()}</div>}
         </div>
-      </div>
+      )}
       {!handled && (
         <>
-          {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>Note saved to Passage.</div>}
-          {savedNote && (
-            <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 11px', marginTop: 8, color: C.mid, fontSize: 12.6, lineHeight: 1.45 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Saved note the coordinator can see</div>
-              <div style={{ color: C.ink, fontWeight: 800 }}>{savedNote}</div>
-              {item.last_action_at && <div style={{ color: C.soft, fontSize: 11.5, marginTop: 5 }}>Saved {new Date(item.last_action_at).toLocaleString()}</div>}
-            </div>
-          )}
           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: 9, marginTop: 8 }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Best next step</div>
             <button onClick={() => setPendingAction(recommendedAction[0])} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 42, padding: '0 12px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.8, fontWeight: 900, width: '100%', textAlign: 'left' }}>{recommendedAction[1]}</button>

@@ -10,6 +10,7 @@ import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import VendorSupport from '../components/VendorSupport';
 import PacketGeneratorModal from '../components/PacketGeneratorModal';
 import SmartAddressInput from '../components/SmartAddressInput';
+import { taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
 import { taskExplanationFor, taskWorkspaceFor } from '../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../lib/taskOrchestration';
@@ -3972,19 +3973,31 @@ export default function EstatePage() {
                       This closes the task. Add the proof, reference, file, or short note the family should be able to trust later.
                     </div>
                   )}
-                  <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '10px 11px', marginTop: 12 }}>
-                    <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>What this task is</div>
-                    <div style={{ fontSize: 12.8, color: INK, lineHeight: 1.45, fontWeight: 800 }}>{explanation.what}</div>
+                  <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px', marginTop: 12 }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Simple task spine</div>
+                    <div style={{ fontSize: 14, color: INK, lineHeight: 1.4, fontWeight: 900 }}>{explanation.what}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginTop: 8 }}>
                       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
-                        <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>Why it matters</div>
-                        <div style={{ fontSize: 12, color: MID, lineHeight: 1.4, marginTop: 3 }}>{explanation.why}</div>
+                        <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>Owner</div>
+                        <div style={{ fontSize: 12, color: INK, lineHeight: 1.4, marginTop: 3, fontWeight: 800 }}>{assignedEmailForSpine ? taskAssignedName(pendingTaskAction.task) || assignedEmailForSpine : 'Choose who owns the next move.'}</div>
                       </div>
                       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
-                        <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>What done means</div>
+                        <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>Waiting point</div>
+                        <div style={{ fontSize: 12, color: MID, lineHeight: 1.4, marginTop: 3 }}>{taskExpectedUpdate(pendingTaskAction.task, 'family')}</div>
+                      </div>
+                      <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
+                        <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>Proof</div>
                         <div style={{ fontSize: 12, color: MID, lineHeight: 1.4, marginTop: 3 }}>{explanation.done}</div>
                       </div>
+                      <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
+                        <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.1em', textTransform: 'uppercase' }}>Notification</div>
+                        <div style={{ fontSize: 12, color: MID, lineHeight: 1.4, marginTop: 3 }}>{assignedEmailForSpine ? 'Passage can send the handoff or save the update here.' : 'Save an owner before sending a handoff.'}</div>
+                      </div>
                     </div>
+                    <details style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 11, padding: '8px 9px', marginTop: 9, color: MID, fontSize: 12.2, lineHeight: 1.45 }}>
+                      <summary style={{ color: SAGE, cursor: 'pointer', fontWeight: 900 }}>Why this matters</summary>
+                      <div style={{ marginTop: 6 }}>{explanation.why}</div>
+                    </details>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 12 }}>
                     <div style={{ background: assignedEmailForSpine ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (assignedEmailForSpine ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 12, padding: '9px 10px' }}>
@@ -4190,11 +4203,11 @@ export default function EstatePage() {
               <div style={{ background: pendingTaskAction.status === 'handled' ? SAGE_FAINT : pendingTaskAction.status === 'blocked' ? ROSE_FAINT : SUBTLE, border: '1px solid ' + (pendingTaskAction.status === 'handled' ? SAGE_LIGHT : pendingTaskAction.status === 'blocked' ? ROSE + '35' : BORDER), borderRadius: 12, padding: '9px 10px', marginTop: 9, color: MID, fontSize: 12.5, lineHeight: 1.45 }}>
                 <strong style={{ color: INK }}>After you save:</strong>{' '}
                 {pendingTaskAction.status === 'handled'
-                  ? 'Passage marks this task done, saves the proof note and attachment path, and moves it out of active work.'
+                  ? 'Passage marks this task done, saves this proof note and any attachment path, notifies the right spine view, and moves it out of active work.'
                   : pendingTaskAction.status === 'blocked'
-                    ? 'Passage keeps this visible as a help request until someone clears the blocker.'
+                    ? 'Passage keeps this visible as a help request, records the blocker, and shows who needs to respond next.'
                     : pendingTaskAction.status === 'waiting'
-                      ? 'Passage keeps this task open and shows what is waiting before the next move.'
+                      ? 'Passage keeps this task open, records what is waiting, and keeps the next expected update visible.'
                       : pendingTaskAction.mode
                         ? 'Passage saves this prepared output as proof on the task. Nothing sends unless you choose a send action above.'
                         : 'Passage saves this update to the estate record.'}
