@@ -3,6 +3,7 @@ import { escapeHtml, passageEmailShell, passageSubject } from '../../lib/branded
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 import { recordStatusEvent } from '../../lib/taskStatus';
+import { taskDisplayTitle, taskExpectedUpdate } from '../../lib/communicationCenter';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -41,6 +42,30 @@ function parseRecipients(input) {
       return true;
     })
     .slice(0, 50);
+}
+
+function normalizeChoice(value, allowed, fallback) {
+  const cleanValue = clean(value).toLowerCase();
+  return allowed.includes(cleanValue) ? cleanValue : fallback;
+}
+
+function handledStatus(value) {
+  return ['handled', 'completed', 'done', 'not_applicable', 'cancelled'].includes(clean(value).toLowerCase());
+}
+
+function proofContextFor(workflow, task, body = {}) {
+  const operational = body.operationalContext || {};
+  const owner = clean(operational.owner || body.owner || task?.assigned_to_name || task?.assigned_to_email || workflow.coordinator_name || workflow.coordinator_email || 'Passage coordinator');
+  const waitingPoint = clean(operational.waitingPoint || body.waitingPoint || task?.waiting_on || task?.recipient || 'the next reply, decision, or proof update');
+  const proof = clean(operational.proof || body.proof || task?.proof_required || 'the reviewed update, delivery log, recipient, actor, and timestamp stay on the family record');
+  const nextExpectedUpdate = clean(operational.nextExpectedUpdate || body.nextExpectedUpdate || (task ? taskExpectedUpdate(task, 'family') : 'The next update appears on the family record when someone responds or the status changes.'));
+  return {
+    taskTitle: task ? taskDisplayTitle(task) : clean(body.taskTitle || 'Family update'),
+    owner,
+    waitingPoint,
+    proof,
+    nextExpectedUpdate,
+  };
 }
 
 async function getUser(req) {
@@ -89,8 +114,8 @@ export default async function handler(req, res) {
   const workflowId = clean(req.body?.workflowId);
   const message = clean(req.body?.message);
   const channel = clean(req.body?.channel || 'email').toLowerCase();
-  const audience = clean(req.body?.audience || 'family_update');
-  const tone = clean(req.body?.tone || 'custom');
+  const audience = normalizeChoice(req.body?.audience, ['immediate_family', 'close_friends', 'broader_community', 'public'], 'immediate_family');
+  const tone = normalizeChoice(req.body?.tone, ['simple', 'warm', 'minimal'], 'warm');
   const reviewer = clean(req.body?.reviewedBy);
   const recipients = parseRecipients(req.body?.recipients || req.body?.recipientText);
 
@@ -107,6 +132,15 @@ export default async function handler(req, res) {
   if (workflowError) return res.status(500).json({ error: workflowError.message });
   if (!workflow) return res.status(404).json({ error: 'Family record not found.' });
   if (!(await canAccessWorkflow(user, workflow))) return res.status(403).json({ error: 'You do not have access to this family record.' });
+
+  const { data: taskRows } = await admin
+    .from('tasks')
+    .select('id,title,status,assigned_to_name,assigned_to_email,waiting_on,recipient,proof_required,updated_at,created_at')
+    .eq('workflow_id', workflowId)
+    .order('updated_at', { ascending: false })
+    .limit(20);
+  const focusTask = (taskRows || []).find(task => !handledStatus(task.status)) || (taskRows || [])[0] || null;
+  const proofContext = proofContextFor(workflow, focusTask, req.body || {});
 
   const subjectName = workflow.deceased_name || workflow.estate_name || workflow.name || 'the family';
   const subject = req.body?.subject || passageSubject('Family update', subjectName);
@@ -140,6 +174,19 @@ export default async function handler(req, res) {
         {
           label: 'From',
           html: `<strong style="color:#1a1916;">${escapeHtml(workflow.coordinator_name || user.email || 'Passage coordinator')}</strong>`,
+        },
+        {
+          label: 'What Passage is tracking',
+          html: [
+            `Focus: <strong style="color:#1a1916;">${escapeHtml(proofContext.taskTitle)}</strong>`,
+            `Owner: <strong style="color:#1a1916;">${escapeHtml(proofContext.owner)}</strong>`,
+            `Waiting point: <strong style="color:#1a1916;">${escapeHtml(proofContext.waitingPoint)}</strong>`,
+            `Next expected update: <strong style="color:#1a1916;">${escapeHtml(proofContext.nextExpectedUpdate)}</strong>`,
+          ].join('<br/>'),
+        },
+        {
+          label: 'Proof',
+          html: escapeHtml(proofContext.proof),
         },
       ],
       ctaLabel: 'Open Passage',
@@ -195,7 +242,7 @@ export default async function handler(req, res) {
       providerMessageId: ok ? json.id : null,
       eventType: ok ? 'family_update_sent' : 'family_update_failed',
       eventTitle: ok ? 'Family update sent' : 'Family update needs review',
-      eventDescription: `Audience: ${audience}. ${recipient.name || recipient.email}`,
+      eventDescription: `Audience: ${audience}. ${recipient.name || recipient.email}. Owner: ${proofContext.owner}. Waiting: ${proofContext.waitingPoint}. Next: ${proofContext.nextExpectedUpdate}.`,
     });
   }
 
