@@ -1819,8 +1819,29 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
   var taskState = item?.orchestration?.stateMachine || null;
   var suggestedOutputs = item?.orchestration?.outputActions || [];
   var suggestedTasks = item?.orchestration?.suggestedTasks || [];
-  var statusTone = blockedCount ? ROSE : waitingCount ? AMBER : SAGE;
-  var statusBg = blockedCount ? ROSE_FAINT : waitingCount ? AMBER_FAINT : SAGE_FAINT;
+  var currentNeedsHelp = taskState?.state === 'needs_help' || taskState?.state === 'blocked_by_dependency' || needsHelpStatus(item);
+  var currentWaiting = taskState?.state === 'waiting' || isWaitingStatus(item);
+  var statusTone = currentNeedsHelp ? ROSE : currentWaiting ? AMBER : SAGE;
+  var statusBg = currentNeedsHelp ? ROSE_FAINT : currentWaiting ? AMBER_FAINT : SAGE_FAINT;
+  var overallStatusTone = blockedCount ? ROSE : waitingCount ? AMBER : SAGE;
+  var overallStatusBg = blockedCount ? ROSE_FAINT : waitingCount ? AMBER_FAINT : SAGE_FAINT;
+  var lifecycleStep = taskState?.state === 'needs_owner'
+    ? 0
+    : taskState?.state === 'ready'
+      ? 1
+      : taskState?.state === 'waiting' || taskState?.state === 'blocked_by_dependency' || taskState?.state === 'needs_help'
+        ? 2
+        : taskState?.state === 'completed_needs_proof_review'
+          ? 3
+          : taskState?.state === 'completed_with_proof'
+            ? 4
+            : missingOwner
+              ? 0
+              : isWaitingStatus(item)
+                ? 2
+                : isHandledStatus(item)
+                  ? 4
+                  : 1;
 
   function select(index) {
     setSelectedIndex(Math.max(0, Math.min(index, Math.max(queue.length - 1, 0))));
@@ -1843,8 +1864,8 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           <div style={{ fontSize: 26, color: INK, lineHeight: 1.08, fontWeight: 900 }}>One next move. One shared truth.</div>
           <div style={{ color: MID, fontSize: 13.2, lineHeight: 1.5, marginTop: 6, maxWidth: 620 }}>Owner, request, waiting point, proof, and family-visible status stay together.</div>
         </div>
-        <div style={{ minWidth: 170, background: statusBg, border: '1px solid ' + (blockedCount ? ROSE + '35' : waitingCount ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 14, padding: '10px 12px', textAlign: 'right' }}>
-          <div style={{ color: statusTone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{blockedCount ? 'Needs attention' : waitingCount ? 'Waiting' : 'On track'}</div>
+        <div style={{ minWidth: 170, background: overallStatusBg, border: '1px solid ' + (blockedCount ? ROSE + '35' : waitingCount ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 14, padding: '10px 12px', textAlign: 'right' }}>
+          <div style={{ color: overallStatusTone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{blockedCount ? 'Needs attention' : waitingCount ? 'Waiting' : 'On track'}</div>
           <div style={{ color: INK, fontSize: 20, lineHeight: 1.1, fontWeight: 900, marginTop: 4 }}>{handledCount} handled</div>
           <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{waitingCount} waiting · {blockedCount} blocked</div>
         </div>
@@ -1875,12 +1896,20 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           {queue.map(function(entry, index) {
             var selected = index === selectedIndex;
             var entryOwner = entry.kind === 'task' ? taskSpineOwner(entry.item) : textValue(entry.item.owner_label, 'Needs owner');
-            var entryStatus = taskSpineStatus(entry.item);
+            var entryState = entry.item?.orchestration?.stateMachine || null;
+            var entryStatus = entryState?.label || taskSpineStatus(entry.item);
             var entryImportance = taskImportance(entry.item, orchestrationContext);
+            var entryTone = entryState?.state === 'blocked_by_dependency' || entryState?.state === 'needs_help'
+              ? ROSE
+              : entryState?.state === 'waiting'
+                ? AMBER
+                : entryOwner === 'Needs owner' || entryOwner === 'Unassigned'
+                  ? AMBER
+                  : SOFT;
             return (
               <button key={entry.kind + '_' + (entry.item.id || index)} title={entryImportance.label + ': ' + entryImportance.reason} onClick={function() { select(index); }} style={{ width: '100%', textAlign: 'left', border: 'none', borderLeft: '4px solid ' + (selected ? SAGE : 'transparent'), background: selected ? SAGE_FAINT : 'transparent', padding: '10px 10px 10px 11px', marginBottom: 5, cursor: 'pointer', fontFamily: 'inherit' }}>
                 <div style={{ color: selected ? INK : MID, fontSize: 12.7, fontWeight: 900, lineHeight: 1.25 }}>{displayTaskTitle(entry.item)}</div>
-                <div style={{ color: entryOwner === 'Needs owner' || entryOwner === 'Unassigned' ? AMBER : SOFT, fontSize: 11.2, lineHeight: 1.35, marginTop: 4 }}>{entryOwner} · {entryStatus}</div>
+                <div style={{ color: entryTone, fontSize: 11.2, lineHeight: 1.35, marginTop: 4 }}>{entryOwner} - {entryStatus}</div>
               </button>
             );
           })}
@@ -1907,13 +1936,32 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               <div style={{ color: INK, fontSize: 26, lineHeight: 1.08, fontWeight: 900 }}>{title}</div>
               <div style={{ color: MID, fontSize: 14.5, lineHeight: 1.55, marginTop: 10 }}>{item ? displayTaskNext(item) : 'No estate work needs attention right now.'}</div>
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
-                <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
+                <strong style={{ color: INK }}>Next expected update:</strong> {taskState?.waitingOn || expectedUpdate}
               </div>
               {taskState && (
                 <div style={{ background: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_FAINT : SAGE_FAINT, border: '1px solid ' + (taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 13, padding: '10px 12px', color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
                   <div style={{ color: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER : SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Orchestration state: {taskState.label}</div>
                   <div style={{ marginTop: 4 }}>{taskState.reassurance}</div>
                   {taskState.escalation && <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>If stuck:</strong> {taskState.escalation}</div>}
+                </div>
+              )}
+              {item && (
+                <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 12px', marginTop: 10 }}>
+                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>How this task moves</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 6, marginTop: 8 }}>
+                    {['Owner', 'Ask', 'Waiting', 'Proof', 'Done'].map(function(label, index) {
+                      var active = index === lifecycleStep;
+                      var past = index < lifecycleStep;
+                      return (
+                        <div key={label} style={{ background: active ? SAGE : past ? SAGE_FAINT : CARD, border: '1px solid ' + (active || past ? SAGE_LIGHT : BORDER), color: active ? '#fff' : past ? SAGE : MID, borderRadius: 10, padding: '7px 6px', textAlign: 'center', fontSize: 11.2, fontWeight: 900, lineHeight: 1.25 }}>
+                          {label}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ color: MID, fontSize: 11.8, lineHeight: 1.45, marginTop: 7 }}>
+                    Every role sees this same movement in a scoped way: assign one owner, make one ask, wait visibly, save proof, then mark done.
+                  </div>
                 </div>
               )}
               {(suggestedOutputs.length > 0 || suggestedTasks.length > 0) && (
@@ -2745,9 +2793,109 @@ function ActivationCirclePanel({ estateId, estate, people, authToken, onActivate
   );
 }
 
+function demoFamilySpineContext() {
+  var now = new Date().toISOString();
+  var workflowId = 'demo-family-task-spine';
+  var tasks = [
+    {
+      id: 'demo-task-pronouncement',
+      workflow_id: workflowId,
+      title: 'Confirm hospice pronouncement and next instruction',
+      description: 'Call the hospice nurse or on-call number, write down who confirmed death, and save the next instruction.',
+      status: 'waiting',
+      assigned_to_name: 'Michael Price',
+      assigned_to_email: 'michael@example.com',
+      notes: 'Waiting on hospice nurse callback with release instruction.',
+      last_action_at: now,
+      created_at: now,
+    },
+    {
+      id: 'demo-task-funeral-home',
+      workflow_id: workflowId,
+      title: 'Prepare funeral-home handoff packet',
+      description: 'Collect release status, family contact, preferred funeral home, service wishes, and open questions for one reviewed handoff.',
+      status: 'pending',
+      assigned_to_name: '',
+      assigned_to_email: '',
+      created_at: now,
+    },
+    {
+      id: 'demo-task-family-update',
+      workflow_id: workflowId,
+      title: 'Notify immediate family after coordinator review',
+      description: 'Draft one calm update with what happened, what is known, and what is still waiting. Nothing sends before review.',
+      status: 'assigned',
+      assigned_to_name: 'Claire Price',
+      assigned_to_email: 'claire@example.com',
+      created_at: now,
+    },
+    {
+      id: 'demo-task-flowers',
+      workflow_id: workflowId,
+      title: 'Order memorial flowers after service date is confirmed',
+      description: 'Ask a scoped florist for quote, delivery timing, payment status, and completion proof.',
+      status: 'blocked',
+      assigned_to_name: 'Passage coordinator',
+      assigned_to_email: 'support@thepassageapp.io',
+      notes: 'Blocked until service date and location are confirmed.',
+      last_action_at: now,
+      created_at: now,
+    },
+  ];
+  var events = [
+    {
+      id: 'demo-event-1',
+      estate_id: workflowId,
+      event_type: 'task_status_updated',
+      title: 'Hospice confirmation is waiting',
+      description: 'Michael is waiting on a hospice callback. Passage keeps this visible as the current waiting point.',
+      created_at: now,
+    },
+  ];
+  return {
+    estate: {
+      id: workflowId,
+      name: 'Eleanor Price',
+      deceased_name: 'Eleanor Price',
+      deceased_first_name: 'Eleanor',
+      coordinator_name: 'Michael Price',
+      coordinator_email: 'michael@example.com',
+      status: 'active',
+      path: 'urgent',
+      orchestration_summary: {
+        chaplain_context: {
+          deathContext: 'hospice',
+          pronouncementStatus: 'needed',
+          funeralHomeHandoffIntent: 'known',
+        },
+      },
+    },
+    outcomes: [],
+    tasks,
+    events,
+    serviceEvents: [
+      { id: 'demo-service-1', workflow_id: workflowId, event_type: 'visitation', name: 'Visitation', date: '2026-05-22', time: '16:00', location_name: 'Hudson Valley Funeral Group' },
+    ],
+    people: [
+      { id: 'demo-person-1', estate_id: workflowId, first_name: 'Michael', last_name: 'Price', email: 'michael@example.com', relationship: 'Coordinator' },
+      { id: 'demo-person-2', estate_id: workflowId, first_name: 'Claire', last_name: 'Price', email: 'claire@example.com', relationship: 'Participant' },
+    ],
+    actions: [],
+    announcements: [],
+    coordinationSpine: {
+      conversation: [],
+      proof: events,
+      notifications: [],
+      attentionItems: [],
+      latest: events,
+    },
+  };
+}
+
 export default function EstatePage() {
   var params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-  var estateId = params.get('id') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('passage_last_estate_id') : null);
+  var requestedDemoMode = params.get('demo') === '1' || params.get('demo') === 'true' || params.get('sandbox') === '1';
+  var estateId = params.get('id') || (requestedDemoMode ? 'demo-family-task-spine' : (typeof window !== 'undefined' ? window.sessionStorage.getItem('passage_last_estate_id') : null));
   var initialTaskId = params.get('task') || '';
   var initialTaskIntent = (params.get('intent') || '').toLowerCase();
 
@@ -2821,6 +2969,21 @@ export default function EstatePage() {
   }, []);
 
   useEffect(function() {
+    if (requestedDemoMode) {
+      var demo = demoFamilySpineContext();
+      setEstate(demo.estate);
+      setOutcomes(demo.outcomes);
+      setTasks(demo.tasks);
+      setEvents(demo.events);
+      setServiceEvents(demo.serviceEvents);
+      setPeople(demo.people);
+      setActions(demo.actions);
+      setAnnouncements(demo.announcements);
+      setCoordinationSpine(demo.coordinationSpine);
+      setAuthChecked(true);
+      setLoading(false);
+      return;
+    }
     if (!estateId) { setLoading(false); return; }
     if (!sb?.auth) { setLoading(false); return; }
     sb.auth.getSession().then(function(r) {
@@ -2877,7 +3040,7 @@ export default function EstatePage() {
     }).catch(function() {
       setLoading(false);
     });
-  }, [estateId]);
+  }, [estateId, requestedDemoMode]);
 
   useEffect(function() {
     if (!estateId) return;
@@ -3923,7 +4086,7 @@ export default function EstatePage() {
           events={events}
           serviceEvents={serviceEvents}
           announcements={announcements}
-          communications={communications}
+          communications={coordinationSpine?.notifications || []}
         />
 
         <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">

@@ -325,13 +325,14 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const statusTone = handled ? C.sage : itemStatus(item) === 'blocked' ? C.rose : C.amber;
   const statusBg = handled ? C.sageFaint : itemStatus(item) === 'blocked' ? C.roseFaint : C.amberFaint;
   const [savedPulse, setSavedPulse] = useState(false);
+  const [localSavedNote, setLocalSavedNote] = useState('');
   const [proofWarning, setProofWarning] = useState('');
   const [pendingAction, setPendingAction] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
   const responseDialogOpen = Boolean(pendingAction || detailsOpen);
   const availableActions = actionSet(kind);
   const recommendedAction = recommendedParticipantAction(availableActions, itemStatus(item));
-  const savedNote = String(item.notes || '').trim();
+  const savedNote = String(localSavedNote || item.notes || '').trim();
   const coordinatorLabel = estate?.coordinator_name || 'The coordinator';
   const assignedIdentity = String(item.assigned_to_name || item.assigned_to_email || item.recipient_name || item.recipient_email || '').trim();
   const ownerSummary = handled
@@ -359,6 +360,10 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [responseDialogOpen]);
+  useEffect(() => {
+    setLocalSavedNote('');
+    setSavedPulse(false);
+  }, [item.id, item.notes]);
   const noteChange = (value) => {
     onNotes(value);
     setSavedPulse(false);
@@ -482,6 +487,12 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                       <button onClick={() => {
                         if (pendingAction === 'save_note') {
+                          const trimmedNote = String(notes || '').trim();
+                          if (!trimmedNote) {
+                            setProofWarning('Add the note you want the coordinator to see before saving.');
+                            return;
+                          }
+                          setLocalSavedNote(trimmedNote);
                           onAction('save_note');
                           setSavedPulse(true);
                           setPendingAction('');

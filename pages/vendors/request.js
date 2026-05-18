@@ -90,7 +90,7 @@ export default function VendorRequestPage() {
   }, [token]);
 
   useEffect(() => {
-    if (!token && demoQuery && isSystemAdmin(user)) {
+    if (!token && demoQuery) {
       setRequest(demoRequest);
       setEstimatedValue(demoRequest.estimated_value || '');
       setFinalValue('');
@@ -199,7 +199,7 @@ export default function VendorRequestPage() {
 
   const familyName = request?.workflows?.deceased_name || request?.workflows?.estate_name || request?.workflows?.name || 'Family case';
   const vendorName = request?.vendors?.business_name || 'Vendor';
-  const demoMode = !token && isSystemAdmin(user) && demoQuery;
+  const demoMode = !token && demoQuery;
   const requestStatus = labelForStatus(request?.status);
   const urgencyLabel = request?.urgency === 'rush' ? 'Needed within 24 hours' : 'Planning ahead';
   const nextExpected = vendorNextExpected(request?.status, request?.payment_collection_status);
