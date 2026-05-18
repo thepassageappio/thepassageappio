@@ -168,7 +168,7 @@ const roadmapItems = [
     timing: 'Done today',
     status: 'Guided sample tour live',
     title: 'Public CTAs and guided funeral-home sample console',
-    body: 'Homepage and funeral-home pages now give prospects a direct, no-login path into the sample operating console while preserving the primary urgent, care-prep, planning, sign-in, and booking routes. The sample console uses simulated local data, hides Passage-admin-only demo controls unless Steve is signed in as admin, and now includes a 90-second guided tour through My Day, task spine, communication proof, reports/export, staff, locations, and rollout before booking.',
+    body: 'Homepage and funeral-home pages now give prospects a direct, no-login path into the sample operating console while preserving the primary urgent, care-prep, planning, sign-in, and booking routes. The homepage desktop hero was tightened back to a one-viewport presentation at 100% Chrome zoom so the first impression no longer feels vertically stretched. The sample console uses simulated local data, hides Passage-admin-only demo controls unless Steve is signed in as admin, and now includes a 90-second guided tour through My Day, task spine, communication proof, reports/export, staff, locations, and rollout before booking.',
   },
   {
     pillar: 'Vendor Commerce',
@@ -198,9 +198,25 @@ const roadmapItems = [
     pillar: 'Communications',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Format and reminder proof standardized',
-    title: 'Email consistency, deep links, family updates, and event announcements',
-    body: 'Reviewed family updates, vendor requests, vendor quote updates, task assignments, task reminders, activation requests, funeral-home proof emails, partner exports, and urgent-path proof notes now use the Passage operational shell pattern: consistent Passage subject prefix, mobile-safe formatting, primary CTA button, fallback link, recipient safety routing, and notification-log proof where the action leaves the system. Reminder sends now return a visible task-spine contract and the production smoke test proves the reminder created both notification and task-event proof.',
+    status: 'Notification visibility live',
+    title: 'Email consistency, deep links, family updates, and visible delivery proof',
+    body: 'Reviewed family updates, vendor requests, vendor quote updates, task assignments, task reminders, activation requests, funeral-home proof emails, partner exports, and urgent-path proof notes now use the Passage operational shell pattern: consistent Passage subject prefix, mobile-safe formatting, primary CTA button, fallback link, recipient safety routing, and notification-log proof where the action leaves the system. Reminder sends now return a visible task-spine contract and the production smoke test proves the reminder created both notification and task-event proof. The estate spine now has a Notification Awareness panel that answers who Passage notified and what happened, and the participant workspace now has a Notification Status card so invited helpers can see what Passage sent or saved for them instead of relying on email alone.',
+  },
+  {
+    pillar: 'Notification Awareness and Delivery Trail',
+    priority: 'P0',
+    timing: 'Done today',
+    status: 'Visibility live',
+    title: 'Make in-product notifications obvious after email leaves Passage',
+    body: 'The notification problem is now named as a first-class product surface: email alone is not enough. Coordinators, participants, funeral-home users, vendors, and admin need to know inside Passage who was contacted, what was sent, whether it is waiting, failed, or handled, and where the next action lives. The estate demo now shows who Passage notified, the participant demo shows the task assignment email trail, and future notification work should attach to this same delivery-trail contract instead of hiding inside activity logs or closed details panels.',
+  },
+  {
+    pillar: 'External Configuration Gates',
+    priority: 'P0',
+    timing: 'This week',
+    status: 'Manual config gates',
+    title: 'Close the remaining production configuration gates outside code',
+    body: 'A small number of launch-readiness items now depend on external dashboards rather than application code: Supabase leaked-password protection, Google Places/Maps server key for dynamic addresses, Stripe live webhook secret consolidation and event delivery checks, HubSpot service-key object creation checks, and Twilio A2P/carrier status before real SMS promises. These are tracked here so the product roadmap does not confuse shipped code with fully operational production readiness.',
   },
   {
     pillar: 'Demo and QA Sandbox',
@@ -394,7 +410,38 @@ const roadmapExecutionDetails = {
       'No external message sends without review/approval when the action leaves the family record.',
       'Reminder sends prove who was nudged, where the recipient should click, what is still waiting, and which spine rows recorded the handoff.',
     ],
-    sprintLoop: 'Current loop: task reminders and sends return the full spine contract and the production smoke test verifies notification-log plus task-event proof for the reminder path.',
+    sprintLoop: 'Current loop completed: task reminders and sends return the full spine contract, production smoke verifies notification-log plus task-event proof, and live browser QA confirms estate and participant surfaces expose the delivery trail in-product.',
+  },
+  'Notification Awareness and Delivery Trail': {
+    technicalRequirements: [
+      'Surface notification_log and coordinationSpine notification rows in the main workspace, not only in hidden activity details.',
+      'Show intended recipient, actual or scoped recipient, status, subject/detail, expected next action, and timestamp wherever a user could reasonably ask "who got told?"',
+      'Keep participant, vendor, funeral-home, family, and admin notification views role-scoped so delivery proof does not leak the full estate record.',
+      'Use the same delivery-trail language across email, task assignment, reminders, vendor quote updates, family announcements, and activation confirmations.',
+    ],
+    successCriteria: [
+      'Coordinator can see who Passage notified and what happened from the estate spine without digging through raw logs.',
+      'Participant can see what Passage sent or saved for them from their scoped workspace.',
+      'Failed, waiting, sent, and handled notification states have clear next steps or repair paths.',
+      'Browser QA confirms estate demo and participant demo both show notification visibility after every notification sprint.',
+    ],
+    sprintLoop: 'Current loop completed: estate demo shows who Passage notified, participant demo shows the task assignment email trail, and future notification work must reuse this delivery-trail contract.',
+  },
+  'External Configuration Gates': {
+    technicalRequirements: [
+      'Enable Supabase leaked-password protection in Auth Email provider when the project plan exposes the toggle.',
+      'Add GOOGLE_PLACES_API_KEY or GOOGLE_MAPS_API_KEY to Vercel production so SmartAddressInput can return live suggestions.',
+      'Confirm Stripe live webhook secret naming and event destination coverage for checkout, Connect account, payment failure, expired checkout, and refund/dispute readiness.',
+      'Run HubSpot owned tests for contact, vendor, funeral-home, care-provider, guide, support, and checkout event routing.',
+      'Keep Twilio SMS visibly gated until A2P/carrier readiness is complete and live copy no longer over-promises texting.',
+    ],
+    successCriteria: [
+      'Security readiness no longer has the leaked-password manual action open.',
+      'Dynamic addresses work on urgent intake, funeral-home setup, case location, cemetery/burial address, care provider, and vendor service-area flows.',
+      'Stripe and HubSpot readiness checks prove live event delivery or show a named blocker in admin.',
+      'SMS status is either fully live and tested or clearly paused in product/admin language.',
+    ],
+    sprintLoop: 'Next loop: complete the external dashboard toggles and env vars, redeploy if needed, run the full P0 readiness loop, and update this item from manual config gates to verified.',
   },
   'Demo and QA Sandbox': {
     technicalRequirements: [
@@ -441,6 +488,11 @@ const detailedRoadmapItems = roadmapItems.map((item) => ({
   ...item,
   ...(roadmapExecutionDetails[item.pillar] || {}),
 }));
+
+function isRoadmapItemCompleted(item) {
+  const marker = `${item.timing || ''} ${item.status || ''}`;
+  return /done|verified|fixed|standardized|passing|smoke-tested|visibility live|closed|scorecards live|browser\/api verified|guided sample tour live|routing check live|contract live/i.test(marker);
+}
 
 const personaProfiles = [
   {
@@ -653,13 +705,10 @@ export default function SystemAdminPage() {
     () => sandboxHref(activeDemoStory.href, activeDemoStory.id),
     [activeDemoStory]
   );
-  const completedRoadmapItems = useMemo(() => detailedRoadmapItems.filter((item) => {
-    const marker = `${item.timing || ''} ${item.status || ''}`;
-    return /done|verified|fixed|standardized|passing|smoke-tested|visibility live/i.test(marker);
-  }), []);
+  const completedRoadmapItems = useMemo(() => detailedRoadmapItems.filter(isRoadmapItemCompleted), []);
   const roadmapPriorityGroups = useMemo(() => ['P0', 'P1', 'P2', 'P3', 'P4'].map((priority) => ({
     priority,
-    items: detailedRoadmapItems.filter((item) => item.priority === priority),
+    items: detailedRoadmapItems.filter((item) => item.priority === priority && !isRoadmapItemCompleted(item)),
   })).filter((group) => group.items.length), []);
   const dangerousMiddleScorecards = useMemo(() => buildDangerousMiddleScorecards(p0Readiness), [p0Readiness]);
 
@@ -1491,7 +1540,7 @@ export default function SystemAdminPage() {
                   <details open style={accordionPanel}>
                     <summary style={accordionSummary}>
                       <span>Active roadmap by priority</span>
-                      <span style={countPill}>{detailedRoadmapItems.length}</span>
+                      <span style={countPill}>{roadmapPriorityGroups.reduce((sum, group) => sum + group.items.length, 0)}</span>
                     </summary>
                     <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
                       {roadmapPriorityGroups.map((group) => (
