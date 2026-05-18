@@ -178,6 +178,15 @@ export default async function handler(req, res) {
       taskId: task.id,
     });
 
+    const assignmentSaved = await apiPost(`/api/tasks/${task.id}/assign`, {
+      name: 'QA Funeral Home Director',
+      email: recipientEmail,
+      role: 'funeral_home_director',
+      phone: '+18455797644',
+      actor: 'Passage QA Coordinator',
+    }, requestBearerToken);
+    checks.push({ name: 'task_owner_assignment_saved', ...assignmentSaved });
+
     const partnerProof = await apiPost('/api/partnerHandleTask', {
       taskId: task.id,
       note: 'QA proof: funeral-home staff recorded proof, family notification requested, and the case spine should update.',
@@ -619,8 +628,10 @@ export default async function handler(req, res) {
       });
     }
 
-    const [{ data: taskAfter }, { data: workflowAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }, { data: vendorOrderRows }, { data: vendorPaymentRows }, { data: announcementRows }] = await Promise.all([
-      admin.from('tasks').select('id,status,last_actor,last_action_at,completed_at,completed_by_email').eq('id', task.id).maybeSingle(),
+    const [{ data: taskAfter }, { data: participantTaskAfter }, { data: vendorTaskAfter }, { data: workflowAfter }, { data: notificationRows }, { data: statusEvents }, { data: estateEvents }, { data: vendorRequestRows }, { data: vendorOrderRows }, { data: vendorPaymentRows }, { data: announcementRows }] = await Promise.all([
+      admin.from('tasks').select('id,status,last_actor,last_action_at,completed_at,completed_by_email,notes,assigned_to_email').eq('id', task.id).maybeSingle(),
+      admin.from('tasks').select('id,status,last_actor,last_action_at,completed_at,completed_by_email,notes,assigned_to_email').eq('id', participantTask.id).maybeSingle(),
+      admin.from('tasks').select('id,status,last_actor,last_action_at,completed_at,completed_by_email,notes,assigned_to_email').eq('id', vendorTask.id).maybeSingle(),
       admin.from('workflows').select('id,orchestration_summary').eq('id', workflow.id).maybeSingle(),
       admin.from('notification_log').select('*').eq('workflow_id', workflow.id),
       admin.from('task_status_events').select('*').eq('workflow_id', workflow.id),
@@ -639,6 +650,55 @@ export default async function handler(req, res) {
       withPersonNow: smokeContext.withPersonNow || null,
       pronouncementStatus: smokeContext.pronouncementStatus || null,
       funeralHomeHandoffIntent: smokeContext.funeralHomeHandoffIntent || null,
+    });
+
+    const eventText = (row) => `${row.event_type || ''} ${row.status || ''} ${row.actor || ''} ${row.recipient || ''} ${row.detail || ''} ${row.description || ''}`.toLowerCase();
+    const hasEventFor = (needle) => (statusEvents || []).some((row) => eventText(row).includes(String(needle || '').toLowerCase()));
+    const notificationText = (row) => `${row.source || ''} ${row.status || ''} ${row.channel || ''} ${row.subject || ''} ${row.recipient_email || ''} ${row.to_email || ''} ${row.intended_recipient || ''} ${row.actual_recipient || ''}`.toLowerCase();
+    const hasNotificationFor = (needle) => (notificationRows || []).some((row) => notificationText(row).includes(String(needle || '').toLowerCase()));
+
+    checks.push({
+      name: 'task_assignment_spine_contract',
+      ok: hasEventFor('task assigned') || hasEventFor('assigned to'),
+      assignedTo: taskAfter?.assigned_to_email || null,
+      eventMatches: (statusEvents || []).filter((row) => eventText(row).includes('assigned')).length,
+    });
+
+    checks.push({
+      name: 'participant_action_spine_contract',
+      ok: participantTaskAfter?.status === 'waiting'
+        && /cemetery office confirmation/i.test(String(participantTaskAfter?.notes || ''))
+        && hasEventFor('participant')
+        && (hasNotificationFor('participant') || hasNotificationFor('task')),
+      participantStatus: participantTaskAfter?.status || null,
+      participantNoteSaved: /cemetery office confirmation/i.test(String(participantTaskAfter?.notes || '')),
+      coordinatorNotificationRows: (notificationRows || []).filter((row) => notificationText(row).includes('participant') || notificationText(row).includes('task')).length,
+    });
+
+    checks.push({
+      name: 'funeral_home_proof_spine_contract',
+      ok: taskAfter?.status === 'handled'
+        && Boolean(taskAfter?.completed_at)
+        && (hasEventFor('proof saved') || hasEventFor('completed') || hasEventFor('funeral-home staff recorded proof'))
+        && hasNotificationFor('funeral'),
+      taskStatus: taskAfter?.status || null,
+      completedAt: taskAfter?.completed_at || null,
+      proofEvents: (statusEvents || []).filter((row) => /proof|completed|funeral-home/i.test(eventText(row))).length,
+      familyNotificationRows: (notificationRows || []).filter((row) => notificationText(row).includes('funeral')).length,
+    });
+
+    checks.push({
+      name: 'vendor_request_spine_contract',
+      ok: vendorTaskAfter?.id === vendorTask.id
+        && (vendorRequestRows || []).some((row) => row.status === 'paid' && row.payment_collection_status === 'paid')
+        && (vendorOrderRows || []).some((row) => row.payment_status === 'paid')
+        && (vendorPaymentRows || []).some((row) => row.status === 'paid')
+        && hasEventFor('vendor invoice')
+        && hasEventFor('vendor payout'),
+      vendorTaskStatus: vendorTaskAfter?.status || null,
+      vendorStatuses: Array.from(new Set((vendorRequestRows || []).map((row) => row.status).filter(Boolean))),
+      paymentStatuses: Array.from(new Set((vendorPaymentRows || []).map((row) => row.status).filter(Boolean))),
+      orderStatuses: Array.from(new Set((vendorOrderRows || []).map((row) => row.payment_status).filter(Boolean))),
     });
 
     checks.push({

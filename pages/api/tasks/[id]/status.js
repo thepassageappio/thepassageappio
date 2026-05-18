@@ -98,6 +98,10 @@ export default async function handler(req, res) {
   if (!allowedStatuses.has(status)) return res.status(400).json({ error: 'Invalid task status.' });
   if (channel && !allowedChannels.has(channel)) return res.status(400).json({ error: 'Invalid task channel.' });
   const storedStatus = normalizeStoredStatus(status);
+  const proofText = [detail, notes].map((value) => String(value || '').trim()).filter(Boolean).join(' ');
+  if (['handled', 'waiting', 'blocked'].includes(storedStatus) && proofText.length < 8) {
+    return res.status(400).json({ error: 'Add a short proof, waiting point, or blocker note before saving this task update.' });
+  }
 
   const { data: task, error } = await serviceSupabase
     .from('tasks')
@@ -165,6 +169,13 @@ export default async function handler(req, res) {
     },
     confirmation: taskActionConfirmation(status, task, auth.source === 'internal' ? 'system' : 'family'),
     eventDetail: detailText,
+    spine: {
+      ask: task.title,
+      owner: task.assigned_to_name || task.assigned_to_email || null,
+      waiting: storedStatus === 'waiting' ? detailText : storedStatus === 'blocked' ? 'Coordinator or assigned owner must clear the blocker.' : 'No waiting point after this update.',
+      proof: detailText,
+      notification: 'Task spine event saved. External messages are sent only through reviewed send actions.',
+    },
     skippedColumns,
   });
 }

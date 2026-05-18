@@ -152,7 +152,7 @@ const roadmapItems = [
     timing: 'Done today',
     status: 'Plain spine cards live',
     title: 'Make every task card explain the ask, owner, waiting point, proof, and notification path',
-    body: 'The active task UI now leads with a plain-language spine instead of dense internal framing. Participant cards show Start here, Asked of you, Owner, Waiting, and Proof and notify before any secondary context; saved notes remain visible even after completion. Estate, funeral-home, and vendor task panels now use the same contract so coordinators, staff, and scoped vendors see the owner, waiting point, proof, and notification state before marking handled, waiting, blocked, assigning, quoting, or sending.',
+    body: 'The active task UI now leads with a plain-language spine instead of dense internal framing. Participant cards show Start here, Asked of you, Owner, Waiting, and Proof and notify before any secondary context; saved notes remain visible even after completion. Estate, funeral-home, and vendor task panels now use the same contract so coordinators, staff, and scoped vendors see the owner, waiting point, proof, and notification state before marking handled, waiting, blocked, assigning, quoting, or sending. The backend now rejects handled, waiting, or blocked task updates that do not include a meaningful proof, waiting point, or blocker note, and the orchestration smoke test verifies participant, funeral-home, vendor, assignment, notification, and payment/proof contracts separately.',
   },
   {
     pillar: 'Public Site and Demo Proof',
@@ -291,11 +291,14 @@ const roadmapExecutionDetails = {
       'Every task card must show one ask, one owner, one waiting point, one proof destination, and one notification/visibility statement before secondary detail.',
       'Participant task notes, proof, and completion state must remain visible after saving so users know where their update went.',
       'Estate/coordinator task panels must make it obvious whether the user is saving a note, assigning an owner, sending a handoff, marking waiting, or closing with proof.',
+      'Task update APIs must reject handled, waiting, or blocked states without a meaningful note/detail so production data does not become fake progress.',
+      'The orchestration smoke test must check persona-specific contracts, not only generic row counts.',
     ],
     successCriteria: [
       'A participant can open one task and understand what to do in under 10 seconds. ',
       'A coordinator can tell who owns the next move, what is waiting, what proof will be saved, and whether a notification/handoff is ready before clicking.',
       'Saved participant notes and handled proof are visible on the card and recorded into the same spine event path.',
+      'Smoke test reports separate pass/fail rows for assignment, participant update, funeral-home proof, vendor request/payment, notifications, and spine rows.',
     ],
     sprintLoop: 'Next loop: run browser QA on participant, urgent estate, funeral-home staff, and vendor request task cards; then remove any remaining dense list/detail panels that do not start with the five-part spine.',
   },

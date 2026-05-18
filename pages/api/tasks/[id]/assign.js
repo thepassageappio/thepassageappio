@@ -146,7 +146,14 @@ export default async function handler(req, res) {
   return res.status(200).json({
     success: true,
     task: Object.assign({}, task, savedUpdates, { owner_label: assigneeName }),
-    confirmation: 'Recipient saved. Passage can send this task message now.',
+    confirmation: 'Owner saved to the task spine. Passage can send the handoff when you choose a send action.',
+    spine: {
+      ask: task.title,
+      owner: assigneeName,
+      waiting: 'Waiting for owner update or proof.',
+      proof: 'Assignment event saved to the task audit trail.',
+      notification: 'No external handoff was sent by this owner-only save.',
+    },
     skippedColumns,
   });
 }
