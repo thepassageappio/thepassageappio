@@ -216,6 +216,35 @@ function partnerFundingLabel(item) {
   return '';
 }
 
+function partnerUrgentContext(item = {}) {
+  const context = item?.scopedUrgentContext || item?.orchestration_summary?.chaplain_context || item?.orchestration_summary?.planning_context || {};
+  const maps = {
+    deathContext: {
+      unexpected: 'At home and unexpected',
+      hospice: 'Under hospice care',
+      hospital: 'In a hospital',
+      facility: 'In a care facility',
+      home_expected: 'Expected at home',
+      past: 'Past first official steps',
+    },
+    pronouncementStatus: {
+      confirmed: 'Officially confirmed',
+      needed: 'Needs confirmation',
+      unsure: 'Not sure yet',
+    },
+    funeralHomeHandoffIntent: {
+      known: 'Funeral home known',
+      request_help: 'Family needs help choosing',
+      not_ready: 'Not ready yet',
+    },
+  };
+  return [
+    ['Situation', maps.deathContext[context.deathContext] || context.deathContext],
+    ['Pronouncement', maps.pronouncementStatus[context.pronouncementStatus] || context.pronouncementStatus],
+    ['Funeral home', maps.funeralHomeHandoffIntent[context.funeralHomeHandoffIntent] || context.funeralHomeHandoffIntent],
+  ].filter(([, value]) => String(value || '').trim());
+}
+
 function moneyDisplay(value) {
   const raw = String(value || '').replace(/[$,]/g, '').trim();
   const number = Number(raw);
@@ -347,6 +376,11 @@ const demoPartnerContext = {
       status: 'active',
       orchestration_summary: {
         partner_financials: { total_case_value: '11800', is_prepaid: false, prepaid_amount: null },
+        chaplain_context: {
+          deathContext: 'hospital',
+          pronouncementStatus: 'confirmed',
+          funeralHomeHandoffIntent: 'known',
+        },
       },
       tasks: [
         { id: 'demo-task-1', title: 'Confirm cemetery plot details', description: 'Ask family for section, lot number, and deed photo before the arrangement meeting.', status: 'waiting', assigned_to_name: 'Robert Alvarez', assigned_to_email: 'robert@hvfg.demo', created_at: '2026-05-08T13:00:00Z', last_action_at: '2026-05-08T14:30:00Z', proof_required: 'Family reply or cemetery record' },
@@ -4422,6 +4456,7 @@ export default function FuneralHomeDashboard() {
               const isExpanded = expandedCaseId === item.id;
               const itemLocation = locationNameFor(item);
               const fundingLabel = partnerFundingLabel(item);
+              const urgentContext = partnerUrgentContext(item);
               const nextOwner = nextPartnerTask?.assigned_to_name || nextPartnerTask?.assigned_to_email || nextPartnerTask?.playbook?.partnerOwnerRole || 'Unassigned';
               const nextTaskClosed = nextPartnerTask && taskIsClosed(nextPartnerTask);
               const nextExpectedUpdate = nextTaskClosed ? 'Handled - proof is saved on the case spine.' : nextPartnerTask ? (orchestration.nextAction?.expectedUpdate || taskExpectedUpdate(nextPartnerTask, 'funeral_home')) : 'The family status remains visible.';
@@ -4478,6 +4513,21 @@ export default function FuneralHomeDashboard() {
                       }} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close work pane' : 'Open work pane'}</button>
                     </div>
                   </div>
+                  {urgentContext.length > 0 && (
+                    <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: '10px 11px', marginTop: 10 }}>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Family handoff context</div>
+                      <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>
+                        This is the same stabilization context the family saved before partner work began.
+                      </div>
+                      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
+                        {urgentContext.map(([label, value]) => (
+                          <span key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, color: C.mid, borderRadius: 999, padding: '5px 8px', fontSize: 11.5, fontWeight: 700 }}>
+                            <strong style={{ color: C.ink }}>{label}:</strong> {value}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'stretch', marginTop: 12 }}>
                     <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
