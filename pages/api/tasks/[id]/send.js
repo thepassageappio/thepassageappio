@@ -4,6 +4,27 @@ import { recordTaskCommunicationEvent } from '../../../../lib/communicationEvent
 
 const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
+function taskSpine(task, {
+  owner,
+  waiting,
+  proof,
+  notification,
+  deepLink,
+  channel,
+  recipient,
+} = {}) {
+  return {
+    ask: task?.title || 'Assigned Passage task',
+    owner: owner || task?.assigned_to_name || task?.assigned_to_email || recipient || null,
+    waiting: waiting || 'Waiting for the recipient to accept, update, mark waiting, ask for help, or close with proof.',
+    proof: proof || 'Delivery and task status stay attached to this task spine.',
+    notification: notification || 'No external message has been sent yet.',
+    channel: channel || 'email',
+    recipient: recipient || task?.assigned_to_email || null,
+    deepLink: deepLink || null,
+  };
+}
+
 function userMessage(error) {
   const text = typeof error === 'string' ? error : error?.message || JSON.stringify(error || {});
   if (/rate|timeout|temporar|network|fetch/i.test(text)) return 'Failed to send - retry? The provider may be temporarily unavailable.';
@@ -39,7 +60,7 @@ export default async function handler(req, res) {
 
   const { data: task, error } = await serviceSupabase
     .from('tasks')
-    .select('id,workflow_id,title,description,status,assigned_to_name,assigned_to_email')
+    .select('id,workflow_id,title,description,status,assigned_to_name,assigned_to_email,waiting_on,proof_required')
     .eq('id', taskId)
     .maybeSingle();
   if (error) return res.status(500).json({ error: error.message });
@@ -47,7 +68,17 @@ export default async function handler(req, res) {
 
   const channel = req.body?.channel || (req.body?.toPhone ? 'sms' : 'email');
   const recipient = req.body?.to || req.body?.toEmail || req.body?.toPhone || (channel === 'sms' ? '' : task.assigned_to_email);
-  if (!recipient) return res.status(400).json({ error: 'Add a recipient before sending.' });
+  const deepLink = `${BASE_URL}/participating?estate=${encodeURIComponent(task.workflow_id)}&task=${encodeURIComponent(task.id)}`;
+  if (!recipient) return res.status(400).json({
+    error: 'Add a recipient before sending.',
+    spine: taskSpine(task, {
+      waiting: 'Waiting for a valid recipient email or phone before Passage can send the handoff.',
+      proof: 'No message left the system.',
+      notification: 'Blocked before delivery because no recipient was saved.',
+      deepLink,
+      channel,
+    }),
+  });
   const dryRun = req.body?.dryRun === true || req.body?.dryRun === '1' || req.query?.dryRun === '1';
 
   const basePayload = {
@@ -84,6 +115,20 @@ export default async function handler(req, res) {
         : sent.data?.skipped
           ? 'Message prepared - delivery provider is not configured.'
           : 'Message sent - awaiting delivery confirmation.',
+      spine: taskSpine(task, {
+        waiting: dryRun
+          ? 'Prepared only. Review and send when the family approves the handoff.'
+          : 'Waiting for the recipient to open, accept, update, ask for help, or close with proof.',
+        proof: dryRun
+          ? 'Dry-run preview returned without calling the delivery provider.'
+          : 'Provider handoff was requested and the delivery record is attached to the task.',
+        notification: dryRun
+          ? `Prepared ${channel} handoff for ${recipient}.`
+          : `Sent ${channel} handoff to ${recipient}.`,
+        deepLink,
+        channel,
+        recipient,
+      }),
     });
   } catch (err) {
     await recordTaskCommunicationEvent({
@@ -100,6 +145,16 @@ export default async function handler(req, res) {
       detail: userMessage(err),
       provider: channel === 'sms' ? 'twilio' : 'resend',
     });
-    return res.status(502).json({ error: userMessage(err) });
+    return res.status(502).json({
+      error: userMessage(err),
+      spine: taskSpine(task, {
+        waiting: 'Delivery failed. Confirm the recipient and retry the reviewed send action.',
+        proof: userMessage(err),
+        notification: `Failed ${channel} handoff for ${recipient}.`,
+        deepLink,
+        channel,
+        recipient,
+      }),
+    });
   }
 }

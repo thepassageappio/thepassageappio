@@ -268,6 +268,22 @@ export default async function handler(req, res) {
     }, requestBearerToken);
     checks.push({ name: 'participant_scoped_waiting_update', ...participantWaiting });
 
+    const participantReminder = await apiPost(`/api/tasks/${participantTask.id}/reminder`, {
+      actor: 'Passage QA Coordinator',
+      message: 'QA reminder: please open this Passage task and leave the next update when the cemetery confirms.',
+    }, requestBearerToken);
+    checks.push({
+      name: 'task_reminder_notification_contract',
+      ok: Boolean(
+        participantReminder.ok
+        && participantReminder.json?.spine?.deepLink
+        && /sent reminder/i.test(String(participantReminder.json?.spine?.notification || ''))
+        && /waiting/i.test(String(participantReminder.json?.spine?.waiting || ''))
+      ),
+      status: participantReminder.status,
+      json: participantReminder.json,
+    });
+
     const { data: vendorTask, error: vendorTaskError } = await admin.from('tasks').insert([{
       workflow_id: workflow.id,
       user_id: adminUserId,
@@ -673,6 +689,15 @@ export default async function handler(req, res) {
       participantStatus: participantTaskAfter?.status || null,
       participantNoteSaved: /cemetery office confirmation/i.test(String(participantTaskAfter?.notes || '')),
       coordinatorNotificationRows: (notificationRows || []).filter((row) => notificationText(row).includes('participant') || notificationText(row).includes('task')).length,
+    });
+
+    checks.push({
+      name: 'task_reminder_spine_rows_contract',
+      ok: hasEventFor('reminder sent')
+        && (hasNotificationFor('reminder') || hasNotificationFor('prepared next step'))
+        && (notificationRows || []).some((row) => /reminder/i.test(String(row.subject || '')) && String(row.recipient_email || '').toLowerCase() === recipientEmail.toLowerCase()),
+      reminderEvents: (statusEvents || []).filter((row) => /reminder sent/i.test(eventText(row))).length,
+      reminderNotificationRows: (notificationRows || []).filter((row) => /reminder|prepared next step/i.test(notificationText(row))).length,
     });
 
     checks.push({

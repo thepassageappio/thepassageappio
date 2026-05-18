@@ -150,9 +150,9 @@ const roadmapItems = [
     pillar: 'Task Cards and Orchestration Simplicity',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Plain spine cards live',
+    status: 'Plain spine cards and proof contracts live',
     title: 'Make every task card explain the ask, owner, waiting point, proof, and notification path',
-    body: 'The active task UI now leads with a plain-language spine instead of dense internal framing. Participant cards show Start here, Asked of you, Owner, Waiting, and Proof and notify before any secondary context; saved notes remain visible even after completion. Estate, funeral-home, and vendor task panels now use the same contract so coordinators, staff, and scoped vendors see the owner, waiting point, proof, and notification state before marking handled, waiting, blocked, assigning, quoting, or sending. The backend now rejects handled, waiting, or blocked task updates that do not include a meaningful proof, waiting point, or blocker note, and the orchestration smoke test verifies participant, funeral-home, vendor, assignment, notification, and payment/proof contracts separately.',
+    body: 'The active task UI now leads with a plain-language spine instead of dense internal framing. Participant cards show Start here, Asked of you, Owner, Waiting, and Proof and notify before any secondary context; saved notes remain visible even after completion. Estate, funeral-home, and vendor task panels now use the same contract so coordinators, staff, and scoped vendors see the owner, waiting point, proof, and notification state before marking handled, waiting, blocked, assigning, quoting, or sending. The backend now rejects handled, waiting, or blocked task updates that do not include a meaningful proof, waiting point, or blocker note. Task send and reminder endpoints now return the same spine contract with recipient, deep link, waiting point, proof, and notification status, and the orchestration smoke test verifies participant, funeral-home, vendor, assignment, reminder, notification, and payment/proof contracts separately.',
   },
   {
     pillar: 'Public Site and Demo Proof',
@@ -190,9 +190,9 @@ const roadmapItems = [
     pillar: 'Communications',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Format standardized',
+    status: 'Format and reminder proof standardized',
     title: 'Email consistency, deep links, family updates, and event announcements',
-    body: 'Reviewed family updates, vendor requests, vendor quote updates, task assignments, activation requests, funeral-home proof emails, partner exports, and urgent-path proof notes now use the Passage operational shell pattern: consistent Passage subject prefix, mobile-safe formatting, primary CTA button, fallback link, recipient safety routing, and notification-log proof where the action leaves the system.',
+    body: 'Reviewed family updates, vendor requests, vendor quote updates, task assignments, task reminders, activation requests, funeral-home proof emails, partner exports, and urgent-path proof notes now use the Passage operational shell pattern: consistent Passage subject prefix, mobile-safe formatting, primary CTA button, fallback link, recipient safety routing, and notification-log proof where the action leaves the system. Reminder sends now return a visible task-spine contract and the production smoke test proves the reminder created both notification and task-event proof.',
   },
   {
     pillar: 'Demo and QA Sandbox',
@@ -359,13 +359,15 @@ const roadmapExecutionDetails = {
       'Standardize every outbound email with Passage brand shell, one CTA button, fallback link, recipient role, and "what happens next."',
       'Write notification_log rows with intended recipient, actual recipient, source workflow/task, provider status, and QA override metadata.',
       'Add in-product reassurance states for sent, delivered, waiting, failed, completed, and no-action-needed.',
+      'Return the same ask, owner, waiting point, proof, notification, recipient, and deep-link contract from task assignment, send, reminder, and status APIs.',
     ],
     successCriteria: [
       'Family, participant, funeral home, vendor, and admin can see what was sent, to whom, and what changed afterward.',
       'Urgent users receive calm confirmation that they are not doing it wrong and can see the next expected update.',
       'No external message sends without review/approval when the action leaves the family record.',
+      'Reminder sends prove who was nudged, where the recipient should click, what is still waiting, and which spine rows recorded the handoff.',
     ],
-    sprintLoop: 'Next loop: audit the full email inbox set against the template contract and add missing CTA/deep-link coverage.',
+    sprintLoop: 'Current loop: task reminders and sends return the full spine contract and the production smoke test verifies notification-log plus task-event proof for the reminder path.',
   },
   'Demo and QA Sandbox': {
     technicalRequirements: [
