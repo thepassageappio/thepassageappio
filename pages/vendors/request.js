@@ -15,11 +15,18 @@ const demoRequest = {
   task_title: 'Livestream support for Friday service',
   urgency: 'planned',
   requested_at: '2026-05-06T14:20:00Z',
+  request_note: 'Family needs livestream coverage for the Friday service. Please quote setup, service coverage, and recording delivery.',
   viewed_at: '2026-05-06T14:24:00Z',
   responded_at: '',
   estimated_value: 450,
   final_value: '',
   vendor_note: '',
+  service_date: '2026-05-15',
+  service_start_at: '2026-05-15T14:00:00Z',
+  service_location: 'Hudson Valley Funeral Group, Main Chapel',
+  family_contact_name: 'Michael Price',
+  family_contact_phone: '845-555-0137',
+  payment_collection_status: 'quote_needed',
   platform_fee_amount: 72,
   funeral_home_share_amount: 24,
   passage_share_amount: 48,
@@ -218,6 +225,7 @@ export default function VendorRequestPage() {
     : request?.status === 'declined'
       ? 'Decline reason/status stays visible for replacement.'
       : 'Viewed/responded timestamps and status changes report back to the case.';
+  const needRows = vendorRequestNeedRows(request || {});
   const recommendedVendorAction = ['quoted', 'accepted'].includes(request?.status)
     ? ['in_progress', 'Mark scheduled']
     : ['paid', 'scheduled', 'in_progress'].includes(canonicalStatus)
@@ -319,6 +327,23 @@ export default function VendorRequestPage() {
                 <Info label="Status" value={requestStatus} />
                 <div style={{ height: 8 }} />
                 <Info label="Quote/value" value={request?.final_value || request?.estimated_value ? money(request?.final_value || request?.estimated_value) : 'Not quoted yet'} />
+              </div>
+            </div>
+
+            <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, marginBottom: 14 }}>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>What you need to know</div>
+              {request?.request_note && (
+                <div style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginTop: 6 }}>
+                  <strong style={{ color: C.ink }}>Request note:</strong> {request.request_note}
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
+                {needRows.map(([label, value]) => (
+                  <Info key={label} label={label} value={value} />
+                ))}
+              </div>
+              <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
+                Vendors only see scoped request details. The family record, private notes, unrelated tasks, and payout internals stay outside this request view.
               </div>
             </div>
 
@@ -470,6 +495,20 @@ function fromLocalInputValue(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return date.toISOString();
+}
+
+function vendorRequestNeedRows(request = {}) {
+  const serviceDate = request.service_date
+    ? new Date(String(request.service_date).includes('T') ? request.service_date : `${request.service_date}T12:00:00`)
+    : null;
+  const serviceStart = request.service_start_at ? new Date(request.service_start_at) : null;
+  return [
+    ['Timing', serviceDate && !Number.isNaN(serviceDate.getTime()) ? serviceDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Quote timing or availability'],
+    ['Start', serviceStart && !Number.isNaN(serviceStart.getTime()) ? serviceStart.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Not confirmed yet'],
+    ['Location', request.service_location || 'Share your service area or ask for the exact address'],
+    ['Contact boundary', request.family_contact_name || request.family_contact_phone ? `${request.family_contact_name || 'Family contact'}${request.family_contact_phone ? `, ${request.family_contact_phone}` : ''}` : 'Coordinate through Passage until approved'],
+    ['Payment', paymentStatusLabel(request.payment_collection_status || 'quote_needed')],
+  ];
 }
 
 function noticeForAction(action, demo) {

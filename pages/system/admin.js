@@ -141,9 +141,9 @@ const roadmapItems = [
     pillar: 'Core Flow Trust Continuity',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Partner context visible',
+    status: 'Vendor context visible',
     title: 'Make the death-occurs to aftercare loop behave as maturely as it sounds',
-    body: 'The next launch-readiness gap is trust continuity across the actual flow: death occurs, family enters, triage starts, tasks are created, owners are assigned, funeral-home or provider context is captured, participants/vendors are coordinated, proof is collected, status is visible, and aftercare continues. The highest-risk first pass is now live: urgent path has a visible stabilization layer for who is with the person, official pronouncement, funeral-home readiness, what usually happens next, and explicit reassurance that uncertainty is normal and Passage will keep the waiting point visible. The estate map now shows the saved urgent stabilization context after handoff, the orchestration smoke test checks that this context stays on the spine, participant workspaces show scoped urgent context, and the funeral-home case pane now surfaces the same family handoff context before staff act on owner, waiting point, proof, or prepared outputs.',
+    body: 'The next launch-readiness gap is trust continuity across the actual flow: death occurs, family enters, triage starts, tasks are created, owners are assigned, funeral-home or provider context is captured, participants/vendors are coordinated, proof is collected, status is visible, and aftercare continues. The highest-risk first pass is now live: urgent path has a visible stabilization layer for who is with the person, official pronouncement, funeral-home readiness, what usually happens next, and explicit reassurance that uncertainty is normal and Passage will keep the waiting point visible. The estate map now shows the saved urgent stabilization context after handoff, the orchestration smoke test checks that this context stays on the spine, participant workspaces show scoped urgent context, the funeral-home case pane surfaces the same family handoff context, and vendor request pages now show timing, location, contact boundary, payment state, and request note without exposing the family file.',
   },
   {
     pillar: 'Public Site and Demo Proof',
@@ -275,7 +275,7 @@ const roadmapExecutionDetails = {
       'Every critical first-day task has one owner, one waiting point, one proof slot, and a visible next state.',
       'The same event is understandable from family, participant, funeral-home, vendor, and admin perspectives without founder narration.',
     ],
-    sprintLoop: 'Next loop: browser/API QA vendor request and family update proof so the same urgent state is understandable from every persona surface.',
+    sprintLoop: 'Next loop: browser/API QA family update proof so reviewed outbound communication shows the same owner, waiting point, proof, and next expected update from every persona surface.',
   },
   'Public Site and Demo Proof': {
     technicalRequirements: [
