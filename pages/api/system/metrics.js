@@ -234,23 +234,80 @@ function parseLeadNotes(notes) {
   }
 }
 
+function leadQueueFor(row = {}, notes = {}) {
+  const text = [
+    row.flow_type,
+    row.source,
+    notes.category,
+    notes.flowType,
+    notes.provider_type,
+    notes.message,
+  ].map(value => String(value || '').toLowerCase()).join(' ');
+  if (/urgent|red|death|just passed|passed away/.test(text)) {
+    return { key: 'urgent_family', label: 'Urgent family', priority: 'P0', nextAction: 'Confirm the family has a saved command center, payment state, and one reviewed next-step email.' };
+  }
+  if (/funeral|partner|director/.test(text)) {
+    return { key: 'funeral_home', label: 'Funeral home', priority: 'P0', nextAction: 'Open the funeral-home pipeline, confirm company/deal sync, and book or follow up on walkthrough intent.' };
+  }
+  if (/vendor|florist|catering|clergy|officiant|cemetery|monument/.test(text)) {
+    return { key: 'vendor', label: 'Vendor', priority: 'P1', nextAction: 'Review vendor fit, service area, quality signal, and Stripe Connect readiness before approval.' };
+  }
+  if (/care|hospice|assisted|facility|senior|living/.test(text)) {
+    return { key: 'care_provider', label: 'Care provider', priority: 'P1', nextAction: 'Review provider type, locations, active-family estimate, and partnership follow-up path.' };
+  }
+  if (/billing|refund|payment|invoice|subscription/.test(text)) {
+    return { key: 'billing', label: 'Billing', priority: 'P1', nextAction: 'Check Stripe/customer state before replying.' };
+  }
+  if (/bug|broken|error|issue|glitch/.test(text)) {
+    return { key: 'bug', label: 'Bug report', priority: 'P1', nextAction: 'Reproduce, attach route/user context, and decide whether it enters the P0 readiness loop.' };
+  }
+  if (/feature|request|idea|improve/.test(text)) {
+    return { key: 'feature', label: 'Feature request', priority: 'P2', nextAction: 'Attach to roadmap pillar and defer unless it blocks a current pilot.' };
+  }
+  if (/guide|resource|blog|checklist/.test(text)) {
+    return { key: 'guide_lead', label: 'Guide lead', priority: 'P2', nextAction: 'Confirm receipt email and newsletter/workflow enrollment.' };
+  }
+  return { key: 'support', label: 'General support', priority: 'P2', nextAction: 'Review message and route to support, sales, or roadmap.' };
+}
+
 function summarizeLeads(rows = []) {
   const byType = {};
   const bySource = {};
+  const inbox = {};
   const recent = [];
   rows.forEach((row) => {
     const notes = parseLeadNotes(row.notes);
     const type = notes.category || row.flow_type || 'Unknown';
     const source = row.source || notes.source || 'Unknown';
+    const queue = leadQueueFor(row, notes);
     byType[type] = (byType[type] || 0) + 1;
     bySource[source] = (bySource[source] || 0) + 1;
+    if (!inbox[queue.key]) {
+      inbox[queue.key] = { ...queue, count: 0, recent: [] };
+    }
+    inbox[queue.key].count += 1;
+    if (inbox[queue.key].recent.length < 4) {
+      inbox[queue.key].recent.push({
+        id: row.id || '',
+        email: row.email || '',
+        name: row.first_name || '',
+        type,
+        source,
+        urgency: notes.urgency || notes.mode || '',
+        message: String(notes.message || notes.description || '').slice(0, 180),
+        createdAt: row.created_at || '',
+      });
+    }
     if (recent.length < 12) {
       recent.push({
+        id: row.id || '',
         email: row.email || '',
         name: row.first_name || '',
         type,
         source,
         urgency: notes.urgency || '',
+        queue: queue.label,
+        priority: queue.priority,
         createdAt: row.created_at || '',
       });
     }
@@ -258,6 +315,10 @@ function summarizeLeads(rows = []) {
   return {
     byType: Object.entries(byType).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
     bySource: Object.entries(bySource).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
+    inbox: Object.values(inbox).sort((a, b) => {
+      const rank = { P0: 0, P1: 1, P2: 2, P3: 3 };
+      return (rank[a.priority] ?? 9) - (rank[b.priority] ?? 9) || b.count - a.count;
+    }),
     recent,
   };
 }

@@ -68,9 +68,9 @@ const adminModules = [
   },
   {
     title: 'Support and lead inbox',
-    body: 'Contact form intake is live. A filterable internal inbox for feature requests, bug reports, billing disputes, and pilot leads is next.',
+    body: 'Contact, guide, vendor, funeral-home, care-provider, bug, billing, and feature inquiries are grouped into a triage inbox inside Metrics with priority, next action, recent sender, and raw CSV export.',
     href: '/contact',
-    status: 'Intake live',
+    status: 'Inbox live',
   },
   {
     title: 'Notification dry-run QA',
@@ -1698,8 +1698,39 @@ export default function SystemAdminPage() {
                 )}
                 {metrics?.leads && (
                   <div style={{ marginTop: 18 }}>
-                    <div style={eyebrow}>Lead and support CRM</div>
+                    <div style={eyebrow}>Lead and support inbox</div>
                     <p style={{ ...smallText, marginTop: 4 }}>Contact, vendor, partner, support, billing, feature, and bug inquiries are grouped from the leads table. The export includes the raw rows behind this view.</p>
+                    {(metrics.leads.inbox || []).length > 0 && (
+                      <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
+                        <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12 }}>
+                          <div style={eyebrow}>Triage queue</div>
+                          <div style={{ ...smallText, marginTop: 4 }}>Start with P0, then P1. Each queue says what to do next, and HubSpot sync health below confirms whether the CRM caught the same lead.</div>
+                        </div>
+                        {(metrics.leads.inbox || []).map(queue => (
+                          <div key={queue.key} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 13, padding: 12 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'start' }}>
+                              <div>
+                                <div style={eyebrow}>{queue.priority}</div>
+                                <h3 style={{ ...h3, marginTop: 4 }}>{queue.label}</h3>
+                                <div style={{ ...smallText, marginTop: 4 }}>{queue.nextAction}</div>
+                              </div>
+                              <span style={countPill}>{queue.count}</span>
+                            </div>
+                            {(queue.recent || []).length > 0 && (
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
+                                {queue.recent.map(item => (
+                                  <div key={(item.id || item.email || item.createdAt) + queue.key} style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 10, padding: '8px 9px' }}>
+                                    <div style={{ color: C.ink, fontSize: 13, fontWeight: 900, overflowWrap: 'anywhere' }}>{item.email || item.name || 'No contact'}</div>
+                                    <div style={{ ...smallText, marginTop: 3 }}>{[item.type, item.source, item.urgency].filter(Boolean).join(' - ') || 'Lead'}</div>
+                                    {item.message && <div style={{ ...smallText, marginTop: 4 }}>{item.message}</div>}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10, marginTop: 10 }}>
                       <div style={subPanel}>
                         <h3 style={h3}>By inquiry type</h3>
