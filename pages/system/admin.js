@@ -197,9 +197,9 @@ const roadmapItems = [
     pillar: 'CRM Spine',
     priority: 'P1',
     timing: 'Done today',
-    status: 'Sync visibility live',
+    status: 'Routing check live',
     title: 'HubSpot contact, company, deal, and pipeline routing',
-    body: 'HubSpot service-key authentication is wired and verified. Lead, vendor, care-provider, funeral-home, and checkout sync paths can now be tested from production forms without using deprecated private-app auth, and the admin Metrics tab shows CRM sync status, source, recent IDs, and failures from crm_sync_events.',
+    body: 'HubSpot service-key authentication is wired and verified. Lead, vendor, care-provider, funeral-home, and checkout sync paths can now be tested from production forms without using deprecated private-app auth. Deal routing now defaults each event into its correct Passage pipeline family instead of the generic HubSpot fallback, and the admin console has a route readiness check that lists the contact/company/deal rule, expected env vars, recent sync rows, and failures for each source.',
   },
   {
     pillar: 'Mobile Companion',
@@ -555,6 +555,8 @@ export default function SystemAdminPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const [paymentReadiness, setPaymentReadiness] = useState(null);
   const [paymentReadinessLoading, setPaymentReadinessLoading] = useState(false);
+  const [crmRoutingReadiness, setCrmRoutingReadiness] = useState(null);
+  const [crmRoutingLoading, setCrmRoutingLoading] = useState(false);
   const [p0Readiness, setP0Readiness] = useState(null);
   const [p0ReadinessLoading, setP0ReadinessLoading] = useState(false);
 
@@ -772,6 +774,25 @@ export default function SystemAdminPage() {
     }
   }
 
+  async function runCrmRoutingReadiness() {
+    if (!supabase) return;
+    setCrmRoutingLoading(true);
+    setCrmRoutingReadiness(null);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const response = await fetch('/api/system/crmRoutingReadiness', {
+        headers: token ? { Authorization: 'Bearer ' + token } : {},
+      });
+      const json = await response.json().catch(() => ({}));
+      setCrmRoutingReadiness({ ok: response.ok, status: response.status, json });
+    } catch (error) {
+      setCrmRoutingReadiness({ ok: false, status: 0, json: { error: error.message || 'CRM routing readiness check failed.' } });
+    } finally {
+      setCrmRoutingLoading(false);
+    }
+  }
+
   async function runP0ReadinessLoop() {
     if (!supabase) return;
     setP0ReadinessLoading(true);
@@ -806,6 +827,12 @@ export default function SystemAdminPage() {
       const paymentStep = { key: 'payment', label: 'Vendor payment and HubSpot readiness', ok: paymentResponse.ok && paymentJson.status === 'ready', status: paymentResponse.status, json: paymentJson };
       steps.push(paymentStep);
       setPaymentReadiness({ ok: paymentResponse.ok, status: paymentResponse.status, json: paymentJson });
+
+      const crmRoutingResponse = await fetch('/api/system/crmRoutingReadiness', { headers: authHeaders });
+      const crmRoutingJson = await crmRoutingResponse.json().catch(() => ({}));
+      const crmRoutingStep = { key: 'crm-routing', label: 'HubSpot route map and sync proof', ok: crmRoutingResponse.ok && crmRoutingJson.status === 'ready', status: crmRoutingResponse.status, json: crmRoutingJson };
+      steps.push(crmRoutingStep);
+      setCrmRoutingReadiness({ ok: crmRoutingResponse.ok, status: crmRoutingResponse.status, json: crmRoutingJson });
 
       const complianceResponse = await fetch('/api/system/complianceReadiness', { headers: authHeaders });
       const complianceJson = await complianceResponse.json().catch(() => ({}));
@@ -1180,6 +1207,58 @@ export default function SystemAdminPage() {
                         )}
                       </div>
                     )}
+                    <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 13, padding: 12 }}>
+                      <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div>
+                          <div style={eyebrow}>CRM route map</div>
+                          <div style={{ ...smallText, marginTop: 4 }}>Confirms which HubSpot contact, company, deal, pipeline, and stage rule each Passage lead source uses.</div>
+                        </div>
+                        <button type="button" onClick={runCrmRoutingReadiness} disabled={crmRoutingLoading} style={{ ...secondaryButton, marginTop: 0, opacity: crmRoutingLoading ? .6 : 1 }}>
+                          {crmRoutingLoading ? 'Checking routes...' : 'Run CRM route check'}
+                        </button>
+                      </div>
+                      {crmRoutingReadiness && (
+                        <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+                          <div style={{ background: crmRoutingReadiness.json?.status === 'ready' ? C.sageFaint : C.roseFaint, border: '1px solid ' + (crmRoutingReadiness.json?.status === 'ready' ? '#c8deca' : '#efc7c7'), borderRadius: 11, padding: 10 }}>
+                            <div style={{ color: crmRoutingReadiness.json?.status === 'ready' ? C.sage : C.rose, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>
+                              {crmRoutingReadiness.json?.status === 'ready' ? 'HubSpot route map reachable' : 'CRM routing needs review'}
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 9 }}>
+                              <MetricRow label="HubSpot API" value={crmRoutingReadiness.json?.hubspot?.ok ? 'Connected' : 'Needs review'} />
+                              <MetricRow label="CRM rows checked" value={crmRoutingReadiness.json?.crm?.recentRows ?? 0} />
+                              <MetricRow label="Routes mapped" value={(crmRoutingReadiness.json?.routes || []).length} />
+                              <MetricRow label="Recent failures" value={(crmRoutingReadiness.json?.crm?.failures || []).length} />
+                            </div>
+                            {(crmRoutingReadiness.json?.warnings || []).length > 0 && (
+                              <div style={{ ...smallText, marginTop: 9, color: C.amber }}>{crmRoutingReadiness.json.warnings.join(' ')}</div>
+                            )}
+                          </div>
+                          {(crmRoutingReadiness.json?.routes || []).map(route => (
+                            <div key={route.id} style={{ background: '#fff', border: '1px solid ' + C.border, borderRadius: 11, padding: '9px 10px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                                <strong style={{ color: C.ink }}>{route.label}</strong>
+                                <span style={{ color: route.recentCount ? C.sage : C.soft, fontSize: 12, fontWeight: 900 }}>{route.recentCount ? `${route.recentCount} recent row${route.recentCount === 1 ? '' : 's'}` : 'No recent test row'}</span>
+                              </div>
+                              <div style={{ ...smallText, marginTop: 5 }}>{(route.creates || []).join(' + ')}</div>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 7, marginTop: 8 }}>
+                                <MetricRow label={route.env?.pipeline || 'Pipeline'} value={route.env?.pipelineConfigured ? 'Configured' : 'Fallback'} />
+                                <MetricRow label={route.env?.stage || 'Stage'} value={route.env?.stageConfigured ? 'Configured' : 'Fallback'} />
+                              </div>
+                              {(route.recent || []).length > 0 && (
+                                <div style={{ display: 'grid', gap: 5, marginTop: 8 }}>
+                                  {route.recent.map(row => (
+                                    <div key={row.id || row.createdAt} style={{ ...smallText, background: C.bg, borderRadius: 8, padding: '6px 7px' }}>
+                                      <strong style={{ color: row.status === 'failed' ? C.rose : C.sage }}>{row.status || 'unknown'}</strong>
+                                      <span> - {row.eventType || row.source}: {row.email || row.companyName || row.contactId || 'no contact'}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Panel>
