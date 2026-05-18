@@ -45,7 +45,18 @@ const demoParticipantContext = {
     coordinationSpine: {
       conversation: [],
       proof: [],
-      notifications: [],
+      notifications: [
+        {
+          id: 'demo-participant-notice-1',
+          recipient: 'demo-helper@passage.local',
+          status: 'sent',
+          statusLabel: 'sent',
+          title: 'Task assignment email',
+          subject: 'Passage task assignment: Send cemetery plot details',
+          detail: 'Passage emailed this scoped request and saved the delivery trail for the coordinator.',
+          at: '2026-05-08T14:00:00Z',
+        },
+      ],
       attentionItems: [],
       latest: [
         {
@@ -1052,6 +1063,32 @@ export default function ParticipatingPage() {
                             <div style={{ fontSize: label === 'Your request' ? 13 : 18, color: C.ink, marginTop: 3, lineHeight: 1.25, fontWeight: 800 }}>{value}</div>
                           </div>
                         ))}
+                      </div>
+                      <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '11px 12px', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div>
+                            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Notification status</div>
+                            <div style={{ color: C.ink, fontSize: 15, lineHeight: 1.25, fontWeight: 900, marginTop: 3 }}>What Passage has sent or saved for you</div>
+                          </div>
+                          <span style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 9px', color: C.sage, fontSize: 11.5, fontWeight: 900 }}>
+                            {(estate.coordinationSpine?.notifications || []).length} notice{(estate.coordinationSpine?.notifications || []).length === 1 ? '' : 's'}
+                          </span>
+                        </div>
+                        {(estate.coordinationSpine?.notifications || []).length > 0 ? (
+                          <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+                            {estate.coordinationSpine.notifications.slice(0, 3).map(row => (
+                              <div key={row.id || row.at || row.title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                                  <strong style={{ color: C.ink, fontSize: 12.6 }}>{row.recipient || row.recipient_email || row.title || 'Passage notice'}</strong>
+                                  <span style={{ color: /failed|blocked|cancelled/i.test(String(row.status || '')) ? C.rose : C.sage, fontSize: 11, fontWeight: 900 }}>{row.statusLabel || row.status || 'recorded'}</span>
+                                </div>
+                                <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.38, marginTop: 3 }}>{row.detail || row.subject || row.title || 'Delivery tracked in Passage.'}</div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 7 }}>If Passage emails you, assigns you a task, or sends a reminder, the coordinator can see that delivery trail here. Your replies and notes are saved back to the family record.</div>
+                        )}
                       </div>
                       {allClear && (
                         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 18, padding: 18, marginBottom: 12, color: C.mid }}>

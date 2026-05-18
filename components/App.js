@@ -4730,12 +4730,12 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   return (
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
       <style>{`
-        .home-shell { max-width: 1180px; margin: 0 auto; padding: 18px 28px 24px; }
-        .home-hero { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(360px, .86fr); gap: 34px; align-items: center; min-height: calc(100vh - 164px); padding: 0; }
+        .home-shell { max-width: 1180px; margin: 0 auto; padding: 12px 28px 18px; }
+        .home-hero { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(360px, .86fr); gap: 30px; align-items: center; min-height: calc(100vh - 136px); padding: 0; }
         .home-kicker { color:${C.sage}; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:10px; }
-        .home-title { font-family: Georgia, serif; font-size: 52px; line-height: .98; color:${C.ink}; margin:0 0 18px; font-weight:400; letter-spacing:0; }
-        .home-lede { color:${C.mid}; font-size:17px; line-height:1.52; max-width:680px; margin:0; }
-        .home-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+        .home-title { font-family: Georgia, serif; font-size: 48px; line-height: .98; color:${C.ink}; margin:0 0 14px; font-weight:400; letter-spacing:0; }
+        .home-lede { color:${C.mid}; font-size:16px; line-height:1.48; max-width:680px; margin:0; }
+        .home-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:15px; }
         .home-action { min-height:50px; border-radius:13px; padding:0 18px; font-family:inherit; font-size:14px; font-weight:900; cursor:pointer; }
         .home-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
         .home-secondary { background:${C.bgCard}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
@@ -4744,19 +4744,19 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
         .home-proof-links { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
         .home-proof-link { display:inline-flex; align-items:center; min-height:34px; border-radius:999px; border:1px solid ${C.sageLight}; background:${C.bgCard}; color:${C.sageDark}; text-decoration:none; padding:0 11px; font-size:12px; font-weight:900; }
         .home-pledge { display:inline-block; color:${C.sageDark}; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:12px; padding:8px 10px; font-size:12px; line-height:1.35; margin-top:10px; max-width:660px; }
-        .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:22px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:19px; min-height: 430px; display:flex; flex-direction:column; }
+        .home-panel { background:${C.bgCard}; border:1px solid ${C.border}; border-radius:20px; box-shadow:0 18px 52px rgba(55,45,35,.07); padding:16px; min-height: 390px; display:flex; flex-direction:column; }
         .home-panel-tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:16px; }
         .home-panel-tab { border:1px solid ${C.border}; background:${C.bg}; color:${C.mid}; border-radius:999px; min-height:36px; font-family:inherit; font-size:12px; font-weight:900; cursor:pointer; }
         .home-panel-tab-active { border-color:${C.sageLight}; background:${C.sageFaint}; color:${C.sageDark}; }
-        .home-panel-head { border-bottom:1px solid ${C.border}; padding-bottom:14px; margin-bottom:10px; }
-        .home-panel-title { font-size:28px; line-height:1.1; color:${C.ink}; margin:0 0 8px; font-weight:400; }
-        .home-panel-body { color:${C.mid}; font-size:14px; line-height:1.55; margin:0; max-width:560px; }
-        .home-step { display:grid; grid-template-columns:minmax(86px, max-content) minmax(0,1fr); gap:12px; align-items:start; padding:11px 0; border-bottom:1px solid ${C.border}; }
+        .home-panel-head { border-bottom:1px solid ${C.border}; padding-bottom:11px; margin-bottom:8px; }
+        .home-panel-title { font-size:25px; line-height:1.08; color:${C.ink}; margin:0 0 7px; font-weight:400; }
+        .home-panel-body { color:${C.mid}; font-size:13.2px; line-height:1.48; margin:0; max-width:560px; }
+        .home-step { display:grid; grid-template-columns:minmax(86px, max-content) minmax(0,1fr); gap:10px; align-items:start; padding:9px 0; border-bottom:1px solid ${C.border}; }
         .home-step:last-child { border-bottom:none; }
         .home-num { min-width:42px; max-width:100%; min-height:28px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background:${C.sageFaint}; color:${C.sageDark}; font-size:12px; font-weight:900; padding:6px 10px; line-height:1.15; white-space:normal; text-align:center; overflow-wrap:anywhere; }
-        .home-step b { display:block; color:${C.ink}; font-size:16px; margin-bottom:4px; }
-        .home-step span { display:block; color:${C.mid}; font-size:13.5px; line-height:1.5; }
-        .home-panel-cta { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; margin-top:auto; align-self:flex-start; min-height:42px; border-radius:12px; padding:0 14px; background:${C.ink}; color:white; font-size:13px; font-weight:900; }
+        .home-step b { display:block; color:${C.ink}; font-size:15px; margin-bottom:3px; }
+        .home-step span { display:block; color:${C.mid}; font-size:12.7px; line-height:1.42; }
+        .home-panel-cta { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; margin-top:auto; align-self:flex-start; min-height:38px; border-radius:11px; padding:0 13px; background:${C.ink}; color:white; font-size:12.5px; font-weight:900; }
         .lifecycle-map { display:grid; gap:8px; margin-top:2px; }
         .lifecycle-track { position:relative; display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:7px; align-items:stretch; }
         .lifecycle-track-line { position:absolute; left:8%; right:8%; top:22px; height:2px; background:${C.sageLight}; z-index:0; }

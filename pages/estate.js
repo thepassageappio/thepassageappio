@@ -1760,6 +1760,55 @@ function SpineFact({ label, value, tone }) {
   );
 }
 
+function NotificationAwarenessPanel({ notifications, title, emptyText }) {
+  var rows = (notifications || []).filter(Boolean).slice(0, 4);
+  var failed = rows.filter(function(row) {
+    return ['failed', 'blocked', 'cancelled'].includes(String(row.status || '').toLowerCase());
+  }).length;
+  var sent = rows.filter(function(row) {
+    return ['sent', 'delivered'].includes(String(row.status || '').toLowerCase());
+  }).length;
+  var tone = failed ? ROSE : rows.length ? SAGE : SOFT;
+  var bg = failed ? ROSE_FAINT : rows.length ? SAGE_FAINT : SUBTLE;
+  return (
+    <div style={{ background: bg, border: '1px solid ' + (failed ? ROSE + '33' : rows.length ? SAGE_LIGHT : BORDER), borderRadius: 14, padding: '11px 12px', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ color: tone, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>Notification awareness</div>
+          <div style={{ color: INK, fontSize: 15, lineHeight: 1.25, fontWeight: 900, marginTop: 3 }}>{title || 'Who Passage notified, and what happened'}</div>
+        </div>
+        <div style={{ color: tone, background: CARD, border: '1px solid ' + BORDER, borderRadius: 999, padding: '5px 9px', fontSize: 11.5, fontWeight: 900 }}>
+          {rows.length ? `${sent} sent / ${failed} review` : 'No sends yet'}
+        </div>
+      </div>
+      {rows.length ? (
+        <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
+          {rows.map(function(row) {
+            var recipient = textValue(row.recipient || row.recipient_name || row.recipient_email || row.recipient_phone, 'Recipient not recorded');
+            var status = statusText(row.status || row.statusLabel || 'recorded');
+            var detail = textValue(row.detail || row.error_message || row.body_preview || row.subject || row.title, 'Delivery tracked in Passage.');
+            var rowAt = dateTimeLabel(row.at || row.created_at || row.sent_at || row.delivered_at || row.last_action_at);
+            var rowFailed = ['failed', 'blocked', 'cancelled'].includes(String(row.status || '').toLowerCase());
+            return (
+              <div key={row.id || row.provider_id || row.at || recipient} style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 11, padding: '8px 9px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                  <div style={{ color: INK, fontSize: 12.6, fontWeight: 900 }}>{recipient}</div>
+                  <div style={{ color: rowFailed ? ROSE : SAGE, fontSize: 11, fontWeight: 900 }}>{status}</div>
+                </div>
+                <div style={{ color: MID, fontSize: 11.8, lineHeight: 1.38, marginTop: 3 }}>{detail}</div>
+                {row.expectedUpdate && <div style={{ color: SAGE, fontSize: 11.2, fontWeight: 800, lineHeight: 1.35, marginTop: 2 }}>{row.expectedUpdate}</div>}
+                {rowAt && <div style={{ color: SOFT, fontSize: 10.5, marginTop: 2 }}>{rowAt}</div>}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.45, marginTop: 7 }}>{emptyText || 'When Passage sends an email, SMS, vendor request, participant assignment, or family update, it will show here with recipient and status.'}</div>
+      )}
+    </div>
+  );
+}
+
 function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, estateId, estate, estateName, coordinatorName, serviceEvents, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction, onGeneratePacket }) {
   var orchestrationContext = {
     estate: estate || {},
@@ -1885,6 +1934,11 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           );
         })}
       </div>}
+
+      <NotificationAwarenessPanel
+        notifications={coordinationSpine?.notifications || []}
+        emptyText="No one has been notified from Passage yet. Once a participant, vendor, family member, or provider gets an email/SMS, this panel shows the recipient and delivery state."
+      />
 
       <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, .34fr) minmax(0, 1.66fr)', gap: 14, alignItems: 'stretch' }}>
         <aside className="passage-task-spine-queue" style={{ borderRight: '1px solid ' + BORDER, paddingRight: 16 }}>
@@ -2149,6 +2203,10 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
           );
         })}
       </div>
+      <NotificationAwarenessPanel
+        notifications={coordinationSpine?.notifications || []}
+        emptyText="No Passage notifications are attached to this record yet. When someone receives an assignment, reminder, family update, vendor request, or service announcement, the recipient and status will appear here."
+      />
 
       {activeTab === 'now' && (
         <div>
