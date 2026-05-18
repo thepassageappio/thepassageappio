@@ -189,9 +189,9 @@ const roadmapItems = [
     pillar: 'Demo and QA Sandbox',
     priority: 'P1',
     timing: 'This week',
-    status: 'Secure launcher live',
+    status: 'Guided story live',
     title: 'Admin persona launcher with safe notification routing',
-    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit shows QA notification override status, database release-gate state, and browser automation state so Steve can see what was actually verified before running live-feeling demos. The broken iframe preview was removed because Passage security headers intentionally block framing; the launcher now uses a secure route preview and open-in-new-tab flow.',
+    body: 'Admin persona launcher opens sandboxed family, participant, funeral-home, employee, vendor, and admin surfaces without exposing public users to internal controls. The cockpit shows QA notification override status, database release-gate state, and browser automation state so Steve can see what was actually verified before running live-feeling demos. The broken iframe preview was removed because Passage security headers intentionally block framing; the launcher now uses a secure route preview and open-in-new-tab flow. A guided demo story is now visible in the persona cockpit so Steve can walk urgent setup, participant action, funeral-home My Day/proof, vendor quote context, family update proof, and readiness scorecards in order.',
   },
   {
     pillar: 'CRM Spine',
@@ -353,7 +353,7 @@ const roadmapExecutionDetails = {
       'Persona sandbox clearly shows notification safety, browser QA state, database release-gate state, and a secure route preview for every role.',
       'A guided demo can be run in under 12 minutes with no major hand-holding.',
     ],
-    sprintLoop: 'Next loop: add a "Run guided demo story" script that steps through urgent setup, participant action, funeral-home proof, vendor quote, family update, and the new funeral-home tour stops.',
+    sprintLoop: 'Next loop: browser-walk this guided story before demos and tighten any step where route copy, proof target, or expected outcome still requires narration.',
   },
   'CRM Spine': {
     technicalRequirements: [
@@ -457,6 +457,72 @@ const qaFrontDoors = [
   ['Demo cockpit', '/system/demo', 'Owner-only linear demo story'],
 ];
 
+const guidedDemoStory = [
+  {
+    id: 'urgent',
+    label: '1. Urgent family setup',
+    persona: 'Red-path family',
+    href: '/urgent?demo=1&persona=red-family&demoStory=1',
+    show: 'Start with the first-hour stabilization layer: situation, pronouncement, decision authority, funeral-home readiness, reassurance, and command-center save.',
+    proof: 'Urgent context should carry into the estate spine as situation, pronouncement, owner, waiting point, and next expected update.',
+    pass: 'A grieving user can see what to do now without understanding Passage vocabulary first.',
+  },
+  {
+    id: 'participant',
+    label: '2. Participant action',
+    persona: 'Invited helper',
+    href: '/participating?demo=1&persona=participant&demoTour=funeral-home&demoStep=participant&demoStory=1',
+    show: 'Open the scoped participant workspace and point to the single task, context for the request, action buttons, note/proof visibility, and handled state.',
+    proof: 'Participant sees only scoped urgent context and task proof, not the full estate.',
+    pass: 'A helper understands what they were asked to do, why it matters, and what the coordinator sees.',
+  },
+  {
+    id: 'director',
+    label: '3. Funeral-home My Day',
+    persona: 'Funeral-home director',
+    href: '/funeral-home/dashboard?demo=1&persona=fh-director&demoTour=funeral-home&demoStep=dashboard&demoStory=1',
+    show: 'Show My Day, warm inbounds, unassigned cases/tasks, staff, locations, and reporting from one command center.',
+    proof: 'Family handoff context appears before case work, and staff/action proof stays on the case spine.',
+    pass: 'Director sees operational relief: fewer repeated calls, clearer owners, and exportable proof.',
+  },
+  {
+    id: 'staff',
+    label: '4. Staff proof loop',
+    persona: 'Funeral-home employee',
+    href: '/funeral-home/dashboard?demo=1&persona=fh-employee&demoTour=funeral-home&demoStep=task&role=staff&demoStory=1',
+    show: 'Open assigned work, then demonstrate mark waiting, request family info, record proof, and close with proof.',
+    proof: 'Employee sees assigned work first, not director clutter, with case context and proof destination.',
+    pass: 'Staff can act without learning the whole admin workspace.',
+  },
+  {
+    id: 'vendor',
+    label: '5. Vendor scoped request',
+    persona: 'Vendor',
+    href: '/vendors/request?demo=1&persona=vendor&demoTour=funeral-home&demoStep=vendor&demoStory=1',
+    show: 'Show request note, timing, location, contact boundary, quote/payment state, response modal, and proof trail.',
+    proof: 'Vendor can quote or update status without browsing family records.',
+    pass: 'Vendor understands the job, price/payment state, and obligation boundary.',
+  },
+  {
+    id: 'family-update',
+    label: '6. Family update proof',
+    persona: 'Coordinator / funeral-home',
+    href: '/share?demo=1&dn=Eleanor%20Price&cn=Michael%20Price&demoStory=1',
+    show: 'Open the reviewed announcement workspace and show recipient review, platform drafts, one-pager, CSV/export, and review-before-send boundary.',
+    proof: 'Reviewed family-update emails include focus task, owner, waiting point, proof, and next expected update.',
+    pass: 'A coordinator can tell many people once without losing approval, audit, or proof trail.',
+  },
+  {
+    id: 'scorecard',
+    label: '7. Readiness scorecard',
+    persona: 'Passage admin',
+    href: '/system/admin?view=roadmap&demoStory=1',
+    show: 'Return to the admin roadmap and run the readiness sequence before any live demo or pilot push.',
+    proof: 'Public surface, spine smoke, payment/CRM, compliance, and persona contracts are all visible in one owner-only place.',
+    pass: 'The demo ends with operational evidence, not vibes.',
+  },
+];
+
 export default function SystemAdminPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -469,6 +535,7 @@ export default function SystemAdminPage() {
   const [complianceError, setComplianceError] = useState('');
   const [adminView, setAdminView] = useState('operations');
   const [activePersonaId, setActivePersonaId] = useState(personaProfiles[0].id);
+  const [activeDemoStoryId, setActiveDemoStoryId] = useState(guidedDemoStory[0].id);
   const [activeModuleTitle, setActiveModuleTitle] = useState(adminModules[0].title);
   const [dryRunDraft, setDryRunDraft] = useState({ email: '', phone: '', channel: 'email' });
   const [dryRunResult, setDryRunResult] = useState(null);
@@ -519,6 +586,14 @@ export default function SystemAdminPage() {
   const activePersonaHref = useMemo(
     () => sandboxHref(activePersona.href, activePersona.id),
     [activePersona]
+  );
+  const activeDemoStory = useMemo(
+    () => guidedDemoStory.find(step => step.id === activeDemoStoryId) || guidedDemoStory[0],
+    [activeDemoStoryId]
+  );
+  const activeDemoStoryHref = useMemo(
+    () => sandboxHref(activeDemoStory.href, activeDemoStory.id),
+    [activeDemoStory]
   );
   const completedRoadmapItems = useMemo(() => detailedRoadmapItems.filter((item) => {
     const marker = `${item.timing || ''} ${item.status || ''}`;
@@ -1358,6 +1433,55 @@ export default function SystemAdminPage() {
                     : complianceSnapshot
                       ? 'QA override is not active. Only use owned test recipients until this is enabled.'
                       : 'Run the P0 readiness loop or compliance check before sending demo notifications.'}
+                </div>
+              </Panel>
+              <Panel compact>
+                <div style={eyebrow}>Guided demo story</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(230px, .42fr) minmax(0, 1fr)', gap: 14, marginTop: 10 }} className="admin-spine-grid">
+                  <div>
+                    <h2 style={h2}>Run the same story in the same order.</h2>
+                    <p style={lead}>Use this before a funeral-home or partner demo so the walkthrough proves the complete spine: family setup, participant action, director view, staff proof, vendor request, family update, and readiness evidence.</p>
+                    <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>
+                      {guidedDemoStory.map(step => (
+                        <button key={step.id} onClick={() => setActiveDemoStoryId(step.id)} style={activeDemoStory.id === step.id ? selectedToolButton : toolButton}>
+                          <span>
+                            <span style={{ display: 'block' }}>{step.label}</span>
+                            <span style={{ display: 'block', fontSize: 11.5, color: activeDemoStory.id === step.id ? 'rgba(255,255,255,.78)' : C.soft, marginTop: 2 }}>{step.persona}</span>
+                          </span>
+                          <span style={activeDemoStory.id === step.id ? livePillOnGreen : livePill}>Step</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={previewPanel}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start', marginBottom: 12 }}>
+                      <div>
+                        <div style={eyebrow}>Current demo step</div>
+                        <h2 style={{ ...h2, marginTop: 5 }}>{activeDemoStory.label}</h2>
+                        <p style={{ ...smallText, marginTop: 3 }}>{activeDemoStory.persona}</p>
+                      </div>
+                      <Link href={activeDemoStoryHref} target="_blank" style={{ ...primaryLink, flexShrink: 0 }}>Open step</Link>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8 }}>
+                      {[
+                        ['Show', activeDemoStory.show],
+                        ['Proof target', activeDemoStory.proof],
+                        ['Pass criteria', activeDemoStory.pass],
+                      ].map(([label, value]) => (
+                        <div key={label} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 13, padding: '11px 12px' }}>
+                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                          <div style={{ color: C.ink, fontSize: 13, lineHeight: 1.45, marginTop: 5, fontWeight: 800 }}>{value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 13, padding: 12, marginTop: 10, fontSize: 12.5, lineHeight: 1.45, fontWeight: 800 }}>
+                      Demo rule: if a step needs narration to explain what happened, that step becomes the next sprint item. The product should show the owner, waiting point, proof, and next state itself.
+                    </div>
+                    <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 12 }}>
+                      <Link href={activeDemoStoryHref} target="_blank" style={primaryLink}>Open step</Link>
+                      <button type="button" onClick={() => navigator.clipboard?.writeText(activeDemoStoryHref)} style={secondaryButton}>Copy step route</button>
+                    </div>
+                  </div>
                 </div>
               </Panel>
               <Panel compact>
