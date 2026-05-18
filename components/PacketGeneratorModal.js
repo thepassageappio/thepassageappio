@@ -13,7 +13,7 @@ const C = {
   amberFaint: '#fdf8ee',
 };
 
-export default function PacketGeneratorModal({ estateId, packetType = 'funeral_home_arrangement', accessToken = '', onClose, onComplete }) {
+export default function PacketGeneratorModal({ estateId, taskId = '', packetType = 'funeral_home_arrangement', accessToken = '', onClose, onComplete }) {
   const [loading, setLoading] = useState(true);
   const [packet, setPacket] = useState(null);
   const [reviewText, setReviewText] = useState('');
@@ -39,7 +39,7 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
             'Content-Type': 'application/json',
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           },
-          body: JSON.stringify({ type: packetType }),
+          body: JSON.stringify({ type: packetType, taskId }),
         });
         const json = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(json.error || 'Could not prepare this packet.');
@@ -54,7 +54,7 @@ export default function PacketGeneratorModal({ estateId, packetType = 'funeral_h
     }
     generate();
     return () => { cancelled = true; };
-  }, [estateId, packetType, accessToken]);
+  }, [estateId, taskId, packetType, accessToken]);
 
   async function copyPacket() {
     try {

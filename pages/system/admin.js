@@ -155,6 +155,14 @@ const roadmapItems = [
     body: 'The active task UI now leads with a plain-language spine instead of dense internal framing. Participant cards show Start here, Asked of you, Owner, Waiting, and Proof and notify before any secondary context; saved notes remain visible even after completion. Estate, funeral-home, and vendor task panels now use the same contract so coordinators, staff, and scoped vendors see the owner, waiting point, proof, and notification state before marking handled, waiting, blocked, assigning, quoting, or sending. The backend now rejects handled, waiting, or blocked task updates that do not include a meaningful proof, waiting point, or blocker note. Task send and reminder endpoints now return the same spine contract with recipient, deep link, waiting point, proof, and notification status, and the orchestration smoke test verifies participant, funeral-home, vendor, assignment, reminder, notification, and payment/proof contracts separately.',
   },
   {
+    pillar: 'Intelligent Orchestration and Outputs',
+    priority: 'P0',
+    timing: 'Done today',
+    status: 'State machine and output engine expanded',
+    title: 'Move from task list to dependency-aware orchestration with real outputs',
+    body: 'The orchestration engine now classifies each task into a state machine: ready, needs owner, waiting, blocked by dependency, needs help, completed with proof, or completed but proof-needs-review. It also computes escalation language, dependency blockers, proof state, suggested next tasks, and suggested output packets. The family and funeral-home workspaces now surface orchestration state and output CTAs directly in the task spine. Packet generation now supports eight useful artifacts: care-team handoff, funeral-home arrangement packet, executor/family summary, government/institution packet, family event one-pager, secure home/assets checklist, vendor quote request packet, and obituary/service materials packet.',
+  },
+  {
     pillar: 'Public Site and Demo Proof',
     priority: 'P0',
     timing: 'Done today',
@@ -301,6 +309,21 @@ const roadmapExecutionDetails = {
       'Smoke test reports separate pass/fail rows for assignment, participant update, funeral-home proof, vendor request/payment, notifications, and spine rows.',
     ],
     sprintLoop: 'Next loop: run browser QA on participant, urgent estate, funeral-home staff, and vendor request task cards; then remove any remaining dense list/detail panels that do not start with the five-part spine.',
+  },
+  'Intelligent Orchestration and Outputs': {
+    technicalRequirements: [
+      'Classify task state from more than status: dependency blockers, owner, waiting age, proof requirement, escalation path, and output readiness.',
+      'Generate reviewed artifacts from the same family/task spine and persist packet metadata to document_packets when the table exists.',
+      'Expose suggested outputs and suggested next tasks in family and funeral-home workspaces without making the interface feel busy.',
+      'Keep all generated outputs review-first: nothing emails or shares until a user explicitly previews, downloads, prints, or approves a send.',
+    ],
+    successCriteria: [
+      'At least eight packet/output templates exist and can be selected from task context.',
+      'Bank/institution work is visibly blocked until authority/pronouncement/death-certificate dependencies are satisfied.',
+      'Vendor, obituary, home/assets, government, funeral-home, executor, and family-update tasks each map to useful reviewed outputs.',
+      'Smoke test verifies output-template availability and the orchestration state-machine contract, not just UI rendering.',
+    ],
+    sprintLoop: 'Current loop: expand output templates, add active document_packets migration, return task-linked packet records, show state-machine/next-output CTAs, then run build, deploy, and production smoke.',
   },
   'Public Site and Demo Proof': {
     technicalRequirements: [

@@ -4460,6 +4460,8 @@ export default function FuneralHomeDashboard() {
               const nextOwner = nextPartnerTask?.assigned_to_name || nextPartnerTask?.assigned_to_email || nextPartnerTask?.playbook?.partnerOwnerRole || 'Unassigned';
               const nextTaskClosed = nextPartnerTask && taskIsClosed(nextPartnerTask);
               const nextExpectedUpdate = nextTaskClosed ? 'Handled - proof is saved on the case spine.' : nextPartnerTask ? (orchestration.nextAction?.expectedUpdate || taskExpectedUpdate(nextPartnerTask, 'funeral_home')) : 'The family status remains visible.';
+              const nextStateMachine = orchestration.nextAction?.stateMachine || nextPartnerTask?.orchestration?.stateMachine || null;
+              const nextSuggestedOutputs = orchestration.nextAction?.suggestedOutputs || nextPartnerTask?.orchestration?.outputActions || [];
               const conversationCount = item.coordinationSpine?.conversation?.length || 0;
               const proofCount = item.coordinationSpine?.proof?.length || 0;
               const notificationCount = item.coordinationSpine?.notifications?.length || 0;
@@ -4552,6 +4554,19 @@ export default function FuneralHomeDashboard() {
                       <div style={{ background: C.card, borderLeft: `4px solid ${blocked ? C.rose : waitingCount ? C.amber : C.sage}`, borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.4, lineHeight: 1.45 }}>
                         <strong style={{ color: C.ink }}>Next expected update:</strong> {nextExpectedUpdate}
                       </div>
+                      {nextStateMachine && (
+                        <div style={{ background: C.card, border: `1px solid ${nextStateMachine.escalation || nextStateMachine.state === 'blocked_by_dependency' ? C.amber + '44' : C.sage + '33'}`, borderRadius: 11, padding: '9px 10px', marginTop: 8, color: C.mid, fontSize: 12.2, lineHeight: 1.45 }}>
+                          <strong style={{ color: C.ink }}>Orchestration state:</strong> {` ${nextStateMachine.label}. ${nextStateMachine.reassurance}`}
+                          {nextStateMachine.escalation ? <div style={{ marginTop: 4 }}><strong style={{ color: C.ink }}>If stuck:</strong> {nextStateMachine.escalation}</div> : null}
+                        </div>
+                      )}
+                      {nextSuggestedOutputs.length > 0 && (
+                        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
+                          {nextSuggestedOutputs.slice(0, 2).map(output => (
+                            <button key={output.packetType} onClick={() => setPacketModal({ estateId: item.id, packetType: output.packetType })} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 999, padding: '6px 9px', fontSize: 11.5, fontWeight: 900, fontFamily: 'Georgia,serif', cursor: 'pointer' }}>{output.label}</button>
+                          ))}
+                        </div>
+                      )}
                       {false && nextLifecycleEvent && (
                         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', marginTop: 8, color: C.mid, fontSize: 12.3, lineHeight: 1.45 }}>
                           <strong style={{ color: C.ink }}>Next lifecycle date:</strong> {nextLifecycleLabel.replace(/_/g, ' ')}{nextLifecycleDate && !Number.isNaN(nextLifecycleDate.getTime()) ? ` - ${nextLifecycleDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}{nextLifecycleEvent.time ? ` at ${nextLifecycleEvent.time}` : ''}{nextLifecycleEvent.location_name ? `, ${nextLifecycleEvent.location_name}` : ''}

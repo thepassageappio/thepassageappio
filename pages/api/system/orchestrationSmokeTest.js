@@ -6,6 +6,8 @@ import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 import { recordTaskCommunicationEvent } from '../../../lib/communicationEvents';
 import { transferGroupForVendorOrder } from '../../../lib/stripeFinancialSpine';
 import { summarizePersonaContracts } from '../../../lib/personaOrchestrationContracts';
+import { buildContinuityPackets, demoContinuityInput } from '../../../lib/continuityPackets';
+import { orchestrateTasks } from '../../../lib/taskOrchestration';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -666,6 +668,41 @@ export default async function handler(req, res) {
       withPersonNow: smokeContext.withPersonNow || null,
       pronouncementStatus: smokeContext.pronouncementStatus || null,
       funeralHomeHandoffIntent: smokeContext.funeralHomeHandoffIntent || null,
+    });
+
+    const packetSet = buildContinuityPackets(demoContinuityInput());
+    const packetIds = packetSet.map(packet => packet.id);
+    checks.push({
+      name: 'output_generation_templates_available',
+      ok: packetSet.length >= 8
+        && ['funeral-home-arrangement', 'agency-notification', 'executor-summary', 'family-event-one-pager', 'secure-home-assets', 'vendor-service-request', 'obituary-service-packet'].every(id => packetIds.includes(id)),
+      packetCount: packetSet.length,
+      packetIds,
+    });
+
+    const orchestrationProbe = orchestrateTasks({
+      role: 'family',
+      context: { deathDate: workflow?.date_of_death || '', surface: 'qa state-machine probe' },
+      tasks: [
+        { id: 'probe-bank', title: 'Notify primary bank and all financial institutions', status: 'pending', priority: 'normal', proof_required: 'institution instruction or reference number' },
+        { id: 'probe-pronouncement', title: 'Obtain official pronouncement of death', status: 'assigned', assigned_to_name: 'QA Coordinator', priority: 'urgent', proof_required: 'official instruction recorded' },
+        { id: 'probe-vendor', title: 'Order memorial flowers', status: 'pending', assigned_to_name: 'QA Coordinator', priority: 'normal', proof_required: 'vendor quote and payment proof' },
+      ],
+    });
+    const bankProbe = orchestrationProbe.tasks.find(row => row.id === 'probe-bank');
+    const vendorProbe = orchestrationProbe.tasks.find(row => row.id === 'probe-vendor');
+    checks.push({
+      name: 'orchestration_state_machine_contract',
+      ok: Boolean(
+        bankProbe?.orchestration?.stateMachine?.state === 'blocked_by_dependency'
+        && bankProbe.orchestration.stateMachine.blockers?.length >= 1
+        && vendorProbe?.orchestration?.stateMachine?.outputActions?.some(action => action.packetType === 'vendor_service_request')
+        && orchestrationProbe.nextAction?.stateMachine
+      ),
+      bankState: bankProbe?.orchestration?.stateMachine?.state || null,
+      bankBlockers: (bankProbe?.orchestration?.stateMachine?.blockers || []).map(item => item.label),
+      vendorOutputs: vendorProbe?.orchestration?.stateMachine?.outputActions || [],
+      nextState: orchestrationProbe.nextAction?.stateMachine?.state || null,
     });
 
     const eventText = (row) => `${row.event_type || ''} ${row.status || ''} ${row.actor || ''} ${row.recipient || ''} ${row.detail || ''} ${row.description || ''}`.toLowerCase();

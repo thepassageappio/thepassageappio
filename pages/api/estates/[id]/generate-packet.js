@@ -5,6 +5,7 @@ export default async function handler(req, res) {
 
   const estateId = String(req.query.id || '').trim();
   const packetType = String(req.body?.type || 'funeral_home_arrangement').trim();
+  const taskId = String(req.body?.taskId || req.body?.task_id || '').trim() || null;
   const loaded = await loadContinuityPacketSet(req, estateId);
   if (loaded.error) return res.status(loaded.status || 500).json({ error: loaded.error });
 
@@ -13,6 +14,7 @@ export default async function handler(req, res) {
 
   const persisted = await persistPreparedPacket({
     estateId,
+    taskId,
     packet,
     packetType,
     user: loaded.user,

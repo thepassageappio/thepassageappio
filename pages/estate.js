@@ -1816,6 +1816,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
     ? (recent.find(function(row) { return row.taskId && String(row.taskId) === String(item.id) && row.expectedUpdate; })?.expectedUpdate || (missingOwner ? 'Assign an owner so Passage knows who should respond next.' : waitingCount ? 'Next update appears here when the owner, family, or recipient responds.' : 'Save proof when this is handled so everyone sees the same truth.'))
     : 'No one needs to do anything right now.';
   var importance = item ? taskImportance(item, orchestrationContext) : null;
+  var taskState = item?.orchestration?.stateMachine || null;
+  var suggestedOutputs = item?.orchestration?.outputActions || [];
+  var suggestedTasks = item?.orchestration?.suggestedTasks || [];
   var statusTone = blockedCount ? ROSE : waitingCount ? AMBER : SAGE;
   var statusBg = blockedCount ? ROSE_FAINT : waitingCount ? AMBER_FAINT : SAGE_FAINT;
 
@@ -1906,6 +1909,37 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
                 <strong style={{ color: INK }}>Next expected update:</strong> {expectedUpdate}
               </div>
+              {taskState && (
+                <div style={{ background: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_FAINT : SAGE_FAINT, border: '1px solid ' + (taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 13, padding: '10px 12px', color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
+                  <div style={{ color: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER : SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Orchestration state: {taskState.label}</div>
+                  <div style={{ marginTop: 4 }}>{taskState.reassurance}</div>
+                  {taskState.escalation && <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>If stuck:</strong> {taskState.escalation}</div>}
+                </div>
+              )}
+              {(suggestedOutputs.length > 0 || suggestedTasks.length > 0) && (
+                <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 12px', marginTop: 10 }}>
+                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Next recommended action</div>
+                  <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.45, marginTop: 4 }}>
+                    {suggestedOutputs[0]?.reason || suggestedTasks[0]?.reason || 'Passage recommends the next useful output or task from the current state.'}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
+                    {suggestedOutputs.slice(0, 2).map(function(output) {
+                      return (
+                        <button key={output.packetType} onClick={function() { if (onGeneratePacket) onGeneratePacket(item, output.packetType); }} style={{ border: 'none', background: SAGE, color: '#fff', borderRadius: 999, padding: '7px 10px', fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer', fontSize: 12 }}>
+                          {output.label}
+                        </button>
+                      );
+                    })}
+                    {suggestedTasks.slice(0, 2).map(function(next) {
+                      return (
+                        <span key={next.title} style={{ background: SUBTLE, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '7px 10px', fontSize: 12, fontWeight: 800 }}>
+                          Up next: {next.title}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {item && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 8, marginTop: 10 }}>
                   {[
@@ -3451,11 +3485,14 @@ export default function EstatePage() {
 
   function packetTypeForTask(task) {
     var title = String(task?.title || '').toLowerCase();
+    if (title.includes('vendor') || title.includes('flower') || title.includes('florist') || title.includes('catering') || title.includes('livestream') || title.includes('transportation') || title.includes('venue')) return 'vendor_service_request';
+    if (title.includes('obituary') || title.includes('program') || title.includes('service material')) return 'obituary_service';
+    if (title.includes('home') || title.includes('property') || title.includes('asset') || title.includes('pet') || title.includes('mail') || title.includes('vehicle')) return 'secure_home_assets';
     if (title.includes('funeral') || title.includes('arrangement') || title.includes('service')) return 'funeral_home_arrangement';
     if (title.includes('bank') || title.includes('insurance') || title.includes('account') || title.includes('credit')) return 'bank_notification';
     if (title.includes('social security') || title.includes('government') || title.includes('benefit') || title.includes('medicaid') || title.includes('medicare') || title.includes('va ') || title.includes('dmv')) return 'ss_government';
     if (title.includes('executor') || title.includes('probate') || title.includes('attorney') || title.includes('legal')) return 'executor_summary';
-    if (title.includes('family') || title.includes('announcement') || title.includes('event') || title.includes('obituary')) return 'family_event_one_pager';
+    if (title.includes('family') || title.includes('announcement') || title.includes('event')) return 'family_event_one_pager';
     return 'executor_summary';
   }
 
@@ -3709,14 +3746,14 @@ export default function EstatePage() {
     }
   }
 
-  function generatePacketFromCommand(task) {
+  function generatePacketFromCommand(task, packetTypeOverride) {
     if (!estateId) {
       showToast('Open a family record before preparing an output.');
       return;
     }
     setPacketModal({
       estateId: estateId,
-      packetType: packetTypeForTask(task),
+      packetType: packetTypeOverride || packetTypeForTask(task),
       taskTitle: displayTaskTitle(task),
       task: task,
     });
@@ -3917,6 +3954,7 @@ export default function EstatePage() {
         {packetModal && (
           <PacketGeneratorModal
             estateId={packetModal.estateId}
+            taskId={packetModal.task?.id || ''}
             packetType={packetModal.packetType}
             accessToken={authToken}
             onClose={function() { setPacketModal(null); }}
