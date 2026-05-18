@@ -4462,6 +4462,7 @@ export default function FuneralHomeDashboard() {
               const nextExpectedUpdate = nextTaskClosed ? 'Handled - proof is saved on the case spine.' : nextPartnerTask ? (orchestration.nextAction?.expectedUpdate || taskExpectedUpdate(nextPartnerTask, 'funeral_home')) : 'The family status remains visible.';
               const nextStateMachine = orchestration.nextAction?.stateMachine || nextPartnerTask?.orchestration?.stateMachine || null;
               const nextSuggestedOutputs = orchestration.nextAction?.suggestedOutputs || nextPartnerTask?.orchestration?.outputActions || [];
+              const workflowStates = orchestration.workflowStates || { states: [], activeState: null };
               const conversationCount = item.coordinationSpine?.conversation?.length || 0;
               const proofCount = item.coordinationSpine?.proof?.length || 0;
               const notificationCount = item.coordinationSpine?.notifications?.length || 0;
@@ -4558,6 +4559,20 @@ export default function FuneralHomeDashboard() {
                         <div style={{ background: C.card, border: `1px solid ${nextStateMachine.escalation || nextStateMachine.state === 'blocked_by_dependency' ? C.amber + '44' : C.sage + '33'}`, borderRadius: 11, padding: '9px 10px', marginTop: 8, color: C.mid, fontSize: 12.2, lineHeight: 1.45 }}>
                           <strong style={{ color: C.ink }}>Orchestration state:</strong> {` ${nextStateMachine.label}. ${nextStateMachine.reassurance}`}
                           {nextStateMachine.escalation ? <div style={{ marginTop: 4 }}><strong style={{ color: C.ink }}>If stuck:</strong> {nextStateMachine.escalation}</div> : null}
+                        </div>
+                      )}
+                      {workflowStates.activeState && (
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', marginTop: 8 }}>
+                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case workflow state</div>
+                          <div style={{ color: C.ink, fontSize: 13.5, lineHeight: 1.35, fontWeight: 900, marginTop: 4 }}>{workflowStates.activeState.label}: {workflowStates.activeState.statusLabel}</div>
+                          <div style={{ color: C.mid, fontSize: 12.1, lineHeight: 1.4, marginTop: 3 }}>{workflowStates.activeState.reassurance}</div>
+                          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 7 }}>
+                            {workflowStates.states.slice(0, 5).map(state => (
+                              <span key={state.key} style={{ background: state.key === workflowStates.activeState?.key ? C.sageFaint : C.bg, border: `1px solid ${state.key === workflowStates.activeState?.key ? C.sage + '33' : C.border}`, color: state.status === 'complete' ? C.sage : state.status === 'needs_help' || state.status === 'blocked_by_dependency' ? C.rose : state.status === 'waiting' || state.status === 'needs_owner' ? C.amber : C.mid, borderRadius: 999, padding: '4px 7px', fontSize: 10.8, fontWeight: 900 }}>
+                                {state.label}: {state.statusLabel}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
                       {nextSuggestedOutputs.length > 0 && (

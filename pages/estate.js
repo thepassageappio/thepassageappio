@@ -1823,6 +1823,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
     role: 'family',
     context: orchestrationContext
   });
+  var workflowStates = orchestrated.workflowStates || { states: [], activeState: null, counts: {} };
   var rankedTasks = orchestrated.tasks || tasks || [];
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o); });
   var openTasks = rankedTasks.filter(function(t) { return !isHandledStatus(t); });
@@ -1939,6 +1940,38 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         notifications={coordinationSpine?.notifications || []}
         emptyText="No one has been notified from Passage yet. Once a participant, vendor, family member, or provider gets an email/SMS, this panel shows the recipient and delivery state."
       />
+
+      {workflowStates.states.length > 0 && (
+        <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: 13, marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Workflow state engine</div>
+              <div style={{ color: INK, fontSize: 16, lineHeight: 1.25, fontWeight: 900, marginTop: 3 }}>Passage is coordinating states, not just tasks.</div>
+            </div>
+            {workflowStates.activeState && (
+              <span style={{ background: workflowStates.activeState.tone === 'warn' ? ROSE_FAINT : workflowStates.activeState.tone === 'wait' ? AMBER_FAINT : SAGE_FAINT, border: '1px solid ' + (workflowStates.activeState.tone === 'warn' ? ROSE + '35' : workflowStates.activeState.tone === 'wait' ? AMBER_BORDER : SAGE_LIGHT), color: workflowStates.activeState.tone === 'warn' ? ROSE : workflowStates.activeState.tone === 'wait' ? AMBER : SAGE, borderRadius: 999, padding: '5px 9px', fontSize: 11.5, fontWeight: 900 }}>
+                Current: {workflowStates.activeState.label}
+              </span>
+            )}
+          </div>
+          {workflowStates.activeState && (
+            <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 7 }}>
+              <strong style={{ color: INK }}>{workflowStates.activeState.statusLabel}:</strong> {workflowStates.activeState.reassurance}
+            </div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
+            {workflowStates.states.slice(0, 7).map(function(state) {
+              var tone = state.tone === 'warn' ? ROSE : state.tone === 'wait' ? AMBER : state.status === 'complete' ? SAGE : MID;
+              return (
+                <div key={state.key} style={{ background: state.key === workflowStates.activeState?.key ? SAGE_FAINT : SUBTLE, border: '1px solid ' + (state.key === workflowStates.activeState?.key ? SAGE_LIGHT : BORDER), borderRadius: 11, padding: '8px 9px' }}>
+                  <div style={{ color: INK, fontSize: 12.3, lineHeight: 1.25, fontWeight: 900 }}>{state.label}</div>
+                  <div style={{ color: tone, fontSize: 10.8, lineHeight: 1.35, fontWeight: 900, marginTop: 4 }}>{state.statusLabel} · {state.openCount} open</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="passage-task-spine-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, .34fr) minmax(0, 1.66fr)', gap: 14, alignItems: 'stretch' }}>
         <aside className="passage-task-spine-queue" style={{ borderRight: '1px solid ' + BORDER, paddingRight: 16 }}>
@@ -2145,6 +2178,12 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
 function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events, actions, people, coordinationSpine, initialTaskId, onOpenOutcome, onAssignOutcome, onOutcomeHandled, onOutcomeProgress, onTaskAction }) {
   var openOutcomes = (outcomes || []).filter(function(o) { return !isHandledStatus(o); });
   var openTasks = (tasks || []).filter(function(t) { return !isHandledStatus(t); });
+  var simpleOrchestration = orchestrateTasks({
+    tasks: tasks || [],
+    role: 'family',
+    context: { surface: 'the estate task list' }
+  });
+  var workflowStates = simpleOrchestration.workflowStates || { states: [], activeState: null };
   var openQueue = openTasks.map(function(task) { return { kind: 'task', item: task }; }).concat(openOutcomes.map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
   var allQueue = (tasks || []).map(function(task) { return { kind: 'task', item: task }; }).concat((outcomes || []).map(function(outcome) { return { kind: 'outcome', item: outcome }; }));
   var focusedEntry = initialTaskId ? (openQueue.find(function(entry) {
@@ -2207,6 +2246,27 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
         notifications={coordinationSpine?.notifications || []}
         emptyText="No Passage notifications are attached to this record yet. When someone receives an assignment, reminder, family update, vendor request, or service announcement, the recipient and status will appear here."
       />
+
+      {workflowStates.states.length > 0 && (
+        <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 14, padding: 11, marginBottom: 12 }}>
+          <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Workflow state engine</div>
+          <div style={{ color: INK, fontSize: 15, lineHeight: 1.3, fontWeight: 900, marginTop: 3 }}>Passage is coordinating states, not just tasks.</div>
+          {workflowStates.activeState && (
+            <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.45, marginTop: 5 }}>
+              <strong style={{ color: INK }}>{workflowStates.activeState.label}:</strong> {workflowStates.activeState.statusLabel}. {workflowStates.activeState.reassurance}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+            {workflowStates.states.slice(0, 5).map(function(state) {
+              return (
+                <span key={state.key} style={{ background: state.key === workflowStates.activeState?.key ? SAGE_FAINT : CARD, border: '1px solid ' + (state.key === workflowStates.activeState?.key ? SAGE_LIGHT : BORDER), color: state.status === 'complete' ? SAGE : state.status === 'needs_help' || state.status === 'blocked_by_dependency' ? ROSE : state.status === 'waiting' || state.status === 'needs_owner' ? AMBER : MID, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>
+                  {state.label}: {state.statusLabel}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {activeTab === 'now' && (
         <div>

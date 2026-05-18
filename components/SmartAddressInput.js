@@ -236,7 +236,7 @@ export default function SmartAddressInput({
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
         <span style={{ color: C.soft, fontSize: compact ? 10.5 : 11 }}>
-          {hint || (hasPlacesKey ? 'Choose a suggestion to fill city, state, ZIP, and country.' : lookupState === 'not_configured' ? 'Typed addresses still parse city, state, and ZIP. Google suggestions need a server key.' : lookupState === 'error' ? 'Address suggestions are unavailable right now; typed addresses still parse city, state, and ZIP.' : 'Start typing to see smart address suggestions; typed addresses still parse city, state, and ZIP.')}
+          {hint || (hasPlacesKey ? 'Choose a suggestion to fill city, state, ZIP, and country.' : lookupState === 'loading' ? 'Checking address suggestions. Typed addresses still parse city, state, and ZIP.' : lookupState === 'not_configured' ? 'Typed addresses still parse city, state, and ZIP. Google suggestions need a server key.' : lookupState === 'error' ? 'Address suggestions are unavailable right now; typed addresses still parse city, state, and ZIP.' : 'Type the address here. Suggestions appear when the Google address key is configured; typed addresses still parse city, state, and ZIP.')}
         </span>
         {chips.map(chip => (
           <span key={chip} style={{ border: `1px solid ${C.sage}22`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 }}>

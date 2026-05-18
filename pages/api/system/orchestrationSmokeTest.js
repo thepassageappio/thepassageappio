@@ -691,6 +691,9 @@ export default async function handler(req, res) {
     });
     const bankProbe = orchestrationProbe.tasks.find(row => row.id === 'probe-bank');
     const vendorProbe = orchestrationProbe.tasks.find(row => row.id === 'probe-vendor');
+    const workflowStateProbe = orchestrationProbe.workflowStates || {};
+    const funeralHomeState = (workflowStateProbe.states || []).find(row => row.key === 'funeral_home_selection');
+    const aftercareState = (workflowStateProbe.states || []).find(row => row.key === 'estate_aftercare');
     checks.push({
       name: 'orchestration_state_machine_contract',
       ok: Boolean(
@@ -698,11 +701,17 @@ export default async function handler(req, res) {
         && bankProbe.orchestration.stateMachine.blockers?.length >= 1
         && vendorProbe?.orchestration?.stateMachine?.outputActions?.some(action => action.packetType === 'vendor_service_request')
         && orchestrationProbe.nextAction?.stateMachine
+        && workflowStateProbe.activeState
+        && funeralHomeState
+        && aftercareState?.status === 'blocked_by_dependency'
       ),
       bankState: bankProbe?.orchestration?.stateMachine?.state || null,
       bankBlockers: (bankProbe?.orchestration?.stateMachine?.blockers || []).map(item => item.label),
       vendorOutputs: vendorProbe?.orchestration?.stateMachine?.outputActions || [],
       nextState: orchestrationProbe.nextAction?.stateMachine?.state || null,
+      activeWorkflowState: workflowStateProbe.activeState?.label || null,
+      funeralHomeState: funeralHomeState?.status || null,
+      aftercareState: aftercareState?.status || null,
     });
 
     const eventText = (row) => `${row.event_type || ''} ${row.status || ''} ${row.actor || ''} ${row.recipient || ''} ${row.detail || ''} ${row.description || ''}`.toLowerCase();

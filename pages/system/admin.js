@@ -163,6 +163,14 @@ const roadmapItems = [
     body: 'The orchestration engine now classifies each task into a state machine: ready, needs owner, waiting, blocked by dependency, needs help, completed with proof, or completed but proof-needs-review. It also computes escalation language, dependency blockers, proof state, suggested next tasks, and suggested output packets. The family and funeral-home workspaces now surface orchestration state and output CTAs directly in the task spine. Packet generation now supports eight useful artifacts: care-team handoff, funeral-home arrangement packet, executor/family summary, government/institution packet, family event one-pager, secure home/assets checklist, vendor quote request packet, and obituary/service materials packet.',
   },
   {
+    pillar: 'Workflow Engine Refactor',
+    priority: 'P0',
+    timing: 'This week',
+    status: 'State-node foundation live',
+    title: 'Move from task-first coordination to workflow states that generate tasks',
+    body: 'The platform critique is now captured as an architecture item: Passage should not be a fancy task board. The first foundation is live in code: tasks now roll up into workflow states for Immediate Response, Funeral Home Selection, Transfer Coordination, Death Certificate Processing, Service Planning, Vendor Coordination, and Estate/Aftercare. Each state carries purpose, dependencies, waiting conditions, generated task suggestions, current status, reassurance copy, and the active state shown in the family estate spine and funeral-home case pane. The next loop is persistence and richer dependency editing so states can become saved orchestration objects, not just computed UI contracts.',
+  },
+  {
     pillar: 'Public Site and Demo Proof',
     priority: 'P0',
     timing: 'Done today',
@@ -344,6 +352,23 @@ const roadmapExecutionDetails = {
       'Smoke test verifies output-template availability and the orchestration state-machine contract, not just UI rendering.',
     ],
     sprintLoop: 'Current loop: expand output templates, add active document_packets migration, return task-linked packet records, show state-machine/next-output CTAs, then run build, deploy, and production smoke.',
+  },
+  'Workflow Engine Refactor': {
+    technicalRequirements: [
+      'Define workflow-state nodes above tasks: Immediate Response, Funeral Home Selection, Transfer Coordination, Death Certificate Processing, Service Planning, Vendor Coordination, and Estate/Aftercare.',
+      'Give each state dependency rules, waiting conditions, completion conditions, generated task suggestions, current status, reassurance language, and next visible action.',
+      'Roll task state machines up into workflow states so the product can explain why a whole phase is waiting, blocked, active, or complete.',
+      'Expose the active workflow state in family and funeral-home workspaces before the task list so users understand the system is coordinating the case, not just displaying tasks.',
+      'Extend smoke tests to verify the workflow-state contract in addition to task-level blockers, outputs, notifications, and proof rows.',
+    ],
+    successCriteria: [
+      'A family can see which case phase Passage believes they are in and why.',
+      'A funeral-home director can see what phase is blocking the case and which downstream tasks should wait.',
+      'Estate/aftercare work is blocked until certificate/authority dependencies are ready instead of appearing as random todos.',
+      'The orchestration smoke test fails if workflow states are missing or do not report an active state and dependency-blocked state.',
+      'Next loop can persist state nodes or add admin-editable dependency rules without rewriting task cards again.',
+    ],
+    sprintLoop: 'Current loop: computed workflow-state contract is live in the orchestration engine, estate spine, funeral-home case pane, smoke test, and roadmap. Next loop: persist workflow_state rows, let admins tune dependency rules, and generate tasks from state transitions.',
   },
   'Public Site and Demo Proof': {
     technicalRequirements: [

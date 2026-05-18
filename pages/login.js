@@ -151,7 +151,7 @@ export default function LoginPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
-      <SiteHeader user={user} authReady={authChecked} onSignOut={user ? signOut : null} />
+      <SiteHeader user={user} authReady={authChecked} onSignIn={!user ? signIn : null} onSignOut={user ? signOut : null} />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '26px 24px 46px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.76fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
