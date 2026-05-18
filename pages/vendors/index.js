@@ -36,7 +36,7 @@ export default function VendorFrontDoor() {
       title: 'Open one assigned request',
       body: 'For employees or service team members. Use the invited email or request link to see only the job, date, location, quote fields, payment status, and proof needed.',
       href: '/vendors/accept',
-      action: 'Open assigned work',
+      action: 'Vendor employee sign in',
     },
     {
       eyebrow: 'New support partner',
@@ -73,7 +73,7 @@ export default function VendorFrontDoor() {
                 Vendor owner sign in
               </Link>
               <Link href="/vendors/accept" onClick={() => trackEvent('vendor_employee_sign_in_clicked', { href: '/vendors/accept' })} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.card, color: C.sage, border: `1px solid ${C.border}`, padding: '0 16px', fontWeight: 900, fontSize: 14, textDecoration: 'none' }}>
-                Open assigned vendor work
+                Vendor employee sign in
               </Link>
             </div>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>

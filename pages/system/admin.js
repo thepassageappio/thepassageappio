@@ -118,9 +118,9 @@ const roadmapItems = [
     pillar: 'Compliance and Security Readiness',
     priority: 'P0',
     timing: 'Done today',
-    status: 'Evidence mapped',
+    status: 'RPC exposure closed',
     title: 'Internal compliance check joins the P0 readiness loop',
-    body: 'Live API check is ready for readiness review: RLS is enabled across public tables, no sensitive allow-all policies are present, Resend, Stripe, HubSpot, and the internal orchestration secret are configured, and QA-mode/default-sender warnings are separated from true blockers. The public Trust page now includes a formal readiness checklist for Privacy, Terms, subprocessors, review-before-share, role-scoped access, audit/proof trail, export/deletion requests, incident/security contact, BAA review path, and SOC 1/SOC 2 non-claim language. The admin Trust tab maps those public promises to backend evidence rows so Steve can see what is live, what is a warning, and what remains legal/partner review.',
+    body: 'Live API check is ready for readiness review: RLS is enabled across public tables, no sensitive allow-all policies are present, Resend, Stripe, HubSpot, and the internal orchestration secret are configured, and QA-mode/default-sender warnings are separated from true blockers. The Supabase P0 hardening pass revoked anonymous execution from the organization/workflow helper RPCs, kept activation and compliance snapshot service-role only, pinned security-definer search_path values, and added owner-read RLS for subscriptions so billing rows no longer silently disappear for signed-in owners. The remaining zero-policy tables are classified deny-by-default until product ownership is defined. The public Trust page now includes a formal readiness checklist for Privacy, Terms, subprocessors, review-before-share, role-scoped access, audit/proof trail, export/deletion requests, incident/security contact, BAA review path, and SOC 1/SOC 2 non-claim language. The admin Trust tab maps those public promises to backend evidence rows so Steve can see what is live, what is a warning, and what remains legal/partner review.',
   },
   {
     pillar: 'Production Readiness Control',
@@ -245,15 +245,19 @@ const roadmapExecutionDetails = {
   'Compliance and Security Readiness': {
     technicalRequirements: [
       'Keep RLS, public-policy, sensitive-table, env-var, notification-safety, and integration checks callable from admin readiness.',
+      'Revoke anonymous EXECUTE from security-definer RPCs that expose workflow, organization, activation, or schema posture signals.',
+      'Pin search_path on security-definer functions and keep browser-readable billing rows limited to the signed-in owner.',
       'Maintain trust copy that avoids HIPAA, SOC 1, or SOC 2 claims until formal review exists.',
       'Track legal/compliance gaps separately from engineering readiness so demo language stays honest.',
     ],
     successCriteria: [
+      'Anon cannot execute activate_estate, passage_compliance_snapshot, is_org_admin, is_org_member_of, or is_workflow_owner.',
+      'Subscriptions has an owner-read policy and no client-side write policy; Stripe/service-role remains the write path.',
       'Readiness API returns zero blockers for engineering posture before demos.',
       'Public pages and product flows use role-scoped, review-before-share, audit-oriented language.',
       'Enterprise claims stay gated until legal policies, BAA posture, subprocessor list, and audit retention are reviewed.',
     ],
-    sprintLoop: 'Next loop: run the compliance check after live env changes and add formal owner/due-date tracking for BAA, SOC evidence, retention policy, incident response, and security inbox setup.',
+    sprintLoop: 'Current loop completed: live Supabase RPC grants were verified, anonymous execution was removed from the helper oracles, search paths were pinned, and subscriptions owner-read RLS was applied. Next loop: enable leaked-password protection in Supabase Auth and add formal owner/due-date tracking for BAA, SOC evidence, retention policy, incident response, and security inbox setup.',
   },
   'Production Readiness Control': {
     technicalRequirements: [
