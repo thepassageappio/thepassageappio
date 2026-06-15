@@ -50,12 +50,18 @@ function billingStatus(billing) {
   return String(billing?.status || '').toLowerCase();
 }
 
+function isFreePilotBilling(billing) {
+  const plan = String(billing?.planId || '').toLowerCase();
+  const monthlyFee = billing?.monthlyFeeCents == null ? null : Number(billing.monthlyFeeCents);
+  return plan.includes('pilot') && monthlyFee === 0;
+}
+
 function healthStage({ billing, cases, staff, familyUpdates, proofEvents }) {
   const status = billingStatus(billing);
-  if (status === 'active' || status === 'paid') return 'paid_active';
+  if ((status === 'active' || status === 'paid') && !isFreePilotBilling(billing)) return 'paid_active';
   if (cases >= 3 && staff >= 2 && familyUpdates >= 2 && proofEvents >= 3) return 'value_proven';
   if (cases >= 1 && staff >= 1) return 'pilot_active';
-  if (status === 'trialing' || status === 'pilot') return 'pilot_invited';
+  if (status === 'trialing' || status === 'pilot' || isFreePilotBilling(billing)) return 'pilot_invited';
   return 'needs_activation';
 }
 
