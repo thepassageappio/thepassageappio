@@ -5,6 +5,14 @@ import { SiteFooter, SiteHeader } from '../../../components/SiteChrome';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', amber: '#b07d2e', amberFaint: '#fdf8ee', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
+const SPRINT_TWO = [
+  ['1', 'Activate one funeral-home workspace', 'Owner, staff member, location, decision maker, and billing plan are visible.'],
+  ['2', 'Create the first real case', 'A director can create or import a case in under five minutes with family contact and next action.'],
+  ['3', 'Move one task through the spine', 'Assigned, waiting, blocked, handled, and proof states are visible to the right persona.'],
+  ['4', 'Send one approved family update', 'The coordinator sees recipient, channel, proof, and next expected update before conversion ask.'],
+  ['5', 'Export proof back out', 'CSV or packet export proves Passage does not trap the funeral-home record.'],
+  ['6', 'Convert or disqualify', 'Pilot either enters paid Local/Group plan or gets a named product blocker.'],
+];
 function normalizeEmail(email) { return String(email || '').trim().toLowerCase(); }
 function isSystemAdmin(user) { return SYSTEM_ADMIN_EMAILS.includes(normalizeEmail(user?.email)); }
 function money(value) { return Number(value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }); }
@@ -58,22 +66,32 @@ export default function PilotHealthPage() {
 
   const totals = result?.totals || {};
   const rows = result?.rows || [];
+  const accountsNeededAtLocal = Math.max(0, Math.ceil((300000 - Number(totals.arrPotential || 0)) / (249.99 * 12)));
+  const accountsNeededAtGroup = Math.max(0, Math.ceil((300000 - Number(totals.arrPotential || 0)) / (349.99 * 12)));
 
   return (
     <Shell user={user} onSignOut={signOut}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div><div style={eyebrow}>System admin / pilot health</div><h1 style={h1}>Turn funeral-home pilots into measurable ARR.</h1><p style={lead}>This control room shows partner accounts, current stage, next action, usage proof, subscription status, ARR potential, and blockers toward the $300k target.</p></div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={runCheck} disabled={checking} style={primaryButton}>{checking ? 'Refreshing...' : 'Refresh'}</button><Link href="/system/admin/saas-roadmap" style={secondaryLink}>SaaS roadmap</Link></div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={runCheck} disabled={checking} style={primaryButton}>{checking ? 'Refreshing...' : 'Refresh'}</button><Link href="/system/admin/saas-roadmap" style={secondaryLink}>SaaS roadmap</Link><Link href="/funeral-home/dashboard?demo=1" style={secondaryLink}>Sample console</Link></div>
       </div>
       {error && <Panel tone="risk"><strong>{error}</strong></Panel>}
       {result && <section style={grid4}>
         <Metric label="Accounts" value={totals.accounts || 0} />
         <Metric label="ARR potential" value={money(totals.arrPotential || 0)} />
         <Metric label="Gap to $300k" value={money(totals.gapTo300kArr || 300000)} />
+        <Metric label="Local accounts needed" value={accountsNeededAtLocal} />
+        <Metric label="Group accounts needed" value={accountsNeededAtGroup} />
         <Metric label="Cases coordinated" value={totals.cases || 0} />
         <Metric label="Proof events" value={totals.proofEvents || 0} />
         <Metric label="Family updates" value={totals.familyUpdates || 0} />
       </section>}
+      <Panel tone="sage">
+        <div style={eyebrow}>Sprint 2 / activation engine</div>
+        <h2 style={h2}>The next sprint is not more planning. It is one complete paid-pilot proof loop.</h2>
+        <p style={lead}>The business target is simple: prove the workflow with one funeral home, turn proof into conversion, then repeat until the gap to $300k ARR is closed.</p>
+        <div style={sprintGrid}>{SPRINT_TWO.map(([number, title, body]) => <div key={title} style={stepCard}><span style={stepNumber}>{number}</span><strong>{title}</strong><p>{body}</p></div>)}</div>
+      </Panel>
       <Panel>
         <div style={eyebrow}>Account health</div>
         <h2 style={h2}>Every pilot needs a stage, blocker, and next action.</h2>
@@ -89,11 +107,12 @@ export default function PilotHealthPage() {
 function Shell({ children, user, onSignOut }) { return <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}><SiteHeader user={user} onSignOut={onSignOut} /><section style={wrap}>{children}</section><SiteFooter /></main>; }
 function Panel({ children, tone = 'default' }) { const risk = tone === 'risk'; return <section style={{ background: risk ? C.roseFaint : tone === 'sage' ? C.sageFaint : C.card, border: '1px solid ' + (risk ? '#efc7c7' : tone === 'sage' ? '#c8deca' : C.border), borderRadius: 18, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.04)', marginTop: 18 }}>{children}</section>; }
 function Metric({ label, value }) { return <div style={metricCard}><div style={eyebrow}>{label}</div><strong style={{ display: 'block', fontSize: 25, marginTop: 8 }}>{value}</strong></div>; }
-function AccountCard({ row }) { return <div style={subPanel}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div><span style={row.stage === 'paid_active' || row.stage === 'value_proven' ? goodPill : warnPill}>{row.subscription?.status || 'no billing row'}</span></div><p style={smallText}><strong>Next:</strong> {row.nextAction}</p><div style={miniGrid}><Metric label="Cases" value={row.metrics?.cases || 0} /><Metric label="Staff" value={row.metrics?.staff || 0} /><Metric label="Proof" value={row.metrics?.proofEvents || 0} /><Metric label="ARR potential" value={money(row.metrics?.arrPotential || 0)} /></div>{row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : <div style={innerPanel}><strong>Value signal is present.</strong></div>}</div>; }
+function AccountCard({ row }) { return <div style={subPanel}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div><span style={row.stage === 'paid_active' || row.stage === 'value_proven' ? goodPill : warnPill}>{row.subscription?.status || 'no billing row'}</span></div><p style={smallText}><strong>Next:</strong> {row.nextAction}</p><div style={miniGrid}><Metric label="Cases" value={row.metrics?.cases || 0} /><Metric label="Staff" value={row.metrics?.staff || 0} /><Metric label="Proof" value={row.metrics?.proofEvents || 0} /><Metric label="ARR potential" value={money(row.metrics?.arrPotential || 0)} /></div>{row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers become Sprint 2 actions</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : <div style={innerPanel}><strong>Value signal is present. Next action: ask for paid conversion or expansion.</strong></div>}</div>; }
 
 const wrap = { maxWidth: 1120, margin: '0 auto', padding: '42px 18px 80px' };
 const grid4 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginTop: 20 };
 const miniGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginTop: 12 };
+const sprintGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 16 };
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const h1 = { fontSize: 50, lineHeight: 1.04, margin: '8px 0 10px', fontWeight: 400, maxWidth: 880 };
 const h2 = { fontSize: 28, lineHeight: 1.12, margin: '8px 0 10px', fontWeight: 400 };
@@ -105,6 +124,8 @@ const secondaryLink = { border: '1px solid ' + C.border, background: C.card, col
 const metricCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 14, boxShadow: '0 4px 20px rgba(0,0,0,.025)' };
 const subPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
 const innerPanel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: 12, marginTop: 12 };
+const stepCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, minHeight: 132 };
+const stepNumber = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 999, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', fontSize: 12, fontWeight: 900, marginBottom: 8 };
 const ul = { margin: '8px 0 0', paddingLeft: 18, color: C.mid, fontSize: 13, lineHeight: 1.45 };
 const goodPill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
 const warnPill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
