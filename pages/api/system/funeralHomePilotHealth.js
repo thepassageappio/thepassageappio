@@ -62,7 +62,7 @@ export default async function handler(req, res) {
 
   const { data: organizations, error } = await admin
     .from('organizations')
-    .select('id,name,type,support_email,support_phone,website,created_at')
+    .select('id,name,type,support_email,created_at')
     .eq('type', 'funeral_home')
     .order('created_at', { ascending: false })
     .limit(50);
