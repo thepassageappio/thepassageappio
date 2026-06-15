@@ -11,9 +11,9 @@ const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 const revenueTargets = [
   { label: 'ARR target', value: '$300k', detail: 'Primary success target for this operating phase.' },
-  { label: 'Core wedge', value: 'Funeral homes', detail: 'Sell operational relief: My Day, family updates, proof, staff clarity, and exports.' },
+  { label: 'Core wedge', value: 'Enterprise funeral homes', detail: 'Win B2B first: locations, roles, cases, task spine, proof, exports, billing, and controls.' },
   { label: 'Account math', value: '100 at $249/mo', detail: 'Or 72 group accounts at $349/mo; vendor and family revenue become upside.' },
-  { label: 'North-star proof', value: 'Cases coordinated', detail: 'Active partner cases with task closure, family updates, staff proof, and exports.' },
+  { label: 'North-star proof', value: 'Enterprise spine health', detail: 'Active partner accounts with locations, staff, cases, task ownership, family updates, audit proof, exports, and paid path.' },
 ];
 
 const readinessGates = [
@@ -24,6 +24,7 @@ const readinessGates = [
   { label: 'Authenticated browser QA', status: 'Active', href: '/system/admin/funeral-home-qa', detail: 'Next gate is logged-in, persona-by-persona validation with real owner session, screenshots, and pass/fail notes.' },
   { label: 'Paid conversion path', status: 'Active', href: '/system/admin/pilot-health', detail: 'Pilot health must connect proof-ready accounts to Stripe plan, billing status, renewal risk, and named next action.' },
   { label: 'Automation spine readiness', status: 'Active', href: '/system/admin/automation-spine-readiness', detail: 'Owner can inspect assignment, waiting hygiene, blockers, stale work, proof gaps, delivery telemetry, and reminder runtime before pilots expand.' },
+  { label: 'Enterprise funeral-home readiness', status: 'Active', href: '/system/admin/enterprise-funeral-home-readiness', detail: 'Owner can verify B2B bones before B2C scale: locations, roles, cases, ownership, proof/audit, family updates, billing, and controls.' },
 ];
 
 const milestoneBoard = [
@@ -122,13 +123,14 @@ export default function SaasRoadmapPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <div>
             <div style={eyebrow}>System admin / SaaS roadmap</div>
-            <h1 style={h1}>Build Passage into a $300k ARR funeral-home SaaS business.</h1>
-            <p style={lead}>This is the operating plan for turning the product spine into a repeatable funeral-home sales, onboarding, workflow, proof, and retention engine.</p>
+            <h1 style={h1}>Build Passage into a $300k ARR enterprise funeral-home SaaS business.</h1>
+            <p style={lead}>This is the operating plan for turning Passage into a B2B funeral-home operating system first. When locations, roles, cases, task ownership, proof, exports, billing, and controls are solid, the family-facing B2C experience becomes simple.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Link href="/system/admin" style={secondaryLink}>System Admin</Link>
             <Link href="/system/admin/pilot-health" style={secondaryLink}>Pilot Health</Link>
             <Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Spine</Link>
+            <Link href="/system/admin/enterprise-funeral-home-readiness" style={secondaryLink}>Enterprise Readiness</Link>
           </div>
         </div>
 
