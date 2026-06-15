@@ -3,11 +3,21 @@ import { cleanZipList, normalizeVendorCategory, vendorCategoryLabel } from '../.
 import { escapeHtml, passageEmailShell } from '../../../lib/brandedEmail';
 import { detailRows, sendSubmissionReceipt } from '../../../lib/submissionReceipts';
 import { syncLeadToHubSpot } from '../../../lib/hubspot';
+import { getRequestIp, rateLimit } from '../../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../../lib/rateLimitPolicy';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+}
+
+function clean(value, max = 500) {
+  return String(value || '').replace(/[<>]/g, '').trim().slice(0, max);
+}
+
+function intakeKey(req, email) {
+  return ['vendorApply', getRequestIp(req), clean(email, 180).toLowerCase() || 'no-email'].join(':');
 }
 
 async function notifyPassage(vendor) {
@@ -28,7 +38,7 @@ async function notifyPassage(vendor) {
         sections: [
           {
             label: 'Contact',
-            html: `Email: <strong style="color:#1a1916;">${escapeHtml(vendor.contact_email || 'n/a')}</strong><br/>Phone: ${escapeHtml(vendor.contact_phone || 'n/a')}<br/>ZIPs: ${escapeHtml((vendor.zip_codes_served || []).join(', ') || 'n/a')}`,
+            html: `Email: <strong style=\"color:#1a1916;\">${escapeHtml(vendor.contact_email || 'n/a')}</strong><br/>Phone: ${escapeHtml(vendor.contact_phone || 'n/a')}<br/>ZIPs: ${escapeHtml((vendor.zip_codes_served || []).join(', ') || 'n/a')}`,
           },
           {
             label: 'Description',
@@ -82,6 +92,20 @@ export default async function handler(req, res) {
   if (!category) return res.status(400).json({ error: 'Choose a support category.' });
   if (!validEmail(email)) return res.status(400).json({ error: 'Add a real email address.' });
   if (!zipCodes.length) return res.status(400).json({ error: 'Add at least one ZIP code served.' });
+
+  const contactPolicy = getRateLimitPolicy('contactIntake');
+  const limit = rateLimit({
+    key: intakeKey(req, email),
+    windowSeconds: contactPolicy.windowSeconds,
+    maxRequests: contactPolicy.maxRequests,
+  });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || contactPolicy.windowSeconds));
+    return res.status(429).json({
+      error: 'We received several recent applications from this address. Please wait a bit before submitting again.',
+      retryAfterSeconds: limit.retryAfterSeconds,
+    });
+  }
 
   const vendorRow = {
     business_name: businessName,
