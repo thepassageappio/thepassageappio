@@ -67,6 +67,7 @@ export default function RateLimitReadinessPage() {
 
   const wired = result?.wiredProtections?.filter(item => item.status === 'wired') || [];
   const defined = result?.wiredProtections?.filter(item => item.status !== 'wired') || [];
+  const launchDecision = result?.launchDecision || null;
 
   return (
     <Shell user={user} onSignOut={signOut}>
@@ -81,6 +82,7 @@ export default function RateLimitReadinessPage() {
         <Metric label="Defined not wired" value={result.summary?.definedNotWired || 0} />
         <Metric label="Refresh policies" value={result.summary?.refreshPolicies || 0} />
       </section>}
+      {launchDecision && <Panel tone={launchDecision.status === 'blocked' ? 'risk' : 'sage'}><div style={eyebrow}>Launch decision</div><h2 style={h2}>{launchDecision.label}</h2><p style={lead}>{launchDecision.summary}</p><div style={decisionNext}><strong>Next action:</strong> {launchDecision.nextAction}</div></Panel>}
       <Panel tone="sage"><div style={eyebrow}>Wired protection</div><h2 style={h2}>Already protecting production surfaces.</h2><div style={{ display: 'grid', gap: 10 }}>{wired.map(item => <ReadinessRow key={item.route} item={item} good />)}</div></Panel>
       <Panel><div style={eyebrow}>Still to wire</div><h2 style={h2}>Policies that remain implementation work.</h2><div style={{ display: 'grid', gap: 10 }}>{defined.map(item => <ReadinessRow key={item.route} item={item} />)}</div></Panel>
       <Panel><div style={eyebrow}>Refresh cadence</div><h2 style={h2}>Prevent noisy polling and dashboard hammering.</h2><div style={{ display: 'grid', gap: 10 }}>{(result?.refreshPolicies || []).map(item => <div key={item.key} style={subPanel}><strong>{item.label}</strong><p style={smallText}>Minimum: {item.minSeconds}s. {item.backoff}</p></div>)}</div></Panel>
@@ -104,5 +106,6 @@ const primaryButton = { border: 'none', background: C.sage, color: '#fff', borde
 const secondaryLink = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 44, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' };
 const metricCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16, boxShadow: '0 4px 20px rgba(0,0,0,.035)' };
 const subPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
+const decisionNext = { background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 14, color: C.mid, fontSize: 14, lineHeight: 1.5, marginTop: 14 };
 const goodPill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900 };
 const warnPill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900 };
