@@ -23,6 +23,7 @@ const readinessGates = [
   { label: 'Public proof console', status: 'Shipped', href: '/funeral-home/pilot-proof', detail: 'Cold funeral-home prospects have a visible proof path instead of needing founder narration.' },
   { label: 'Authenticated browser QA', status: 'Active', href: '/system/admin/funeral-home-qa', detail: 'Next gate is logged-in, persona-by-persona validation with real owner session, screenshots, and pass/fail notes.' },
   { label: 'Paid conversion path', status: 'Active', href: '/system/admin/pilot-health', detail: 'Pilot health must connect proof-ready accounts to Stripe plan, billing status, renewal risk, and named next action.' },
+  { label: 'Automation spine readiness', status: 'Active', href: '/system/admin/automation-spine-readiness', detail: 'Owner can inspect assignment, waiting hygiene, blockers, stale work, proof gaps, delivery telemetry, and reminder runtime before pilots expand.' },
 ];
 
 const milestoneBoard = [
@@ -42,7 +43,7 @@ const milestoneBoard = [
     title: 'Milestone 3: Automation spine hardening', timing: 'Days 36-55', owner: 'Engineering + QA',
     outcome: 'Workflow states reliably create tasks, notifications, proof, outputs, and repair paths across every persona.',
     deliverables: ['Persist durable workflow state snapshots above tasks.', 'Generate or suggest tasks from state transitions.', 'Add admin-editable dependency rules for certificate, authority, transfer, service, vendor, and aftercare phases.', 'Extend smoke tests to fail when owner, waiting point, proof destination, notification trail, or next state is missing.'],
-    acceptance: ['Each case phase explains why it is ready, waiting, blocked, or complete.', 'No handled, waiting, blocked, send, or reminder action can create fake progress without meaningful detail.', 'Readiness shows abuse controls and refresh limits as launch gates.'],
+    acceptance: ['Each case phase explains why it is ready, waiting, blocked, or complete.', 'No handled, waiting, blocked, send, or reminder action can create fake progress without meaningful detail.', 'Automation Spine Readiness exposes assignment, waiting, blocker, stale-work, proof, delivery, and reminder-runtime risk.', 'Readiness shows abuse controls and refresh limits as launch gates.'],
   },
   {
     title: 'Milestone 4: Persona UX perfection pass', timing: 'Days 56-75', owner: 'QA persona lead',
@@ -61,8 +62,8 @@ const milestoneBoard = [
 const sprintBacklog = [
   { sprint: 'Sprint 0: Control room and baseline', status: 'Shipped', timing: 'Done', goal: 'Make the $300k plan visible and measurable inside System Admin.', tasks: ['Owner-only SaaS roadmap exists.', 'Funeral-home QA script exists.', 'Rate-limit readiness page exists.', 'Pilot-health control room exists.'], done: 'Roadmap, QA, rate-limit readiness, and pilot health are live in admin source.' },
   { sprint: 'Sprint 1: Funeral-home sales surface', status: 'Shipped', timing: 'Done', goal: 'Turn public interest into qualified demo/pilot conversations.', tasks: ['Proof console exists as the primary sample experience.', 'Old demo dashboard redirects to proof console.', 'Public CTA path can be verified unauthenticated.', 'Lead capture remains a conversion-path follow-up.'], done: 'Cold prospects have a visible proof console and demo route.' },
-  { sprint: 'Sprint 2: Director and staff flawless loop', status: 'Active', timing: 'Now', goal: 'Make first login to first proof production-grade.', tasks: ['Use pilot health to find missing cases, staff, proof, family updates, billing, and exports.', 'Run logged-in director and employee browser QA.', 'Patch any flow that needs narration.', 'Keep export evidence visible as pilot proof.'], done: 'Director and employee flows pass on desktop and mobile with proof saved and exportable.' },
-  { sprint: 'Sprint 3: Spine and automation hardening', status: 'Active', timing: 'Next', goal: 'Upgrade Passage from task coordination to dependency-aware workflow automation.', tasks: ['Persist workflow state snapshots above task rows.', 'Attach generated tasks, dependencies, waiting conditions, and output suggestions to states.', 'Make smoke tests assert persona and workflow-state contracts.', 'Keep route-level rate limits and client refresh throttles visible as launch gates.'], done: 'Readiness fails when state, owner, waiting point, proof, notification, dependency, or abuse control is missing.' },
+  { sprint: 'Sprint 2: Director and staff flawless loop', status: 'Active', timing: 'Now', goal: 'Make first login to first proof production-grade.', tasks: ['Use pilot health to find missing cases, staff, proof, family updates, billing, and exports.', 'Run Automation Spine Readiness before expanding any pilot workspace.', 'Run logged-in director and employee browser QA.', 'Patch any flow that needs narration.', 'Keep export evidence visible as pilot proof.'], done: 'Director and employee flows pass on desktop and mobile with proof saved, exportable, and spine-readiness clean.' },
+  { sprint: 'Sprint 3: Spine and automation hardening', status: 'Active', timing: 'Next', goal: 'Upgrade Passage from task coordination to dependency-aware workflow automation.', tasks: ['Persist workflow state snapshots above task rows.', 'Attach generated tasks, dependencies, waiting conditions, and output suggestions to states.', 'Make Automation Spine Readiness fail when owner, waiting point, proof, delivery, follow-up, or reminder runtime is missing.', 'Make smoke tests assert persona and workflow-state contracts.', 'Keep route-level rate limits and client refresh throttles visible as launch gates.'], done: 'Readiness fails when state, owner, waiting point, proof, notification, dependency, or abuse control is missing.' },
   { sprint: 'Sprint 4: Persona perfection QA', status: 'Planned', timing: 'Week 9-11', goal: 'Pressure-test every role as if real customers are watching.', tasks: ['Run family coordinator, participant, funeral-home director, funeral-home employee, vendor, and admin scripts.', 'Record screenshot, blocker, copy friction, missing proof, and time-to-primary-action.', 'Patch internal language and dead ends.', 'Confirm mobile-sized primary actions.'], done: 'Each persona has one clear next action and one visible proof path.' },
   { sprint: 'Sprint 5: Pilot revenue operating system', status: 'Planned', timing: 'Week 12-13', goal: 'Make pilot conversion and ARR movement visible before scaling outreach.', tasks: ['Map HubSpot stages to admin metrics and readiness checks.', 'Finalize subscription/location-slot billing and pilot conversion path.', 'Add conversion ask timing from launch grade and proof-ready status.', 'Gate production reset and destructive admin tools once real records exist.'], done: 'Admin can answer who is in pipeline, who is active, who is at risk, what proof exists, and what action grows ARR.' },
 ];
@@ -80,6 +81,7 @@ const firstActions = [
   'Use Pilot Health every day until each active account has a launch grade, next action, blocker list, and export-ready proof.',
   'Run logged-in browser QA for director and employee personas against one real pilot workspace.',
   'Patch the first flow where a funeral-home user needs founder narration.',
+  'Run Automation Spine Readiness and clear every blocked gate before expanding pilots.',
   'Tie proof-ready accounts to a dated conversion ask and Stripe plan assignment.',
   'Keep rate-limit readiness green before scaling public outreach or admin refresh usage.',
 ];
@@ -126,6 +128,7 @@ export default function SaasRoadmapPage() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Link href="/system/admin" style={secondaryLink}>System Admin</Link>
             <Link href="/system/admin/pilot-health" style={secondaryLink}>Pilot Health</Link>
+            <Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Spine</Link>
           </div>
         </div>
 
