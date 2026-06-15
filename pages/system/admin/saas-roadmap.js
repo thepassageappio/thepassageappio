@@ -17,6 +17,7 @@ const revenueTargets = [
 ];
 
 const readinessGates = [
+  { label: 'Product IA governance', status: 'Shipped', href: '/system/admin/saas-roadmap', detail: 'The SaaS roadmap is the only roadmap source of truth. System Admin no longer carries duplicate sprint-roadmap cards; new admin surfaces must declare whether they replace, feed, or retire into an existing owner workflow.' },
   { label: 'Pilot health', status: 'Shipped', href: '/system/admin/pilot-health', detail: 'Owner can see account stage, ARR potential, launch grade, readiness score, export-ready pilots, open/waiting/blocked/handled task spine, and proof snippets.' },
   { label: 'Partner export proof', status: 'Shipped', href: '/api/partnerExport?view=summary', detail: 'Exports include waiting detail, blocker detail, recent proof detail, and saved notes so a director can inspect value outside Passage.' },
   { label: 'Rate-limit readiness', status: 'Shipped', href: '/system/admin/rate-limit-readiness', detail: 'Admin can review launch decision and refresh/abuse controls for high-risk routes before broader outreach.' },
@@ -26,6 +27,21 @@ const readinessGates = [
   { label: 'Automation spine readiness', status: 'Active', href: '/system/admin/automation-spine-readiness', detail: 'Owner can inspect assignment, waiting hygiene, blockers, stale work, proof gaps, delivery telemetry, and reminder runtime before pilots expand.' },
   { label: 'Enterprise funeral-home readiness', status: 'Active', href: '/system/admin/enterprise-funeral-home-readiness', detail: 'Owner can verify B2B bones before B2C scale: locations, roles, cases, ownership, proof/audit, family updates, billing, and controls.' },
   { label: 'Contextual next-action engine', status: 'Shipped', href: '/system/admin/saas-roadmap', detail: 'Shared rules now recommend blocker, waiting-loop, proof-gap, pre-death, pre-need, day-zero, arrangement, service-window, and aftercare moves with draft messaging.' },
+];
+
+const platformGovernanceRules = [
+  'One roadmap only: /system/admin/saas-roadmap is the canonical source of truth for strategy, milestones, sprints, and signoff.',
+  'System Admin is the owner operating cockpit, not a second roadmap. It should expose readiness, metrics, QA, trust, and destructive controls only when they directly help operate the product.',
+  'Every new admin or readiness surface must state its relationship to the canonical workflow: source of truth, evidence gate, support tool, or temporary experiment with a retirement path.',
+  'No persona-facing dashboard should expose internal roadmap, sprint, QA, or founder language. Funeral homes get My Day, cases, staff, proof, exports, billing, and next actions.',
+  'Every workflow must collapse to one job, one owner, one waiting point, one proof path, and one recommended next action before it is considered enterprise-ready.',
+];
+
+const platformAssessment = [
+  { label: 'Can support multiple betas now', text: 'Partially. The codebase has organizations, locations, staff membership, partner cases, task actions, subscriptions, exports, readiness gates, and pilot health. That is enough for controlled founder-led betas, not yet enough for broad self-service scale.' },
+  { label: 'Primary enterprise gap', text: 'The product needs consolidation and proof discipline: fewer owner surfaces, clearer funeral-home workflows, durable workflow states above task rows, stronger billing/account lifecycle, and browser-verified multi-tenant QA.' },
+  { label: '300k ARR readiness condition', text: 'The path is credible when every active account has named ARR potential, stage, blocker, next action, proof evidence, billing status, location/staff usage, and a dated conversion or expansion ask.' },
+  { label: 'B2B before B2C rule', text: 'Lock the funeral-home operating spine first. Once directors and staff can run cases flawlessly, the family-facing B2C layer becomes simpler because it is guided by the partner workflow instead of separate dashboards.' },
 ];
 
 const milestoneBoard = [
@@ -64,7 +80,7 @@ const milestoneBoard = [
 const sprintBacklog = [
   { sprint: 'Sprint 0: Control room and baseline', status: 'Shipped', timing: 'Done', goal: 'Make the $300k plan visible and measurable inside System Admin.', tasks: ['Owner-only SaaS roadmap exists.', 'Funeral-home QA script exists.', 'Rate-limit readiness page exists.', 'Pilot-health control room exists.'], done: 'Roadmap, QA, rate-limit readiness, and pilot health are live in admin source.' },
   { sprint: 'Sprint 1: Funeral-home sales surface', status: 'Shipped', timing: 'Done', goal: 'Turn public interest into qualified demo/pilot conversations.', tasks: ['Proof console exists as the primary sample experience.', 'Old demo dashboard redirects to proof console.', 'Public CTA path can be verified unauthenticated.', 'Lead capture remains a conversion-path follow-up.'], done: 'Cold prospects have a visible proof console and demo route.' },
-  { sprint: 'Sprint 2: Director and staff flawless loop', status: 'Active', timing: 'Now', goal: 'Make first login to first proof production-grade.', tasks: ['Use pilot health to find missing cases, staff, proof, family updates, billing, and exports.', 'Run Automation Spine Readiness before expanding any pilot workspace.', 'Run logged-in director and employee browser QA.', 'Patch any flow that needs narration.', 'Keep export evidence visible as pilot proof.', 'Wire contextual next-action recommendations into My Day and staff task cards.'], done: 'Director and employee flows pass on desktop and mobile with proof saved, exportable, and spine-readiness clean.' },
+  { sprint: 'Sprint 2: Director and staff flawless loop', status: 'Active', timing: 'Now', goal: 'Make first login to first proof production-grade.', tasks: ['Use pilot health to find missing cases, staff, proof, family updates, billing, and exports.', 'Run Automation Spine Readiness before expanding any pilot workspace.', 'Run logged-in director and employee browser QA.', 'Patch any flow that needs narration.', 'Keep export evidence visible as pilot proof.', 'Wire contextual next-action recommendations into My Day and staff task cards.', 'Audit every owner/admin surface before adding a new one; if a new page exists, it must feed the canonical roadmap or replace an older surface.'], done: 'Director and employee flows pass on desktop and mobile with proof saved, exportable, and spine-readiness clean.' },
   { sprint: 'Sprint 3: Spine and automation hardening', status: 'Active', timing: 'Next', goal: 'Upgrade Passage from task coordination to dependency-aware workflow automation.', tasks: ['Persist workflow state snapshots above task rows.', 'Attach generated tasks, dependencies, waiting conditions, and output suggestions to states.', 'Make Automation Spine Readiness fail when owner, waiting point, proof, delivery, follow-up, or reminder runtime is missing.', 'Make smoke tests assert persona and workflow-state contracts.', 'Keep route-level rate limits and client refresh throttles visible as launch gates.'], done: 'Readiness fails when state, owner, waiting point, proof, notification, dependency, or abuse control is missing.' },
   { sprint: 'Sprint 4: Persona perfection QA', status: 'Planned', timing: 'Week 9-11', goal: 'Pressure-test every role as if real customers are watching.', tasks: ['Run family coordinator, participant, funeral-home director, funeral-home employee, vendor, and admin scripts.', 'Record screenshot, blocker, copy friction, missing proof, and time-to-primary-action.', 'Patch internal language and dead ends.', 'Confirm mobile-sized primary actions.'], done: 'Each persona has one clear next action and one visible proof path.' },
   { sprint: 'Sprint 5: Pilot revenue operating system', status: 'Planned', timing: 'Week 12-13', goal: 'Make pilot conversion and ARR movement visible before scaling outreach.', tasks: ['Map HubSpot stages to admin metrics and readiness checks.', 'Finalize subscription/location-slot billing and pilot conversion path.', 'Add conversion ask timing from launch grade and proof-ready status.', 'Gate production reset and destructive admin tools once real records exist.'], done: 'Admin can answer who is in pipeline, who is active, who is at risk, what proof exists, and what action grows ARR.' },
@@ -80,6 +96,7 @@ const personaScorecards = [
 ];
 
 const firstActions = [
+  'Treat the SaaS roadmap as the only roadmap. Any platform decision that changes admin navigation, funeral-home workflow, billing, readiness, or automation must be reflected here before it is considered real.',
   'Use Pilot Health every day until each active account has a launch grade, next action, blocker list, and export-ready proof.',
   'Run logged-in browser QA for director and employee personas against one real pilot workspace.',
   'Patch the first flow where a funeral-home user needs founder narration.',
@@ -137,6 +154,18 @@ export default function SaasRoadmapPage() {
         </div>
 
         <section style={grid4}>{revenueTargets.map((target) => <Metric key={target.label} item={target} />)}</section>
+
+        <Panel>
+          <div style={eyebrow}>Product operating governance</div>
+          <h2 style={h2}>No more siloed platform decisions.</h2>
+          <div style={listGrid}>{platformGovernanceRules.map((item, index) => <ProofCard key={item} label={'Rule ' + (index + 1)} text={item} />)}</div>
+        </Panel>
+
+        <Panel tone="sage">
+          <div style={eyebrow}>Current enterprise assessment</div>
+          <h2 style={h2}>Strong bones, but not broad-scale enterprise yet.</h2>
+          <div style={listGrid}>{platformAssessment.map((item) => <ProofCard key={item.label} label={item.label} text={item.text} />)}</div>
+        </Panel>
 
         <Panel tone="sage">
           <div style={eyebrow}>Control-room gates</div>
