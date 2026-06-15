@@ -115,7 +115,7 @@ export default async function handler(req, res) {
     final_value: status === 'declined' ? null : finalValue > 0 ? finalValue : null,
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
-    passage_share_amount: economics.PassageShareAmount,
+    passage_share_amount: economics.passageShareAmount,
     gross_amount: finalValue > 0 ? finalValue : null,
     passage_fee_percent: Number(request.marketplace_fee_percent ?? 12),
     passage_fee_amount: economics.platformFeeAmount,
