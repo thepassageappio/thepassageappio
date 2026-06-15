@@ -105,6 +105,28 @@ async function countBy(table, column, value, extra = null) {
   return count || 0;
 }
 
+async function countIn(table, column, values, extra = null) {
+  const list = (values || []).filter(Boolean);
+  if (!admin || !list.length) return 0;
+  let query = admin.from(table).select('id', { count: 'exact', head: true }).in(column, list);
+  if (extra) query = extra(query);
+  const { count } = await query.then(result => result, () => ({ count: 0 }));
+  return count || 0;
+}
+
+async function workflowEvidenceForOrganization(organizationId) {
+  if (!admin || !organizationId) return { cases: 0, workflowIds: [] };
+  const { data, count } = await admin
+    .from('workflows')
+    .select('id', { count: 'exact' })
+    .eq('organization_id', organizationId)
+    .then(result => result, () => ({ data: [], count: 0 }));
+  return {
+    cases: count || (data || []).length,
+    workflowIds: (data || []).map(row => row.id).filter(Boolean),
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const access = await requireSystemAccess(req);
@@ -152,12 +174,14 @@ export default async function handler(req, res) {
     const subscription = subscriptions.find(row => row.organization_id === org.id) || null;
     const partner = partnerBilling.find(row => row.organization_id === org.id) || null;
     const billing = billingFromRows(subscription, partner);
-    const cases = await countBy('workflows', 'organization_id', org.id);
+    const workflowEvidence = await workflowEvidenceForOrganization(org.id);
+    const workflowIds = workflowEvidence.workflowIds;
+    const cases = workflowEvidence.cases;
     const staff = await countBy('organization_members', 'organization_id', org.id);
-    const tasks = await countBy('tasks', 'organization_id', org.id);
-    const proofEvents = await countBy('task_status_events', 'organization_id', org.id);
-    const notifications = await countBy('notification_log', 'organization_id', org.id);
-    const familyUpdates = await countBy('announcements', 'organization_id', org.id);
+    const tasks = await countIn('tasks', 'workflow_id', workflowIds);
+    const proofEvents = await countIn('task_status_events', 'workflow_id', workflowIds);
+    const notifications = await countIn('notification_log', 'workflow_id', workflowIds);
+    const familyUpdates = await countIn('announcements', 'estate_id', workflowIds);
     const stage = healthStage({ billing, cases, staff, familyUpdates, proofEvents });
     const partnerMonthlyFee = billing?.monthlyFeeCents == null ? 0 : Math.max(0, Number(billing.monthlyFeeCents) / 100);
     const mrrPotential = partnerMonthlyFee || moneyFromPlan(billing?.planId || (stage === 'value_proven' ? 'partner_local' : 'partner_pilot'));
