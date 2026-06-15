@@ -9,6 +9,7 @@ import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate, taskNextAction
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../../lib/taskActions';
 import { taskExplanationFor, taskGuidanceFor, taskOutputFor, taskPreparedPacketFor, taskProofDestination, taskRequestDraftFor } from '../../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../../lib/taskOrchestration';
+import { recommendedFuneralHomeNextAction } from '../../lib/funeralHomeNextActions';
 import { trackEvent } from '../../lib/trackEvent';
 import { recordOnboardingProgress } from '../../lib/onboardingClient';
 import { isPassageAdmin } from '../../lib/adminAccess';
@@ -2360,6 +2361,14 @@ export default function FuneralHomeDashboard() {
   ];
   const firstCase = displayCases[0] || cases[0] || null;
   const firstOpenCase = caseInbox[0]?.caseItem || firstCase;
+  const recommendedActionCase = (firstStaffTask?.caseId ? displayCases.find(item => item.id === firstStaffTask.caseId) : null) || firstOpenCase;
+  const recommendedActionTask = firstStaffTask || (recommendedActionCase ? itemNextPartnerTask(recommendedActionCase, orchestrationByCaseId.get(recommendedActionCase.id)) : null);
+  const recommendedNextAction = recommendedFuneralHomeNextAction({
+    caseItem: recommendedActionCase,
+    task: recommendedActionTask,
+    role: isDirectorRole ? 'director' : 'staff',
+    hasCases: cases.length > 0,
+  });
   const directorLoopSteps = [
     {
       key: 'case',
@@ -3204,26 +3213,28 @@ export default function FuneralHomeDashboard() {
             </div>
             <div style={{ marginTop: 10, background: isDirectorRole ? C.bg : C.sageFaint, border: `1px solid ${isDirectorRole ? C.border : C.sage + '22'}`, borderRadius: 13, padding: '11px 12px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
               <div>
-                <div style={{ color: isDirectorRole ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Director focus today' : 'My work today'}</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Recommended next action</div>
                 <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>
-                  {isDirectorRole
-                    ? `${nextDirectorStep.label}: ${nextDirectorStep.next}`
-                    : firstStaffTask
-                      ? sharedTaskTitle(firstStaffTask)
-                      : 'No assigned work is waiting.'}
+                  {recommendedNextAction.label}
                 </div>
                 <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 3 }}>
-                  {isDirectorRole
-                    ? 'Use this to show the owner exactly where Passage reduces calls and dropped follow-up.'
-                    : firstStaffTask
-                      ? `Case: ${firstStaffTask.caseName}. Status: ${statusLabel(firstStaffTask.status)}.`
-                      : 'When a director assigns work, it appears here first with case context and proof requirements.'}
+                  {recommendedNextAction.action}
+                </div>
+                <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.35, marginTop: 5 }}>
+                  {recommendedNextAction.context} | Owner: {recommendedNextAction.owner} | Proof: {recommendedNextAction.proof}
                 </div>
               </div>
               <button onClick={moveDirectorFocus} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 {directorFocusButtonLabel()}
               </button>
             </div>
+            {recommendedNextAction.reason && (
+              <div style={{ marginTop: 8, background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 11px', display: 'grid', gap: 5 }}>
+                <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>Why now</div>
+                <div style={{ color: C.ink, fontSize: 12.4, lineHeight: 1.4 }}>{recommendedNextAction.reason}</div>
+                {recommendedNextAction.draft && <div style={{ color: C.mid, fontSize: 12.1, lineHeight: 1.4 }}><strong style={{ color: C.sage }}>Draft:</strong> {recommendedNextAction.draft}</div>}
+              </div>
+            )}
             {isDirectorRole && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(128px, 1fr))', gap: 7, marginTop: 9 }}>
                 {[
