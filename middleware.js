@@ -4,17 +4,6 @@ const vendorCommerceBuckets = new Map();
 const VENDOR_COMMERCE_WINDOW_SECONDS = 300;
 const VENDOR_COMMERCE_MAX_REQUESTS = 20;
 
-function cameFromHomepage(request) {
-  const referrer = request.headers.get('referer') || '';
-  if (!referrer) return false;
-  try {
-    const url = new URL(referrer);
-    return url.origin === request.nextUrl.origin && url.pathname === '/';
-  } catch {
-    return false;
-  }
-}
-
 function requestIp(request) {
   return String(request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown')
     .split(',')[0]
@@ -80,8 +69,7 @@ export function middleware(request) {
     pathname === '/funeral-home/dashboard' &&
     searchParams.get('demo') === '1' &&
     searchParams.get('demoTour') === 'funeral-home' &&
-    searchParams.get('demoStep') === 'dashboard' &&
-    cameFromHomepage(request)
+    searchParams.get('demoStep') === 'dashboard'
   ) {
     const url = request.nextUrl.clone();
     url.pathname = '/funeral-home/pilot-proof';
