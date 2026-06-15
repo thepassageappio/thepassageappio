@@ -18,7 +18,7 @@ const wiredProtections = [
   { route: '/api/sendSMS', policy: 'outboundDelivery', status: 'wired', proof: 'SMS and fallback-email paths are throttled by workflow/task/recipient/action before live or fallback delivery.' },
   { route: '/api/system/rateLimitReadiness', policy: 'adminReadiness', status: 'wired', proof: 'System-admin abuse-control checks are throttled by admin/source and IP.' },
   { route: '/api/system/funeralHomePilotHealth', policy: 'adminReadiness', status: 'wired', proof: 'Funeral-home pilot health refreshes are throttled by admin/source and IP.' },
-  { route: '/api/vendorRequests/* and /api/stripe/*', policy: 'vendorCommerce', status: 'defined', proof: 'Policy exists; payment and vendor mutation routes still need wiring.' },
+  { route: '/api/checkout, /api/vendorRequests/*, /api/vendors/*, and /api/stripe/*', policy: 'vendorCommerce', status: 'wired', proof: 'Edge middleware throttles checkout, vendor request mutations, vendor mutations, Stripe subroutes, and tokenized vendor response actions before handlers run.' },
   { route: '/login and auth email flows', policy: 'authSensitive', status: 'defined', proof: 'Policy exists; auth-provider level controls and Supabase leaked-password protection remain the primary gate.' },
 ];
 
