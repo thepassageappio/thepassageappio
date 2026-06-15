@@ -114,6 +114,75 @@ async function countIn(table, column, values, extra = null) {
   return count || 0;
 }
 
+async function rowsIn(table, column, values, select, configure = null) {
+  const list = (values || []).filter(Boolean);
+  if (!admin || !list.length) return [];
+  let query = admin.from(table).select(select).in(column, list);
+  if (configure) query = configure(query);
+  const { data } = await query.then(result => result, () => ({ data: [] }));
+  return data || [];
+}
+
+function isHandledTask(task) {
+  return ['handled', 'complete', 'completed', 'done', 'approved'].includes(String(task?.status || '').toLowerCase());
+}
+
+function isWaitingTask(task) {
+  const status = String(task?.status || '').toLowerCase();
+  return status === 'waiting' || status === 'pending_external' || !!task?.waiting_on;
+}
+
+function isBlockedTask(task) {
+  const status = String(task?.status || '').toLowerCase();
+  return ['blocked', 'needs_help', 'stuck', 'escalated'].includes(status);
+}
+
+function taskEvidenceLabel(task, fallback = '') {
+  if (!task) return '';
+  return [task.title, task.waiting_on || task.notes || task.proof_required || fallback].filter(Boolean).join(': ');
+}
+
+function summarizeTaskEvidence(tasks, fallback = '') {
+  return (tasks || []).map(task => taskEvidenceLabel(task, fallback)).filter(Boolean).slice(0, 3);
+}
+
+function readinessFor({ stage, billing, cases, staff, taskRows, familyUpdates, proofEvents }) {
+  const handledTasks = taskRows.filter(isHandledTask);
+  const waitingTasks = taskRows.filter(isWaitingTask);
+  const blockedTasks = taskRows.filter(isBlockedTask);
+  const openTasks = taskRows.filter(task => !isHandledTask(task));
+  const recentProofTasks = handledTasks.filter(task => task.notes || task.proof_required || task.last_action_at);
+  let score = 0;
+  if (cases > 0) score += 15;
+  if (staff > 0) score += 15;
+  if (taskRows.length > 0) score += 15;
+  if (handledTasks.length > 0 || proofEvents > 0) score += 20;
+  if (familyUpdates > 0) score += 20;
+  if (billing) score += 15;
+  if (blockedTasks.length > 0) score = Math.max(0, score - 15);
+  const exportReady = cases > 0 && taskRows.length > 0 && (handledTasks.length > 0 || proofEvents > 0 || familyUpdates > 0);
+  const launchGrade = stage === 'paid_active' ? 'retention_ready'
+    : stage === 'value_proven' ? 'conversion_ready'
+    : blockedTasks.length ? 'clear_blockers'
+    : exportReady ? 'proof_ready'
+    : cases && staff ? 'needs_proof'
+    : 'needs_activation';
+  return {
+    score,
+    launchGrade,
+    exportReady,
+    openTasks: openTasks.length,
+    waitingTasks: waitingTasks.length,
+    blockedTasks: blockedTasks.length,
+    handledTasks: handledTasks.length,
+    recentProofTasks: recentProofTasks.length,
+    waitingDetail: summarizeTaskEvidence(waitingTasks, 'Waiting on confirmation'),
+    blockedDetail: summarizeTaskEvidence(blockedTasks, 'Needs owner help'),
+    recentProofDetail: summarizeTaskEvidence(recentProofTasks, 'Proof saved'),
+    lastTaskActionAt: taskRows.map(task => task.last_action_at).filter(Boolean).sort().reverse()[0] || null,
+  };
+}
+
 async function workflowEvidenceForOrganization(organizationId) {
   if (!admin || !organizationId) return { cases: 0, workflowIds: [] };
   const { data, count } = await admin
@@ -178,11 +247,19 @@ export default async function handler(req, res) {
     const workflowIds = workflowEvidence.workflowIds;
     const cases = workflowEvidence.cases;
     const staff = await countBy('organization_members', 'organization_id', org.id);
-    const tasks = await countIn('tasks', 'workflow_id', workflowIds);
+    const taskRows = await rowsIn(
+      'tasks',
+      'workflow_id',
+      workflowIds,
+      'id,workflow_id,title,status,last_action_at,last_actor,waiting_on,notes,proof_required',
+      query => query.order('last_action_at', { ascending: false, nullsFirst: false })
+    );
+    const tasks = taskRows.length;
     const proofEvents = await countIn('task_status_events', 'workflow_id', workflowIds);
     const notifications = await countIn('notification_log', 'workflow_id', workflowIds);
     const familyUpdates = await countIn('announcements', 'estate_id', workflowIds);
     const stage = healthStage({ billing, cases, staff, familyUpdates, proofEvents });
+    const readiness = readinessFor({ stage, billing, cases, staff, taskRows, familyUpdates, proofEvents });
     const partnerMonthlyFee = billing?.monthlyFeeCents == null ? 0 : Math.max(0, Number(billing.monthlyFeeCents) / 100);
     const mrrPotential = partnerMonthlyFee || moneyFromPlan(billing?.planId || (stage === 'value_proven' ? 'partner_local' : 'partner_pilot'));
 
@@ -204,6 +281,7 @@ export default async function handler(req, res) {
         mrrPotential,
         arrPotential: Math.round(mrrPotential * 12 * 100) / 100,
       },
+      readiness,
       blockers: [
         cases ? null : 'No partner case yet.',
         staff ? null : 'No staff member recorded yet.',
@@ -222,9 +300,16 @@ export default async function handler(req, res) {
     acc.familyUpdates += row.metrics.familyUpdates;
     acc.mrrPotential += row.metrics.mrrPotential;
     acc.arrPotential += row.metrics.arrPotential;
+    acc.openTasks += row.readiness?.openTasks || 0;
+    acc.waitingTasks += row.readiness?.waitingTasks || 0;
+    acc.blockedTasks += row.readiness?.blockedTasks || 0;
+    acc.handledTasks += row.readiness?.handledTasks || 0;
+    acc.exportReadyAccounts += row.readiness?.exportReady ? 1 : 0;
+    acc.readinessScoreTotal += row.readiness?.score || 0;
     acc.byStage[row.stage] = (acc.byStage[row.stage] || 0) + 1;
+    acc.byLaunchGrade[row.readiness?.launchGrade || 'unknown'] = (acc.byLaunchGrade[row.readiness?.launchGrade || 'unknown'] || 0) + 1;
     return acc;
-  }, { accounts: 0, cases: 0, staff: 0, proofEvents: 0, familyUpdates: 0, mrrPotential: 0, arrPotential: 0, byStage: {} });
+  }, { accounts: 0, cases: 0, staff: 0, proofEvents: 0, familyUpdates: 0, mrrPotential: 0, arrPotential: 0, openTasks: 0, waitingTasks: 0, blockedTasks: 0, handledTasks: 0, exportReadyAccounts: 0, readinessScoreTotal: 0, byStage: {}, byLaunchGrade: {} });
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
@@ -239,6 +324,7 @@ export default async function handler(req, res) {
       mrrPotential: Math.round(totals.mrrPotential * 100) / 100,
       arrPotential: Math.round(totals.arrPotential * 100) / 100,
       gapTo300kArr: Math.max(0, Math.round((300000 - totals.arrPotential) * 100) / 100),
+      averageReadinessScore: totals.accounts ? Math.round(totals.readinessScoreTotal / totals.accounts) : 0,
     },
     rows,
   });
