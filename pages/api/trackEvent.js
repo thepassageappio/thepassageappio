@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -20,11 +22,35 @@ function safeProps(input) {
   return output;
 }
 
+function trackingIdentity(req, body) {
+  const props = body?.props || {};
+  const sessionKey = clean(body.sessionId || props.sessionId || props.anonymousId || props.visitorId, 120);
+  const path = clean(body.path, 160) || 'unknown-path';
+  return [getRequestIp(req), sessionKey || 'no-session', path].join(':');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const body = req.body || {};
   const event = clean(body.event, 120);
   if (!event) return res.status(400).json({ error: 'Event name is required.' });
+
+  const trackingPolicy = getRateLimitPolicy('tracking');
+  const limit = rateLimit({
+    key: 'trackEvent:' + trackingIdentity(req, body),
+    windowSeconds: trackingPolicy.windowSeconds,
+    maxRequests: trackingPolicy.maxRequests,
+  });
+
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || trackingPolicy.windowSeconds));
+    return res.status(200).json({
+      success: true,
+      throttled: true,
+      reason: 'tracking_rate_limited',
+      retryAfterSeconds: limit.retryAfterSeconds,
+    });
+  }
 
   const payload = {
     event,
