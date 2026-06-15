@@ -50,6 +50,7 @@ function normalizeConversion(row) {
     label: api.targetPlanLabel,
     mrr: Number(api.targetMrr || 0),
     arr: Number(api.targetArr || api.askReadyArr || api.paidArr || 0),
+    missingEvidence: api.missingEvidence || [],
   };
 }
 
@@ -148,7 +149,8 @@ function Metric({ label, value }) { return <div style={metricCard}><div style={e
 function AccountAsk({ row }) {
   const conversion = row.conversion || conversionFor(row);
   const pill = conversion.tone === 'good' ? goodPill : conversion.tone === 'risk' ? riskPill : warnPill;
-  return <div style={subPanel}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div><span style={pill}>{conversion.displayStatus || conversion.status}</span></div><p style={smallText}><strong>Action:</strong> {conversion.action}</p><div style={miniGrid}><Metric label="Target plan" value={conversion.label} /><Metric label="Target MRR" value={money(conversion.mrr)} /><Metric label="Target ARR" value={money(conversion.arr)} /><Metric label="Readiness" value={(row.readiness?.score || 0) + '/100'} /><Metric label="Cases" value={row.metrics?.cases || 0} /><Metric label="Proof" value={row.metrics?.proofEvents || 0} /><Metric label="Export ready" value={row.readiness?.exportReady ? 'Yes' : 'No'} /><Metric label="Waiting / blocked" value={(row.readiness?.waitingTasks || 0) + ' / ' + (row.readiness?.blockedTasks || 0)} /></div>{row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : null}</div>;
+  const missingEvidence = conversion.missingEvidence || [];
+  return <div style={subPanel}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div><span style={pill}>{conversion.displayStatus || conversion.status}</span></div><p style={smallText}><strong>Action:</strong> {conversion.action}</p><div style={miniGrid}><Metric label="Target plan" value={conversion.label} /><Metric label="Target MRR" value={money(conversion.mrr)} /><Metric label="Target ARR" value={money(conversion.arr)} /><Metric label="Readiness" value={(row.readiness?.score || 0) + '/100'} /><Metric label="Cases" value={row.metrics?.cases || 0} /><Metric label="Proof" value={row.metrics?.proofEvents || 0} /><Metric label="Export ready" value={row.readiness?.exportReady ? 'Yes' : 'No'} /><Metric label="Waiting / blocked" value={(row.readiness?.waitingTasks || 0) + ' / ' + (row.readiness?.blockedTasks || 0)} /></div>{missingEvidence.length ? <div style={innerPanel}><div style={eyebrow}>Missing conversion evidence</div><ul style={ul}>{missingEvidence.map(item => <li key={item}>{item}</li>)}</ul></div> : null}{row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : null}</div>;
 }
 
 const wrap = { maxWidth: 1120, margin: '0 auto', padding: '42px 18px 80px' };
