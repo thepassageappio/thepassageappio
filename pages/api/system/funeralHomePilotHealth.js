@@ -46,11 +46,16 @@ function moneyFromPlan(planId) {
   return 0;
 }
 
-function healthStage({ subscription, cases, staff, familyUpdates, proofEvents }) {
-  if (subscription?.status === 'active' || subscription?.status === 'paid') return 'paid_active';
+function billingStatus(billing) {
+  return String(billing?.status || '').toLowerCase();
+}
+
+function healthStage({ billing, cases, staff, familyUpdates, proofEvents }) {
+  const status = billingStatus(billing);
+  if (status === 'active' || status === 'paid') return 'paid_active';
   if (cases >= 3 && staff >= 2 && familyUpdates >= 2 && proofEvents >= 3) return 'value_proven';
   if (cases >= 1 && staff >= 1) return 'pilot_active';
-  if (subscription?.status === 'trialing' || subscription?.status === 'pilot') return 'pilot_invited';
+  if (status === 'trialing' || status === 'pilot') return 'pilot_invited';
   return 'needs_activation';
 }
 
@@ -60,6 +65,30 @@ function nextActionFor(stage) {
   if (stage === 'pilot_active') return 'Drive first family update, first staff proof, and first export.';
   if (stage === 'pilot_invited') return 'Schedule onboarding and create the first case with staff assignment.';
   return 'Confirm decision maker, invite workspace owner, and book setup call.';
+}
+
+function billingFromRows(subscription, partner) {
+  if (subscription) {
+    return {
+      source: 'subscriptions',
+      status: subscription.status,
+      planId: subscription.plan_id,
+      currentPeriodEnd: subscription.current_period_end,
+      stripeSubscriptionId: subscription.stripe_subscription_id || null,
+      monthlyFeeCents: null,
+    };
+  }
+  if (partner) {
+    return {
+      source: 'funeral_home_partners',
+      status: partner.status,
+      planId: partner.plan,
+      currentPeriodEnd: null,
+      stripeSubscriptionId: partner.stripe_subscription_id || null,
+      monthlyFeeCents: partner.monthly_fee_cents == null ? null : Number(partner.monthly_fee_cents),
+    };
+  }
+  return null;
 }
 
 async function countBy(table, column, value, extra = null) {
@@ -94,26 +123,38 @@ export default async function handler(req, res) {
 
   const organizationIds = (organizations || []).map(org => org.id);
   let subscriptions = [];
+  let partnerBilling = [];
   if (organizationIds.length) {
-    const { data } = await admin
-      .from('subscriptions')
-      .select('id,organization_id,status,plan_id,current_period_end,created_at')
-      .in('organization_id', organizationIds)
-      .then(result => result, () => ({ data: [] }));
-    subscriptions = data || [];
+    const [{ data: subscriptionRows }, { data: partnerRows }] = await Promise.all([
+      admin
+        .from('subscriptions')
+        .select('id,organization_id,status,plan_id,current_period_end,stripe_subscription_id,created_at')
+        .in('organization_id', organizationIds)
+        .then(result => result, () => ({ data: [] })),
+      admin
+        .from('funeral_home_partners')
+        .select('id,organization_id,status,plan,monthly_fee_cents,stripe_subscription_id,subscribed_at,updated_at')
+        .in('organization_id', organizationIds)
+        .then(result => result, () => ({ data: [] })),
+    ]);
+    subscriptions = subscriptionRows || [];
+    partnerBilling = partnerRows || [];
   }
 
   const rows = [];
   for (const org of organizations || []) {
     const subscription = subscriptions.find(row => row.organization_id === org.id) || null;
+    const partner = partnerBilling.find(row => row.organization_id === org.id) || null;
+    const billing = billingFromRows(subscription, partner);
     const cases = await countBy('workflows', 'organization_id', org.id);
     const staff = await countBy('organization_members', 'organization_id', org.id);
     const tasks = await countBy('tasks', 'organization_id', org.id);
     const proofEvents = await countBy('task_status_events', 'organization_id', org.id);
     const notifications = await countBy('notification_log', 'organization_id', org.id);
     const familyUpdates = await countBy('announcements', 'organization_id', org.id);
-    const stage = healthStage({ subscription, cases, staff, familyUpdates, proofEvents });
-    const mrrPotential = moneyFromPlan(subscription?.plan_id || (stage === 'value_proven' ? 'partner_local' : 'partner_pilot'));
+    const stage = healthStage({ billing, cases, staff, familyUpdates, proofEvents });
+    const partnerMonthlyFee = billing?.monthlyFeeCents == null ? 0 : Math.max(0, Number(billing.monthlyFeeCents) / 100);
+    const mrrPotential = partnerMonthlyFee || moneyFromPlan(billing?.planId || (stage === 'value_proven' ? 'partner_local' : 'partner_pilot'));
 
     rows.push({
       organizationId: org.id,
@@ -122,11 +163,7 @@ export default async function handler(req, res) {
       createdAt: org.created_at,
       stage,
       nextAction: nextActionFor(stage),
-      subscription: subscription ? {
-        status: subscription.status,
-        planId: subscription.plan_id,
-        currentPeriodEnd: subscription.current_period_end,
-      } : null,
+      subscription: billing,
       metrics: {
         cases,
         staff,
@@ -142,7 +179,7 @@ export default async function handler(req, res) {
         staff ? null : 'No staff member recorded yet.',
         proofEvents ? null : 'No proof/status event yet.',
         familyUpdates ? null : 'No family update/announcement proof yet.',
-        subscription ? null : 'No subscription or pilot billing row found.',
+        billing ? null : 'No subscription or funeral-home partner billing row found.',
       ].filter(Boolean),
     });
   }
