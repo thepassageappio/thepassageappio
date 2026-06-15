@@ -1426,7 +1426,7 @@ export default function FuneralHomeDashboard() {
     }
   }
 
-  function openPartnerWork(caseId) {
+  function openPartnerWork(caseId, taskId = '') {
     if (!caseId) return;
     setShowPilotGuide(false);
     setShowTools(false);
@@ -1434,10 +1434,10 @@ export default function FuneralHomeDashboard() {
     setActivePartnerView('work');
     setSelectedLocation('all');
     setExpandedCaseId(caseId);
-    setCaseDetailTabs(prev => ({ ...prev, [caseId]: prev[caseId] || 'family' }));
-    setNotice(isDirectorRole ? 'Opening the full case context.' : 'Opening the scoped case context.');
+    setCaseDetailTabs(prev => ({ ...prev, [caseId]: taskId ? 'proof' : (prev[caseId] || 'family') }));
+    setNotice(taskId ? 'Opening the recommended task workspace.' : (isDirectorRole ? 'Opening the full case context.' : 'Opening the scoped case context.'));
     const scrollToCase = () => {
-      const panel = document.getElementById('partner-case-' + caseId);
+      const panel = document.getElementById(taskId ? 'partner-action-workspace-' + caseId : 'partner-case-' + caseId);
       if (panel) {
         panel.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
         window.setTimeout(() => window.scrollTo({ left: 0, top: window.scrollY, behavior: 'auto' }), 80);
@@ -1471,7 +1471,7 @@ export default function FuneralHomeDashboard() {
     setShowPilotGuide(false);
     setShowTools(false);
     if (recommendedActionCase?.id) {
-      openPartnerWork(recommendedActionCase.id);
+      openPartnerWork(recommendedActionCase.id, recommendedActionTask?.id || '');
       setNotice('Opening recommended next action: ' + recommendedNextAction.label + '.');
       return;
     }
@@ -3955,7 +3955,7 @@ export default function FuneralHomeDashboard() {
                           <strong style={{ color: C.ink }}>Passage prepares:</strong> {preparedOutput.label}. {preparedOutput.body}
                         </div>
                       </div>
-                      <button onClick={() => openPartnerWork(task.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}>Open scoped work</button>
+                      <button onClick={() => openPartnerWork(task.caseId, task.id)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}>Open scoped work</button>
                     </div>
                   );})}
                   {staffQueueHiddenCount > 0 && (
@@ -3963,7 +3963,7 @@ export default function FuneralHomeDashboard() {
                       <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>Show {staffQueueHiddenCount} more assigned item{staffQueueHiddenCount === 1 ? '' : 's'}</summary>
                       <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
                         {assignedWorkQueue.slice(firstStaffTask ? 3 : 4).map(task => (
-                          <button key={`${task.caseId}_${task.id}_hidden`} onClick={() => openPartnerWork(task.caseId)} style={{ textAlign: 'left', border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+                          <button key={`${task.caseId}_${task.id}_hidden`} onClick={() => openPartnerWork(task.caseId, task.id)} style={{ textAlign: 'left', border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
                             <strong style={{ color: C.ink }}>{sharedTaskTitle(task)}</strong>
                             <span style={{ display: 'block', marginTop: 3 }}>{task.caseName} - {statusLabel(task.status)}</span>
                           </button>
@@ -4533,7 +4533,7 @@ export default function FuneralHomeDashboard() {
               const familyParticipants = item.familyParticipants || [];
               const orchestration = orchestrationByCaseId.get(item.id) || orchestrateTasks({ tasks: item.tasks || [], role: 'funeral_home', context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'case work' } });
               const topTasks = (partnerTasks.length ? partnerTasks : orchestration.tasks.length ? orchestration.tasks : item.tasks).slice(0, 3);
-              const nextPartnerTask = itemNextPartnerTask(item, orchestration);
+              const nextPartnerTask = (item.id === recommendedActionCase?.id && recommendedActionTask?.id ? recommendedActionTask : null) || itemNextPartnerTask(item, orchestration);
               const nextImportance = nextPartnerTask ? (nextPartnerTask.orchestration?.importance || taskImportance(nextPartnerTask, { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'case work' })) : null;
               const nextImportanceTone = importanceStyle(nextImportance);
               const isDemoCase = /^DEMO/i.test(item.organization_case_reference || '') || /^Demo - /i.test(item.name || '');
