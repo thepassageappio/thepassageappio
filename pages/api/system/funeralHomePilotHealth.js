@@ -24,11 +24,15 @@ async function requireSystemAccess(req) {
   return { ok: true, source: 'admin', user: data.user };
 }
 
+function requestPath(req) {
+  return String(req.url || '').split('?')[0] || '/api/system/funeralHomePilotHealth';
+}
+
 function enforceAdminRefreshLimit(req, access) {
   const policy = getRateLimitPolicy('adminReadiness');
   if (!policy) return { allowed: true };
   return rateLimit({
-    key: ['pilot-health', req.url, access.user?.email || access.source || 'internal', getRequestIp(req)].join(':'),
+    key: ['pilot-health', requestPath(req), access.user?.email || access.source || 'internal', getRequestIp(req)].join(':'),
     windowSeconds: policy.windowSeconds,
     maxRequests: policy.maxRequests,
   });
