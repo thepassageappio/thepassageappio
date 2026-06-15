@@ -92,10 +92,13 @@ export default function ConversionPlanPage() {
   if (!admin) return <Shell user={user}><Panel><div style={eyebrow}>Owner-only conversion plan</div><h1 style={h1}>This revenue plan is restricted.</h1><p style={lead}>Sign in with the Passage owner account to view funeral-home conversion asks.</p><button onClick={signIn} style={primaryButton}>Sign in</button></Panel></Shell>;
 
   const rows = result?.rows || [];
+  const paidRows = rows.filter(row => row.stage === 'paid_active');
   const askReady = rows.filter(row => row.conversion?.askReady);
   const blocked = rows.filter(row => row.conversion?.tone === 'risk');
-  const targetArr = askReady.reduce((sum, row) => sum + Number(row.conversion?.arr || 0), 0);
-  const remainingGap = Math.max(0, 300000 - Number(result?.totals?.arrPotential || 0) - targetArr);
+  const paidArr = paidRows.reduce((sum, row) => sum + Number(row.conversion?.arr || row.metrics?.arrPotential || 0), 0);
+  const askReadyArr = askReady.reduce((sum, row) => sum + Number(row.conversion?.arr || 0), 0);
+  const projectedArr = paidArr + askReadyArr;
+  const remainingGap = Math.max(0, 300000 - projectedArr);
 
   return (
     <Shell user={user} onSignOut={signOut}>
@@ -106,8 +109,10 @@ export default function ConversionPlanPage() {
         </div>
         {error && <Panel tone="risk"><strong>{error}</strong></Panel>}
         {result && <section style={grid4}>
+          <Metric label="Paid ARR" value={money(paidArr)} />
           <Metric label="Ask-ready accounts" value={askReady.length} />
-          <Metric label="Ask-ready ARR" value={money(targetArr)} />
+          <Metric label="Ask-ready ARR" value={money(askReadyArr)} />
+          <Metric label="Projected ARR" value={money(projectedArr)} />
           <Metric label="Blocked asks" value={blocked.length} />
           <Metric label="Remaining $300k gap" value={money(remainingGap)} />
         </section>}
