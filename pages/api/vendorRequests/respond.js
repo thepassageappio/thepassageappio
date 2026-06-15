@@ -4,7 +4,7 @@ import { vendorCategoryLabel } from '../../../lib/vendors';
 import { calculateVendorEconomics } from '../../../lib/vendorEconomics';
 import { canonicalVendorStatus } from '../../../lib/vendorLifecycle';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../../lib/notificationSafety';
-import { passageEmailShell, passageSubject } from '../../../lib/brandedEmail';
+import { escapeHtml, passageEmailShell, passageSubject } from '../../../lib/brandedEmail';
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -115,7 +115,7 @@ export default async function handler(req, res) {
     final_value: status === 'declined' ? null : finalValue > 0 ? finalValue : null,
     platform_fee_amount: economics.platformFeeAmount,
     funeral_home_share_amount: economics.funeralHomeShareAmount,
-    passage_share_amount: economics.passageShareAmount,
+    passage_share_amount: economics.PassageShareAmount,
     gross_amount: finalValue > 0 ? finalValue : null,
     passage_fee_percent: Number(request.marketplace_fee_percent ?? 12),
     passage_fee_amount: economics.platformFeeAmount,
@@ -167,8 +167,8 @@ export default async function handler(req, res) {
     <main style="font-family:Georgia,serif;background:#f6f3ee;min-height:100vh;padding:48px;color:#1a1916">
       <section style="max-width:620px;margin:auto;background:white;border:1px solid #e4ddd4;border-radius:18px;padding:30px">
         <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#6b8f71;font-weight:800">Passage</div>
-        <h1 style="font-weight:400">${title}</h1>
-        <p style="color:#6a6560;line-height:1.7">${detail}</p>
+        <h1 style="font-weight:400">${escapeHtml(title)}</h1>
+        <p style="color:#6a6560;line-height:1.7">${escapeHtml(detail)}</p>
         <p style="color:#6b8f71;font-weight:800">The family and any connected funeral home can see this update.</p>
       </section>
     </main>
