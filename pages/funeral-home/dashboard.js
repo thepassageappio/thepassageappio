@@ -3916,22 +3916,32 @@ export default function FuneralHomeDashboard() {
                     const waiting = taskIsWaiting(task);
                     const tone = blocked ? C.rose : waiting ? C.amber : C.sage;
                     const guidance = taskGuidanceFor(task, { owner: task.assigned_to_name || task.assigned_to_email || 'staff', surface: 'staff work queue' });
+                    const proofDestination = taskProofDestination(task, { surface: 'staff work queue' });
+                    const preparedOutput = taskOutputFor(task, { caseName: task.caseName, surface: 'staff work queue' });
+                    const preparedDraft = taskRequestDraftFor(task, { caseName: task.caseName, coordinatorName: task.assigned_to_name || task.assigned_to_email || '', surface: 'staff work queue' });
+                    const rightPerson = task.assigned_to_name || task.assigned_to_email || task.last_actor || task.playbook?.waitingOn || 'the right owner';
                     return (
                     <div key={`${task.caseId}_${task.id}`} style={{ background: C.card, border: `1px solid ${blocked ? C.rose + '44' : C.border}`, borderLeft: `5px solid ${tone}`, borderRadius: 13, padding: 13, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
                       <div>
                         <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{task.caseName} - {task.locationName}</div>
                         <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3, lineHeight: 1.25 }}>{sharedTaskTitle(task)}</div>
-                        <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{task.assigned_to_name || task.assigned_to_email || task.last_actor || 'Unassigned'}</strong> - {statusLabel(task.status)}</div>
-                        <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '7px 8px', marginTop: 8, color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                          <strong style={{ color: C.ink }}>Expected update:</strong> {taskExpectedUpdate(task, 'funeral_home')}
+                        <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{rightPerson}</strong> - {statusLabel(task.status)}</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 9 }}>
+                          <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                            <strong style={{ color: C.ink }}>Do next:</strong> {guidance.next || taskExpectedUpdate(task, 'funeral_home')}
+                          </div>
+                          <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                            <strong style={{ color: C.ink }}>Ask/update:</strong> {preparedDraft}
+                          </div>
+                          <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                            <strong style={{ color: C.ink }}>Proof closes it:</strong> {proofDestination}
+                          </div>
                         </div>
-                        <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 7 }}>
-                          <strong style={{ color: C.ink }}>Why now:</strong> {guidance.why}
-                          <br />
-                          <strong style={{ color: C.ink }}>Proof:</strong> {taskProofDestination(task, { surface: 'staff work queue' })}
+                        <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
+                          <strong style={{ color: C.ink }}>Passage prepares:</strong> {preparedOutput.label}. {preparedOutput.body}
                         </div>
                       </div>
-                      <button onClick={() => openPartnerWork(task.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}>Open work</button>
+                      <button onClick={() => openPartnerWork(task.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}>Open scoped work</button>
                     </div>
                   );})}
                   {staffQueueHiddenCount > 0 && (
