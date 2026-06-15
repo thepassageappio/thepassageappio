@@ -4553,6 +4553,32 @@ export default function FuneralHomeDashboard() {
               const missingTimeline = Array.isArray(item.orchestration_summary?.missing_timeline_watch)
                 ? item.orchestration_summary.missing_timeline_watch.filter(Boolean).slice(0, 2)
                 : [];
+              const caseProofGapCount = item.tasks.filter(task => taskIsClosed(task) && !String(task.notes || task.waiting_on || task.last_actor || '').trim()).length;
+              const waitingLabel = blocked
+                ? `${blocked} blocker${blocked === 1 ? '' : 's'} need attention`
+                : waitingFamily.length
+                  ? `${waitingFamily.length} family item${waitingFamily.length === 1 ? '' : 's'} waiting`
+                  : waitingCount
+                    ? `${waitingCount} task${waitingCount === 1 ? '' : 's'} waiting`
+                    : 'Nothing urgent waiting';
+              const proofEventCount = proofCount + (item.activity?.length || 0);
+              const proofLabel = caseProofGapCount
+                ? `${caseProofGapCount} proof gap${caseProofGapCount === 1 ? '' : 's'}`
+                : proofEventCount
+                  ? `${proofEventCount} proof event${proofEventCount === 1 ? '' : 's'}`
+                  : 'No proof yet';
+              const familyUpdateLabel = nextPartnerTask
+                ? nextExpectedUpdate
+                : open
+                  ? 'Open work remains, but no partner-ready next task is selected.'
+                  : 'Family can be told there is no open partner task right now.';
+              const caseOperatingContract = [
+                ['Ask', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No partner-ready ask', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
+                ['Owner', nextOwner, nextOwner === 'Unassigned' ? 'Assign an owner before this can reliably move.' : 'This person owns the next visible move.', nextOwner === 'Unassigned' ? C.amber : C.sage],
+                ['Waiting', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting and blockers are what create repeated family calls.', blocked ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
+                ['Proof', proofLabel, caseProofGapCount ? 'Close the proof gap before using this as a family status record.' : 'Proof stays attached to the case record.', caseProofGapCount ? C.amber : C.sage],
+                ['Family update', familyUpdateLabel, 'Use this line to answer the next where-are-we call.', C.mid],
+              ];
               return (
                 <div id={'partner-case-' + item.id} key={item.id} style={{ background: C.bg, border: `1px solid ${blocked ? C.rose + '55' : C.border}`, borderRadius: 16, padding: 16, scrollMarginTop: 92 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
@@ -4591,6 +4617,18 @@ export default function FuneralHomeDashboard() {
                       </div>
                     </div>
                   )}
+                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case operating contract</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 9 }}>
+                      {caseOperatingContract.map(([label, value, body, color]) => (
+                        <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 92 }}>
+                          <div style={{ color, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                          <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900, lineHeight: 1.25, marginTop: 4 }}>{value}</div>
+                          <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35, marginTop: 5 }}>{body}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'stretch', marginTop: 12 }}>
                     <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
