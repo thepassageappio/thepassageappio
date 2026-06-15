@@ -60,7 +60,7 @@ async function getPartnerData(token, dateRange = {}) {
     ? await Promise.all([
       admin
         .from('tasks')
-        .select('workflow_id,title,status,last_action_at,last_actor,channel,recipient,assigned_to_name,assigned_to_email,proof_required,waiting_on')
+        .select('workflow_id,title,status,last_action_at,last_actor,channel,recipient,assigned_to_name,assigned_to_email,proof_required,waiting_on,notes')
         .in('workflow_id', workflowIds)
         .order('last_action_at', { ascending: false, nullsFirst: false }),
       admin
@@ -115,6 +115,21 @@ function workflowCaseType(workflow) {
     : 'At-need';
 }
 
+function taskDetail(task, fallback = '') {
+  if (!task) return '';
+  return [task.title, task.waiting_on || task.notes || task.proof_required || fallback]
+    .filter(Boolean)
+    .join(': ');
+}
+
+function summarizeTasks(tasks, fallback = '') {
+  return (tasks || [])
+    .map(task => taskDetail(task, fallback))
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(' | ');
+}
+
 function buildCsv(rows) {
   const header = [
     'Case',
@@ -136,6 +151,7 @@ function buildCsv(rows) {
     'Status',
     'Waiting on',
     'Proof needed',
+    'Proof / note saved',
     'Last action at',
     'Last actor',
     'Channel',
@@ -177,6 +193,7 @@ function buildCsv(rows) {
       vendorRequest?.status || communication?.status || task?.status || workflow.status,
       task?.waiting_on,
       task?.proof_required,
+      task?.notes,
       task?.last_action_at,
       task?.last_actor,
       vendorRequest ? 'vendor' : communication?.channel || task?.channel,
@@ -230,6 +247,9 @@ function buildCaseSummaryCsv(workflows, tasks, events) {
     'Waiting tasks',
     'Needs help tasks',
     'Handled tasks',
+    'Waiting detail',
+    'Needs help detail',
+    'Recent proof detail',
     'Last task action',
     'Case status',
     'Updated at',
@@ -272,6 +292,9 @@ function buildCaseSummaryCsv(workflows, tasks, events) {
       waitingTasks.length,
       needsHelpTasks.length,
       handledTasks.length,
+      summarizeTasks(waitingTasks, 'Waiting on confirmation'),
+      summarizeTasks(needsHelpTasks, 'Needs help'),
+      summarizeTasks(handledTasks, 'Proof saved'),
       lastAction,
       workflow.status,
       workflow.updated_at,
@@ -319,8 +342,8 @@ export default async function handler(req, res) {
         eyebrow: summaryView ? 'Case summary export' : 'Full spine export',
         title: summaryView ? 'Your case summary export is ready.' : 'Your full spine export is ready.',
         intro: summaryView
-          ? 'The attached CSV includes case contacts, references, lifecycle dates, and task counts for your funeral-home workspace.'
-          : 'The attached CSV includes cases, family contacts, task status, messages, vendor requests, proof requirements, and last action details.',
+          ? 'The attached CSV includes case contacts, references, lifecycle dates, task counts, waiting points, blockers, and recent proof for your funeral-home workspace.'
+          : 'The attached CSV includes cases, family contacts, task status, messages, vendor requests, proof requirements, waiting points, saved notes, and last action details.',
         preheader: 'Your Passage export is attached and the workspace link is below.',
         sections: [
           {
