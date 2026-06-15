@@ -41,6 +41,18 @@ function conversionFor(row) {
   return { ...plan, status: 'Activate', tone: 'warn', askReady: false, arr: 0, action: 'Create the first case, add staff, and move one task through the spine.' };
 }
 
+function normalizeConversion(row) {
+  const api = row?.conversion;
+  if (!api?.targetPlanLabel) return conversionFor(row);
+  return {
+    ...api,
+    displayStatus: api.label || api.status || 'Needs review',
+    label: api.targetPlanLabel,
+    mrr: Number(api.targetMrr || 0),
+    arr: Number(api.targetArr || api.askReadyArr || api.paidArr || 0),
+  };
+}
+
 export default function ConversionPlanPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -77,7 +89,7 @@ export default function ConversionPlanPage() {
       const response = await fetch('/api/system/funeralHomePilotHealth', { headers: token ? { Authorization: 'Bearer ' + token } : {} });
       const json = await response.json().catch(() => ({}));
       if (!response.ok) { setError(json.error || 'Conversion plan could not load.'); setResult(null); return; }
-      const rows = (json.rows || []).map(row => ({ ...row, conversion: conversionFor(row) }));
+      const rows = (json.rows || []).map(row => ({ ...row, conversion: normalizeConversion(row) }));
       setResult({ ...json, rows });
     } catch (err) {
       setError(err.message || 'Conversion plan could not load.'); setResult(null);
@@ -92,13 +104,16 @@ export default function ConversionPlanPage() {
   if (!admin) return <Shell user={user}><Panel><div style={eyebrow}>Owner-only conversion plan</div><h1 style={h1}>This revenue plan is restricted.</h1><p style={lead}>Sign in with the Passage owner account to view funeral-home conversion asks.</p><button onClick={signIn} style={primaryButton}>Sign in</button></Panel></Shell>;
 
   const rows = result?.rows || [];
+  const totals = result?.totals || {};
   const paidRows = rows.filter(row => row.stage === 'paid_active');
   const askReady = rows.filter(row => row.conversion?.askReady);
-  const blocked = rows.filter(row => row.conversion?.tone === 'risk');
-  const paidArr = paidRows.reduce((sum, row) => sum + Number(row.conversion?.arr || row.metrics?.arrPotential || 0), 0);
-  const askReadyArr = askReady.reduce((sum, row) => sum + Number(row.conversion?.arr || 0), 0);
-  const projectedArr = paidArr + askReadyArr;
-  const remainingGap = Math.max(0, 300000 - projectedArr);
+  const blocked = rows.filter(row => row.conversion?.tone === 'risk' || row.conversion?.status === 'clear_blocker');
+  const fallbackPaidArr = paidRows.reduce((sum, row) => sum + Number(row.conversion?.paidArr || row.conversion?.arr || row.metrics?.arrPotential || 0), 0);
+  const fallbackAskReadyArr = askReady.reduce((sum, row) => sum + Number(row.conversion?.askReadyArr || row.conversion?.arr || 0), 0);
+  const paidArr = Number(totals.paidArr ?? fallbackPaidArr);
+  const askReadyArr = Number(totals.askReadyArr ?? fallbackAskReadyArr);
+  const projectedArr = Number(totals.projectedArr ?? (paidArr + askReadyArr));
+  const remainingGap = Number(totals.remainingGapTo300kArr ?? Math.max(0, 300000 - projectedArr));
 
   return (
     <Shell user={user} onSignOut={signOut}>
@@ -133,7 +148,7 @@ function Metric({ label, value }) { return <div style={metricCard}><div style={e
 function AccountAsk({ row }) {
   const conversion = row.conversion || conversionFor(row);
   const pill = conversion.tone === 'good' ? goodPill : conversion.tone === 'risk' ? riskPill : warnPill;
-  return <div style={subPanel}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div><span style={pill}>{conversion.status}</span></div><p style={smallText}><strong>Action:</strong> {conversion.action}</p><div style={miniGrid}><Metric label="Target plan" value={conversion.label} /><Metric label="Target MRR" value={money(conversion.mrr)} /><Metric label="Target ARR" value={money(conversion.arr)} /><Metric label="Readiness" value={(row.readiness?.score || 0) + '/100'} /><Metric label="Cases" value={row.metrics?.cases || 0} /><Metric label="Proof" value={row.metrics?.proofEvents || 0} /><Metric label="Export ready" value={row.readiness?.exportReady ? 'Yes' : 'No'} /><Metric label="Waiting / blocked" value={(row.readiness?.waitingTasks || 0) + ' / ' + (row.readiness?.blockedTasks || 0)} /></div>{row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : null}</div>;
+  return <div style={subPanel}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div><span style={pill}>{conversion.displayStatus || conversion.status}</span></div><p style={smallText}><strong>Action:</strong> {conversion.action}</p><div style={miniGrid}><Metric label="Target plan" value={conversion.label} /><Metric label="Target MRR" value={money(conversion.mrr)} /><Metric label="Target ARR" value={money(conversion.arr)} /><Metric label="Readiness" value={(row.readiness?.score || 0) + '/100'} /><Metric label="Cases" value={row.metrics?.cases || 0} /><Metric label="Proof" value={row.metrics?.proofEvents || 0} /><Metric label="Export ready" value={row.readiness?.exportReady ? 'Yes' : 'No'} /><Metric label="Waiting / blocked" value={(row.readiness?.waitingTasks || 0) + ' / ' + (row.readiness?.blockedTasks || 0)} /></div>{row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : null}</div>;
 }
 
 const wrap = { maxWidth: 1120, margin: '0 auto', padding: '42px 18px 80px' };
