@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { syncLeadToHubSpot } from '../../../lib/hubspot';
 import { detailRows, sendSubmissionReceipt } from '../../../lib/submissionReceipts';
 import { escapeHtml, passageEmailShell } from '../../../lib/brandedEmail';
+import { getRequestIp, rateLimit } from '../../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../../lib/rateLimitPolicy';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
@@ -19,6 +21,10 @@ function validEmail(value) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return false;
   const domain = email.split('@')[1] || '';
   return !['example.com', 'test.com', 'fake.com', 'none.com', 'noemail.com'].includes(domain);
+}
+
+function intakeKey(req, email) {
+  return ['careProviderApply', getRequestIp(req), clean(email, 180).toLowerCase() || 'no-email'].join(':');
 }
 
 function providerTypeLabel(type) {
@@ -91,6 +97,20 @@ export default async function handler(req, res) {
 
   if (!application.organization_name) return res.status(400).json({ error: 'Add the organization name.' });
   if (!validEmail(application.contact_email)) return res.status(400).json({ error: 'Add a real contact email.' });
+
+  const contactPolicy = getRateLimitPolicy('contactIntake');
+  const limit = rateLimit({
+    key: intakeKey(req, application.contact_email),
+    windowSeconds: contactPolicy.windowSeconds,
+    maxRequests: contactPolicy.maxRequests,
+  });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || contactPolicy.windowSeconds));
+    return res.status(429).json({
+      error: 'We received several recent inquiries from this address. Please wait a bit before submitting again.',
+      retryAfterSeconds: limit.retryAfterSeconds,
+    });
+  }
 
   const admin = adminClient();
   let saved = null;
