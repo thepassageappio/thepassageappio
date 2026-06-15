@@ -9,7 +9,7 @@ const milestones = [
   ['M1', 'Demo surface converts', 'Proof console loads fast, explains the paid-pilot loop, and routes to booked walkthrough.', 'Founder', 'Ready to QA'],
   ['M2', 'First workspace activates', 'One funeral home has owner, staff, location, plan, decision maker, and billing status.', 'Founder + product', 'Needs live data'],
   ['M3', 'First case created', 'A director can create or import one case in under five minutes with family contact and next action.', 'Product', 'Blocked by live pilot'],
-  ['M4', 'Task spine proves value', 'One task moves through assigned, waiting/blocked, handled, and proof states across personas.', 'Product + QA', 'Blocked by live pilot'],
+  ['M4', 'Task spine proves value', 'One task moves through assigned, waiting/blocked, handled, and proof states across personas; Automation Spine Readiness shows no blocker that would break trust.', 'Product + QA', 'Readiness page in source'],
   ['M5', 'Family update proof', 'One approved family update shows recipient, channel, proof, and next expected update.', 'Product + QA', 'Blocked by live pilot'],
   ['M6', 'Conversion ask', 'Pilot either becomes paid Local/Group or produces a named blocker and next repair sprint.', 'Founder', 'Conversion plan live in source'],
 ];
@@ -19,6 +19,7 @@ const acceptance = [
   'Pilot Health shows current account stage, blocker, ARR potential, and next action.',
   'Rate limits protect public intake, telemetry, outbound delivery, and owner refresh surfaces.',
   'The first live pilot has case, staff, proof, family update, export, and billing row before broad outreach.',
+  'Automation Spine Readiness shows assignment, waiting hygiene, blocker, stale-work, proof, delivery, and reminder-runtime gates before pilot expansion.',
 ];
 
 function normalizeEmail(email) { return String(email || '').trim().toLowerCase(); }
@@ -60,6 +61,7 @@ export default function SprintTwoBoard() {
           <Link className="s2-link s2-primary" href="/funeral-home/pilot-proof">Open proof console</Link>
           <Link className="s2-link s2-secondary" href="/system/admin/pilot-health">Pilot health</Link>
           <Link className="s2-link s2-secondary" href="/system/admin/conversion-plan">Conversion plan</Link>
+          <Link className="s2-link s2-secondary" href="/system/admin/automation-spine-readiness">Automation spine</Link>
           <Link className="s2-link s2-secondary" href="/system/admin/funeral-home-qa">QA checklist</Link>
           <Link className="s2-link s2-secondary" href="/system/admin/rate-limit-readiness">Abuse controls</Link>
         </div>
