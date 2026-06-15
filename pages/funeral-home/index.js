@@ -154,7 +154,7 @@ export default function FuneralHomePage() {
             <div className="fh-actions">
               <Link href="/funeral-home/login" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Director sign in', href: '/funeral-home/login' })} className="fh-button fh-primary">Director sign in</Link>
               <Link href="/funeral-home/staff" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Staff sign in', href: '/funeral-home/staff' })} className="fh-button fh-secondary">Staff sign in</Link>
-              <Link href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Open sample console', href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard' })} className="fh-button fh-sample">Open sample console</Link>
+              <Link href="/funeral-home/pilot-proof" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Open sample console', href: '/funeral-home/pilot-proof' })} className="fh-button fh-sample">Open sample console</Link>
               <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Book a pilot walkthrough' })} className="fh-button fh-secondary">Book a pilot walkthrough</a>
             </div>
             <div className="fh-note">This page is public. Active partner teams sign in to the private workspace; prospects can open the sample console or book a walkthrough before a workspace is created.</div>
