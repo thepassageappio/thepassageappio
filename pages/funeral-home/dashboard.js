@@ -2411,6 +2411,54 @@ export default function FuneralHomeDashboard() {
     },
   ];
   const nextDirectorStep = directorLoopSteps.find(step => !step.done || step.waiting) || directorLoopSteps[directorLoopSteps.length - 1];
+  const proofGapCount = cases.reduce((sum, item) => sum + (item.tasks || []).filter(task => taskIsClosed(task) && !String(task.notes || task.waiting_on || task.last_actor || '').trim()).length, 0);
+  const operatingRealityItems = isDirectorRole
+    ? [
+      {
+        label: 'Calls avoided',
+        value: callsAvoided,
+        tone: callsAvoided ? 'good' : 'neutral',
+        body: callsAvoided ? 'Updates, assignments, and requests are captured instead of repeated by phone.' : 'Move one update or assignment through Passage to create the first visible save.',
+      },
+      {
+        label: 'Family waits',
+        value: familyRequestsOpen,
+        tone: familyRequestsOpen ? 'warn' : 'good',
+        body: familyRequestsOpen ? 'These are the items most likely to become repeated family calls.' : 'No family-owned wait is open right now.',
+      },
+      {
+        label: 'Blockers',
+        value: totalBlocked || riskItems.length,
+        tone: totalBlocked || riskItems.length ? 'risk' : 'good',
+        body: totalBlocked || riskItems.length ? 'Clear these before the director promises an update.' : 'No blocked case work is in the front queue.',
+      },
+      {
+        label: 'Proof gaps',
+        value: proofGapCount,
+        tone: proofGapCount ? 'warn' : 'good',
+        body: proofGapCount ? 'Handled work needs a note, reference, actor, or timestamp.' : 'Handled work has enough visible proof for the family record.',
+      },
+    ]
+    : [
+      {
+        label: 'My next task',
+        value: firstStaffTask ? '1' : '0',
+        tone: firstStaffTask ? 'warn' : 'good',
+        body: firstStaffTask ? sharedTaskTitle(firstStaffTask) : 'No assigned work is waiting for you.',
+      },
+      {
+        label: 'Waiting detail',
+        value: firstStaffTask?.waiting_on ? 'Saved' : firstStaffTask ? 'Needed' : 'Clear',
+        tone: firstStaffTask && !firstStaffTask.waiting_on ? 'warn' : 'good',
+        body: firstStaffTask?.waiting_on || 'When work waits, name who or what it is waiting on.',
+      },
+      {
+        label: 'Proof destination',
+        value: firstStaffTask ? 'Visible' : 'Clear',
+        tone: firstStaffTask ? 'neutral' : 'good',
+        body: firstStaffTask ? 'Record proof, a blocker, or a waiting point before leaving the task.' : 'New assignments will show the proof requirement here.',
+      },
+    ];
   const directorUseCases = [
     ['Delegate', assignmentsCoordinated || assignedWorkQueue.length, 'assigned staff or participant work'],
     ['Reduce calls', callsAvoided, 'updates, assignments, and requests captured'],
@@ -4296,7 +4344,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                     <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>
                       {isDirectorRole
-                        ? 'Start here each morning. This pane routes to the exact case, staff queue, management page, or report needed next.'
+                        ? 'Start here. The first screen should answer what is stuck, who owns it, what the family can be told, and what proof exists.'
                         : firstStaffTask
                           ? `Case: ${firstStaffTask.caseName}. Owner, expected update, and proof travel with the task.`
                           : 'When a director assigns work, it appears here with case context and proof requirements.'}
@@ -4313,6 +4361,18 @@ export default function FuneralHomeDashboard() {
                       <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.1, marginTop: 3 }}>{value}</div>
                     </div>
                   ))}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
+                  {operatingRealityItems.map(item => {
+                    const tone = item.tone === 'risk' ? { border: C.rose + '55', bg: C.roseFaint, color: C.rose } : item.tone === 'warn' ? { border: C.amber + '55', bg: C.amberFaint, color: C.amber } : item.tone === 'good' ? { border: C.sage + '33', bg: C.card, color: C.sage } : { border: C.border, bg: C.card, color: C.mid };
+                    return (
+                      <div key={item.label} style={{ background: tone.bg, border: `1px solid ${tone.border}`, borderRadius: 11, padding: '10px 11px', minHeight: 98 }}>
+                        <div style={{ color: tone.color, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{item.label}</div>
+                        <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.1, marginTop: 3 }}>{item.value}</div>
+                        <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.35, marginTop: 5 }}>{item.body}</div>
+                      </div>
+                    );
+                  })}
                 </div>
                 {isDirectorRole && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
