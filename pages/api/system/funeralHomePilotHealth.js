@@ -173,6 +173,7 @@ function conversionRecommendationFor({ stage, readiness, billing, cases, staff, 
       status: 'retain', label: 'Retain', tone: 'good', askReady: false,
       targetPlanId: targetPlan.id, targetPlanLabel: targetPlan.label,
       targetMrr: roundMoney(mrr), targetArr: arr, paidArr: arr, askReadyArr: 0,
+      missingEvidence: [],
       action: 'Keep proof fresh, watch churn risk, and look for extra locations or staff seats.',
     };
   }
@@ -182,6 +183,7 @@ function conversionRecommendationFor({ stage, readiness, billing, cases, staff, 
       status: 'ask_now', label: 'Ask now', tone: 'good', askReady: true,
       targetPlanId: targetPlan.id, targetPlanLabel: targetPlan.label,
       targetMrr: roundMoney(targetPlan.mrr), targetArr: roundMoney(targetPlan.mrr * 12), paidArr: 0, askReadyArr: roundMoney(targetPlan.mrr * 12),
+      missingEvidence: [],
       action: 'Ask for ' + targetPlan.label + ' at $' + targetPlan.mrr.toFixed(2) + '/mo while the pilot proof is still warm.',
     };
   }
@@ -190,6 +192,7 @@ function conversionRecommendationFor({ stage, readiness, billing, cases, staff, 
       status: 'clear_blocker', label: 'Clear blocker', tone: 'risk', askReady: false,
       targetPlanId: targetPlan.id, targetPlanLabel: targetPlan.label,
       targetMrr: roundMoney(targetPlan.mrr), targetArr: 0, paidArr: 0, askReadyArr: 0,
+      missingEvidence: ['Clear the blocker named in Pilot Health before pricing pressure enters the conversation.'],
       action: 'Resolve the named blocker before making the paid conversion ask.',
     };
   }
@@ -198,6 +201,7 @@ function conversionRecommendationFor({ stage, readiness, billing, cases, staff, 
       status: 'prove_family_update', label: 'Prove family update', tone: 'warn', askReady: false,
       targetPlanId: targetPlan.id, targetPlanLabel: targetPlan.label,
       targetMrr: roundMoney(targetPlan.mrr), targetArr: 0, paidArr: 0, askReadyArr: 0,
+      missingEvidence: ['Family update proof is missing: recipient, channel, and saved proof must be visible.'],
       action: 'Send or stage one approved family update with recipient, channel, and proof before making the paid ask.',
     };
   }
@@ -206,6 +210,7 @@ function conversionRecommendationFor({ stage, readiness, billing, cases, staff, 
       status: 'prove_value', label: 'Prove value', tone: 'warn', askReady: false,
       targetPlanId: targetPlan.id, targetPlanLabel: targetPlan.label,
       targetMrr: roundMoney(targetPlan.mrr), targetArr: 0, paidArr: 0, askReadyArr: 0,
+      missingEvidence: ['Handled proof or task evidence is missing.', 'Family update proof is missing.', 'Export-ready evidence should be visible before the paid ask.'],
       action: 'Complete one family update, one handled proof event, and one export before asking for payment.',
     };
   }
@@ -213,6 +218,7 @@ function conversionRecommendationFor({ stage, readiness, billing, cases, staff, 
     status: 'activate', label: 'Activate', tone: 'warn', askReady: false,
     targetPlanId: targetPlan.id, targetPlanLabel: targetPlan.label,
     targetMrr: roundMoney(targetPlan.mrr), targetArr: 0, paidArr: 0, askReadyArr: 0,
+    missingEvidence: ['First case, active staff, task movement, family update, and export proof are not complete yet.'],
     action: 'Create the first case, add staff, and move one task through the spine.',
   };
 }
