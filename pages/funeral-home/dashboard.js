@@ -2543,11 +2543,11 @@ export default function FuneralHomeDashboard() {
   });
   const partnerViewTabs = isDirectorRole
     ? [
-      ['work', 'My Day', 'Cases and next moves'],
-      ['staff', 'Work queue', 'Assigned work'],
-      ['inbounds', 'Warm inbounds', openWarmInbounds.length ? `${openWarmInbounds.length} family requests` : 'Family requests'],
-      ['manage', 'Management', 'Locations and permissions'],
-      ['reports', 'Reporting', 'ROI and operations'],
+      ['work', 'My Day', 'Next case and proof'],
+      ['staff', 'Staff', 'Coverage and assignments'],
+      ['inbounds', 'Family requests', openWarmInbounds.length ? String(openWarmInbounds.length) + ' open' : 'Warm handoffs'],
+      ['manage', 'Locations & access', 'Locations and permissions'],
+      ['reports', 'Reports', 'Proof and ROI'],
     ]
     : [
       ['staff', 'My work', 'Assigned first'],
@@ -2830,8 +2830,8 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 10 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director command center</div>
-                <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Open the right operating view first.</div>
-                <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>My Day is the floor. Coverage, inbounds, staff, and reporting are one click away.</div>
+                <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Start with the next case, not the dashboard.</div>
+                <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>My Day shows the next case, waiting point, owner, proof, and draft. Everything else is a support view.</div>
               </div>
               <button onClick={moveDirectorFocus} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 40, padding: '0 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
                 {directorFocusButtonLabel()}
@@ -2848,15 +2848,15 @@ export default function FuneralHomeDashboard() {
                   action: () => setActivePartnerView('work'),
                 },
                 {
-                  label: 'Unassigned work',
+                  label: 'Coverage',
                   value: `${unassignedTaskCount} task${unassignedTaskCount === 1 ? '' : 's'}`,
-                  detail: unassignedCaseCount ? `${unassignedCaseCount} case${unassignedCaseCount === 1 ? '' : 's'} need coverage` : 'All open work has an owner',
+                  detail: unassignedCaseCount ? String(unassignedCaseCount) + ' case' + (unassignedCaseCount === 1 ? '' : 's') + ' need an owner' : 'Every open task has an owner',
                   tone: unassignedTaskCount ? C.amber : C.sage,
                   bg: unassignedTaskCount ? C.amberFaint : C.sageFaint,
                   action: () => unassignedCaseRows[0]?.caseItem?.id ? openPartnerWork(unassignedCaseRows[0].caseItem.id) : setActivePartnerView('staff'),
                 },
                 {
-                  label: 'Warm inbounds',
+                  label: 'Family requests',
                   value: `${openWarmInbounds.length} open`,
                   detail: warmInbounds.length ? `${warmInbounds.length} total family request${warmInbounds.length === 1 ? '' : 's'}` : 'No family requests yet',
                   tone: openWarmInbounds.length ? C.amber : C.sage,
@@ -2876,9 +2876,9 @@ export default function FuneralHomeDashboard() {
                     : openPartnerManagement('Opening employee setup. Add the director first, then managers and staff.'),
                 },
                 {
-                  label: 'Reporting',
+                  label: 'Reports',
                   value: timeSavedLabel,
-                  detail: `${callsAvoided} calls or handoffs avoided`,
+                  detail: String(callsAvoided) + ' calls avoided with exportable proof',
                   tone: C.sage,
                   bg: C.sageFaint,
                   action: () => setActivePartnerView('reports'),
@@ -3241,10 +3241,10 @@ export default function FuneralHomeDashboard() {
             {isDirectorRole && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(128px, 1fr))', gap: 7, marginTop: 9 }}>
                 {[
-                  ['Waiting on family', () => firstOpenCase?.id && openPartnerWork(firstOpenCase.id)],
-                  ['Reassign work', () => openPartnerPane('staff', 'partner-staff-section', 'Opening staff assignment.')],
-                  ['Mark done / proof', () => firstOpenCase?.id && openPartnerWork(firstOpenCase.id)],
-                  ['Export case data', () => downloadExport('cases')],
+                  ['Family waiting', () => firstOpenCase?.id && openPartnerWork(firstOpenCase.id)],
+                  ['Assign owner', () => openPartnerPane('staff', 'partner-staff-section', 'Opening staff assignment.')],
+                  ['Save proof', () => firstOpenCase?.id && openPartnerWork(firstOpenCase.id)],
+                  ['Export case', () => downloadExport('cases')],
                 ].map(([label, action]) => (
                   <button key={label} onClick={action} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 11, minHeight: 40, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
                     {label}
@@ -3344,7 +3344,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 14 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Warm family requests</div>
-                <div style={{ fontSize: 24, lineHeight: 1.15, marginTop: 3 }}>Families can connect their record to the funeral home they trust.</div>
+                <div style={{ fontSize: 24, lineHeight: 1.15, marginTop: 3 }}>Review warm family handoffs before they become cases.</div>
                 <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5, maxWidth: 760 }}>
                   Requests start from the family record, not a cold directory. Accepting one brings the family context into your case spine; nothing is sent outside Passage without review.
                 </div>
