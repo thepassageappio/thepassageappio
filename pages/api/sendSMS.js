@@ -3,11 +3,27 @@ import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { smsDeliveryState } from '../../lib/smsReadiness';
 import { insertNotificationLog, isQaNotificationMode, qaOverrideEmail } from '../../lib/notificationSafety';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
+import { rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
   : null;
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
+
+function cleanLimitKey(value, max = 160) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
+}
+
+function outboundDeliveryKey({ to, workflowId, taskId, actionId, actionType }) {
+  return [
+    'sendSMS',
+    cleanLimitKey(workflowId || 'no-workflow'),
+    cleanLimitKey(taskId || actionId || 'no-task'),
+    cleanLimitKey(to).toLowerCase(),
+    cleanLimitKey(actionType || 'assignment'),
+  ].join(':');
+}
 
 async function recordTaskStatus({ workflowId, taskId, actionId, status, actor, channel, recipient, detail, provider, providerMessageId, providerEventId }) {
   if (!workflowId) return { recorded: false };
@@ -108,7 +124,7 @@ function escapeHtml(value) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+    .replace(/\"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
 
@@ -148,6 +164,20 @@ export default async function handler(req, res) {
       messagePreview: String(preview).replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim().slice(0, 240),
       actionType: actionType || 'assignment',
       message: 'Dry run only. No SMS was sent, no provider was called, no fallback email was sent, and no production record was changed.',
+    });
+  }
+
+  const outboundPolicy = getRateLimitPolicy('outboundDelivery');
+  const limit = rateLimit({
+    key: outboundDeliveryKey({ to, workflowId, taskId, actionId, actionType }),
+    windowSeconds: outboundPolicy.windowSeconds,
+    maxRequests: outboundPolicy.maxRequests,
+  });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || outboundPolicy.windowSeconds));
+    return res.status(429).json({
+      error: 'This message was recently sent or retried too many times. Review the delivery trail before sending again.',
+      retryAfterSeconds: limit.retryAfterSeconds,
     });
   }
 
@@ -265,8 +295,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // ASCII only — avoid UCS-2 encoding which halves the character limit
-    // Keep under 122 chars — Twilio trial adds 38 char prefix
+    // ASCII only: avoid UCS-2 encoding which halves the character limit.
     var clean = function(value, max) {
       var text = String(value || '').replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim();
       return text.length > max ? text.slice(0, Math.max(0, max - 3)).trim() + '...' : text;
