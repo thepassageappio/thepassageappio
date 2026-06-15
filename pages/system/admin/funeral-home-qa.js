@@ -117,9 +117,10 @@ const qaRoutes = [
       'Rate-limit readiness names wired and unwired protections.',
       'Pilot health names account stage, blocker, next action, and ARR gap.',
       'Conversion Plan names ask-ready accounts, target plan, ARR impact, blocked asks, and the next paid conversion action.',
+      'Partner Checkout Readiness names Stripe price, pilot discount, webhook, auth, metadata, and billing mirror status before paid asks scale.',
       'Production reset is disabled, removed, or two-party gated once real customer data exists.',
     ],
-    evidence: ['Roadmap screenshot', 'Rate-limit readiness result', 'Pilot-health result', 'Conversion-plan result'],
+    evidence: ['Roadmap screenshot', 'Rate-limit readiness result', 'Pilot-health result', 'Conversion-plan result', 'Partner-checkout-readiness result'],
     priority: 'P0',
   },
 ];
@@ -133,6 +134,7 @@ const launchBlockers = [
   'HubSpot cannot show funeral-home lead or pilot stage.',
   'Stripe live webhook readiness is unknown for paid partner conversion.',
   'Proof-ready pilots do not have a named paid conversion ask, target plan, and ARR impact.',
+  'Partner checkout readiness is blocked or unknown before paid conversion asks.',
   'Public pages imply HIPAA, SOC 1, SOC 2, legal, payment, or SMS readiness before review.',
   'Production reset can remove real customer, lead, estate, vendor, or partner records.',
 ];
