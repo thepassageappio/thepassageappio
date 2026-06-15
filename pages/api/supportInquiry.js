@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
 import { detailRows, sendSubmissionReceipt } from '../../lib/submissionReceipts';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -24,6 +26,10 @@ function isRealEmail(value) {
   return true;
 }
 
+function intakeKey(req, email) {
+  return ['supportInquiry', getRequestIp(req), clean(email, 180).toLowerCase() || 'no-email'].join(':');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -41,6 +47,20 @@ export default async function handler(req, res) {
   }
   if (!isRealEmail(email)) {
     return res.status(400).json({ error: 'Please enter a real email address so we can send the guide.' });
+  }
+
+  const contactPolicy = getRateLimitPolicy('contactIntake');
+  const limit = rateLimit({
+    key: intakeKey(req, email),
+    windowSeconds: contactPolicy.windowSeconds,
+    maxRequests: contactPolicy.maxRequests,
+  });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || contactPolicy.windowSeconds));
+    return res.status(429).json({
+      error: 'We received several recent requests from this address. Please wait a bit before sending another message.',
+      retryAfterSeconds: limit.retryAfterSeconds,
+    });
   }
 
   try {
