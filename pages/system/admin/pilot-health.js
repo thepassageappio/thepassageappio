@@ -5,6 +5,14 @@ import { SiteFooter, SiteHeader } from '../../../components/SiteChrome';
 
 const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', amber: '#b07d2e', amberFaint: '#fdf8ee', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
+const LAUNCH_GRADE_LABELS = {
+  retention_ready: 'Retention ready',
+  conversion_ready: 'Conversion ready',
+  proof_ready: 'Proof ready',
+  clear_blockers: 'Clear blockers',
+  needs_proof: 'Needs proof',
+  needs_activation: 'Needs activation',
+};
 const SPRINT_TWO = [
   ['1', 'Activate one funeral-home workspace', 'Owner, staff member, location, decision maker, and billing plan are visible.'],
   ['2', 'Create the first real case', 'A director can create or import a case in under five minutes with family contact and next action.'],
@@ -16,6 +24,13 @@ const SPRINT_TWO = [
 function normalizeEmail(email) { return String(email || '').trim().toLowerCase(); }
 function isSystemAdmin(user) { return SYSTEM_ADMIN_EMAILS.includes(normalizeEmail(user?.email)); }
 function money(value) { return Number(value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }); }
+function launchGradeLabel(grade) { return LAUNCH_GRADE_LABELS[grade] || 'Needs review'; }
+function readinessTone(readiness) {
+  const grade = readiness?.launchGrade || '';
+  if (grade === 'conversion_ready' || grade === 'retention_ready' || grade === 'proof_ready') return 'good';
+  if (grade === 'clear_blockers') return 'risk';
+  return 'warn';
+}
 
 export default function PilotHealthPage() {
   const [user, setUser] = useState(null);
@@ -85,6 +100,10 @@ export default function PilotHealthPage() {
         <Metric label="Cases coordinated" value={totals.cases || 0} />
         <Metric label="Proof events" value={totals.proofEvents || 0} />
         <Metric label="Family updates" value={totals.familyUpdates || 0} />
+        <Metric label="Readiness score" value={(totals.averageReadinessScore || 0) + '/100'} />
+        <Metric label="Export-ready pilots" value={totals.exportReadyAccounts || 0} />
+        <Metric label="Open task spine" value={totals.openTasks || 0} />
+        <Metric label="Waiting / blocked" value={(totals.waitingTasks || 0) + ' / ' + (totals.blockedTasks || 0)} />
       </section>}
       <Panel tone="sage">
         <div style={eyebrow}>Sprint 2 / activation engine</div>
@@ -107,7 +126,40 @@ export default function PilotHealthPage() {
 function Shell({ children, user, onSignOut }) { return <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}><SiteHeader user={user} onSignOut={onSignOut} /><section style={wrap}>{children}</section><SiteFooter /></main>; }
 function Panel({ children, tone = 'default' }) { const risk = tone === 'risk'; return <section style={{ background: risk ? C.roseFaint : tone === 'sage' ? C.sageFaint : C.card, border: '1px solid ' + (risk ? '#efc7c7' : tone === 'sage' ? '#c8deca' : C.border), borderRadius: 18, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.04)', marginTop: 18 }}>{children}</section>; }
 function Metric({ label, value }) { return <div style={metricCard}><div style={eyebrow}>{label}</div><strong style={{ display: 'block', fontSize: 25, marginTop: 8 }}>{value}</strong></div>; }
-function AccountCard({ row }) { return <div style={subPanel}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div><span style={row.stage === 'paid_active' || row.stage === 'value_proven' ? goodPill : warnPill}>{row.subscription?.status || 'no billing row'}</span></div><p style={smallText}><strong>Next:</strong> {row.nextAction}</p><div style={miniGrid}><Metric label="Cases" value={row.metrics?.cases || 0} /><Metric label="Staff" value={row.metrics?.staff || 0} /><Metric label="Proof" value={row.metrics?.proofEvents || 0} /><Metric label="ARR potential" value={money(row.metrics?.arrPotential || 0)} /></div>{row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers become Sprint 2 actions</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : <div style={innerPanel}><strong>Value signal is present. Next action: ask for paid conversion or expansion.</strong></div>}</div>; }
+function AccountCard({ row }) {
+  const readiness = row.readiness || {};
+  const tone = readinessTone(readiness);
+  const readinessPill = tone === 'good' ? goodPill : tone === 'risk' ? riskPill : warnPill;
+  const evidenceRows = [
+    ['Waiting', readiness.waitingDetail],
+    ['Blocked', readiness.blockedDetail],
+    ['Recent proof', readiness.recentProofDetail],
+  ].filter(([, items]) => items?.length);
+  return (
+    <div style={subPanel}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <span style={readinessPill}>{launchGradeLabel(readiness.launchGrade)}</span>
+          <span style={row.stage === 'paid_active' || row.stage === 'value_proven' ? goodPill : warnPill}>{row.subscription?.status || 'no billing row'}</span>
+        </div>
+      </div>
+      <p style={smallText}><strong>Next:</strong> {row.nextAction}</p>
+      <div style={miniGrid}>
+        <Metric label="Cases" value={row.metrics?.cases || 0} />
+        <Metric label="Staff" value={row.metrics?.staff || 0} />
+        <Metric label="Proof" value={row.metrics?.proofEvents || 0} />
+        <Metric label="Readiness" value={(readiness.score || 0) + '/100'} />
+        <Metric label="Export ready" value={readiness.exportReady ? 'Yes' : 'No'} />
+        <Metric label="Open / handled" value={(readiness.openTasks || 0) + ' / ' + (readiness.handledTasks || 0)} />
+        <Metric label="Waiting / blocked" value={(readiness.waitingTasks || 0) + ' / ' + (readiness.blockedTasks || 0)} />
+        <Metric label="ARR potential" value={money(row.metrics?.arrPotential || 0)} />
+      </div>
+      {evidenceRows.length ? <div style={innerPanel}><div style={eyebrow}>Export evidence</div>{evidenceRows.map(([label, items]) => <div key={label} style={evidenceRow}><strong>{label}</strong><ul style={ul}>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div> : null}
+      {row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers become Sprint 2 actions</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : <div style={innerPanel}><strong>Value signal is present. Next action: ask for paid conversion or expansion.</strong></div>}
+    </div>
+  );
+}
 
 const wrap = { maxWidth: 1120, margin: '0 auto', padding: '42px 18px 80px' };
 const grid4 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginTop: 20 };
@@ -129,3 +181,5 @@ const stepNumber = { display: 'inline-flex', alignItems: 'center', justifyConten
 const ul = { margin: '8px 0 0', paddingLeft: 18, color: C.mid, fontSize: 13, lineHeight: 1.45 };
 const goodPill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
 const warnPill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
+const riskPill = { background: C.roseFaint, color: C.rose, border: '1px solid #efc7c7', borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
+const evidenceRow = { display: 'grid', gridTemplateColumns: '110px 1fr', gap: 8, alignItems: 'flex-start', marginTop: 8, color: C.mid, fontSize: 13, lineHeight: 1.45 };
