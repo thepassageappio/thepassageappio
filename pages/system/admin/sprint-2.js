@@ -11,7 +11,7 @@ const milestones = [
   ['M3', 'First case created', 'A director can create or import one case in under five minutes with family contact and next action.', 'Product', 'Blocked by live pilot'],
   ['M4', 'Task spine proves value', 'One task moves through assigned, waiting/blocked, handled, and proof states across personas.', 'Product + QA', 'Blocked by live pilot'],
   ['M5', 'Family update proof', 'One approved family update shows recipient, channel, proof, and next expected update.', 'Product + QA', 'Blocked by live pilot'],
-  ['M6', 'Conversion ask', 'Pilot either becomes paid Local/Group or produces a named blocker and next repair sprint.', 'Founder', 'Blocked by proof'],
+  ['M6', 'Conversion ask', 'Pilot either becomes paid Local/Group or produces a named blocker and next repair sprint.', 'Founder', 'Conversion plan live in source'],
 ];
 const acceptance = [
   'A funeral-home director understands the value without founder narration.',
@@ -59,6 +59,7 @@ export default function SprintTwoBoard() {
         <div className="s2-actions">
           <Link className="s2-link s2-primary" href="/funeral-home/pilot-proof">Open proof console</Link>
           <Link className="s2-link s2-secondary" href="/system/admin/pilot-health">Pilot health</Link>
+          <Link className="s2-link s2-secondary" href="/system/admin/conversion-plan">Conversion plan</Link>
           <Link className="s2-link s2-secondary" href="/system/admin/funeral-home-qa">QA checklist</Link>
           <Link className="s2-link s2-secondary" href="/system/admin/rate-limit-readiness">Abuse controls</Link>
         </div>
