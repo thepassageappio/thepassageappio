@@ -28,6 +28,15 @@ const tiers = [
   ['Group', '$349.99/mo', '', 'Locations, reporting, approved family handoffs, priority onboarding'],
 ];
 
+const pilotProofLoop = [
+  ['1', 'Create one real case', 'A director or arranger starts a partner case with family contact, service context, and owner.'],
+  ['2', 'Assign staff work', 'The team sees who owns each next action instead of keeping the work in calls and memory.'],
+  ['3', 'Move one task', 'A family-facing task gets requested, accepted, blocked, or handled with visible status.'],
+  ['4', 'Send one approved update', 'The family receives a careful update only after the funeral-home team approves the message.'],
+  ['5', 'Export proof', 'Dates, notes, messages, and task outcomes can be copied or exported back to the current case system.'],
+  ['6', 'Decide paid fit', 'When usage proof is visible, the pilot converts, expands, or exits with clear reasons.'],
+];
+
 function planForTier(index) {
   return index === 0 ? 'partner_pilot' : index === 1 ? 'partner_local' : 'partner_group';
 }
@@ -109,6 +118,16 @@ export default function FuneralHomePage() {
         .fh-proof-card { background:${C.card}; border:1px solid ${C.border}; border-radius:13px; padding:9px 10px; min-height:66px; }
         .fh-proof-card b { display:block; color:${C.ink}; font-size:13.5px; margin-bottom:4px; }
         .fh-proof-card span { color:${C.mid}; font-size:11.2px; line-height:1.26; }
+        .fh-loop { margin-top:8px; display:grid; grid-template-columns:minmax(240px,.42fr) minmax(0,1fr); gap:10px; align-items:stretch; }
+        .fh-loop-intro { background:${C.ink}; color:#fff; border-radius:17px; padding:14px; min-height:100%; }
+        .fh-loop-intro .fh-kicker { color:${C.sageLight}; }
+        .fh-loop-intro h2 { font-size:24px; line-height:1.03; margin:0 0 8px; font-weight:400; }
+        .fh-loop-intro p { color:#e7dfd4; font-size:12px; line-height:1.36; margin:0; }
+        .fh-loop-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .fh-loop-step { background:${C.card}; border:1px solid ${C.border}; border-radius:13px; padding:10px; min-height:94px; }
+        .fh-loop-number { width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; font-size:11px; font-weight:900; margin-bottom:7px; }
+        .fh-loop-step b { display:block; font-size:13px; line-height:1.18; margin-bottom:4px; }
+        .fh-loop-step span { display:block; color:${C.mid}; font-size:11.1px; line-height:1.28; }
         .fh-pilot { margin-top:8px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:17px; padding:10px 12px; display:grid; grid-template-columns:minmax(0,.7fr) minmax(360px,1fr); gap:16px; align-items:center; }
         .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:4px 0; border-bottom:1px solid ${C.sageLight}; }
         .fh-plan:last-child { border-bottom:none; }
@@ -116,7 +135,7 @@ export default function FuneralHomePage() {
         .fh-plan-detail { color:${C.mid}; font-size:10.8px; line-height:1.25; margin-top:1px; }
         @media (max-width:760px) {
           .fh-shell { padding:12px 18px 42px; }
-          .fh-hero, .fh-pilot, .fh-proof { grid-template-columns:1fr; min-height:auto; }
+          .fh-hero, .fh-loop, .fh-pilot, .fh-proof, .fh-loop-grid { grid-template-columns:1fr; min-height:auto; }
           .fh-hero { gap:22px; }
           .fh-actions { flex-direction:column; }
           .fh-button { width:100%; }
@@ -180,6 +199,25 @@ export default function FuneralHomePage() {
               <span>{body}</span>
             </div>
           ))}
+        </section>
+
+        <section className="fh-loop" aria-labelledby="pilot-proof-loop">
+          <div className="fh-loop-intro">
+            <div className="fh-kicker">Pilot proof loop</div>
+            <h2 id="pilot-proof-loop">The pilot has to prove real operating value.</h2>
+            <p>
+              Every pilot is judged by the same milestones Passage tracks internally: case creation, staff ownership, task movement, family update, exportable proof, and a paid-fit decision.
+            </p>
+          </div>
+          <div className="fh-loop-grid">
+            {pilotProofLoop.map(([number, title, body]) => (
+              <div className="fh-loop-step" key={title}>
+                <div className="fh-loop-number">{number}</div>
+                <b>{title}</b>
+                <span>{body}</span>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="fh-pilot">
