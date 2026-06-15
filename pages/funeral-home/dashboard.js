@@ -1470,8 +1470,18 @@ export default function FuneralHomeDashboard() {
   function moveDirectorFocus() {
     setShowPilotGuide(false);
     setShowTools(false);
-    if (!isDirectorRole && firstStaffTask?.caseId) {
-      openPartnerWork(firstStaffTask.caseId);
+    if (recommendedActionCase?.id) {
+      openPartnerWork(recommendedActionCase.id);
+      setNotice('Opening recommended next action: ' + recommendedNextAction.label + '.');
+      return;
+    }
+    if (!cases.length) {
+      openCasePanel('immediate');
+      setNotice('Create the first case, then Passage will recommend the next move.');
+      return;
+    }
+    if (!isDirectorRole) {
+      openPartnerPane('staff', 'partner-staff-section', 'Opening your assigned work queue.');
       return;
     }
     if (nextDirectorStep.key === 'staff') {
@@ -1482,23 +1492,16 @@ export default function FuneralHomeDashboard() {
       openPartnerPane('reports', 'partner-reports-section', 'Opening reports and export so proof can leave Passage cleanly.');
       return;
     }
-    if (firstOpenCase?.id) {
-      openPartnerWork(firstOpenCase.id);
-      return;
-    }
-    openCasePanel('immediate');
-    setNotice('Create the first case, then Passage will move the next task.');
+    openPartnerPane('work', 'partner-today-section', 'Opening the work queue for the recommended next action.');
   }
 
   function directorFocusButtonLabel() {
+    if (recommendedActionCase?.id) return recommendedActionTask ? 'Open next task' : 'Open recommended case';
+    if (!cases.length) return 'Create case';
     if (!isDirectorRole) return firstStaffTask ? 'Open my task' : 'Open staff queue';
     if (nextDirectorStep.key === 'staff') return 'Open staff queue';
     if (nextDirectorStep.key === 'report') return 'Open reports';
-    if (nextDirectorStep.key === 'case') return cases.length ? 'Open next case' : 'Create first case';
-    if (nextDirectorStep.key === 'family') return 'Open family request';
-    if (nextDirectorStep.key === 'proof') return 'Record proof';
-    if (nextDirectorStep.key === 'local') return 'Open support request';
-    return 'Open next case';
+    return 'Open next action';
   }
 
   function scrollPartnerDemoTarget(id) {
