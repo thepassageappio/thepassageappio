@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../../lib/adminAccess';
 import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
+import { getRequestIp, rateLimit } from '../../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../../lib/rateLimitPolicy';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -20,6 +22,16 @@ async function requireSystemAccess(req) {
   if (error || !email) return { ok: false, status: 401, error: 'Session could not be verified.' };
   if (!isPassageAdmin(email)) return { ok: false, status: 403, error: 'System admin access required.' };
   return { ok: true, source: 'admin', user: data.user };
+}
+
+function enforceAdminRefreshLimit(req, access) {
+  const policy = getRateLimitPolicy('adminReadiness');
+  if (!policy) return { allowed: true };
+  return rateLimit({
+    key: ['pilot-health', req.url, access.user?.email || access.source || 'internal', getRequestIp(req)].join(':'),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: policy.maxRequests,
+  });
 }
 
 function moneyFromPlan(planId) {
@@ -58,6 +70,13 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const access = await requireSystemAccess(req);
   if (!access.ok) return res.status(access.status || 401).json({ error: access.error });
+
+  const limit = enforceAdminRefreshLimit(req, access);
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 60));
+    return res.status(429).json({ error: 'Too many pilot-health refreshes. Please wait a minute before trying again.' });
+  }
+
   if (!admin) return res.status(500).json({ error: 'Supabase service role is not configured.' });
 
   const { data: organizations, error } = await admin
