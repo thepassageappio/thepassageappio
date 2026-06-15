@@ -118,9 +118,10 @@ const qaRoutes = [
       'Pilot health names account stage, blocker, next action, and ARR gap.',
       'Conversion Plan names ask-ready accounts, target plan, ARR impact, blocked asks, and the next paid conversion action.',
       'Partner Checkout Readiness names Stripe price, pilot discount, webhook, auth, metadata, and billing mirror status before paid asks scale.',
+      'Automation Spine Readiness names task assignment, waiting hygiene, blockers, stale work, proof gaps, delivery telemetry, and reminder runtime status.',
       'Production reset is disabled, removed, or two-party gated once real customer data exists.',
     ],
-    evidence: ['Roadmap screenshot', 'Rate-limit readiness result', 'Pilot-health result', 'Conversion-plan result', 'Partner-checkout-readiness result'],
+    evidence: ['Roadmap screenshot', 'Rate-limit readiness result', 'Pilot-health result', 'Conversion-plan result', 'Partner-checkout-readiness result', 'Automation-spine-readiness result'],
     priority: 'P0',
   },
 ];
@@ -135,6 +136,7 @@ const launchBlockers = [
   'Stripe live webhook readiness is unknown for paid partner conversion.',
   'Proof-ready pilots do not have a named paid conversion ask, target plan, and ARR impact.',
   'Partner checkout readiness is blocked or unknown before paid conversion asks.',
+  'Automation spine readiness is blocked or unknown before pilots expand.',
   'Public pages imply HIPAA, SOC 1, SOC 2, legal, payment, or SMS readiness before review.',
   'Production reset can remove real customer, lead, estate, vendor, or partner records.',
 ];
@@ -199,6 +201,7 @@ export default function FuneralHomeQaPage() {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Link href="/system/admin/saas-roadmap" style={secondaryLink}>SaaS roadmap</Link>
+          <Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Spine</Link>
           <Link href="/system/admin" style={secondaryLink}>System Admin</Link>
         </div>
       </div>
