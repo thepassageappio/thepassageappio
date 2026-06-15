@@ -162,7 +162,7 @@ function summarizeTaskEvidence(tasks, fallback = '') {
   return (tasks || []).map(task => taskEvidenceLabel(task, fallback)).filter(Boolean).slice(0, 3);
 }
 
-function conversionRecommendationFor({ stage, readiness, billing, cases, staff }) {
+function conversionRecommendationFor({ stage, readiness, billing, cases, staff, familyUpdates }) {
   const targetPlan = targetPlanFor({ billing, cases, staff });
   const paidMrr = billing?.monthlyFeeCents == null ? 0 : Math.max(0, Number(billing.monthlyFeeCents) / 100);
   const mrr = stage === 'paid_active' && paidMrr ? paidMrr : targetPlan.mrr;
@@ -183,7 +183,8 @@ function conversionRecommendationFor({ stage, readiness, billing, cases, staff }
       action: 'Keep proof fresh, watch churn risk, and look for extra locations or staff seats.',
     };
   }
-  if (launchGrade === 'conversion_ready' || launchGrade === 'proof_ready') {
+  const hasFamilyUpdateProof = Number(familyUpdates || 0) > 0;
+  if (launchGrade === 'conversion_ready' || (launchGrade === 'proof_ready' && hasFamilyUpdateProof)) {
     return {
       status: 'ask_now',
       label: 'Ask now',
@@ -308,7 +309,7 @@ export default async function handler(req, res) {
     const familyUpdates = await countIn('announcements', 'estate_id', workflowIds);
     const stage = healthStage({ billing, cases, staff, familyUpdates, proofEvents });
     const readiness = readinessFor({ stage, billing, cases, staff, taskRows, familyUpdates, proofEvents });
-    const conversion = conversionRecommendationFor({ stage, readiness, billing, cases, staff });
+    const conversion = conversionRecommendationFor({ stage, readiness, billing, cases, staff, familyUpdates });
     const partnerMonthlyFee = billing?.monthlyFeeCents == null ? 0 : Math.max(0, Number(billing.monthlyFeeCents) / 100);
     const mrrPotential = partnerMonthlyFee || moneyFromPlan(billing?.planId || (stage === 'value_proven' ? 'partner_local' : 'partner_pilot'));
 
@@ -404,6 +405,21 @@ export default async function handler(req, res) {
       paidArr: 0,
       askReadyArr: 0,
       action: 'Resolve the named blocker before making the paid conversion ask.',
+    };
+  }
+  if (launchGrade === 'proof_ready' && !hasFamilyUpdateProof) {
+    return {
+      status: 'prove_family_update',
+      label: 'Prove family update',
+      tone: 'warn',
+      askReady: false,
+      targetPlanId: targetPlan.id,
+      targetPlanLabel: targetPlan.label,
+      targetMrr: roundMoney(targetPlan.mrr),
+      targetArr: 0,
+      paidArr: 0,
+      askReadyArr: 0,
+      action: 'Send or stage one approved family update with recipient, channel, and proof before making the paid ask.',
     };
   }
   if (launchGrade === 'needs_proof') {
