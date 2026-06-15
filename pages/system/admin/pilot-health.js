@@ -88,7 +88,7 @@ export default function PilotHealthPage() {
     <Shell user={user} onSignOut={signOut}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div><div style={eyebrow}>System admin / pilot health</div><h1 style={h1}>Turn funeral-home pilots into measurable ARR.</h1><p style={lead}>This control room shows partner accounts, current stage, next action, usage proof, subscription status, ARR potential, and blockers toward the $300k target.</p></div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={runCheck} disabled={checking} style={primaryButton}>{checking ? 'Refreshing...' : 'Refresh'}</button><Link href="/system/admin/saas-roadmap" style={secondaryLink}>SaaS roadmap</Link><Link href="/funeral-home/pilot-proof" style={secondaryLink}>Sample console</Link></div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={runCheck} disabled={checking} style={primaryButton}>{checking ? 'Refreshing...' : 'Refresh'}</button><Link href="/system/admin/conversion-plan" style={secondaryLink}>Conversion plan</Link><Link href="/system/admin/saas-roadmap" style={secondaryLink}>SaaS roadmap</Link><Link href="/funeral-home/pilot-proof" style={secondaryLink}>Sample console</Link></div>
       </div>
       {error && <Panel tone="risk"><strong>{error}</strong></Panel>}
       {result && <section style={grid4}>
