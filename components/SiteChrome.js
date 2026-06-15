@@ -356,6 +356,8 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
   }
 
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
+  const ownerConsoleActive = showSystemAdminLinks && (isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin'));
+  const primaryNavLinks = ownerConsoleActive ? [] : LINKS;
   const demoTourActive = hydrated && showSystemAdminLinks && router?.query?.demoTour === 'funeral-home';
   const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(activePath, router?.query?.demoStep)) : null;
   const activeStyle = {
@@ -399,16 +401,16 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
         <PassageLogo compact size={36} />
       </Link>
       <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, ...PASSAGE_TYPE.nav, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {LINKS.map(([label, href]) => <Link key={href} href={href} onClick={() => trackEvent('public_nav_clicked', { label, href })} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
+        {primaryNavLinks.map(([label, href]) => <Link key={href} href={href} onClick={() => trackEvent('public_nav_clicked', { label, href })} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
         {showSystemAdminLinks && (
           <>
-            <Link href="/system/admin" onClick={() => trackEvent('system_admin_nav_clicked', { href: '/system/admin' })} style={(isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin')) ? activeStyle : navLink}>System admin</Link>
+            <Link href="/system/admin" onClick={() => trackEvent('system_admin_nav_clicked', { href: '/system/admin' })} style={ownerConsoleActive ? activeStyle : navLink}>System admin</Link>
             {ADMIN_QUICK_LINKS.map(([label, href]) => (
               <Link key={href} href={href} onClick={() => trackEvent('system_admin_nav_clicked', { label, href })} className="passage-admin-quick-link" style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>
             ))}
           </>
         )}
-        {currentUser && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
+        {currentUser && !ownerConsoleActive && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
         <span className="passage-nav-action-slot" style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {!localAuthReady && (
             <span aria-hidden="true" style={{ width: 92, minHeight: 38, display: 'inline-flex' }} />
