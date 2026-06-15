@@ -139,6 +139,7 @@ function Metric({ label, value }) { return <div style={metricCard}><div style={e
 function AccountCard({ row }) {
   const readiness = row.readiness || {};
   const conversion = row.conversion || {};
+  const operating = row.operatingNextAction || {};
   const tone = readinessTone(readiness);
   const readinessPill = tone === 'good' ? goodPill : tone === 'risk' ? riskPill : warnPill;
   const askTone = conversionTone(conversion);
@@ -158,7 +159,26 @@ function AccountCard({ row }) {
           <span style={row.stage === 'paid_active' || row.stage === 'value_proven' ? goodPill : warnPill}>{row.subscription?.status || 'no billing row'}</span>
         </div>
       </div>
-      <p style={smallText}><strong>Next:</strong> {row.nextAction}</p>
+      <p style={smallText}><strong>Revenue next:</strong> {row.nextAction}</p>
+      {operating.label && (
+        <div style={operatingPanel}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            <div>
+              <div style={eyebrow}>Operating next action</div>
+              <strong style={{ color: C.ink, fontSize: 16 }}>{operating.label}</strong>
+            </div>
+            <span style={operating.priority === 'urgent' || operating.priority === 'high' ? riskPill : warnPill}>{operating.priority || 'next'}</span>
+          </div>
+          <p style={{ ...smallText, color: C.ink }}><strong>Action:</strong> {operating.action}</p>
+          <p style={smallText}><strong>Why now:</strong> {operating.reason}</p>
+          <div style={operatingMetaGrid}>
+            <span><strong>Owner:</strong> {operating.owner || 'Director'}</span>
+            <span><strong>Proof:</strong> {operating.proof || 'Saved note or case proof'}</span>
+            <span><strong>Context:</strong> {operating.context || operating.stage || 'Case work'}</span>
+          </div>
+          {operating.draft && <p style={draftBox}><strong>Draft:</strong> {operating.draft}</p>}
+        </div>
+      )}
       <div style={miniGrid}>
         <Metric label="Cases" value={row.metrics?.cases || 0} />
         <Metric label="Staff" value={row.metrics?.staff || 0} />
@@ -192,6 +212,9 @@ const secondaryLink = { border: '1px solid ' + C.border, background: C.card, col
 const metricCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 14, boxShadow: '0 4px 20px rgba(0,0,0,.025)' };
 const subPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
 const innerPanel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: 12, marginTop: 12 };
+const operatingPanel = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 12, marginTop: 12 };
+const operatingMetaGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 8 };
+const draftBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 10, padding: 10, color: C.mid, fontSize: 13, lineHeight: 1.45, margin: '10px 0 0' };
 const stepCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, minHeight: 132 };
 const stepNumber = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 999, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', fontSize: 12, fontWeight: 900, marginBottom: 8 };
 const ul = { margin: '8px 0 0', paddingLeft: 18, color: C.mid, fontSize: 13, lineHeight: 1.45 };
