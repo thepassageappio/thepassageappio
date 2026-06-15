@@ -19,7 +19,7 @@ const wiredProtections = [
   { route: '/api/system/rateLimitReadiness', policy: 'adminReadiness', status: 'wired', proof: 'System-admin abuse-control checks are throttled by admin/source and IP.' },
   { route: '/api/system/funeralHomePilotHealth', policy: 'adminReadiness', status: 'wired', proof: 'Funeral-home pilot health refreshes are throttled by admin/source and IP.' },
   { route: '/api/checkout, /api/vendorRequests/*, /api/vendors/*, and /api/stripe/*', policy: 'vendorCommerce', status: 'wired', proof: 'Edge middleware throttles checkout, vendor request mutations, vendor mutations, Stripe subroutes, and tokenized vendor response actions before handlers run.' },
-  { route: '/login and auth email flows', policy: 'authSensitive', status: 'defined', proof: 'Policy exists; auth-provider level controls and Supabase leaked-password protection remain the primary gate.' },
+  { route: '/login and auth email flows', policy: 'authSensitive', status: 'defined', severity: 'provider_review', proof: 'Policy exists; auth-provider level controls and Supabase leaked-password protection remain the primary gate.' },
 ];
 
 async function requireSystemAccess(req) {
@@ -50,6 +50,32 @@ function enforceAdminRefreshLimit(req, access) {
   });
 }
 
+function launchDecisionFor({ wired, defined }) {
+  const routeBlockers = defined.filter(item => item.severity !== 'provider_review');
+  if (routeBlockers.length) {
+    return {
+      status: 'blocked',
+      label: 'Do not expand pilot outreach yet',
+      summary: `${routeBlockers.length} route-level abuse control still needs wiring before broader traffic.`,
+      nextAction: `Wire ${routeBlockers[0].route} to its ${routeBlockers[0].policy} policy, then rerun readiness.`,
+    };
+  }
+  if (defined.length) {
+    return {
+      status: 'ready_for_controlled_pilots',
+      label: 'Ready for controlled funeral-home pilots',
+      summary: `${wired.length} production protections are wired. Remaining work is provider-level auth review, not a route-level blocker for founder-led pilots.`,
+      nextAction: 'Before broad self-serve signup, confirm Supabase auth protections, leaked-password detection, MFA/SSO posture, and login abuse monitoring.',
+    };
+  }
+  return {
+    status: 'ready_to_scale',
+    label: 'Ready to scale monitored outreach',
+    summary: 'All defined abuse and refresh protections are wired.',
+    nextAction: 'Keep readiness in the launch checklist and review runtime 429/error patterns during each outreach wave.',
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -64,12 +90,14 @@ export default async function handler(req, res) {
 
   const wired = wiredProtections.filter(item => item.status === 'wired');
   const defined = wiredProtections.filter(item => item.status === 'defined');
-  const blockers = defined.map(item => `${item.route} has a policy but still needs route-level wiring.`);
+  const blockers = defined.map(item => `${item.route} has a policy but still needs route-level wiring or provider-level verification.`);
+  const launchDecision = launchDecisionFor({ wired, defined });
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
     accessedBy: access.source,
-    status: blockers.length ? 'needs_work' : 'ready',
+    status: launchDecision.status === 'blocked' ? 'needs_work' : launchDecision.status,
+    launchDecision,
     summary: {
       wired: wired.length,
       definedNotWired: defined.length,
