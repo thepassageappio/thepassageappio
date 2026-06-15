@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
+import { rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -14,12 +16,26 @@ const SITE_ORIGIN = (() => {
 })();
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
+function cleanLimitKey(value, max = 160) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:-]/g, '').slice(0, max) || 'missing';
+}
+
+function outboundDeliveryKey({ to, workflowId, taskId, actionId, actionType }) {
+  return [
+    'sendEmail',
+    cleanLimitKey(workflowId || 'no-workflow'),
+    cleanLimitKey(taskId || actionId || 'no-task'),
+    cleanLimitKey(to).toLowerCase(),
+    cleanLimitKey(actionType || 'assignment'),
+  ].join(':');
+}
+
 function escapeHtml(value) {
   return String(value || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+    .replace(/\"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
 
@@ -118,6 +134,20 @@ export default async function handler(req, res) {
     });
   }
 
+  const outboundPolicy = getRateLimitPolicy('outboundDelivery');
+  const limit = rateLimit({
+    key: outboundDeliveryKey({ to, workflowId, taskId, actionId, actionType }),
+    windowSeconds: outboundPolicy.windowSeconds,
+    maxRequests: outboundPolicy.maxRequests,
+  });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || outboundPolicy.windowSeconds));
+    return res.status(429).json({
+      error: 'This message was recently sent or retried too many times. Review the delivery trail before sending again.',
+      retryAfterSeconds: limit.retryAfterSeconds,
+    });
+  }
+
   const KEY = process.env.RESEND_API_KEY;
   if (!KEY) return res.status(200).json({ success: true, skipped: true });
 
@@ -138,12 +168,12 @@ export default async function handler(req, res) {
         const dt = new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
         const time = e.time ? ' at ' + e.time : '';
         const loc = e.location_name ? ' at ' + e.location_name : '';
-        const addr = e.location_address ? '<br><span style="color:#a09890;font-size:12px;">' + e.location_address + '</span>' : '';
-        serviceRows += '<tr><td style="padding:6px 0;color:#6a6560;font-size:14px;border-bottom:1px solid #f0ece5;"><strong style="color:#1a1916;">' + label + '</strong><br>' + dt + time + loc + addr + '</td></tr>';
+        const addr = e.location_address ? '<br><span style=\"color:#a09890;font-size:12px;\">' + e.location_address + '</span>' : '';
+        serviceRows += '<tr><td style=\"padding:6px 0;color:#6a6560;font-size:14px;border-bottom:1px solid #f0ece5;\"><strong style=\"color:#1a1916;\">' + label + '</strong><br>' + dt + time + loc + addr + '</td></tr>';
       });
     }
 
-    const serviceBlock = serviceRows ? '<table style="width:100%;border-collapse:collapse;margin:20px 0;background:#f0f5f1;border-radius:12px;padding:4px 16px;"><tbody>' + serviceRows + '</tbody></table>' : '';
+    const serviceBlock = serviceRows ? '<table style=\"width:100%;border-collapse:collapse;margin:20px 0;background:#f0f5f1;border-radius:12px;padding:4px 16px;\"><tbody>' + serviceRows + '</tbody></table>' : '';
 
     let html;
     if (actionType === 'trigger') {
@@ -252,7 +282,7 @@ function assignmentEmail(name, task, deceased, coordinator, serviceBlock, workfl
     intro: `${coordinator} is coordinating the estate of ${deceased} and assigned one scoped task to you.`,
     preheader: `Open Passage to accept, update, or complete ${task || 'your assigned task'}.`,
     sections: [
-      { label: 'Your task', html: `<strong style="color:#1a1916;">${escapeHtml(task || 'Estate coordination')}</strong>` },
+      { label: 'Your task', html: `<strong style=\"color:#1a1916;\">${escapeHtml(task || 'Estate coordination')}</strong>` },
       serviceBlock ? { label: 'Known service details', html: serviceBlock, tone: 'soft' } : null,
       { label: 'Access boundary', text: 'You will only see the estate work connected to your email address.', tone: 'soft' },
     ].filter(Boolean),
@@ -271,7 +301,7 @@ function executionEmail(name, task, deceased, coordinator, messageText, workflow
     intro: `${coordinator} is coordinating next steps for ${deceased}.`,
     preheader: messageText || `Open Passage to review ${task || 'the next step'}.`,
     sections: [
-      { label: 'Task', html: `<strong style="color:#1a1916;">${escapeHtml(task || 'Estate coordination')}</strong>` },
+      { label: 'Task', html: `<strong style=\"color:#1a1916;\">${escapeHtml(task || 'Estate coordination')}</strong>` },
       messageText ? { label: 'Prepared message', text: messageText, tone: 'soft' } : null,
     ].filter(Boolean),
     ctaLabel: 'Open in Passage',
