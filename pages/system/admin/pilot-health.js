@@ -31,6 +31,11 @@ function readinessTone(readiness) {
   if (grade === 'clear_blockers') return 'risk';
   return 'warn';
 }
+function conversionTone(conversion) {
+  if (conversion?.tone === 'good' || conversion?.status === 'ask_now' || conversion?.status === 'retain') return 'good';
+  if (conversion?.tone === 'risk' || conversion?.status === 'clear_blocker') return 'risk';
+  return 'warn';
+}
 
 export default function PilotHealthPage() {
   const [user, setUser] = useState(null);
@@ -81,8 +86,10 @@ export default function PilotHealthPage() {
 
   const totals = result?.totals || {};
   const rows = result?.rows || [];
-  const accountsNeededAtLocal = Math.max(0, Math.ceil((300000 - Number(totals.arrPotential || 0)) / (249.99 * 12)));
-  const accountsNeededAtGroup = Math.max(0, Math.ceil((300000 - Number(totals.arrPotential || 0)) / (349.99 * 12)));
+  const projectedArr = Number(totals.projectedArr ?? totals.arrPotential ?? 0);
+  const remainingGap = Number(totals.remainingGapTo300kArr ?? totals.gapTo300kArr ?? Math.max(0, 300000 - projectedArr));
+  const accountsNeededAtLocal = Math.max(0, Math.ceil(remainingGap / (249.99 * 12)));
+  const accountsNeededAtGroup = Math.max(0, Math.ceil(remainingGap / (349.99 * 12)));
 
   return (
     <Shell user={user} onSignOut={signOut}>
@@ -93,8 +100,11 @@ export default function PilotHealthPage() {
       {error && <Panel tone="risk"><strong>{error}</strong></Panel>}
       {result && <section style={grid4}>
         <Metric label="Accounts" value={totals.accounts || 0} />
-        <Metric label="ARR potential" value={money(totals.arrPotential || 0)} />
-        <Metric label="Gap to $300k" value={money(totals.gapTo300kArr || 300000)} />
+        <Metric label="Paid ARR" value={money(totals.paidArr || 0)} />
+        <Metric label="Ask-ready ARR" value={money(totals.askReadyArr || 0)} />
+        <Metric label="Projected ARR" value={money(projectedArr)} />
+        <Metric label="Gap to $300k" value={money(remainingGap)} />
+        <Metric label="Ask-ready accounts" value={totals.askReadyAccounts || 0} />
         <Metric label="Local accounts needed" value={accountsNeededAtLocal} />
         <Metric label="Group accounts needed" value={accountsNeededAtGroup} />
         <Metric label="Cases coordinated" value={totals.cases || 0} />
@@ -128,8 +138,11 @@ function Panel({ children, tone = 'default' }) { const risk = tone === 'risk'; r
 function Metric({ label, value }) { return <div style={metricCard}><div style={eyebrow}>{label}</div><strong style={{ display: 'block', fontSize: 25, marginTop: 8 }}>{value}</strong></div>; }
 function AccountCard({ row }) {
   const readiness = row.readiness || {};
+  const conversion = row.conversion || {};
   const tone = readinessTone(readiness);
   const readinessPill = tone === 'good' ? goodPill : tone === 'risk' ? riskPill : warnPill;
+  const askTone = conversionTone(conversion);
+  const askPill = askTone === 'good' ? goodPill : askTone === 'risk' ? riskPill : warnPill;
   const evidenceRows = [
     ['Waiting', readiness.waitingDetail],
     ['Blocked', readiness.blockedDetail],
@@ -141,6 +154,7 @@ function AccountCard({ row }) {
         <div><div style={eyebrow}>{row.stage}</div><h3 style={h3}>{row.name}</h3></div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <span style={readinessPill}>{launchGradeLabel(readiness.launchGrade)}</span>
+          {conversion.label && <span style={askPill}>{conversion.label}</span>}
           <span style={row.stage === 'paid_active' || row.stage === 'value_proven' ? goodPill : warnPill}>{row.subscription?.status || 'no billing row'}</span>
         </div>
       </div>
@@ -151,6 +165,8 @@ function AccountCard({ row }) {
         <Metric label="Proof" value={row.metrics?.proofEvents || 0} />
         <Metric label="Readiness" value={(readiness.score || 0) + '/100'} />
         <Metric label="Export ready" value={readiness.exportReady ? 'Yes' : 'No'} />
+        <Metric label="Target plan" value={conversion.targetPlanLabel || 'Not set'} />
+        <Metric label="Ask ARR" value={money(conversion.askReadyArr || conversion.paidArr || 0)} />
         <Metric label="Open / handled" value={(readiness.openTasks || 0) + ' / ' + (readiness.handledTasks || 0)} />
         <Metric label="Waiting / blocked" value={(readiness.waitingTasks || 0) + ' / ' + (readiness.blockedTasks || 0)} />
         <Metric label="ARR potential" value={money(row.metrics?.arrPotential || 0)} />
