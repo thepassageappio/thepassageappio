@@ -24,7 +24,7 @@ async function updateTaskWithSchemaFallback(task, updates) {
   const skippedColumns = [];
   let remaining = { ...updates };
 
-  for (let attempt = 0; attempt < 4; attempt += 1) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
     const { error } = await serviceSupabase
       .from('tasks')
       .update(remaining)
@@ -117,8 +117,10 @@ export default async function handler(req, res) {
   const actorName = actor || auth.user?.user_metadata?.full_name || auth.user?.email || 'Passage';
   const actorEmail = auth.user?.email || (String(actor || '').includes('@') ? String(actor).toLowerCase() : null);
   const terminalStatus = storedStatus === 'handled';
+  const waitingPoint = ['waiting', 'blocked'].includes(storedStatus) ? proofText : null;
   const updates = {
     status: storedStatus,
+    waiting_on: waitingPoint,
     last_action_at: now,
     last_actor: actorName,
     channel: channel || 'record',
@@ -128,6 +130,10 @@ export default async function handler(req, res) {
     updates.completed_at = now;
     updates.completed_by = actorName;
     updates.completed_by_email = actorEmail;
+  } else {
+    updates.completed_at = null;
+    updates.completed_by = null;
+    updates.completed_by_email = null;
   }
   if (storedStatus === 'acknowledged') updates.acknowledged_at = now;
   if (typeof notes === 'string') updates.notes = notes.trim();
@@ -166,13 +172,14 @@ export default async function handler(req, res) {
       status: storedStatus,
       requestedStatus: status,
       outcomeStatus: resolvedOutcomeStatus,
+      waitingOn: waitingPoint,
     },
     confirmation: taskActionConfirmation(status, task, auth.source === 'internal' ? 'system' : 'family'),
     eventDetail: detailText,
     spine: {
       ask: task.title,
       owner: task.assigned_to_name || task.assigned_to_email || null,
-      waiting: storedStatus === 'waiting' ? detailText : storedStatus === 'blocked' ? 'Coordinator or assigned owner must clear the blocker.' : 'No waiting point after this update.',
+      waiting: waitingPoint || (storedStatus === 'handled' ? 'No waiting point after this update.' : detailText),
       proof: detailText,
       notification: 'Task spine event saved. External messages are sent only through reviewed send actions.',
     },
