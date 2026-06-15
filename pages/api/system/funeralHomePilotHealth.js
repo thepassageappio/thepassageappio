@@ -3,6 +3,7 @@ import { isPassageAdmin } from '../../../lib/adminAccess';
 import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
 import { getRequestIp, rateLimit } from '../../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../../lib/rateLimitPolicy';
+import { recommendedFuneralHomeNextAction } from '../../../lib/funeralHomeNextActions';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -150,7 +151,7 @@ function isWaitingTask(task) {
 
 function isBlockedTask(task) {
   const status = String(task?.status || '').toLowerCase();
-  return ['blocked', 'needs_help', 'stuck', 'escalated'].includes(status);
+  return ['blocked', 'failed', 'needs_review', 'needs_help', 'stuck', 'escalated'].includes(status);
 }
 
 function taskEvidenceLabel(task, fallback = '') {
@@ -264,11 +265,12 @@ async function workflowEvidenceForOrganization(organizationId) {
   if (!admin || !organizationId) return { cases: 0, workflowIds: [] };
   const { data, count } = await admin
     .from('workflows')
-    .select('id', { count: 'exact' })
+    .select('id,name,estate_name,deceased_name,date_of_death,coordinator_name,coordinator_email,status,setup_stage,mode', { count: 'exact' })
     .eq('organization_id', organizationId)
     .then(result => result, () => ({ data: [], count: 0 }));
   return {
     cases: count || (data || []).length,
+    workflows: data || [],
     workflowIds: (data || []).map(row => row.id).filter(Boolean),
   };
 }
@@ -335,6 +337,15 @@ export default async function handler(req, res) {
     const proofEvents = await countIn('task_status_events', 'workflow_id', workflowIds);
     const notifications = await countIn('notification_log', 'workflow_id', workflowIds);
     const familyUpdates = await countIn('announcements', 'estate_id', workflowIds);
+    const primaryWorkflow = workflowEvidence.workflows?.[0] || null;
+    const primaryWorkflowTasks = primaryWorkflow ? taskRows.filter(task => task.workflow_id === primaryWorkflow.id) : taskRows;
+    const operatingTask = primaryWorkflowTasks.find(isBlockedTask) || primaryWorkflowTasks.find(isWaitingTask) || primaryWorkflowTasks.find(task => !isHandledTask(task)) || primaryWorkflowTasks.find(isHandledTask) || null;
+    const operatingNextAction = recommendedFuneralHomeNextAction({
+      caseItem: primaryWorkflow ? { ...primaryWorkflow, tasks: primaryWorkflowTasks } : null,
+      task: operatingTask,
+      role: 'director',
+      hasCases: cases > 0,
+    });
     const stage = healthStage({ billing, cases, staff, familyUpdates, proofEvents });
     const readiness = readinessFor({ stage, billing, cases, staff, taskRows, familyUpdates, proofEvents });
     const conversion = conversionRecommendationFor({ stage, readiness, billing, cases, staff, familyUpdates });
@@ -348,6 +359,7 @@ export default async function handler(req, res) {
       createdAt: org.created_at,
       stage,
       nextAction: nextActionFor(stage),
+      operatingNextAction,
       subscription: billing,
       metrics: {
         cases,
