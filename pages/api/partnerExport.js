@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
+import { recommendedFuneralHomeNextAction } from '../../lib/funeralHomeNextActions';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -250,6 +251,11 @@ function buildCaseSummaryCsv(workflows, tasks, events) {
     'Waiting detail',
     'Needs help detail',
     'Recent proof detail',
+    'Recommended next action',
+    'Why now',
+    'Recommended owner',
+    'Recommended proof',
+    'Draft message',
     'Last task action',
     'Case status',
     'Updated at',
@@ -262,6 +268,13 @@ function buildCaseSummaryCsv(workflows, tasks, events) {
     const waitingTasks = caseTasks.filter(task => ['sent', 'waiting', 'pending', 'assigned'].includes(String(task.status || '').toLowerCase()));
     const needsHelpTasks = caseTasks.filter(task => ['blocked', 'failed', 'needs_review'].includes(String(task.status || '').toLowerCase()));
     const handledTasks = caseTasks.filter(task => ['handled', 'completed', 'done'].includes(String(task.status || '').toLowerCase()));
+    const recommendedTask = needsHelpTasks[0] || waitingTasks[0] || openTasks[0] || handledTasks[0] || null;
+    const recommended = recommendedFuneralHomeNextAction({
+      caseItem: { ...workflow, tasks: caseTasks },
+      task: recommendedTask,
+      role: 'director',
+      hasCases: true,
+    });
     const lastAction = caseTasks
       .map(task => task.last_action_at)
       .filter(Boolean)
@@ -295,6 +308,11 @@ function buildCaseSummaryCsv(workflows, tasks, events) {
       summarizeTasks(waitingTasks, 'Waiting on confirmation'),
       summarizeTasks(needsHelpTasks, 'Needs help'),
       summarizeTasks(handledTasks, 'Proof saved'),
+      recommended.label,
+      recommended.reason,
+      recommended.owner,
+      recommended.proof,
+      recommended.draft,
       lastAction,
       workflow.status,
       workflow.updated_at,
