@@ -121,7 +121,7 @@ export default function ConversionPlanPage() {
       <section style={wrap}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <div><div style={eyebrow}>System admin / conversion plan</div><h1 style={h1}>Turn proof-ready pilots into paid funeral-home ARR.</h1><p style={lead}>This page reads Pilot Health and names the next conversion action for every funeral-home account: ask now, prove value, clear blocker, activate, or retain.</p></div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={refresh} disabled={checking} style={primaryButton}>{checking ? 'Refreshing...' : 'Refresh'}</button><Link href="/system/admin/pilot-health" style={secondaryLink}>Pilot Health</Link><Link href="/system/admin/saas-roadmap" style={secondaryLink}>Roadmap</Link></div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={refresh} disabled={checking} style={primaryButton}>{checking ? 'Refreshing...' : 'Refresh'}</button><Link href="/system/admin/partner-checkout-readiness" style={secondaryLink}>Checkout readiness</Link><Link href="/system/admin/pilot-health" style={secondaryLink}>Pilot Health</Link><Link href="/system/admin/saas-roadmap" style={secondaryLink}>Roadmap</Link></div>
         </div>
         {error && <Panel tone="risk"><strong>{error}</strong></Panel>}
         {result && <section style={grid4}>
