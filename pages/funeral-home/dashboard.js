@@ -398,7 +398,7 @@ const demoPartnerContext = {
       coordinationSpine: {
         attentionItems: [
           { id: 'attn1', title: 'Family reply needed', detail: 'Cemetery plot details are waiting on Michael.', status: 'waiting', statusLabel: 'Waiting on family' },
-          { id: 'attn2', title: 'Obituary approval blocked', detail: 'Draft needs one family decision before it can be sent.', status: 'blocked', statusLabel: 'Needs help' },
+          { id: 'attn2', title: 'Obituary approval needs decision', detail: 'Draft needs one family decision before it can be sent.', status: 'blocked', statusLabel: 'Needs help' },
         ],
       },
     },
@@ -5519,7 +5519,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
         </div>
         <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 6 }}>{taskDraft.prompt}</div>
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '11px 12px', marginTop: 9 }}>
-          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Simple task spine</div>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>What happens next</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
               <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Asked of staff</div>
@@ -5534,11 +5534,11 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
               <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{taskExpectedUpdate(task, 'funeral_home')}</div>
             </div>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
-              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Proof and notify</div>
-              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>Saves to case spine, reports, and family-visible status when approved.</div>
+              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Save proof</div>
+              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>Proof saves to the case record; family-visible updates still require approval.</div>
             </div>
           </div>
-          <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 8 }}><strong style={{ color: C.ink }}>Proof destination:</strong> {proofDestination}</div>
+          <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 8 }}><strong style={{ color: C.ink }}>Where proof saves:</strong> {proofDestination}</div>
         </div>
         {taskDraft.output && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
@@ -5560,7 +5560,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
         )}
         {taskDraft.status === 'blocked' && (
           <div style={{ background: C.card, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
-            This request is saved as a waiting family item. Copy it for email/text when you are demoing; Passage does not send live messages here.
+            This is saved as a family help request. Copy it for email/text when demoing; Passage does not send live messages here.
           </div>
         )}
         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
