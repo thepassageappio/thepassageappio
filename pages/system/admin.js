@@ -169,9 +169,13 @@ export default function SystemAdminPage() {
         body: options.body ? JSON.stringify(options.body) : undefined,
       });
       const json = await response.json().catch(() => ({}));
+      if (response.status === 429) {
+        const retryAfter = Number(response.headers.get('Retry-After') || json.retryAfterSeconds || 60);
+        setCheckCooldowns(prev => ({ ...prev, [key]: Date.now() + Math.max(1, retryAfter) * 1000 }));
+      }
       setCheckResults(prev => ({ ...prev, [key]: { label, ok: response.ok, status: response.status, json } }));
     } catch (error) {
-      setCheckResults(prev => ({ ...prev, [key]: { label, ok: false, status: 0, json: { error: error.message || 'Check failed.' } } }));
+      setCheckResults(prev => ({ ...prev, [key]: { label, ok: false, status: 0, json: { status: 'failed', error: error.message || 'Check failed.' } } }));
     } finally {
       setRunningKey('');
     }
