@@ -618,6 +618,15 @@ function familyWorkflowText(value) {
     .replace(/blocker/gi, 'stuck point')
     .replace(/blocked/gi, 'stuck');
 }
+function familyWaitingPoint(value) {
+  var text = familyWorkflowText(value);
+  if (!text) return 'Waiting for the next update.';
+  if (/^recipient$/i.test(text)) return 'Waiting for the assigned person to reply.';
+  if (/^owner$/i.test(text)) return 'Waiting for the owner to update the record.';
+  if (/^vendor$/i.test(text)) return 'Waiting for the vendor to respond.';
+  if (/^family$/i.test(text)) return 'Waiting for the family update.';
+  return text;
+}
 function statusText(status) {
   var value = String(status || '').replace(/_/g, ' ');
   if (!value) return 'Draft';
@@ -2039,7 +2048,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               <div style={{ color: INK, fontSize: 26, lineHeight: 1.08, fontWeight: 900 }}>{title}</div>
               <div style={{ color: MID, fontSize: 14.5, lineHeight: 1.55, marginTop: 10 }}>{item ? displayTaskNext(item) : 'No estate work needs attention right now.'}</div>
               <div style={{ background: statusBg, borderLeft: '4px solid ' + statusTone, borderRadius: 12, padding: '10px 12px', color: MID, fontSize: 12.8, lineHeight: 1.45, marginTop: 13 }}>
-                <strong style={{ color: INK }}>Next expected update:</strong> {taskState?.waitingOn || expectedUpdate}
+                <strong style={{ color: INK }}>Next expected update:</strong> {familyWaitingPoint(taskState?.waitingOn || expectedUpdate)}
               </div>
               {taskState && (
                 <div style={{ background: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_FAINT : SAGE_FAINT, border: '1px solid ' + (taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 13, padding: '10px 12px', color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
@@ -2063,7 +2072,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                     })}
                   </div>
                   <div style={{ color: MID, fontSize: 11.8, lineHeight: 1.45, marginTop: 7 }}>
-                    Every role sees the same simple spine in a scoped way: know who owns it, do the next step, update the waiting point, save proof, then mark done.
+                    Every role sees the same simple spine in a scoped way: see the owner, do the next step, update the waiting point, save proof, then mark done.
                   </div>
                 </div>
               )}
@@ -2096,7 +2105,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                   {[
                     ['1. Do', displayTaskNext(item)],
                     ['Owner', owner],
-                    ['2. Update', taskState?.waitingOn || expectedUpdate],
+                    ['2. Update', familyWaitingPoint(taskState?.waitingOn || expectedUpdate)],
                     ['3. Save proof', workspace?.proofDestination || proof],
                   ].map(function(row) {
                     return (
