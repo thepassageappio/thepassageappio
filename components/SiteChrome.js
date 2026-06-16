@@ -146,7 +146,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
   const [localUser, setLocalUser] = useState(null);
   const [localAuthReady, setLocalAuthReady] = useState(controlled ? !!authReady : false);
   const currentUser = controlled ? user : localUser;
-  const activePath = hydrated ? path : '';
+  const activePath = path || '';
   const estateActive = isActivePath(activePath, '/estate') || (hydrated && router?.query?.dashboard === '1');
 
   useEffect(() => {
@@ -212,7 +212,8 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
   const signInHandler = onSignIn || defaultSignIn;
   const signOutHandler = onSignOut || defaultSignOut;
   const adminUser = isSystemAdminUser(currentUser);
-  const ownerConsoleActive = adminUser && isActivePath(activePath, '/system');
+  const systemRouteActive = isActivePath(activePath, '/system');
+  const ownerConsoleActive = systemRouteActive;
   const partnerSurfaceActive = isActivePath(activePath, '/funeral-home') || isActivePath(activePath, '/vendors') || isActivePath(activePath, '/care-providers') || isActivePath(activePath, '/participating');
   const showFamilyDashboardLink = currentUser && !ownerConsoleActive && !partnerSurfaceActive;
   const navLinks = ownerConsoleActive ? [['System admin', '/system/admin']] : PUBLIC_LINKS;
