@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseBrowser';
-import { RoleActionStrip, StatusBadge } from './SiteChrome';
+import { StatusBadge } from './SiteChrome';
 import { vendorAvailabilityLabel, vendorCategoryLabel } from '../lib/vendors';
 import { paymentStatusLabel, vendorNextExpected, vendorStatusLabel } from '../lib/vendorLifecycle';
 
@@ -143,14 +143,20 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
         </div>
         {category && <span style={{ fontSize: 10.5, fontWeight: 900, color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 8px', whiteSpace: 'nowrap' }}>{vendorCategoryLabel(category)}</span>}
       </div>
-      <RoleActionStrip
-        compact
-        role="Scoped vendor help"
-        action="Request one provider only when this task needs outside help."
-        waiting="Viewed, accepted, in progress, and completed stay attached to this task."
-        proof="The family and funeral home see the request state without exposing the whole record."
-        privacy="Vendors see only the relevant task, timing, and contact details needed to respond."
-      />
+      <div style={{ background: C.sageFaint, border: '1px solid ' + C.sageLight, borderRadius: 11, padding: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginBottom: 9 }}>
+        <div>
+          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>1. Do</div>
+          <div style={{ fontSize: 12.2, color: C.ink, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>Choose one provider only when this task needs outside help.</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>2. Update</div>
+          <div style={{ fontSize: 12.2, color: C.mid, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>Viewed, accepted, in progress, and completed stay attached here.</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>3. Save proof</div>
+          <div style={{ fontSize: 12.2, color: C.mid, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>The vendor sees only this task, timing, and contact boundary.</div>
+        </div>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 7, margin: '9px 0' }}>
         {[
           ['planned', 'Planned quote', 'Use when timing can be coordinated calmly.'],
