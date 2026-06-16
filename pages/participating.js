@@ -119,9 +119,9 @@ function recommendedParticipantAction(availableActions, status) {
 }
 
 function recommendedParticipantCopy(action) {
-  if (action === 'accept') return 'Start here if you can take this on. Passage keeps the task open until you mark what is waiting or record proof that it is done.';
+  if (action === 'accept') return 'Start here if you can take this on. Passage keeps the request open until you mark what is waiting or say it is done.';
   if (action === 'waiting') return 'Use this if you started but need a reply, document, date, or decision before the coordinator can move on.';
-  if (action === 'handled' || action === 'confirmed') return 'Use this only when your part is truly complete. Passage records the proof and moves this out of your active work.';
+  if (action === 'handled' || action === 'confirmed') return 'Use this only when your part is truly complete. Passage saves your note and moves this out of your active work.';
   return 'Send one clear update so the coordinator knows what changed.';
 }
 
@@ -129,7 +129,7 @@ function participantActionSaveLabel(action) {
   if (action === 'save_note') return 'Save note only';
   if (action === 'accept') return 'Accept responsibility';
   if (action === 'waiting') return 'Save waiting update';
-  if (action === 'handled' || action === 'confirmed') return 'Mark done with proof';
+  if (action === 'handled' || action === 'confirmed') return 'Mark done with note';
   if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'Ask coordinator for help';
   if (action === 'quoted') return 'Save quote update';
   if (action === 'scheduled') return 'Save scheduled update';
@@ -140,7 +140,7 @@ function participantActionEffectCopy(action) {
   if (action === 'save_note') return 'This saves a note for the coordinator without changing the task status.';
   if (action === 'accept') return 'This tells the coordinator you are taking responsibility. The task stays open until you save proof or a waiting update.';
   if (action === 'waiting') return 'This keeps the task open and shows exactly what you are waiting on.';
-  if (action === 'handled' || action === 'confirmed') return 'This marks your part done, records your proof, and moves it out of your active work.';
+  if (action === 'handled' || action === 'confirmed') return 'This marks your part done, saves your note, and moves it out of your active work.';
   if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'This keeps the task visible as blocked so the coordinator can step in.';
   if (action === 'quoted' || action === 'scheduled') return 'This saves your update to the same family record without exposing the full workspace.';
   return 'This update goes back to the coordinator and stays attached to the family record.';
@@ -382,7 +382,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   };
   const submitAction = (action) => {
     if (taskActionRequiresNote(action) && !String(notes || '').trim()) {
-      setProofWarning('Add a short proof, blocker, or waiting note first so the coordinator knows what changed.');
+      setProofWarning('Add a short note first so the coordinator knows what changed.');
       return;
     }
     setProofWarning('');
@@ -423,7 +423,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
             <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{expectedUpdate}</div>
           </div>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Proof and notify</div>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>What gets saved</div>
             <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{notificationSummary}</div>
           </div>
         </div>
@@ -859,7 +859,7 @@ export default function ParticipatingPage() {
 
       <section className="participant-shell">
         <div style={{ maxWidth: 760, marginBottom: 16 }}>
-          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Private participant workspace</div>
+          <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Private family request</div>
           <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: '0 0 7px', fontWeight: 400 }}>{user || demoMode ? 'Open the family request assigned to you.' : 'Sign in to open your assigned request.'}</h1>
           <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: 0 }}>
             {user || demoMode
@@ -885,7 +885,7 @@ export default function ParticipatingPage() {
               <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 20, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
                 <div style={{ fontSize: 22, marginBottom: 8 }}>Open your private Passage request.</div>
                 <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7, marginTop: 0 }}>
-                  Sign in with Google or send a secure email link. After sign-in, you will land on the assigned task spine for the family record.
+                  Sign in with Google or send a secure email link. After sign-in, you will land on the specific request assigned to you.
                 </p>
                 <button onClick={() => signIn(router.asPath || '/participating')} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
                 <div style={{ height: 12 }} />
