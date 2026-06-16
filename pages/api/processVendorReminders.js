@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { internalHeaders } from '../../lib/deliveryAuth';
 import { recordStatusEvent } from '../../lib/taskStatus';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
@@ -10,6 +12,16 @@ function isAuthorized(req) {
   const providedInternal = req.headers['x-passage-internal-secret'];
   const providedBearer = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   return Boolean((internalSecret && providedInternal === internalSecret) || (cronSecret && providedBearer === cronSecret));
+}
+
+function enforceProcessorLimit(req) {
+  const policy = getRateLimitPolicy('outboundDelivery');
+  if (!policy) return { allowed: true };
+  return rateLimit({
+    key: ['process-vendor-reminders', getRequestIp(req), String(req.headers.authorization || req.headers['x-passage-internal-secret'] || 'internal').slice(0, 24)].join(':'),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: Math.max(6, Math.floor(policy.maxRequests / 2)),
+  });
 }
 
 function hoursFromNow(value) {
@@ -52,6 +64,11 @@ async function sendVendorReminder(request, kind) {
 export default async function handler(req, res) {
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).end();
   if (!isAuthorized(req)) return res.status(401).json({ error: 'Vendor reminder processor is not authorized.' });
+  const limit = enforceProcessorLimit(req);
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+    return res.status(429).json({ error: 'Vendor reminder processing is cooling down. Wait before running it again.', retryAfterSeconds: limit.retryAfterSeconds });
+  }
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
   const now = new Date();
