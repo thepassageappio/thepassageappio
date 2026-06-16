@@ -66,34 +66,21 @@ export default function FuneralHomeSampleCase() {
             <p className="sample-lede">This sample shows how a funeral-home team keeps one family case clear: the next action, the owner, the waiting point, the family update, and the proof packet all stay together.</p>
             <div className="sample-actions">
               <a className="sample-button sample-primary" href={walkthroughHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('funeral_home_sample_book_walkthrough_clicked', { source: 'sample-case' })}>Book walkthrough</a>
-              <Link className="sample-button sample-secondary" href="/funeral-home/dashboard?demo=1" onClick={() => trackEvent('funeral_home_sample_full_workspace_clicked', { source: 'sample-case' })}>Open full workspace</Link>
+              <Link className="sample-button sample-secondary" href="/funeral-home/workspace-demo" onClick={() => trackEvent('funeral_home_sample_full_workspace_clicked', { source: 'sample-case' })}>Open full workspace</Link>
               <Link className="sample-button sample-secondary" href="/funeral-home/login" onClick={() => trackEvent('funeral_home_sample_login_clicked', { source: 'sample-case' })}>Customer login</Link>
             </div>
           </div>
           <div className="sample-panel">
             <div className="sample-kicker">Case clarity</div>
-            <div className="sample-metrics">
-              {metrics.map(([label, value]) => <div className="sample-metric" key={label}><div className="sample-kicker">{label}</div><b>{value}</b></div>)}
-            </div>
+            <div className="sample-metrics">{metrics.map(([label, value]) => <div className="sample-metric" key={label}><div className="sample-kicker">{label}</div><b>{value}</b></div>)}</div>
           </div>
         </div>
         <section className="sample-grid" aria-label="Sample case loop">
-          {caseSteps.map(([label, title, body, status]) => (
-            <article className="sample-step" key={label}>
-              <div className="sample-step-head"><div><div className="sample-kicker">{label}</div><h2>{title}</h2></div><span className="sample-pill">{status}</span></div>
-              <p>{body}</p>
-            </article>
-          ))}
+          {caseSteps.map(([label, title, body, status]) => <article className="sample-step" key={label}><div className="sample-step-head"><div><div className="sample-kicker">{label}</div><h2>{title}</h2></div><span className="sample-pill">{status}</span></div><p>{body}</p></article>)}
         </section>
         <section className="sample-path" aria-label="Sample case workflow">
-          <div className="sample-panel">
-            <div className="sample-kicker">How the workspace helps</div>
-            <h2 style={{ fontSize: 24, lineHeight: 1.05, margin: '8px 0 8px', fontWeight: 400 }}>Keep the next step obvious.</h2>
-            <p className="sample-lede" style={{ fontSize: 13.5 }}>A director should be able to open the case, understand the waiting point, and move the right next step without extra explanation.</p>
-          </div>
-          <div className="sample-path-list">
-            {workspaceSteps.map(([label, body]) => <div className="sample-path-card" key={label}><strong>{label}</strong><span>{body}</span></div>)}
-          </div>
+          <div className="sample-panel"><div className="sample-kicker">How the workspace helps</div><h2 style={{ fontSize: 24, lineHeight: 1.05, margin: '8px 0 8px', fontWeight: 400 }}>Keep the next step obvious.</h2><p className="sample-lede" style={{ fontSize: 13.5 }}>A director should be able to open the case, understand the waiting point, and move the right next step without extra explanation.</p></div>
+          <div className="sample-path-list">{workspaceSteps.map(([label, body]) => <div className="sample-path-card" key={label}><strong>{label}</strong><span>{body}</span></div>)}</div>
         </section>
         <div className="sample-note">
           <div><div className="sample-kicker" style={{ color: '#b9d2bd' }}>Operating rule</div><strong>If the next step is not obvious, the workspace is not done.</strong><p style={{ color: '#d8d0c7', margin: '7px 0 0', lineHeight: 1.45 }}>The screen should make ownership, waiting, family messaging, and proof easy to understand at a glance.</p></div>
