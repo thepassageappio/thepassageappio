@@ -1945,8 +1945,8 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: 13, marginBottom: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Workflow state engine</div>
-              <div style={{ color: INK, fontSize: 16, lineHeight: 1.25, fontWeight: 900, marginTop: 3 }}>Passage is coordinating states, not just tasks.</div>
+              <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>What Passage is tracking</div>
+              <div style={{ color: INK, fontSize: 16, lineHeight: 1.25, fontWeight: 900, marginTop: 3 }}>Passage keeps each next step tied to an owner, update, and proof.</div>
             </div>
             {workflowStates.activeState && (
               <span style={{ background: workflowStates.activeState.tone === 'warn' ? ROSE_FAINT : workflowStates.activeState.tone === 'wait' ? AMBER_FAINT : SAGE_FAINT, border: '1px solid ' + (workflowStates.activeState.tone === 'warn' ? ROSE + '35' : workflowStates.activeState.tone === 'wait' ? AMBER_BORDER : SAGE_LIGHT), color: workflowStates.activeState.tone === 'warn' ? ROSE : workflowStates.activeState.tone === 'wait' ? AMBER : SAGE, borderRadius: 999, padding: '5px 9px', fontSize: 11.5, fontWeight: 900 }}>
@@ -2027,7 +2027,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               </div>
               {taskState && (
                 <div style={{ background: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_FAINT : SAGE_FAINT, border: '1px solid ' + (taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 13, padding: '10px 12px', color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
-                  <div style={{ color: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER : SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Orchestration state: {taskState.label}</div>
+                  <div style={{ color: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER : SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Passage status: {taskState.label}</div>
                   <div style={{ marginTop: 4 }}>{taskState.reassurance}</div>
                   {taskState.escalation && <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>If stuck:</strong> {taskState.escalation}</div>}
                 </div>
@@ -2036,7 +2036,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                 <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 12px', marginTop: 10 }}>
                   <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>How this task moves</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 6, marginTop: 8 }}>
-                    {['Owner', 'Ask', 'Waiting', 'Proof', 'Done'].map(function(label, index) {
+                    {['Owner', '1. Do', '2. Update', '3. Save proof', 'Done'].map(function(label, index) {
                       var active = index === lifecycleStep;
                       var past = index < lifecycleStep;
                       return (
@@ -2047,13 +2047,13 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                     })}
                   </div>
                   <div style={{ color: MID, fontSize: 11.8, lineHeight: 1.45, marginTop: 7 }}>
-                    Every role sees this same movement in a scoped way: assign one owner, make one ask, wait visibly, save proof, then mark done.
+                    Every role sees the same simple spine in a scoped way: know who owns it, do the next step, update the waiting point, save proof, then mark done.
                   </div>
                 </div>
               )}
               {(suggestedOutputs.length > 0 || suggestedTasks.length > 0) && (
                 <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 12px', marginTop: 10 }}>
-                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Next recommended action</div>
+                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Recommended next move</div>
                   <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.45, marginTop: 4 }}>
                     {suggestedOutputs[0]?.reason || suggestedTasks[0]?.reason || 'Passage recommends the next useful output or task from the current state.'}
                   </div>
@@ -2078,9 +2078,10 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               {item && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 8, marginTop: 10 }}>
                   {[
-                    ['What happens now', displayTaskNext(item)],
-                    ['Who owns it', owner],
-                    ['How we know', workspace?.proofDestination || proof],
+                    ['1. Do', displayTaskNext(item)],
+                    ['Owner', owner],
+                    ['2. Update', taskState?.waitingOn || expectedUpdate],
+                    ['3. Save proof', workspace?.proofDestination || proof],
                   ].map(function(row) {
                     return (
                       <div key={row[0]} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 11, padding: '8px 9px' }}>
@@ -2093,9 +2094,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               )}
               {(importance?.reason || workspace?.guidance || workspace?.output?.body) && (
                 <details style={{ borderTop: '1px solid ' + BORDER, marginTop: 12, paddingTop: 10 }}>
-                  <summary style={{ cursor: 'pointer', color: SAGE, fontSize: 12.2, fontWeight: 900 }}>Why this matters and what Passage prepares</summary>
+                  <summary style={{ cursor: 'pointer', color: SAGE, fontSize: 12.2, fontWeight: 900 }}>Why this matters</summary>
                   <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.5, marginTop: 9 }}>
-                    {importance?.reason && <div><strong style={{ color: INK }}>Why this is here:</strong> {importance.reason}</div>}
+                    {importance?.reason && <div><strong style={{ color: INK }}>Why now:</strong> {importance.reason}</div>}
                     {workspace?.guidance && (
                       <div style={{ marginTop: importance?.reason ? 7 : 0 }}>
                         <strong style={{ color: INK }}>Usually handled by:</strong> {workspace.guidance.usualOwner}<br />
@@ -2105,7 +2106,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                     {workspace?.output?.body && (
                       <div style={{ marginTop: 7 }}><strong style={{ color: INK }}>{workspace.output.label}:</strong> {workspace.output.body}</div>
                     )}
-                    <div style={{ marginTop: 7 }}><strong style={{ color: INK }}>Authority path:</strong> owner asks, recipient responds, proof is recorded, status reports back.</div>
+                    <div style={{ marginTop: 7 }}><strong style={{ color: INK }}>Simple path:</strong> Passage shows the next step, someone updates the record, and proof is saved before the task is closed.</div>
                   </div>
                 </details>
               )}
@@ -2249,8 +2250,8 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
 
       {workflowStates.states.length > 0 && (
         <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 14, padding: 11, marginBottom: 12 }}>
-          <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Workflow state engine</div>
-          <div style={{ color: INK, fontSize: 15, lineHeight: 1.3, fontWeight: 900, marginTop: 3 }}>Passage is coordinating states, not just tasks.</div>
+          <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>What Passage is tracking</div>
+          <div style={{ color: INK, fontSize: 15, lineHeight: 1.3, fontWeight: 900, marginTop: 3 }}>Passage keeps each next step tied to an owner, update, and proof.</div>
           {workflowStates.activeState && (
             <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.45, marginTop: 5 }}>
               <strong style={{ color: INK }}>{workflowStates.activeState.label}:</strong> {workflowStates.activeState.statusLabel}. {workflowStates.activeState.reassurance}
