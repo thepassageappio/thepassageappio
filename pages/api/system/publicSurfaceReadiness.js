@@ -27,7 +27,7 @@ const publicChecks = [
   },
   {
     path: '/funeral-home/workspace-demo',
-    requires: ['Private partner workspace', 'What opens after sign-in', 'Staff queue showing who owns what'],
+    requires: ['Sample funeral-home workspace', 'What opens after sign-in', 'Staff queue showing who owns what'],
   },
   {
     path: '/care-providers',
@@ -121,6 +121,7 @@ const forbiddenPublicText = [
   'launch grade',
   'pilot conversion',
   'New partner',
+  'Private partner workspace',
 ];
 
 const forbiddenPublicMarkup = [
