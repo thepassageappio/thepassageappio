@@ -3913,7 +3913,7 @@ export default function FuneralHomeDashboard() {
                       action="Close with proof when the work is complete."
                       waiting={taskExpectedUpdate(firstStaffTask, 'funeral_home')}
                       proof={proofDestination}
-                      privacy="Staff sees case context and their assigned work. Private ROI, billing, and unrelated cases stay in director/admin views."
+                      privacy="Staff sees case context and their assigned work. Private finances, billing, and unrelated cases stay in director/admin views."
                     />
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
@@ -4279,7 +4279,7 @@ export default function FuneralHomeDashboard() {
             </div>
             <div style={{ background: C.sageFaint, border: `1px solid ${caseForm.totalCaseValue || caseForm.isPrepaid ? C.sage : C.sage + '22'}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case economics</div>
-              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>Value belongs on every case when known. Prepaid is only a funding flag, and these numbers power private ROI reports for the funeral home.</div>
+              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.45, marginTop: 4 }}>Value belongs on every case when known. Prepaid is only a funding flag, and these numbers power private operating signals for the funeral home.</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: 8, marginTop: 10, alignItems: 'end' }}>
                 <label style={{ display: 'grid', gap: 4, fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.11em', textTransform: 'uppercase' }}>
                   Total case value
