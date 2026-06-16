@@ -634,7 +634,7 @@ function statusText(status) {
   if (value === 'assigned' || value === 'waiting' || value === 'pending') return 'Waiting for confirmation';
   if (value === 'delivered') return 'Delivered';
   if (value === 'acknowledged') return 'Confirmed';
-  if (value === 'blocked') return 'Blocked';
+  if (value === 'blocked') return 'Needs help';
   if (value === 'needs review') return 'Needs review';
   if (value === 'handled' || value === 'completed' || value === 'done') return 'Handled';
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -1597,10 +1597,11 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
         {['Fully automated', 'Assisted execution', 'Guided manual'].map(function(tier) {
+          var tierLabel = tier === 'Fully automated' ? 'Passage-prepared' : tier === 'Assisted execution' ? 'Guided with Passage' : 'Manual step';
           return (
             <div key={tier} style={{ background: tier === 'Fully automated' ? SAGE_FAINT : tier === 'Assisted execution' ? SUBTLE : AMBER_FAINT, borderRadius: 11, padding: 10 }}>
               <div style={{ fontSize: 18, color: tier === 'Guided manual' ? AMBER : SAGE, fontWeight: 900 }}>{tierCounts[tier] || 0}</div>
-              <div style={{ fontSize: 10.5, color: MID, lineHeight: 1.25 }}>{tier}</div>
+              <div style={{ fontSize: 10.5, color: MID, lineHeight: 1.25 }}>{tierLabel}</div>
             </div>
           );
         })}
@@ -1942,7 +1943,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         <div style={{ minWidth: 170, background: overallStatusBg, border: '1px solid ' + (blockedCount ? ROSE + '35' : waitingCount ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 14, padding: '10px 12px', textAlign: 'right' }}>
           <div style={{ color: overallStatusTone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{blockedCount ? 'Needs attention' : waitingCount ? 'Waiting' : 'On track'}</div>
           <div style={{ color: INK, fontSize: 20, lineHeight: 1.1, fontWeight: 900, marginTop: 4 }}>{handledCount} handled</div>
-          <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{waitingCount} waiting · {blockedCount} blocked</div>
+          <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{waitingCount} waiting · {blockedCount} needs help</div>
         </div>
       </div>
 
@@ -2482,7 +2483,7 @@ function ActivatePlanView({ estate, actions, tasks, outcomes, onActivate, activa
 
       {needsReview.length > 0 && (
         <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '30', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, color: ROSE, lineHeight: 1.55, fontWeight: 700, marginBottom: 12 }}>
-          {needsReview.length} message{needsReview.length === 1 ? '' : 's'} need review before they are considered handled. Failed or blocked messages stay here until someone retries, edits, or marks the task handled manually.
+          {needsReview.length} message{needsReview.length === 1 ? '' : 's'} need review before they are considered handled. Failed messages and help requests stay here until someone retries, edits, or marks the task handled manually.
         </div>
       )}
 
@@ -2981,7 +2982,7 @@ function demoFamilySpineContext() {
       status: 'blocked',
       assigned_to_name: 'Passage coordinator',
       assigned_to_email: 'support@thepassageapp.io',
-      notes: 'Blocked until service date and location are confirmed.',
+      notes: 'Waiting until service date and location are confirmed.',
       last_action_at: now,
       created_at: now,
     },
@@ -4550,7 +4551,7 @@ export default function EstatePage() {
                 {pendingTaskAction.status === 'handled'
                   ? 'Passage marks this task done, saves this proof note and any attachment path, notifies the right spine view, and moves it out of active work.'
                   : pendingTaskAction.status === 'blocked'
-                    ? 'Passage keeps this visible as a help request, records the blocker, and shows who needs to respond next.'
+                    ? 'Passage keeps this visible as a help request, records the stuck point, and shows who needs to respond next.'
                     : pendingTaskAction.status === 'waiting'
                       ? 'Passage keeps this task open, records what is waiting, and keeps the next expected update visible.'
                       : pendingTaskAction.mode
