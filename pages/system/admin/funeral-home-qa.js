@@ -44,15 +44,15 @@ const qaRoutes = [
   {
     persona: 'Funeral-home director',
     route: '/funeral-home/dashboard?demo=1&persona=fh-director&demoTour=funeral-home&demoStep=dashboard',
-    promise: 'Runs today from My Day: cases, waiting items, unassigned work, staff load, proof, and reports.',
+    promise: 'Runs today from My Day: next case, waiting items, coverage, family requests, proof, and reports.',
     pass: [
-      'Director identifies highest-priority case in under 10 seconds.',
+      'Director identifies the recommended next case in under 10 seconds.',
       'Case pane shows family handoff context before task clutter.',
       'Director can assign work to staff and see the owner change.',
       'Reviewed family update cannot leave without clear approval/proof state.',
       'Completed or waiting work leaves proof and drops out of active attention.',
     ],
-    evidence: ['My Day screenshot', 'Selected case screenshot', 'Task owner/proof screenshot', 'Export/reporting screenshot'],
+    evidence: ['My Day screenshot', 'Selected case screenshot', 'Task owner/proof screenshot', 'Reports/export screenshot'],
     priority: 'P0',
   },
   {
@@ -210,7 +210,7 @@ export default function FuneralHomeQaPage() {
         <div style={eyebrow}>Success standard</div>
         <h2 style={h2}>Director and employee can complete the core loop without narration.</h2>
         <div style={grid}>
-          {['Open sample console', 'See My Day', 'Inspect case context', 'Assign staff work', 'Move task with proof', 'Preview family update', 'See delivery trail', 'Export/report status', 'Know pilot next step'].map(item => (
+          {['Open sample console', 'See My Day', 'Inspect case context', 'Resolve coverage', 'Move task with proof', 'Preview family update', 'See delivery trail', 'Export/report status', 'Know pilot next step'].map(item => (
             <div key={item} style={miniCard}>{item}</div>
           ))}
         </div>
