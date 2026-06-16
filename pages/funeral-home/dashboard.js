@@ -1481,25 +1481,25 @@ export default function FuneralHomeDashboard() {
       return;
     }
     if (!isDirectorRole) {
-      openPartnerPane('staff', 'partner-staff-section', 'Opening your assigned work queue.');
+      openPartnerPane('staff', 'partner-staff-section', 'Opening your assigned work.');
       return;
     }
     if (nextDirectorStep.key === 'staff') {
-      openPartnerPane('staff', 'partner-staff-section', 'Opening staff queue so the next owner can be set.');
+      openPartnerPane('staff', 'partner-staff-section', 'Opening staff coverage so the next owner can be set.');
       return;
     }
     if (nextDirectorStep.key === 'report') {
       openPartnerPane('reports', 'partner-reports-section', 'Opening reports and export so proof can leave Passage cleanly.');
       return;
     }
-    openPartnerPane('work', 'partner-today-section', 'Opening the work queue for the recommended next action.');
+    openPartnerPane('work', 'partner-today-section', 'Opening My Day for the recommended next action.');
   }
 
   function directorFocusButtonLabel() {
     if (recommendedActionCase?.id) return recommendedActionTask ? 'Open next task' : 'Open recommended case';
     if (!cases.length) return 'Create case';
-    if (!isDirectorRole) return firstStaffTask ? 'Open my task' : 'Open staff queue';
-    if (nextDirectorStep.key === 'staff') return 'Open staff queue';
+    if (!isDirectorRole) return firstStaffTask ? 'Open my task' : 'Open my work';
+    if (nextDirectorStep.key === 'staff') return 'Open my work';
     if (nextDirectorStep.key === 'report') return 'Open reports';
     return 'Open next action';
   }
@@ -2556,7 +2556,7 @@ export default function FuneralHomeDashboard() {
     ];
   const headerUser = user?.id === publicDemoUser.id ? null : user;
   const guidedDemoSteps = [
-    ['dashboard', '1', 'My Day', 'See blocked work, waiting families, warm inbounds, staff load, and ROI from one operating floor.'],
+    ['dashboard', '1', 'My Day', 'See blocked work, waiting families, family requests, coverage, and ROI from one operating floor.'],
     ['task', '2', 'Task spine', 'Open the next case and show owner, waiting point, prepared output, proof, and family-visible status.'],
     ['chat', '3', 'Communication proof', 'Show how notes, family updates, and notifications stay attached to the case instead of living in inboxes.'],
     ['export', '4', 'Reports and export', 'Close with CSV/reporting proof: calls avoided, time saved, staff workload, and case export.'],
@@ -3706,7 +3706,7 @@ export default function FuneralHomeDashboard() {
           <div id="partner-staff-section" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: isDirectorRole ? 18 : 16, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Work queue' : 'My work today'}</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Staff coverage' : 'My work today'}</div>
                 <div style={{ fontSize: isDirectorRole ? 24 : 28, lineHeight: 1.12, marginTop: 3 }}>{isDirectorRole ? 'Assign the next owner, then get out of the way.' : 'Here is what needs your attention today.'}</div>
                 {!isDirectorRole && (
                   <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 6, maxWidth: 660 }}>
@@ -4026,7 +4026,7 @@ export default function FuneralHomeDashboard() {
                   <select value={reportStaff} onChange={event => setReportStaff(event.target.value)} style={inputStyle}>
                     <option value="all">All staff</option>
                     {reportStaffOptions.map(member => <option key={member.email} value={member.email}>{member.label || member.email}</option>)}
-                    <option value="unassigned">Unassigned work</option>
+                    <option value="unassigned">Needs owner</option>
                   </select>
                 </label>
               </div>
@@ -4036,7 +4036,7 @@ export default function FuneralHomeDashboard() {
                   ['locations', 'Locations'],
                   ['staff', 'Staff'],
                   ['tasks', 'Tasks'],
-                  ['inbounds', 'Warm inbounds'],
+                  ['inbounds', 'Family requests'],
                   ['cases', 'Cases'],
                 ].map(([key, label]) => (
                   <button key={key} onClick={() => setReportView(key)} style={{ border: `1px solid ${reportView === key ? C.sage : C.border}`, background: reportView === key ? C.sage : C.card, color: reportView === key ? '#fff' : C.mid, borderRadius: 999, padding: '8px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
@@ -4054,8 +4054,8 @@ export default function FuneralHomeDashboard() {
                 ['Messages sent', reportScopedMessages.length],
                 ['Participants invited', reportScopedParticipants.length],
                 ['Participants accepted', reportAcceptedParticipants.length],
-                ['Warm inbounds', reports.warmInboundRequests ?? warmInbounds.length],
-                ['Open inbounds', reports.warmInboundOpen ?? openWarmInbounds.length],
+                ['Family requests', reports.warmInboundRequests ?? warmInbounds.length],
+                ['Open requests', reports.warmInboundOpen ?? openWarmInbounds.length],
                 ['Vendor quotes', reportVendorQuoteReady],
                 ['Quotes accepted', reportVendorAccepted],
                 ['Tasks resolved', reportHandledTasks.length],
