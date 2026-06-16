@@ -33,10 +33,10 @@ const purposes = [
 ];
 
 const boundaryRows = [
-  'This is a public partnership page, not an operating dashboard.',
-  'Care teams do not browse family records unless the family explicitly invites them.',
+  'Family records stay family-owned unless access is explicitly invited.',
+  'Care teams receive only the context their role requires.',
   'Passage is not a referral marketplace, lead router, or per-death placement system.',
-  'The next action is simple: ask about partnership, book a walkthrough, or create a family care-prep record.',
+  'The practical next step is partnership inquiry, walkthrough, or a family care-prep record.',
 ];
 
 const handoffSteps = [
@@ -160,9 +160,9 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
       <section style={section}>
         <div className="care-two" style={twoPanelGrid}>
           <div style={panel}>
-            <div style={eyebrow}>Purpose of this page</div>
-            <h2 style={h2}>A public partnership page, not an operating dashboard.</h2>
-            <p style={smallText}>A care-facility employee should immediately know this page is for learning, partnership inquiry, and helping a family begin a family-owned record. Day-to-day operating work belongs in permissioned workspaces, not here.</p>
+            <div style={eyebrow}>Partner fit</div>
+            <h2 style={h2}>A calmer handoff before the first urgent call.</h2>
+            <p style={smallText}>Care teams can help families collect contacts, wishes, documents, and first-call context earlier, while day-to-day case work stays inside permissioned Passage workspaces.</p>
           </div>
           <div style={panel}>
             <div style={eyebrow}>Boundaries</div>
@@ -175,7 +175,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
 
       <section style={section}>
         <div style={sectionHeader}>
-          <div style={eyebrow}>How it interacts</div>
+          <div style={eyebrow}>Care handoff path</div>
           <h2 style={h2}>Care providers sit upstream of the funeral-home workspace.</h2>
           <p style={lead}>They help families get organized earlier. When the family needs urgent or funeral-home coordination, Passage carries forward the right context instead of making everyone start over.</p>
         </div>
@@ -195,7 +195,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
           <div style={panel}>
             <div style={eyebrow}>Operating model</div>
             <h2 style={h2}>Useful without creating referral pressure.</h2>
-            <p style={smallText}>The product should make care transitions easier while protecting family trust. Passage should not make care teams feel like they are selling a death-care funnel.</p>
+            <p style={smallText}>Passage makes care transitions easier while protecting family trust. Care teams support preparation without becoming a sales channel or owning downstream decisions.</p>
             <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
               {[
                 ['Family owned', 'The family decides who can see the record and what downstream partners receive.'],
