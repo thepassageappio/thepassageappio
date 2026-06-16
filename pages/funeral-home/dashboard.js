@@ -1504,6 +1504,15 @@ export default function FuneralHomeDashboard() {
     return 'Open next action';
   }
 
+  function recommendedActionMessagePath() {
+    const target = recommendedNextAction?.messageTo || {};
+    const channel = String(recommendedNextAction?.channel || target.channel || '').replace(/_/g, ' ');
+    const cleanChannel = channel ? channel.replace(/\b\w/g, char => char.toUpperCase()) : '';
+    const recipient = target.name || target.email || target.phone || recommendedNextAction?.owner || '';
+    if (!cleanChannel && !recipient) return '';
+    return cleanChannel && recipient ? `${cleanChannel} to ${recipient}` : cleanChannel || recipient;
+  }
+
   function scrollPartnerDemoTarget(id) {
     window.setTimeout(() => {
       const panel = document.getElementById(id);
@@ -3246,6 +3255,13 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>Why now</div>
                 <div style={{ color: C.ink, fontSize: 12.4, lineHeight: 1.4 }}>{recommendedNextAction.timingReason || recommendedNextAction.reason}</div>
                 {recommendedNextAction.draft && <div style={{ color: C.mid, fontSize: 12.1, lineHeight: 1.4 }}><strong style={{ color: C.sage }}>Draft:</strong> {recommendedNextAction.draft}</div>}
+                {(recommendedActionMessagePath() || recommendedNextAction.automation || recommendedNextAction.requiredProof) && (
+                  <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 10, padding: '8px 9px', display: 'grid', gap: 4, color: C.mid, fontSize: 11.9, lineHeight: 1.35 }}>
+                    {recommendedActionMessagePath() && <div><strong style={{ color: C.sage }}>Message path:</strong> {recommendedActionMessagePath()}</div>}
+                    {recommendedNextAction.automation && <div><strong style={{ color: C.sage }}>Prepared action:</strong> {recommendedNextAction.automation}</div>}
+                    {recommendedNextAction.requiredProof && <div><strong style={{ color: C.sage }}>Proof:</strong> {recommendedNextAction.requiredProof}</div>}
+                  </div>
+                )}
               </div>
             )}
             {isDirectorRole && (
