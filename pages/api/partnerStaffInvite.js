@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { escapeHtml, passageEmailShell, passageSubject } from '../../lib/brandedEmail';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -16,6 +18,25 @@ function normalizeEmail(value) {
 function roleLabel(value) {
   const role = String(value || 'staff').replace(/_/g, ' ');
   return role.charAt(0).toUpperCase() + role.slice(1);
+}
+function cleanLimitKey(value, max = 160) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
+}
+
+function enforceStaffInviteLimit(req, { sender, organizationId, recipient }) {
+  const policy = getRateLimitPolicy('outboundDelivery');
+  if (!policy) return { allowed: true };
+  return rateLimit({
+    key: [
+      'partner-staff-invite',
+      getRequestIp(req),
+      cleanLimitKey(sender).toLowerCase(),
+      cleanLimitKey(organizationId),
+      cleanLimitKey(recipient).toLowerCase(),
+    ].join(':'),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: policy.maxRequests,
+  });
 }
 
 async function getAdminMembership(user) {
@@ -70,6 +91,15 @@ export default async function handler(req, res) {
 
   const email = normalizeEmail(req.body?.email);
   if (!email || !email.includes('@')) return res.status(400).json({ error: 'Add a valid employee email.' });
+
+  const limit = enforceStaffInviteLimit(req, { sender: userData.user.email, organizationId: membership.organization_id, recipient: email });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+    return res.status(429).json({
+      error: 'This employee invite was recently sent or retried too many times. Review the staff record and wait before sending again.',
+      retryAfterSeconds: limit.retryAfterSeconds,
+    });
+  }
 
   const { data: member } = await admin
     .from('organization_members')
