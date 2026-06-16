@@ -30,6 +30,19 @@ const providerOptions = [
   ['home_care', 'Home care'],
 ];
 
+const purposeCards = [
+  ['For care teams', 'Help families organize contacts, wishes, and first-call plans before the crisis handoff.'],
+  ['For families', 'The family owns the record, permissions, and downstream sharing decisions.'],
+  ['For downstream partners', 'Funeral homes, participants, and vendors receive cleaner context when the family chooses to activate it.'],
+];
+
+const pageBoundaries = [
+  'This is a public partnership page, not a care-provider dashboard.',
+  'Care teams do not browse private family records unless invited by the family.',
+  'Passage does not sell referral placement or per-death lead routing.',
+  'The next click is inquiry, walkthrough, or family care-prep record, depending on who is here.',
+];
+
 export default function CareProviderLanding({ focus = 'hospice' }) {
   const active = CARE_PROVIDER_TYPES[focus] || CARE_PROVIDER_TYPES.hospice;
   const [form, setForm] = useState({
@@ -72,27 +85,23 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <SiteHeader />
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '18px 28px 18px' }}>
-        <div className="care-hero" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(360px, .78fr)', gap: 18, alignItems: 'stretch' }}>
+      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '22px 28px 18px' }}>
+        <div className="care-hero" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(360px, .74fr)', gap: 18, alignItems: 'stretch' }}>
           <div style={heroCard}>
             <div style={eyebrow}>{active.eyebrow}</div>
             <h1 style={{ fontSize: 54, lineHeight: 1.02, letterSpacing: 0, margin: '8px 0 12px', fontWeight: 400 }}>
-              A calmer handoff from care into everything that comes next.
+              Help families leave care with a clearer next step.
             </h1>
             <p style={lead}>
-              Passage gives hospice, assisted living, senior living, and home-care teams a family-owned coordination layer: contacts, wishes, first-call plans, funeral-home handoffs, tasks, messages, and proof in one spine.
+              Passage is a continuity handoff layer for hospice, assisted living, senior living, and home-care teams. It helps families collect contacts, wishes, first-call plans, funeral-home context, messages, and proof before those details scatter.
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-              <a href="#care-provider-inquiry" style={primaryLink}>Start a care partner conversation</a>
-              <Link href="/hospice#start-warm-workspace" style={secondaryLink}>Create a family care-prep record</Link>
+              <a href="#care-provider-inquiry" style={primaryLink}>Start partner inquiry</a>
               <a href={calendlyUrl({ source: 'Care provider discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Book walkthrough</a>
+              <Link href="/hospice#start-warm-workspace" style={secondaryLink}>Create family care-prep record</Link>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 10, marginTop: 18 }} className="care-proof-grid">
-              {[
-                ['Family-owned', 'The family controls permissions and keeps the record after the care handoff.'],
-                ['Provider-scoped', 'Care teams see the context and work they are invited to support.'],
-                ['Downstream-ready', 'The same record can open urgent coordination, funeral-home handoff, and vendor tasks.'],
-              ].map(([title, body]) => (
+              {purposeCards.map(([title, body]) => (
                 <div key={title} style={miniCard}>
                   <div style={smallEyebrow}>{title}</div>
                   <div style={smallText}>{body}</div>
@@ -100,9 +109,10 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
               ))}
             </div>
           </div>
+
           <form id="care-provider-inquiry" onSubmit={submit} style={formCard}>
-            <div style={eyebrow}>Care provider inquiry</div>
-            <h2 style={h2}>Tell us where the handoff starts.</h2>
+            <div style={eyebrow}>Care-provider inquiry</div>
+            <h2 style={h2}>Tell us where the handoff breaks today.</h2>
             <p style={{ ...smallText, marginBottom: 12 }}>Use this for hospice, assisted living, senior living, home-care, or care-facility partnership conversations.</p>
             {state === 'sent' ? (
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 16 }}>
@@ -139,10 +149,26 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
       </section>
 
       <section style={section}>
+        <div className="care-two" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .92fr) minmax(0, 1.08fr)', gap: 14 }}>
+          <div style={panel}>
+            <div style={eyebrow}>Purpose of this page</div>
+            <h2 style={h2}>A public partnership page, not an operating dashboard.</h2>
+            <p style={smallText}>Care facilities need a clear way to understand Passage, request a partnership conversation, or help a family begin a family-owned record. Actual family coordination remains permissioned and scoped.</p>
+          </div>
+          <div style={panel}>
+            <div style={eyebrow}>Boundaries</div>
+            <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
+              {pageBoundaries.map(item => <div key={item} style={statusRow}>{item}</div>)}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={section}>
         <div style={sectionHeader}>
-          <div style={eyebrow}>One shared spine</div>
+          <div style={eyebrow}>How it connects</div>
           <h2 style={h2}>Care providers are upstream continuity partners.</h2>
-          <p style={lead}>They are not vendors, and they are not funeral homes. They help the family start earlier, then Passage carries the record into urgent coordination, funeral-home coordination, participants, vendors, and aftercare when needed.</p>
+          <p style={lead}>They are not vendors, and they are not funeral homes. They help families start earlier, then Passage carries the record into urgent coordination, funeral-home coordination, participants, vendors, and aftercare when needed.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
           {CARE_PROVIDER_SPINE_STEPS.map(([n, title, body]) => (
@@ -159,7 +185,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
         <div className="care-two" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(0, 1.1fr)', gap: 14 }}>
           <div style={panel}>
             <div style={eyebrow}>Business model</div>
-            <h2 style={h2}>Partnerships built around continuity, not referrals.</h2>
+            <h2 style={h2}>Continuity infrastructure, not referral pressure.</h2>
             <p style={smallText}>Care organizations can use Passage to improve family handoffs, support location rollout, and see whether families leave care with clearer next steps. The model should protect trust by avoiding per-death referral incentives.</p>
             <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
               {CARE_PROVIDER_BUSINESS_MODEL.map(([title, body]) => (
@@ -174,9 +200,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
             <div style={eyebrow}>Product boundaries</div>
             <h2 style={h2}>Helpful, scoped, and family-first.</h2>
             <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
-              {CARE_PROVIDER_SCOPE_BOUNDARIES.map(item => (
-                <div key={item} style={statusRow}>{item}</div>
-              ))}
+              {CARE_PROVIDER_SCOPE_BOUNDARIES.map(item => <div key={item} style={statusRow}>{item}</div>)}
             </div>
             <div style={{ background: C.amberFaint, border: '1px solid #ead4ac', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 13 }}>
               Pilot goal: a care provider can help a family start a care-prep record, the family keeps ownership, and the same record can later support trusted activation and downstream handoffs.
@@ -187,9 +211,9 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
 
       <section style={section}>
         <div style={sectionHeader}>
-          <div style={eyebrow}>Care provider plans</div>
+          <div style={eyebrow}>Care-provider plans</div>
           <h2 style={h2}>Simple pricing by care team or location.</h2>
-          <p style={lead}>Start with a pilot, then scale by location. Passage is priced as continuity infrastructure, not as a referral fee or per-death charge.</p>
+          <p style={lead}>Start with a reviewed pilot, then scale by location. Passage is priced as continuity infrastructure, not as a referral fee or per-death charge.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(238px, 1fr))', gap: 12 }}>
           {CARE_PROVIDER_PRICING.map(plan => (
@@ -205,9 +229,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
               </div>
               <p style={smallText}>{plan.description}</p>
               <div style={{ display: 'grid', gap: 7, marginTop: 13 }}>
-                {plan.features.map(feature => (
-                  <div key={feature} style={featureRow}>{feature}</div>
-                ))}
+                {plan.features.map(feature => <div key={feature} style={featureRow}>{feature}</div>)}
               </div>
               <a href="#care-provider-inquiry" style={{ ...primaryLink, width: '100%', boxSizing: 'border-box', marginTop: 15 }}>{plan.cta}</a>
             </article>
@@ -220,8 +242,8 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
 
       <section style={{ ...section, paddingBottom: 64 }}>
         <div style={panel}>
-          <div style={eyebrow}>Front doors</div>
-          <h2 style={h2}>Separate messaging. Same operating spine.</h2>
+          <div style={eyebrow}>Related front doors</div>
+          <h2 style={h2}>Separate pages. Same family-owned spine.</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 14 }}>
             {Object.values(CARE_PROVIDER_TYPES).map(item => (
               <Link key={item.label} href={item.path} style={{ ...stepCard, color: C.ink, textDecoration: 'none', display: 'block' }}>
