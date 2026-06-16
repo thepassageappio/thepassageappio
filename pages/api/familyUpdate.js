@@ -4,6 +4,8 @@ import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 import { recordStatusEvent } from '../../lib/taskStatus';
 import { taskDisplayTitle, taskExpectedUpdate } from '../../lib/communicationCenter';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -11,6 +13,21 @@ const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const authClient = createClient(url, anon);
 const admin = createClient(url, service);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+
+function cleanLimitKey(value, max = 180) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
+}
+
+function enforceFamilyUpdateLimit(req, user, { workflowId, recipients, audience }) {
+  const policy = getRateLimitPolicy('outboundDelivery');
+  if (!policy) return { allowed: true };
+  const recipientKey = (recipients || []).map(item => item.email).filter(Boolean).sort().slice(0, 12).join('+');
+  return rateLimit({
+    key: ['family-update', getRequestIp(req), cleanLimitKey(user?.email || user?.id).toLowerCase(), cleanLimitKey(workflowId), cleanLimitKey(audience), cleanLimitKey(recipientKey)].join(':'),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: Math.max(4, Math.floor(policy.maxRequests / 4)),
+  });
+}
 
 function clean(value) {
   return String(value || '').trim();
@@ -123,6 +140,11 @@ export default async function handler(req, res) {
   if (!message) return res.status(400).json({ error: 'Add the family update before sending.' });
   if (channel !== 'email') return res.status(400).json({ error: 'Email is the only live reviewed delivery channel right now. SMS remains paused.' });
   if (!recipients.length) return res.status(400).json({ error: 'Add at least one valid recipient email.' });
+  const limit = enforceFamilyUpdateLimit(req, user, { workflowId, recipients, audience });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+    return res.status(429).json({ error: 'Too many family updates were sent recently. Review the delivery trail before sending again.', retryAfterSeconds: limit.retryAfterSeconds });
+  }
 
   const { data: workflow, error: workflowError } = await admin
     .from('workflows')
