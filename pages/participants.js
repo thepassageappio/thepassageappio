@@ -19,7 +19,7 @@ const C = {
 
 const steps = [
   ['1', 'You receive an invite', 'A family coordinator, funeral home, or care partner asks for help with one specific responsibility.'],
-  ['2', 'You open your private request', 'Passage shows the task, timing, waiting point, and proof needed. The full family record stays private.'],
+  ['2', 'You open one clear request', 'Passage shows the task, timing, waiting point, and proof needed. The full family record stays private.'],
   ['3', 'You answer once', 'Accept it, ask for help, mark waiting, save a note, or close it with proof.'],
   ['4', 'The coordinator sees the update', 'Your response returns to the shared record so the family is not chasing another thread.'],
 ];
@@ -76,7 +76,7 @@ export default function ParticipantsPage() {
         <div className="participants-hero">
           <div className="participants-card">
             <div className="participants-kicker">For Invited Helpers</div>
-            <h1 className="participants-title">Help with one request, without opening the whole estate.</h1>
+            <h1 className="participants-title">Help with one clear request, without opening the whole estate.</h1>
             <p className="participants-lede">
               Passage is used when a family asks a relative, friend, clergy member, vendor, or trusted helper to handle one specific piece of work. You see the responsibility, the context needed to act, and the safest way to update the coordinator.
             </p>
