@@ -27,7 +27,7 @@ const outcomes = [
 
 const workflow = [
   ['1', 'Open a case', 'Add the family contact, service context, known dates, and the person on your team who owns the next step.'],
-  ['2', 'Assign the work', 'Directors see the full case floor. Staff see the assigned tasks and context needed to act.'],
+  ['2', 'Assign the work', 'Directors see the full case floor. Staff see only the assigned tasks and context needed to act.'],
   ['3', 'Ask once', 'Passage drafts the right family request or staff note so people are not chasing the same answer repeatedly.'],
   ['4', 'Record proof', 'Handled, waiting, and blocked items each get a note, owner, timestamp, and proof destination.'],
   ['5', 'Approve updates', 'Families see approved status and waiting points without private staff, billing, or admin information.'],
@@ -147,7 +147,7 @@ export default function FuneralHomePage() {
             </p>
             <div className="fh-actions">
               <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Book walkthrough' })} className="fh-button fh-primary">Book walkthrough</a>
-              <Link href="/funeral-home/pilot-proof" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Open sample case', href: '/funeral-home/pilot-proof' })} className="fh-button fh-sample">Open sample case</Link>
+              <Link href="/funeral-home/sample-case" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Open sample case', href: '/funeral-home/sample-case' })} className="fh-button fh-sample">Open sample case</Link>
               <Link href="/funeral-home/login" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Customer login', href: '/funeral-home/login' })} className="fh-button fh-secondary">Customer login</Link>
             </div>
             <div className="fh-note">This page is the sales and customer doorway. Real customer work happens after sign-in inside the funeral-home workspace.</div>
@@ -162,90 +162,33 @@ export default function FuneralHomePage() {
                 <b>Price family arrangement</b>
                 <span className="fh-pill">Waiting on family</span>
               </div>
-              <div className="fh-row">
-                <div className="fh-row-label">Owner</div>
-                <div className="fh-row-value">Maria, arranger</div>
-              </div>
-              <div className="fh-row">
-                <div className="fh-row-label">Next</div>
-                <div className="fh-row-value">Confirm cemetery plot details and review the prepared family update.</div>
-              </div>
-              <div className="fh-row">
-                <div className="fh-row-label">Proof</div>
-                <div className="fh-row-value">Hospital release saved. Family request drafted. Export packet ready.</div>
-              </div>
+              <div className="fh-row"><div className="fh-row-label">Owner</div><div className="fh-row-value">Maria, arranger</div></div>
+              <div className="fh-row"><div className="fh-row-label">Next</div><div className="fh-row-value">Confirm cemetery plot details and review the prepared family update.</div></div>
+              <div className="fh-row"><div className="fh-row-label">Proof</div><div className="fh-row-value">Hospital release saved. Family request drafted. Export packet ready.</div></div>
             </div>
-            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45 }}>
-              A useful case always says what is happening, who owns it, what is waiting, and what proof exists.
-            </div>
+            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45 }}>A useful case always says what is happening, who owns it, what is waiting, and what proof exists.</div>
           </div>
         </div>
 
         <section className="fh-section">
-          <div className="fh-section-head">
-            <div>
-              <div className="fh-kicker">Why teams use it</div>
-              <h2>Less chasing. Better handoffs. Cleaner records.</h2>
-            </div>
-            <p>Passage is not a public directory and it is not a replacement for your case-management system. It is the family coordination layer that keeps people, tasks, updates, and proof from scattering.</p>
-          </div>
-          <div className="fh-grid-four">
-            {outcomes.map(([title, body]) => (
-              <div className="fh-card" key={title}>
-                <b>{title}</b>
-                <span>{body}</span>
-              </div>
-            ))}
-          </div>
+          <div className="fh-section-head"><div><div className="fh-kicker">Why teams use it</div><h2>Less chasing. Better handoffs. Cleaner records.</h2></div><p>Passage is not a public directory and it is not a replacement for your case-management system. It is the family coordination layer that keeps people, tasks, updates, and proof from scattering.</p></div>
+          <div className="fh-grid-four">{outcomes.map(([title, body]) => <div className="fh-card" key={title}><b>{title}</b><span>{body}</span></div>)}</div>
         </section>
 
         <section className="fh-section" aria-labelledby="fh-case-flow">
-          <div className="fh-section-head">
-            <div>
-              <div className="fh-kicker">Case workflow</div>
-              <h2 id="fh-case-flow">What happens inside a real case.</h2>
-            </div>
-            <p>The workflow is built for funeral-home operations: one case, one owner, one waiting point, one approved family update, and one proof trail.</p>
-          </div>
-          <div className="fh-grid-three">
-            {workflow.map(([number, title, body]) => (
-              <div className="fh-card" key={title}>
-                <div className="fh-step-number">{number}</div>
-                <b>{title}</b>
-                <span>{body}</span>
-              </div>
-            ))}
-          </div>
+          <div className="fh-section-head"><div><div className="fh-kicker">Case workflow</div><h2 id="fh-case-flow">What happens inside a real case.</h2></div><p>The workflow is built for funeral-home operations: one case, one owner, one waiting point, one approved family update, and one proof trail.</p></div>
+          <div className="fh-grid-three">{workflow.map(([number, title, body]) => <div className="fh-card" key={title}><div className="fh-step-number">{number}</div><b>{title}</b><span>{body}</span></div>)}</div>
         </section>
 
         <section className="fh-section">
-          <div className="fh-section-head">
-            <div>
-              <div className="fh-kicker">Plans</div>
-              <h2>Start with a guided rollout.</h2>
-            </div>
-            <p>Use a small set of real cases first. Once your team trusts the workflow, expand locations, seats, and reporting.</p>
-          </div>
+          <div className="fh-section-head"><div><div className="fh-kicker">Plans</div><h2>Start with a guided rollout.</h2></div><p>Use a small set of real cases first. Once your team trusts the workflow, expand locations, seats, and reporting.</p></div>
           <div className="fh-grid-three">
             {plans.map(([name, price, detail], index) => {
               const planId = planForTier(index);
               return (
                 <div className="fh-card" key={name} style={{ minHeight: 178, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 12 }}>
-                  <div>
-                    <div className="fh-kicker">{name}</div>
-                    <div className="fh-plan-price">{price}</div>
-                    <span>{detail}</span>
-                  </div>
-                  <Link
-                    href={contactHref(planId)}
-                    onClick={(event) => {
-                      trackEvent('funeral_home_plan_cta_clicked', { planId, signedIn: Boolean(user) });
-                      if (!user) return;
-                      event.preventDefault();
-                      startCheckout(planId);
-                    }}
-                    className={index === 0 ? 'fh-button fh-primary' : 'fh-button fh-secondary'}
-                  >
+                  <div><div className="fh-kicker">{name}</div><div className="fh-plan-price">{price}</div><span>{detail}</span></div>
+                  <Link href={contactHref(planId)} onClick={(event) => { trackEvent('funeral_home_plan_cta_clicked', { planId, signedIn: Boolean(user) }); if (!user) return; event.preventDefault(); startCheckout(planId); }} className={index === 0 ? 'fh-button fh-primary' : 'fh-button fh-secondary'}>
                     {busy === planId ? 'Starting...' : index === 0 ? 'Start guided rollout' : 'Talk through plan'}
                   </Link>
                 </div>
