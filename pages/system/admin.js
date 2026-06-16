@@ -47,6 +47,87 @@ function money(amount) {
   return value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: value % 1 ? 2 : 0 });
 }
 
+function buildDangerousMiddleScorecards(readiness) {
+  const steps = Array.isArray(readiness?.steps) ? readiness.steps : [];
+  const stepByKey = Object.fromEntries(steps.map(step => [step.key, step]));
+  const cardFor = (id, label, promise, owner, stepKeys) => {
+    const relevant = stepKeys.map(key => stepByKey[key]).filter(Boolean);
+    const hasRun = relevant.length > 0;
+    const blockers = relevant.flatMap(step => {
+      if (step.ok) return [];
+      const explicit = step.json?.blockers || [];
+      if (explicit.length) return explicit;
+      return [step.json?.error || 'Needs review'];
+    });
+    const warnings = relevant.flatMap(step => step.json?.warnings || []);
+    const ok = hasRun && blockers.length === 0;
+    return {
+      id,
+      label,
+      promise,
+      owner,
+      status: hasRun ? (ok ? 'Ready' : 'Needs work') : 'Run P0 loop',
+      tone: hasRun ? (ok ? 'good' : 'bad') : 'warn',
+      proof: hasRun ? relevant.map(step => step.label + ': ' + (step.ok ? 'ready' : 'review')).join(' | ') : 'No current readiness result yet.',
+      next: blockers[0] || warnings[0] || (ok ? 'Keep this green before demos and pilots.' : 'Run the full P0 readiness loop.'),
+    };
+  };
+  return [
+    cardFor('public-trust', 'Public trust to working product', 'Public CTAs, trust copy, and demo paths match what the app can prove.', 'Owner / QA', ['public', 'compliance']),
+    cardFor('operating-spine', 'Task spine and notifications', 'Every persona action creates proof, owner clarity, and the next state.', 'Product / Ops', ['spine']),
+    cardFor('revenue-ops', 'Revenue and CRM handoff', 'Payments, HubSpot, and conversion evidence can support pilots without manual cleanup.', 'Sales / Admin', ['payment', 'crm-routing']),
+  ];
+}
+
+function ReadinessScorecard({ card }) {
+  const toneColor = card.tone === 'good' ? C.sage : card.tone === 'warn' ? C.amber : C.rose;
+  const toneBg = card.tone === 'good' ? C.sageFaint : card.tone === 'warn' ? C.amberFaint : C.roseFaint;
+  return (
+    <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: 12, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <strong style={{ color: C.ink, fontSize: 13.5, lineHeight: 1.25 }}>{card.label}</strong>
+        <span style={{ color: toneColor, background: toneBg, border: '1px solid ' + toneColor + '33', borderRadius: 999, padding: '4px 8px', fontSize: 11, fontWeight: 900 }}>{card.status}</span>
+      </div>
+      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>{card.promise}</div>
+      <MetricRow label="Owner" value={card.owner} />
+      <MetricRow label="Proof" value={card.proof} />
+      <MetricRow label="Next" value={card.next} />
+    </div>
+  );
+}
+
+function buildTrustEvidence(snapshot) {
+  const blockers = Array.isArray(snapshot?.blockers) ? snapshot.blockers : [];
+  const env = snapshot?.env || {};
+  const hasBlockers = blockers.length > 0;
+  return [
+    {
+      label: 'Privacy and RLS',
+      status: hasBlockers ? 'Review' : 'Ready',
+      tone: hasBlockers ? 'bad' : 'good',
+      promise: 'Families and partners see a controlled, private operating system.',
+      proof: blockers.length ? blockers.slice(0, 2).join(' | ') : 'Compliance readiness returned no blockers.',
+      next: hasBlockers ? 'Clear blocker before the next pilot demo.' : 'Keep this in the readiness loop before each pilot.',
+    },
+    {
+      label: 'Notification safety',
+      status: env.qaNotificationMode && env.qaNotificationOverride ? 'QA safe' : 'Needs config',
+      tone: env.qaNotificationMode && env.qaNotificationOverride ? 'good' : 'warn',
+      promise: 'Emails and texts can be tested without accidental live sends.',
+      proof: env.qaNotificationMode && env.qaNotificationOverride ? 'QA notification mode and override are configured.' : 'QA notification guardrail is missing or incomplete.',
+      next: env.qaNotificationMode && env.qaNotificationOverride ? 'Dry-run before live pilot communications.' : 'Configure QA notification override before UAT.',
+    },
+    {
+      label: 'SMS production posture',
+      status: env.twilioLiveReady ? 'Approved' : 'Dry-run only',
+      tone: env.twilioLiveReady ? 'good' : 'warn',
+      promise: 'Texting only goes live when carrier registration and approval are ready.',
+      proof: env.twilioLiveReady ? 'Twilio live readiness is approved.' : 'Twilio live readiness is not approved; dry-run remains the safe mode.',
+      next: env.twilioLiveReady ? 'Exercise a controlled live-send checklist.' : 'Keep SMS demos in dry-run until approval is complete.',
+    },
+  ];
+}
+
 const adminModules = [
   {
     title: 'Demo studio',
