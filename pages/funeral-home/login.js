@@ -43,7 +43,7 @@ const roleCards = [
 const helperCards = [
   ['Learn functionality', '/funeral-home', 'See how Passage helps directors coordinate cases, staff, family updates, proof, and exports.'],
   ['Book a demo', calendlyUrl({ source: 'funeral home login doorway' }), 'For funeral homes evaluating Passage or needing help getting started.'],
-  ['View sample case', '/funeral-home/pilot-proof', 'Explore a safe sample case before logging into a real customer workspace.'],
+  ['View sample case', '/funeral-home/sample-case', 'Explore a safe sample case before logging into a real customer workspace.'],
 ];
 
 export default function FuneralHomeLogin() {
@@ -59,7 +59,7 @@ export default function FuneralHomeLogin() {
               This is the doorway to the working funeral-home product. If your organization already uses Passage, choose your role. If you are evaluating Passage, use the sales page, sample case, or walkthrough instead.
             </p>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
-              Use the email invited to your funeral-home organization. Directors see the business workspace; staff see assigned work. Public visitors should not land inside customer data or internal admin tools.
+              Use the email invited to your funeral-home organization. Directors see the business workspace; staff see assigned work. Public visitors should not land inside customer data or admin tools.
             </div>
           </div>
 
