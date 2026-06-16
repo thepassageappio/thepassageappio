@@ -864,7 +864,7 @@ export default function ParticipatingPage() {
           <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.5, margin: 0 }}>
             {user || demoMode
               ? 'Passage shows only the part the family or coordinator asked you to handle. Work one request at a time, then leave the rest of the record private.'
-              : 'This page is gated. Use the email that received the invite; unrelated estate details stay private.'}
+              : 'Use the email that received the invite. Passage opens only your assigned request; unrelated estate details stay private.'}
           </p>
         </div>
 
