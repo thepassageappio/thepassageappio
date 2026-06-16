@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -13,6 +15,25 @@ function clean(value, max = 4000) {
 
 function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(String(value || '').trim());
+}
+function cleanLimitKey(value, max = 160) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
+}
+
+function enforcePrepEmailLimit(req, { user, estateId, recipient }) {
+  const policy = getRateLimitPolicy('outboundDelivery');
+  if (!policy) return { allowed: true };
+  return rateLimit({
+    key: [
+      'funeral-home-prep-email',
+      getRequestIp(req),
+      cleanLimitKey(user).toLowerCase(),
+      cleanLimitKey(estateId),
+      cleanLimitKey(recipient).toLowerCase(),
+    ].join(':'),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: policy.maxRequests,
+  });
 }
 
 function rows(form) {
@@ -48,6 +69,15 @@ export default async function handler(req, res) {
   const { estateId, to, form = {}, missing = [] } = req.body || {};
   if (!estateId) return res.status(400).json({ error: 'Missing estate.' });
   if (!isEmail(to)) return res.status(400).json({ error: 'Enter a real email address.' });
+
+  const limit = enforcePrepEmailLimit(req, { user: auth.user?.email || auth.source || 'delivery', estateId, recipient: to });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+    return res.status(429).json({
+      error: 'This preparation summary was recently sent or retried too many times. Review the case trail before sending again.',
+      retryAfterSeconds: limit.retryAfterSeconds,
+    });
+  }
 
   const KEY = process.env.RESEND_API_KEY;
   if (!KEY) return res.status(200).json({ success: true, skipped: true });
