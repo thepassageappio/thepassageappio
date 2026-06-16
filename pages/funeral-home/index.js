@@ -17,24 +17,28 @@ const C = {
   sageFaint: '#eef5ef',
   sageLight: '#c8deca',
   rose: '#c47a7a',
-  roseFaint: '#fdf3f3',
-  amber: '#a97832',
-  amberFaint: '#fbf5e8',
 };
 
-const tiers = [
-  ['Pilot', '$99.99/mo', '$0 for 3 months', '10 active cases, co-branded family view, partner dashboard'],
-  ['Local', '$249.99/mo', '', 'Unlimited active cases, act-on-behalf, staff seats, proof trail'],
-  ['Group', '$349.99/mo', '', 'Locations, reporting, approved family handoffs, priority onboarding'],
+const plans = [
+  ['Pilot', '$99.99/mo', '$0 for 3 months', 'A guided rollout for a small real-case sample, co-branded family view, and director workspace.'],
+  ['Local', '$249.99/mo', '', 'Unlimited active cases, staff queues, approved family updates, proof trail, and exports.'],
+  ['Group', '$349.99/mo', '', 'Multi-location controls, reporting, role scopes, onboarding support, and priority workflow setup.'],
 ];
 
-const pilotProofLoop = [
-  ['1', 'Create one real case', 'A director or arranger starts a partner case with family contact, service context, and owner.'],
-  ['2', 'Assign staff work', 'The team sees who owns each next action instead of keeping the work in calls and memory.'],
-  ['3', 'Move one task', 'A family-facing task gets requested, accepted, blocked, or handled with visible status.'],
-  ['4', 'Send one approved update', 'The family receives a careful update only after the funeral-home team approves the message.'],
-  ['5', 'Export proof', 'Dates, notes, messages, and task outcomes can be copied or exported back to the current case system.'],
-  ['6', 'Decide paid fit', 'When usage proof is visible, the pilot converts, expands, or exits with clear reasons.'],
+const operatingSteps = [
+  ['1', 'Open a case', 'Add the family contact, service context, dates you know, and the person on your team who owns the next step.'],
+  ['2', 'Assign the work', 'Directors see the full floor. Staff see only the assigned cases and tasks they need to move.'],
+  ['3', 'Ask once', 'Passage prepares the family request or staff note so the right person gets one clear ask instead of repeated calls.'],
+  ['4', 'Record proof', 'Every handled, waiting, or blocked item gets a note, owner, timestamp, and proof destination.'],
+  ['5', 'Keep families aligned', 'Families see approved updates and waiting points without seeing private staff, billing, or admin information.'],
+  ['6', 'Export the record', 'Case status, task outcomes, messages, dates, and proof can leave Passage for the systems you already use.'],
+];
+
+const outcomes = [
+  ['Fewer repeated calls', 'Families can see what is waiting, who owns it, and what has already been handled.'],
+  ['Clear staff ownership', 'Directors assign work once; employees get the context and proof requirement beside the task.'],
+  ['Safer family updates', 'Messages are prepared for review. Nothing goes out automatically without the funeral-home team approving it.'],
+  ['A usable case record', 'Dates, owners, notes, family requests, and proof stay together instead of scattering across texts and inboxes.'],
 ];
 
 function planForTier(index) {
@@ -42,7 +46,7 @@ function planForTier(index) {
 }
 
 function contactHref(planId) {
-  return calendlyUrl({ source: `Funeral home pilot - ${planId}` });
+  return calendlyUrl({ source: `Funeral home page - ${planId}` });
 }
 
 export default function FuneralHomePage() {
@@ -94,49 +98,47 @@ export default function FuneralHomePage() {
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
       <style>{`
         .fh-shell, .fh-shell * { box-sizing:border-box; }
-        .fh-shell { max-width:980px; margin:0 auto; padding:0 28px 6px; }
-        .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,.55fr); gap:16px; align-items:center; padding:2px 0 8px; }
-        .fh-kicker { color:${C.sage}; font-size:10.5px; letter-spacing:.17em; text-transform:uppercase; font-weight:900; margin-bottom:6px; }
-        .fh-title { font-size:32px; line-height:.98; margin:0 0 8px; font-weight:400; letter-spacing:0; max-width:560px; }
-        .fh-lede { color:${C.mid}; font-size:13.2px; line-height:1.36; max-width:540px; margin:0; }
-        .fh-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-        .fh-button { min-height:40px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; padding:0 13px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; font-size:12.5px; }
+        .fh-shell { max-width:1120px; margin:0 auto; padding:28px 24px 74px; }
+        .fh-kicker { color:${C.sage}; font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:900; }
+        .fh-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.46fr); gap:18px; align-items:stretch; }
+        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:18px; padding:18px; box-shadow:0 12px 34px rgba(55,45,35,.06); }
+        .fh-title { font-size:48px; line-height:1.02; margin:8px 0 10px; font-weight:400; letter-spacing:0; max-width:760px; }
+        .fh-lede { color:${C.mid}; font-size:16px; line-height:1.55; margin:0; max-width:760px; }
+        .fh-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+        .fh-button { min-height:44px; border-radius:13px; display:inline-flex; align-items:center; justify-content:center; padding:0 15px; font-weight:900; text-decoration:none; font-family:inherit; cursor:pointer; font-size:13px; }
         .fh-primary { background:${C.ink}; color:white; border:1px solid ${C.ink}; }
         .fh-secondary { background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; }
         .fh-sample { background:${C.sage}; color:white; border:1px solid ${C.sage}; }
-        .fh-note { color:${C.soft}; font-size:11px; line-height:1.3; margin-top:7px; }
-        .fh-panel { background:${C.card}; border:1px solid ${C.border}; border-radius:17px; padding:12px; box-shadow:0 12px 34px rgba(55,45,35,.06); }
-        .fh-panel h2 { font-size:19px; line-height:1.08; margin:0 0 8px; font-weight:400; }
-        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:13px; padding:9px; margin-bottom:7px; }
-        .fh-case-title { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; margin-bottom:7px; }
-        .fh-case-title b { font-size:15px; line-height:1.12; }
-        .fh-pill { border-radius:999px; padding:3px 7px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:10.5px; font-weight:900; white-space:nowrap; }
-        .fh-row { display:grid; grid-template-columns:76px minmax(0,1fr); gap:8px; padding:4px 0; border-top:1px solid ${C.sageLight}; }
+        .fh-note { color:${C.soft}; font-size:12px; line-height:1.45; margin-top:10px; }
+        .fh-case { background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:14px; padding:13px; margin-top:12px; }
+        .fh-case-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:10px; }
+        .fh-case-head b { font-size:18px; line-height:1.12; }
+        .fh-pill { border-radius:999px; padding:4px 8px; background:${C.card}; color:${C.sageDark}; border:1px solid ${C.sageLight}; font-size:11px; font-weight:900; white-space:nowrap; }
+        .fh-row { display:grid; grid-template-columns:86px minmax(0,1fr); gap:10px; padding:7px 0; border-top:1px solid ${C.sageLight}; }
         .fh-row-label { color:${C.sageDark}; font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; font-weight:900; }
-        .fh-row-value { color:${C.mid}; font-size:11.4px; line-height:1.25; }
-        .fh-proof { border-top:1px solid ${C.border}; padding-top:8px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
-        .fh-proof-card { background:${C.card}; border:1px solid ${C.border}; border-radius:13px; padding:9px 10px; min-height:66px; }
-        .fh-proof-card b { display:block; color:${C.ink}; font-size:13.5px; margin-bottom:4px; }
-        .fh-proof-card span { color:${C.mid}; font-size:11.2px; line-height:1.26; }
-        .fh-loop { margin-top:8px; display:grid; grid-template-columns:minmax(240px,.42fr) minmax(0,1fr); gap:10px; align-items:stretch; }
-        .fh-loop-intro { background:${C.ink}; color:#fff; border-radius:17px; padding:14px; min-height:100%; }
-        .fh-loop-intro .fh-kicker { color:${C.sageLight}; }
-        .fh-loop-intro h2 { font-size:24px; line-height:1.03; margin:0 0 8px; font-weight:400; }
-        .fh-loop-intro p { color:#e7dfd4; font-size:12px; line-height:1.36; margin:0; }
-        .fh-loop-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-        .fh-loop-step { background:${C.card}; border:1px solid ${C.border}; border-radius:13px; padding:10px; min-height:94px; }
-        .fh-loop-number { width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; font-size:11px; font-weight:900; margin-bottom:7px; }
-        .fh-loop-step b { display:block; font-size:13px; line-height:1.18; margin-bottom:4px; }
-        .fh-loop-step span { display:block; color:${C.mid}; font-size:11.1px; line-height:1.28; }
-        .fh-pilot { margin-top:8px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; border-radius:17px; padding:10px 12px; display:grid; grid-template-columns:minmax(0,.7fr) minmax(360px,1fr); gap:16px; align-items:center; }
-        .fh-plan { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:4px 0; border-bottom:1px solid ${C.sageLight}; }
-        .fh-plan:last-child { border-bottom:none; }
-        .fh-plan-name { color:${C.ink}; font-size:13.2px; }
-        .fh-plan-detail { color:${C.mid}; font-size:10.8px; line-height:1.25; margin-top:1px; }
-        @media (max-width:760px) {
-          .fh-shell { padding:12px 18px 42px; }
-          .fh-hero, .fh-loop, .fh-pilot, .fh-proof, .fh-loop-grid { grid-template-columns:1fr; min-height:auto; }
-          .fh-hero { gap:22px; }
+        .fh-row-value { color:${C.mid}; font-size:12.6px; line-height:1.35; }
+        .fh-section { margin-top:16px; }
+        .fh-section-head { display:flex; justify-content:space-between; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-bottom:10px; }
+        .fh-section h2 { font-size:30px; line-height:1.1; margin:5px 0 0; font-weight:400; }
+        .fh-section p { color:${C.mid}; font-size:14px; line-height:1.55; margin:0; max-width:680px; }
+        .fh-outcomes { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+        .fh-card { background:${C.card}; border:1px solid ${C.border}; border-radius:15px; padding:13px; min-height:128px; }
+        .fh-card b { display:block; font-size:15.5px; line-height:1.18; margin-bottom:6px; }
+        .fh-card span { color:${C.mid}; font-size:12.5px; line-height:1.42; }
+        .fh-steps { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .fh-step { background:${C.card}; border:1px solid ${C.border}; border-radius:15px; padding:13px; min-height:142px; }
+        .fh-step-number { width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:${C.sageFaint}; border:1px solid ${C.sageLight}; color:${C.sageDark}; font-size:11px; font-weight:900; margin-bottom:8px; }
+        .fh-step b { display:block; font-size:15px; line-height:1.18; margin-bottom:5px; }
+        .fh-step span { display:block; color:${C.mid}; font-size:12.3px; line-height:1.42; }
+        .fh-plans { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .fh-plan { background:${C.card}; border:1px solid ${C.border}; border-radius:16px; padding:14px; min-height:174px; display:flex; flex-direction:column; justify-content:space-between; gap:12px; }
+        .fh-plan-price { color:${C.ink}; font-size:22px; line-height:1.1; font-weight:900; margin-top:6px; }
+        .fh-plan-pilot { color:${C.rose}; font-size:15px; font-weight:900; }
+        .fh-plan-detail { color:${C.mid}; font-size:12.6px; line-height:1.42; margin-top:7px; }
+        @media (max-width:860px) {
+          .fh-shell { padding:20px 16px 56px; }
+          .fh-hero, .fh-outcomes, .fh-steps, .fh-plans { grid-template-columns:1fr; }
+          .fh-title { font-size:36px; }
           .fh-actions { flex-direction:column; }
           .fh-button { width:100%; }
           .fh-row { grid-template-columns:1fr; gap:4px; }
@@ -145,27 +147,27 @@ export default function FuneralHomePage() {
       <SiteHeader user={user} onSignOut={user ? signOut : null} />
       <section className="fh-shell">
         <div className="fh-hero" data-demo-anchor="demo-fh-promise">
-          <div>
+          <div className="fh-panel">
             <div className="fh-kicker">For funeral homes</div>
-            <h1 className="fh-title">A calmer family layer on top of the work you already do.</h1>
+            <h1 className="fh-title">A calmer way to keep families and staff aligned.</h1>
             <p className="fh-lede">
-              Passage gives families one shared command center while your team keeps cases moving: fewer repeated calls, clearer owners, visible proof, approved handoffs, and clean export back to your existing workflow.
+              Passage gives your funeral home a private operating workspace for family requests, staff ownership, approved updates, and proof. Families get clarity. Staff get one queue. Directors get a reliable case record without replacing the systems they already use.
             </p>
             <div className="fh-actions">
-              <Link href="/funeral-home/login" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Director sign in', href: '/funeral-home/login' })} className="fh-button fh-primary">Director sign in</Link>
+              <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Book walkthrough' })} className="fh-button fh-primary">Book walkthrough</a>
+              <Link href="/funeral-home/pilot-proof" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Open sample case', href: '/funeral-home/pilot-proof' })} className="fh-button fh-sample">Open sample case</Link>
+              <Link href="/funeral-home/login" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Director sign in', href: '/funeral-home/login' })} className="fh-button fh-secondary">Director sign in</Link>
               <Link href="/funeral-home/staff" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Staff sign in', href: '/funeral-home/staff' })} className="fh-button fh-secondary">Staff sign in</Link>
-              <Link href="/funeral-home/pilot-proof" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Open sample console', href: '/funeral-home/pilot-proof' })} className="fh-button fh-sample">Open sample console</Link>
-              <a href={calendlyUrl({ source: 'Funeral home walkthrough' })} target="_blank" rel="noreferrer" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Book a pilot walkthrough' })} className="fh-button fh-secondary">Book a pilot walkthrough</a>
             </div>
-            <div className="fh-note">This page is public. Active partner teams sign in to the private workspace; prospects can open the sample console or book a walkthrough before a workspace is created.</div>
-            {error && <div style={{ marginTop: 14, background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
+            <div className="fh-note">For funeral-home owners, directors, arrangers, and staff who need fewer repeat calls and clearer case ownership.</div>
+            {error && <div style={{ marginTop: 14, background: '#fdf3f3', border: `1px solid ${C.rose}33`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
           </div>
 
           <div className="fh-panel">
-            <div className="fh-kicker">Monday morning view</div>
-            <h2>What needs attention, without another status call.</h2>
+            <div className="fh-kicker">What opens first</div>
+            <h2 style={{ fontSize: 24, lineHeight: 1.1, margin: '6px 0 0', fontWeight: 400 }}>The next case, owner, waiting point, and proof.</h2>
             <div className="fh-case">
-              <div className="fh-case-title">
+              <div className="fh-case-head">
                 <b>Price family arrangement</b>
                 <span className="fh-pill">Waiting on family</span>
               </div>
@@ -175,44 +177,30 @@ export default function FuneralHomePage() {
               </div>
               <div className="fh-row">
                 <div className="fh-row-label">Next</div>
-                <div className="fh-row-value">Confirm cemetery plot details and approve the family update.</div>
+                <div className="fh-row-value">Confirm cemetery plot details and review the prepared family update.</div>
               </div>
               <div className="fh-row">
                 <div className="fh-row-label">Proof</div>
-                <div className="fh-row-value">Hospital release saved. Family message prepared. CSV export ready.</div>
+                <div className="fh-row-value">Hospital release saved. Family request drafted. Export packet ready.</div>
               </div>
             </div>
-            <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.38 }}>
-              Directors see the floor. Staff see their queue. Families see only what helps them move through the next step.
+            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.45 }}>
+              The point is simple: every case should say what is happening, who owns it, what is waiting, and what proof exists.
             </div>
           </div>
         </div>
 
-        <section className="fh-proof">
-          {[
-            ['Fewer repeated calls', 'Families see what is waiting, who owns it, and what has already been handled.'],
-            ['Warm family handoffs', 'When a family starts in Passage first, they can save your home or ask for help choosing. Nothing is sent without approval.'],
-            ['Proof that travels', 'Updates, dates, messages, and proof can export back to the systems you already use.'],
-          ].map(([title, body]) => (
-            <div className="fh-proof-card" key={title}>
-              <b>{title}</b>
-              <span>{body}</span>
+        <section className="fh-section">
+          <div className="fh-section-head">
+            <div>
+              <div className="fh-kicker">Why teams use it</div>
+              <h2>Less chasing. Better handoffs. Cleaner records.</h2>
             </div>
-          ))}
-        </section>
-
-        <section className="fh-loop" aria-labelledby="pilot-proof-loop">
-          <div className="fh-loop-intro">
-            <div className="fh-kicker">Pilot proof loop</div>
-            <h2 id="pilot-proof-loop">The pilot has to prove real operating value.</h2>
-            <p>
-              Every pilot is judged by the same milestones Passage tracks internally: case creation, staff ownership, task movement, family update, exportable proof, and a paid-fit decision.
-            </p>
+            <p>Passage is not a public directory and it is not a replacement for your case-management system. It is the family coordination layer that keeps people, tasks, updates, and proof from scattering.</p>
           </div>
-          <div className="fh-loop-grid">
-            {pilotProofLoop.map(([number, title, body]) => (
-              <div className="fh-loop-step" key={title}>
-                <div className="fh-loop-number">{number}</div>
+          <div className="fh-outcomes">
+            {outcomes.map(([title, body]) => (
+              <div className="fh-card" key={title}>
                 <b>{title}</b>
                 <span>{body}</span>
               </div>
@@ -220,27 +208,42 @@ export default function FuneralHomePage() {
           </div>
         </section>
 
-        <section className="fh-pilot">
-          <div>
-            <div className="fh-kicker">Pilot</div>
-            <h2 style={{ fontSize: 24, lineHeight: 1.03, margin: '0 0 6px', fontWeight: 400 }}>Start with a few real cases.</h2>
-            <p style={{ color: C.mid, fontSize: 12, lineHeight: 1.32, margin: 0 }}>
-              We help set up the workspace, load a small case set, move one family-facing task, and show how a family-approved handoff carries context into your case pane before you expand.
-            </p>
+        <section className="fh-section" aria-labelledby="fh-case-flow">
+          <div className="fh-section-head">
+            <div>
+              <div className="fh-kicker">Case workflow</div>
+              <h2 id="fh-case-flow">What happens inside a real case.</h2>
+            </div>
+            <p>The workflow is built for funeral-home operations: one case, one owner, one waiting point, one approved family update, and one proof trail.</p>
           </div>
-          <div>
-            {tiers.map(([name, price, pilot, detail], index) => {
+          <div className="fh-steps">
+            {operatingSteps.map(([number, title, body]) => (
+              <div className="fh-step" key={title}>
+                <div className="fh-step-number">{number}</div>
+                <b>{title}</b>
+                <span>{body}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="fh-section">
+          <div className="fh-section-head">
+            <div>
+              <div className="fh-kicker">Plans</div>
+              <h2>Start with a guided rollout.</h2>
+            </div>
+            <p>Use a small set of real cases first. Once your team trusts the workflow, expand locations, seats, and reporting.</p>
+          </div>
+          <div className="fh-plans">
+            {plans.map(([name, price, pilot, detail], index) => {
               const planId = planForTier(index);
               return (
                 <div className="fh-plan" key={name}>
                   <div>
-                    <div className="fh-plan-name">
-                      {name}{' '}
-                      <span style={{ color: index === 0 ? C.rose : C.sageDark, fontSize: 13, fontWeight: 900 }}>
-                        {pilot || price}
-                      </span>
-                      {pilot && <span style={{ color: C.soft, fontSize: 12, textDecoration: 'line-through', marginLeft: 6 }}>{price}</span>}
-                    </div>
+                    <div className="fh-kicker">{name}</div>
+                    <div className="fh-plan-price">{pilot || price}</div>
+                    {pilot && <div className="fh-plan-pilot">then {price}</div>}
                     <div className="fh-plan-detail">{detail}</div>
                   </div>
                   <Link
@@ -251,9 +254,9 @@ export default function FuneralHomePage() {
                       event.preventDefault();
                       startCheckout(planId);
                     }}
-                    style={{ background: index === 0 ? C.rose : C.sage, color: '#fff', borderRadius: 10, padding: '7px 10px', fontWeight: 900, fontSize: 11.5, textDecoration: 'none' }}
+                    className={index === 0 ? 'fh-button fh-primary' : 'fh-button fh-secondary'}
                   >
-                    {busy === planId ? '...' : 'Start'}
+                    {busy === planId ? 'Starting...' : index === 0 ? 'Start pilot' : 'Talk through plan'}
                   </Link>
                 </div>
               );
