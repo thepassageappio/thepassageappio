@@ -234,6 +234,7 @@ export default async function handler(req, res) {
         status: 'skipped',
         error_message: 'RESEND_API_KEY is not configured.',
         sent_at: new Date().toISOString(),
+        source: 'partner_owner_invite',
       }]).then(() => {}, () => {});
       return res.status(200).json({ success: true, skipped: true, organization, member, inviteUrl, message: 'Partner workspace created. Invite prepared, but Resend is not configured.' });
     }
@@ -282,7 +283,7 @@ export default async function handler(req, res) {
     });
 
     if (!ok) return res.status(500).json({ error: emailData.message || emailData.error || 'Email provider did not accept the partner invite.', organization, inviteUrl });
-    return res.status(200).json({ success: true, organization, member, partnerPlan, inviteUrl, id: emailData.id });
+    return res.status(200).json({ success: true, organization, member, partnerPlan, inviteUrl, id: emailData.id, qaOverride: route.qaOverride, intendedRecipient: directorEmail, actualRecipient: route.actual[0] });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Could not create this partner invite.' });
   }
