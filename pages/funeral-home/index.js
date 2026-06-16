@@ -44,8 +44,14 @@ function planForTier(index) {
   return index === 0 ? 'partner_pilot' : index === 1 ? 'partner_local' : 'partner_group';
 }
 
+const publicPlanLabels = {
+  partner_pilot: 'starter rollout',
+  partner_local: 'local account',
+  partner_group: 'group account',
+};
+
 function contactHref(planId) {
-  return calendlyUrl({ source: `Funeral home page - ${planId}` });
+  return calendlyUrl({ source: `Funeral home page - ${publicPlanLabels[planId] || 'guided rollout'}` });
 }
 
 export default function FuneralHomePage() {
