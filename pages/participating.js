@@ -80,7 +80,7 @@ async function signIn(returnTo = '/participating') {
 
 function statusLabel(value) {
   if (value === 'needs_review') return 'Needs review';
-  if (value === 'blocked') return 'Blocked';
+  if (value === 'blocked') return 'Needs help';
   if (value === 'acknowledged') return 'Confirmed';
   if (value === 'sent' || value === 'assigned' || value === 'waiting' || value === 'pending') return 'Waiting for confirmation';
   if (value === 'handled' || value === 'completed' || value === 'done') return 'Handled';
@@ -141,7 +141,7 @@ function participantActionEffectCopy(action) {
   if (action === 'accept') return 'This tells the coordinator you are taking responsibility. The task stays open until you save proof or a waiting update.';
   if (action === 'waiting') return 'This keeps the task open and shows exactly what you are waiting on.';
   if (action === 'handled' || action === 'confirmed') return 'This marks your part done, saves your note, and moves it out of your active work.';
-  if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'This keeps the task visible as blocked so the coordinator can step in.';
+  if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'This keeps the task visible as needing help so the coordinator can step in.';
   if (action === 'quoted' || action === 'scheduled') return 'This saves your update to the same family record without exposing the full workspace.';
   return 'This update goes back to the coordinator and stays attached to the family record.';
 }
@@ -251,7 +251,7 @@ function requestContract(kind, estate, item) {
   };
   return {
     label: 'Your part',
-    action: 'Accept it if you can help, mark waiting if you are blocked, or ask for help.',
+    action: 'Accept it if you can help, mark waiting if you are stuck, or ask for help.',
     authority: 'You are responsible for this task only, not the whole estate.',
     serviceLine,
     payer: 'The coordinator will see your update.'
@@ -407,7 +407,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         <StatusBadge status={itemStatus(item)} label={statusLabel(itemStatus(item))} />
       </div>
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: primary ? '14px 15px' : '12px 13px', marginBottom: 10 }}>
-        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Your task spine</div>
+        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Your one request</div>
         <div style={{ color: C.ink, fontSize: primary ? 16 : 14, lineHeight: 1.42, fontWeight: 900 }}>{explanation.what}</div>
         <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 6 }}>Owner: <strong style={{ color: C.ink }}>{ownerSummary}</strong></div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 11 }}>
@@ -443,7 +443,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
       </details>
       {(savedPulse || savedNote) && (
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '10px 11px', marginTop: 8, marginBottom: 9, color: C.mid, fontSize: 12.6, lineHeight: 1.45 }}>
-          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>{savedPulse ? 'Saved to the spine' : 'Saved note the coordinator can see'}</div>
+          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>{savedPulse ? 'Saved to the record' : 'Saved note the coordinator can see'}</div>
           <div style={{ color: C.ink, fontWeight: 800 }}>{savedNote || 'Your note was saved to Passage.'}</div>
           {item.last_action_at && <div style={{ color: C.soft, fontSize: 11.5, marginTop: 5 }}>Saved {new Date(item.last_action_at).toLocaleString()}</div>}
         </div>
@@ -871,7 +871,7 @@ export default function ParticipatingPage() {
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Participant access</div>
               <h2 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Help with one request, without opening the whole record.</h2>
               <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
-                Participants are relatives, friends, clergy, vendors, or helpers invited to handle one specific responsibility. Passage shows the task, waiting point, and proof needed. The full estate workspace stays private.
+                Participants are relatives, friends, clergy, vendors, or helpers invited to handle one specific responsibility. Passage shows the request, waiting point, and proof needed. The full estate workspace stays private.
               </p>
               <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
                 Use the same email that received the invite. If you were added under a different email, sign in with that address or ask the coordinator to resend the assignment.
@@ -900,7 +900,7 @@ export default function ParticipatingPage() {
                 )}
               </div>
               {[
-                ['See your part', 'Only the assigned task, request details, and safe service context appear.'],
+                ['See your part', 'Only the assigned request, details, and safe service context appear.'],
                 ['Answer once', 'Accept it, ask for help, mark waiting, save a note, or close with proof.'],
                 ['Coordinator sees it', 'Your update returns to the family record with status, note, and timestamp.'],
               ].map(([title, body]) => (
@@ -966,7 +966,7 @@ export default function ParticipatingPage() {
                   <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>
                     {(router.query.estate || router.query.task)
                       ? `You are signed in as ${data.email}. If the invite was sent to another address, sign out and use that email. If this is the right email, ask the coordinator to resend the assignment.`
-                      : 'If someone invited you with a different email, sign in with that address. When you are assigned a task, it will appear here.'}
+                      : 'If someone invited you with a different email, sign in with that address. When you are assigned a request, it will appear here.'}
                   </p>
                   <button onClick={async () => {
                     if (!supabase?.auth) return;
