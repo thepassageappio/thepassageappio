@@ -3222,6 +3222,11 @@ export default function FuneralHomeDashboard() {
             <div style={{ marginTop: 10, background: isDirectorRole ? C.bg : C.sageFaint, border: `1px solid ${isDirectorRole ? C.border : C.sage + '22'}`, borderRadius: 13, padding: '11px 12px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center' }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Recommended next action</div>
+                {recommendedNextAction.timingLabel && (
+                  <div style={{ color: C.sage, fontSize: 11.4, lineHeight: 1.35, marginTop: 3, fontWeight: 900 }}>
+                    {recommendedNextAction.timingLabel}
+                  </div>
+                )}
                 <div style={{ color: C.ink, fontSize: 14.5, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>
                   {recommendedNextAction.label}
                 </div>
@@ -3239,7 +3244,7 @@ export default function FuneralHomeDashboard() {
             {recommendedNextAction.reason && (
               <div style={{ marginTop: 8, background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 11px', display: 'grid', gap: 5 }}>
                 <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>Why now</div>
-                <div style={{ color: C.ink, fontSize: 12.4, lineHeight: 1.4 }}>{recommendedNextAction.reason}</div>
+                <div style={{ color: C.ink, fontSize: 12.4, lineHeight: 1.4 }}>{recommendedNextAction.timingReason || recommendedNextAction.reason}</div>
                 {recommendedNextAction.draft && <div style={{ color: C.mid, fontSize: 12.1, lineHeight: 1.4 }}><strong style={{ color: C.sage }}>Draft:</strong> {recommendedNextAction.draft}</div>}
               </div>
             )}
