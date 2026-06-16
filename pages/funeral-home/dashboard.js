@@ -2448,10 +2448,10 @@ export default function FuneralHomeDashboard() {
         body: familyRequestsOpen ? 'These are the items most likely to become repeated family calls.' : 'No family-owned wait is open right now.',
       },
       {
-        label: 'Blockers',
+        label: 'Needs help',
         value: totalBlocked || riskItems.length,
         tone: totalBlocked || riskItems.length ? 'risk' : 'good',
-        body: totalBlocked || riskItems.length ? 'Clear these before the director promises an update.' : 'No blocked case work is in the front queue.',
+        body: totalBlocked || riskItems.length ? 'Clear these stuck points before the director promises an update.' : 'No case work needs help in the front queue.',
       },
       {
         label: 'Proof gaps',
@@ -2477,7 +2477,7 @@ export default function FuneralHomeDashboard() {
         label: 'Proof destination',
         value: firstStaffTask ? 'Visible' : 'Clear',
         tone: firstStaffTask ? 'neutral' : 'good',
-        body: firstStaffTask ? 'Record proof, a blocker, or a waiting point before leaving the task.' : 'New assignments will show the proof requirement here.',
+        body: firstStaffTask ? 'Record proof, a stuck point, or a waiting point before leaving the task.' : 'New assignments will show the proof requirement here.',
       },
     ];
   const directorUseCases = [
@@ -5158,7 +5158,7 @@ export default function FuneralHomeDashboard() {
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No task-linked local support requests are open for this case.</div>
                   )}
                   {detailTab === 'tasks' && topTasks.length === 0 && (
-                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No partner-ready task details are open right now.</div>
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No staff task details are open right now.</div>
                   )}
                   {detailTab === 'tasks' && topTasks.map(task => (
                     <div key={task.id} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 11, marginTop: 11 }}>
