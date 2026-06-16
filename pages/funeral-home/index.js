@@ -156,7 +156,7 @@ export default function FuneralHomePage() {
               <Link href="/funeral-home/sample-case" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Open sample case', href: '/funeral-home/sample-case' })} className="fh-button fh-sample">Open sample case</Link>
               <Link href="/funeral-home/login" onClick={() => trackEvent('funeral_home_cta_clicked', { label: 'Customer login', href: '/funeral-home/login' })} className="fh-button fh-secondary">Customer login</Link>
             </div>
-            <div className="fh-note">This page is the sales and customer doorway. Real customer work happens after sign-in inside the funeral-home workspace.</div>
+            <div className="fh-note">New teams can book a walkthrough or inspect a sample case. Customers sign in to run real case work inside the private funeral-home workspace.</div>
             {error && <div style={{ marginTop: 14, background: '#fdf3f3', border: '1px solid #c47a7a33', borderRadius: 12, padding: 11, color: '#9c5c5c', fontSize: 12.5, fontWeight: 800 }}>{error}</div>}
           </div>
 
@@ -195,7 +195,7 @@ export default function FuneralHomePage() {
                 <div className="fh-card" key={name} style={{ minHeight: 178, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 12 }}>
                   <div><div className="fh-kicker">{name}</div><div className="fh-plan-price">{price}</div><span>{detail}</span></div>
                   <Link href={contactHref(planId)} onClick={(event) => { trackEvent('funeral_home_plan_cta_clicked', { planId, signedIn: Boolean(user) }); if (!user) return; event.preventDefault(); startCheckout(planId); }} className={index === 0 ? 'fh-button fh-primary' : 'fh-button fh-secondary'}>
-                    {busy === planId ? 'Starting...' : index === 0 ? 'Start guided rollout' : 'Talk through plan'}
+                    {busy === planId ? 'Starting...' : index === 0 ? 'Start guided rollout' : index === 1 ? 'Compare fit' : 'Talk to Passage'}
                   </Link>
                 </div>
               );
