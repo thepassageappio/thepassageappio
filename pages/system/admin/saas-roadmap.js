@@ -51,8 +51,9 @@ const takeaways = [
   ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; system routes now render a System Admin boundary.'],
   ['Public surface scan', 'Green', 'Main public routes scan clean for owner revenue goals, roadmap language, sprint labels, QA language, and admin leakage.'],
   ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; no standalone roadmap/QA/admin top-level tabs should exist.'],
-  ['Funeral-home product UX', 'In progress', 'Next UAT pass must simplify director/staff dashboards into My Day, cases, tasks, family updates, proof, exports, billing, and next actions.'],
-  ['Automation spine', 'Source updated', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
+  ['Funeral-home product UX', 'Source updated / deploy verification pending', 'Director/staff dashboard language now uses needs-help, family-view, proof-save wording; next UAT must browser-verify authenticated My Day and task cards once deployment quota clears.'],
+  ['Automation spine', 'Source updated / deploy verification pending', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
+  ['Abuse and refresh controls', 'Source green / deploy verification pending', 'Outbound sends, reminders, Google lookups, voice calls, family-update fanout, funeral-home requests, and admin readiness refreshes now have source-level cooldowns and readiness evidence.'],
 ];
 
 const sprints = [
@@ -71,34 +72,35 @@ const sprints = [
   },
   {
     name: 'Sprint 2: Funeral-home dashboard simplification',
-    status: 'In progress',
+    status: 'Source updated / deploy verification pending',
     owner: 'Product + engineering',
     goal: 'Make funeral-home director and staff workflows obvious, calm, and operationally useful.',
     tasks: [
       'Director dashboard becomes My Day, cases needing action, staff load, family updates, exports, billing, and proof.',
       'Staff view shows assigned work first as a simple spine: 1. Do, 2. Ask, 3. Save proof; deeper automation detail stays collapsed until needed.',
       'Remove demo/sales language from logged-in funeral-home operations.',
-      'Add recommended next action based on pre-death, day since death, service window, aftercare, blockers, stale waiting, and missing proof.',
+      'Use staff-facing terms like needs help, family view, and where proof saves instead of blocker/audit-layer wording.',
+      'Add recommended next action based on pre-death, day since death, service window, aftercare, needs-help state, stale waiting, and missing proof.',
       'Browser-verify the visible timing label and why-now explanation once Vercel rate limiting clears.',
     ],
     acceptance: 'A funeral director can run a real case without founder narration or extra tabs.',
   },
   {
     name: 'Sprint 3: Automation spine hardening',
-    status: 'Next after dashboard UAT',
+    status: 'Source hardening active / deploy verification pending',
     owner: 'Engineering + QA',
     goal: 'Make Passage proactive instead of a passive task list.',
     tasks: [
-      'Persist workflow state above task rows: ready, waiting, blocked, stale, proof missing, family update due, aftercare due.',
+      'Persist workflow state above task rows: ready, waiting, needs help, stale, proof missing, family update due, aftercare due.',
       'Generate or suggest the next task and draft the right message to the right person.',
-      'Fail readiness when owner, waiting point, proof, dependency, delivery trail, or rate-limit posture is missing.',
-      'Keep refresh/rate-limit controls visible as owner-only launch gates.',
+      'Fail readiness when owner, waiting point, proof, delivery trail, or rate-limit posture is missing.',
+      'Keep refresh/rate-limit controls visible as owner-only launch gates with UI cooldowns as well as backend throttles.',
     ],
     acceptance: 'The product tells staff what to do next, why, and what proof will be saved.',
   },
   {
     name: 'Sprint 4: Persona UAT pass',
-    status: 'Queued after deploy window',
+    status: 'Queued after primary deployment recovers',
     owner: 'QA persona lead',
     goal: 'Walk every role end to end on desktop and mobile.',
     tasks: [
