@@ -3924,18 +3924,16 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>
                     Case: {firstStaffTask.caseName} - Service/context: {firstStaffTask.locationName}. Family status: {statusLabel(firstStaffTask.status)}.
                   </div>
-                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
-                    <strong style={{ color: C.ink }}>Proof to save:</strong> {proofDestination}
-                  </div>
-                  <div style={{ marginTop: 9 }}>
-                    <RoleActionStrip
-                      compact
-                      role={isDirectorRole ? 'Director sees the floor; staff owns the assigned move.' : 'Assigned staff queue'}
-                      action="Close with proof when the work is complete."
-                      waiting={taskExpectedUpdate(firstStaffTask, 'funeral_home')}
-                      proof={proofDestination}
-                      privacy="Staff sees case context and their assigned work. Private finances, billing, and unrelated cases stay in director/admin views."
-                    />
+                  <div style={{ display: 'grid', gap: 7, marginTop: 8 }}>
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                      <strong style={{ color: C.ink }}>1. Do:</strong> {taskGuidanceFor(firstStaffTask, { owner: firstStaffTask.assigned_to_name || firstStaffTask.assigned_to_email || 'staff', surface: 'staff work queue' }).nextStep || taskExpectedUpdate(firstStaffTask, 'funeral_home')}
+                    </div>
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                      <strong style={{ color: C.ink }}>2. Ask:</strong> {draft}
+                    </div>
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                      <strong style={{ color: C.ink }}>3. Save proof:</strong> {proofDestination}
+                    </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Close with proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this task so it no longer appears as waiting work.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Close with proof</button>
@@ -3966,20 +3964,21 @@ export default function FuneralHomeDashboard() {
                         <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{task.caseName} - {task.locationName}</div>
                         <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3, lineHeight: 1.25 }}>{sharedTaskTitle(task)}</div>
                         <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{rightPerson}</strong> - {statusLabel(task.status)}</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 9 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 9 }}>
                           <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>Do next:</strong> {guidance.next || taskExpectedUpdate(task, 'funeral_home')}
+                            <strong style={{ color: C.ink }}>1. Do:</strong> {guidance.nextStep || taskExpectedUpdate(task, 'funeral_home')}
                           </div>
                           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>Ask/update:</strong> {preparedDraft}
+                            <strong style={{ color: C.ink }}>2. Ask:</strong> {preparedDraft}
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>Proof closes it:</strong> {proofDestination}
+                            <strong style={{ color: C.ink }}>3. Save proof:</strong> {proofDestination}
                           </div>
                         </div>
-                        <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
-                          <strong style={{ color: C.ink }}>Passage prepares:</strong> {preparedOutput.label}. {preparedOutput.body}
-                        </div>
+                        <details style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
+                          <summary style={{ color: C.sage, fontWeight: 900, cursor: 'pointer' }}>What Passage prepares</summary>
+                          <div style={{ marginTop: 5 }}><strong style={{ color: C.ink }}>{preparedOutput.label}:</strong> {preparedOutput.body}</div>
+                        </details>
                       </div>
                       <button onClick={() => openPartnerWork(task.caseId, task.id)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}>Open scoped work</button>
                     </div>
