@@ -1,8 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 import { recordStatusEvent } from '../../lib/taskStatus';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const authClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+
+function cleanLimitKey(value, max = 140) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
+}
+
+function enforceVoiceCallLimit(req, user, { workflowId, taskId, toUser, toRecipient }) {
+  const policy = getRateLimitPolicy('outboundDelivery');
+  if (!policy) return { allowed: true };
+  return rateLimit({
+    key: ['voice-call', getRequestIp(req), cleanLimitKey(user?.email || user?.id).toLowerCase(), cleanLimitKey(workflowId), cleanLimitKey(taskId || 'no-task'), cleanLimitKey(toUser), cleanLimitKey(toRecipient)].join(':'),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: Math.max(5, Math.floor(policy.maxRequests / 2)),
+  });
+}
 
 function normalizePhone(value) {
   const raw = String(value || '').trim();
@@ -27,6 +43,11 @@ export default async function handler(req, res) {
   if (!workflowId) return res.status(400).json({ error: 'Missing estate.' });
   if (!toUser) return res.status(400).json({ error: 'Add your phone number first.' });
   if (!toRecipient) return res.status(400).json({ error: 'This provider needs a phone number before Passage can connect the call.' });
+  const limit = enforceVoiceCallLimit(req, data.user, { workflowId, taskId, toUser, toRecipient });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+    return res.status(429).json({ error: 'Too many call attempts were started recently. Review the task trail before trying again.', retryAfterSeconds: limit.retryAfterSeconds });
+  }
 
   const sid = process.env.TWILIO_ACCOUNT_SID;
   const tokenSecret = process.env.TWILIO_AUTH_TOKEN;
