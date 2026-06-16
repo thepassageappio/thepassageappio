@@ -357,7 +357,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
 
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
   const ownerConsoleActive = showSystemAdminLinks && (isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin'));
-  const partnerSurfaceActive = isActivePath(activePath, '/funeral-home') || isActivePath(activePath, '/vendors') || isActivePath(activePath, '/care-providers');
+  const partnerSurfaceActive = isActivePath(activePath, '/funeral-home') || isActivePath(activePath, '/vendors') || isActivePath(activePath, '/care-providers') || isActivePath(activePath, '/participating');
   const showFamilyDashboardLink = currentUser && !ownerConsoleActive && !partnerSurfaceActive;
   const primaryNavLinks = ownerConsoleActive ? [] : LINKS;
   const demoTourActive = hydrated && ownerConsoleActive && router?.query?.demoTour === 'funeral-home';
