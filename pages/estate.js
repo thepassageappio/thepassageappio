@@ -1597,7 +1597,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
         {['Fully automated', 'Assisted execution', 'Guided manual'].map(function(tier) {
-          var tierLabel = tier === 'Fully automated' ? 'Passage-prepared' : tier === 'Assisted execution' ? 'Guided with Passage' : 'Manual step';
+          var tierLabel = familyExecutionTierLabel(tier);
           return (
             <div key={tier} style={{ background: tier === 'Fully automated' ? SAGE_FAINT : tier === 'Assisted execution' ? SUBTLE : AMBER_FAINT, borderRadius: 11, padding: 10 }}>
               <div style={{ fontSize: 18, color: tier === 'Guided manual' ? AMBER : SAGE, fontWeight: 900 }}>{tierCounts[tier] || 0}</div>
@@ -1671,7 +1671,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.35 }}>{displayTaskTitle(task)}</div>
                     <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginTop: 3 }}>{displayTaskNext(task)}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-                      <span style={{ background: SAGE_FAINT, color: SAGE, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{textValue(task.playbook.executionTier, 'Assisted execution')}</span>
+                      <span style={{ background: SAGE_FAINT, color: SAGE, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{familyExecutionTierLabel(task.playbook.executionTier)}</span>
                       <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{textValue(task.playbook.executionModeLabel, 'Task workspace')}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Owner: {ownerBucket(task)}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {proof}</span>
@@ -2035,7 +2035,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
             <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 18, padding: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 7 }}>
                 <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{current?.kind === 'task' ? textValue(playbook.executionTier, 'Assisted execution') : 'Guided outcome'}</div>
+                  <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{current?.kind === 'task' ? familyExecutionTierLabel(playbook.executionTier) : 'Guided outcome'}</div>
                   {importance && <span style={{ background: importance.rank <= 1 ? ROSE_FAINT : importance.rank <= 2 ? AMBER_FAINT : SUBTLE, color: importance.rank <= 1 ? ROSE : importance.rank <= 2 ? AMBER : MID, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, fontWeight: 900 }}>{importance.label}</span>}
                 </div>
                 {queue.length > 1 && (
