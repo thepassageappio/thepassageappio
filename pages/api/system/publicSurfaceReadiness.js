@@ -122,6 +122,19 @@ const forbiddenPublicText = [
   'pilot conversion',
 ];
 
+const forbiddenPublicMarkup = [
+  'partner_pilot',
+  'partner-pilot',
+  'pilot-proof',
+  'pilot_proof',
+  'paid-pilot',
+  'paid_pilot',
+  'utm_campaign=partner-pilot',
+  'utm_campaign=funeral-home-partner-pilot',
+  'utm_campaign=pilot-proof',
+  'utm_campaign=pilot-walkthrough',
+];
+
 async function requireSystemAccess(req) {
   const internal = await verifyDeliveryRequest(req);
   if (internal.ok && internal.source === 'internal') return { ok: true, source: 'internal' };
@@ -159,7 +172,11 @@ export default async function handler(req, res) {
       const html = await response.text();
       const text = visibleText(html);
       const missing = check.requires.filter(item => !text.includes(item));
-      const forbidden = forbiddenPublicText.filter(item => text.toLowerCase().includes(item.toLowerCase()));
+      const lowerText = text.toLowerCase();
+      const lowerHtml = html.toLowerCase();
+      const forbiddenText = forbiddenPublicText.filter(item => lowerText.includes(item.toLowerCase()));
+      const forbiddenMarkup = forbiddenPublicMarkup.filter(item => lowerHtml.includes(item.toLowerCase()));
+      const forbidden = [...new Set([...forbiddenText, ...forbiddenMarkup])];
       results.push({
         path: check.path,
         url,
