@@ -30,6 +30,18 @@ const publicChecks = [
     requires: ['Participant sign in', 'Open your assigned request'],
   },
   {
+    path: '/participating?demo=1',
+    requires: ['Private family request', 'Open the family request assigned to you.', 'What gets saved'],
+  },
+  {
+    path: '/share?dn=Eleanor%20Price&cn=Price%20family',
+    requires: ['Service and gathering details', 'This output is saved as family-record proof'],
+  },
+  {
+    path: '/vendors/request?demo=1',
+    requires: ['Sample scoped request', 'One request, not a family file.', 'Payment and fee details stay private'],
+  },
+  {
     path: '/pricing',
     requires: ['Get help now', '$79'],
   },
@@ -64,6 +76,15 @@ const forbiddenPublicText = [
   'owner-only',
   'owner only',
   'internal roadmap',
+  'assigned task spine',
+  'Proof and notify',
+  'Mark done with proof',
+  'Tracked platform fee',
+  'Funeral home share:',
+  'Passage share:',
+  'admin walkthrough',
+  'Proof / reporting',
+  '? loved beyond measure'
   'source of truth for P0',
   'DEMO DATA - FOR DEMONSTRATION ONLY',
   'Says:',
