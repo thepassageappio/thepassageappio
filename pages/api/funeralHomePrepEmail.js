@@ -3,6 +3,7 @@ import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
+import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -109,13 +110,57 @@ export default async function handler(req, res) {
   });
 
   try {
+    const route = routeEmailRecipients([to]);
+    if (!route.actual.length) {
+      const now = new Date().toISOString();
+      await insertNotificationLog(supabase, {
+        workflow_id: estateId,
+        channel: 'email',
+        recipient_email: to,
+        subject,
+        provider: 'resend',
+        provider_id: null,
+        status: 'blocked',
+        error_message: 'QA notification mode had no override email configured.',
+        sent_at: now,
+        source: 'funeral_home_prep_email',
+        ...qaAuditFields(route),
+      });
+      await supabase.from('task_status_events').insert([{
+        workflow_id: estateId,
+        status: 'blocked',
+        last_action_at: now,
+        last_actor: auth.user?.email || 'Passage',
+        channel: 'email',
+        recipient: to,
+        detail: 'Funeral home preparation summary blocked by QA notification mode because no override email is configured.',
+        provider: 'resend',
+        provider_message_id: null,
+      }]).then(() => {}, () => {});
+      return res.status(200).json({ success: true, blocked: true, qaOverride: route.qaOverride });
+    }
+
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to: [to], subject, html }),
+      body: JSON.stringify({ from, to: route.actual, subject, html }),
     });
     const data = await r.json().catch(() => ({}));
     const now = new Date().toISOString();
+
+    await insertNotificationLog(supabase, {
+      workflow_id: estateId,
+      channel: 'email',
+      recipient_email: to,
+      subject,
+      provider: 'resend',
+      provider_id: data.id || null,
+      status: r.ok ? 'sent' : 'failed',
+      error_message: r.ok ? null : (data.message || data.error || JSON.stringify(data)),
+      sent_at: now,
+      source: 'funeral_home_prep_email',
+      ...qaAuditFields(route),
+    });
 
     await supabase.from('task_status_events').insert([{
       workflow_id: estateId,
@@ -124,7 +169,7 @@ export default async function handler(req, res) {
       last_actor: auth.user?.email || 'Passage',
       channel: 'email',
       recipient: to,
-      detail: r.ok ? 'Funeral home preparation summary emailed to ' + to : 'Failed to email funeral home preparation summary to ' + to,
+      detail: r.ok ? 'Funeral home preparation summary emailed to ' + to + (route.qaOverride ? ' via QA override.' : '') : 'Failed to email funeral home preparation summary to ' + to,
       provider: 'resend',
       provider_message_id: data.id || null,
     }]).then(() => {}, () => {});
@@ -133,12 +178,12 @@ export default async function handler(req, res) {
       estate_id: estateId,
       event_type: r.ok ? 'prep_summary_sent' : 'prep_summary_failed',
       title: r.ok ? 'Preparation summary emailed' : 'Preparation summary email failed',
-      description: r.ok ? 'Funeral home preparation summary emailed to ' + to : 'Could not email preparation summary to ' + to,
+      description: r.ok ? 'Funeral home preparation summary emailed to ' + to + (route.qaOverride ? ' via QA override.' : '') : 'Could not email preparation summary to ' + to,
       actor: auth.user?.email || 'Passage',
     }]).then(() => {}, () => {});
 
     if (!r.ok) return res.status(500).json({ error: data.message || data.error || 'Email provider did not accept the message.' });
-    return res.status(200).json({ success: true, id: data.id });
+    return res.status(200).json({ success: true, id: data.id, qaOverride: route.qaOverride, intendedRecipient: to, actualRecipient: route.actual[0] });
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Could not send email.' });
   }
