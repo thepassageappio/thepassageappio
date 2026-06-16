@@ -10,13 +10,13 @@ const proofSteps = [
   ['Task spine', 'Confirm cemetery plot details', 'Owner: Maria. Waiting on: Michael Price. Proof destination: case record.', 'Waiting'],
   ['Family update', 'Service detail approval', 'Message is prepared for family review. Nothing sends automatically.', 'Draft'],
   ['Export', 'Case proof packet', 'Dates, task outcomes, update proof, and vendor request context are ready to export.', 'Ready'],
-  ['Conversion', 'Paid-fit decision', 'If one case moves cleanly, ask for Local plan or identify the blocker.', 'Next'],
+  ['Decision', 'Ready for the next family step', 'The director can see what is waiting, who owns it, and what proof is ready.', 'Next'],
 ];
-const metrics = [['ARR target', '$300k'], ['Local accounts', '100'], ['Group accounts', '72'], ['Pilot proof loop', '6 steps']];
-const conversionSteps = [
-  ['Before call', 'Open this proof console and pick one real case to mirror.'],
-  ['During call', 'Confirm the buyer pain: repeated calls, unclear ownership, proof scattered across systems.'],
-  ['After call', 'Book setup, create workspace, assign one staff member, and move one case to proof.'],
+const metrics = [['Case view', 'One family'], ['Next action', 'Visible'], ['Family update', 'Drafted'], ['Proof packet', 'Ready']];
+const workspaceSteps = [
+  ['Intake', 'Capture the family contact, service timing, and who owns the next step.'],
+  ['Coordinate', 'Keep staff, family requests, and waiting points tied to one case record.'],
+  ['Close the loop', 'Prepare the family update and proof packet before anything is sent or exported.'],
 ];
 
 export default function PilotProofConsole() {
@@ -58,18 +58,17 @@ export default function PilotProofConsole() {
       <section className="pp-shell">
         <div className="pp-hero">
           <div className="pp-panel">
-            <div className="pp-kicker">Funeral-home pilot proof console</div>
-            <h1 className="pp-title">Show the complete paid-pilot loop in under two minutes.</h1>
-            <p className="pp-lede">This is the fast sales and QA surface for Sprint 2: one workspace, one case, one task, one family update, one export, and one conversion decision. It is intentionally smaller than the full operating dashboard so demos do not depend on heavy workspace hydration.</p>
+            <div className="pp-kicker">Funeral-home proof workspace</div>
+            <h1 className="pp-title">Show one family case from intake to proof.</h1>
+            <p className="pp-lede">This focused workspace shows how a funeral-home team keeps one family case clear: the next action, the owner, the waiting point, the family update, and the proof packet all stay together.</p>
             <div className="pp-actions">
-              <a className="pp-button pp-primary" href={walkthroughHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('pilot_proof_book_walkthrough_clicked', { source: 'pilot-proof-console' })}>Book pilot walkthrough</a>
+              <a className="pp-button pp-primary" href={walkthroughHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('pilot_proof_book_walkthrough_clicked', { source: 'pilot-proof-console' })}>Book walkthrough</a>
               <Link className="pp-button pp-secondary" href="/funeral-home/dashboard?demo=1" onClick={() => trackEvent('pilot_proof_full_workspace_clicked', { source: 'pilot-proof-console' })}>Open full workspace</Link>
-              <Link className="pp-button pp-secondary" href="/system/admin/pilot-health">Pilot health</Link>
-              <Link className="pp-button pp-secondary" href="/system/admin/funeral-home-qa">QA checklist</Link>
+              
             </div>
           </div>
           <div className="pp-panel">
-            <div className="pp-kicker">ARR math</div>
+            <div className="pp-kicker">Case clarity</div>
             <div className="pp-metrics">
               {metrics.map(([label, value]) => <div className="pp-metric" key={label}><div className="pp-kicker">{label}</div><b>{value}</b></div>)}
             </div>
@@ -85,17 +84,17 @@ export default function PilotProofConsole() {
         </section>
         <section className="pp-conversion" aria-label="Pilot conversion path">
           <div className="pp-panel">
-            <div className="pp-kicker">Conversion path</div>
-            <h2 style={{ fontSize: 24, lineHeight: 1.05, margin: '8px 0 8px', fontWeight: 400 }}>Turn a demo into one real workspace.</h2>
-            <p className="pp-lede" style={{ fontSize: 13.5 }}>This page should end with a booked pilot setup call or a named reason the home is not ready.</p>
+            <div className="pp-kicker">How the workspace helps</div>
+            <h2 style={{ fontSize: 24, lineHeight: 1.05, margin: '8px 0 8px', fontWeight: 400 }}>Keep the next step obvious.</h2>
+            <p className="pp-lede" style={{ fontSize: 13.5 }}>A director should be able to open the case, understand the waiting point, and move the right next step without extra explanation.</p>
           </div>
           <div className="pp-conversion-list">
-            {conversionSteps.map(([label, body]) => <div className="pp-conversion-card" key={label}><strong>{label}</strong><span>{body}</span></div>)}
+            {workspaceSteps.map(([label, body]) => <div className="pp-conversion-card" key={label}><strong>{label}</strong><span>{body}</span></div>)}
           </div>
         </section>
         <div className="pp-note">
-          <div><div className="pp-kicker" style={{ color: '#b9d2bd' }}>Sprint 2 rule</div><strong>If this proof loop is not flawless, do not scale outreach.</strong><p style={{ color: '#d8d0c7', margin: '7px 0 0', lineHeight: 1.45 }}>Fix the first workspace until a director can explain the value without us narrating it.</p></div>
-          <a className="pp-button pp-primary" href={walkthroughHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('pilot_proof_bottom_walkthrough_clicked', { source: 'pilot-proof-console' })}>Book setup call</a>
+          <div><div className="pp-kicker" style={{ color: '#b9d2bd' }}>Operating rule</div><strong>If the next step is not obvious, the workspace is not done.</strong><p style={{ color: '#d8d0c7', margin: '7px 0 0', lineHeight: 1.45 }}>The screen should make ownership, waiting, family messaging, and proof easy to understand at a glance.</p></div>
+          <a className="pp-button pp-primary" href={walkthroughHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('pilot_proof_bottom_walkthrough_clicked', { source: 'pilot-proof-console' })}>Book walkthrough</a>
         </div>
       </section>
       <SiteFooter />
