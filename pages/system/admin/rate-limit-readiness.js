@@ -18,6 +18,8 @@ export default function RateLimitReadinessPage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
+  const [nextRunAt, setNextRunAt] = useState(0);
+  const [lastCheckedAt, setLastCheckedAt] = useState('');
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return undefined; }
@@ -39,16 +41,31 @@ export default function RateLimitReadinessPage() {
     setUser(null);
   }
 
+  function cooldownSeconds() {
+    return Math.max(0, Math.ceil((Number(nextRunAt || 0) - Date.now()) / 1000));
+  }
+
   async function runCheck() {
-    if (!supabase) return;
+    if (!supabase || checking) return;
+    const remaining = cooldownSeconds();
+    if (remaining > 0) {
+      setError(`Wait ${remaining}s before running readiness again.`);
+      return;
+    }
     setChecking(true);
+    setNextRunAt(Date.now() + 60000);
     setError('');
     try {
       const session = await supabase.auth.getSession();
       const token = session?.data?.session?.access_token || '';
       const response = await fetch('/api/system/rateLimitReadiness', { headers: token ? { Authorization: 'Bearer ' + token } : {} });
       const json = await response.json().catch(() => ({}));
+      if (response.status === 429) {
+        const retryAfter = Number(response.headers.get('Retry-After') || json.retryAfterSeconds || 60);
+        setNextRunAt(Date.now() + Math.max(1, retryAfter) * 1000);
+      }
       if (!response.ok) { setError(json.error || 'Rate-limit readiness could not load.'); setResult(null); return; }
+      setLastCheckedAt(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
       setResult(json);
     } catch (err) {
       setError(err.message || 'Rate-limit readiness could not load.');
@@ -68,12 +85,13 @@ export default function RateLimitReadinessPage() {
   const wired = result?.wiredProtections?.filter(item => item.status === 'wired') || [];
   const defined = result?.wiredProtections?.filter(item => item.status !== 'wired') || [];
   const launchDecision = result?.launchDecision || null;
+  const refreshCooldown = cooldownSeconds();
 
   return (
     <Shell user={user} onSignOut={signOut}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <div><div style={eyebrow}>System admin / abuse controls</div><h1 style={h1}>Rate limits and refresh rules must be launch gates.</h1><p style={lead}>This page shows what is actually wired, what is only defined, and what still blocks broad outreach or pilot expansion.</p></div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={runCheck} disabled={checking} style={primaryButton}>{checking ? 'Checking...' : 'Run check'}</button><Link href="/system/admin/saas-roadmap" style={secondaryLink}>SaaS roadmap</Link></div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}><button onClick={runCheck} disabled={checking || refreshCooldown > 0} title={refreshCooldown > 0 ? 'Cooldown prevents repeated readiness refreshes.' : ''} style={{ ...primaryButton, opacity: checking || refreshCooldown > 0 ? .62 : 1 }}>{checking ? 'Checking...' : refreshCooldown > 0 ? `Run check (${refreshCooldown}s)` : 'Run check'}</button><Link href="/system/admin/saas-roadmap" style={secondaryLink}>SaaS roadmap</Link>{lastCheckedAt && <span style={smallText}>Last checked {lastCheckedAt}</span>}</div>
       </div>
       {error && <Panel tone="risk"><strong>{error}</strong></Panel>}
       {result && <section style={grid4}>
