@@ -22,8 +22,8 @@ const workflow = [
 
 const boundaries = [
   'This is a sample workspace. No live records, messages, emails, or texts are changed.',
-  'Families never see private staff notes, billing details, internal reports, or unrelated cases.',
-  'Staff see assigned work. Directors keep the full case floor, reporting, locations, and permissions.',
+  'Families never see private staff notes, billing details, business-only notes, or unrelated cases.',
+  'Staff see assigned work. Directors keep the full case floor, locations, permissions, and export controls.',
   'Every useful card should answer: what is next, who owns it, what is waiting, and what proof exists.',
 ];
 
@@ -59,9 +59,9 @@ export default function FuneralHomeWorkspaceDemo() {
       <section className="wd-shell">
         <div className="wd-hero">
           <div className="wd-panel">
-            <div className="wd-kicker">Private partner workspace</div>
+            <div className="wd-kicker">Sample funeral-home workspace</div>
             <h1 className="wd-title">Hudson Valley Funeral Group</h1>
-            <p className="wd-lede">This sample shows what opens after sign-in: My Day, the next family case, assigned staff work, approved family updates, and proof. It is built for funeral-home operations, not public browsing.</p>
+            <p className="wd-lede">This sample shows what opens after sign-in: My Day, the next family case, assigned staff work, approved family updates, and proof. It is built for funeral-home teams, not public browsing.</p>
             <div className="wd-actions">
               <a href={walkthroughHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('workspace_demo_book_walkthrough_clicked', { source: 'workspace-demo' })} className="wd-button wd-primary">Book walkthrough</a>
               <Link href="/funeral-home/login" onClick={() => trackEvent('workspace_demo_customer_login_clicked', { source: 'workspace-demo' })} className="wd-button wd-secondary">Customer login</Link>
