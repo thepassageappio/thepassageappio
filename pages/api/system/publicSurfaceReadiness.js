@@ -19,7 +19,7 @@ const publicChecks = [
   },
   {
     path: '/funeral-home/login',
-    requires: ['Customers sign in. Prospects learn or book a demo.', 'Customer login', 'Learn functionality'],
+    requires: ['Customers sign in. Prospects learn or book a demo.', 'Customer login', 'New customer workspace', 'Learn functionality'],
   },
   {
     path: '/funeral-home/sample-case',
@@ -120,6 +120,7 @@ const forbiddenPublicText = [
   'yellow_path',
   'launch grade',
   'pilot conversion',
+  'New partner',
 ];
 
 const forbiddenPublicMarkup = [
