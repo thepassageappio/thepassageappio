@@ -357,6 +357,8 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
 
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
   const ownerConsoleActive = showSystemAdminLinks && (isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin'));
+  const partnerSurfaceActive = isActivePath(activePath, '/funeral-home') || isActivePath(activePath, '/vendors') || isActivePath(activePath, '/care-providers');
+  const showFamilyDashboardLink = currentUser && !ownerConsoleActive && !partnerSurfaceActive;
   const primaryNavLinks = ownerConsoleActive ? [] : LINKS;
   const demoTourActive = hydrated && ownerConsoleActive && router?.query?.demoTour === 'funeral-home';
   const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(activePath, router?.query?.demoStep)) : null;
@@ -410,7 +412,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
             ))}
           </>
         )}
-        {currentUser && !ownerConsoleActive && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
+        {showFamilyDashboardLink && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
         <span className="passage-nav-action-slot" style={{ width: 96, display: 'inline-flex', justifyContent: 'flex-end' }}>
           {!localAuthReady && (
             <span aria-hidden="true" style={{ width: 92, minHeight: 38, display: 'inline-flex' }} />
