@@ -870,7 +870,7 @@ export default function FuneralHomeDashboard() {
   async function signInWithPassword(event) {
     event?.preventDefault?.();
     if (!partnerEmail.trim() || !partnerPassword) {
-      setError('Enter the partner email and password for this workspace.');
+      setError('Enter the work email and password for this workspace.');
       return;
     }
     setSigningIn(true);
