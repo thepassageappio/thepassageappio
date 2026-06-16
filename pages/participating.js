@@ -407,23 +407,20 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         <StatusBadge status={itemStatus(item)} label={statusLabel(itemStatus(item))} />
       </div>
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: primary ? '14px 15px' : '12px 13px', marginBottom: 10 }}>
-        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Start here</div>
+        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Your task spine</div>
         <div style={{ color: C.ink, fontSize: primary ? 16 : 14, lineHeight: 1.42, fontWeight: 900 }}>{explanation.what}</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8, marginTop: 11 }}>
+        <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 6 }}>Owner: <strong style={{ color: C.ink }}>{ownerSummary}</strong></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 11 }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Asked of you</div>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>1. Do</div>
             <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{contract.action}</div>
           </div>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Owner</div>
-            <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{ownerSummary}</div>
-          </div>
           <div style={{ background: statusBg, border: `1px solid ${statusTone}33`, borderRadius: 12, padding: '9px 10px' }}>
-            <div style={{ color: statusTone, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting</div>
+            <div style={{ color: statusTone, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>2. Update</div>
             <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{expectedUpdate}</div>
           </div>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>What gets saved</div>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>3. Save proof</div>
             <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{notificationSummary}</div>
           </div>
         </div>
