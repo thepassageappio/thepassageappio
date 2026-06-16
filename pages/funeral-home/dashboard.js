@@ -2552,7 +2552,6 @@ export default function FuneralHomeDashboard() {
     : [
       ['staff', 'My work', 'Assigned first'],
       ['work', 'Case context', 'Family record'],
-      ['reports', 'Proof trail', 'Reports'],
     ];
   const headerUser = user?.id === publicDemoUser.id ? null : user;
   const guidedDemoSteps = [
@@ -2588,6 +2587,12 @@ export default function FuneralHomeDashboard() {
     if (loading || !data || isDirectorRole || activePartnerView !== 'work' || staffCaseContextOpen) return;
     setActivePartnerView('staff');
   }, [loading, data, isDirectorRole, activePartnerView, staffCaseContextOpen]);
+
+  useEffect(() => {
+    if (loading || !data || isDirectorRole || activePartnerView !== 'reports') return;
+    setActivePartnerView('staff');
+    setShowTools(false);
+  }, [loading, data, isDirectorRole, activePartnerView]);
 
   useEffect(() => {
     if (loading || !data || activePartnerView !== 'work' || expandedCaseId || casePaneAutoOpened || !focusedDisplayCases[0]?.id) return;
@@ -3977,7 +3982,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data && activePartnerView === 'reports' && (
+        {user && !loading && data && isDirectorRole && activePartnerView === 'reports' && (
           <div id="partner-reports-section" data-demo-anchor="demo-reports" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,0,0,.05)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
@@ -4156,7 +4161,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && !loading && data?.organizations?.length > 0 && vendorPrefs.vendors.length > 0 && (showTools || activePartnerView === 'reports') && (
+        {user && !loading && data?.organizations?.length > 0 && vendorPrefs.vendors.length > 0 && (showTools || (isDirectorRole && activePartnerView === 'reports')) && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 16, marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
