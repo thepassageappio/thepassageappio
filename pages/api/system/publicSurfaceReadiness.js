@@ -11,7 +11,7 @@ const GOOGLE_ADDRESS_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOG
 const publicChecks = [
   {
     path: '/',
-    requires: ['Open sample funeral-home console', 'Start urgent path', 'Plan ahead'],
+    requires: ['Open sample funeral-home workspace', 'Start urgent path', 'Plan ahead'],
   },
   {
     path: '/funeral-home',
