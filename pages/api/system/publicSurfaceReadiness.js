@@ -22,6 +22,10 @@ const publicChecks = [
     requires: ['Show one family case from intake to proof.', 'Case clarity', 'How the workspace helps'],
   },
   {
+    path: '/funeral-home/dashboard?demo=1',
+    requires: ['Private partner workspace', 'What opens after sign-in', 'Staff queue showing who owns what'],
+  },
+  {
     path: '/vendors',
     requires: ['Apply to join', 'Vendor owner sign in', 'Vendor employee sign in'],
   },
@@ -69,13 +73,17 @@ const forbiddenPublicText = [
   '$300k',
   '300k',
   'Sprint 2',
+  'Sprint 3',
+  'Sprint 4',
   'paid-pilot',
   'sales and QA',
   'conversion decision',
   'scale outreach',
   'owner-only',
   'owner only',
+  'founder narration',
   'internal roadmap',
+  'source of truth',
   'assigned task spine',
   'Proof and notify',
   'Mark done with proof',
@@ -93,6 +101,11 @@ const forbiddenPublicText = [
   'green path',
   'red path',
   'yellow path',
+  'green_path',
+  'red_path',
+  'yellow_path',
+  'launch grade',
+  'pilot conversion',
 ];
 
 async function requireSystemAccess(req) {
