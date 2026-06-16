@@ -39,11 +39,11 @@ const publicChecks = [
   },
   {
     path: '/participants',
-    requires: ['Participant sign in', 'Open your assigned request'],
+    requires: ['Help with one clear request', 'Participant sign in', 'Open your assigned request'],
   },
   {
     path: '/participating?demo=1',
-    requires: ['Private family request', 'Open the family request assigned to you.', 'What gets saved'],
+    requires: ['Private family request', 'Open the family request assigned to you.', 'Best next step', 'What gets saved'],
   },
   {
     path: '/share?dn=Eleanor%20Price&cn=Price%20family',
@@ -51,7 +51,7 @@ const publicChecks = [
   },
   {
     path: '/vendors/request?demo=1',
-    requires: ['Sample scoped request', 'One request, not a family file.', 'Payment and fee details stay private'],
+    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request spine', 'Payment and fee details stay private'],
   },
   {
     path: '/pricing',
