@@ -95,6 +95,7 @@ export default function SystemAdminPage() {
   const [loading, setLoading] = useState(true);
   const [checkResults, setCheckResults] = useState({});
   const [runningKey, setRunningKey] = useState('');
+  const [checkCooldowns, setCheckCooldowns] = useState({});
   const [metrics, setMetrics] = useState(null);
   const [metricsError, setMetricsError] = useState('');
   const [partnerInviteDraft, setPartnerInviteDraft] = useState({ organizationName: '', directorName: '', directorEmail: '', supportEmail: '', supportPhone: '', planId: 'partner_local' });
@@ -145,8 +146,20 @@ export default function SystemAdminPage() {
     setUser(null);
   }
 
+  function checkCooldownSeconds(key) {
+    const until = Number(checkCooldowns[key] || 0);
+    return Math.max(0, Math.ceil((until - Date.now()) / 1000));
+  }
+
   async function runCheck(key, label, endpoint, options = {}) {
+    if (runningKey) return;
+    const remaining = checkCooldownSeconds(key);
+    if (remaining > 0) {
+      setCheckResults(prev => ({ ...prev, [key]: { ok: false, label, status: 'cooldown', message: `Wait ${remaining}s before running this check again.` } }));
+      return;
+    }
     setRunningKey(key);
+    setCheckCooldowns(prev => ({ ...prev, [key]: Date.now() + 60000 }));
     setCheckResults(prev => ({ ...prev, [key]: null }));
     try {
       const headers = await authHeaders();
@@ -278,12 +291,12 @@ export default function SystemAdminPage() {
           <div style={eyebrow}>Readiness checks</div>
           <h2 style={h2}>Run proof before demos, pilots, and public pushes.</h2>
           <div style={checkGrid}>
-            <CheckButton label="Public surface" running={runningKey === 'public'} onClick={() => runCheck('public', 'Public surface', '/api/system/publicSurfaceReadiness')} />
-            <CheckButton label="Spine smoke" running={runningKey === 'spine'} onClick={() => runCheck('spine', 'Spine smoke', '/api/system/orchestrationSmokeTest', { method: 'POST', body: { recipientEmail: user?.email || 'steventurrisi@gmail.com', keepRecords: false } })} />
-            <CheckButton label="Payment + CRM" running={runningKey === 'payment'} onClick={() => runCheck('payment', 'Payment + CRM', '/api/system/paymentCrmReadiness')} />
-            <CheckButton label="CRM routing" running={runningKey === 'crm'} onClick={() => runCheck('crm', 'CRM routing', '/api/system/crmRoutingReadiness')} />
-            <CheckButton label="Compliance" running={runningKey === 'compliance'} onClick={() => runCheck('compliance', 'Compliance', '/api/system/complianceReadiness')} />
-            <CheckButton label="Mobile scope" running={runningKey === 'mobile'} onClick={() => runCheck('mobile', 'Mobile scope', '/api/system/mobileCompanionReadiness')} />
+            <CheckButton label="Public surface" running={runningKey === 'public'} disabled={Boolean(runningKey) || checkCooldownSeconds('public') > 0} cooldown={checkCooldownSeconds('public')} onClick={() => runCheck('public', 'Public surface', '/api/system/publicSurfaceReadiness')} />
+            <CheckButton label="Spine smoke" running={runningKey === 'spine'} disabled={Boolean(runningKey) || checkCooldownSeconds('spine') > 0} cooldown={checkCooldownSeconds('spine')} onClick={() => runCheck('spine', 'Spine smoke', '/api/system/orchestrationSmokeTest', { method: 'POST', body: { recipientEmail: user?.email || 'steventurrisi@gmail.com', keepRecords: false } })} />
+            <CheckButton label="Payment + CRM" running={runningKey === 'payment'} disabled={Boolean(runningKey) || checkCooldownSeconds('payment') > 0} cooldown={checkCooldownSeconds('payment')} onClick={() => runCheck('payment', 'Payment + CRM', '/api/system/paymentCrmReadiness')} />
+            <CheckButton label="CRM routing" running={runningKey === 'crm'} disabled={Boolean(runningKey) || checkCooldownSeconds('crm') > 0} cooldown={checkCooldownSeconds('crm')} onClick={() => runCheck('crm', 'CRM routing', '/api/system/crmRoutingReadiness')} />
+            <CheckButton label="Compliance" running={runningKey === 'compliance'} disabled={Boolean(runningKey) || checkCooldownSeconds('compliance') > 0} cooldown={checkCooldownSeconds('compliance')} onClick={() => runCheck('compliance', 'Compliance', '/api/system/complianceReadiness')} />
+            <CheckButton label="Mobile scope" running={runningKey === 'mobile'} disabled={Boolean(runningKey) || checkCooldownSeconds('mobile') > 0} cooldown={checkCooldownSeconds('mobile')} onClick={() => runCheck('mobile', 'Mobile scope', '/api/system/mobileCompanionReadiness')} />
           </div>
           {Object.values(checkResults).filter(Boolean).length > 0 && (
             <div style={{ display: 'grid', gap: 9, marginTop: 14 }}>
@@ -349,8 +362,9 @@ function ToolLink({ title, href, body }) {
   );
 }
 
-function CheckButton({ label, running, onClick }) {
-  return <button type="button" onClick={onClick} disabled={running} style={{ ...secondaryButton, opacity: running ? .62 : 1 }}>{running ? 'Running...' : label}</button>;
+function CheckButton({ label, running, disabled, cooldown = 0, onClick }) {
+  const text = running ? 'Running...' : cooldown > 0 ? `${label} (${cooldown}s)` : label;
+  return <button type="button" onClick={onClick} disabled={disabled || running} title={cooldown > 0 ? 'Cooldown prevents repeated readiness refreshes.' : ''} style={{ ...secondaryButton, opacity: disabled || running ? .62 : 1 }}>{text}</button>;
 }
 
 function CheckResult({ result }) {
