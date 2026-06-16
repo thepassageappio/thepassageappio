@@ -2733,16 +2733,16 @@ export default function FuneralHomeDashboard() {
             </div>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
             <div style={{ fontSize: 28, lineHeight: 1.12, marginBottom: 8 }}>Sign in to your funeral-home workspace.</div>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Only staff connected to a Passage partner organization can view cases, staff assignments, proof, and exports.</p>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Only staff connected to your funeral-home organization can view cases, staff assignments, proof, and exports.</p>
             {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45, marginBottom: 10 }}>{error}</div>}
             <form onSubmit={signInWithPassword} style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
               <label style={{ display: 'grid', gap: 5, color: C.soft, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>
-                Partner email
+                Work email
                 <input
                   value={partnerEmail}
                   onChange={event => setPartnerEmail(event.target.value)}
                   type="email"
-                  placeholder="director@passagefh.example"
+                  placeholder="director@funeralhome.com"
                   autoComplete="email"
                   style={{ border: `1.5px solid ${C.border}`, borderRadius: 13, background: C.bg, padding: '12px 13px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 14 }}
                 />
