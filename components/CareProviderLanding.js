@@ -228,7 +228,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
       <section style={{ ...section, paddingBottom: 64 }}>
         <div style={panel}>
           <div style={eyebrow}>Related front doors</div>
-          <h2 style={h2}>Separate pages. Same family-owned spine.</h2>
+          <h2 style={h2}>Separate pages. Same family-owned record.</h2>
           <div style={relatedGrid}>
             {[
               ['/funeral-home', 'Funeral homes', 'For funeral homes that need a calmer family and staff coordination workspace.'],
