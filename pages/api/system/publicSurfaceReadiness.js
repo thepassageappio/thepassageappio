@@ -84,7 +84,7 @@ const forbiddenPublicText = [
   'Passage share:',
   'admin walkthrough',
   'Proof / reporting',
-  '? loved beyond measure'
+  '? loved beyond measure',
   'source of truth for P0',
   'DEMO DATA - FOR DEMONSTRATION ONLY',
   'Says:',
