@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { escapeHtml, passageEmailShell, passageSubject } from '../../lib/brandedEmail';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
@@ -12,6 +14,16 @@ function isAuthorized(req) {
   if (internalSecret && providedInternal === internalSecret) return true;
   if (cronSecret && providedBearer === cronSecret) return true;
   return false;
+}
+
+function enforceProcessorLimit(req) {
+  const policy = getRateLimitPolicy('outboundDelivery');
+  if (!policy) return { allowed: true };
+  return rateLimit({
+    key: ['process-scheduled-deliveries', getRequestIp(req), String(req.headers.authorization || req.headers['x-passage-internal-secret'] || 'internal').slice(0, 24)].join(':'),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: Math.max(6, Math.floor(policy.maxRequests / 2)),
+  });
 }
 
 function emailHtml(item) {
@@ -79,6 +91,11 @@ async function sendSms(item) {
 export default async function handler(req, res) {
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).end();
   if (!isAuthorized(req)) return res.status(401).json({ error: 'Scheduled delivery processor is not authorized.' });
+  const limit = enforceProcessorLimit(req);
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+    return res.status(429).json({ error: 'Scheduled delivery processing is cooling down. Wait before running it again.', retryAfterSeconds: limit.retryAfterSeconds });
+  }
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(500).json({ error: 'Scheduled delivery processor is missing Supabase configuration.' });
