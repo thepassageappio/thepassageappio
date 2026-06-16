@@ -19,7 +19,7 @@ const roleCards = [
   {
     eyebrow: 'Customer login',
     title: 'Director or manager',
-    body: 'Open the actual funeral-home workspace: My Day, cases, employees, family requests, proof, reports, and exports.',
+    body: 'Open the actual funeral-home workspace: My Day, cases, employees, family requests, proof, family updates, and exports.',
     href: '/funeral-home/dashboard?partner=1',
     action: 'Open dashboard',
     tone: 'primary',
@@ -32,9 +32,9 @@ const roleCards = [
     action: 'Open staff login',
   },
   {
-    eyebrow: 'New partner',
+    eyebrow: 'New customer workspace',
     title: 'Set up a workspace',
-    body: 'Start setup after Passage has approved your funeral-home account: organization, locations, employees, family view, and first cases.',
+    body: 'Start setup after Passage activates your funeral-home account: organization, locations, employees, family view, and first cases.',
     href: '/funeral-home/setup',
     action: 'Start setup',
   },
@@ -59,7 +59,7 @@ export default function FuneralHomeLogin() {
               This is the doorway to the working funeral-home product. If your organization already uses Passage, choose your role. If you are evaluating Passage, use the sales page, sample case, or walkthrough instead.
             </p>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
-              Use the email invited to your funeral-home organization. Directors see the business workspace; staff see assigned work. Public visitors should not land inside customer data or admin tools.
+              Use the email invited to your funeral-home organization. Directors see the business workspace; staff see assigned work. Public visitors should use the sales page, sample case, or walkthrough before opening customer work.
             </div>
           </div>
 
