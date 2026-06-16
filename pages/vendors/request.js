@@ -210,7 +210,7 @@ export default function VendorRequestPage() {
       ? 'Passage coordinator'
       : vendorName;
   const waitingLabel = request?.status === 'completed'
-    ? 'Nothing. Proof is saved.'
+    ? 'Nothing. Status is saved.'
     : request?.status === 'declined'
       ? 'Another support option'
       : ['quoted', 'accepted'].includes(request?.status)
@@ -224,7 +224,7 @@ export default function VendorRequestPage() {
     ? 'Completion timestamp and value stay on the request.'
     : request?.status === 'declined'
       ? 'Decline reason/status stays visible for replacement.'
-      : 'Viewed/responded timestamps and status changes report back to the case.';
+      : 'Viewed/responded timestamps and status changes are saved to the request.';
   const needRows = vendorRequestNeedRows(request || {});
   const recommendedVendorAction = ['quoted', 'accepted'].includes(request?.status)
     ? ['in_progress', 'Mark scheduled']
@@ -276,7 +276,7 @@ export default function VendorRequestPage() {
             <div style={{ padding: 22, borderBottom: '1px solid ' + C.border, background: C.card }}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{demoMode ? 'Sample scoped vendor request' : 'Scoped local support request'}</div>
               <h1 style={{ fontSize: 32, lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
-              <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Sample request for an admin walkthrough. No live family record is changed.' : 'One scoped request connected to the family record. You only see what is needed to answer this request.'}</p>
+              <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Sample scoped request. No live family record is changed.' : 'One scoped request connected to the family record. You only see what is needed to answer this request.'}</p>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 12 }}>
                 <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After your quote:</strong> the family or funeral home accepts it before work begins.
               </div>
@@ -306,7 +306,7 @@ export default function VendorRequestPage() {
                 <Info label="Asked of you" value={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus} />
                 <Info label="Owner" value={ownerLabel} />
                 <Info label="Waiting" value={waitingLabel} />
-                <Info label="Proof and notify" value={proofLabel} />
+                <Info label="What gets saved" value={proofLabel} />
               </div>
               <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
                 <strong style={{ color: C.ink }}>Access boundary:</strong> You can respond to this request only. Private family notes, unrelated tasks, and the estate workspace stay hidden.
@@ -363,7 +363,7 @@ export default function VendorRequestPage() {
             />
 
             <details style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 14, marginBottom: 14 }}>
-              <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 13, fontWeight: 900 }}>Status and proof trail</summary>
+              <summary style={{ cursor: 'pointer', color: C.sage, fontSize: 13, fontWeight: 900 }}>Status history</summary>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <Pill label="Sent" time={request.requested_at} />
                 {request.viewed_at && <Pill label="Viewed" time={request.viewed_at} />}
@@ -388,7 +388,7 @@ export default function VendorRequestPage() {
               {recommendedVendorAction ? (
                 <button onClick={() => setPendingVendorAction(recommendedVendorAction[0])} disabled={!!updating} style={{ ...buttonStyle(C.sage), minHeight: 46, fontSize: 14, textAlign: 'left' }}>Recommended: {recommendedVendorAction[1]}</button>
               ) : (
-                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 11, color: C.sage, fontWeight: 900, fontSize: 13 }}>This request is closed. The case now has the vendor status and proof trail.</div>
+                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 11, color: C.sage, fontWeight: 900, fontSize: 13 }}>This request is closed. The case now has the vendor status and completion note.</div>
               )}
               <details style={{ border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px', background: C.card }}>
                 <summary style={{ cursor: 'pointer', color: C.mid, fontWeight: 900, fontSize: 12.5 }}>Other responses</summary>
@@ -421,11 +421,9 @@ export default function VendorRequestPage() {
                   </div>
                   <label style={{ ...labelStyle, marginTop: 9 }}>Quote note / availability<textarea value={vendorNote} onChange={(e) => setVendorNote(e.target.value)} placeholder="Available Friday afternoon. Quote includes setup, service coverage, and delivery of recording." style={{ ...inputStyle, minHeight: 74, resize: 'vertical' }} /></label>
                   <label style={{ ...labelStyle, marginTop: 9 }}>Service instructions<textarea value={serviceNotes} onChange={(e) => setServiceNotes(e.target.value)} placeholder="Arrival instructions, delivery details, proof expected, or what the family should know." style={{ ...inputStyle, minHeight: 62, resize: 'vertical' }} /></label>
-                  {(request.platform_fee_amount || request.funeral_home_share_amount || request.passage_share_amount) && (
-                    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9, fontSize: 12.5, color: C.mid }}>
-                      {request.platform_fee_amount && <span>Tracked platform fee: <strong>{money(request.platform_fee_amount)}</strong></span>}
-                      {request.funeral_home_share_amount && <span>Funeral home share: <strong>{money(request.funeral_home_share_amount)}</strong></span>}
-                      {request.passage_share_amount && <span>Passage share: <strong>{money(request.passage_share_amount)}</strong></span>}
+                  {request.payment_collection_status && (
+                    <div style={{ marginTop: 9, fontSize: 12.5, color: C.mid, lineHeight: 1.45 }}>
+                      Payment and fee details stay private. The vendor sees only the quote, scheduling, and completion details needed to respond.
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
@@ -708,7 +706,7 @@ function VendorRequestLoop({ next, owner, waiting, proof }) {
       <Info label="What happens now" value={next} />
       <Info label="Who owns it" value={owner} />
       <Info label="Waiting on" value={waiting} />
-      <Info label="Proof / reporting" value={proof} />
+      <Info label="Status update" value={proof} />
     </div>
   );
 }
