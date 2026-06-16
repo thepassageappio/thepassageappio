@@ -355,7 +355,7 @@ const demoPartnerContext = {
     },
   }],
   activationStatus: 'active',
-  partnerPlan: { name: 'Pilot', status: 'demo' },
+  partnerPlan: { name: 'Sample plan', status: 'demo' },
   isPassageAdmin: true,
   staff: [
     { email: 'maria@hvfg.demo', role: 'director', scope: 'all_cases', status: 'active', annual_salary: '92000' },
@@ -2008,7 +2008,7 @@ export default function FuneralHomeDashboard() {
     const age = riskAgeHours(task?.last_action_at || task?.updated_at || task?.created_at);
     const title = `${task?.title || ''} ${task?.description || ''}`.toLowerCase();
     if (taskIsClosed(task)) return '';
-    if (taskNeedsHelp(task)) return 'Escalating: blocked or needs help';
+    if (taskNeedsHelp(task)) return 'Needs help: decision or owner';
     if (taskIsWaiting(task) && age >= 24) return 'At risk: no response in 24h';
     if (/obituary|service|flowers|transport|cemetery|permit|pronouncement/.test(title) && ['draft', 'acknowledged', 'waiting', 'pending'].includes(status)) return 'At risk near service work';
     if ((caseItem?.vendorRequests || []).some(request => !['completed', 'declined'].includes(String(request.status || '').toLowerCase()) && riskAgeHours(request.requested_at) >= 24)) return 'At risk: vendor response overdue';
@@ -2018,7 +2018,7 @@ export default function FuneralHomeDashboard() {
     ['Active cases', cases.length],
     ['Tasks handled by Passage', totalHandled],
     ['Waiting for response', totalWaiting],
-    ['Blocked items', totalBlocked],
+    ['Needs help', totalBlocked],
     ['Estimated calls avoided', callsAvoided],
     ['Estimated hours saved', timeSavedLabel],
   ];
@@ -2412,7 +2412,7 @@ export default function FuneralHomeDashboard() {
       proof: proofEventsLogged ? `${proofEventsLogged} proof/status event${proofEventsLogged === 1 ? '' : 's'}` : totalHandled ? `${totalHandled} handled task${totalHandled === 1 ? '' : 's'}` : 'No proof saved yet',
       done: proofEventsLogged > 0 || totalHandled > 0,
       waiting: totalWaiting > 0,
-      next: totalHandled || proofEventsLogged ? 'Family and staff see the same status truth.' : 'Record what was done, waiting, or blocked.',
+      next: totalHandled || proofEventsLogged ? 'Family and staff see the same status truth.' : 'Record what was done, what is waiting, or where help is needed.',
     },
     {
       key: 'local',
@@ -4908,7 +4908,7 @@ export default function FuneralHomeDashboard() {
                               <br />
                               <strong style={{ color: C.ink }}>Expected timing:</strong> {guidance.timing}
                               <br />
-                              <strong style={{ color: C.ink }}>Visibility:</strong> family-facing status and proof are shared; staff notes stay in the operating record.
+                              <strong style={{ color: C.ink }}>Family view:</strong> approved status and proof are shared; staff notes stay in the operating record.
                             </div>
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 11 }}>
@@ -4942,7 +4942,7 @@ export default function FuneralHomeDashboard() {
                         </div>
                         )}
                         <details style={{ border: `1px solid ${C.border}`, background: C.bg, borderRadius: 11, padding: '9px 10px', marginTop: 10 }}>
-                          <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 12.5 }}>Prepared routing, proof, and audit layers</summary>
+                          <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 12.5 }}>Details Passage saves</summary>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
                             {loopRows.map(([label, body, tone]) => (
                               <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 72 }}>
