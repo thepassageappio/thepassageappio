@@ -26,7 +26,7 @@ const publicChecks = [
     requires: ['Show one family case from intake to proof.', 'Case clarity', 'How the workspace helps'],
   },
   {
-    path: '/funeral-home/dashboard?demo=1',
+    path: '/funeral-home/workspace-demo',
     requires: ['Private partner workspace', 'What opens after sign-in', 'Staff queue showing who owns what'],
   },
   {
@@ -51,7 +51,7 @@ const publicChecks = [
   },
   {
     path: '/vendors/request?demo=1',
-    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request spine', 'Payment and fee details stay private'],
+    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request spine'],
   },
   {
     path: '/pricing',
