@@ -1564,7 +1564,7 @@ export default function FuneralHomeDashboard() {
         openPartnerWork(firstOpenCase.id);
         scrollPartnerDemoTarget('partner-action-workspace-' + firstOpenCase.id);
       } else {
-        setNotice('Create a case first, then Passage opens the task spine.');
+        setNotice('Create a case first, then Passage opens the next action.');
         openCasePanel('immediate');
       }
       return;
@@ -4604,7 +4604,7 @@ export default function FuneralHomeDashboard() {
                 : [];
               const caseProofGapCount = item.tasks.filter(task => taskIsClosed(task) && !String(task.notes || task.waiting_on || task.last_actor || '').trim()).length;
               const waitingLabel = blocked
-                ? `${blocked} blocker${blocked === 1 ? '' : 's'} need attention`
+                ? `${blocked} item${blocked === 1 ? '' : 's'} need help`
                 : waitingFamily.length
                   ? `${waitingFamily.length} family item${waitingFamily.length === 1 ? '' : 's'} waiting`
                   : waitingCount
@@ -4619,12 +4619,12 @@ export default function FuneralHomeDashboard() {
               const familyUpdateLabel = nextPartnerTask
                 ? nextExpectedUpdate
                 : open
-                  ? 'Open work remains, but no partner-ready next task is selected.'
+                  ? 'Open work remains; assign the next clear owner before the family update.'
                   : 'Family can be told there is no open partner task right now.';
               const caseOperatingContract = [
-                ['Ask', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No partner-ready ask', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
+                ['Ask', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action ready', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
                 ['Owner', nextOwner, nextOwner === 'Unassigned' ? 'Assign an owner before this can reliably move.' : 'This person owns the next visible move.', nextOwner === 'Unassigned' ? C.amber : C.sage],
-                ['Waiting', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting and blockers are what create repeated family calls.', blocked ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
+                ['Waiting', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting points create repeated family calls when they are not owned.', blocked ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
                 ['Proof', proofLabel, caseProofGapCount ? 'Close the proof gap before using this as a family status record.' : 'Proof stays attached to the case record.', caseProofGapCount ? C.amber : C.sage],
                 ['Family update', familyUpdateLabel, 'Use this line to answer the next where-are-we call.', C.mid],
               ];
@@ -4667,7 +4667,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                   )}
                   <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
-                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case operating contract</div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case at a glance</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 9 }}>
                       {caseOperatingContract.map(([label, value, body, color]) => (
                         <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 92 }}>
@@ -4682,8 +4682,8 @@ export default function FuneralHomeDashboard() {
                     <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
                         <div>
-                          <div style={{ fontSize: 10.5, color: blocked ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Family record next move</div>
-                          <div style={{ fontSize: 18, lineHeight: 1.2, color: C.ink, fontWeight: 900 }}>{nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No partner-ready work is open'}</div>
+                          <div style={{ fontSize: 10.5, color: blocked ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Recommended next action</div>
+                          <div style={{ fontSize: 18, lineHeight: 1.2, color: C.ink, fontWeight: 900 }}>{nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action is open'}</div>
                         </div>
                         {nextImportance && <span style={{ background: nextImportanceTone.bg, border: `1px solid ${nextImportanceTone.border}`, color: nextImportanceTone.color, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextImportance.label}</span>}
                         <span style={{ background: C.card, color: nextOwner === 'Unassigned' ? C.amber : C.sage, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextOwner}</span>
@@ -4704,13 +4704,13 @@ export default function FuneralHomeDashboard() {
                       </div>
                       {nextStateMachine && (
                         <div style={{ background: C.card, border: `1px solid ${nextStateMachine.escalation || nextStateMachine.state === 'blocked_by_dependency' ? C.amber + '44' : C.sage + '33'}`, borderRadius: 11, padding: '9px 10px', marginTop: 8, color: C.mid, fontSize: 12.2, lineHeight: 1.45 }}>
-                          <strong style={{ color: C.ink }}>Orchestration state:</strong> {` ${nextStateMachine.label}. ${nextStateMachine.reassurance}`}
+                          <strong style={{ color: C.ink }}>Why Passage picked this:</strong> {` ${nextStateMachine.label}. ${nextStateMachine.reassurance}`}
                           {nextStateMachine.escalation ? <div style={{ marginTop: 4 }}><strong style={{ color: C.ink }}>If stuck:</strong> {nextStateMachine.escalation}</div> : null}
                         </div>
                       )}
                       {workflowStates.activeState && (
                         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', marginTop: 8 }}>
-                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case workflow state</div>
+                          <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case stage</div>
                           <div style={{ color: C.ink, fontSize: 13.5, lineHeight: 1.35, fontWeight: 900, marginTop: 4 }}>{workflowStates.activeState.label}: {workflowStates.activeState.statusLabel}</div>
                           <div style={{ color: C.mid, fontSize: 12.1, lineHeight: 1.4, marginTop: 3 }}>{workflowStates.activeState.reassurance}</div>
                           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 7 }}>
@@ -4803,7 +4803,7 @@ export default function FuneralHomeDashboard() {
                     <Link href={`/funeral-home/summary?id=${item.id}`} style={{ color: C.mid, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 999, padding: '6px 9px', textDecoration: 'none', fontSize: 11.5, fontWeight: 900 }}>Printable summary</Link>
                   </div>}
                   {isExpanded && nextPartnerTask && (() => {
-                    const context = { caseName: item?.deceased_name || item?.estate_name || item?.name, coordinatorName: item?.coordinator_name, surface: 'case spine proof' };
+                    const context = { caseName: item?.deceased_name || item?.estate_name || item?.name, coordinatorName: item?.coordinator_name, surface: 'case proof record' };
                     const taskClosed = taskIsClosed(nextPartnerTask);
                     const output = taskOutputFor(nextPartnerTask, context);
                     const guidance = taskGuidanceFor(nextPartnerTask, { ...context, owner: nextOwner });
@@ -4895,9 +4895,9 @@ export default function FuneralHomeDashboard() {
                       <div id={'partner-action-workspace-' + item.id} data-demo-anchor="demo-task-spine" style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 12, alignItems: 'stretch' }}>
                           <div>
-                            <div style={{ color: taskClosed ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{taskClosed ? 'Closed on the spine' : 'Action workspace'}</div>
+                            <div style={{ color: taskClosed ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{taskClosed ? 'Closed with proof' : 'Next action'}</div>
                             <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(nextPartnerTask)}</div>
-                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{taskClosed ? 'This task is already handled. Passage keeps the proof, notification, owner, and family-visible status together.' : 'Choose the next operational move. Passage keeps the owner, request, proof, and family-visible status on the same family record.'}</div>
+                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{taskClosed ? 'This task is already handled. Passage keeps the proof, owner, notification, and family-visible status together.' : 'Pick one step. Passage keeps the owner, request, proof, and family-visible status on the same family record.'}</div>
                             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
                               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', marginBottom: 8 }}>
                                 <strong style={{ color: C.ink }}>What this task is:</strong> {explanation.what}
@@ -4908,7 +4908,7 @@ export default function FuneralHomeDashboard() {
                               <br />
                               <strong style={{ color: C.ink }}>Expected timing:</strong> {guidance.timing}
                               <br />
-                              <strong style={{ color: C.ink }}>Family view:</strong> approved status and proof are shared; staff notes stay in the operating record.
+                              <strong style={{ color: C.ink }}>Family can see:</strong> approved status and proof. Staff notes stay in the funeral-home record.
                             </div>
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 11 }}>
@@ -4942,7 +4942,7 @@ export default function FuneralHomeDashboard() {
                         </div>
                         )}
                         <details style={{ border: `1px solid ${C.border}`, background: C.bg, borderRadius: 11, padding: '9px 10px', marginTop: 10 }}>
-                          <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 12.5 }}>Details Passage saves</summary>
+                          <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 12.5 }}>What Passage saves</summary>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
                             {loopRows.map(([label, body, tone]) => (
                               <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 72 }}>
@@ -5471,7 +5471,7 @@ function PreparedOutputPreviewDialog({ preview, copiedKey, onCopyText, onClose }
 function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, copiedKey, updating, orgName, onCopyText, onPreviewOutput, onClose, onHandleForFamily, onUpdateTask }) {
   const task = taskDraft?.task;
   if (!task) return null;
-  const proofDestination = taskDraft.proofDestination || taskProofDestination(task, { surface: 'case spine proof' });
+  const proofDestination = taskDraft.proofDestination || taskProofDestination(task, { surface: 'case proof record' });
   const isSaving = updating === task.id + taskDraft.status || updating === task.id + 'handle_for_family';
   const canSave = !!String(taskDraftNote || '').trim() && !isSaving;
   const note = String(taskDraftNote || '').trim();
