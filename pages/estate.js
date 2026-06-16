@@ -1568,7 +1568,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
   async function sendReminder(task) {
     var reminderRecipient = task.assigned_to_email || (String(task.recipient || '').includes('@') ? task.recipient : '');
     if (!reminderRecipient) {
-      setActionFeedback('Assign this task to someone with an email before sending a reminder. Open the task workspace, choose an owner, then return here.');
+      setActionFeedback('Assign this task to someone with an email before sending a reminder. Open the task details, choose an owner, then return here.');
       return;
     }
     var session = await sb.auth.getSession();
@@ -1680,7 +1680,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginTop: 3 }}>{displayTaskNext(task)}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                       <span style={{ background: SAGE_FAINT, color: SAGE, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{familyExecutionTierLabel(task.playbook.executionTier)}</span>
-                      <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{textValue(task.playbook.executionModeLabel, 'Task details').replace(/Task workspace/gi, 'Task details')}</span>
+                      <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{textValue(task.playbook.executionModeLabel, 'Task details').replace(/Task\\s+workspace/gi, 'Task details')}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Owner: {ownerBucket(task)}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {proof}</span>
                     </div>
@@ -1959,7 +1959,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         {[
           ['Who can see this', 'The coordinator sees the family record. Assigned helpers see only the work appropriate to their role.'],
           ['What stays protected', 'Proof, documents, and sensitive notes stay attached to the estate record until an approved action uses them.'],
-          ['How Passage knows', 'Every action is tied to an owner, status, timestamp, message, and proof destination before it becomes reporting.'],
+          ['How Passage knows', 'Every action is tied to an owner, status, timestamp, message, and proof path before it becomes reporting.'],
         ].map(function(row) {
           return (
             <div key={row[0]} style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 13, padding: '8px 10px' }}>
@@ -2149,7 +2149,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               <SpineFact label="Owner" value={owner} tone={missingOwner ? 'warn' : 'good'} />
               <SpineFact label="Recipient / contact" value={recipient} tone={recipient.includes('Add recipient') ? 'warn' : 'good'} />
               <SpineFact label="Status truth" value={status} tone={blockedCount ? 'warn' : 'good'} />
-              <SpineFact label="Proof destination" value={proof} />
+              <SpineFact label="Where proof saves" value={proof} />
               <SpineFact label="Visibility" value="Estate roles and assigned helpers see task updates appropriate to their role." />
               <SpineFact label="Last actor / time" value={lastTime ? lastActor + ' - ' + lastTime : lastActor} />
             </div>}
@@ -2689,7 +2689,7 @@ function ProofPanel({ actions, tasks, events }) {
   var rows = proofRowsFor(actions, tasks, events);
   var sent = rows.filter(function(r) { return r.status === 'Sent' || r.status === 'Handled' || r.status === 'Recorded'; }).length;
   var waiting = rows.filter(function(r) { return r.status === 'Waiting for confirmation' || r.status === 'Draft'; }).length;
-  var review = rows.filter(function(r) { return r.status === 'Needs review' || r.status === 'Failed' || r.status === 'Blocked'; }).length;
+  var review = rows.filter(function(r) { return r.status === 'Needs review' || r.status === 'Failed' || r.status === 'Needs help'; }).length;
   return (
     <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
@@ -4557,7 +4557,7 @@ export default function EstatePage() {
               <div style={{ background: pendingTaskAction.status === 'handled' ? SAGE_FAINT : pendingTaskAction.status === 'blocked' ? ROSE_FAINT : SUBTLE, border: '1px solid ' + (pendingTaskAction.status === 'handled' ? SAGE_LIGHT : pendingTaskAction.status === 'blocked' ? ROSE + '35' : BORDER), borderRadius: 12, padding: '9px 10px', marginTop: 9, color: MID, fontSize: 12.5, lineHeight: 1.45 }}>
                 <strong style={{ color: INK }}>After you save:</strong>{' '}
                 {pendingTaskAction.status === 'handled'
-                  ? 'Passage marks this task done, saves this proof note and any attachment path, notifies the right spine view, and moves it out of active work.'
+                  ? 'Passage marks this task done, saves this proof note and any attachment path, updates the right view, and moves it out of active work.'
                   : pendingTaskAction.status === 'blocked'
                     ? 'Passage keeps this visible as a help request, records the stuck point, and shows who needs to respond next.'
                     : pendingTaskAction.status === 'waiting'
