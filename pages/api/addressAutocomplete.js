@@ -1,4 +1,20 @@
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+function cleanLimitKey(value, max = 140) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
+}
+
+function enforceAddressLookupLimit(req, { q, placeId }) {
+  const policy = getRateLimitPolicy('providerLookup');
+  if (!policy) return { allowed: true };
+  return rateLimit({
+    key: ['address-lookup', getRequestIp(req), placeId ? 'details' : 'autocomplete', cleanLimitKey(placeId || q).toLowerCase()].join(':'),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: policy.maxRequests,
+  });
+}
 
 function clean(value, limit = 220) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, limit);
@@ -49,6 +65,11 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const q = clean(req.query.q);
   const placeId = clean(req.query.placeId, 120);
+  const limit = enforceAddressLookupLimit(req, { q, placeId });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 60));
+    return res.status(429).json({ error: 'Too many address lookups. Please wait before searching again.', retryAfterSeconds: limit.retryAfterSeconds });
+  }
   if (!GOOGLE_KEY) return res.status(200).json({ configured: false, predictions: [] });
   if (!q && !placeId) return res.status(400).json({ error: 'Address or placeId required.' });
 
