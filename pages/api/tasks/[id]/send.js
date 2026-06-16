@@ -1,6 +1,8 @@
 import { verifyDeliveryRequest, internalHeaders } from '../../../../lib/deliveryAuth';
 import { serviceSupabase, isUuid } from '../../../../lib/taskStatus';
 import { recordTaskCommunicationEvent } from '../../../../lib/communicationEvents';
+import { getRequestIp, rateLimit } from '../../../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../../../lib/rateLimitPolicy';
 
 const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 
@@ -23,6 +25,32 @@ function taskSpine(task, {
     recipient: recipient || task?.assigned_to_email || null,
     deepLink: deepLink || null,
   };
+}
+
+function cleanLimitKey(value, max = 160) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
+}
+
+function outboundTaskLimitKey(req, { task, recipient, channel, actionType }) {
+  return [
+    'task-send',
+    getRequestIp(req),
+    cleanLimitKey(task?.workflow_id || 'no-workflow'),
+    cleanLimitKey(task?.id || req.query?.id || 'no-task'),
+    cleanLimitKey(recipient).toLowerCase(),
+    cleanLimitKey(channel || 'email'),
+    cleanLimitKey(actionType || 'execution'),
+  ].join(':');
+}
+
+function enforceOutboundTaskLimit(req, args) {
+  const policy = getRateLimitPolicy('outboundDelivery');
+  if (!policy) return { allowed: true };
+  return rateLimit({
+    key: outboundTaskLimitKey(req, args),
+    windowSeconds: policy.windowSeconds,
+    maxRequests: policy.maxRequests,
+  });
 }
 
 function userMessage(error) {
@@ -80,6 +108,24 @@ export default async function handler(req, res) {
     }),
   });
   const dryRun = req.body?.dryRun === true || req.body?.dryRun === '1' || req.query?.dryRun === '1';
+  if (!dryRun) {
+    const limit = enforceOutboundTaskLimit(req, { task, recipient, channel, actionType: req.body?.actionType || 'execution' });
+    if (!limit.allowed) {
+      res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+      return res.status(429).json({
+        error: 'This task handoff was recently sent or retried too many times. Review the delivery trail before sending again.',
+        retryAfterSeconds: limit.retryAfterSeconds,
+        spine: taskSpine(task, {
+          waiting: 'Waiting for the next allowed send window before another handoff goes out.',
+          proof: 'Rate limit protected this task from duplicate outbound delivery.',
+          notification: `Duplicate ${channel} send prevented for ${recipient}.`,
+          deepLink,
+          channel,
+          recipient,
+        }),
+      });
+    }
+  }
 
   const basePayload = {
     to: recipient,
