@@ -42,7 +42,7 @@ const governanceRules = [
   },
   {
     title: 'Every workflow needs a spine contract',
-    body: 'Before a flow is enterprise-ready it must show the ask, owner, waiting point, proof destination, recommended next action, and safe communication path.',
+    body: 'Before a flow is enterprise-ready it must show the same simple spine: what Passage is doing, what the human should do, who to ask, what proof saves, and what stays private.',
   },
 ];
 
@@ -76,7 +76,7 @@ const sprints = [
     goal: 'Make funeral-home director and staff workflows obvious, calm, and operationally useful.',
     tasks: [
       'Director dashboard becomes My Day, cases needing action, staff load, family updates, exports, billing, and proof.',
-      'Staff view shows assigned work first, with case context, owner, waiting point, proof action, and drafted family/vendor message.',
+      'Staff view shows assigned work first as a simple spine: 1. Do, 2. Ask, 3. Save proof; deeper automation detail stays collapsed until needed.',
       'Remove demo/sales language from logged-in funeral-home operations.',
       'Add recommended next action based on pre-death, day since death, service window, aftercare, blockers, stale waiting, and missing proof.',
       'Browser-verify the visible timing label and why-now explanation once Vercel rate limiting clears.',
