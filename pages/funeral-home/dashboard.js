@@ -1499,7 +1499,7 @@ export default function FuneralHomeDashboard() {
     if (recommendedActionCase?.id) return recommendedActionTask ? 'Open next task' : 'Open recommended case';
     if (!cases.length) return 'Create case';
     if (!isDirectorRole) return firstStaffTask ? 'Open my task' : 'Open my work';
-    if (nextDirectorStep.key === 'staff') return 'Open my work';
+    if (nextDirectorStep.key === 'staff') return unassignedTaskCount ? 'Resolve coverage' : 'Open staff';
     if (nextDirectorStep.key === 'report') return 'Open reports';
     return 'Open next action';
   }
@@ -1541,7 +1541,7 @@ export default function FuneralHomeDashboard() {
       setShowPilotGuide(false);
       setShowTools(false);
       setActivePartnerView('work');
-      setNotice('Opening the director command center: active cases, waiting items, and ROI.');
+      setNotice('Opening My Day: next case, waiting point, owner, proof, and draft.');
       scrollPartnerDemoTarget('partner-today-section');
       return;
     }
@@ -2544,8 +2544,8 @@ export default function FuneralHomeDashboard() {
   const partnerViewTabs = isDirectorRole
     ? [
       ['work', 'My Day', 'Next case and proof'],
-      ['staff', 'Staff', 'Coverage and assignments'],
-      ['inbounds', 'Family requests', openWarmInbounds.length ? String(openWarmInbounds.length) + ' open' : 'Warm handoffs'],
+      ['staff', 'Coverage', 'Owners and assignments'],
+      ['inbounds', 'Family requests', openWarmInbounds.length ? String(openWarmInbounds.length) + ' open' : 'Family handoffs'],
       ['manage', 'Locations & access', 'Locations and permissions'],
       ['reports', 'Reports', 'Proof and ROI'],
     ]
