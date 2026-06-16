@@ -50,15 +50,15 @@ const takeaways = [
   ['Public funeral-home page', 'Reworked', 'Removed ARR/pilot-proof sales math from the funeral-home page and reframed it around calmer family/staff coordination.'],
   ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; system routes now render a System Admin boundary.'],
   ['Public surface scan', 'Green', 'Main public routes scan clean for owner revenue goals, roadmap language, sprint labels, QA language, and admin leakage.'],
-  ['Admin operating model', 'In progress', 'System Admin still needs a cleaner cabinet-style internal tools layout so the owner cockpit is less busy.'],
+  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; no standalone roadmap/QA/admin top-level tabs should exist.'],
   ['Funeral-home product UX', 'In progress', 'Next UAT pass must simplify director/staff dashboards into My Day, cases, tasks, family updates, proof, exports, billing, and next actions.'],
-  ['Automation spine', 'In progress', 'Next-action rules exist; they need to be wired visibly into case/task cards so Passage proactively drafts the right message or action.'],
+  ['Automation spine', 'Source updated', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
 ];
 
 const sprints = [
   {
     name: 'Sprint 1: Boundary and public clarity',
-    status: 'Active now',
+    status: 'Source green / deploy blocked',
     owner: 'Product + QA',
     goal: 'Make it impossible for external users to see owner-only strategy, QA, or admin concepts.',
     tasks: [
@@ -71,7 +71,7 @@ const sprints = [
   },
   {
     name: 'Sprint 2: Funeral-home dashboard simplification',
-    status: 'Next code focus',
+    status: 'In progress',
     owner: 'Product + engineering',
     goal: 'Make funeral-home director and staff workflows obvious, calm, and operationally useful.',
     tasks: [
@@ -79,12 +79,13 @@ const sprints = [
       'Staff view shows assigned work first, with case context, owner, waiting point, proof action, and drafted family/vendor message.',
       'Remove demo/sales language from logged-in funeral-home operations.',
       'Add recommended next action based on pre-death, day since death, service window, aftercare, blockers, stale waiting, and missing proof.',
+      'Browser-verify the visible timing label and why-now explanation once Vercel rate limiting clears.',
     ],
     acceptance: 'A funeral director can run a real case without founder narration or extra tabs.',
   },
   {
     name: 'Sprint 3: Automation spine hardening',
-    status: 'Next',
+    status: 'Next after dashboard UAT',
     owner: 'Engineering + QA',
     goal: 'Make Passage proactive instead of a passive task list.',
     tasks: [
@@ -97,7 +98,7 @@ const sprints = [
   },
   {
     name: 'Sprint 4: Persona UAT pass',
-    status: 'Planned',
+    status: 'Queued after deploy window',
     owner: 'QA persona lead',
     goal: 'Walk every role end to end on desktop and mobile.',
     tasks: [
