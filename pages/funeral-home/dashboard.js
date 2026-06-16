@@ -1579,7 +1579,7 @@ export default function FuneralHomeDashboard() {
       setShowPilotGuide(false);
       setActivePartnerView('reports');
       setShowTools(true);
-      setNotice('Opening reporting, CSV export, and adoption proof.');
+      setNotice('Opening operating signals, CSV export, and proof.');
       scrollPartnerDemoTarget('partner-reports-section');
     }
   }
@@ -2415,11 +2415,11 @@ export default function FuneralHomeDashboard() {
     },
     {
       key: 'report',
-      label: 'Report and ROI',
-      proof: callsAvoided ? `${callsAvoided} call${callsAvoided === 1 ? '' : 's'} avoided estimate` : 'ROI starts after work is logged',
+      label: 'Proof and export',
+      proof: callsAvoided ? `${callsAvoided} call${callsAvoided === 1 ? '' : 's'} avoided estimate` : 'Operating signals start after work is logged',
       done: callsAvoided > 0,
       waiting: false,
-      next: callsAvoided ? 'Export a record for your existing system.' : 'Move work through Passage to produce the report.',
+      next: callsAvoided ? 'Export a record for your existing system.' : 'Move work through Passage to produce the export.',
     },
   ];
   const nextDirectorStep = directorLoopSteps.find(step => !step.done || step.waiting) || directorLoopSteps[directorLoopSteps.length - 1];
@@ -2514,7 +2514,7 @@ export default function FuneralHomeDashboard() {
     ['Plan', partnerPlan?.plan || partnerPlan?.name || (activationStatus === 'active_trial' ? 'Pilot trial' : 'Pilot setup pending')],
     ['Billing', billingStatus === 'paid' ? 'Paid' : billingStatus === 'demo' ? 'Demo' : billingStatus === 'stripe_pending' ? 'Stripe pending' : 'Set up after pilot approval'],
     ['Seats tracked', `${activeEmployeeRows.length || partnerStaff.length} employee${(activeEmployeeRows.length || partnerStaff.length) === 1 ? '' : 's'}`],
-    ['Private ROI inputs', activeEmployeeRows.some(member => moneyNumber(member.hourlyCost) || moneyNumber(member.annualSalary)) ? 'Labor cost available' : 'Add salary/hourly cost for cost-per-task reporting'],
+    ['Private operating inputs', activeEmployeeRows.some(member => moneyNumber(member.hourlyCost) || moneyNumber(member.annualSalary)) ? 'Labor cost available' : 'Add salary/hourly cost for staffing efficiency'],
   ];
   const contractToProofRows = [
     ['Workspace active', 'The partner team can create or import cases, add staff, assign owners, and export proof.'],
@@ -2547,7 +2547,7 @@ export default function FuneralHomeDashboard() {
       ['staff', 'Coverage', 'Owners and assignments'],
       ['inbounds', 'Family requests', openWarmInbounds.length ? String(openWarmInbounds.length) + ' open' : 'Family handoffs'],
       ['manage', 'Locations & access', 'Locations and permissions'],
-      ['reports', 'Reports', 'Proof and ROI'],
+      ['reports', 'Reports', 'Proof and export'],
     ]
     : [
       ['staff', 'My work', 'Assigned first'],
@@ -2555,10 +2555,10 @@ export default function FuneralHomeDashboard() {
     ];
   const headerUser = user?.id === publicDemoUser.id ? null : user;
   const guidedDemoSteps = [
-    ['dashboard', '1', 'My Day', 'See blocked work, waiting families, family requests, coverage, and ROI from one operating floor.'],
+    ['dashboard', '1', 'My Day', 'See blocked work, waiting families, family requests, coverage, and proof from one operating floor.'],
     ['task', '2', 'Task spine', 'Open the next case and show owner, waiting point, prepared output, proof, and family-visible status.'],
     ['chat', '3', 'Communication proof', 'Show how notes, family updates, and notifications stay attached to the case instead of living in inboxes.'],
-    ['export', '4', 'Reports and export', 'Close with CSV/reporting proof: calls avoided, time saved, staff workload, and case export.'],
+    ['export', '4', 'Operating signals and export', 'Close with CSV/export proof: calls avoided, time saved, staff workload, and case export.'],
     ['team', '5', 'Locations and staff', 'Show the rollout path: locations, employee scope, invites, and plan limits.'],
   ];
 
@@ -2787,7 +2787,7 @@ export default function FuneralHomeDashboard() {
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>90-second funeral-home tour</div>
                 <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Demo the operating loop without hunting.</div>
-                <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>Use these stops in order: director floor, task action, communication proof, reporting/export, then rollout setup.</div>
+                <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>Use these stops in order: director floor, task action, communication proof, signals/export, then rollout setup.</div>
               </div>
               <button
                 type="button"
@@ -3637,7 +3637,7 @@ export default function FuneralHomeDashboard() {
                     <input inputMode="decimal" value={staffDraft.annualSalary} onChange={event => setStaffDraft(prev => ({ ...prev, annualSalary: event.target.value }))} placeholder="Private annual salary" style={inputStyle} />
                     <input inputMode="decimal" value={staffDraft.hourlyCost} onChange={event => setStaffDraft(prev => ({ ...prev, hourlyCost: event.target.value }))} placeholder="Or hourly cost" style={inputStyle} />
                   </div>
-                  <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>Role controls starting view and permissions. Cost fields stay private to partner reporting and power ROI, cost per task, and location efficiency.</div>
+                  <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>Role controls starting view and permissions. Cost fields stay private to the director view and power staffing, task load, and location efficiency.</div>
                   {latestStaffInvite && (
                     <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
                       <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Review employee invite</div>
@@ -3802,7 +3802,7 @@ export default function FuneralHomeDashboard() {
                         <input inputMode="decimal" value={staffDraft.annualSalary} onChange={event => setStaffDraft(prev => ({ ...prev, annualSalary: event.target.value }))} placeholder="Private annual salary" style={inputStyle} />
                         <input inputMode="decimal" value={staffDraft.hourlyCost} onChange={event => setStaffDraft(prev => ({ ...prev, hourlyCost: event.target.value }))} placeholder="Or hourly cost" style={inputStyle} />
                       </div>
-                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>This prepares access and assignment. Salary/hourly cost stays in the partner reporting layer so directors can see private ROI, cost per task, and location efficiency. It is never shown to families or participants.</div>
+                      <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>This prepares access and assignment. Salary/hourly cost stays in the director-only operating view so directors can see staffing, task load, and location efficiency. It is never shown to families or participants.</div>
                       {latestStaffInvite && (
                         <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: 10 }}>
                           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Staff handoff ready</div>
@@ -4097,7 +4097,7 @@ export default function FuneralHomeDashboard() {
                   ]}
                 />
                 <ReportTable
-                  title="ROI signals"
+                  title="Operating signals"
                   columns={['Signal', 'Value', 'Source']}
                   rows={[
                     ['Estimated hours saved', reportCallsAvoided > 0 ? `${Math.max(1, Math.round((reportCallsAvoided * 8) / 60))} hr` : 'None yet', '8 minutes per avoided repeat call estimate'],
@@ -4408,7 +4408,7 @@ export default function FuneralHomeDashboard() {
                     {[
                       ['Create/import', () => openCasePanel('immediate')],
                       ['Manage team', () => openPartnerManagement('Opening locations, employees, roles, and permissions.')],
-                      ['Open report', () => openPartnerPane('reports', 'partner-reports-section', 'Opening reporting and ROI.')],
+                      ['Open report', () => openPartnerPane('reports', 'partner-reports-section', 'Opening operating signals and export.')],
                       ['Export proof', () => downloadExport('cases')],
                     ].map(([label, action]) => (
                       <button key={label} onClick={action} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 10, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>
