@@ -602,6 +602,22 @@ function displayTaskNext(item) {
   return 'Assign it, record what happened, or leave it waiting with a clear owner.';
 }
 
+function familyWorkflowLabel(value) {
+  var text = textValue(value, '');
+  if (!text) return '';
+  if (text === 'Blocked by dependency') return 'Waiting for earlier step';
+  if (text === 'Needs owner') return 'Needs one owner';
+  if (text === 'Completed, proof needs review') return 'Proof needs review';
+  return text.replace(/dependency/gi, 'earlier step').replace(/dependencies/gi, 'earlier steps');
+}
+
+function familyWorkflowText(value) {
+  return textValue(value, '')
+    .replace(/dependencies/gi, 'earlier steps')
+    .replace(/dependency/gi, 'earlier step')
+    .replace(/blocker/gi, 'stuck point')
+    .replace(/blocked/gi, 'stuck');
+}
 function statusText(status) {
   var value = String(status || '').replace(/_/g, ' ');
   if (!value) return 'Draft';
@@ -1956,7 +1972,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           </div>
           {workflowStates.activeState && (
             <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 7 }}>
-              <strong style={{ color: INK }}>{workflowStates.activeState.statusLabel}:</strong> {workflowStates.activeState.reassurance}
+              <strong style={{ color: INK }}>{familyWorkflowLabel(workflowStates.activeState.statusLabel)}:</strong> {workflowStates.activeState.reassurance}
             </div>
           )}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
@@ -1965,7 +1981,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               return (
                 <div key={state.key} style={{ background: state.key === workflowStates.activeState?.key ? SAGE_FAINT : SUBTLE, border: '1px solid ' + (state.key === workflowStates.activeState?.key ? SAGE_LIGHT : BORDER), borderRadius: 11, padding: '8px 9px' }}>
                   <div style={{ color: INK, fontSize: 12.3, lineHeight: 1.25, fontWeight: 900 }}>{state.label}</div>
-                  <div style={{ color: tone, fontSize: 10.8, lineHeight: 1.35, fontWeight: 900, marginTop: 4 }}>{state.statusLabel} · {state.openCount} open</div>
+                  <div style={{ color: tone, fontSize: 10.8, lineHeight: 1.35, fontWeight: 900, marginTop: 4 }}>{familyWorkflowLabel(state.statusLabel)} · {state.openCount} open</div>
                 </div>
               );
             })}
@@ -2027,9 +2043,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               </div>
               {taskState && (
                 <div style={{ background: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_FAINT : SAGE_FAINT, border: '1px solid ' + (taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 13, padding: '10px 12px', color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>
-                  <div style={{ color: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER : SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Passage status: {taskState.label}</div>
-                  <div style={{ marginTop: 4 }}>{taskState.reassurance}</div>
-                  {taskState.escalation && <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>If stuck:</strong> {taskState.escalation}</div>}
+                  <div style={{ color: taskState.state === 'blocked_by_dependency' || taskState.escalation ? AMBER : SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Passage status: {familyWorkflowLabel(taskState.label)}</div>
+                  <div style={{ marginTop: 4 }}>{familyWorkflowText(taskState.reassurance)}</div>
+                  {taskState.escalation && <div style={{ marginTop: 5 }}><strong style={{ color: INK }}>If stuck:</strong> {familyWorkflowText(taskState.escalation)}</div>}
                 </div>
               )}
               {item && (
@@ -2254,14 +2270,14 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
           <div style={{ color: INK, fontSize: 15, lineHeight: 1.3, fontWeight: 900, marginTop: 3 }}>Passage keeps each next step tied to an owner, update, and proof.</div>
           {workflowStates.activeState && (
             <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.45, marginTop: 5 }}>
-              <strong style={{ color: INK }}>{workflowStates.activeState.label}:</strong> {workflowStates.activeState.statusLabel}. {workflowStates.activeState.reassurance}
+              <strong style={{ color: INK }}>{workflowStates.activeState.label}:</strong> {familyWorkflowLabel(workflowStates.activeState.statusLabel)}. {familyWorkflowText(workflowStates.activeState.reassurance)}
             </div>
           )}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
             {workflowStates.states.slice(0, 5).map(function(state) {
               return (
                 <span key={state.key} style={{ background: state.key === workflowStates.activeState?.key ? SAGE_FAINT : CARD, border: '1px solid ' + (state.key === workflowStates.activeState?.key ? SAGE_LIGHT : BORDER), color: state.status === 'complete' ? SAGE : state.status === 'needs_help' || state.status === 'blocked_by_dependency' ? ROSE : state.status === 'waiting' || state.status === 'needs_owner' ? AMBER : MID, borderRadius: 999, padding: '5px 8px', fontSize: 11, fontWeight: 900 }}>
-                  {state.label}: {state.statusLabel}
+                  {state.label}: {familyWorkflowLabel(state.statusLabel)}
                 </span>
               );
             })}
