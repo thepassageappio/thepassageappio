@@ -125,7 +125,7 @@ function buildTexts(dn, cn, events) {
     events.forEach(function(e) {
       var label = labelFor(e);
       if (e.date) {
-        lines.push(label + ": " + fmtDate(e.date, e.time) + (e.location_name ? " at " + e.location_name : "") + (e.location_address ? " — " + e.location_address : ""));
+        lines.push(label + ": " + fmtDate(e.date, e.time) + (e.location_name ? " at " + e.location_name : "") + (e.location_address ? " - " + e.location_address : ""));
       }
     });
   }
@@ -145,13 +145,13 @@ function buildTexts(dn, cn, events) {
   var linkedin = [
     "We share with heavy hearts the passing of " + dn2 + "." + serviceBlock,
     "We are grateful for your kindness and support during this time.",
-    "— " + cn2,
+    "With love, " + cn2,
   ].join(NL + NL);
 
   var base = dn2 + " passed away peacefully. We are sharing the news with all who knew and loved " + dn2 + ".";
   var twitter = base.length > 260 ? "We are heartbroken to share the passing of " + dn2 + ". Service details to follow." : base;
 
-  var instagram = ["Forever in our hearts.", dn2 + " — loved beyond measure, missed beyond words." + serviceBlock, "#InMemory #ForeverLoved"].join(NL + NL);
+  var instagram = ["Forever in our hearts.", dn2 + " was loved beyond measure and missed beyond words." + serviceBlock, "#InMemory #ForeverLoved"].join(NL + NL);
 
   var funeral = events && events.find(function(e) { return e.event_type === "funeral" || e.event_type === "service"; });
   var smsService = funeral && funeral.date ? " The service is " + fmtDate(funeral.date, funeral.time) + (funeral.location_name ? " at " + funeral.location_name : "") + "." : "";
