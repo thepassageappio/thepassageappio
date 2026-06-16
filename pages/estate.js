@@ -311,7 +311,7 @@ function FuneralHomeRequestPanel({ estateId, estateName, coordinatorName, defaul
           provider: activeProvider,
           urgency: urgency,
           notes: notes,
-          source: 'family_estate_spine',
+          source: 'family_estate_record',
           familyPermission: true,
         }),
       });
@@ -556,7 +556,7 @@ function taskWorkspaceTitle(mode) {
   if (mode === 'call') return 'Call script workspace';
   if (mode === 'official') return 'Official step workspace';
   if (mode === 'record') return 'Estate record workspace';
-  return 'Task workspace';
+  return 'Task details';
 }
 
 function taskWorkspaceSaveLabel(mode) {
@@ -586,7 +586,7 @@ function taskWorkspaceProofLabel(mode) {
   if (mode === 'call') return 'Call script and outcome';
   if (mode === 'official') return 'Official step notes';
   if (mode === 'record') return 'Estate record';
-  return 'Task workspace';
+  return 'Task details';
 }
 
 function displayTaskNext(item) {
@@ -1596,9 +1596,9 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     <div id="execution-layer" style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 16, padding: '16px 18px', marginBottom: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Task operating spine</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>Proof, follow-up, and ownership</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Owner, proof, waiting state, and next action stay together.</div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Next actions and proof</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>What to do, who owns it, and what is saved</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Each row shows what Passage prepared, what the family or partner does next, and where proof saves.</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>{actionTasks.length} open</span>
       </div>
@@ -1642,7 +1642,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
       {enriched.length > 0 && (
         <details style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
           <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900, fontSize: 12.5 }}>
-            What each task needs - all {enriched.length} tasks
+            What each task needs - {enriched.length} total
           </summary>
           <div style={{ marginTop: 9, maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
             {enriched.map(function(task) {
@@ -1680,7 +1680,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginTop: 3 }}>{displayTaskNext(task)}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                       <span style={{ background: SAGE_FAINT, color: SAGE, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{familyExecutionTierLabel(task.playbook.executionTier)}</span>
-                      <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{textValue(task.playbook.executionModeLabel, 'Task workspace')}</span>
+                      <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{textValue(task.playbook.executionModeLabel, 'Task details').replace(/Task workspace/gi, 'Task details')}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Owner: {ownerBucket(task)}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {proof}</span>
                     </div>
@@ -1691,18 +1691,18 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     )}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 7, marginTop: 7 }}>
                       <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 9px' }}>
-                        <div style={{ color: SAGE, fontSize: 10.5, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Output</div>
+                        <div style={{ color: SAGE, fontSize: 10.5, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>What Passage prepares</div>
                         <div style={{ color: INK, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{textValue(output.label, 'Task output and proof trail')}</div>
                         <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(output.body, 'Passage prepares the next step, tracks the owner, and keeps proof visible.')}</div>
                       </div>
                       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
-                        <div style={{ color: SOFT, fontSize: 10.5, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Proof destination</div>
+                        <div style={{ color: SOFT, fontSize: 10.5, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Where proof saves</div>
                         <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(workspace.proofDestination, 'Saved in this estate task, the proof log, status view, reports, and export.')}</div>
                       </div>
                     </div>
                     <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 9px', marginTop: 7 }}>
                       <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Passage handles</div>
-                      <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(task.playbook.whatPassageDoes, 'Passage prepares the work and tracks the proof trail.')}</div>
+                      <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(task.playbook.whatPassageDoes, 'Passage prepares the work and keeps proof visible.')}</div>
                       <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 7 }}>Family or partner handles</div>
                       <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(task.playbook.whatUserDoes, 'Record what happened, what is waiting, or who needs help.')}</div>
                     </div>
@@ -1729,7 +1729,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                   <div style={{ color: color, fontSize: 11.5, fontWeight: 900, whiteSpace: 'nowrap' }}>{statusText(task.status)}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
-                  {state === 'bad' && <button disabled={updating === task.id + 'waiting'} onClick={function() { updateTask(task, 'waiting', 'Owner notified for retry or review'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Retry / review</button>}
+                  {state === 'bad' && <button disabled={updating === task.id + 'waiting'} onClick={function() { updateTask(task, 'waiting', 'Owner notified for review'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Mark waiting</button>}
                   {state === 'wait' && <button disabled={updating === task.id + 'reminder'} onClick={function() { sendReminder(task); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>{updating === task.id + 'reminder' ? 'Sending...' : hasReminderRecipient ? 'Send reminder' : 'Assign before reminder'}</button>}
                   <button disabled={updating === task.id + 'handled'} onClick={function() { updateTask(task, 'handled', 'Proof recorded for ' + task.title, 'Reference number, note, or proof detail'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Record proof</button>
                   <button disabled={updating === task.id + 'blocked'} onClick={function() { updateTask(task, 'blocked', 'Owner notified: this task needs help', 'What is blocking this?'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
