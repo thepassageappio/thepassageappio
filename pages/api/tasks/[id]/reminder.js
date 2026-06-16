@@ -1,11 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
 import { verifyDeliveryRequest, internalHeaders } from '../../../../lib/deliveryAuth';
 import { recordStatusEvent } from '../../../../lib/taskStatus';
+import { getRequestIp, rateLimit } from '../../../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../../../lib/rateLimitPolicy';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+function cleanLimitKey(value, max = 160) {
+  return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
+}
+
+function reminderLimitKey(req, task, recipientEmail) {
+  return [
+    'task-reminder',
+    getRequestIp(req),
+    cleanLimitKey(task?.workflow_id || 'no-workflow'),
+    cleanLimitKey(task?.id || req.query?.id || 'no-task'),
+    cleanLimitKey(recipientEmail).toLowerCase(),
+  ].join(':');
+}
+
+function enforceReminderLimit(req, task, recipientEmail) {
+  const policy = getRateLimitPolicy('outboundDelivery');
+  if (!policy) return { allowed: true };
+  return rateLimit({ key: reminderLimitKey(req, task, recipientEmail), windowSeconds: policy.windowSeconds, maxRequests: policy.maxRequests });
+}
 
 function siteUrl(req) {
   return (process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.host || 'www.thepassageapp.io'}`).replace(/\/$/, '');
@@ -76,6 +98,23 @@ export default async function handler(req, res) {
   }
 
   const body = message || `A gentle reminder from Passage: ${task.title || 'your assigned task'} is still waiting for your confirmation. You can accept, mark handled, or ask for help here: ${link}`;
+  if (!dryRun) {
+    const limit = enforceReminderLimit(req, task, recipientEmail);
+    if (!limit.allowed) {
+      res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+      return res.status(429).json({
+        error: 'This reminder was recently sent or retried too many times. Review the delivery trail before sending again.',
+        retryAfterSeconds: limit.retryAfterSeconds,
+        spine: taskSpine(task, {
+          waiting: 'Waiting for the next allowed reminder window before another email goes out.',
+          proof: 'Rate limit protected this task from duplicate reminder delivery.',
+          notification: 'Duplicate reminder prevented for ' + (task.assigned_to_name || recipientEmail),
+          deepLink: link,
+          recipient: recipientEmail,
+        }),
+      });
+    }
+  }
 
   const send = await fetch(`${base}/api/sendEmail`, {
     method: 'POST',
