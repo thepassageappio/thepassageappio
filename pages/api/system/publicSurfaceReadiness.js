@@ -83,6 +83,7 @@ const forbiddenPublicText = [
   'owner only',
   'founder narration',
   'internal roadmap',
+  'Internal note',
   'source of truth',
   'assigned task spine',
   'Proof and notify',
