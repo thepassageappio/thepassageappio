@@ -302,11 +302,11 @@ export default function VendorRequestPage() {
             <div style={{ padding: 22 }}>
             <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 15, padding: '12px 13px', marginBottom: 14 }}>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Simple request spine</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
-                <Info label="Asked of you" value={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus} />
-                <Info label="Owner" value={ownerLabel} />
-                <Info label="Waiting" value={waitingLabel} />
-                <Info label="What gets saved" value={proofLabel} />
+              <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginBottom: 8 }}>Owner: <strong style={{ color: C.ink }}>{ownerLabel}</strong></div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 8 }}>
+                <Info label="1. Do" value={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus} />
+                <Info label="2. Update" value={waitingLabel} />
+                <Info label="3. Save proof" value={proofLabel} />
               </div>
               <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
                 <strong style={{ color: C.ink }}>Access boundary:</strong> You can respond to this request only. Private family notes, unrelated tasks, and the estate workspace stay hidden.
@@ -314,7 +314,7 @@ export default function VendorRequestPage() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(220px, .8fr)', gap: 12, marginBottom: 14 }}>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 16, padding: 15 }}>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>What is needed now</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Do this now</div>
                 <div style={{ color: C.ink, fontSize: 19, fontWeight: 900, lineHeight: 1.25 }}>{vendorName}</div>
                 <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 6 }}>Respond for {familyName}. Status stays tied to this request.</div>
                 <div style={{ background: C.card, borderLeft: '4px solid ' + (request?.status === 'declined' ? C.rose : request?.status === 'sent' ? C.amber : C.sage), borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
