@@ -358,7 +358,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
   const showSystemAdminLinks = isSystemAdminUser(currentUser);
   const ownerConsoleActive = showSystemAdminLinks && (isActivePath(activePath, '/system') || isActivePath(activePath, '/vendors/admin'));
   const primaryNavLinks = ownerConsoleActive ? [] : LINKS;
-  const demoTourActive = hydrated && showSystemAdminLinks && router?.query?.demoTour === 'funeral-home';
+  const demoTourActive = hydrated && ownerConsoleActive && router?.query?.demoTour === 'funeral-home';
   const activeDemoStep = demoTourActive ? DEMO_TOUR_STEPS.find(step => step.id === demoStepFor(activePath, router?.query?.demoStep)) : null;
   const activeStyle = {
     background: CHROME_COLORS.sage,
@@ -402,7 +402,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
       </Link>
       <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, ...PASSAGE_TYPE.nav, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {primaryNavLinks.map(([label, href]) => <Link key={href} href={href} onClick={() => trackEvent('public_nav_clicked', { label, href })} className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''} style={isActivePath(activePath, href) ? activeStyle : navLink}>{label}</Link>)}
-        {showSystemAdminLinks && (
+        {ownerConsoleActive && (
           <>
             <Link href="/system/admin" onClick={() => trackEvent('system_admin_nav_clicked', { href: '/system/admin' })} style={ownerConsoleActive ? activeStyle : navLink}>System admin</Link>
             {ADMIN_QUICK_LINKS.map(([label, href]) => (
