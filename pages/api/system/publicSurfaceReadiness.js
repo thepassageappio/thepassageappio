@@ -15,14 +15,14 @@ const publicChecks = [
   },
   {
     path: '/funeral-home',
-    requires: ['A calmer way to keep families and staff aligned.', 'Open sample case', 'Book walkthrough'],
+    requires: ['A calmer way to keep families and staff aligned.', 'Open sample case', 'Customer login'],
   },
   {
     path: '/funeral-home/login',
     requires: ['Customers sign in. Prospects learn or book a demo.', 'Customer login', 'Learn functionality'],
   },
   {
-    path: '/funeral-home/pilot-proof',
+    path: '/funeral-home/sample-case',
     requires: ['Show one family case from intake to proof.', 'Case clarity', 'How the workspace helps'],
   },
   {
