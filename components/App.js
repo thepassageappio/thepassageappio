@@ -4693,7 +4693,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       eyebrow: 'For care teams',
       title: 'A clearer way to keep families and staff aligned.',
       body: 'Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to existing tools.',
-      cta: { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard', label: 'Open sample console' },
+      cta: { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard', label: 'Open sample workspace' },
       rows: [
         ['Case', 'Create or import', 'Start fresh or bring cases in by CSV without changing the current case system.'],
         ['Work', 'Assign the owner', 'Staff, family coordinators, and participants stay tied to the same task spine.'],
@@ -4808,9 +4808,9 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
               <a
                 className="home-proof-link"
                 href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard"
-                onClick={() => trackEvent('homepage_sample_console_clicked', { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard' })}
+                onClick={() => trackEvent('homepage_sample_workspace_clicked', { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard' })}
               >
-                Open sample funeral-home console
+                Open sample funeral-home workspace
               </a>
               <a
                 className="home-proof-link"
