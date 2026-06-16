@@ -52,6 +52,7 @@ const takeaways = [
   ['Public surface scan', 'Green', 'Main public routes scan clean for owner revenue goals, roadmap language, sprint labels, QA language, and admin leakage.'],
   ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; no standalone roadmap/QA/admin top-level tabs should exist.'],
   ['Funeral-home product UX', 'Source simplified / deploy verification pending', 'Director/staff dashboard language now uses Case at a glance, Recommended next action, what Passage saves, needs-help wording, family-visible proof, and plain earlier-step explanations; authenticated UAT must verify My Day and task cards once deployment quota clears.'],
+  ['Family and participant task UX', 'Source simplified / deploy verification pending', 'B2C task panels and participant requests now use next-action, what Passage prepares, where proof saves, needs-help, and one-request language instead of spine/blocker/workspace jargon.'],
   ['Automation spine', 'Source updated / deploy verification pending', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
   ['Abuse and refresh controls', 'Source green / deploy verification pending', 'Outbound sends, reminders, partner invites, staff invites, prep emails, Google lookups, voice calls, family-update fanout, funeral-home requests, and admin readiness refreshes now have source-level cooldowns, QA-safe email routing, and readiness evidence.'],
 ];
@@ -104,8 +105,8 @@ const sprints = [
     owner: 'QA persona lead',
     goal: 'Walk every role end to end on desktop and mobile.',
     tasks: [
-      'Family coordinator: urgent setup, approvals, family updates, proof, and aftercare.',
-      'Participant/helper: one scoped request, one response path, privacy boundary, saved proof.',
+      'Family coordinator: urgent setup, one recommended next action, what Passage prepares, where proof saves, approvals, family updates, and aftercare.',
+      'Participant/helper: one scoped request, one response path, privacy boundary, needs-help/waiting state, and saved proof.',
       'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing.',
       'Funeral-home employee: assigned work, context, drafted message, waiting/stuck-point state, family-visible boundary, close-with-proof.',
       'Vendor: scoped request, quote/update, payment state, service proof.',
