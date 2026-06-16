@@ -4,119 +4,160 @@ import { supabase } from '../../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../../components/SiteChrome';
 
 const C = {
-  bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', border: '#e4ddd4',
-  sage: '#6b8f71', sageFaint: '#f0f5f1', amber: '#b07d2e', amberFaint: '#fdf8ee', rose: '#c47a7a', roseFaint: '#fdf3f3'
+  bg: '#f6f3ee',
+  card: '#fff',
+  ink: '#1a1916',
+  mid: '#6a6560',
+  soft: '#a09890',
+  border: '#e4ddd4',
+  sage: '#6b8f71',
+  sageFaint: '#f0f5f1',
+  amber: '#b07d2e',
+  amberFaint: '#fdf8ee',
+  rose: '#c47a7a',
+  roseFaint: '#fdf3f3',
 };
+
 const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
-const revenueTargets = [
-  { label: 'ARR target', value: '$300k', detail: 'Primary success target for this operating phase.' },
-  { label: 'Core wedge', value: 'Enterprise funeral homes', detail: 'Win B2B first: locations, roles, cases, task spine, proof, exports, billing, and controls.' },
-  { label: 'Account math', value: '100 at $249/mo', detail: 'Or 72 group accounts at $349/mo; vendor and family revenue become upside.' },
-  { label: 'North-star proof', value: 'Enterprise spine health', detail: 'Active partner accounts with locations, staff, cases, task ownership, family updates, audit proof, exports, and paid path.' },
+const headlineMetrics = [
+  ['ARR target', '$300k', 'Owner-only target. Never show this on external pages.'],
+  ['Primary buyer', 'Funeral homes', 'B2B operating spine first; B2C becomes easier once the partner workflow is solid.'],
+  ['Revenue wedge', '72-100 accounts', 'Local and group accounts, with services/vendor revenue as upside.'],
+  ['North star', 'Proof-ready cases', 'Every account has locations, staff, cases, owners, waiting points, proof, exports, billing, and next action.'],
 ];
 
-const readinessGates = [
-  { label: 'Product IA governance', status: 'Shipped', href: '/system/admin/saas-roadmap', detail: 'The SaaS roadmap is the only roadmap source of truth. System Admin no longer carries duplicate sprint-roadmap cards; new admin surfaces must declare whether they replace, feed, or retire into an existing owner workflow.' },
-  { label: 'Pilot health', status: 'Shipped', href: '/system/admin/pilot-health', detail: 'Owner can see account stage, ARR potential, launch grade, readiness score, export-ready pilots, open/waiting/blocked/handled task spine, and proof snippets.' },
-  { label: 'Partner export proof', status: 'Shipped', href: '/api/partnerExport?view=summary', detail: 'Exports include waiting detail, blocker detail, recent proof detail, and saved notes so a director can inspect value outside Passage.' },
-  { label: 'Rate-limit readiness', status: 'Shipped', href: '/system/admin/rate-limit-readiness', detail: 'Admin can review launch decision and refresh/abuse controls for high-risk routes before broader outreach.' },
-  { label: 'Public proof console', status: 'Shipped', href: '/funeral-home/pilot-proof', detail: 'Cold funeral-home prospects have a visible proof path instead of needing founder narration.' },
-  { label: 'Authenticated browser QA', status: 'Active', href: '/system/admin/funeral-home-qa', detail: 'Next gate is logged-in, persona-by-persona validation with real owner session, screenshots, and pass/fail notes.' },
-  { label: 'Paid conversion path', status: 'Active', href: '/system/admin/pilot-health', detail: 'Pilot health must connect proof-ready accounts to Stripe plan, billing status, renewal risk, and named next action.' },
-  { label: 'Automation spine readiness', status: 'Active', href: '/system/admin/automation-spine-readiness', detail: 'Owner can inspect assignment, waiting hygiene, blockers, stale work, proof gaps, delivery telemetry, and reminder runtime before pilots expand.' },
-  { label: 'Enterprise funeral-home readiness', status: 'Active', href: '/system/admin/enterprise-funeral-home-readiness', detail: 'Owner can verify B2B bones before B2C scale: locations, roles, cases, ownership, proof/audit, family updates, billing, and controls.' },
-  { label: 'Contextual next-action engine', status: 'Shipped', href: '/system/admin/saas-roadmap', detail: 'Shared rules now recommend blocker, waiting-loop, proof-gap, pre-death, pre-need, day-zero, arrangement, service-window, and aftercare moves with draft messaging.' },
-];
-
-const platformGovernanceRules = [
-  'One roadmap only: /system/admin/saas-roadmap is the canonical source of truth for strategy, milestones, sprints, and signoff.',
-  'System Admin is the owner operating cockpit, not a second roadmap. It should expose readiness, metrics, QA, trust, and destructive controls only when they directly help operate the product.',
-  'Every new admin or readiness surface must state its relationship to the canonical workflow: source of truth, evidence gate, support tool, or temporary experiment with a retirement path.',
-  'No persona-facing dashboard should expose internal roadmap, sprint, QA, or founder language. Funeral homes get My Day, cases, staff, proof, exports, billing, and next actions.',
-  'Every workflow must collapse to one job, one owner, one waiting point, one proof path, and one recommended next action before it is considered enterprise-ready.',
-];
-
-const platformAssessment = [
-  { label: 'Can support multiple betas now', text: 'Partially. The codebase has organizations, locations, staff membership, partner cases, task actions, subscriptions, exports, readiness gates, and pilot health. That is enough for controlled founder-led betas, not yet enough for broad self-service scale.' },
-  { label: 'Primary enterprise gap', text: 'The product needs consolidation and proof discipline: fewer owner surfaces, clearer funeral-home workflows, durable workflow states above task rows, stronger billing/account lifecycle, and browser-verified multi-tenant QA.' },
-  { label: '300k ARR readiness condition', text: 'The path is credible when every active account has named ARR potential, stage, blocker, next action, proof evidence, billing status, location/staff usage, and a dated conversion or expansion ask.' },
-  { label: 'B2B before B2C rule', text: 'Lock the funeral-home operating spine first. Once directors and staff can run cases flawlessly, the family-facing B2C layer becomes simpler because it is guided by the partner workflow instead of separate dashboards.' },
-];
-
-const milestoneBoard = [
+const governanceRules = [
   {
-    title: 'Milestone 1: Demo-to-pilot conversion ready', timing: 'Days 1-15', owner: 'Founder + product QA',
-    outcome: 'A funeral director can open the sample console, understand the operating value in 90 seconds, and book a pilot without narration.',
-    deliverables: ['Public funeral-home CTA path points to proof console, booking, pricing, or contact.', 'HubSpot-ready lead capture records role, location count, plan intent, and source.', 'Browser QA covers public CTAs, mobile layout, booking path, and logged-out admin leakage.'],
-    acceptance: ['A cold prospect can explain what Passage does after the proof console.', 'Every funeral-home CTA has no dead end.', 'Admin sees identifiable funeral-home lead intent.'],
+    title: 'One roadmap only',
+    body: 'The owner roadmap lives here: /system/admin/saas-roadmap. Do not create a second roadmap tab, public roadmap, demo roadmap, or persona-facing roadmap.',
   },
   {
-    title: 'Milestone 2: Funeral-home pilot workspace flawless', timing: 'Days 16-35', owner: 'Product + engineering',
-    outcome: 'A partner can go from blank account to first location, staff invite, first case, assigned task, family update, proof, and export.',
-    deliverables: ['Director onboarding covers plan, location slots, staff invite, first case/import, and My Day setup.', 'Staff workspace shows assigned work only, location scope, case context, waiting point, and proof action.', 'Case pane exposes active state, blockers, family handoff context, next expected update, and export packet.'],
-    acceptance: ['Director completes first-case setup without explanation.', 'Employee can close or mark waiting in under one minute with proof saved.', 'Director sees metrics that answer a buyer objection.'],
+    title: 'Internal tools stay under System Admin',
+    body: 'Roadmap, QA, pilot health, abuse controls, refresh/rate-limit readiness, demo tooling, destructive actions, and internal metrics must be reached from System Admin only.',
   },
   {
-    title: 'Milestone 3: Automation spine hardening', timing: 'Days 36-55', owner: 'Engineering + QA',
-    outcome: 'Workflow states reliably create tasks, notifications, proof, outputs, and repair paths across every persona.',
-    deliverables: ['Persist durable workflow state snapshots above tasks.', 'Generate or suggest tasks from state transitions.', 'Add admin-editable dependency rules for certificate, authority, transfer, service, vendor, and aftercare phases.', 'Extend smoke tests to fail when owner, waiting point, proof destination, notification trail, or next state is missing.'],
-    acceptance: ['Each case phase explains why it is ready, waiting, blocked, or complete.', 'No handled, waiting, blocked, send, or reminder action can create fake progress without meaningful detail.', 'Automation Spine Readiness exposes assignment, waiting, blocker, stale-work, proof, delivery, and reminder-runtime risk.', 'Readiness shows abuse controls and refresh limits as launch gates.'],
+    title: 'No internal language on customer surfaces',
+    body: 'Public and persona-facing pages must not say ARR, 300k, sprint, founder narration, pilot conversion, QA checklist, internal note, or roadmap.',
   },
   {
-    title: 'Milestone 4: Persona UX perfection pass', timing: 'Days 56-75', owner: 'QA persona lead',
-    outcome: 'Every persona has a complete, scoped, emotionally appropriate workflow with no product-internal language leaking into the experience.',
-    deliverables: ['Family coordinator sees urgent setup, task ownership, reviewed updates, proof, and aftercare.', 'Participant/helper sees one scoped request, one response path, saved note/proof, and privacy boundary.', 'Funeral-home director and employee each get their proper queue, context, proof, reports, and exports.', 'Vendor sees request, quote, payment state, service details, reminders, and completion proof.'],
-    acceptance: ['Each persona completes their primary job on mobile and desktop.', 'Every view exposes the same spine contract: ask, owner, waiting, proof, next.', 'Browser QA produces pass/fail evidence for each persona before pilots expand.'],
-  },
-  {
-    title: 'Milestone 5: Pilot-to-revenue machine', timing: 'Days 76-90', owner: 'Founder + sales ops',
-    outcome: 'Passage can sell, onboard, measure, and retain funeral-home pilots toward $300k ARR.',
-    deliverables: ['Pilot scorecard tracks locations, cases, staff seats, family updates, tasks closed, exports, active days, and expansion risk.', 'HubSpot stages map to demo booked, pilot invited, pilot active, value proven, paid conversion, expansion, and churn risk.', 'Billing path supports plan assignment, live subscription, upgrade/downgrade, location-slot expansion, and invoice clarity.', 'Production reset and destructive admin tools are disabled or two-party gated once real records exist.'],
-    acceptance: ['Admin can name every active account, stage, next action, ARR potential, blocker, and proof.', 'A pilot has success criteria before it starts and an upgrade ask before it ends.', 'Production reset can no longer threaten real customers or leads.'],
+    title: 'Every workflow needs a spine contract',
+    body: 'Before a flow is enterprise-ready it must show the ask, owner, waiting point, proof destination, recommended next action, and safe communication path.',
   },
 ];
 
-const sprintBacklog = [
-  { sprint: 'Sprint 0: Control room and baseline', status: 'Shipped', timing: 'Done', goal: 'Make the $300k plan visible and measurable inside System Admin.', tasks: ['Owner-only SaaS roadmap exists.', 'Funeral-home QA script exists.', 'Rate-limit readiness page exists.', 'Pilot-health control room exists.'], done: 'Roadmap, QA, rate-limit readiness, and pilot health are live in admin source.' },
-  { sprint: 'Sprint 1: Funeral-home sales surface', status: 'Shipped', timing: 'Done', goal: 'Turn public interest into qualified demo/pilot conversations.', tasks: ['Proof console exists as the primary sample experience.', 'Old demo dashboard redirects to proof console.', 'Public CTA path can be verified unauthenticated.', 'Lead capture remains a conversion-path follow-up.'], done: 'Cold prospects have a visible proof console and demo route.' },
-  { sprint: 'Sprint 2: Director and staff flawless loop', status: 'Active', timing: 'Now', goal: 'Make first login to first proof production-grade.', tasks: ['Use pilot health to find missing cases, staff, proof, family updates, billing, and exports.', 'Run Automation Spine Readiness before expanding any pilot workspace.', 'Run logged-in director and employee browser QA.', 'Patch any flow that needs narration.', 'Keep export evidence visible as pilot proof.', 'Wire contextual next-action recommendations into My Day and staff task cards.', 'Audit every owner/admin surface before adding a new one; if a new page exists, it must feed the canonical roadmap or replace an older surface.'], done: 'Director and employee flows pass on desktop and mobile with proof saved, exportable, and spine-readiness clean.' },
-  { sprint: 'Sprint 3: Spine and automation hardening', status: 'Active', timing: 'Next', goal: 'Upgrade Passage from task coordination to dependency-aware workflow automation.', tasks: ['Persist workflow state snapshots above task rows.', 'Attach generated tasks, dependencies, waiting conditions, and output suggestions to states.', 'Make Automation Spine Readiness fail when owner, waiting point, proof, delivery, follow-up, or reminder runtime is missing.', 'Make smoke tests assert persona and workflow-state contracts.', 'Keep route-level rate limits and client refresh throttles visible as launch gates.'], done: 'Readiness fails when state, owner, waiting point, proof, notification, dependency, or abuse control is missing.' },
-  { sprint: 'Sprint 4: Persona perfection QA', status: 'Planned', timing: 'Week 9-11', goal: 'Pressure-test every role as if real customers are watching.', tasks: ['Run family coordinator, participant, funeral-home director, funeral-home employee, vendor, and admin scripts.', 'Record screenshot, blocker, copy friction, missing proof, and time-to-primary-action.', 'Patch internal language and dead ends.', 'Confirm mobile-sized primary actions.'], done: 'Each persona has one clear next action and one visible proof path.' },
-  { sprint: 'Sprint 5: Pilot revenue operating system', status: 'Planned', timing: 'Week 12-13', goal: 'Make pilot conversion and ARR movement visible before scaling outreach.', tasks: ['Map HubSpot stages to admin metrics and readiness checks.', 'Finalize subscription/location-slot billing and pilot conversion path.', 'Add conversion ask timing from launch grade and proof-ready status.', 'Gate production reset and destructive admin tools once real records exist.'], done: 'Admin can answer who is in pipeline, who is active, who is at risk, what proof exists, and what action grows ARR.' },
+const takeaways = [
+  ['Public funeral-home page', 'Reworked', 'Removed ARR/pilot-proof sales math from the funeral-home page and reframed it around calmer family/staff coordination.'],
+  ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; system routes now render a System Admin boundary.'],
+  ['Public surface scan', 'Green', 'Main public routes scan clean for owner revenue goals, roadmap language, sprint labels, QA language, and admin leakage.'],
+  ['Admin operating model', 'In progress', 'System Admin still needs a cleaner cabinet-style internal tools layout so the owner cockpit is less busy.'],
+  ['Funeral-home product UX', 'In progress', 'Next UAT pass must simplify director/staff dashboards into My Day, cases, tasks, family updates, proof, exports, billing, and next actions.'],
+  ['Automation spine', 'In progress', 'Next-action rules exist; they need to be wired visibly into case/task cards so Passage proactively drafts the right message or action.'],
 ];
 
-const personaScorecards = [
-  ['Family coordinator', 'Create urgent/planning record, assign work, approve updates, see waiting/proof.', 'User knows what to do now and what can wait.', 'P0'],
-  ['Participant/helper', 'Open one scoped request, respond, save note/proof, see what Passage recorded.', 'Under one minute from link open to useful response.', 'P0'],
-  ['Funeral-home director', 'Run My Day, assign work, review family handoff, export proof, measure staff load.', 'No-narration demo and pilot-ready operations.', 'P0'],
-  ['Funeral-home employee', 'See assigned work, context, waiting point, proof action, and completion state.', 'No director clutter and no ambiguous next action.', 'P0'],
-  ['Vendor', 'Quote/respond to one scoped job, understand payment and obligation boundary.', 'No family-record leakage; payment/proof state clear.', 'P1'],
-  ['System admin', 'Run readiness, revenue pipeline, CRM health, abuse controls, and sprint signoff.', 'Founder can operate from one control room.', 'P0'],
+const sprints = [
+  {
+    name: 'Sprint 1: Boundary and public clarity',
+    status: 'Active now',
+    owner: 'Product + QA',
+    goal: 'Make it impossible for external users to see owner-only strategy, QA, or admin concepts.',
+    tasks: [
+      'Keep shared header free of internal tabs except the System Admin entry on /system routes.',
+      'Keep public readiness checks blocking ARR, sprint, roadmap, QA, and founder/internal language.',
+      'Audit homepage, funeral-home, pricing, contact, participants, vendors, and care-provider pages after every deploy.',
+      'Move any internal tool discovery into System Admin instead of creating new top-level tabs.',
+    ],
+    acceptance: 'A prospect sees only the product value, not Passage operating commentary.',
+  },
+  {
+    name: 'Sprint 2: Funeral-home dashboard simplification',
+    status: 'Next code focus',
+    owner: 'Product + engineering',
+    goal: 'Make funeral-home director and staff workflows obvious, calm, and operationally useful.',
+    tasks: [
+      'Director dashboard becomes My Day, cases needing action, staff load, family updates, exports, billing, and proof.',
+      'Staff view shows assigned work first, with case context, owner, waiting point, proof action, and drafted family/vendor message.',
+      'Remove demo/sales language from logged-in funeral-home operations.',
+      'Add recommended next action based on pre-death, day since death, service window, aftercare, blockers, stale waiting, and missing proof.',
+    ],
+    acceptance: 'A funeral director can run a real case without founder narration or extra tabs.',
+  },
+  {
+    name: 'Sprint 3: Automation spine hardening',
+    status: 'Next',
+    owner: 'Engineering + QA',
+    goal: 'Make Passage proactive instead of a passive task list.',
+    tasks: [
+      'Persist workflow state above task rows: ready, waiting, blocked, stale, proof missing, family update due, aftercare due.',
+      'Generate or suggest the next task and draft the right message to the right person.',
+      'Fail readiness when owner, waiting point, proof, dependency, delivery trail, or rate-limit posture is missing.',
+      'Keep refresh/rate-limit controls visible as owner-only launch gates.',
+    ],
+    acceptance: 'The product tells staff what to do next, why, and what proof will be saved.',
+  },
+  {
+    name: 'Sprint 4: Persona UAT pass',
+    status: 'Planned',
+    owner: 'QA persona lead',
+    goal: 'Walk every role end to end on desktop and mobile.',
+    tasks: [
+      'Family coordinator: urgent setup, approvals, family updates, proof, and aftercare.',
+      'Participant/helper: one scoped request, one response path, privacy boundary, saved proof.',
+      'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing.',
+      'Funeral-home employee: assigned work, context, drafted message, waiting state, close-with-proof.',
+      'Vendor: scoped request, quote/update, payment state, service proof.',
+    ],
+    acceptance: 'Every persona has one clear next action and no internal product language.',
+  },
+  {
+    name: 'Sprint 5: Pilot-to-revenue operating system',
+    status: 'Planned',
+    owner: 'Founder + sales ops',
+    goal: 'Make pilots measurable, convertible, and expandable toward $300k ARR.',
+    tasks: [
+      'HubSpot stages map to demo booked, pilot invited, pilot active, value proven, paid conversion, expansion, and churn risk.',
+      'Pilot health tracks launch grade, cases, staff, locations, proof, exports, usage, blocker, next action, and ARR potential.',
+      'Stripe plan assignment and billing state are visible before a conversion ask.',
+      'Destructive/reset tools are disabled or two-party gated once real records exist.',
+    ],
+    acceptance: 'Admin can name every account, stage, proof, blocker, next action, billing state, and conversion ask.',
+  },
 ];
 
-const firstActions = [
-  'Treat the SaaS roadmap as the only roadmap. Any platform decision that changes admin navigation, funeral-home workflow, billing, readiness, or automation must be reflected here before it is considered real.',
-  'Use Pilot Health every day until each active account has a launch grade, next action, blocker list, and export-ready proof.',
-  'Run logged-in browser QA for director and employee personas against one real pilot workspace.',
-  'Patch the first flow where a funeral-home user needs founder narration.',
-  'Use contextual next-action results to drive the exact case/task CTA, drafted message, owner, and proof requirement.',
-  'Run Automation Spine Readiness and clear every blocked gate before expanding pilots.',
-  'Tie proof-ready accounts to a dated conversion ask and Stripe plan assignment.',
-  'Keep rate-limit readiness green before scaling public outreach or admin refresh usage.',
+const personaChecks = [
+  ['Funeral-home director', 'Open My Day, identify the next case action, assign staff, approve/draft a family update, export proof, review billing.'],
+  ['Funeral-home employee', 'Open assigned work, understand context, mark waiting or complete, draft the message, save proof.'],
+  ['Family coordinator', 'Understand what needs attention now, approve or request changes, see what the funeral home is waiting on.'],
+  ['Participant/helper', 'Open one scoped request, respond without seeing the full estate, confirm proof saved.'],
+  ['Vendor', 'Understand the job, timing, quote/payment state, obligation boundary, and completion proof.'],
+  ['System admin', 'Operate readiness, metrics, pilot health, QA, abuse controls, and roadmap from one internal surface.'],
 ];
 
-function normalizeEmail(email) { return String(email || '').trim().toLowerCase(); }
-function isSystemAdmin(user) { return SYSTEM_ADMIN_EMAILS.includes(normalizeEmail(user?.email)); }
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function isSystemAdmin(user) {
+  return SYSTEM_ADMIN_EMAILS.includes(normalizeEmail(user?.email));
+}
 
 export default function SaasRoadmapPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!supabase) { setLoading(false); return undefined; }
-    supabase.auth.getSession().then(({ data }) => { setUser(data.session?.user || null); setLoading(false); });
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => { setUser(session?.user || null); setLoading(false); });
+    if (!supabase) {
+      setLoading(false);
+      return undefined;
+    }
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user || null);
+      setLoading(false);
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      setLoading(false);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -133,68 +174,66 @@ export default function SaasRoadmapPage() {
     setUser(null);
   }
 
-  if (loading) return <Shell><section style={wrap}><Panel>Loading Passage roadmap...</Panel></section></Shell>;
-  if (!admin) return <Shell><section style={wrap}><Panel><div style={eyebrow}>Owner-only roadmap</div><h1 style={h1}>This sprint plan is restricted.</h1><p style={lead}>Sign in with the Passage owner account to view the $300k ARR SaaS roadmap.</p><button onClick={signIn} style={primaryButton}>Sign in</button></Panel></section></Shell>;
+  if (loading) {
+    return <Shell><section style={wrap}><Panel>Loading owner roadmap...</Panel></section></Shell>;
+  }
+
+  if (!admin) {
+    return (
+      <Shell user={user} onSignIn={signIn} onSignOut={signOut}>
+        <section style={wrap}>
+          <Panel>
+            <div style={eyebrow}>Owner-only roadmap</div>
+            <h1 style={h1}>This plan is restricted.</h1>
+            <p style={lead}>Sign in with the Passage owner account to view the internal SaaS roadmap.</p>
+            <button onClick={signIn} style={primaryButton}>Sign in</button>
+          </Panel>
+        </section>
+      </Shell>
+    );
+  }
 
   return (
     <Shell user={user} onSignIn={signIn} onSignOut={signOut}>
       <section style={wrap}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <div>
-            <div style={eyebrow}>System admin / SaaS roadmap</div>
-            <h1 style={h1}>Build Passage into a $300k ARR enterprise funeral-home SaaS business.</h1>
-            <p style={lead}>This is the operating plan for turning Passage into a B2B funeral-home operating system first. When locations, roles, cases, task ownership, proof, exports, billing, and controls are solid, the family-facing B2C experience becomes simple.</p>
+            <div style={eyebrow}>System Admin / SaaS Roadmap</div>
+            <h1 style={h1}>Build the funeral-home operating system first.</h1>
+            <p style={lead}>The target is a $300k ARR Passage business with B2B funeral homes as the wedge and B2C made simple by a strong partner operating spine.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Link href="/system/admin" style={secondaryLink}>System Admin</Link>
             <Link href="/system/admin/pilot-health" style={secondaryLink}>Pilot Health</Link>
             <Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Spine</Link>
-            <Link href="/system/admin/enterprise-funeral-home-readiness" style={secondaryLink}>Enterprise Readiness</Link>
+            <Link href="/system/admin/rate-limit-readiness" style={secondaryLink}>Refresh Controls</Link>
           </div>
         </div>
 
-        <section style={grid4}>{revenueTargets.map((target) => <Metric key={target.label} item={target} />)}</section>
-
-        <Panel>
-          <div style={eyebrow}>Product operating governance</div>
-          <h2 style={h2}>No more siloed platform decisions.</h2>
-          <div style={listGrid}>{platformGovernanceRules.map((item, index) => <ProofCard key={item} label={'Rule ' + (index + 1)} text={item} />)}</div>
-        </Panel>
+        <section style={grid4}>{headlineMetrics.map(([label, value, detail]) => <Metric key={label} label={label} value={value} detail={detail} />)}</section>
 
         <Panel tone="sage">
-          <div style={eyebrow}>Current enterprise assessment</div>
-          <h2 style={h2}>Strong bones, but not broad-scale enterprise yet.</h2>
-          <div style={listGrid}>{platformAssessment.map((item) => <ProofCard key={item.label} label={item.label} text={item.text} />)}</div>
-        </Panel>
-
-        <Panel tone="sage">
-          <div style={eyebrow}>Control-room gates</div>
-          <h2 style={h2}>Roadmap progress must show up as owner-visible launch evidence.</h2>
-          <div style={gateGrid}>{readinessGates.map((gate) => <GateCard key={gate.label} gate={gate} />)}</div>
+          <div style={eyebrow}>Governance</div>
+          <h2 style={h2}>The admin and customer boundaries are now explicit.</h2>
+          <div style={cardGrid}>{governanceRules.map(rule => <ProofCard key={rule.title} title={rule.title} body={rule.body} />)}</div>
         </Panel>
 
         <Panel>
-          <div style={eyebrow}>Tangible milestones</div>
-          <h2 style={h2}>Five milestones to reach a scalable pilot-to-revenue machine.</h2>
-          <div style={{ display: 'grid', gap: 14 }}>{milestoneBoard.map((item) => <MilestoneCard key={item.title} item={item} />)}</div>
+          <div style={eyebrow}>Current takeaways</div>
+          <h2 style={h2}>Where we are right now.</h2>
+          <div style={{ display: 'grid', gap: 9 }}>{takeaways.map(([label, status, body]) => <StatusRow key={label} label={label} status={status} body={body} />)}</div>
         </Panel>
 
         <Panel>
           <div style={eyebrow}>Sprint plan</div>
-          <h2 style={h2}>Sprints assigned to revenue, UX, spine, and funeral-home perfection.</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>{sprintBacklog.map((item) => <SprintCard key={item.sprint} item={item} />)}</div>
-        </Panel>
-
-        <Panel>
-          <div style={eyebrow}>Persona UX assessment</div>
-          <h2 style={h2}>Every persona gets one job, one proof path, and one next action.</h2>
-          <div style={{ display: 'grid', gap: 8 }}>{personaScorecards.map(([persona, job, acceptance, priority]) => <PersonaRow key={persona} persona={persona} job={job} acceptance={acceptance} priority={priority} />)}</div>
+          <h2 style={h2}>Execution path to enterprise-grade funeral-home readiness.</h2>
+          <div style={{ display: 'grid', gap: 12 }}>{sprints.map((sprint, index) => <SprintAccordion key={sprint.name} sprint={sprint} open={index < 2} />)}</div>
         </Panel>
 
         <Panel tone="sage">
-          <div style={eyebrow}>Start now</div>
-          <h2 style={h2}>First execution actions.</h2>
-          <div style={listGrid}>{firstActions.map((item, index) => <ProofCard key={item} label={`Action ${index + 1}`} text={item} />)}</div>
+          <div style={eyebrow}>Persona UAT</div>
+          <h2 style={h2}>Every role gets one job, one next action, and one proof path.</h2>
+          <div style={cardGrid}>{personaChecks.map(([label, body]) => <ProofCard key={label} title={label} body={body} />)}</div>
         </Panel>
       </section>
     </Shell>
@@ -209,55 +248,70 @@ function Panel({ children, tone = 'default' }) {
   return <section style={{ background: tone === 'sage' ? C.sageFaint : C.card, border: '1px solid ' + (tone === 'sage' ? '#c8deca' : C.border), borderRadius: 18, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.04)', marginTop: 18 }}>{children}</section>;
 }
 
-function Metric({ item }) {
-  return <div style={metricCard}><div style={eyebrow}>{item.label}</div><strong style={{ display: 'block', color: C.ink, fontSize: 26, lineHeight: 1.05, marginTop: 8 }}>{item.value}</strong><p style={smallText}>{item.detail}</p></div>;
+function Metric({ label, value, detail }) {
+  return <div style={metricCard}><div style={eyebrow}>{label}</div><strong style={{ display: 'block', color: C.ink, fontSize: 26, lineHeight: 1.05, marginTop: 8 }}>{value}</strong><p style={smallText}>{detail}</p></div>;
 }
 
-function GateCard({ gate }) {
-  const badge = gate.status === 'Shipped' ? goodPill : gate.status === 'Active' ? activePill : plannedPill;
-  return <Link href={gate.href} style={{ ...subPanel, textDecoration: 'none', color: C.ink }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}><div style={eyebrow}>{gate.label}</div><span style={badge}>{gate.status}</span></div><p style={{ ...smallText, color: C.ink }}>{gate.detail}</p></Link>;
+function ProofCard({ title, body }) {
+  return <div style={subPanel}><h3 style={h3}>{title}</h3><p style={{ ...smallText, margin: '7px 0 0', color: C.ink }}>{body}</p></div>;
 }
 
-function ProofCard({ label, text }) {
-  return <div style={subPanel}><div style={eyebrow}>{label}</div><p style={{ ...smallText, margin: '7px 0 0', color: C.ink }}>{text}</p></div>;
+function StatusRow({ label, status, body }) {
+  const isGreen = status === 'Green' || status === 'Reworked';
+  const isActive = status === 'In progress' || status === 'Active now' || status === 'Next code focus';
+  const pill = isGreen ? goodPill : isActive ? activePill : plannedPill;
+  return (
+    <div style={rowCard}>
+      <div><strong style={{ color: C.ink }}>{label}</strong><p style={{ ...smallText, margin: '4px 0 0' }}>{body}</p></div>
+      <span style={pill}>{status}</span>
+    </div>
+  );
 }
 
-function MilestoneCard({ item }) {
-  return <div style={subPanel}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}><div><div style={eyebrow}>{item.timing}</div><h3 style={h3}>{item.title}</h3></div><span style={plannedPill}>{item.owner}</span></div><p style={{ ...smallText, color: C.ink }}>{item.outcome}</p><TwoColumnList leftTitle="Deliverables" left={item.deliverables} rightTitle="Acceptance" right={item.acceptance} /></div>;
+function SprintAccordion({ sprint, open }) {
+  const badge = sprint.status === 'Active now' || sprint.status === 'Next code focus' ? activePill : plannedPill;
+  return (
+    <details open={open} style={accordionPanel}>
+      <summary style={accordionSummary}>
+        <span>{sprint.name}</span>
+        <span style={badge}>{sprint.status}</span>
+      </summary>
+      <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+        <p style={{ ...smallText, margin: 0, color: C.ink }}>{sprint.goal}</p>
+        <MetricRow label="Owner" value={sprint.owner} />
+        <div style={innerPanel}>
+          <div style={eyebrow}>Tasks</div>
+          <ul style={ul}>{sprint.tasks.map(task => <li key={task}>{task}</li>)}</ul>
+        </div>
+        <div style={doneBox}><strong>Acceptance:</strong> {sprint.acceptance}</div>
+      </div>
+    </details>
+  );
 }
 
-function SprintCard({ item }) {
-  const badge = item.status === 'Shipped' ? goodPill : item.status === 'Active' ? activePill : plannedPill;
-  return <div style={{ ...subPanel, display: 'grid', gap: 8 }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}><div style={eyebrow}>{item.timing}</div><span style={badge}>{item.status}</span></div><h3 style={h3}>{item.sprint}</h3><p style={{ ...smallText, color: C.ink, margin: 0 }}>{item.goal}</p><ul style={ul}>{item.tasks.map((task) => <li key={task}>{task}</li>)}</ul><div style={doneBox}><strong>Done:</strong> {item.done}</div></div>;
-}
-
-function PersonaRow({ persona, job, acceptance, priority }) {
-  return <div style={rowCard}><div><strong style={{ color: C.ink }}>{persona}</strong><p style={{ ...smallText, margin: '4px 0 0' }}>{job}</p></div><div style={{ color: C.mid, fontSize: 13, lineHeight: 1.4 }}>{acceptance}</div><span style={priority === 'P0' ? riskPill : plannedPill}>{priority}</span></div>;
-}
-
-function TwoColumnList({ leftTitle, left, rightTitle, right }) {
-  return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginTop: 12 }}><div style={innerPanel}><div style={eyebrow}>{leftTitle}</div><ul style={ul}>{left.map((item) => <li key={item}>{item}</li>)}</ul></div><div style={innerPanel}><div style={eyebrow}>{rightTitle}</div><ul style={ul}>{right.map((item) => <li key={item}>{item}</li>)}</ul></div></div>;
+function MetricRow({ label, value }) {
+  return <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, borderTop: '1px solid ' + C.border, padding: '8px 0', alignItems: 'flex-start' }}><span style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.35 }}>{label}</span><strong style={{ color: C.ink, fontSize: 12.5, textAlign: 'right', lineHeight: 1.35 }}>{value}</strong></div>;
 }
 
 const wrap = { maxWidth: 1180, margin: '0 auto', padding: '42px 18px 80px' };
 const grid4 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, marginTop: 22 };
-const gateGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12, marginTop: 14 };
-const listGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, marginTop: 14 };
+const cardGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, marginTop: 14 };
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const h1 = { fontSize: 52, lineHeight: 1.04, margin: '8px 0 10px', fontWeight: 400, maxWidth: 880 };
 const h2 = { fontSize: 28, lineHeight: 1.12, margin: '8px 0 10px', fontWeight: 400 };
-const h3 = { color: C.ink, fontSize: 21, lineHeight: 1.15, margin: '6px 0 0', fontWeight: 900 };
+const h3 = { color: C.ink, fontSize: 18, lineHeight: 1.18, margin: 0, fontWeight: 900 };
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth: 780 };
 const smallText = { color: C.mid, fontSize: 14, lineHeight: 1.5, marginTop: 8 };
 const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', marginTop: 16 };
 const secondaryLink = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 13, minHeight: 48, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' };
 const metricCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16, boxShadow: '0 4px 20px rgba(0,0,0,.035)' };
 const subPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
+const rowCard = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 13 };
+const accordionPanel = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 14 };
+const accordionSummary = { cursor: 'pointer', color: C.ink, fontSize: 16, fontWeight: 900, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' };
 const innerPanel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: 12 };
 const doneBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: 10, color: C.ink, fontSize: 13, lineHeight: 1.4 };
 const ul = { margin: '8px 0 0', paddingLeft: 18, color: C.mid, fontSize: 13, lineHeight: 1.45 };
-const goodPill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '6px 9px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
-const activePill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '6px 9px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
-const plannedPill = { background: C.card, color: C.mid, border: '1px solid ' + C.border, borderRadius: 999, padding: '6px 9px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
-const riskPill = { background: C.roseFaint, color: C.rose, border: '1px solid #efc7c7', borderRadius: 999, padding: '6px 9px', fontSize: 12, fontWeight: 900, height: 'fit-content' };
-const rowCard = { display: 'grid', gridTemplateColumns: 'minmax(220px, 1.2fr) minmax(220px, 1fr) auto', gap: 12, alignItems: 'center', background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 13 };
+const goodPill = { background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '6px 9px', fontSize: 12, fontWeight: 900, height: 'fit-content', whiteSpace: 'nowrap' };
+const activePill = { background: C.amberFaint, color: C.amber, border: '1px solid #ead8b8', borderRadius: 999, padding: '6px 9px', fontSize: 12, fontWeight: 900, height: 'fit-content', whiteSpace: 'nowrap' };
+const plannedPill = { background: C.card, color: C.mid, border: '1px solid ' + C.border, borderRadius: 999, padding: '6px 9px', fontSize: 12, fontWeight: 900, height: 'fit-content', whiteSpace: 'nowrap' };
