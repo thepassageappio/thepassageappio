@@ -108,7 +108,7 @@ export default function ContactPage() {
           <div style={{ marginTop: 10, background: '#fffdf9', border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px' }}>
             <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 5 }}>Fastest path</div>
             <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.18, marginBottom: 5 }}>Book a Passage discovery meeting.</div>
-            <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.42, margin: '0 0 9px' }}>For funeral-home demos, vendor conversations, hospice/care-facility discovery, or pilot walkthroughs, skip the inbox and choose a time.</p>
+            <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.42, margin: '0 0 9px' }}>For funeral-home demos, vendor conversations, hospice or care-facility discovery, and product walkthroughs, skip the inbox and choose a time.</p>
             <a href={meetingHref} target="_blank" rel="noreferrer" onClick={() => trackEvent('contact_hubspot_clicked', { category: form.category, href: meetingHref })} style={{ display: 'inline-flex', minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 13px', fontWeight: 900, fontSize: 12.5 }}>Book on HubSpot</a>
           </div>
         </div>
