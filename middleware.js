@@ -65,14 +65,9 @@ export function middleware(request) {
     return NextResponse.redirect(url, 308);
   }
 
-  if (
-    pathname === '/funeral-home/dashboard' &&
-    searchParams.get('demo') === '1' &&
-    searchParams.get('demoTour') === 'funeral-home' &&
-    searchParams.get('demoStep') === 'dashboard'
-  ) {
+  if (pathname === '/funeral-home/dashboard' && searchParams.get('demo') === '1') {
     const url = request.nextUrl.clone();
-    url.pathname = '/funeral-home/pilot-proof';
+    url.pathname = '/funeral-home/workspace-demo';
     url.search = '';
     return NextResponse.redirect(url, 302);
   }
