@@ -18,12 +18,20 @@ const publicChecks = [
     requires: ['A calmer way to keep families and staff aligned.', 'Open sample case', 'Book walkthrough'],
   },
   {
+    path: '/funeral-home/login',
+    requires: ['Customers sign in. Prospects learn or book a demo.', 'Customer login', 'Learn functionality'],
+  },
+  {
     path: '/funeral-home/pilot-proof',
     requires: ['Show one family case from intake to proof.', 'Case clarity', 'How the workspace helps'],
   },
   {
     path: '/funeral-home/dashboard?demo=1',
     requires: ['Private partner workspace', 'What opens after sign-in', 'Staff queue showing who owns what'],
+  },
+  {
+    path: '/care-providers',
+    requires: ['Help families leave care with a clearer next step.', 'Start partner inquiry', 'Purpose of this page', 'not an operating dashboard'],
   },
   {
     path: '/vendors',
