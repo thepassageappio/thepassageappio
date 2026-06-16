@@ -627,6 +627,14 @@ function familyWaitingPoint(value) {
   if (/^family$/i.test(text)) return 'Waiting for the family update.';
   return text;
 }
+function familyExecutionTierLabel(value) {
+  var text = textValue(value, 'Assisted execution');
+  if (text === 'Fully automated') return 'Passage-prepared';
+  if (text === 'Assisted execution') return 'Guided with Passage';
+  if (text === 'Guided manual') return 'Manual step';
+  return text;
+}
+
 function statusText(status) {
   var value = String(status || '').replace(/_/g, ' ');
   if (!value) return 'Draft';
