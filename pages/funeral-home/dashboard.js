@@ -2653,9 +2653,9 @@ export default function FuneralHomeDashboard() {
       <section className="partner-dashboard-shell" data-demo-anchor="demo-page-primary">
         <div className="partner-dashboard-hero" style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
           <div>
-            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Private partner workspace</div>
-            <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral home dashboard'}</h1>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 680, marginTop: 8 }}>{needsFirstDaySetup ? 'First finish setup: confirm locations, add employees, and create or import the first case. My Day becomes useful after real work exists.' : 'Start with My Day, then open the case, task, owner, proof, or report that needs attention.'}</p>
+            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Funeral-home workspace</div>
+            <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral-home sign-in'}</h1>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 680, marginTop: 8 }}>{!user ? 'Sign in with your invited work email to open My Day, cases, staff work, family updates, proof, and exports.' : needsFirstDaySetup ? 'First finish setup: confirm locations, add employees, and create or import the first case. My Day becomes useful after real work exists.' : 'Start with My Day, then open the case, task, owner, proof, or report that needs attention.'}</p>
             {user && org && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 10px', color: C.sage, fontSize: 12, fontWeight: 900 }}>
                 Family-facing view: {partnerBrand.familyPortalName || org.name} + Passage
@@ -2702,7 +2702,7 @@ export default function FuneralHomeDashboard() {
         {!user && (
           <div style={{ maxWidth: 540 }}>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 18, padding: '16px 18px', marginBottom: 12 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Private partner workspace</div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Funeral-home workspace</div>
               <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.25, marginBottom: 8 }}>
                 {router.query.staff === '1' ? 'Staff sign-in opens assigned work.' : router.query.partner === '1' ? 'Director sign-in opens setup and My Day.' : 'What opens after sign-in'}
               </div>
@@ -2753,17 +2753,17 @@ export default function FuneralHomeDashboard() {
                   value={partnerPassword}
                   onChange={event => setPartnerPassword(event.target.value)}
                   type="password"
-                  placeholder="Partner password"
+                  placeholder="Workspace password"
                   autoComplete="current-password"
                   style={{ border: `1.5px solid ${C.border}`, borderRadius: 13, background: C.bg, padding: '12px 13px', color: C.ink, fontFamily: 'Georgia,serif', fontSize: 14 }}
                 />
               </label>
               <button type="submit" disabled={signingIn} style={{ border: 'none', borderRadius: 13, padding: '13px 18px', background: signingIn ? C.border : C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: signingIn ? 'wait' : 'pointer' }}>
-                {signingIn ? 'Opening workspace...' : 'Open partner workspace'}
+                {signingIn ? 'Opening workspace...' : 'Open workspace'}
               </button>
             </form>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.55, marginBottom: 12 }}>
-              Partner teams can use the email and password Passage issued. Google sign-in can be enabled when their domain is connected.
+              Use the email and password Passage issued for your funeral-home organization. Google sign-in can be enabled when your domain is connected.
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={signIn} style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 18px', background: C.card, color: C.ink, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
