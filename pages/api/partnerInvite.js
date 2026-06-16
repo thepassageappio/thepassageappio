@@ -3,6 +3,8 @@ import { isPassageAdmin } from '../../lib/adminAccess';
 import { normalizePartnerPlanId, partnerPlanFor } from '../../lib/partnerPlans';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
+import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -192,6 +194,15 @@ export default async function handler(req, res) {
   const planId = normalizePartnerPlanId(req.body?.planId);
   if (!organizationName) return res.status(400).json({ error: 'Add the funeral home name.' });
   if (!directorEmail || !directorEmail.includes('@')) return res.status(400).json({ error: 'Add a valid director email.' });
+
+  const limit = enforcePartnerInviteLimit(req, { sender: adminEmail, organizationName, directorEmail, action: 'partner_owner_invite' });
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
+    return res.status(429).json({
+      error: 'This partner invite was recently sent or retried too many times. Review the workspace and wait before sending another invite.',
+      retryAfterSeconds: limit.retryAfterSeconds,
+    });
+  }
 
   try {
     const organization = await upsertOrganization({
