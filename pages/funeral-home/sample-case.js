@@ -8,7 +8,7 @@ const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft
 const caseSteps = [
   ['Workspace', 'Hudson Valley Funeral Group', 'Director, staff, location, and plan are visible before case work starts.', 'Ready'],
   ['Case', 'Price family arrangement', 'Family contact, service date, owner, and next waiting point are in one pane.', 'Needs action'],
-  ['Task spine', 'Confirm cemetery plot details', 'Owner: Maria. Waiting on: Michael Price. Proof saves to: case record.', 'Waiting'],
+  ['Task action', 'Confirm cemetery plot details', 'Owner: Maria. Waiting on: Michael Price. Proof saves to: case record.', 'Waiting'],
   ['Family update', 'Service detail approval', 'Message is prepared for family review. Nothing sends automatically.', 'Draft'],
   ['Export', 'Case proof packet', 'Dates, task outcomes, update proof, and vendor request context are ready to export.', 'Ready'],
   ['Decision', 'Ready for the next family step', 'The director can see what is waiting, who owns it, and what proof is ready.', 'Next'],
