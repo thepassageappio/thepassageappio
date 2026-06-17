@@ -14,7 +14,7 @@ const myDay = [
 
 const workflow = [
   ['1', 'My Day', 'Start with the case, owner, waiting point, and proof that need attention now.'],
-  ['2', 'Task spine', 'Open the task to see the drafted ask, status, proof requirement, and what done means.'],
+  ['2', 'Task action', 'Open the task to see the drafted ask, owner, status, proof requirement, and what done means.'],
   ['3', 'Family update', 'Review the message before anything sends. Families see approved updates, not private staff notes.'],
   ['4', 'Staff queue', 'Employees see assigned work first with context, waiting point, and proof destination.'],
   ['5', 'Export', 'Case status, task outcomes, notes, messages, and proof can be exported for existing systems.'],
