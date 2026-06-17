@@ -3736,7 +3736,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
                 <div style={{ fontSize: 10.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 6 }}>Start one estate workspace</div>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.2, marginBottom: 6 }}>Create the estate before adding wishes, people, documents, memories, or tasks.</div>
-                <Sub>Each estate gets its own file, task spine, participants, messages, proof, and exports. Nothing should float loose on this index page.</Sub>
+                <Sub>Each estate gets its own file, task list, participants, messages, proof, and exports. Nothing should float loose on this index page.</Sub>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 10, marginTop: 14 }}>
                   <button onClick={onStartPlan} style={{ textAlign: "left", background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "14px", cursor: "pointer", fontFamily: "inherit" }}>
                     <div style={{ fontSize: 15, fontWeight: 900, color: C.ink, marginBottom: 4 }}>Plan ahead</div>
@@ -4662,8 +4662,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   const panes = [
     {
       id: 'spine',
-      label: 'Spine',
-      eyebrow: 'One shared truth',
+      label: 'Tasks',
+      eyebrow: 'One clear next step',
       title: 'One next move. One owner. One proof trail.',
       body: 'Passage keeps attention on the work that matters now, then carries the same context through every handoff.',
       cta: null,
@@ -4675,7 +4675,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
     },
     {
       id: 'journey',
-      label: 'Journey',
+      label: 'Family record',
       eyebrow: 'Before, during, after',
       title: 'Families should not have to start over at every door.',
       body: 'Care teams, funeral homes, vendors, attorneys, helpers, and executors may all rotate in. The family record remains continuous.',
@@ -4689,21 +4689,21 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
     },
     {
       id: 'providers',
-      label: 'Providers',
-      eyebrow: 'For care teams',
+      label: 'Care teams',
+      eyebrow: 'For providers',
       title: 'A clearer way to keep families and staff aligned.',
       body: 'Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to existing tools.',
       cta: { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard', label: 'Open sample workspace' },
       rows: [
         ['Case', 'Create or import', 'Start fresh or bring cases in by CSV without changing the current case system.'],
-        ['Work', 'Assign the owner', 'Staff, family coordinators, and participants stay tied to the same task spine.'],
+        ['Work', 'Assign the owner', 'Staff, family coordinators, and participants stay tied to the same next step and record.'],
         ['Proof', 'Close the loop', 'Proof, waiting states, and exports stay attached to the family record.'],
       ],
     },
     {
       id: 'lifecycle',
-      label: 'Lifecycle',
-      eyebrow: 'Continuity map',
+      label: 'Continuity',
+      eyebrow: 'Shared history',
       title: 'The same family record moves through every handoff.',
       body: 'Planning, care, hospice, funeral coordination, and family work should not become separate islands. Passage keeps the record together as people and providers change.',
       cta: { href: '/mission', label: 'See the mission' },
@@ -4881,7 +4881,7 @@ function LifecycleMap() {
   ];
 
   return (
-    <div className="lifecycle-map" aria-label="Passage lifecycle continuity map">
+    <div className="lifecycle-map" aria-label="Passage continuity map">
       <div className="lifecycle-track">
         <div className="lifecycle-track-line" aria-hidden="true" />
         {nodes.map(function(node) {
@@ -4897,7 +4897,7 @@ function LifecycleMap() {
       <div className="lifecycle-center">
         <div className="lifecycle-record">
           <small>Passage record</small>
-          <strong>One family spine</strong>
+          <strong>One family record</strong>
           <span>The next step, owner, waiting point, permissions, and proof move forward together.</span>
         </div>
         <div className="lifecycle-proof">
