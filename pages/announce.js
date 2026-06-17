@@ -519,7 +519,7 @@ export default function AnnouncePage() {
                 style={{ width: '100%', minHeight: 92, boxSizing: 'border-box', border: '1.5px solid ' + BORDER, borderRadius: 12, background: CARD, padding: '12px 13px', fontFamily: 'Georgia, serif', fontSize: 13.5, color: INK, lineHeight: 1.5, resize: 'vertical' }}
               />
               <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '10px 12px', fontSize: 12.5, color: SAGE, fontWeight: 700, lineHeight: 1.5, marginTop: 8 }}>
-                Passage sends only to the recipients you review here and records delivery status on the family spine.
+                Passage sends only to the recipients you review here and records delivery status on the family record.
               </div>
             </div>
           )}
