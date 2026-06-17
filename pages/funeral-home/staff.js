@@ -58,7 +58,7 @@ export default function FuneralHomeStaffLogin() {
             {[
               ['Your queue', 'Only work assigned to you appears first.'],
               ['Case context', 'You see the family-facing status and the next expected update.'],
-              ['Proof', 'Notes, proof, and completion updates return to the case spine.'],
+              ['Proof', 'Notes, proof, and completion updates return to the case record.'],
             ].map(([title, body]) => (
               <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 13, padding: 12 }}>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
