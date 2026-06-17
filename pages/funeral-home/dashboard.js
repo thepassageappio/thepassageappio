@@ -151,7 +151,7 @@ function printPreparedOutput(preview) {
   const win = window.open('', '_blank', 'noopener,noreferrer,width=820,height=900');
   if (!win) return;
   const title = escapePreparedOutput(preview.title || 'Passage prepared output');
-  const subtitle = escapePreparedOutput(preview.subtitle || 'Family coordination spine');
+  const subtitle = escapePreparedOutput(preview.subtitle || 'Family coordination record');
   const text = escapePreparedOutput(preview.text);
   const purpose = escapePreparedOutput(preview.purpose || 'Review before copying, printing, or sharing. Nothing sends automatically.');
   win.document.write(`<!doctype html>
@@ -175,7 +175,7 @@ function printPreparedOutput(preview) {
         <header>
           <div>
             <div class="brand">Passage</div>
-            <div class="muted">Family coordination spine</div>
+            <div class="muted">Family coordination record</div>
           </div>
           <div class="muted" style="text-align:right">Powered by Passage<br/>thepassageapp.io</div>
         </header>
@@ -389,7 +389,7 @@ const demoPartnerContext = {
         { id: 'demo-task-3', title: 'Send obituary approval request', description: 'Send the family a clean approval request with the current obituary draft.', status: 'blocked', assigned_to_name: 'Lena Ortiz', assigned_to_email: 'lena@hvfg.demo', created_at: '2026-05-08T10:00:00Z', proof_required: 'Family approval' },
         { id: 'demo-task-4', title: 'Record hospital release confirmation', description: 'Hospital release was confirmed and saved for transportation.', status: 'handled', assigned_to_name: 'Maria Ellis', assigned_to_email: 'maria@hvfg.demo', created_at: '2026-05-08T09:00:00Z', last_action_at: '2026-05-08T11:00:00Z' },
       ],
-      blockedTasks: [{ id: 'demo-task-3' }],
+      needs helpTasks: [{ id: 'demo-task-3' }],
       communications: [{ id: 'c1', status: 'sent' }, { id: 'c2', status: 'waiting' }],
       waitingOnFamily: [{ id: 'wf1', title: 'Cemetery plot details' }],
       vendorRequests: [{ id: 'vr1', task_title: 'Livestream support', status: 'accepted', requested_at: '2026-05-08T12:00:00Z', estimated_value: 650 }],
@@ -418,7 +418,7 @@ const demoPartnerContext = {
       tasks: [
         { id: 'demo-green-1', title: 'Collect pre-need preferences', status: 'assigned', assigned_to_name: 'Lena Ortiz', assigned_to_email: 'lena@hvfg.demo', created_at: '2026-05-07T09:00:00Z' },
       ],
-      blockedTasks: [],
+      needs helpTasks: [],
       communications: [],
       waitingOnFamily: [],
       vendorRequests: [],
@@ -1132,7 +1132,7 @@ export default function FuneralHomeDashboard() {
             partnerTasks: (item.partnerTasks || []).map(t => ids.has(t.id) ? { ...t, assigned_to_name: payload.name || payload.email, assigned_to_email: payload.email, recipient: payload.email, last_actor: payload.actor, last_action_at: now } : t),
           } : item),
         } : prev);
-        setNotice(`${ids.size} demo task${ids.size === 1 ? '' : 's'} assigned. In a live workspace this updates the shared case spine and staff queue.`);
+        setNotice(`${ids.size} demo task${ids.size === 1 ? '' : 's'} assigned. In a live workspace this updates the shared case record and staff queue.`);
         setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
         return;
       }
@@ -1609,9 +1609,9 @@ export default function FuneralHomeDashboard() {
       const summaryView = view === 'cases';
       downloadCsvFile(
         buildDemoPartnerExport(data, view),
-        summaryView ? 'passage-demo-case-summary.csv' : 'passage-demo-full-spine.csv'
+        summaryView ? 'passage-demo-case-summary.csv' : 'passage-demo-full-record.csv'
       );
-      setNotice(`${summaryView ? 'Case summary' : 'Full spine'} demo CSV downloaded locally. No Supabase, email, or production record was touched.`);
+      setNotice(`${summaryView ? 'Case summary' : 'Full record'} demo CSV downloaded locally. No Supabase, email, or production record was touched.`);
       return;
     }
     const res = await fetch('/api/partnerExport' + exportQuery(view), { headers: { Authorization: 'Bearer ' + token } });
@@ -1624,7 +1624,7 @@ export default function FuneralHomeDashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = view === 'cases' ? 'passage-partner-case-summary.csv' : 'passage-partner-full-spine.csv';
+    a.download = view === 'cases' ? 'passage-partner-case-summary.csv' : 'passage-partner-full-record.csv';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1634,7 +1634,7 @@ export default function FuneralHomeDashboard() {
   async function emailExport(view = 'spine') {
     if (!token) return;
     if (demoMode) {
-      setNotice(`${view === 'cases' ? 'Case summary' : 'Full spine'} demo email skipped. Use Download to show the CSV without sending email.`);
+      setNotice(`${view === 'cases' ? 'Case summary' : 'Full record'} demo email skipped. Use Download to show the CSV without sending email.`);
       return;
     }
     const updateKey = view === 'cases' ? 'email_case_export' : 'email_export';
@@ -1644,7 +1644,7 @@ export default function FuneralHomeDashboard() {
     const res = await fetch('/api/partnerExport' + exportQuery(view), { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ view, from: exportRange.from, to: exportRange.to }) });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) setError(json.error || 'Could not email the CSV export.');
-    else setNotice(`${view === 'cases' ? 'Case summary' : 'Full spine'} CSV export sent to ${json.emailedTo || user?.email || 'your email'}.`);
+    else setNotice(`${view === 'cases' ? 'Case summary' : 'Full record'} CSV export sent to ${json.emailedTo || user?.email || 'your email'}.`);
     setUpdating('');
   }
 
@@ -1786,7 +1786,7 @@ export default function FuneralHomeDashboard() {
             proof_required: 'Prepared packet',
           },
         ],
-        blockedTasks: [],
+        needs helpTasks: [],
         communications: [],
         waitingOnFamily: [],
         vendorRequests: [],
@@ -1951,7 +1951,7 @@ export default function FuneralHomeDashboard() {
   const warmInbounds = data?.funeralHomeRequests || [];
   const openWarmInbounds = warmInbounds.filter(request => !['declined', 'archived', 'converted'].includes(String(request.status || '').toLowerCase()));
   const acceptedWarmInbounds = warmInbounds.filter(request => ['accepted', 'converted'].includes(String(request.status || '').toLowerCase()));
-  const totalBlocked = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
+  const totalNeeds help = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
   const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(taskIsWaiting).length, 0);
   const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(taskIsClosed).length, 0);
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
@@ -2018,7 +2018,7 @@ export default function FuneralHomeDashboard() {
     ['Active cases', cases.length],
     ['Tasks handled by Passage', totalHandled],
     ['Waiting for response', totalWaiting],
-    ['Needs help', totalBlocked],
+    ['Needs help', totalNeeds help],
     ['Estimated calls avoided', callsAvoided],
     ['Estimated hours saved', timeSavedLabel],
   ];
@@ -2183,10 +2183,10 @@ export default function FuneralHomeDashboard() {
     const rows = allPartnerTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
     const openRows = rows.filter(taskIsOpen);
     const waitingRows = openRows.filter(taskIsWaiting);
-    const blockedRows = openRows.filter(taskNeedsHelp);
+    const needs helpRows = openRows.filter(taskNeedsHelp);
     const handledRows = rows.filter(taskIsClosed);
     const nextTask = openRows.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null;
-    return { ...member, open: openRows.length, waiting: waitingRows.length, blocked: blockedRows.length, handled: handledRows.length, nextTask };
+    return { ...member, open: openRows.length, waiting: waitingRows.length, needs help: needs helpRows.length, handled: handledRows.length, nextTask };
   }).concat(unassignedStaffTasks.length ? [{
     email: '',
     label: 'Unassigned work',
@@ -2194,7 +2194,7 @@ export default function FuneralHomeDashboard() {
     scope: 'director_attention',
     open: unassignedStaffTasks.length,
     waiting: unassignedStaffTasks.filter(taskIsWaiting).length,
-    blocked: unassignedStaffTasks.filter(taskNeedsHelp).length,
+    needs help: unassignedStaffTasks.filter(taskNeedsHelp).length,
     handled: 0,
     nextTask: unassignedStaffTasks.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
   }] : []).sort((a, b) => (b.blocked - a.blocked) || (b.open - a.open) || (b.waiting - a.waiting));
@@ -2278,7 +2278,7 @@ export default function FuneralHomeDashboard() {
   const reportAcceptedParticipants = reportScopedParticipants.filter(participant => participant.accepted_at || /accepted|active/i.test(String(participant.invite_status || '')));
   const reportHandledTasks = reportScopedTasks.filter(taskIsClosed);
   const reportWaitingTasks = reportScopedTasks.filter(taskIsWaiting);
-  const reportBlockedTasks = reportScopedTasks.filter(taskNeedsHelp);
+  const reportNeeds helpTasks = reportScopedTasks.filter(taskNeedsHelp);
   const reportAssignments = reportScopedTasks.filter(task => task.assigned_to_email || task.assigned_to_name || task.owner_name || task.participant_id);
   const reportCallsAvoided = reportScopedMessages.length + reportAssignments.length + reportScopedVendorRequests.length;
   const reportVendorQuoteReady = reportScopedVendorRequests.filter(request => String(request.status || '').toLowerCase() === 'accepted').length;
@@ -2314,10 +2314,10 @@ export default function FuneralHomeDashboard() {
     const tasks = reportScopedTasks.filter(task => task.locationName === location);
     const handled = tasks.filter(taskIsClosed).length;
     const waiting = tasks.filter(taskIsWaiting).length;
-    const blocked = tasks.filter(taskNeedsHelp).length;
+    const needs help = tasks.filter(taskNeedsHelp).length;
     const messages = reportScopedMessages.filter(message => message.locationName === location).length;
     const value = rows.reduce((sum, item) => sum + caseValueNumber(item), 0);
-    return [location, rows.length, moneyDisplay(value), rows.length ? moneyDisplay(value / rows.length) : '$0', tasks.length, handled, waiting + blocked, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
+    return [location, rows.length, moneyDisplay(value), rows.length ? moneyDisplay(value / rows.length) : '$0', tasks.length, handled, waiting + needs help, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
   }).filter(row => row[1] || row[2]);
   const reportEmployeeRows = (reportStaff === 'all' ? staffRoster : staffRoster.filter(member => member.email === reportStaff)).map(member => {
     const tasks = reportScopedTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
@@ -2342,7 +2342,7 @@ export default function FuneralHomeDashboard() {
   }
   const reportTaskSummaryRows = Array.from(reportScopedTasks.reduce((map, task) => {
     const title = sharedTaskTitle(task);
-    const row = map.get(title) || { title, total: 0, handled: 0, waiting: 0, blocked: 0 };
+    const row = map.get(title) || { title, total: 0, handled: 0, waiting: 0, needs help: 0 };
     row.total += 1;
     if (taskIsClosed(task)) row.handled += 1;
     if (taskIsWaiting(task)) row.waiting += 1;
@@ -2449,9 +2449,9 @@ export default function FuneralHomeDashboard() {
       },
       {
         label: 'Needs help',
-        value: totalBlocked || riskItems.length,
-        tone: totalBlocked || riskItems.length ? 'risk' : 'good',
-        body: totalBlocked || riskItems.length ? 'Clear these stuck points before the director promises an update.' : 'No case work needs help in the front queue.',
+        value: totalNeeds help || riskItems.length,
+        tone: totalNeeds help || riskItems.length ? 'risk' : 'good',
+        body: totalNeeds help || riskItems.length ? 'Clear these stuck points before the director promises an update.' : 'No case work needs help in the front queue.',
       },
       {
         label: 'Proof gaps',
@@ -2474,7 +2474,7 @@ export default function FuneralHomeDashboard() {
         body: firstStaffTask?.waiting_on || 'When work waits, name who or what it is waiting on.',
       },
       {
-        label: 'Proof destination',
+        label: 'Where proof saves',
         value: firstStaffTask ? 'Visible' : 'Clear',
         tone: firstStaffTask ? 'neutral' : 'good',
         body: firstStaffTask ? 'Record proof, a stuck point, or a waiting point before leaving the task.' : 'New assignments will show the proof requirement here.',
@@ -2517,7 +2517,7 @@ export default function FuneralHomeDashboard() {
   const notificationReadinessRows = [
     ['Email', 'Prepared, reviewed, delivered, and logged on the case record.', true],
     ['SMS', 'Text fallback remains visible until carrier registration is active.', false],
-    ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case spine.' : 'Assign the first task owner to create visible proof.', assignmentsCoordinated > 0],
+    ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case record.' : 'Assign the first task owner to create visible proof.', assignmentsCoordinated > 0],
   ];
   const billingReadinessRows = [
     ['Plan', partnerPlan?.plan || partnerPlan?.name || (activationStatus === 'active_trial' ? 'Pilot trial' : 'Pilot setup pending')],
@@ -2544,7 +2544,7 @@ export default function FuneralHomeDashboard() {
     ['green', 'Planning', 'pre-need cases; prepaid is a funding detail', 'Family record begins before crisis.'],
     ['warm', 'Warm / care', 'transition preparation', 'Hospice, facility, contacts, dates, wishes, and handoff notes travel forward.'],
     ['red', 'Death event', 'first-hour coordination', 'Immediate owners, calls, and proof become visible.'],
-    ['funeral', 'Service coordination', 'arrangements and family logistics', 'Staff, family, vendors, and participants work from one spine.'],
+    ['funeral', 'Service coordination', 'arrangements and family logistics', 'Staff, family, vendors, and participants work from one case record.'],
     ['after', 'Aftercare', 'estate, remembrance, and continuity', 'Exports and status history keep the record useful after service.'],
   ].map(([key, label, body, value]) => {
     const count = cases.filter(item => partnerLifecycleKey(item) === key).length;
@@ -2564,8 +2564,8 @@ export default function FuneralHomeDashboard() {
     ];
   const headerUser = user?.id === publicDemoUser.id ? null : user;
   const guidedDemoSteps = [
-    ['dashboard', '1', 'My Day', 'See blocked work, waiting families, family requests, coverage, and proof from one operating floor.'],
-    ['task', '2', 'Task spine', 'Open the next case and show owner, waiting point, prepared output, proof, and family-visible status.'],
+    ['dashboard', '1', 'My Day', 'See waiting families, family requests, coverage, proof, and work that needs help from one queue.'],
+    ['task', '2', 'Task action', 'Open the next case and show owner, waiting point, prepared message, proof, and family-visible status.'],
     ['chat', '3', 'Communication proof', 'Show how notes, family updates, and notifications stay attached to the case instead of living in inboxes.'],
     ['export', '4', 'Operating signals and export', 'Close with CSV/export proof: calls avoided, time saved, staff workload, and case export.'],
     ['team', '5', 'Locations and staff', 'Show the rollout path: locations, employee scope, invites, and plan limits.'],
@@ -2795,7 +2795,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>90-second funeral-home tour</div>
-                <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Demo the operating loop without hunting.</div>
+                <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Demo the case loop without hunting.</div>
                 <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>Use these stops in order: director floor, task action, communication proof, signals/export, then rollout setup.</div>
               </div>
               <button
@@ -2826,7 +2826,7 @@ export default function FuneralHomeDashboard() {
           <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 16, padding: 14, marginBottom: 14, boxShadow: '0 4px 18px rgba(0,0,0,.04)' }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Family handoff prepared</div>
             <div style={{ color: C.ink, fontSize: 17, fontWeight: 900, marginTop: 4 }}>Give the family this link when you are ready to invite them.</div>
-            <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>This is the spine handoff: case created, family participant prepared, acceptance grants estate access, and future task proof stays on the case.</div>
+            <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>This is the handoff: case created, family participant prepared, acceptance grants estate access, and future task proof stays on the case.</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8, alignItems: 'center', marginTop: 10 }}>
               <input readOnly value={latestFamilyLink.url} style={{ minWidth: 0, border: `1px solid ${C.border}`, borderRadius: 11, background: C.bg, padding: '9px 10px', color: C.mid, fontFamily: 'Georgia,serif', fontSize: 12.5 }} />
               <button onClick={() => copyText(latestFamilyLink.url, 'Family handoff link copied.')} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Copy link</button>
@@ -2855,10 +2855,10 @@ export default function FuneralHomeDashboard() {
               {[
                 {
                   label: 'My Day',
-                  value: totalBlocked ? `${totalBlocked} blocked` : totalWaiting ? `${totalWaiting} waiting` : `${cases.length} active case${cases.length === 1 ? '' : 's'}`,
+                  value: totalNeeds help ? `${totalNeeds help} needs help` : totalWaiting ? `${totalWaiting} waiting` : `${cases.length} active case${cases.length === 1 ? '' : 's'}`,
                   detail: nextDirectorStep?.next || 'Cases and next moves',
-                  tone: totalBlocked ? C.rose : totalWaiting ? C.amber : C.sage,
-                  bg: totalBlocked ? C.roseFaint : totalWaiting ? C.amberFaint : C.sageFaint,
+                  tone: totalNeeds help ? C.rose : totalWaiting ? C.amber : C.sage,
+                  bg: totalNeeds help ? C.roseFaint : totalWaiting ? C.amberFaint : C.sageFaint,
                   action: () => setActivePartnerView('work'),
                 },
                 {
@@ -3113,7 +3113,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 12 }}>
               <button onClick={() => document.getElementById('partner-csv-upload')?.click()} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Upload CSV</button>
               <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Download template</a>
-              <button onClick={() => downloadExport('spine')} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Download full spine</button>
+              <button onClick={() => downloadExport('spine')} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Download full record</button>
               <button onClick={() => emailExport('cases')} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_case_export' ? 'Sending...' : 'Email case summary'}</button>
               <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{partnerPlan?.plan ? `Billing: ${partnerPlan.plan}` : 'Start pilot billing'}</button>
             </div>
@@ -3372,7 +3372,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Warm family requests</div>
                 <div style={{ fontSize: 24, lineHeight: 1.15, marginTop: 3 }}>Review warm family handoffs before they become cases.</div>
                 <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5, maxWidth: 760 }}>
-                  Requests start from the family record, not a cold directory. Accepting one brings the family context into your case spine; nothing is sent outside Passage without review.
+                  Requests start from the family record, not a cold directory. Accepting one brings the family context into your case record; nothing is sent outside Passage without review.
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(90px, 1fr))', gap: 8, minWidth: 300 }}>
@@ -3950,9 +3950,9 @@ export default function FuneralHomeDashboard() {
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
                   {staffQueuePreview.map(task => {
-                    const blocked = taskNeedsHelp(task);
+                    const needs help = taskNeedsHelp(task);
                     const waiting = taskIsWaiting(task);
-                    const tone = blocked ? C.rose : waiting ? C.amber : C.sage;
+                    const tone = needs help ? C.rose : waiting ? C.amber : C.sage;
                     const guidance = taskGuidanceFor(task, { owner: task.assigned_to_name || task.assigned_to_email || 'staff', surface: 'staff work queue' });
                     const proofDestination = taskProofDestination(task, { surface: 'staff work queue' });
                     const preparedOutput = taskOutputFor(task, { caseName: task.caseName, surface: 'staff work queue' });
@@ -3965,7 +3965,7 @@ export default function FuneralHomeDashboard() {
                         <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3, lineHeight: 1.25 }}>{sharedTaskTitle(task)}</div>
                         <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{rightPerson}</strong> - {statusLabel(task.status)}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 9 }}>
-                          <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                          <div style={{ background: needs help ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
                             <strong style={{ color: C.ink }}>1. Do:</strong> {guidance.nextStep || taskExpectedUpdate(task, 'funeral_home')}
                           </div>
                           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
@@ -4007,12 +4007,12 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Funeral-home reporting</div>
-                <div style={{ fontSize: 24, marginTop: 3 }}>See workload, response risk, and Passage value by time, location, staff, task, or case.</div>
-                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Reporting reads the same task spine: owner, message, proof, status, and export. No separate dashboard language for families.</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>See workload, response risk, and Passage value by time, location, staff, request, or case.</div>
+                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Reporting reads the same case record: owner, message, proof, status, and export. No separate dashboard language for families.</div>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button onClick={() => downloadExport('cases')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '9px 12px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Export case summary</button>
-                <button onClick={() => downloadExport('spine')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 12px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Export full spine</button>
+                <button onClick={() => downloadExport('spine')} style={{ border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 12px', background: C.card, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Export full record</button>
               </div>
             </div>
             <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, marginBottom: 12 }}>
@@ -4087,7 +4087,7 @@ export default function FuneralHomeDashboard() {
                 ['Cost / resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0'],
                 ['Avg tasks / estate', reports.avgTasksPerEstate ?? reportAvgTasksPerEstate],
                 ['Tasks / day', reportTasksPerDay],
-                ['Waiting + blocked', reportWaitingTasks.length + reportBlockedTasks.length],
+                ['Waiting + needs help', reportWaitingTasks.length + reportNeeds helpTasks.length],
               ].map(([label, value]) => (
                 <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
                   <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
@@ -4132,21 +4132,21 @@ export default function FuneralHomeDashboard() {
             {reportView === 'locations' && (
               <ReportTable
                 title="By location"
-                columns={['Location', 'Cases', 'Case value', 'Avg value', 'Tasks', 'Handled', 'Waiting / blocked', 'Calls avoided']}
+                columns={['Location', 'Cases', 'Case value', 'Avg value', 'Tasks', 'Handled', 'Waiting / needs help', 'Calls avoided']}
                 rows={reportLocationRows}
               />
             )}
             {reportView === 'staff' && (
               <ReportTable
                 title="By employee"
-                columns={['Employee', 'Role', 'Private cost', 'Tasks', 'Handled', 'Est. cost', 'Cost / task', 'Waiting', 'Blocked']}
+                columns={['Employee', 'Role', 'Private cost', 'Tasks', 'Handled', 'Est. cost', 'Cost / task', 'Waiting', 'Needs help']}
                 rows={reportEmployeeRows}
               />
             )}
             {reportView === 'tasks' && (
               <ReportTable
                 title="By task type"
-                columns={['Task', 'Total', 'Handled', 'Waiting', 'Blocked']}
+                columns={['Task', 'Total', 'Handled', 'Waiting', 'Needs help']}
                 rows={reportTaskSummaryRows}
               />
             )}
@@ -4167,7 +4167,7 @@ export default function FuneralHomeDashboard() {
             {reportView === 'cases' && (
               <ReportTable
                 title="By case / estate"
-                columns={['Case', 'Location', 'Case value', 'Prepaid', 'Tasks', 'Handled', 'Waiting', 'Blocked']}
+                columns={['Case', 'Location', 'Case value', 'Prepaid', 'Tasks', 'Handled', 'Waiting', 'Needs help']}
                 rows={reportCaseRows}
               />
             )}
@@ -4450,7 +4450,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'grid', gap: 7 }}>
                     {visiblePilotLaunchRows.map(([n, title, body, done]) => (
                       <button key={title} onClick={() => {
-                        if (title === 'Employees' || title === 'Locations' || title === 'First owner' || title === 'Invite review' || title === 'Billing setup') openPartnerManagement('Opening the setup spine for locations, employees, roles, invites, billing setup, and assignment readiness.');
+                        if (title === 'Employees' || title === 'Locations' || title === 'First owner' || title === 'Invite review' || title === 'Billing setup') openPartnerManagement('Opening the setup checklist for locations, employees, roles, invites, billing setup, and assignment readiness.');
                         else if (title === 'Cases') openCasePanel('immediate');
                         else if (title === 'Proof loop') moveDirectorFocus();
                       }} style={{ textAlign: 'left', border: `1px solid ${done ? C.sage + '22' : C.amber + '33'}`, background: done ? C.sageFaint : C.amberFaint, borderRadius: 10, padding: '7px 9px', display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'center', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
@@ -4551,7 +4551,7 @@ export default function FuneralHomeDashboard() {
               const open = item.tasks.length - handledCount;
               const openCaseTasks = openTasksForCase(item);
               const unassignedCaseTasks = unassignedTasksForCase(item);
-              const blocked = item.tasks.filter(taskNeedsHelp).length;
+              const needs help = item.tasks.filter(taskNeedsHelp).length;
               const partnerTasks = item.partnerTasks || [];
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
@@ -4568,7 +4568,7 @@ export default function FuneralHomeDashboard() {
               const urgentContext = partnerUrgentContext(item);
               const nextOwner = nextPartnerTask?.assigned_to_name || nextPartnerTask?.assigned_to_email || nextPartnerTask?.playbook?.partnerOwnerRole || 'Unassigned';
               const nextTaskClosed = nextPartnerTask && taskIsClosed(nextPartnerTask);
-              const nextExpectedUpdate = nextTaskClosed ? 'Handled - proof is saved on the case spine.' : nextPartnerTask ? (orchestration.nextAction?.expectedUpdate || taskExpectedUpdate(nextPartnerTask, 'funeral_home')) : 'The family status remains visible.';
+              const nextExpectedUpdate = nextTaskClosed ? 'Handled - proof is saved on the case record.' : nextPartnerTask ? (orchestration.nextAction?.expectedUpdate || taskExpectedUpdate(nextPartnerTask, 'funeral_home')) : 'The family status remains visible.';
               const nextStateMachine = orchestration.nextAction?.stateMachine || nextPartnerTask?.orchestration?.stateMachine || null;
               const nextSuggestedOutputs = orchestration.nextAction?.suggestedOutputs || nextPartnerTask?.orchestration?.outputActions || [];
               const workflowStates = orchestration.workflowStates || { states: [], activeState: null };
@@ -4603,7 +4603,7 @@ export default function FuneralHomeDashboard() {
                 ? item.orchestration_summary.missing_timeline_watch.filter(Boolean).slice(0, 2)
                 : [];
               const caseProofGapCount = item.tasks.filter(task => taskIsClosed(task) && !String(task.notes || task.waiting_on || task.last_actor || '').trim()).length;
-              const waitingLabel = blocked
+              const waitingLabel = needs help
                 ? `${blocked} item${blocked === 1 ? '' : 's'} need help`
                 : waitingFamily.length
                   ? `${waitingFamily.length} family item${waitingFamily.length === 1 ? '' : 's'} waiting`
@@ -4624,7 +4624,7 @@ export default function FuneralHomeDashboard() {
               const caseOperatingContract = [
                 ['Ask', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action ready', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
                 ['Owner', nextOwner, nextOwner === 'Unassigned' ? 'Assign an owner before this can reliably move.' : 'This person owns the next visible move.', nextOwner === 'Unassigned' ? C.amber : C.sage],
-                ['Waiting', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting points create repeated family calls when they are not owned.', blocked ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
+                ['Waiting', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting points create repeated family calls when they are not owned.', needs help ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
                 ['Proof', proofLabel, caseProofGapCount ? 'Close the proof gap before using this as a family status record.' : 'Proof stays attached to the case record.', caseProofGapCount ? C.amber : C.sage],
                 ['Family update', familyUpdateLabel, 'Use this line to answer the next where-are-we call.', C.mid],
               ];
@@ -4679,10 +4679,10 @@ export default function FuneralHomeDashboard() {
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'stretch', marginTop: 12 }}>
-                    <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
+                    <div style={{ background: needs help ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
                         <div>
-                          <div style={{ fontSize: 10.5, color: blocked ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Recommended next action</div>
+                          <div style={{ fontSize: 10.5, color: needs help ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Recommended next action</div>
                           <div style={{ fontSize: 18, lineHeight: 1.2, color: C.ink, fontWeight: 900 }}>{nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action is open'}</div>
                         </div>
                         {nextImportance && <span style={{ background: nextImportanceTone.bg, border: `1px solid ${nextImportanceTone.border}`, color: nextImportanceTone.color, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextImportance.label}</span>}
@@ -4738,7 +4738,7 @@ export default function FuneralHomeDashboard() {
                     {false && <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13 }}>
                       <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 8 }}>Family-facing status</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 84px), 1fr))', gap: 7 }}>
-                        {[['Done', handledCount, C.sage], ['Waiting', waitingCount + blocked, waitingCount + blocked ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
+                        {[['Done', handledCount, C.sage], ['Waiting', waitingCount + needs help, waitingCount + needs help ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
                           <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
                             <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                             <div style={{ color, fontSize: 18, fontWeight: 900, marginTop: 2 }}>{value}</div>
@@ -4889,7 +4889,7 @@ export default function FuneralHomeDashboard() {
                       ['Owner', nextOwner, nextOwner === 'Unassigned' ? C.amber : C.sage],
                       ['Request', draft, C.mid],
                       ['Proof', output.label, C.sage],
-                      ['Report', 'Exports with case spine', C.mid],
+                      ['Report', 'Exports with case record', C.mid],
                     ];
                     return (
                       <div id={'partner-action-workspace-' + item.id} data-demo-anchor="demo-task-spine" style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
@@ -5082,7 +5082,7 @@ export default function FuneralHomeDashboard() {
                       {[
                         ['Done', handledCount],
                         ['In progress', progressCount],
-                        ['Waiting', waitingCount + blocked],
+                        ['Waiting', waitingCount + needs help],
                       ].map(([label, value]) => (
                         <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 10px' }}>
                           <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
@@ -5257,7 +5257,7 @@ export default function FuneralHomeDashboard() {
               setPacketModal(null);
               setOutputPreview({
                 title: packet?.data?.title || 'Prepared Passage packet',
-                subtitle: 'Generated from the case spine',
+                subtitle: 'Generated from the case record',
                 purpose: packet?.data?.approvalBoundary || 'Review before sharing outside the family record.',
                 text,
                 copyKey: 'generated_packet_' + (packet?.estate_id || ''),
@@ -5492,7 +5492,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
     ? 'Copy this reviewed request into email, text, or the case file. Nothing sends automatically from Passage.'
     : taskDraft.status === 'waiting'
       ? 'Use this reviewed update to show what is waiting, who owns it, and when the next follow-up is expected.'
-      : 'Review this branded proof packet before saving it to the case spine or printing it for the arrangement file.';
+      : 'Review this branded proof packet before saving it to the case record or printing it for the arrangement file.';
 
   function saveTaskAction() {
     if (!canSave) return;
