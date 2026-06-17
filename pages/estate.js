@@ -2596,7 +2596,7 @@ function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorNa
           <div style={{ color: SAGE, fontSize: 11, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>After activation</div>
           <div style={{ color: INK, fontSize: 24, lineHeight: 1.12, fontWeight: 900 }}>What changed, what is waiting, and who owns the next move.</div>
           <div style={{ color: MID, fontSize: 13.2, lineHeight: 1.55, marginTop: 6 }}>
-            The planning record is now active. Passage keeps the activation proof, the urgent task spine, service dates, and family updates together so nobody has to guess what happened.
+            The planning record is now active. Passage keeps the activation proof, the urgent task list, service dates, and family updates together so nobody has to guess what happened.
           </div>
         </div>
         <span style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, color: SAGE, borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 900, whiteSpace: 'nowrap' }}>Active urgent coordination</span>
@@ -2617,7 +2617,7 @@ function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorNa
           <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Best next move</div>
           <div style={{ color: INK, fontSize: 17, lineHeight: 1.2, fontWeight: 900, marginTop: 5 }}>{nextTitle}</div>
           <div style={{ color: MID, fontSize: 13, lineHeight: 1.45, marginTop: 6 }}>Owner: <strong style={{ color: INK }}>{nextOwner}</strong></div>
-          <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>If this is not the right owner, open the task spine and assign the case or task before asking the family for more information.</div>
+          <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>If this is not the right owner, open the task details and assign the case or task before asking the family for more information.</div>
         </div>
         <div style={{ background: upcomingServiceEvents.length ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (upcomingServiceEvents.length ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 14, padding: 13 }}>
           <div style={{ color: upcomingServiceEvents.length ? SAGE : AMBER, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Service broadcast readiness</div>
@@ -4328,7 +4328,7 @@ export default function EstatePage() {
                     </div>
                   )}
                   <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px', marginTop: 12 }}>
-                    <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Simple task spine</div>
+                    <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Simple task path</div>
                     <div style={{ fontSize: 14, color: INK, lineHeight: 1.4, fontWeight: 900 }}>{explanation.what}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginTop: 8 }}>
                       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
