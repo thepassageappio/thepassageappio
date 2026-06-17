@@ -1004,7 +1004,7 @@ function OutcomeCard({ id, outcome, estateId, expanded, showAssign, showProof, o
                 )}
                 <button onClick={onProofOpen || onMarkHandled}
                   style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: SAGE, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
-                  Mark done / proof
+                  Save proof / mark done
                 </button>
                 <button onClick={onNeedsHelp}
                   style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid ' + (ROSE + '35'), background: ROSE_FAINT, color: ROSE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
