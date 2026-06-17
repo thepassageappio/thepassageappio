@@ -2637,7 +2637,7 @@ function PostActivationReviewPanel({ estateId, estate, estateName, coordinatorNa
         <div style={{ background: upcomingServiceEvents.length ? SAGE_FAINT : AMBER_FAINT, border: '1px solid ' + (upcomingServiceEvents.length ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 14, padding: 13 }}>
           <div style={{ color: upcomingServiceEvents.length ? SAGE : AMBER, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Service broadcast readiness</div>
           <div style={{ color: INK, fontSize: 17, lineHeight: 1.2, fontWeight: 900, marginTop: 5 }}>
-            {upcomingServiceEvents.length ? 'Known dates are ready to share from the spine.' : 'Add funeral, wake, cemetery, or reception details when confirmed.'}
+            {upcomingServiceEvents.length ? 'Known dates are ready to share from the family record.' : 'Add funeral, wake, cemetery, or reception details when confirmed.'}
           </div>
           <div style={{ color: MID, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>
             Service updates should be sent once from Passage, then tracked with delivery, waiting, and proof instead of scattering across separate texts.
@@ -4304,7 +4304,7 @@ export default function EstatePage() {
                   prompt: 'Review is complete. Save this Passage-branded output as proof on the task, or change the status to Waiting / Needs help before saving.'
                 });
                 setPendingTaskDraftText(proofText);
-                setPendingTaskNote('Reviewed Passage output prepared from the family spine. Save as proof when ready.');
+                setPendingTaskNote('Reviewed Passage output prepared from the family record. Save as proof when ready.');
                 showToast((packet?.data?.title || 'Passage output') + ' prepared. Save it as proof to close the task.');
                 return;
               }
