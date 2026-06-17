@@ -2068,9 +2068,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               )}
               {item && (
                 <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 12px', marginTop: 10 }}>
-                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>How this task moves</div>
+                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Action path</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 6, marginTop: 8 }}>
-                    {['Owner', '1. Do', '2. Update', '3. Save proof', 'Done'].map(function(label, index) {
+                    {['Owner', 'Do next', 'Update', 'Save proof', 'Done'].map(function(label, index) {
                       var active = index === lifecycleStep;
                       var past = index < lifecycleStep;
                       return (
@@ -2081,7 +2081,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                     })}
                   </div>
                   <div style={{ color: MID, fontSize: 11.8, lineHeight: 1.45, marginTop: 7 }}>
-                    Every role sees the same simple path in a scoped way: see the owner, do the next step, update the waiting point, save proof, then mark done.
+                    The card always shows what Passage prepared, what you do next, who owns it, what is waiting, and what proof closes it.
                   </div>
                 </div>
               )}
@@ -2112,10 +2112,11 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               {item && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 8, marginTop: 10 }}>
                   {[
-                    ['1. Do', displayTaskNext(item)],
+                    ['Passage prepared', workspace?.output?.label || playbook.automationShortLabel || 'Next step'],
+                    ['You do next', displayTaskNext(item)],
                     ['Owner', owner],
-                    ['2. Update', familyWaitingPoint(taskState?.waitingOn || expectedUpdate)],
-                    ['3. Save proof', workspace?.proofDestination || proof],
+                    ['Waiting on', familyWaitingPoint(taskState?.waitingOn || expectedUpdate)],
+                    ['Proof saves', workspace?.proofDestination || proof],
                   ].map(function(row) {
                     return (
                       <div key={row[0]} style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 11, padding: '8px 9px' }}>
