@@ -2157,21 +2157,35 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
           </div>
 
           {item && (
-            <div className="passage-task-spine-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 8, marginTop: 12 }}>
+            <div className="passage-task-spine-actions" style={{ marginTop: 12 }}>
               {current.kind === 'outcome' ? (
                 <>
-                  <button onClick={function() { onOpenOutcome(item); }} style={miniBtn(SAGE, '#fff', SAGE)}>Open workspace</button>
-                  <button onClick={function() { onAssignOutcome(item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Assign owner</button>
-                  <button onClick={function() { onOutcomeProgress(item); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Mark waiting</button>
-                <button onClick={function() { onOutcomeHandled(item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Mark done / proof</button>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(150px, .7fr)', gap: 8 }}>
+                    <button onClick={function() { onOpenOutcome(item); }} style={miniBtn(SAGE, '#fff', SAGE)}>Open step</button>
+                    <button onClick={function() { onOutcomeProgress(item); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Mark waiting</button>
+                  </div>
+                  <details style={{ border: '1px solid ' + BORDER, background: SUBTLE, borderRadius: 11, padding: '8px 10px', marginTop: 8 }}>
+                    <summary style={{ cursor: 'pointer', color: MID, fontWeight: 900, fontSize: 12.2 }}>More actions</summary>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 9 }}>
+                      <button onClick={function() { onAssignOutcome(item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Assign owner</button>
+                      <button onClick={function() { onOutcomeHandled(item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Mark done / proof</button>
+                    </div>
+                  </details>
                 </>
               ) : (
                 <>
-                  <button onClick={function() { onTaskAction(item, 'handled'); }} style={miniBtn(SAGE, '#fff', SAGE)}>Mark done / proof</button>
-                  <button onClick={function() { onGeneratePacket(item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Generate output</button>
-                  <button onClick={function() { onTaskAction(item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Waiting</button>
-                  <button onClick={function() { onTaskAction(item, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
-                  <button onClick={function() { onTaskAction(item, 'assign'); }} style={miniBtn(CARD, MID, BORDER)}>Owner / message</button>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(150px, .7fr)', gap: 8 }}>
+                    <button onClick={function() { onTaskAction(item, 'handled'); }} style={miniBtn(SAGE, '#fff', SAGE)}>Mark done / proof</button>
+                    <button onClick={function() { onTaskAction(item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Waiting</button>
+                  </div>
+                  <details style={{ border: '1px solid ' + BORDER, background: SUBTLE, borderRadius: 11, padding: '8px 10px', marginTop: 8 }}>
+                    <summary style={{ cursor: 'pointer', color: MID, fontWeight: 900, fontSize: 12.2 }}>More actions</summary>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 9 }}>
+                      <button onClick={function() { onGeneratePacket(item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Generate output</button>
+                      <button onClick={function() { onTaskAction(item, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
+                      <button onClick={function() { onTaskAction(item, 'assign'); }} style={miniBtn(CARD, MID, BORDER)}>Owner / message</button>
+                    </div>
+                  </details>
                 </>
               )}
             </div>
