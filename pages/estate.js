@@ -2067,9 +2067,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                 </div>
               )}
               {item && (
-                <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 12px', marginTop: 10 }}>
-                  <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Action path</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 6, marginTop: 8 }}>
+                <details style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '9px 11px', marginTop: 10 }}>
+                  <summary style={{ cursor: 'pointer', color: SAGE, fontSize: 12.2, fontWeight: 900 }}>How this task moves</summary>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 6, marginTop: 9 }}>
                     {['Owner', 'Do next', 'Update', 'Save proof', 'Done'].map(function(label, index) {
                       var active = index === lifecycleStep;
                       var past = index < lifecycleStep;
@@ -2083,7 +2083,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                   <div style={{ color: MID, fontSize: 11.8, lineHeight: 1.45, marginTop: 7 }}>
                     The card always shows what Passage prepared, what you do next, who owns it, what is waiting, and what proof closes it.
                   </div>
-                </div>
+                </details>
               )}
               {(suggestedOutputs.length > 0 || suggestedTasks.length > 0) && (
                 <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 12px', marginTop: 10 }}>
