@@ -19,16 +19,12 @@ export const CHROME_COLORS = {
 };
 
 const PUBLIC_LINKS = [
-  ['Mission', '/mission'],
-  ['Our story', '/story'],
-  ['Resources', '/guides'],
-  ['Blog', '/blog'],
-  ['Pricing', '/pricing'],
-  ['Contact', '/contact'],
   ['Funeral homes', '/funeral-home'],
   ['Care providers', '/care-providers'],
-  ['Participants', '/participants'],
-  ['Vendors', '/vendors'],
+  ['Families', '/'],
+  ['Resources', '/guides'],
+  ['Pricing', '/pricing'],
+  ['Contact', '/contact'],
 ];
 
 const DEFAULT_SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
@@ -274,7 +270,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
             key={href}
             href={href}
             onClick={() => trackEvent(ownerConsoleActive ? 'system_admin_nav_clicked' : 'public_nav_clicked', { label, href })}
-            className={['Mission', 'Our story', 'Resources', 'Pricing', 'Contact', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''}
+            className={['Resources', 'Pricing', 'Contact'].includes(label) ? 'passage-nav-secondary' : ''}
             style={isActivePath(activePath, href) ? activeStyle : navLink}
           >
             {label}
