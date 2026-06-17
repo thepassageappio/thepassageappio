@@ -139,7 +139,7 @@ export default function PacketGeneratorModal({ estateId, taskId = '', packetType
         <div style={eyebrow}>Passage task output</div>
         <h2 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '4px 0 8px' }}>Review the packet before it becomes proof.</h2>
         <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.55, margin: '0 0 16px', maxWidth: 760 }}>
-          Passage builds this from the same family spine: dates, owners, waiting points, proof, and approval boundaries. Nothing sends from this window.
+          Passage builds this from the same family record: dates, owners, waiting points, proof, and approval boundaries. Nothing sends from this window.
         </p>
 
         {loading ? (
@@ -152,7 +152,7 @@ export default function PacketGeneratorModal({ estateId, taskId = '', packetType
               {[
                 ['Status', packet?.status || 'draft'],
                 ['Approval', 'Review first'],
-                ['Proof path', packet?.persistence === 'document_packet_saved' ? 'Saved packet + task spine' : 'Task spine'],
+                ['Proof path', packet?.persistence === 'document_packet_saved' ? 'Saved packet + task record' : 'Task record'],
               ].map(([label, value]) => (
                 <div key={label} style={metaBox}>
                   <div style={metaLabel}>{label}</div>
