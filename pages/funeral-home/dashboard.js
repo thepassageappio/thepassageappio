@@ -3166,7 +3166,7 @@ export default function FuneralHomeDashboard() {
                   ))}
                 </div>
                 <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 10 }}>
-                  Required fields create the family case. Date fields feed the orchestration spine so Passage can rank work around pronouncement, arrangement, service, burial, reception, and obituary timing.
+                  Required fields create the family case. Date fields feed the action plan so Passage can rank work around pronouncement, arrangement, service, burial, reception, and obituary timing.
                 </div>
                 {importDraft.preview && (
                   <div style={{ background: C.card, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 10, marginTop: 10 }}>
