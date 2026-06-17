@@ -389,7 +389,7 @@ const demoPartnerContext = {
         { id: 'demo-task-3', title: 'Send obituary approval request', description: 'Send the family a clean approval request with the current obituary draft.', status: 'blocked', assigned_to_name: 'Lena Ortiz', assigned_to_email: 'lena@hvfg.demo', created_at: '2026-05-08T10:00:00Z', proof_required: 'Family approval' },
         { id: 'demo-task-4', title: 'Record hospital release confirmation', description: 'Hospital release was confirmed and saved for transportation.', status: 'handled', assigned_to_name: 'Maria Ellis', assigned_to_email: 'maria@hvfg.demo', created_at: '2026-05-08T09:00:00Z', last_action_at: '2026-05-08T11:00:00Z' },
       ],
-      needs helpTasks: [{ id: 'demo-task-3' }],
+      blockedTasks: [{ id: 'demo-task-3' }],
       communications: [{ id: 'c1', status: 'sent' }, { id: 'c2', status: 'waiting' }],
       waitingOnFamily: [{ id: 'wf1', title: 'Cemetery plot details' }],
       vendorRequests: [{ id: 'vr1', task_title: 'Livestream support', status: 'accepted', requested_at: '2026-05-08T12:00:00Z', estimated_value: 650 }],
@@ -418,7 +418,7 @@ const demoPartnerContext = {
       tasks: [
         { id: 'demo-green-1', title: 'Collect pre-need preferences', status: 'assigned', assigned_to_name: 'Lena Ortiz', assigned_to_email: 'lena@hvfg.demo', created_at: '2026-05-07T09:00:00Z' },
       ],
-      needs helpTasks: [],
+      blockedTasks: [],
       communications: [],
       waitingOnFamily: [],
       vendorRequests: [],
@@ -1786,7 +1786,7 @@ export default function FuneralHomeDashboard() {
             proof_required: 'Prepared packet',
           },
         ],
-        needs helpTasks: [],
+        blockedTasks: [],
         communications: [],
         waitingOnFamily: [],
         vendorRequests: [],
@@ -1951,7 +1951,7 @@ export default function FuneralHomeDashboard() {
   const warmInbounds = data?.funeralHomeRequests || [];
   const openWarmInbounds = warmInbounds.filter(request => !['declined', 'archived', 'converted'].includes(String(request.status || '').toLowerCase()));
   const acceptedWarmInbounds = warmInbounds.filter(request => ['accepted', 'converted'].includes(String(request.status || '').toLowerCase()));
-  const totalNeeds help = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
+  const totalBlocked = cases.reduce((sum, item) => sum + (item.blockedTasks?.length || 0), 0);
   const totalWaiting = cases.reduce((sum, item) => sum + (item.tasks || []).filter(taskIsWaiting).length, 0);
   const totalHandled = cases.reduce((sum, item) => sum + (item.tasks || []).filter(taskIsClosed).length, 0);
   const totalCommunications = cases.reduce((sum, item) => sum + (item.communications?.length || 0), 0);
@@ -2018,7 +2018,7 @@ export default function FuneralHomeDashboard() {
     ['Active cases', cases.length],
     ['Tasks handled by Passage', totalHandled],
     ['Waiting for response', totalWaiting],
-    ['Needs help', totalNeeds help],
+    ['Needs help', totalBlocked],
     ['Estimated calls avoided', callsAvoided],
     ['Estimated hours saved', timeSavedLabel],
   ];
@@ -2183,10 +2183,10 @@ export default function FuneralHomeDashboard() {
     const rows = allPartnerTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
     const openRows = rows.filter(taskIsOpen);
     const waitingRows = openRows.filter(taskIsWaiting);
-    const needs helpRows = openRows.filter(taskNeedsHelp);
+    const blockedRows = openRows.filter(taskNeedsHelp);
     const handledRows = rows.filter(taskIsClosed);
     const nextTask = openRows.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null;
-    return { ...member, open: openRows.length, waiting: waitingRows.length, needs help: needs helpRows.length, handled: handledRows.length, nextTask };
+    return { ...member, open: openRows.length, waiting: waitingRows.length, blocked: blockedRows.length, handled: handledRows.length, nextTask };
   }).concat(unassignedStaffTasks.length ? [{
     email: '',
     label: 'Unassigned work',
@@ -2194,7 +2194,7 @@ export default function FuneralHomeDashboard() {
     scope: 'director_attention',
     open: unassignedStaffTasks.length,
     waiting: unassignedStaffTasks.filter(taskIsWaiting).length,
-    needs help: unassignedStaffTasks.filter(taskNeedsHelp).length,
+    blocked: unassignedStaffTasks.filter(taskNeedsHelp).length,
     handled: 0,
     nextTask: unassignedStaffTasks.sort((a, b) => (a.importance?.rank ?? 9) - (b.importance?.rank ?? 9) || partnerTaskPriorityFromStatus(a.status) - partnerTaskPriorityFromStatus(b.status))[0] || null,
   }] : []).sort((a, b) => (b.blocked - a.blocked) || (b.open - a.open) || (b.waiting - a.waiting));
@@ -2278,7 +2278,7 @@ export default function FuneralHomeDashboard() {
   const reportAcceptedParticipants = reportScopedParticipants.filter(participant => participant.accepted_at || /accepted|active/i.test(String(participant.invite_status || '')));
   const reportHandledTasks = reportScopedTasks.filter(taskIsClosed);
   const reportWaitingTasks = reportScopedTasks.filter(taskIsWaiting);
-  const reportNeeds helpTasks = reportScopedTasks.filter(taskNeedsHelp);
+  const reportBlockedTasks = reportScopedTasks.filter(taskNeedsHelp);
   const reportAssignments = reportScopedTasks.filter(task => task.assigned_to_email || task.assigned_to_name || task.owner_name || task.participant_id);
   const reportCallsAvoided = reportScopedMessages.length + reportAssignments.length + reportScopedVendorRequests.length;
   const reportVendorQuoteReady = reportScopedVendorRequests.filter(request => String(request.status || '').toLowerCase() === 'accepted').length;
@@ -2314,7 +2314,7 @@ export default function FuneralHomeDashboard() {
     const tasks = reportScopedTasks.filter(task => task.locationName === location);
     const handled = tasks.filter(taskIsClosed).length;
     const waiting = tasks.filter(taskIsWaiting).length;
-    const needs help = tasks.filter(taskNeedsHelp).length;
+    const blocked = tasks.filter(taskNeedsHelp).length;
     const messages = reportScopedMessages.filter(message => message.locationName === location).length;
     const value = rows.reduce((sum, item) => sum + caseValueNumber(item), 0);
     return [location, rows.length, moneyDisplay(value), rows.length ? moneyDisplay(value / rows.length) : '$0', tasks.length, handled, waiting + needs help, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
@@ -2342,7 +2342,7 @@ export default function FuneralHomeDashboard() {
   }
   const reportTaskSummaryRows = Array.from(reportScopedTasks.reduce((map, task) => {
     const title = sharedTaskTitle(task);
-    const row = map.get(title) || { title, total: 0, handled: 0, waiting: 0, needs help: 0 };
+    const row = map.get(title) || { title, total: 0, handled: 0, waiting: 0, blocked: 0 };
     row.total += 1;
     if (taskIsClosed(task)) row.handled += 1;
     if (taskIsWaiting(task)) row.waiting += 1;
@@ -2449,9 +2449,9 @@ export default function FuneralHomeDashboard() {
       },
       {
         label: 'Needs help',
-        value: totalNeeds help || riskItems.length,
-        tone: totalNeeds help || riskItems.length ? 'risk' : 'good',
-        body: totalNeeds help || riskItems.length ? 'Clear these stuck points before the director promises an update.' : 'No case work needs help in the front queue.',
+        value: totalBlocked || riskItems.length,
+        tone: totalBlocked || riskItems.length ? 'risk' : 'good',
+        body: totalBlocked || riskItems.length ? 'Clear these stuck points before the director promises an update.' : 'No case work needs help in the front queue.',
       },
       {
         label: 'Proof gaps',
@@ -2855,10 +2855,10 @@ export default function FuneralHomeDashboard() {
               {[
                 {
                   label: 'My Day',
-                  value: totalNeeds help ? `${totalNeeds help} needs help` : totalWaiting ? `${totalWaiting} waiting` : `${cases.length} active case${cases.length === 1 ? '' : 's'}`,
+                  value: totalBlocked ? `${totalBlocked} needs help` : totalWaiting ? `${totalWaiting} waiting` : `${cases.length} active case${cases.length === 1 ? '' : 's'}`,
                   detail: nextDirectorStep?.next || 'Cases and next moves',
-                  tone: totalNeeds help ? C.rose : totalWaiting ? C.amber : C.sage,
-                  bg: totalNeeds help ? C.roseFaint : totalWaiting ? C.amberFaint : C.sageFaint,
+                  tone: totalBlocked ? C.rose : totalWaiting ? C.amber : C.sage,
+                  bg: totalBlocked ? C.roseFaint : totalWaiting ? C.amberFaint : C.sageFaint,
                   action: () => setActivePartnerView('work'),
                 },
                 {
@@ -3950,9 +3950,9 @@ export default function FuneralHomeDashboard() {
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
                   {staffQueuePreview.map(task => {
-                    const needs help = taskNeedsHelp(task);
+                    const blocked = taskNeedsHelp(task);
                     const waiting = taskIsWaiting(task);
-                    const tone = needs help ? C.rose : waiting ? C.amber : C.sage;
+                    const tone = blocked ? C.rose : waiting ? C.amber : C.sage;
                     const guidance = taskGuidanceFor(task, { owner: task.assigned_to_name || task.assigned_to_email || 'staff', surface: 'staff work queue' });
                     const proofDestination = taskProofDestination(task, { surface: 'staff work queue' });
                     const preparedOutput = taskOutputFor(task, { caseName: task.caseName, surface: 'staff work queue' });
@@ -3965,7 +3965,7 @@ export default function FuneralHomeDashboard() {
                         <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3, lineHeight: 1.25 }}>{sharedTaskTitle(task)}</div>
                         <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{rightPerson}</strong> - {statusLabel(task.status)}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 9 }}>
-                          <div style={{ background: needs help ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
+                          <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
                             <strong style={{ color: C.ink }}>1. Do:</strong> {guidance.nextStep || taskExpectedUpdate(task, 'funeral_home')}
                           </div>
                           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
@@ -4087,7 +4087,7 @@ export default function FuneralHomeDashboard() {
                 ['Cost / resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0'],
                 ['Avg tasks / estate', reports.avgTasksPerEstate ?? reportAvgTasksPerEstate],
                 ['Tasks / day', reportTasksPerDay],
-                ['Waiting + needs help', reportWaitingTasks.length + reportNeeds helpTasks.length],
+                ['Waiting + needs help', reportWaitingTasks.length + reportBlockedTasks.length],
               ].map(([label, value]) => (
                 <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
                   <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
@@ -4551,7 +4551,7 @@ export default function FuneralHomeDashboard() {
               const open = item.tasks.length - handledCount;
               const openCaseTasks = openTasksForCase(item);
               const unassignedCaseTasks = unassignedTasksForCase(item);
-              const needs help = item.tasks.filter(taskNeedsHelp).length;
+              const blocked = item.tasks.filter(taskNeedsHelp).length;
               const partnerTasks = item.partnerTasks || [];
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
@@ -4624,7 +4624,7 @@ export default function FuneralHomeDashboard() {
               const caseOperatingContract = [
                 ['Ask', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action ready', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
                 ['Owner', nextOwner, nextOwner === 'Unassigned' ? 'Assign an owner before this can reliably move.' : 'This person owns the next visible move.', nextOwner === 'Unassigned' ? C.amber : C.sage],
-                ['Waiting', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting points create repeated family calls when they are not owned.', needs help ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
+                ['Waiting', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting points create repeated family calls when they are not owned.', blocked ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
                 ['Proof', proofLabel, caseProofGapCount ? 'Close the proof gap before using this as a family status record.' : 'Proof stays attached to the case record.', caseProofGapCount ? C.amber : C.sage],
                 ['Family update', familyUpdateLabel, 'Use this line to answer the next where-are-we call.', C.mid],
               ];
@@ -4679,10 +4679,10 @@ export default function FuneralHomeDashboard() {
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'stretch', marginTop: 12 }}>
-                    <div style={{ background: needs help ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
+                    <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
                         <div>
-                          <div style={{ fontSize: 10.5, color: needs help ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Recommended next action</div>
+                          <div style={{ fontSize: 10.5, color: blocked ? C.rose : C.sage, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Recommended next action</div>
                           <div style={{ fontSize: 18, lineHeight: 1.2, color: C.ink, fontWeight: 900 }}>{nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action is open'}</div>
                         </div>
                         {nextImportance && <span style={{ background: nextImportanceTone.bg, border: `1px solid ${nextImportanceTone.border}`, color: nextImportanceTone.color, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextImportance.label}</span>}
@@ -4738,7 +4738,7 @@ export default function FuneralHomeDashboard() {
                     {false && <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13 }}>
                       <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 8 }}>Family-facing status</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 84px), 1fr))', gap: 7 }}>
-                        {[['Done', handledCount, C.sage], ['Waiting', waitingCount + needs help, waitingCount + needs help ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
+                        {[['Done', handledCount, C.sage], ['Waiting', waitingCount + needs help, waitingCount + blocked ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
                           <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
                             <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                             <div style={{ color, fontSize: 18, fontWeight: 900, marginTop: 2 }}>{value}</div>
