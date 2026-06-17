@@ -38,7 +38,7 @@ const toolSections = [
     summary: 'Persona-by-persona validation for the workflows that must feel flawless before betas expand.',
     tools: [
       ['Funeral-home QA', '/system/admin/funeral-home-qa', 'Director, employee, family, participant, vendor, and admin UAT script.'],
-      ['Demo studio', '/system/demo', 'Owner-only demo flow using sample data.'],
+      ['Demo guide', '/system/admin?tool=demo-studio#demo-studio', 'Owner-only demo guide lives inside this cabinet; sample-data links open from here only.'],
       ['Director sandbox', '/funeral-home/dashboard?demo=1&persona=fh-director&source=system-admin-sandbox', 'Director view: My Day, cases, staff, reports, setup, exports.'],
       ['Staff sandbox', '/funeral-home/dashboard?demo=1&persona=fh-employee&role=staff&source=system-admin-sandbox', 'Employee view: assigned work, waiting point, proof action, drafted updates.'],
       ['Participant sandbox', '/participating?demo=1&persona=participant&source=system-admin-sandbox', 'Scoped helper request without full estate access.'],
@@ -46,10 +46,10 @@ const toolSections = [
     ],
   },
   {
-    title: 'Automation spine and trust controls',
+    title: 'Automation layer and trust controls',
     summary: 'Readiness gates for tasks, notifications, refresh/rate limits, abuse controls, compliance posture, and mobile scope.',
     tools: [
-      ['Automation spine', '/system/admin/automation-spine-readiness', 'Assignment, waiting hygiene, blockers, stale work, proof gaps, delivery telemetry, reminders.'],
+      ['Automation readiness', '/system/admin/automation-spine-readiness', 'Assignment, waiting hygiene, stuck work, proof gaps, delivery telemetry, reminders.'],
       ['Refresh and rate limits', '/system/admin/rate-limit-readiness', 'Launch decision and abuse/refresh controls for high-risk routes.'],
       ['Abuse controls', '/system/admin/abuse-controls', 'Owner-only review of abuse prevention and safety posture.'],
       ['Trust page', '/trust', 'Public trust claims that must stay aligned with backend proof.'],
@@ -74,7 +74,7 @@ const launchRules = [
   'Do not add new top-level internal tabs. Add internal tools to this cabinet or retire the old surface.',
   'Public and persona pages cannot expose ARR, sprint, roadmap, QA, founder/internal, or pilot-conversion language.',
   'Funeral-home views should explain what to do next: owner, waiting point, proof, drafted message, and outcome.',
-  'Run public surface, spine, payment/CRM, compliance, and rate-limit checks before demos or beta expansion.',
+  'Run public surface, workflow, payment/CRM, compliance, and rate-limit checks before demos or beta expansion.',
 ];
 
 function normalizeEmail(email) {
@@ -278,7 +278,7 @@ export default function SystemAdminPage() {
       <section style={wrap}>
         <div style={eyebrow}>Passage System Admin</div>
         <h1 style={h1}>Owner tool cabinet.</h1>
-        <p style={lead}>One internal surface for roadmap, QA, pilot health, automation spine, abuse controls, refresh limits, metrics, and setup actions. Public and persona-facing pages should never carry this operating language.</p>
+        <p style={lead}>One internal surface for roadmap, QA, pilot health, automation readiness, abuse controls, refresh limits, metrics, and setup actions. Public and persona-facing pages should never carry this operating language.</p>
 
         <Panel tone="sage">
           <div style={eyebrow}>Launch rules</div>
@@ -296,7 +296,7 @@ export default function SystemAdminPage() {
           <h2 style={h2}>Run proof before demos, pilots, and public pushes.</h2>
           <div style={checkGrid}>
             <CheckButton label="Public surface" running={runningKey === 'public'} disabled={Boolean(runningKey) || checkCooldownSeconds('public') > 0} cooldown={checkCooldownSeconds('public')} onClick={() => runCheck('public', 'Public surface', '/api/system/publicSurfaceReadiness')} />
-            <CheckButton label="Spine smoke" running={runningKey === 'spine'} disabled={Boolean(runningKey) || checkCooldownSeconds('spine') > 0} cooldown={checkCooldownSeconds('spine')} onClick={() => runCheck('spine', 'Spine smoke', '/api/system/orchestrationSmokeTest', { method: 'POST', body: { recipientEmail: user?.email || 'steventurrisi@gmail.com', keepRecords: false } })} />
+            <CheckButton label="Workflow smoke" running={runningKey === 'spine'} disabled={Boolean(runningKey) || checkCooldownSeconds('spine') > 0} cooldown={checkCooldownSeconds('spine')} onClick={() => runCheck('spine', 'Spine smoke', '/api/system/orchestrationSmokeTest', { method: 'POST', body: { recipientEmail: user?.email || 'steventurrisi@gmail.com', keepRecords: false } })} />
             <CheckButton label="Payment + CRM" running={runningKey === 'payment'} disabled={Boolean(runningKey) || checkCooldownSeconds('payment') > 0} cooldown={checkCooldownSeconds('payment')} onClick={() => runCheck('payment', 'Payment + CRM', '/api/system/paymentCrmReadiness')} />
             <CheckButton label="CRM routing" running={runningKey === 'crm'} disabled={Boolean(runningKey) || checkCooldownSeconds('crm') > 0} cooldown={checkCooldownSeconds('crm')} onClick={() => runCheck('crm', 'CRM routing', '/api/system/crmRoutingReadiness')} />
             <CheckButton label="Compliance" running={runningKey === 'compliance'} disabled={Boolean(runningKey) || checkCooldownSeconds('compliance') > 0} cooldown={checkCooldownSeconds('compliance')} onClick={() => runCheck('compliance', 'Compliance', '/api/system/complianceReadiness')} />
@@ -345,7 +345,7 @@ function Panel({ children, tone = 'default' }) {
 
 function ToolSection({ section, open }) {
   return (
-    <details open={open} style={accordionPanel}>
+    <details id={section.title === 'Funeral-home QA and persona UAT' ? 'demo-studio' : undefined} open={open} style={accordionPanel}>
       <summary style={accordionSummary}>
         <span>{section.title}</span>
         <span style={countPill}>{section.tools.length} tools</span>
