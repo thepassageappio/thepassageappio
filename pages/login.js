@@ -86,7 +86,7 @@ const portalCards = [
   {
     eyebrow: 'Passage admin',
     title: 'System admin and demo sandbox',
-    body: 'For internal QA, sandbox walkthroughs, vendor review, metrics, and operational controls.',
+    body: 'For account access, sandbox walkthroughs, vendor review, metrics, and operational controls.',
     href: '/system/admin',
     action: 'Admin sign in',
     adminOnly: true,
