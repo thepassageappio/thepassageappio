@@ -2317,7 +2317,7 @@ export default function FuneralHomeDashboard() {
     const blocked = tasks.filter(taskNeedsHelp).length;
     const messages = reportScopedMessages.filter(message => message.locationName === location).length;
     const value = rows.reduce((sum, item) => sum + caseValueNumber(item), 0);
-    return [location, rows.length, moneyDisplay(value), rows.length ? moneyDisplay(value / rows.length) : '$0', tasks.length, handled, waiting + needs help, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
+    return [location, rows.length, moneyDisplay(value), rows.length ? moneyDisplay(value / rows.length) : '$0', tasks.length, handled, waiting + blocked, messages + tasks.filter(task => task.assigned_to_email || task.assigned_to_name).length];
   }).filter(row => row[1] || row[2]);
   const reportEmployeeRows = (reportStaff === 'all' ? staffRoster : staffRoster.filter(member => member.email === reportStaff)).map(member => {
     const tasks = reportScopedTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
@@ -4603,7 +4603,7 @@ export default function FuneralHomeDashboard() {
                 ? item.orchestration_summary.missing_timeline_watch.filter(Boolean).slice(0, 2)
                 : [];
               const caseProofGapCount = item.tasks.filter(task => taskIsClosed(task) && !String(task.notes || task.waiting_on || task.last_actor || '').trim()).length;
-              const waitingLabel = needs help
+              const waitingLabel = blocked
                 ? `${blocked} item${blocked === 1 ? '' : 's'} need help`
                 : waitingFamily.length
                   ? `${waitingFamily.length} family item${waitingFamily.length === 1 ? '' : 's'} waiting`
@@ -4738,7 +4738,7 @@ export default function FuneralHomeDashboard() {
                     {false && <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 15, padding: 13 }}>
                       <div style={{ fontSize: 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 8 }}>Family-facing status</div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 84px), 1fr))', gap: 7 }}>
-                        {[['Done', handledCount, C.sage], ['Waiting', waitingCount + needs help, waitingCount + blocked ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
+                        {[['Done', handledCount, C.sage], ['Waiting', waitingCount + blocked, waitingCount + blocked ? C.amber : C.sage], ['Open', open, open ? C.ink : C.sage]].map(([label, value, color]) => (
                           <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
                             <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                             <div style={{ color, fontSize: 18, fontWeight: 900, marginTop: 2 }}>{value}</div>
@@ -5108,7 +5108,7 @@ export default function FuneralHomeDashboard() {
                       {[
                         ['Done', handledCount],
                         ['In progress', progressCount],
-                        ['Waiting', waitingCount + needs help],
+                        ['Waiting', waitingCount + blocked],
                       ].map(([label, value]) => (
                         <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 10px' }}>
                           <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
