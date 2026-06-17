@@ -4891,8 +4891,14 @@ export default function FuneralHomeDashboard() {
                       ['Proof', output.label, C.sage],
                       ['Report', 'Exports with case record', C.mid],
                     ];
+                    const actionContractRows = [
+                      ['Passage prepared', output.label || 'Prepared task packet'],
+                      ['You do next', nextPartnerTask ? sharedTaskNext(nextPartnerTask) : 'No staff action is open'],
+                      ['Waiting on', nextPartnerTask?.waiting_on || nextPartnerTask?.playbook?.waitingOn || (nextOwner === 'Unassigned' ? 'An owner' : 'Next response')],
+                      ['Proof saves', proofDestination || output.label || 'Case record'],
+                    ];
                     return (
-                      <div id={'partner-action-workspace-' + item.id} data-demo-anchor="demo-task-spine" style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
+                      <div id={'partner-action-workspace-' + item.id} data-demo-anchor="demo-task-action" style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 12, alignItems: 'stretch' }}>
                           <div>
                             <div style={{ color: taskClosed ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{taskClosed ? 'Closed with proof' : 'Next action'}</div>
@@ -4929,7 +4935,14 @@ export default function FuneralHomeDashboard() {
                             </div>
                           </div>
                         </div>
-                        {taskClosed ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 12 }}>
+                          {actionContractRows.map(([label, body]) => (
+                            <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px', minHeight: 70 }}>
+                              <div style={{ color: C.sage, fontSize: 10.4, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                              <div style={{ color: C.ink, fontSize: 11.8, lineHeight: 1.35, marginTop: 5, fontWeight: 800 }}>{body}</div>
+                            </div>
+                          ))}
+                        </div>                        {taskClosed ? (
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '11px 12px', color: C.sage, fontSize: 13, fontWeight: 900, marginTop: 12 }}>
                             Done. Proof is saved below; no new family request or waiting state is needed for this task.
                           </div>
