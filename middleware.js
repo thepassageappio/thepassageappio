@@ -72,6 +72,13 @@ export function middleware(request) {
     return NextResponse.redirect(url, 302);
   }
 
+  if (pathname === '/system/demo') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/system/admin';
+    url.searchParams.set('tool', 'demo-studio');
+    return NextResponse.redirect(url, 302);
+  }
+
   if (shouldThrottleVendorCommerce(request)) {
     const limit = checkVendorCommerceLimit(request);
     if (!limit.allowed) return vendorCommerceRateLimitResponse(limit);
