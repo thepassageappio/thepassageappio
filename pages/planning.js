@@ -193,7 +193,7 @@ export default function PlanningPage() {
             {[
               ['Two trusted confirmations', 'A planning record cannot quietly become urgent from one person alone.'],
               ['Nothing sends automatically', 'Contacts are saved so the family knows who can confirm, review, and help.'],
-              ['One calm family record', 'The planning record becomes the same task spine families use when support is actually needed.'],
+              ['One calm family record', 'The planning record becomes the same action plan families use when support is actually needed.'],
             ].map(([title, body]) => (
               <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 15, padding: '13px 14px' }}>
                 <div style={{ fontWeight: 900, fontSize: 15 }}>{title}</div>
