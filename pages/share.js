@@ -485,7 +485,7 @@ export default function SharePage() {
 
             {events.length === 0 && (
               <div style={{ background: GOLD_FAINT, border: "1px solid " + GOLD + "40", borderRadius: 11, padding: "11px 14px", fontSize: 12, color: GOLD, marginBottom: 16, lineHeight: 1.55 }}>
-                Add service details (date, time, location) from the estate task spine and they will appear in this one-pager automatically.
+                Add service details (date, time, location) from the estate record and they will appear in this one-pager automatically.
               </div>
             )}
 
