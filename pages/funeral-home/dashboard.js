@@ -3009,9 +3009,9 @@ export default function FuneralHomeDashboard() {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>First-day pilot launch</div>
-                <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.16, marginTop: 4 }}>Set up the operating spine, then load cases one of two ways.</div>
-                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>After setup, every estate task reuses the same locations, saved employees, roles, family contacts, and preferred local support. Nobody should retype the same owner list case by case.</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>First-day setup</div>
+                <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.16, marginTop: 4 }}>Set up the workspace, then load cases one of two ways.</div>
+                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>After setup, every case task reuses the same locations, saved employees, roles, family contacts, and preferred local support. Nobody should retype the same owner list case by case.</div>
               </div>
               <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, maxWidth: 250 }}>Pilot-safe: imports preview first, invite messages are copied only, and no email or SMS is sent automatically.</div>
             </div>
@@ -3196,8 +3196,8 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
               {[
                 ['Import accepts', 'Passage template plus common case-system names such as decedent, family contact, case number, service date, funeral date, burial date, and obituary deadline.'],
-                ['Export includes', 'Case summary CSV for existing systems plus full-spine CSV for tasks, owners, messages, vendor requests, proof requirements, and payment/reporting fields where present.'],
-                ['Pilot posture', "CSV bridge now. Direct adapters should be mapped after we see each home's actual Passare, Gather, SRS, Tribute, or local export shape."],
+                ['Export includes', 'Case summary CSV for existing systems plus full record CSV for tasks, owners, messages, vendor requests, proof requirements, and payment/reporting fields where present.'],
+                ['Rollout posture', "CSV bridge now. Direct adapters should be mapped after we see each home's actual Passare, Gather, SRS, Tribute, or local export shape."],
               ].map(([title, body]) => (
                 <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 11px' }}>
                   <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
