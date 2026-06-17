@@ -22,7 +22,7 @@ const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 const headlineMetrics = [
   ['ARR target', '$300k', 'Owner-only target. Never show this on external pages.'],
-  ['Primary buyer', 'Funeral homes', 'B2B operating spine first; B2C becomes easier once the partner workflow is solid.'],
+  ['Primary buyer', 'Funeral homes', 'B2B operating workflow first; B2C becomes easier once the partner workflow is solid.'],
   ['Revenue wedge', '72-100 accounts', 'Local and group accounts, with services/vendor revenue as upside.'],
   ['North star', 'Proof-ready cases', 'Every account has locations, staff, cases, owners, waiting points, proof, exports, billing, and next action.'],
 ];
@@ -41,19 +41,19 @@ const governanceRules = [
     body: 'Public and persona-facing pages must not say ARR, 300k, sprint, founder narration, pilot conversion, QA checklist, internal note, or roadmap.',
   },
   {
-    title: 'Every workflow needs a spine contract',
-    body: 'Before a flow is enterprise-ready it must show the same simple spine: what Passage is doing, what the human should do, who to ask, what proof saves, and what stays private.',
+    title: 'Every workflow needs an action contract',
+    body: 'Before a flow is enterprise-ready it must show the same simple contract: what Passage is doing, what the human should do, who to ask, what proof saves, and what stays private.',
   },
 ];
 
 const takeaways = [
   ['Public funeral-home page', 'Reworked', 'Removed ARR/pilot-proof sales math from the funeral-home page and reframed it around calmer family/staff coordination.'],
-  ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; system routes now render a System Admin boundary.'],
+  ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; public navigation is now audience-led and system routes render a System Admin boundary.'],
   ['Public surface scan', 'Green', 'Main public routes scan clean for owner revenue goals, roadmap language, sprint labels, QA language, and admin leakage.'],
-  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; no standalone roadmap/QA/admin top-level tabs should exist.'],
+  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; the standalone demo route redirects back into System Admin and no standalone roadmap/QA/admin top-level tabs should exist.'],
   ['Funeral-home product UX', 'Source simplified / deploy verification pending', 'Director/staff dashboard language now uses Case at a glance, Recommended next action, what Passage saves, needs-help wording, family-visible proof, and plain earlier-step explanations; authenticated UAT must verify My Day and task cards once deployment quota clears.'],
-  ['Family and participant task UX', 'Source simplified / deploy verification pending', 'B2C task panels and participant requests now use next-action, what Passage prepares, where proof saves, needs-help, and one-request language instead of spine/blocker/workspace jargon.'],
-  ['Automation spine', 'Source updated / deploy verification pending', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
+  ['Family and participant task UX', 'Source simplified / deploy verification pending', 'B2C task panels and participant requests now use next-action, what Passage prepares, where proof saves, needs-help, and one-request language instead of workflow/blocker/workspace jargon.'],
+  ['Automation layer', 'Source updated / deploy verification pending', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
   ['Abuse and refresh controls', 'Source green / deploy verification pending', 'Outbound sends, reminders, partner invites, staff invites, prep emails, Google lookups, voice calls, family-update fanout, funeral-home requests, and admin readiness refreshes now have source-level cooldowns, QA-safe email routing, and readiness evidence.'],
 ];
 
@@ -78,7 +78,7 @@ const sprints = [
     goal: 'Make funeral-home director and staff workflows obvious, calm, and operationally useful.',
     tasks: [
       'Director dashboard becomes My Day, cases needing action, staff load, family updates, exports, billing, and proof.',
-      'Staff view shows assigned work first as a simple spine: 1. Do, 2. Ask, 3. Save proof; deeper automation detail stays collapsed until needed.',
+      'Staff view shows assigned work first as a simple pattern: 1. Do, 2. Ask, 3. Save proof; deeper automation detail stays collapsed until needed.',
       'Remove demo/sales language from logged-in funeral-home operations.',
       'Use staff-facing terms like needs help, stuck point, family can see, earlier step, and where proof saves instead of blocker, dependency, orchestration, or audit-layer wording.',
       'Add recommended next action based on pre-death, day since death, service window, aftercare, needs-help state, stale waiting, and missing proof.',
@@ -87,7 +87,7 @@ const sprints = [
     acceptance: 'A funeral director or employee can open one case, know exactly what Passage prepared, what they must do, who is waiting, what the family can see, and where proof saves.',
   },
   {
-    name: 'Sprint 3: Automation spine hardening',
+    name: 'Sprint 3: Automation layer hardening',
     status: 'Source hardening active / deploy verification pending',
     owner: 'Engineering + QA',
     goal: 'Make Passage proactive instead of a passive task list.',
@@ -120,11 +120,11 @@ const sprints = [
     goal: 'Make pilots measurable, convertible, and expandable toward $300k ARR.',
     tasks: [
       'HubSpot stages map to demo booked, pilot invited, pilot active, value proven, paid conversion, expansion, and churn risk.',
-      'Pilot health tracks launch grade, cases, staff, locations, proof, exports, usage, blocker, next action, and ARR potential.',
+      'Pilot health tracks launch grade, cases, staff, locations, proof, exports, usage, risk, next action, and ARR potential.',
       'Stripe plan assignment and billing state are visible before a conversion ask.',
       'Destructive/reset tools are disabled or two-party gated once real records exist.',
     ],
-    acceptance: 'Admin can name every account, stage, proof, blocker, next action, billing state, and conversion ask.',
+    acceptance: 'Admin can name every account, stage, proof, risk, next action, billing state, and conversion ask.',
   },
 ];
 
@@ -204,12 +204,12 @@ export default function SaasRoadmapPage() {
           <div>
             <div style={eyebrow}>System Admin / SaaS Roadmap</div>
             <h1 style={h1}>Build the funeral-home operating system first.</h1>
-            <p style={lead}>The target is a $300k ARR Passage business with B2B funeral homes as the wedge and B2C made simple by a strong partner operating spine.</p>
+            <p style={lead}>The target is a $300k ARR Passage business with B2B funeral homes as the wedge and B2C made simple by a strong partner operating workflow.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Link href="/system/admin" style={secondaryLink}>System Admin</Link>
             <Link href="/system/admin/pilot-health" style={secondaryLink}>Pilot Health</Link>
-            <Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Spine</Link>
+            <Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Readiness</Link>
             <Link href="/system/admin/rate-limit-readiness" style={secondaryLink}>Refresh Controls</Link>
           </div>
         </div>
