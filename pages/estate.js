@@ -629,7 +629,7 @@ function familyWaitingPoint(value) {
 }
 function familyExecutionTierLabel(value) {
   var text = textValue(value, 'Assisted execution');
-  if (text === 'Fully automated') return 'Passage-prepared';
+  if (text === 'Fully automated') return 'Passage prepared';
   if (text === 'Assisted execution') return 'Guided with Passage';
   if (text === 'Guided manual') return 'Manual step';
   return text;
@@ -1897,7 +1897,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
   var proofCount = coordinationSpine?.proof?.length || 0;
   var notificationCount = coordinationSpine?.notifications?.length || 0;
   var expectedUpdate = item
-    ? (recent.find(function(row) { return row.taskId && String(row.taskId) === String(item.id) && row.expectedUpdate; })?.expectedUpdate || (missingOwner ? 'Assign an owner so Passage knows who should respond next.' : waitingCount ? 'Next update appears here when the owner, family, or recipient responds.' : 'Save proof when this is handled so everyone sees the same truth.'))
+    ? (recent.find(function(row) { return row.taskId && String(row.taskId) === String(item.id) && row.expectedUpdate; })?.expectedUpdate || (missingOwner ? 'Assign an owner so Passage knows who should respond next.' : waitingCount ? 'Next update appears here when the owner, family, or recipient responds.' : 'Save proof when this is handled so everyone sees the same record.'))
     : 'No one needs to do anything right now.';
   var importance = item ? taskImportance(item, orchestrationContext) : null;
   var taskState = item?.orchestration?.stateMachine || null;
@@ -1945,7 +1945,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 18 }}>
         <div>
           <div style={{ fontSize: 10.5, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Estate action plan</div>
-          <div style={{ fontSize: 26, color: INK, lineHeight: 1.08, fontWeight: 900 }}>One next move. One shared truth.</div>
+          <div style={{ fontSize: 26, color: INK, lineHeight: 1.08, fontWeight: 900 }}>One next move. One shared record.</div>
           <div style={{ color: MID, fontSize: 13.2, lineHeight: 1.5, marginTop: 6, maxWidth: 620 }}>Owner, request, waiting point, proof, and family-visible status stay together.</div>
         </div>
         <div style={{ minWidth: 170, background: overallStatusBg, border: '1px solid ' + (blockedCount ? ROSE + '35' : waitingCount ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 14, padding: '10px 12px', textAlign: 'right' }}>
@@ -2168,14 +2168,14 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                     <summary style={{ cursor: 'pointer', color: MID, fontWeight: 900, fontSize: 12.2 }}>More actions</summary>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))', gap: 8, marginTop: 9 }}>
                       <button onClick={function() { onAssignOutcome(item); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Assign owner</button>
-                      <button onClick={function() { onOutcomeHandled(item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Mark done / proof</button>
+                      <button onClick={function() { onOutcomeHandled(item); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Save proof / mark done</button>
                     </div>
                   </details>
                 </>
               ) : (
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(150px, .7fr)', gap: 8 }}>
-                    <button onClick={function() { onTaskAction(item, 'handled'); }} style={miniBtn(SAGE, '#fff', SAGE)}>Mark done / proof</button>
+                    <button onClick={function() { onTaskAction(item, 'handled'); }} style={miniBtn(SAGE, '#fff', SAGE)}>Save proof / mark done</button>
                     <button onClick={function() { onTaskAction(item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Waiting</button>
                   </div>
                   <details style={{ border: '1px solid ' + BORDER, background: SUBTLE, borderRadius: 11, padding: '8px 10px', marginTop: 8 }}>
