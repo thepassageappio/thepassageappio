@@ -91,7 +91,7 @@ export default function PacketDemo() {
         const nextPackets = Array.isArray(json.packets) && json.packets.length ? json.packets : demoPackets;
         setPackets(nextPackets);
         setActiveId(nextPackets[0]?.id || '');
-        setSourceLabel(json.source === 'case' ? 'Generated from case spine' : 'Demo packet set');
+        setSourceLabel(json.source === 'case' ? 'Generated from case record' : 'Demo packet set');
       } catch (err) {
         if (!cancelled) {
           setPackets(demoPackets);
