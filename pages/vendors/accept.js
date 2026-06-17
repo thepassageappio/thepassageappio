@@ -94,7 +94,7 @@ export default function VendorAcceptPage() {
               {[
                 ['Quote request', 'Respond with price, availability, or a clarification request.'],
                 ['Accepted work', 'Mark scheduled or complete when the family or funeral home approves.'],
-                ['Proof trail', 'Viewed, quoted, accepted, and completed status returns to the case spine.'],
+                ['Proof trail', 'Viewed, quoted, accepted, and completed status returns to the case record.'],
               ].map(([title, body]) => (
                 <div key={title} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13 }}>
                   <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{title}</div>
