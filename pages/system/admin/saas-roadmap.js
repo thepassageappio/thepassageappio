@@ -50,6 +50,7 @@ const takeaways = [
   ['Public funeral-home page', 'Reworked', 'Removed ARR/pilot-proof sales math from the funeral-home page and reframed it around calmer family/staff coordination.'],
   ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; public navigation is now audience-led and system routes render a System Admin boundary.'],
   ['Public surface scan', 'Green', 'Main public routes scan clean for owner revenue goals, roadmap language, sprint labels, QA language, and admin leakage.'],
+  ['Live public UAT sweep', 'In progress', 'Browser sweep found no console errors on public routes, confirmed the estate demo action-contract language, and flagged the sample funeral-home workspace as the next clarity fix while Vercel deployment quota is paused.'],
   ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; the standalone demo route redirects back into System Admin and no standalone roadmap/QA/admin top-level tabs should exist.'],
   ['Funeral-home product UX', 'Source simplified / deploy verification pending', 'Director/staff dashboard now uses Case at a glance, Recommended next action, action-contract cards, one primary action, one waiting action, collapsed More actions, what Passage prepared, what staff does next, waiting point, proof saves, needs-help wording, and family-visible proof; authenticated UAT must verify My Day and task cards once deployment quota clears.'],
   ['Family and participant task UX', 'Source simplified / deploy verification pending', 'B2C task panels and participant requests now use Estate action plan, action-contract cards, one primary action, one waiting action, collapsed More actions, collapsed movement explainer, what Passage prepared, what the family does next, where proof saves, needs-help, and one-request language instead of workflow/blocker/workspace jargon.'],
@@ -101,13 +102,13 @@ const sprints = [
   },
   {
     name: 'Sprint 4: Persona UAT pass',
-    status: 'Queued after primary deployment recovers',
+    status: 'Active UAT while deployment quota clears',
     owner: 'QA persona lead',
     goal: 'Walk every role end to end on desktop and mobile.',
     tasks: [
       'Family coordinator: urgent setup, one recommended next action, what Passage prepares, where proof saves, approvals, family updates, and aftercare.',
       'Participant/helper: one scoped request, one response path, privacy boundary, needs-help/waiting state, and saved proof.',
-      'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing.',
+      'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing, and clear task-card contracts.',
       'Funeral-home employee: assigned work, context, drafted message, waiting/stuck-point state, family-visible boundary, close-with-proof.',
       'Vendor: scoped request, quote/update, payment state, service proof.',
     ],

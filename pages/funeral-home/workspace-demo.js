@@ -12,6 +12,12 @@ const myDay = [
   ['Proof', 'Case record', 'Hospital release saved. Family request drafted. Export packet ready.'],
 ];
 
+const taskPreview = [
+  ['Passage prepared', 'Drafted ask and case context', 'The cemetery request is already framed with service date, family contact, and the missing plot fields.'],
+  ['Staff does next', 'Call or send the prepared request', 'Maria confirms the lot, section, deed photo, and any cemetery deadline before the family update goes out.'],
+  ['Waiting on', 'Michael Price', 'The dashboard names the person and missing detail so staff are not guessing why the case is paused.'],
+  ['Proof saves', 'Case record and export packet', 'The reply, timestamp, note, and attachment stay with the case and are included in the closeout packet.'],
+];
 const workflow = [
   ['1', 'My Day', 'Start with the case, owner, waiting point, and proof that need attention now.'],
   ['2', 'Task action', 'Open the task to see the drafted ask, owner, status, proof requirement, and what done means.'],
@@ -80,6 +86,21 @@ export default function FuneralHomeWorkspaceDemo() {
           </div>
         </div>
 
+        <section style={{ marginTop: 16 }}>
+          <div className="wd-panel">
+            <div className="wd-kicker">Task card contract</div>
+            <h2 style={{ fontSize: 30, lineHeight: 1.1, margin: '7px 0 10px', fontWeight: 400 }}>Every task card should make the next move obvious.</h2>
+            <div className="wd-grid">
+              {taskPreview.map(([label, title, body]) => (
+                <div className="wd-card" key={label}>
+                  <div className="wd-kicker">{label}</div>
+                  <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.15, marginTop: 6 }}>{title}</div>
+                  <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 8 }}>{body}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
         <section style={{ marginTop: 16 }}>
           <div className="wd-panel">
             <div className="wd-kicker">Operating flow</div>
