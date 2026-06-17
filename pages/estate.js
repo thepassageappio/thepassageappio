@@ -1944,7 +1944,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 18 }}>
         <div>
-          <div style={{ fontSize: 10.5, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Estate operating spine</div>
+          <div style={{ fontSize: 10.5, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Estate action plan</div>
           <div style={{ fontSize: 26, color: INK, lineHeight: 1.08, fontWeight: 900 }}>One next move. One shared truth.</div>
           <div style={{ color: MID, fontSize: 13.2, lineHeight: 1.5, marginTop: 6, maxWidth: 620 }}>Owner, request, waiting point, proof, and family-visible status stay together.</div>
         </div>
@@ -2081,7 +2081,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                     })}
                   </div>
                   <div style={{ color: MID, fontSize: 11.8, lineHeight: 1.45, marginTop: 7 }}>
-                    Every role sees the same simple spine in a scoped way: see the owner, do the next step, update the waiting point, save proof, then mark done.
+                    Every role sees the same simple path in a scoped way: see the owner, do the next step, update the waiting point, save proof, then mark done.
                   </div>
                 </div>
               )}
