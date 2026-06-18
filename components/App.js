@@ -4661,7 +4661,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
 function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   const panes = [
     {
-      id: 'spine',
+      id: 'tasks',
       label: 'Tasks',
       eyebrow: 'One clear next step',
       title: 'One next move. One owner. One proof trail.',
@@ -4693,7 +4693,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       eyebrow: 'For providers',
       title: 'A clearer way to keep families and staff aligned.',
       body: 'Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to existing tools.',
-      cta: { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard', label: 'Open sample case' },
+      cta: { href: '/funeral-home/sample-case', label: 'Open sample case' },
       rows: [
         ['Case', 'Create or import', 'Start fresh or bring cases in by CSV without changing the current case system.'],
         ['Work', 'Assign the owner', 'Staff, family coordinators, and participants stay tied to the same next step and record.'],

@@ -215,7 +215,7 @@ export default async function handler(req, res) {
   });
 
   const gates = [
-    gate('case_task_seed', 'Every active case has a task spine', caseSummaries.some(item => item.metrics.tasks === 0) ? 'blocked' : 'ready', `${caseSummaries.filter(item => item.metrics.tasks === 0).length} active case(s) have no tasks.`, 'Seed tasks before the case is sold as operational.'),
+    gate('case_task_seed', 'Every active case has an operating checklist', caseSummaries.some(item => item.metrics.tasks === 0) ? 'blocked' : 'ready', `${caseSummaries.filter(item => item.metrics.tasks === 0).length} active case(s) have no tasks.`, 'Seed the first clear actions before the case is sold as operational.'),
     gate('owner_assignment', 'Open tasks have owners', unassignedOpen.length ? 'warning' : 'ready', `${unassignedOpen.length} open task(s) have no owner.`, 'Assign a staff member, family owner, or Passage owner to every open task.'),
     gate('waiting_hygiene', 'Waiting states name what is missing', waitingWithoutDetail.length ? 'warning' : 'ready', `${waitingWithoutDetail.length} waiting task(s) lack waiting_on or notes detail.`, 'Require a short waiting reason before staff can leave a task in waiting.'),
     gate('blocker_queue', 'Blockers are visible and small', blockedTasks.length ? 'blocked' : 'ready', `${blockedTasks.length} task(s) are blocked, failed, or need review.`, 'Clear blockers before conversion asks or high-volume onboarding.'),
