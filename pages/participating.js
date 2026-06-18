@@ -331,7 +331,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const officialStatus = handled ? "Status: Handled" : itemStatus(item) === 'acknowledged' ? 'Status: Confirmed' : itemStatus(item) === 'blocked' ? 'Status: Needs help' : itemStatus(item) === 'assigned' || itemStatus(item) === 'sent' ? 'Status: Awaiting your confirmation' : 'This has been requested by the family';
   const rawExpectedUpdate = taskExpectedUpdate(item, 'participant');
   const expectedUpdate = /waiting for an owner/i.test(rawExpectedUpdate)
-    ? 'Waiting for your update - accept it, mark what is waiting, or record proof.'
+    ? 'Waiting for your update - own this request, show what is waiting, or record proof.'
     : rawExpectedUpdate;
   const statusTone = handled ? C.sage : itemStatus(item) === 'blocked' ? C.rose : C.amber;
   const statusBg = handled ? C.sageFaint : itemStatus(item) === 'blocked' ? C.roseFaint : C.amberFaint;
@@ -1023,7 +1023,7 @@ export default function ParticipatingPage() {
                       <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 7 }}>
                         {allClear
                           ? 'Nothing else is needed from you right now. This page becomes your receipt for what was handled and when it was saved.'
-                          : 'Start with the request below. You can accept it, explain what is waiting, ask for help, or mark it done with proof.'}
+                          : 'Start with the request below. You can own it, explain what is waiting, ask for help, or mark it done with proof.'}
                       </div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: openItems.length ? C.rose : C.sage, background: openItems.length ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '4px 9px' }}>{openItems.length ? `${openItems.length} need you` : 'All clear'}</span>

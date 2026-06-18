@@ -19,8 +19,8 @@ const C = {
 
 const steps = [
   ['1', 'You receive an invite', 'A family coordinator, funeral home, or care partner asks for help with one specific responsibility.'],
-  ['2', 'You open one clear request', 'Passage shows the task, timing, waiting point, and proof needed. The full family record stays private.'],
-  ['3', 'You answer once', 'Accept it, ask for help, mark waiting, save a note, or close it with proof.'],
+  ['2', 'You open one clear request', 'Passage shows what is needed, timing, waiting point, and proof needed. The full family record stays private.'],
+  ['3', 'You answer once', 'Own the request, ask for help, show what is waiting, save a note, or mark done with proof.'],
   ['4', 'The coordinator sees the update', 'Your response returns to the shared record so the family is not chasing another thread.'],
 ];
 

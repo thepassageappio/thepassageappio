@@ -229,7 +229,7 @@ export default function VendorRequestPage() {
   const recommendedVendorAction = ['quoted', 'accepted'].includes(request?.status)
     ? ['in_progress', 'Mark scheduled']
     : ['paid', 'scheduled', 'in_progress'].includes(canonicalStatus)
-      ? ['completed', 'Mark completed']
+      ? ['completed', 'Save completion proof']
       : request?.status === 'completed'
         ? null
         : request?.status === 'declined'
@@ -238,7 +238,7 @@ export default function VendorRequestPage() {
   const secondaryVendorActions = [
     ['accepted', 'Send quote'],
     ['in_progress', 'Mark scheduled'],
-    ['completed', 'Mark completed'],
+    ['completed', 'Save completion proof'],
     ['declined', 'Decline'],
   ].filter(([action]) => !recommendedVendorAction || action !== recommendedVendorAction[0]);
 
@@ -420,7 +420,7 @@ export default function VendorRequestPage() {
                     <label style={labelStyle}>Location<input value={serviceLocation} onChange={(e) => setServiceLocation(e.target.value)} placeholder="Venue, cemetery, home..." style={inputStyle} /></label>
                   </div>
                   <label style={{ ...labelStyle, marginTop: 9 }}>Quote note / availability<textarea value={vendorNote} onChange={(e) => setVendorNote(e.target.value)} placeholder="Available Friday afternoon. Quote includes setup, service coverage, and delivery of recording." style={{ ...inputStyle, minHeight: 74, resize: 'vertical' }} /></label>
-                  <label style={{ ...labelStyle, marginTop: 9 }}>Service instructions<textarea value={serviceNotes} onChange={(e) => setServiceNotes(e.target.value)} placeholder="Arrival instructions, delivery details, proof expected, or what the family should know." style={{ ...inputStyle, minHeight: 62, resize: 'vertical' }} /></label>
+                  <label style={{ ...labelStyle, marginTop: 9 }}>Work details and proof note<textarea value={serviceNotes} onChange={(e) => setServiceNotes(e.target.value)} placeholder="Arrival instructions, delivery details, proof expected, or what the family should know." style={{ ...inputStyle, minHeight: 62, resize: 'vertical' }} /></label>
                   {request.payment_collection_status && (
                     <div style={{ marginTop: 9, fontSize: 12.5, color: C.mid, lineHeight: 1.45 }}>
                       Payment and payout details stay private. The vendor sees only the quote, scheduling, and completion details needed to respond.
@@ -516,7 +516,7 @@ function noticeForAction(action, demo) {
   if (action === 'completed') return prefix + 'Marked completed. Passage will show the family and funeral home that this is handled.';
   if (action === 'in_progress') return prefix + 'Marked scheduled. Passage will keep this visible while the vendor works.';
   if (action === 'declined') return prefix + 'Marked declined. Passage will show that this request needs another option.';
-  return prefix + 'Quote sent for review. The family and funeral home can accept it before work starts.';
+  return prefix + 'Quote sent for review. The family or funeral home can approve it before work starts.';
 }
 
 function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
@@ -609,7 +609,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(260px,.75fr)', gap: 12, margin: '0 0 14px' }}>
         <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 15, padding: 14 }}>
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Request loop</div>
-          <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.22, fontWeight: 900, marginTop: 5 }}>Requested, quoted, accepted, completed.</div>
+          <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.22, fontWeight: 900, marginTop: 5 }}>Requested, quoted, approved, completed.</div>
           <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, margin: '7px 0 0' }}>
             Every response stays attached to the scoped request. Families and funeral homes see status and proof without giving vendors access to the full record.
           </p>
@@ -672,7 +672,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
       <details style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13 }}>
         <summary style={{ cursor: 'pointer', fontWeight: 900, fontSize: 18 }}>Incoming requests ({requests.length})</summary>
         <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
-          {!requests.length && <div style={{ color: C.mid }}>No requests yet. When one arrives, you can view it, send a quote, ask for details, mark work scheduled, or mark completed from here.</div>}
+          {!requests.length && <div style={{ color: C.mid }}>No requests yet. When one arrives, you can view it, send a quote, ask for details, mark work scheduled, or save completion proof from here.</div>}
           {requests.map((request) => {
             const familyName = request.workflows?.deceased_name || request.workflows?.estate_name || request.workflows?.name || 'Family case';
             return (
