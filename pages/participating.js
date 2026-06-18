@@ -126,10 +126,10 @@ function recommendedParticipantCopy(action) {
 }
 
 function participantActionSaveLabel(action) {
-  if (action === 'save_note') return 'Save note only';
-  if (action === 'accept') return 'Accept responsibility';
-  if (action === 'waiting') return 'Save waiting update';
-  if (action === 'handled' || action === 'confirmed') return 'Mark done with note';
+  if (action === 'save_note') return 'Save update';
+  if (action === 'accept') return 'I own this';
+  if (action === 'waiting') return 'Mark waiting';
+  if (action === 'handled' || action === 'confirmed') return 'Mark done with proof';
   if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'Ask coordinator for help';
   if (action === 'quoted') return 'Save quote update';
   if (action === 'scheduled') return 'Save scheduled update';
@@ -209,18 +209,18 @@ function actionSet(kind) {
     ['needs_details', 'Need details'],
     ['quoted', 'Quote sent'],
     ['scheduled', 'Scheduled'],
-    ['handled', 'Mark handled'],
+    ['handled', 'Mark done with proof'],
   ];
   if (kind === 'executor') return [
-    ['accept', 'I own this task'],
-    ['waiting', 'Waiting on reply'],
+    ['accept', 'I own this'],
+    ['waiting', 'Mark waiting'],
     ['needs_details', 'Documents needed'],
-    ['handled', 'This is handled'],
+    ['handled', 'Done with proof'],
   ];
   return [
-    ['accept', 'Accept responsibility'],
-    ['waiting', 'Waiting on reply'],
-    ['handled', 'Mark done'],
+    ['accept', 'I own this'],
+    ['waiting', 'Mark waiting'],
+    ['handled', 'Mark done with proof'],
   ];
 }
 
@@ -391,7 +391,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
     setDetailsOpen(false);
   };
   const actionLabel = (action) => {
-    if (action === 'save_note') return 'Save note';
+    if (action === 'save_note') return 'Save update';
     if (action === 'help') return 'I need help';
     if (action === 'unavailable') return "I can't handle this";
     const found = actionSet(kind).find(row => row[0] === action);
@@ -416,11 +416,11 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
             <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{contract.action}</div>
           </div>
           <div style={{ background: statusBg, border: `1px solid ${statusTone}33`, borderRadius: 12, padding: '9px 10px' }}>
-            <div style={{ color: statusTone, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>2. Update</div>
+            <div style={{ color: statusTone, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting on</div>
             <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{expectedUpdate}</div>
           </div>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>3. Save proof</div>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Status and proof</div>
             <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{notificationSummary}</div>
           </div>
         </div>
@@ -459,7 +459,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
             {availableActions.filter(([action]) => action !== recommendedAction[0]).map(([action, label]) => (
               <button key={action} onClick={() => setPendingAction(action)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2, fontWeight: 800 }}>{label}</button>
             ))}
-            <button onClick={() => setPendingAction('save_note')} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800, fontSize: 12.2 }}>Save note</button>
+            <button onClick={() => setPendingAction('save_note')} style={{ border: `1px solid ${C.sage}55`, background: C.sageFaint, color: C.sage, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontWeight: 800, fontSize: 12.2 }}>Save update</button>
             <button onClick={() => setPendingAction('help')} style={{ color: C.mid, background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2 }}>I need help</button>
             <button onClick={() => setPendingAction('unavailable')} style={{ color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 11, minHeight: 38, padding: '0 10px', fontFamily: 'Georgia,serif', cursor: 'pointer', fontSize: 12.2 }}>Can't handle</button>
           </div>
@@ -1189,4 +1189,3 @@ export default function ParticipatingPage() {
     </main>
   );
 }
-

@@ -301,12 +301,12 @@ export default function VendorRequestPage() {
 
             <div style={{ padding: 22 }}>
             <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 15, padding: '12px 13px', marginBottom: 14 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Simple request spine</div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Simple request path</div>
               <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginBottom: 8 }}>Owner: <strong style={{ color: C.ink }}>{ownerLabel}</strong></div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 8 }}>
-                <Info label="1. Do" value={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus} />
-                <Info label="2. Update" value={waitingLabel} />
-                <Info label="3. Save proof" value={proofLabel} />
+                <Info label="Action needed" value={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus} />
+                <Info label="Waiting on" value={waitingLabel} />
+                <Info label="Status and proof" value={proofLabel} />
               </div>
               <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
                 <strong style={{ color: C.ink }}>Access boundary:</strong> You can respond to this request only. Private family notes, unrelated tasks, and the estate workspace stay hidden.
