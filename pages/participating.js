@@ -1149,7 +1149,7 @@ export default function ParticipatingPage() {
                       {otherOpen.length > 0 && (
                         <div style={{ marginTop: 14 }}>
                           <button onClick={() => setShowOtherOpen(prev => ({ ...prev, [estate.id]: !prev[estate.id] }))} style={{ width: '100%', border: `1px solid ${C.border}`, background: C.card, borderRadius: 11, padding: '9px 12px', color: C.mid, cursor: 'pointer', fontFamily: 'Georgia,serif', fontSize: 13, fontWeight: 800, textAlign: 'left' }}>
-                            {showOpenList ? 'Hide other assigned tasks' : `Show ${otherOpen.length} more task${otherOpen.length === 1 ? '' : 's'} assigned to you`}
+                            {showOpenList ? 'Hide other assigned requests' : `Show ${otherOpen.length} more request${otherOpen.length === 1 ? '' : 's'} assigned to you`}
                           </button>
                           {showOpenList && otherOpen.slice(0, 4).map(item => (
                             <ParticipantItem
