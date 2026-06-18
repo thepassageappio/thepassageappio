@@ -116,7 +116,8 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
             </div>
             <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 14 }}>
               <strong style={{ color: C.ink }}>Purpose of this page:</strong> start a care-provider partnership conversation, book a walkthrough, or help a family begin a care-prep record. This is not an operating dashboard; active family work stays inside permissioned Passage records.
-            </div>            <div className="care-purpose-grid" style={purposeGrid}>
+            </div>
+            <div className="care-purpose-grid" style={purposeGrid}>
               {purposes.map(([title, body]) => (
                 <div key={title} style={miniCard}>
                   <div style={smallEyebrow}>{title}</div>

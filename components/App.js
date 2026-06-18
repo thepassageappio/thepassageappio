@@ -1782,7 +1782,7 @@ function ActivatePlanView({ workflowId, deceasedName, actions, tasks, events, on
  const channels = [
   ['Email', pendingActions.filter(a => a.action_type === 'email' || a.recipient_email).length],
   ['Text', pendingActions.filter(a => a.action_type === 'sms' || a.recipient_phone).length],
-  ['Assigned tasks', assignedTasks.length],
+  ['Assigned next steps', assignedTasks.length],
  ];
  const sendAll = async () => {
   setSending(true);
@@ -2271,7 +2271,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
      {/* Progress */}
      <div style={{ background: C.bgCard, borderRadius: 14, padding: "14px 16px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
-       <span style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{done} of {readiness.required} required tasks handled</span>
+       <span style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{done} of {readiness.required} required next steps handled</span>
        <span style={{ fontSize: 14, fontWeight: 800, color: pct === 100 ? C.sage: C.ink }}>{pct}% ready</span>
       </div>
       <div style={{ height: 8, background: C.border, borderRadius: 4, marginBottom: 8 }}>
@@ -2638,7 +2638,7 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
        <Sub>Sign in to save your plan and come back anytime.</Sub>
        <div style={{ height: 18 }} />
        <Field label="Your name" placeholder="Your full name" value={yourName} onChange={setYourName} />
-       <Field label="Your email" type="email" placeholder="your@email.com" value={yourEmail} onChange={setYourEmail} hint="Your task list will be associated with this email." />
+       <Field label="Your email" type="email" placeholder="your@email.com" value={yourEmail} onChange={setYourEmail} hint="Your next-step list will be associated with this email." />
 
        {!user && (
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 11, padding: "14px", marginBottom: 14 }}>
@@ -2868,7 +2868,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
 
    <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
     <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, marginBottom: 4 }}>Primary Executor</div>
-    <div style={{ fontSize: 12, color: C.mid, marginBottom: 12, lineHeight: 1.5 }}>Receives the full task list the moment both confirmations arrive.</div>
+    <div style={{ fontSize: 12, color: C.mid, marginBottom: 12, lineHeight: 1.5 }}>Receives the next-step list the moment both confirmations arrive.</div>
     <Field label="Full name" placeholder="e.g. Sarah Collins" value={executorName} onChange={setExecutorName} />
     <Field label="Email" type="email" placeholder="sarah@email.com" value={executorEmail} onChange={setExecutorEmail} hint="Used for automatic notification when plan activates." />
     <Field label="Phone (optional)" placeholder="+12297027753" value={executorPhone} onChange={setExecutorPhone} hint="Used for SMS if you want Passage to text them too." />
@@ -3736,7 +3736,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
        <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
         <div style={{ fontSize: 10.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 6 }}>Start one family record</div>
         <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.2, marginBottom: 6 }}>Create the estate before adding wishes, people, documents, memories, or tasks.</div>
-        <Sub>Each estate gets its own file, task list, participants, messages, proof, and exports. Nothing should float loose on this index page.</Sub>
+        <Sub>Each estate gets its own file, next steps, participants, messages, proof, and exports. Nothing should float loose on this index page.</Sub>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 10, marginTop: 14 }}>
          <button onClick={onStartPlan} style={{ textAlign: "left", background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "14px", cursor: "pointer", fontFamily: "inherit" }}>
           <div style={{ fontSize: 15, fontWeight: 900, color: C.ink, marginBottom: 4 }}>Plan ahead</div>
@@ -3836,7 +3836,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
         </div>
        )}
        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
-        {[{l:"This estate",v:selectedDashboardEstate?.path === 'green' ? 'Planning': 'Active'},{l:"Tasks handled",v:selectedDashboardStats.required ? `${selectedDashboardStats.completed || 0}/${selectedDashboardStats.required}`: "0"},{l:"Estate records",v:activeWorkflows.length}].map(i => (
+        {[{l:"This estate",v:selectedDashboardEstate?.path === 'green' ? 'Planning': 'Active'},{l:"Next steps handled",v:selectedDashboardStats.required ? `${selectedDashboardStats.completed || 0}/${selectedDashboardStats.required}`: "0"},{l:"Estate records",v:activeWorkflows.length}].map(i => (
          <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 10, padding: "10px 11px" }}>
           <div style={{ fontSize: 10.5, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
           <div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{i.v}</div>
@@ -3979,7 +3979,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
        )}
 
        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
-        {[{l:"Active estates",v:activeWorkflows.length},{l:"Tasks handled",v:totalRequired ? `${totalHandled}/${totalRequired}`: "0"},{l:"Participants",v:taskStatValues.reduce((sum, s) => sum + (s.assigned || 0), 0)}].map(i => (
+        {[{l:"Active estates",v:activeWorkflows.length},{l:"Next steps handled",v:totalRequired ? `${totalHandled}/${totalRequired}`: "0"},{l:"Participants",v:taskStatValues.reduce((sum, s) => sum + (s.assigned || 0), 0)}].map(i => (
          <div key={i.l} style={{ background: C.bgSubtle, borderRadius: 10, padding: "10px 11px" }}>
           <div style={{ fontSize: 10.5, color: C.soft, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 4 }}>{i.l}</div>
           <div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{i.v}</div>
