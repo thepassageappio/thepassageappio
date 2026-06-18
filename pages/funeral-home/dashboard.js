@@ -3603,8 +3603,8 @@ export default function FuneralHomeDashboard() {
                     {[
                       ['Director / owner', 'All cases, all locations, staff setup, reports, exports, billing prompts, and setup controls.'],
                       ['Location manager', 'Cases and reporting for their location scope; can assign staff and move work.'],
-                      ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close tasks.'],
-                      ['Participant / family helper', 'Scoped to the task or estate slice they were invited to handle.'],
+                      ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close work items.'],
+                      ['Participant / family helper', 'Scoped to the request or family-record slice they were invited to handle.'],
                     ].map(([title, body]) => (
                       <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
                         <div style={{ color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</div>
@@ -3907,7 +3907,7 @@ export default function FuneralHomeDashboard() {
                   {[
                     ['Director', 'All cases, all locations, employee setup, reports, exports, and billing prompts.'],
                     ['Location manager', 'Cases and reports for their location scope; can move work and assign staff.'],
-                    ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close tasks.'],
+                    ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close work items.'],
                     ['Admin', 'Partner account setup and billing/admin prompts; use sparingly for owners.'],
                   ].map(([title, body]) => (
                     <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
@@ -5519,7 +5519,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
   const copyLabel = taskDraft.status === 'blocked' ? 'Copy family request' : 'Copy proof packet';
   const copiedLabel = taskDraft.status === 'blocked' ? 'Family request copied.' : 'Prepared output copied.';
   const saveLabel = taskDraft.status === 'handled'
-    ? 'Close task with this proof'
+    ? 'Close work item with this proof'
     : taskDraft.status === 'blocked'
       ? 'Save family request'
       : 'Save waiting update';
@@ -5549,7 +5549,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-      <div role="dialog" aria-modal="true" aria-label="Update partner task" onClick={event => event.stopPropagation()} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+      <div role="dialog" aria-modal="true" aria-label="Update work item" onClick={event => event.stopPropagation()} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
           <div>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{taskDraft.label}</div>
@@ -5595,7 +5595,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
         <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.45, marginTop: 6 }}>{proofDestination}</div>
         {taskDraft.status === 'handled' && (
           <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
-            This is the proof packet that closes the task. Review it, copy or print it for the arrangement file if needed, then close the task so the waiting/request actions disappear.
+            This is the proof packet that closes the work item. Review it, copy or print it for the arrangement file if needed, then close the work item so the waiting/request actions disappear.
           </div>
         )}
         {taskDraft.status === 'blocked' && (
@@ -5658,7 +5658,7 @@ function PartnerAttentionInbox({ items, onOpenCase }) {
       ) : (
         <div style={{ display: 'grid', gap: 8 }}>
           {items.map(item => {
-            const kind = item.kind === 'vendor' ? 'Vendor' : item.kind === 'message' ? 'Message' : item.kind === 'task' ? 'Task status' : 'Case update';
+            const kind = item.kind === 'vendor' ? 'Vendor' : item.kind === 'message' ? 'Message' : item.kind === 'task' ? 'Work status' : 'Case update';
             const urgent = item.attentionLevel === 'urgent';
             const waiting = item.attentionLevel === 'waiting';
             const tone = urgent ? C.rose : waiting ? C.amber : C.sage;
@@ -5694,7 +5694,7 @@ function ReportTable({ title, columns, rows }) {
     <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12, overflowX: 'auto' }}>
       <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 8 }}>{title}</div>
       {rows.length === 0 ? (
-        <div style={{ color: C.mid, fontSize: 12.5 }}>No report rows yet. Data appears here as tasks are assigned, handled, and logged.</div>
+        <div style={{ color: C.mid, fontSize: 12.5 }}>No report rows yet. Data appears here as work is assigned, handled, and logged.</div>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
