@@ -163,7 +163,7 @@ const personaSourceChecks = [
     path: 'pages/participating.js',
     label: 'Participant request source',
     requires: ['Open the family request assigned to you.', 'Your one request', 'Action needed', 'Waiting on', 'Status and proof', 'Access boundary'],
-    forbids: ['Task response', 'task the family assigned to you', 'assigned tasks', 'more tasks assigned to you'],
+    forbids: ['Task response', 'task the family assigned to you', 'assigned tasks', 'more tasks assigned to you', 'Respond to assigned task', 'task status', 'The task stays open', 'keeps the task open', 'keeps the task visible'],
   },
   {
     path: 'pages/vendors/request.js',
