@@ -244,7 +244,7 @@ function requestContract(kind, estate, item) {
   };
   if (kind === 'executor') return {
     label: 'Responsible family task',
-    action: 'Accept ownership if you can carry this, or mark what is waiting so the family is not guessing.',
+    action: 'Choose I own this if you can help, or mark waiting so the family is not guessing.',
     authority: 'Only handle legal, financial, or account steps if you have authority or the coordinator confirms it.',
     serviceLine: 'Estate: ' + (estate?.deceased_name || estate?.name || 'this estate'),
     payer: 'Keep confirmation numbers, deadlines, and document requests in the notes.'
@@ -412,7 +412,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 6 }}>Owner: <strong style={{ color: C.ink }}>{ownerSummary}</strong></div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginTop: 11 }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px' }}>
-            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>1. Do</div>
+            <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Action needed</div>
             <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{contract.action}</div>
           </div>
           <div style={{ background: statusBg, border: `1px solid ${statusTone}33`, borderRadius: 12, padding: '9px 10px' }}>
