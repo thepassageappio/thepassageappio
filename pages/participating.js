@@ -692,7 +692,7 @@ export default function ParticipatingPage() {
           },
         })),
       }));
-      setActionNotice((action === 'handled' ? 'Handled. ' : 'Demo update saved. ') + 'The coordinator would see this update on the family record spine.');
+      setActionNotice((action === 'handled' ? 'Handled. ' : 'Demo update saved. ') + 'The coordinator would see this update on the family record.');
       return;
     }
     if (!supabase?.auth) {

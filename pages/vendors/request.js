@@ -672,7 +672,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
       <details style={{ border: '1px solid ' + C.border, borderRadius: 14, padding: 13 }}>
         <summary style={{ cursor: 'pointer', fontWeight: 900, fontSize: 18 }}>Incoming requests ({requests.length})</summary>
         <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
-          {!requests.length && <div style={{ color: C.mid }}>No requests yet. When one arrives, you can view it, ask for details, accept it, mark in progress, or mark completed from here.</div>}
+          {!requests.length && <div style={{ color: C.mid }}>No requests yet. When one arrives, you can view it, send a quote, ask for details, mark work scheduled, or mark completed from here.</div>}
           {requests.map((request) => {
             const familyName = request.workflows?.deceased_name || request.workflows?.estate_name || request.workflows?.name || 'Family case';
             return (
