@@ -203,6 +203,12 @@ const personaSourceChecks = [
     forbids: ['Passage shows the task', 'Accept it, ask for help'],
   },
   {
+    path: 'pages/api/participantAction.js',
+    label: 'Participant action API wording',
+    requires: ['accepted this request', 'needs help with this request', 'updated this request', 'Request: <strong', 'No matching request found', 'Assigned request', 'proof or needs-help note'],
+    forbids: ['accepted this task', 'needs help with this task', 'updated this task', 'Task: <strong', 'task updated', 'No matching task found', 'Assigned task', 'proof or blocker note'],
+  },
+  {
     path: 'pages/participating.js',
     label: 'Participant request source',
     requires: ['Open the family request assigned to you.', 'Your one request', 'Action needed', 'Waiting on', 'Status and proof', 'Access boundary', 'Choose I own this if you can help', 'Respond to your request'],
@@ -231,6 +237,12 @@ const personaSourceChecks = [
     label: 'Vendor onboarding source',
     requires: ['Required: business name, service ZIPs, and email', 'Add business name, service ZIPs, and email to submit', 'Recommended next action: book a vendor conversation', 'Nothing appears to families until Passage approves the provider'],
     forbids: ['marketplace fee', 'public marketplace inbox', 'browse family records', 'support partner', 'approves the partner', 'Funeral home partner information'],
+  },
+  {
+    path: 'pages/api/vendorRequests/decision.js',
+    label: 'Vendor quote decision API wording',
+    requires: ['before it can be approved', 'family_accepted', 'needs_help'],
+    forbids: ['before it can be accepted', "status: action === 'approve_quote' ? 'waiting' : 'blocked'"],
   },
   {
     path: 'pages/vendors/request.js',
