@@ -171,7 +171,8 @@ const personaSourceChecks = [
     label: 'Shared navigation source',
     requires: ['showSystemAdminLink', 'system_admin_action_clicked', '>Admin</Link>', ': PUBLIC_LINKS'],
     forbids: ["? [...PUBLIC_LINKS, ['System admin', '/system/admin']]", 'Roadmap', 'QA checklist', 'Pilot health', 'Abuse controls'],
-  },  {
+  },
+  {
     path: 'components/App.js',
     label: 'Family homepage and dashboard source',
     requires: ['Open sample case', 'Start urgent path', 'Prepare during care', 'Plan ahead', 'One family record', 'Active plan', 'Who owns each next step', 'Prepared output', "You've been asked to handle a next step", 'Handoff ready', 'Same family record across planning, urgent help, funeral-home handoffs, and participant views.', 'own this next step', 'family-record work connected to you'],
@@ -224,7 +225,8 @@ const personaSourceChecks = [
     label: 'Contact source',
     requires: ['Funeral home inquiry', 'provider conversations immediately'],
     forbids: ['Funeral home / partner inquiry', 'partner conversations immediately'],
-  },  {
+  },
+  {
     path: 'pages/vendors/onboard.js',
     label: 'Vendor onboarding source',
     requires: ['Required: business name, service ZIPs, and email', 'Add business name, service ZIPs, and email to submit', 'Recommended next action: book a vendor conversation', 'Nothing appears to families until Passage approves the provider'],
