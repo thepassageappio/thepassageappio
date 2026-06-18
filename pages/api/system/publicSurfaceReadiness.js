@@ -155,8 +155,8 @@ const personaSourceChecks = [
   },  {
     path: 'pages/funeral-home/dashboard.js',
     label: 'Funeral-home dashboard source',
-    requires: ['Recommended next action', 'Action needed', 'Waiting on', 'Save proof', 'partnerPlanDisplayName'],
-    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}'],
+    requires: ['Recommended next action', '1. Do next:', 'Message to send or use', 'Waiting on', 'Save proof', 'partnerPlanDisplayName'],
+    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}', 'Task / request', 'Proof loop', 'Task action'],
   },
   {
     path: 'pages/participating.js',
