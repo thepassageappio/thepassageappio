@@ -578,9 +578,9 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
     <div style={cardStyle}>
       <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor dashboard</div>
       <h1 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendor.business_name}</h1>
-      <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests appear only when Passage recommends you inside a relevant family request. Responding updates the same family record; this is not a public marketplace inbox.</p>
+      <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests appear only when Passage recommends you inside a relevant family request. Responding updates the scoped request status; this is not a public marketplace inbox.</p>
       <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginBottom: 14 }}>
-        <strong style={{ color: C.ink }}>Vendor scope:</strong> see the request, urgency, family-facing context, and response status. The family record keeps approvals, proof, and broader coordination.
+        <strong style={{ color: C.ink }}>Vendor scope:</strong> see the request, urgency, family-facing context, and response status. The family record keeps approvals, proof, and broader coordination without exposing unrelated details.
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, margin: '16px 0' }}>
@@ -593,7 +593,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
         <div>
           <div style={{ color: payoutReady ? C.sage : C.amber, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Payout readiness</div>
           <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, marginTop: 4 }}>{payoutReady ? 'Stripe payouts are ready.' : 'Finish payout setup before paid jobs can be collected.'}</div>
-          <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>Passage collects the family payment, keeps the marketplace fee, and routes the vendor balance through Stripe Connect.</div>
+          <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>Payment setup and payout details are handled through Stripe Connect after the request is approved.</div>
           {connectError && <div style={{ color: C.rose, fontSize: 12.5, marginTop: 6 }}>{connectError}</div>}
         </div>
         {!payoutReady && <button onClick={startConnect} disabled={connectLoading} style={buttonStyle(C.sage)}>{connectLoading ? 'Opening...' : 'Set up payouts'}</button>}
@@ -611,7 +611,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Request loop</div>
           <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.22, fontWeight: 900, marginTop: 5 }}>Requested, quoted, accepted, completed.</div>
           <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, margin: '7px 0 0' }}>
-            Every response stays attached to the case request. Families and funeral homes see status and proof without giving vendors access to the full record.
+            Every response stays attached to the scoped request. Families and funeral homes see status and proof without giving vendors access to the full record.
           </p>
         </div>
         <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 14 }}>
