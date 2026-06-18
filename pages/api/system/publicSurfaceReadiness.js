@@ -167,6 +167,11 @@ const personaSourceChecks = [
     forbids: ['Accept it, mark it done', 'what is blocking you', 'unblock', 'record the blocker', 'Waiting for an owner', 'task remains the source of truth', 'proof stays on the task'],
   },
   {
+    path: 'components/SiteChrome.js',
+    label: 'Shared navigation source',
+    requires: ['showSystemAdminLink', 'system_admin_action_clicked', '>Admin</Link>', ': PUBLIC_LINKS'],
+    forbids: ["? [...PUBLIC_LINKS, ['System admin', '/system/admin']]", 'Roadmap', 'QA checklist', 'Pilot health', 'Abuse controls'],
+  },  {
     path: 'components/App.js',
     label: 'Family homepage and dashboard source',
     requires: ['Open sample case', 'Start urgent path', 'Prepare during care', 'Plan ahead', 'One family record', 'Active plan', 'Who owns each next step', 'Prepared output', "You've been asked to handle a next step", 'Handoff ready', 'Same family record across planning, urgent help, funeral-home handoffs, and participant views.', 'own this next step', 'family-record work connected to you'],
