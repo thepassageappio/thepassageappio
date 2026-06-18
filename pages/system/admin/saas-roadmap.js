@@ -22,7 +22,7 @@ const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 const headlineMetrics = [
   ['ARR target', '$300k', 'Owner-only target. Never show this on external pages.'],
-  ['Primary buyer', 'Funeral homes', 'B2B operating workflow first; B2C becomes easier once the partner workflow is solid.'],
+  ['Primary buyer', 'Funeral homes', 'B2B operating workflow first; B2C becomes easier once the funeral-home workflow is solid.'],
   ['Revenue wedge', '72-100 accounts', 'Local and group accounts, with services/vendor revenue as upside.'],
   ['North star', 'Proof-ready cases', 'Every account has locations, staff, cases, owners, waiting points, proof, exports, billing, and next action.'],
 ];
@@ -56,7 +56,7 @@ const takeaways = [
   ['Form validation UAT', 'Source fixed / live domain stale', 'Vendor onboarding now requires business name, ZIPs, and email before submit state, care-provider inquiry shows required organization plus email, and funeral-home setup now requires funeral-home name plus main location before creating a dashboard. Recheck live once www points at latest main.'],
   ['Admin session UAT', 'Source fixed / live recheck blocked', 'Admin users now get a dedicated Admin action outside the public audience nav, and System Admin remains the single internal cabinet. Recheck on www after the correct production domain is pointing at latest main.'],
   ['Release configuration', 'P0 duplicate production targets', 'GitHub reports two Vercel production contexts on each commit: thepassageappio and you-are-working-on-a-production. Middleware now adds X-Passage-Commit and no-store headers for non-static responses; still confirm which project owns www, remove or disable the stray production target, and purge Cloudflare/cache before public promotion.'],
-  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; enterprise readiness now uses task readiness / partner workflow language instead of spine jargon, and no standalone roadmap/QA/admin top-level tabs should exist.'],
+  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; enterprise readiness now uses task readiness / funeral-home workflow language instead of spine jargon, and no standalone roadmap/QA/admin top-level tabs should exist.'],
   ['Funeral-home product UX', 'Source simplified / deploy verification pending', 'Director/staff dashboard now uses Case at a glance, Recommended next action, work-card contracts, one primary action, one waiting action, collapsed More actions, what Passage prepared, what staff does next, waiting point, proof saves, needs-help wording, family-visible proof, and customer-safe setup, invite, queue, vendor preference, and billing language with visible pilot wording and raw plan ids removed from the customer dashboard. Setup now uses funeral-home/customer language, a logged-out recommended next action, a required-info gate, direct demo-dashboard access, and first next-step/work-card wording instead of partner/task wording. Inbound family requests now show clean contact separators and operator-safe accept/decline/convert controls. Authenticated UAT must verify My Day and work cards once browser/domain access is usable.'],
   ['Family, care, participant, and vendor UX', 'Source simplified / deploy blocked by rate limit', 'B2C, urgent, planning, hospice/care-prep, participant, vendor, and care-provider flows now favor family record, request, next step, owner, waiting point, proof, and scoped access. Family homepage/dashboard copy now says who owns each next step, prepared output, proof, active plan, and next-step lists without broken placeholder separators. Participant and vendor surfaces now say own the request, show what is waiting, save completion proof, and approve quote before work starts instead of accept/mark-completed/task language. Vendor onboarding, care-provider inquiry, hospice/care-prep, contact, and funeral-home public copy now use provider/care-team/waiting-point language and avoid vague partner/stuck/internal wording. Live www must still be rechecked after routing/cache is fixed and Vercel deploys resume.'],
   ['Automation layer', 'Source updated / deploy blocked by rate limit', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
@@ -210,7 +210,7 @@ export default function SaasRoadmapPage() {
           <div>
             <div style={eyebrow}>System Admin / SaaS Roadmap</div>
             <h1 style={h1}>Build the funeral-home operating system first.</h1>
-            <p style={lead}>The target is a $300k ARR Passage business with B2B funeral homes as the wedge and B2C made simple by a strong partner operating workflow.</p>
+            <p style={lead}>The target is a $300k ARR Passage business with B2B funeral homes as the wedge and B2C made simple by a strong funeral-home operating workflow.</p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <Link href="/system/admin" style={secondaryLink}>System Admin</Link>
