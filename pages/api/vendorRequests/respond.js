@@ -92,11 +92,27 @@ export default async function handler(req, res) {
 
   const { data: request, error } = await admin
     .from('vendor_requests')
-    .select('id,workflow_id,task_id,task_title,status,responded_at,in_progress_at,vendor_id,organization_id,marketplace_fee_percent,funeral_home_rev_share_percent,vendors(business_name,category)')
+    .select('id,workflow_id,task_id,task_title,status,responded_at,in_progress_at,vendor_id,organization_id,payment_collection_status,marketplace_fee_percent,funeral_home_rev_share_percent,vendors(business_name,category)')
     .eq('response_token', token)
     .maybeSingle();
   if (error) return res.status(500).send(error.message);
   if (!request) return res.status(404).send('Request not found.');
+
+  const currentStatus = canonicalVendorStatus(request.status);
+  const paymentState = String(request.payment_collection_status || '');
+  const paymentConfirmed = currentStatus === 'paid' || paymentState === 'paid';
+  const quoteCanBeSent = ['requested', 'viewed', 'quoted', 'declined'].includes(currentStatus);
+  const quoteCanBeDeclined = ['requested', 'viewed', 'quoted'].includes(currentStatus);
+  const workCanBeUpdated = paymentConfirmed || ['scheduled', 'in_progress'].includes(currentStatus);
+  if (status === 'accepted' && !quoteCanBeSent) {
+    return res.status(409).send('This request is not waiting for a quote.');
+  }
+  if (status === 'declined' && !quoteCanBeDeclined) {
+    return res.status(409).send('This request can no longer be declined from this link.');
+  }
+  if (['in_progress', 'completed'].includes(status) && !workCanBeUpdated) {
+    return res.status(409).send('This request needs approval and payment before work can be scheduled or completed.');
+  }
 
   const now = new Date().toISOString();
   const finalValue = Number(req.query.finalValue || req.body?.finalValue || 0);
@@ -122,10 +138,10 @@ export default async function handler(req, res) {
     vendor_net_amount: economics.platformFeeAmount ? Math.max(finalValue - economics.platformFeeAmount, 0) : null,
     payment_collection_status: status === 'declined'
       ? 'not_required'
-      : status === 'completed' && finalValue > 0
-        ? 'payment_pending'
-        : status === 'accepted' || status === 'in_progress'
-          ? 'quote_ready'
+      : status === 'accepted'
+        ? 'quote_ready'
+        : status === 'in_progress' || status === 'completed'
+          ? paymentState || 'paid'
           : 'quote_needed',
     updated_at: now,
   };
