@@ -40,7 +40,7 @@ export default function VendorFrontDoor() {
     },
     {
       eyebrow: 'New support partner',
-      title: 'Apply to be recommended in Passage tasks',
+      title: 'Apply to receive scoped Passage requests',
       body: 'Tell us what you provide, where you serve, and whether you support urgent or planned requests.',
       href: '/vendors/onboard',
       action: 'Apply to join',
@@ -61,9 +61,9 @@ export default function VendorFrontDoor() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.82fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
-            <h1 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Local help, only when the task needs it.</h1>
+            <h1 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Local help, only when a family request needs it.</h1>
             <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
-              Passage keeps vendor work tied to one family task: what was requested, when it is needed, what quote was shared, and what proof completed the loop.
+              Passage keeps vendor work tied to one scoped family request: what was requested, when it is needed, what quote was shared, and what proof completed the loop.
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
               <Link href="/vendors/onboard" onClick={() => trackEvent('vendor_apply_clicked', { href: '/vendors/onboard' })} style={{ display: 'inline-flex', minHeight: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 13, background: C.sage, color: '#fff', textDecoration: 'none', padding: '0 16px', fontWeight: 900, fontSize: 14 }}>

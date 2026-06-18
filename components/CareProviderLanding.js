@@ -29,7 +29,7 @@ const providerOptions = [
 const purposes = [
   ['Care team', 'Give families a calm way to collect contacts, wishes, documents, and first-call context before a crisis handoff.'],
   ['Family', 'Keep ownership of the record, decide who can see it, and carry the same plan into urgent coordination when needed.'],
-  ['Downstream partners', 'Funeral homes, invited helpers, and vendors receive cleaner scoped context only after the family chooses to share it.'],
+  ['Funeral-home handoff', 'If a family chooses to share, funeral homes receive cleaner context without the care team owning the downstream decision.'],
 ];
 
 const boundaryRows = [
@@ -43,7 +43,7 @@ const handoffSteps = [
   ['1', 'Family starts a care-prep record', 'Contacts, wishes, documents, and trusted helpers are organized before details scatter.'],
   ['2', 'Care team stays in its lane', 'The organization can support the handoff without owning the family record or downstream choices.'],
   ['3', 'Funeral-home handoff is cleaner', 'If the family activates urgent coordination, the funeral home receives better context and fewer repeated calls.'],
-  ['4', 'Participants and vendors stay scoped', 'Helpers and vendors see only the request they are assigned, not the whole estate or private notes.'],
+  ['4', 'Assigned helpers and vendors stay scoped', 'Helpers and vendors see only the request they are assigned, not the whole family record or private notes.'],
 ];
 
 const planRows = [
@@ -74,6 +74,11 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
 
   async function submit(event) {
     event.preventDefault();
+    const formEl = event.currentTarget;
+    if (formEl && !formEl.checkValidity()) {
+      formEl.reportValidity();
+      return;
+    }
     setState('sending');
     setError('');
     const response = await fetch('/api/careProviders/apply', {
@@ -122,7 +127,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
           <form id="care-provider-inquiry" onSubmit={submit} style={formCard}>
             <div style={eyebrow}>Partner inquiry</div>
             <h2 style={h2}>Tell us where the family handoff breaks.</h2>
-            <p style={{ ...smallText, marginBottom: 12 }}>Use this for hospice, assisted living, senior living, home-care, or care-facility partnership conversations.</p>
+            <p style={{ ...smallText, marginBottom: 12 }}>Use this for hospice, assisted living, senior living, home-care, or care-facility partnership conversations. Required: organization name and contact email.</p>
             {state === 'sent' ? (
               <div style={successBox}>
                 <div style={smallEyebrow}>Received</div>
@@ -141,8 +146,8 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
                   <input required type="email" value={form.contactEmail} onChange={e => update('contactEmail', e.target.value)} placeholder="Contact email" style={inputStyle} />
                 </div>
                 <div className="care-form-two" style={twoCol}>
-                  <input value={form.contactPhone} onChange={e => update('contactPhone', e.target.value)} placeholder="Phone" style={inputStyle} />
-                  <input value={form.website} onChange={e => update('website', e.target.value)} placeholder="Website" style={inputStyle} />
+                  <input type="tel" value={form.contactPhone} onChange={e => update('contactPhone', e.target.value)} placeholder="Phone" style={inputStyle} />
+                  <input type="url" value={form.website} onChange={e => update('website', e.target.value)} placeholder="Website" style={inputStyle} />
                 </div>
                 <div className="care-form-two" style={twoCol}>
                   <input value={form.locationsCount} onChange={e => update('locationsCount', e.target.value)} placeholder="Locations or branches" style={inputStyle} />
@@ -150,7 +155,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
                 </div>
                 <textarea value={form.message} onChange={e => update('message', e.target.value)} placeholder="What family handoff, care transition, or coordination problem should Passage help solve?" style={{ ...inputStyle, minHeight: 88, paddingTop: 11, resize: 'vertical' }} />
                 {error && <div style={errorBox}>{error}</div>}
-                <button disabled={state === 'sending'} style={primaryButton}>{state === 'sending' ? 'Sending...' : 'Submit care-provider inquiry'}</button>
+                <button disabled={state === 'sending'} style={primaryButton}>{state === 'sending' ? 'Sending...' : 'Send partner inquiry'}</button>
               </div>
             )}
           </form>

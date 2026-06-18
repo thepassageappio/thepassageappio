@@ -108,6 +108,11 @@ export default function FuneralHomeSetupPage() {
 
   async function createWorkspace(event) {
     event.preventDefault();
+    const formEl = event.currentTarget;
+    if (formEl && !formEl.checkValidity()) {
+      formEl.reportValidity();
+      return;
+    }
     if (!token) return setError('Sign in before creating the workspace.');
     setLoading(true);
     setError('');
@@ -180,8 +185,8 @@ export default function FuneralHomeSetupPage() {
                 <div style={eyebrow}>Workspace details</div>
                 <input required value={form.organizationName} onChange={event => setForm(prev => ({ ...prev, organizationName: event.target.value }))} placeholder="Funeral home name" style={inputStyle} />
                 <input value={form.directorName} onChange={event => setForm(prev => ({ ...prev, directorName: event.target.value }))} placeholder="Director / owner name" style={inputStyle} />
-                <input value={form.supportEmail} onChange={event => setForm(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Family support email" style={inputStyle} />
-                <input value={form.supportPhone} onChange={event => setForm(prev => ({ ...prev, supportPhone: event.target.value }))} placeholder="Family support phone" style={inputStyle} />
+                <input type="email" value={form.supportEmail} onChange={event => setForm(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Family support email" style={inputStyle} />
+                <input type="tel" value={form.supportPhone} onChange={event => setForm(prev => ({ ...prev, supportPhone: event.target.value }))} placeholder="Family support phone" style={inputStyle} />
                 <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 12 }}>
                   <label style={{ display: 'block', color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Subscription and location slots</label>
                   <select value={form.planId} onChange={event => setForm(prev => ({ ...prev, planId: event.target.value }))} style={{ ...inputStyle, width: '100%', background: C.card }}>
@@ -218,7 +223,7 @@ export default function FuneralHomeSetupPage() {
                 </div>
                 {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 12, padding: 10, fontSize: 13, lineHeight: 1.45 }}>{error}</div>}
                 <button disabled={loading} style={{ border: 'none', background: loading ? C.border : C.sage, color: '#fff', borderRadius: 13, minHeight: 52, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: loading ? 'wait' : 'pointer' }}>
-                  {loading ? 'Creating workspace...' : 'Create workspace and open command center'}
+                  {loading ? 'Creating workspace...' : 'Create workspace and open funeral-home dashboard'}
                 </button>
               </form>
             )}
