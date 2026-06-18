@@ -345,7 +345,7 @@ export default function VendorRequestPage() {
                 ))}
               </div>
               <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
-                Vendors only see scoped request details. The family record, private notes, unrelated requests, and payout internals stay outside this request view.
+                Vendors only see scoped request details. The family record, private notes, unrelated requests, and payout details stay outside this request view.
               </div>
             </div>
 
@@ -409,7 +409,7 @@ export default function VendorRequestPage() {
                     </div>
                     <button onClick={() => setPendingVendorAction('')} aria-label="Close vendor response" style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                   </div>
-                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and request. It does not expose the full estate, and it does not send a live family message from this screen.</p>
+                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and request. It does not expose the full family record, and it does not send a live family message from this screen.</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                     <label style={labelStyle}>Estimated quote<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                     <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
@@ -423,7 +423,7 @@ export default function VendorRequestPage() {
                   <label style={{ ...labelStyle, marginTop: 9 }}>Service instructions<textarea value={serviceNotes} onChange={(e) => setServiceNotes(e.target.value)} placeholder="Arrival instructions, delivery details, proof expected, or what the family should know." style={{ ...inputStyle, minHeight: 62, resize: 'vertical' }} /></label>
                   {request.payment_collection_status && (
                     <div style={{ marginTop: 9, fontSize: 12.5, color: C.mid, lineHeight: 1.45 }}>
-                      Payment and fee details stay private. The vendor sees only the quote, scheduling, and completion details needed to respond.
+                      Payment and payout details stay private. The vendor sees only the quote, scheduling, and completion details needed to respond.
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
@@ -578,7 +578,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
     <div style={cardStyle}>
       <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor dashboard</div>
       <h1 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{vendor.business_name}</h1>
-      <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests appear only when Passage recommends you inside a relevant family request. Responding updates the scoped request status; this is not a public marketplace inbox.</p>
+      <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>Your business is approved. Requests appear only when Passage recommends you inside a relevant family request. Responding updates the scoped request status; this is not a public listing or open inbox.</p>
       <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginBottom: 14 }}>
         <strong style={{ color: C.ink }}>Vendor scope:</strong> see the request, urgency, family-facing context, and response status. The family record keeps approvals, proof, and broader coordination without exposing unrelated details.
       </div>

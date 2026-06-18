@@ -251,7 +251,7 @@ function requestContract(kind, estate, item) {
   };
   return {
     label: 'Your part',
-    action: 'Accept it if you can help, mark waiting if you are stuck, or ask for help.',
+    action: 'Choose I own this if you can help, mark waiting if you need something, or ask the coordinator for help.',
     authority: 'You are responsible for this request only, not the whole family record.',
     serviceLine,
     payer: 'The coordinator will see your update.'
@@ -466,7 +466,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <button onClick={() => setDetailsOpen(true)} style={{ border: 'none', background: 'transparent', color: C.sage, fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, padding: '9px 0 0', cursor: 'pointer' }}>Open details, proof, and visibility</button>
           {(pendingAction || detailsOpen) && (
             <div onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-              <div role="dialog" aria-modal="true" aria-label="Respond to assigned request" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+              <div role="dialog" aria-modal="true" aria-label="Respond to your request" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em' }}>Request response</div>
@@ -901,7 +901,7 @@ export default function ParticipatingPage() {
               </div>
               {[
                 ['See your part', 'Only the assigned request, details, and safe service context appear.'],
-                ['Answer once', 'Accept it, ask for help, mark waiting, save a note, or close with proof.'],
+                ['Answer once', 'Choose I own this, ask for help, mark waiting, save a note, or close with proof.'],
                 ['Coordinator sees it', 'Your update returns to the family record with status, note, and timestamp.'],
               ].map(([title, body]) => (
                 <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '15px 16px' }}>
@@ -949,7 +949,7 @@ export default function ParticipatingPage() {
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, marginBottom: 14 }}>
                   <div style={{ fontSize: 17, color: C.ink, lineHeight: 1.35, marginBottom: 6 }}>The one thing to answer first</div>
                   <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65 }}>
-                    Accept it, ask for details, or record what happened. Your update goes back to the coordinator, and you can stop after this responsibility is handled.
+                    Choose I own this, ask for details, or record what happened. Your update goes back to the coordinator, and you can stop after this responsibility is handled.
                   </div>
                 </div>
               )}
