@@ -714,7 +714,7 @@ export default function FuneralHomeDashboard() {
       setActivePartnerView('manage');
       const emailHint = params.get('email');
       if (emailHint) setPartnerEmail(emailHint);
-      setNotice('Partner invite opened. Sign in with the invited email, then confirm brand, locations, employees, and first cases.');
+      setNotice('Workspace invite opened. Sign in with the invited email, then confirm brand, locations, employees, and first cases.');
     }
   }, []);
 
@@ -790,7 +790,7 @@ export default function FuneralHomeDashboard() {
     const useDemoContext = demoMode && !token;
     const res = await fetch(useDemoContext ? '/api/partnerContext?demo=1' : '/api/partnerContext', token ? { headers: { Authorization: 'Bearer ' + token } } : undefined);
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) setError(json.error || 'Could not load partner dashboard.');
+    if (!res.ok) setError(json.error || 'Could not load the funeral-home dashboard.');
     else setData(json);
     setLoading(false);
   }
@@ -823,7 +823,7 @@ export default function FuneralHomeDashboard() {
   async function partnerAuthedFetch(url, options = {}) {
     const freshToken = await getFreshPartnerToken();
     if (!freshToken) {
-      return new Response(JSON.stringify({ error: 'Sign in to your partner workspace before changing live case work.' }), {
+      return new Response(JSON.stringify({ error: 'Sign in to your funeral-home workspace before changing live case work.' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -901,7 +901,7 @@ export default function FuneralHomeDashboard() {
         password: partnerPassword,
       });
       if (authError) {
-        setError(authError.message || 'Could not sign in with that partner account.');
+        setError(authError.message || 'Could not sign in with that funeral-home account.');
         return;
       }
       const session = authData?.session;
@@ -914,7 +914,7 @@ export default function FuneralHomeDashboard() {
         await load(session.access_token);
         await loadPreferredVendors(session.access_token);
       }
-      setNotice('Partner dashboard opened. Cases, staff work, reports, and proof are ready below.');
+      setNotice('Funeral-home dashboard opened. Cases, staff work, reports, and proof are ready below.');
     } finally {
       setSigningIn(false);
     }
@@ -1294,7 +1294,7 @@ export default function FuneralHomeDashboard() {
 
     if (demoMode || !token) {
       applyLocal(action === 'accept'
-        ? 'Family request accepted into the partner queue. No live message was sent.'
+        ? 'Family request accepted into the funeral-home queue. No live message was sent.'
         : action === 'convert'
           ? 'Inbound marked converted for reporting.'
           : 'Inbound request updated.');
@@ -1321,7 +1321,7 @@ export default function FuneralHomeDashboard() {
         funeralHomeRequests: (prev.funeralHomeRequests || []).map(item => item.id === request.id ? { ...item, ...updatedRequest } : item),
       } : prev);
       setNotice(json.confirmation || (action === 'accept'
-        ? 'Family request accepted. The family record is now ready to coordinate from the partner case list.'
+        ? 'Family request accepted. The family record is now ready to coordinate from the funeral-home case list.'
         : 'Family request updated.'));
     } finally {
       setUpdating('');
@@ -1380,7 +1380,7 @@ export default function FuneralHomeDashboard() {
             ...(prev.partnerLocations || []).filter(location => String(location.name || '').toLowerCase() !== name.toLowerCase()),
           ],
         } : prev);
-        setNotice(json.confirmation || 'Location saved. It is now available in partner setup and reporting.');
+        setNotice(json.confirmation || 'Location saved. It is now available in workspace setup and reporting.');
         setLocationDraft({ name: '', address: '', city: '', state: '', zip: '', country: '', placeId: '' });
         setShowLocationSetup(false);
       }
@@ -1631,7 +1631,7 @@ export default function FuneralHomeDashboard() {
     const res = await fetch('/api/partnerExport' + exportQuery(view), { headers: { Authorization: 'Bearer ' + token } });
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
-      setError(json.error || 'Could not export partner cases.');
+      setError(json.error || 'Could not export funeral-home cases.');
       return;
     }
     const blob = await res.blob();
@@ -2516,7 +2516,7 @@ export default function FuneralHomeDashboard() {
     ['Local support', vendorPrefs.preferred?.length ? `${vendorPrefs.preferred.length} preferred` : 'Choose approved vendors', (vendorPrefs.preferred || []).length > 0],
   ];
   const pilotLaunchRows = [
-    ['1', 'Workspace', org?.name ? `${org.name} is active` : 'Create partner workspace', !!org?.name],
+    ['1', 'Workspace', org?.name ? `${org.name} is active` : 'Create funeral-home workspace', !!org?.name],
     ['2', 'Locations', isMultiLocation ? `${locations.length} visible` : 'Main location ready; CSV can add more', locations.length > 0],
     ['3', 'Employees', partnerStaff.length ? `${partnerStaff.length} assignable` : 'Add director, manager, staff', partnerStaff.length > 0],
     ['4', 'Cases', cases.length ? `${cases.length} case${cases.length === 1 ? '' : 's'} loaded` : 'Import CSV or create fresh', cases.length > 0],
@@ -2796,7 +2796,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {user && loading && <div style={{ color: C.soft }}>Loading partner cases...</div>}
+        {user && loading && <div style={{ color: C.soft }}>Loading funeral-home cases...</div>}
         {user && error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 14, padding: 16, color: C.rose }}>{error}</div>}
         {user && notice && <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 14, padding: 16, color: C.sage, marginBottom: 10 }}>{notice}</div>}
         {user && !loading && data?.demoData && (
@@ -2925,7 +2925,7 @@ export default function FuneralHomeDashboard() {
         {false && user && !loading && data && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '11px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner dashboard</div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Funeral-home dashboard</div>
               <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.4, marginTop: 3 }}>Cases are the work surface. Setup, lifecycle, import, and exports stay behind tools until needed.</div>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -3320,8 +3320,8 @@ export default function FuneralHomeDashboard() {
               <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Partner setup path</div>
-                    <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>Set up once, then reuse the same cases, locations, staff, roles, and vendors from every estate task assignment.</div>
+                    <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Workspace setup path</div>
+                    <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 3 }}>Set up once, then reuse the same cases, locations, staff, roles, and vendors from every family-record work assignment.</div>
                   </div>
                   <div style={{ color: C.soft, fontSize: 11.5, fontWeight: 900 }}>Locations come from case/import data today.</div>
                 </div>
@@ -3908,7 +3908,7 @@ export default function FuneralHomeDashboard() {
                     ['Director', 'All cases, all locations, employee setup, reports, exports, and billing prompts.'],
                     ['Location manager', 'Cases and reports for their location scope; can move work and assign staff.'],
                     ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close work items.'],
-                    ['Admin', 'Partner account setup and billing/admin prompts; use sparingly for owners.'],
+                    ['Admin', 'Account setup and billing prompts; use sparingly for owners.'],
                   ].map(([title, body]) => (
                     <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
                       <div style={{ color: C.ink, fontSize: 13, fontWeight: 900 }}>{title}</div>
@@ -4214,7 +4214,7 @@ export default function FuneralHomeDashboard() {
                   <button key={vendor.id} onClick={() => togglePreferredVendor(vendor)} disabled={updating === 'vendor_' + vendor.id} style={{ textAlign: 'left', border: `1px solid ${isPreferred ? C.sage : C.border}`, background: isPreferred ? C.sageFaint : C.bg, borderRadius: 13, padding: 11, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>
                     <div style={{ color: C.ink, fontSize: 13.5, fontWeight: 900 }}>{vendor.business_name}</div>
                     <div style={{ color: C.mid, fontSize: 11.5, marginTop: 3 }}>{vendor.category?.replace(/_/g, ' ')}</div>
-                    <div style={{ color: isPreferred ? C.sage : C.soft, fontSize: 11, fontWeight: 900, marginTop: 6 }}>{isPreferred ? 'Preferred in tasks' : 'Click to prefer'}</div>
+                    <div style={{ color: isPreferred ? C.sage : C.soft, fontSize: 11, fontWeight: 900, marginTop: 6 }}>{isPreferred ? 'Preferred for requests' : 'Click to prefer'}</div>
                   </button>
                 );
               })}
@@ -4364,8 +4364,8 @@ export default function FuneralHomeDashboard() {
 
         {user && !loading && data && data.organizations.length === 0 && !showNewCase && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
-            <div style={{ fontSize: 22, marginBottom: 8 }}>Create your partner workspace.</div>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Create the first partner case to open the staff dashboard.</p>
+            <div style={{ fontSize: 22, marginBottom: 8 }}>Create your funeral-home workspace.</div>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Create the first funeral-home case to open the staff dashboard.</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
             </div>
@@ -4703,7 +4703,7 @@ export default function FuneralHomeDashboard() {
                         <span style={{ background: C.card, color: nextOwner === 'Unassigned' ? C.amber : C.sage, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900 }}>{nextOwner}</span>
                       </div>
                       <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.45, marginTop: 7 }}>
-                        {nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'Nothing needs partner action right now.'}
+                        {nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'Nothing needs funeral-home action right now.'}
                       </div>
                       {false && <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 7 }}>
                         Passage keeps this on the family continuity record. The funeral home is the current operating partner, not a separate case island.
@@ -5427,7 +5427,7 @@ function PartnerDirectorFocus({ riskItems, inboxItems, caseItems, isMultiLocatio
             tone={C.sage}
             bg={C.sageFaint}
             title={firstCase ? (firstCase.caseItem.deceased_name || firstCase.caseItem.estate_name || firstCase.caseItem.name || 'Family case') : 'No open case work'}
-            body={firstCase ? `${sharedTaskTitle(firstCase.task)} - ${sharedTaskNext(firstCase.task, 'funeral_home')}` : 'Nothing needs partner action right now.'}
+            body={firstCase ? `${sharedTaskTitle(firstCase.task)} - ${sharedTaskNext(firstCase.task, 'funeral_home')}` : 'Nothing needs funeral-home action right now.'}
             cta={firstCase ? 'Open work' : ''}
             onClick={firstCase ? () => onOpenCase(firstCase.caseItem.id) : null}
           />
