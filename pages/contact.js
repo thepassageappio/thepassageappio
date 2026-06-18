@@ -45,6 +45,7 @@ function SupportEmail() {
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', category: categories[0], urgency: 'Normal', message: '' });
   const [state, setState] = useState('idle');
+  const [errorMessage, setErrorMessage] = useState('');
   const meetingReady = isMeetingCategory(form.category);
   const meetingHref = calendlyUrl({ name: form.name, email: form.email, source: form.category });
 
@@ -76,17 +77,28 @@ export default function ContactPage() {
     e.preventDefault();
     trackEvent('contact_submit_clicked', { category: form.category, urgency: form.urgency, meetingReady });
     setState('sending');
-    const r = await fetch('/api/supportInquiry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-    if (r.ok) {
-      trackEvent('contact_submit_succeeded', { category: form.category, urgency: form.urgency, meetingReady });
-      setForm({ name: '', email: '', category: categories[0], urgency: 'Normal', message: '' });
-      setState('sent');
-    } else {
-      trackEvent('contact_submit_failed', { category: form.category, status: r.status });
+    setErrorMessage('');
+    try {
+      const r = await fetch('/api/supportInquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const responseBody = await r.json().catch(() => ({}));
+      if (r.ok) {
+        trackEvent('contact_submit_succeeded', { category: form.category, urgency: form.urgency, meetingReady });
+        setForm({ name: '', email: '', category: categories[0], urgency: 'Normal', message: '' });
+        setState('sent');
+      } else {
+        const message = responseBody?.error || 'Something did not send. Please email support@thepassageapp.io.';
+        trackEvent('contact_submit_failed', { category: form.category, status: r.status, reason: message });
+        setErrorMessage(message);
+        setState('error');
+      }
+    } catch (error) {
+      const message = 'Something did not send. Please email support@thepassageapp.io.';
+      trackEvent('contact_submit_failed', { category: form.category, reason: 'network_error' });
+      setErrorMessage(message);
       setState('error');
     }
   }
@@ -145,7 +157,7 @@ export default function ContactPage() {
             {state === 'sending' ? 'Sending...' : meetingReady ? 'Send context instead' : 'Submit inquiry'}
           </button>
           {state === 'sent' && <p style={{ color: C.sage, fontSize: 13, lineHeight: 1.6 }}>We received it. Thank you.</p>}
-          {state === 'error' && <p style={{ color: C.rose, fontSize: 13, lineHeight: 1.6 }}>Something did not send. Please email <SupportEmail />.</p>}
+          {state === 'error' && <p style={{ color: C.rose, fontSize: 13, lineHeight: 1.6 }}>{errorMessage || <>Something did not send. Please email <SupportEmail />.</>}</p>}
         </form>
       </section>
       <style jsx>{`
