@@ -164,7 +164,8 @@ const personaSourceChecks = [
     label: 'Shared communication wording source',
     requires: ['Accept the request, mark it done', 'work item remains the source of truth', 'proof stays on the scoped request'],
     forbids: ['Accept it, mark it done', 'task remains the source of truth', 'proof stays on the task'],
-  },  {
+  },
+  {
     path: 'components/App.js',
     label: 'Family homepage and dashboard source',
     requires: ['Open sample case', 'Start urgent path', 'Prepare during care', 'Plan ahead', 'One family record', 'Active plan', 'Who owns each next step', 'Prepared output'],
