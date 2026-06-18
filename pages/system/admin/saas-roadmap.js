@@ -54,11 +54,11 @@ const takeaways = [
   ['Persona UAT matrix', 'Source audit guarded / browser blocked', 'Source-audited funeral-home dashboard/staff/cases, vendor onboard/login/request, participant helper requests, care-provider landing, and admin readiness gates for language clarity, action ownership, waiting point, proof, and privacy boundary. Browser-controlled UAT is still blocked by local Chrome/in-app browser bridge and www remains stale, so final persona signoff is not complete.'],
   ['Task-card and request-card clarity', 'Source hardened / deploy blocked by rate limit', 'Family and funeral-home cards now use a concrete operator contract: 1. do next, owner, waiting party, message to send or use, status/proof, and privacy boundary. Shared action confirmations, exports, owner assignment hints, bulk assignment notices, help text, dialogs, reports, and expected-update copy now default to next-step/request/work-item language so internal task wording is less likely to leak across personas. The visual model must always show who is involved, who owns the next step, what message Passage prepared, what the user does now, what is waiting, and where proof saves. Public/vendor/helper wording favors request, record, owner, waiting point, proof, and next step; participant confirmations and dialogs now say request instead of task, and vendor/care-provider copy no longer leaks task wording or noisy payout-fee language into scoped external requests. Latest deploy still needs custom-domain/browser verification after www routing and Chrome automation are corrected.'],
   ['Form validation UAT', 'Source fixed / live domain stale', 'Vendor onboarding now requires business name, ZIPs, and email before submit state, care-provider inquiry shows required organization plus email, and funeral-home setup now requires funeral-home name plus main location before creating a dashboard. Recheck live once www points at latest main.'],
-  ['Admin session UAT', 'Source fixed / live recheck blocked', 'Admin users now get a visible System Admin entrance from normal signed-in pages. Recheck on www after the correct production domain is pointing at latest main.'],
+  ['Admin session UAT', 'Source fixed / live recheck blocked', 'Admin users now get a dedicated Admin action outside the public audience nav, and System Admin remains the single internal cabinet. Recheck on www after the correct production domain is pointing at latest main.'],
   ['Release configuration', 'P0 duplicate production targets', 'GitHub reports two Vercel production contexts on each commit: thepassageappio and you-are-working-on-a-production. Middleware now adds X-Passage-Commit and no-store headers for non-static responses; still confirm which project owns www, remove or disable the stray production target, and purge Cloudflare/cache before public promotion.'],
   ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; enterprise readiness now uses task readiness / partner workflow language instead of spine jargon, and no standalone roadmap/QA/admin top-level tabs should exist.'],
   ['Funeral-home product UX', 'Source simplified / deploy verification pending', 'Director/staff dashboard now uses Case at a glance, Recommended next action, work-card contracts, one primary action, one waiting action, collapsed More actions, what Passage prepared, what staff does next, waiting point, proof saves, needs-help wording, family-visible proof, and customer-safe setup, invite, queue, vendor preference, and billing language with visible pilot wording and raw plan ids removed from the customer dashboard. Setup now uses funeral-home/customer language, a logged-out recommended next action, a required-info gate, direct demo-dashboard access, and first next-step/work-card wording instead of partner/task wording. Inbound family requests now show clean contact separators and operator-safe accept/decline/convert controls. Authenticated UAT must verify My Day and work cards once browser/domain access is usable.'],
-  ['Family, care, and participant UX', 'Source simplified / deploy blocked by rate limit', 'B2C, urgent, planning, hospice/care-prep, and participant requests now favor family record, request, next step, owner, waiting point, and proof. Family homepage/dashboard copy now says who owns each next step, prepared output, proof, active plan, and next-step lists without broken placeholder separators. Participant request dialogs, vendor owner/request surfaces, and care-provider pages now reinforce scoped access, request status, saved proof, page purpose, not-dashboard boundaries, required-field hints, recommended next actions, care-team inquiry language, and plain request/family-record language instead of assigned-request or marketplace wording. Live www must still be rechecked after routing/cache is fixed and Vercel deploys resume.'],
+  ['Family, care, participant, and vendor UX', 'Source simplified / deploy blocked by rate limit', 'B2C, urgent, planning, hospice/care-prep, participant, vendor, and care-provider flows now favor family record, request, next step, owner, waiting point, proof, and scoped access. Family homepage/dashboard copy now says who owns each next step, prepared output, proof, active plan, and next-step lists without broken placeholder separators. Participant and vendor surfaces now say own the request, show what is waiting, save completion proof, and approve quote before work starts instead of accept/mark-completed/task language. Vendor onboarding, care-provider inquiry, hospice/care-prep, contact, and funeral-home public copy now use provider/care-team/waiting-point language and avoid vague partner/stuck/internal wording. Live www must still be rechecked after routing/cache is fixed and Vercel deploys resume.'],
   ['Automation layer', 'Source updated / deploy blocked by rate limit', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
   ['Abuse and refresh controls', 'Source green / deploy blocked by rate limit', 'Outbound sends, reminders, partner invites, staff invites, prep emails, Google lookups, voice calls, family-update fanout, funeral-home requests, and admin readiness refreshes now have source-level cooldowns, QA-safe email routing, and readiness evidence.'],
 ];
@@ -66,11 +66,11 @@ const takeaways = [
 const sprints = [
   {
     name: 'Sprint 1: Boundary and public clarity',
-    status: 'Source green / live domain stale',
+    status: 'Source guarded / live domain stale',
     owner: 'Product + QA',
     goal: 'Make it impossible for external users to see owner-only strategy, QA, or admin concepts.',
     tasks: [
-      'Keep shared header free of internal tabs; show System Admin only to true admin users and on system routes.',
+      'Keep shared header audience-led; show the dedicated Admin action only to true system admins and keep all internal tools inside System Admin.',
       'Keep public readiness checks blocking ARR, sprint, roadmap, QA, founder/internal language, command center, family task, and coordination spine.',
       'Audit homepage, funeral-home, urgent, planning, hospice/care-prep, pricing, contact, participants, vendors, and care-provider pages after every deploy; verify the X-Passage-Commit header matches latest main; block launch if www serves older copy than the latest green main deployment.',
       'Move any internal tool discovery into System Admin instead of creating new top-level tabs.',
@@ -107,17 +107,17 @@ const sprints = [
   },
   {
     name: 'Sprint 4: Persona UAT pass',
-    status: 'Active UAT / release routing P0',
+    status: 'Active source UAT / release routing P0',
     owner: 'QA persona lead',
     goal: 'Walk every role end to end on desktop and mobile.',
     tasks: [
       'Family coordinator: urgent setup, planning setup, care-prep record, one recommended next action, what Passage prepares, where proof saves, approvals, family updates, and aftercare.',
-      'Participant/helper: one scoped request, one response path, privacy boundary, authority boundary, needs-help/waiting state, and saved proof.',
+      'Participant/helper: one scoped request, one response path, privacy boundary, authority boundary, own/show-waiting/help/done-with-proof actions, and saved proof.',
       'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing, inbound family requests, and clear work-card contracts.',
       'Funeral-home employee: assigned work, context, drafted message, waiting/stuck-point state, family-visible boundary, close-with-proof, and no unclear extra actions.',
-      'Vendor: scoped request, quote/update, payment state, service proof, no family-record browsing, and required-field validation that never feels stuck.',
+      'Vendor: scoped request, quote/update, quote approval, scheduled work, completion proof, no family-record browsing, and required-field validation that never feels stuck.',
     ],
-    acceptance: 'Every persona has one clear next action and no internal product language.',
+    acceptance: 'Every persona has one clear next action, action pending/status/proof language, and no internal product language.',
   },
   {
     name: 'Sprint 5: Pilot-to-revenue operating system',
