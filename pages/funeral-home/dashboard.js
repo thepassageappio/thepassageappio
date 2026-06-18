@@ -4763,7 +4763,7 @@ export default function FuneralHomeDashboard() {
                     </div>}
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-                    <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{item.tasks.length} tasks</span>
+                    <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{item.tasks.length} work items</span>
                     <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{partnerTasks.length} partner-ready</span>
                     {waitingFamily.length > 0 && <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{waitingFamily.length} waiting on family</span>}
                     {blocked > 0 && <span style={{ background: C.roseFaint, color: C.rose, borderRadius: 999, padding: '4px 9px', fontSize: 11, fontWeight: 800 }}>{blocked} need help</span>}
@@ -4881,7 +4881,7 @@ export default function FuneralHomeDashboard() {
                     });
                     const packetPreviewLines = packetText.split('\n').filter(Boolean).slice(0, 10);
                     const packetPurpose = output.label || 'Prepared case output';
-                    const packetUse = 'This is the task work product: review it, print or save it as a Passage-branded PDF, then use Mark done to save it as proof. Nothing sends automatically.';
+                    const packetUse = 'This is the prepared work product: review it, print or save it as a Passage-branded PDF, then use Save proof to attach it to the case. Nothing sends automatically.';
                     const coordinationRows = [
                       {
                         label: 'Conversation',
@@ -4921,7 +4921,7 @@ export default function FuneralHomeDashboard() {
                             <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{taskClosed ? 'This task is already handled. Passage keeps the proof, owner, notification, and family-visible status together.' : 'Pick one step. Passage keeps the owner, request, proof, and family-visible status on the same family record.'}</div>
                             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
                               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', marginBottom: 8 }}>
-                                <strong style={{ color: C.ink }}>What this task is:</strong> {explanation.what}
+                                <strong style={{ color: C.ink }}>What this work item is:</strong> {explanation.what}
                                 <br />
                                 <strong style={{ color: C.ink }}>What done means:</strong> {explanation.done}
                               </div>
