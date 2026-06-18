@@ -203,10 +203,27 @@ const personaSourceChecks = [
     forbids: ['Task response', 'task the family assigned to you', 'assigned tasks', 'more tasks assigned to you', 'Respond to assigned task', 'Respond to assigned request', 'Accept it if you can help', 'mark waiting if you are stuck', 'Accept it, ask for help', 'accept it, mark what is waiting', 'You can accept it', 'task status', 'The task stays open', 'keeps the task open', 'keeps the task visible'],
   },
   {
+    path: 'pages/funeral-home/index.js',
+    label: 'Funeral-home public source',
+    requires: ['A calmer way to keep families and staff aligned.', 'assigned work and context', 'Could not start checkout.'],
+    forbids: ['assigned tasks', 'Could not start partner checkout', 'ARR target', '$300k', 'pilot proof'],
+  },
+  {
+    path: 'pages/hospice.js',
+    label: 'Hospice and care-prep source',
+    requires: ['waiting points', 'Care-provider inquiries', 'Provider handoff'],
+    forbids: ['stuck points', 'Care-provider partnerships', 'task spine'],
+  },
+  {
+    path: 'pages/contact.js',
+    label: 'Contact source',
+    requires: ['Funeral home inquiry', 'provider conversations immediately'],
+    forbids: ['Funeral home / partner inquiry', 'partner conversations immediately'],
+  },  {
     path: 'pages/vendors/onboard.js',
     label: 'Vendor onboarding source',
-    requires: ['Required: business name, service ZIPs, and email', 'Add business name, service ZIPs, and email to submit', 'Recommended next action: book a vendor conversation', 'Nothing appears to families until Passage approves the partner'],
-    forbids: ['marketplace fee', 'public marketplace inbox', 'browse family records'],
+    requires: ['Required: business name, service ZIPs, and email', 'Add business name, service ZIPs, and email to submit', 'Recommended next action: book a vendor conversation', 'Nothing appears to families until Passage approves the provider'],
+    forbids: ['marketplace fee', 'public marketplace inbox', 'browse family records', 'support partner', 'approves the partner', 'Funeral home partner information'],
   },
   {
     path: 'pages/vendors/request.js',
@@ -218,7 +235,7 @@ const personaSourceChecks = [
     path: 'components/CareProviderLanding.js',
     label: 'Care-provider source',
     requires: ['Help families leave care with a clearer next step.', 'Purpose of this page', 'not an operating dashboard', 'Care team inquiry', 'Add organization name and contact email to send the inquiry', 'Recommended next action: book a short walkthrough', 'Family owned', 'Scoped access', 'Proof based'],
-    forbids: ['task outcomes', 'full operating dashboard', 'partner spine', 'Partner inquiry', 'Start partner inquiry', 'Send partner inquiry', 'Partner fit', 'Partner paths'],
+    forbids: ['task outcomes', 'full operating dashboard', 'partner spine', 'Partner inquiry', 'Start partner inquiry', 'Send partner inquiry', 'Partner fit', 'Partner paths', 'partnership inquiry', 'downstream partners', 'Partnerships are reviewed'],
   },
 ];
 
