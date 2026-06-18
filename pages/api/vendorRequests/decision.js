@@ -39,8 +39,8 @@ export default async function handler(req, res) {
   const allowed = await userCanAccessWorkflow(auth.user, request.workflows);
   if (!allowed) return res.status(403).json({ error: 'You do not have access to this family record.' });
 
-  if (!['accepted', 'quoted'].includes(request.status) && action === 'approve_quote') {
-    return res.status(409).json({ error: 'A vendor quote must be ready before it can be accepted.' });
+  if (!['accepted', 'quoted', 'family_accepted'].includes(request.status) && action === 'approve_quote') {
+    return res.status(409).json({ error: 'A vendor quote must be ready before it can be approved.' });
   }
 
   const now = new Date().toISOString();
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     workflowId: request.workflow_id,
     taskId: request.task_id,
     taskTitle: request.task_title,
-    status: action === 'approve_quote' ? 'waiting' : 'blocked',
+    status: action === 'approve_quote' ? 'waiting' : 'needs_help',
     actor: auth.user.email || 'Family coordinator',
     actorRole: request.workflows?.organization_id ? 'funeral_home' : 'family_coordinator',
     channel: 'vendor',

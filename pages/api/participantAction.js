@@ -25,9 +25,9 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
   const deceased = workflow.deceased_name || workflow.name || 'this estate';
   const statusLine = status === 'done' || status === 'handled' ? 'marked this as handled'
     : status === 'pending' || status === 'waiting' ? 'updated this as waiting'
-    : status === 'acknowledged' ? 'accepted this task'
-    : status === 'blocked' ? 'needs help with this task'
-    : 'updated this task';
+    : status === 'acknowledged' ? 'accepted this request'
+    : status === 'blocked' ? 'needs help with this request'
+    : 'updated this request';
   const html = passageEmailShell({
     eyebrow: 'Participant update',
     title: `${actorEmail} ${statusLine}.`,
@@ -35,7 +35,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     sections: [
       {
         label: 'Family record',
-        html: `Estate: <strong style="color:#1a1916;">${escapeHtml(deceased)}</strong><br/>Task: <strong style="color:#1a1916;">${escapeHtml(taskTitle || 'Assigned task')}</strong>`,
+        html: `Estate: <strong style="color:#1a1916;">${escapeHtml(deceased)}</strong><br/>Request: <strong style="color:#1a1916;">${escapeHtml(taskTitle || 'Assigned request')}</strong>`,
       },
       notes ? {
         label: 'Participant note',
@@ -46,7 +46,7 @@ async function notifyCoordinator({ workflowId, actorEmail, status, action, taskT
     ctaLabel: 'Open family record',
     ctaUrl: `${SITE_URL}/estate?id=${workflowId}`,
   });
-  const subject = passageSubject('Participant update', taskTitle || 'task updated');
+  const subject = passageSubject('Participant update', taskTitle || 'request updated');
 
   const route = routeEmailRecipients([to]);
   if (!route.actual.length) {
@@ -275,7 +275,7 @@ export default async function handler(req, res) {
 
   const existing = await loadParticipantRecord({ table, kind, emailColumn, id, email });
   if (existing.error) return res.status(500).json({ error: existing.error.message });
-  if (!existing.data) return res.status(404).json({ error: 'No matching task found for this email.' });
+  if (!existing.data) return res.status(404).json({ error: 'No matching request found for this email.' });
   const existingStatus = effectiveRecordStatus(existing.data);
   if (isTerminalStatus(existingStatus) && normalizedAction !== 'save_note') {
     return res.status(409).json({
@@ -296,21 +296,21 @@ export default async function handler(req, res) {
       updates: { notes: trimmedNotes, updated_at: new Date().toISOString() },
     });
     if (error) return res.status(500).json({ error: error.message });
-    if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
+    if (!data) return res.status(404).json({ error: 'No matching request found for this email.' });
 
     await recordTaskCommunicationEvent({
       verb: 'update',
       workflowId: data.workflow_id,
       taskId: kind === 'task' ? data.id : null,
       actionId: kind === 'action' ? data.id : null,
-      taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
+      taskTitle: data.title || data.task_title || data.subject || 'Assigned request',
       status: data.status || 'in_progress',
       actor: email,
       actorRole: 'participant',
       channel: 'participant',
       recipient: email,
       recipientRole: 'family_coordinator',
-      detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - note saved',
+      detail: (data.title || data.task_title || data.subject || 'Assigned request') + ' - note saved',
       visibility: 'family',
     });
 
@@ -319,7 +319,7 @@ export default async function handler(req, res) {
       actorEmail: email,
       status: data.status || 'waiting',
       action,
-      taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
+      taskTitle: data.title || data.task_title || data.subject || 'Assigned request',
       notes: trimmedNotes,
     });
 
@@ -329,7 +329,7 @@ export default async function handler(req, res) {
       action: normalizedAction,
       status: effectiveRecordStatus(data) || 'in_progress',
       confirmation: taskActionConfirmation('save_note', data, 'participant'),
-      eventDetail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - note saved',
+      eventDetail: (data.title || data.task_title || data.subject || 'Assigned request') + ' - note saved',
     });
   }
 
@@ -338,7 +338,7 @@ export default async function handler(req, res) {
     ? 'acknowledged'
     : status;
   if (taskActionRequiresNote(action) && !trimmedNotes) {
-    return res.status(400).json({ error: 'Add a short proof or blocker note before saving this update.' });
+    return res.status(400).json({ error: 'Add a short proof or needs-help note before saving this update.' });
   }
   const terminalStatus = isTerminalStatus(status);
   const actorName = userData.user.user_metadata?.full_name || email;
@@ -376,20 +376,20 @@ export default async function handler(req, res) {
   });
 
   if (error) return res.status(500).json({ error: error.message });
-  if (!data) return res.status(404).json({ error: 'No matching task found for this email.' });
+  if (!data) return res.status(404).json({ error: 'No matching request found for this email.' });
   await recordTaskCommunicationEvent({
     verb: terminalStatus ? 'prove' : status === 'blocked' ? 'escalate' : status === 'acknowledged' ? 'assign' : 'update',
     workflowId: data.workflow_id,
     taskId: kind === 'task' ? data.id : null,
     actionId: kind === 'action' ? data.id : null,
-    taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
+    taskTitle: data.title || data.task_title || data.subject || 'Assigned request',
     status,
     actor: email,
     actorRole: 'participant',
     channel: 'participant',
     recipient: email,
     recipientRole: 'family_coordinator',
-    detail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + normalizedAction.replace(/_/g, ' '),
+    detail: (data.title || data.task_title || data.subject || 'Assigned request') + ' - ' + normalizedAction.replace(/_/g, ' '),
     visibility: 'family',
     eventType: taskActionEventType(action, 'participant'),
     eventTitle: taskActionEventTitle(action, 'Participant'),
@@ -399,7 +399,7 @@ export default async function handler(req, res) {
     actorEmail: email,
     status,
     action,
-    taskTitle: data.title || data.task_title || data.subject || 'Assigned task',
+    taskTitle: data.title || data.task_title || data.subject || 'Assigned request',
     notes: trimmedNotes,
   });
   return res.status(200).json({
@@ -408,6 +408,6 @@ export default async function handler(req, res) {
     action: normalizedAction,
     status,
     confirmation: taskActionConfirmation(action, data, 'participant'),
-    eventDetail: (data.title || data.task_title || data.subject || 'Assigned task') + ' - ' + normalizedAction.replace(/_/g, ' '),
+    eventDetail: (data.title || data.task_title || data.subject || 'Assigned request') + ' - ' + normalizedAction.replace(/_/g, ' '),
   });
 }
