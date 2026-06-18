@@ -1132,7 +1132,7 @@ export default function FuneralHomeDashboard() {
             partnerTasks: (item.partnerTasks || []).map(t => ids.has(t.id) ? { ...t, assigned_to_name: payload.name || payload.email, assigned_to_email: payload.email, recipient: payload.email, last_actor: payload.actor, last_action_at: now } : t),
           } : item),
         } : prev);
-        setNotice(`${ids.size} demo task${ids.size === 1 ? '' : 's'} assigned. In a live workspace this updates the shared case record and staff queue.`);
+        setNotice(`${ids.size} demo task${ids.size === 1 ? '' : 's'} assigned. In a live dashboard this updates the shared case record and staff queue.`);
         setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
         return;
       }
@@ -1157,7 +1157,7 @@ export default function FuneralHomeDashboard() {
             partnerTasks: (item.partnerTasks || []).map(t => ids.has(t.id) ? { ...t, assigned_to_name: payload.name || payload.email, assigned_to_email: payload.email, recipient: payload.email, last_actor: payload.actor, last_action_at: new Date().toISOString() } : t),
           } : item),
         } : prev);
-        setNotice(json.confirmation || 'Case tasks assigned. Staff can now work from their queue.');
+        setNotice(json.confirmation || 'Case work assigned. Staff can now work from their queue.');
         setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
         await load(await getFreshPartnerToken());
       }
@@ -1911,7 +1911,7 @@ export default function FuneralHomeDashboard() {
       `You have been added to Passage as ${role}.`,
       `Location scope: ${locationScope === 'all' ? 'All locations' : locationScope}.`,
       '',
-      'Your first screen is My work: assigned case tasks, service timing, what is waiting, and the proof field. You only need to move the work you own.',
+      'Your first screen is My work: assigned case work, service timing, what is waiting, and the proof field. You only need to move the work you own.',
       '',
       'When something is handled, waiting, or needs family input, record that update in Passage so the family record and director view stay aligned.',
       '',
@@ -2662,7 +2662,7 @@ export default function FuneralHomeDashboard() {
       <section className="partner-dashboard-shell" data-demo-anchor="demo-page-primary">
         <div className="partner-dashboard-hero" style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
           <div>
-            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Funeral-home workspace</div>
+            <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Funeral-home dashboard</div>
             <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral-home sign-in'}</h1>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 680, marginTop: 8 }}>{!user ? 'Sign in with your invited work email to open My Day, cases, staff work, family updates, proof, and exports.' : needsFirstDaySetup ? 'First finish setup: confirm locations, add employees, and create or import the first case. My Day becomes useful after real work exists.' : 'Start with My Day, then open the case, task, owner, proof, or report that needs attention.'}</p>
             {user && org && (
@@ -2711,7 +2711,7 @@ export default function FuneralHomeDashboard() {
         {!user && (
           <div style={{ maxWidth: 540 }}>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 18, padding: '16px 18px', marginBottom: 12 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Funeral-home workspace</div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Funeral-home dashboard</div>
               <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.25, marginBottom: 8 }}>
                 {router.query.staff === '1' ? 'Staff sign-in opens assigned work.' : router.query.partner === '1' ? 'Director sign-in opens setup and My Day.' : 'What opens after sign-in'}
               </div>
@@ -2741,7 +2741,7 @@ export default function FuneralHomeDashboard() {
               </div>
             </div>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
-            <div style={{ fontSize: 28, lineHeight: 1.12, marginBottom: 8 }}>Sign in to your funeral-home workspace.</div>
+            <div style={{ fontSize: 28, lineHeight: 1.12, marginBottom: 8 }}>Sign in to your funeral-home dashboard.</div>
             <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Only staff connected to your funeral-home organization can view cases, staff assignments, proof, and exports.</p>
             {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, padding: 11, color: C.rose, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45, marginBottom: 10 }}>{error}</div>}
             <form onSubmit={signInWithPassword} style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
@@ -3011,7 +3011,7 @@ export default function FuneralHomeDashboard() {
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>First-day setup</div>
                 <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.16, marginTop: 4 }}>Set up the workspace, then load cases one of two ways.</div>
-                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>After setup, every case task reuses the same locations, saved employees, roles, family contacts, and preferred local support. Nobody should retype the same owner list case by case.</div>
+                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>After setup, every case reuses the same locations, saved employees, roles, family contacts, and preferred local support. Nobody should retype the same owner list case by case.</div>
               </div>
               <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, maxWidth: 250 }}>Pilot-safe: imports preview first, invite messages are copied only, and no email or SMS is sent automatically.</div>
             </div>
@@ -3555,7 +3555,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 9 }}>
                     <div>
                       <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Employees</div>
-                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Saved employees become the owner list inside every case task. Invites stay prepared until your team sends them.</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Saved employees become the owner list inside every case. Invites stay prepared until your team sends them.</div>
                     </div>
                     <button onClick={() => setShowStaffSetup(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
                   </div>
@@ -3845,7 +3845,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 9 }}>
                   <div>
                     <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Active employees</div>
-                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Directors, location managers, and staff become the owner list inside every case task.</div>
+                    <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 3 }}>Directors, location managers, and staff become the owner list inside every case.</div>
                   </div>
                   <button onClick={() => setShowStaffSetup(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Add employee</button>
                 </div>
@@ -4274,7 +4274,7 @@ export default function FuneralHomeDashboard() {
               </label>
             </div>
             <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>
-              This case will be created under {caseForm.funeralHomeName || org?.name || 'your funeral-home workspace'}{caseForm.locationName ? ` - ${caseForm.locationName}` : ''}. Staff see only the work their role and location allow.
+              This case will be created under {caseForm.funeralHomeName || org?.name || 'your funeral-home dashboard'}{caseForm.locationName ? ` - ${caseForm.locationName}` : ''}. Staff see only the work their role and location allow.
             </div>
             <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 11, marginTop: 10 }}>
               <SmartAddressInput
