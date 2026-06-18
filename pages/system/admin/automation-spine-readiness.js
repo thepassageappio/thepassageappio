@@ -56,8 +56,8 @@ export default function AutomationSpineReadinessPage() {
 
   useEffect(() => { if (admin) runCheck(); }, [admin]);
 
-  if (loading) return <Shell user={user}><Panel>Loading automation spine readiness...</Panel></Shell>;
-  if (!admin) return <Shell user={user}><Panel><div style={eyebrow}>Owner-only automation spine</div><h1 style={h1}>This readiness view is restricted.</h1><p style={lead}>Sign in with the Passage owner account to inspect task, reminder, delivery, and proof health.</p><button onClick={signIn} style={primaryButton}>Sign in</button></Panel></Shell>;
+  if (loading) return <Shell user={user}><Panel>Loading task and message readiness...</Panel></Shell>;
+  if (!admin) return <Shell user={user}><Panel><div style={eyebrow}>Owner-only task and message readiness</div><h1 style={h1}>This readiness view is restricted.</h1><p style={lead}>Sign in with the Passage owner account to inspect task, message, owner, waiting, delivery, and proof health.</p><button onClick={signIn} style={primaryButton}>Sign in</button></Panel></Shell>;
 
   const summary = result?.summary || {};
   const gates = result?.gates || [];
@@ -68,7 +68,7 @@ export default function AutomationSpineReadinessPage() {
     <Shell user={user} onSignOut={signOut}>
       <section style={wrap}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <div><div style={eyebrow}>System admin / automation spine</div><h1 style={h1}>The task spine has to be boringly reliable before it can be sold.</h1><p style={lead}>This owner-only check turns hidden operational risk into a conversion gate: assignment, waiting hygiene, blockers, stale at-need work, proof capture, delivery telemetry, and reminder runtime.</p></div>
+          <div><div style={eyebrow}>System admin / task and message readiness</div><h1 style={h1}>Tasks, messages, owners, and proof must be unmistakable.</h1><p style={lead}>Every card should answer: what needs to happen, who owns it, who or what is waiting, what message is prepared, what the family or vendor can see, and where proof saves.</p></div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={runCheck} disabled={checking} style={primaryButton}>{checking ? 'Checking...' : 'Run check'}</button><Link href="/system/admin/pilot-health" style={secondaryLink}>Pilot Health</Link><Link href="/system/admin/conversion-plan" style={secondaryLink}>Conversion Plan</Link><Link href="/system/admin/funeral-home-qa" style={secondaryLink}>QA Gates</Link></div>
         </div>
 
@@ -83,16 +83,18 @@ export default function AutomationSpineReadinessPage() {
           <Metric label="Unassigned" value={summary.unassignedOpenTasks || 0} />
           <Metric label="Waiting" value={summary.waitingTasks || 0} />
           <Metric label="Proof gaps" value={summary.handledWithoutProof || 0} />
+          <Metric label="Card clarity gaps" value={summary.cardContractGaps || 0} />
+          <Metric label="Message route gaps" value={summary.messageRouteGaps || 0} />
           <Metric label="7-day events" value={summary.statusEventsLast7Days || 0} />
         </section>}
 
         {result && <section style={sectionBlock}>
-          <h2 style={h2}>Conversion gates</h2>
+          <h2 style={h2}>Operating gates</h2>
           <div style={gateList}>{gates.map(item => <Gate key={item.id} item={item} />)}</div>
         </section>}
 
         {result && <section style={sectionBlock}>
-          <h2 style={h2}>Case risk queue</h2>
+          <h2 style={h2}>Cases that need attention</h2>
           {!cases.length && <Panel>No active cases were returned by the readiness check.</Panel>}
           <div style={caseGrid}>{cases.map(item => <CaseCard key={item.id} item={item} />)}</div>
         </section>}

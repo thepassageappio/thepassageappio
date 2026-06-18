@@ -4807,8 +4807,8 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
             <div className="home-proof-links" aria-label="See Passage examples">
               <a
                 className="home-proof-link"
-                href="/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard"
-                onClick={() => trackEvent('homepage_sample_workspace_clicked', { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard' })}
+                href="/funeral-home/sample-case"
+                onClick={() => trackEvent('homepage_sample_case_clicked', { href: '/funeral-home/sample-case' })}
               >
                 Open sample case
               </a>

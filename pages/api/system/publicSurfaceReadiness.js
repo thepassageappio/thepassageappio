@@ -11,7 +11,7 @@ const GOOGLE_ADDRESS_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOG
 const publicChecks = [
   {
     path: '/',
-    requires: ['Open sample funeral-home workspace', 'Start urgent path', 'Plan ahead'],
+    requires: ['Open sample case', 'Start urgent path', 'Plan ahead'],
   },
   {
     path: '/funeral-home',
@@ -51,7 +51,7 @@ const publicChecks = [
   },
   {
     path: '/vendors/request?demo=1',
-    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request spine'],
+    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path'],
   },
   {
     path: '/pricing',
@@ -99,6 +99,15 @@ const forbiddenPublicText = [
   'Internal note',
   'source of truth',
   'assigned task spine',
+  'task spine',
+  'case spine',
+  'coordination spine',
+  'Simple request spine',
+  'Proof console',
+  'proof console',
+  'funeral-home console',
+  'sample funeral-home console',
+  'Spine',
   'Proof and notify',
   'Mark done with proof',
   'Tracked platform fee',

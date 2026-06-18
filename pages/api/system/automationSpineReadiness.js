@@ -118,7 +118,7 @@ function summarizeCase(workflow, tasks, events, actions) {
   if (staleOpen.length) risks.push(`${staleOpen.length} open task${staleOpen.length === 1 ? '' : 's'} are stale past 24 hours.`);
   if (handledWithoutProof.length) risks.push(`${handledWithoutProof.length} handled task${handledWithoutProof.length === 1 ? '' : 's'} need proof notes.`);
   if (staleActions.length) risks.push(`${staleActions.length} workflow action${staleActions.length === 1 ? '' : 's'} drifted past 48 hours.`);
-  if (!recentEvents.length && tasks.length) risks.push('No recent task-status event proves the case spine is recording state.');
+  if (!recentEvents.length && tasks.length) risks.push('No recent task-status event proves status is being recorded.');
 
   let grade = 'healthy';
   if (risks.length >= 3 || blockedTasks.length || staleOpen.length >= 3) grade = 'critical';
@@ -199,6 +199,8 @@ export default async function handler(req, res) {
   const handledWithoutProof = tasks.filter(task => isDone(task) && !proofText(task));
   const overdueFollowUps = openTasks.filter(task => task.follow_up_at && new Date(task.follow_up_at).getTime() < Date.now());
   const staleActions = actions.filter(action => !isDone(action) && isOlderThan(action.last_action_at || action.updated_at, 48));
+  const messageRouteGaps = actions.filter(action => !isDone(action) && String(action.channel || '').trim() && !String(action.recipient || '').trim());
+  const cardContractGaps = openTasks.filter(task => !hasOwner(task) || !String(task.waiting_on || task.recipient || task.notes || '').trim()).length + handledWithoutProof.length;
   const deliveryFailures = notifications.filter(item => /fail|bounce|error|undeliver/i.test(String(item.status || item.error_message || '')));
   const providerEvents = events.filter(event => event.provider || event.provider_message_id);
 
@@ -219,6 +221,8 @@ export default async function handler(req, res) {
     gate('blocker_queue', 'Blockers are visible and small', blockedTasks.length ? 'blocked' : 'ready', `${blockedTasks.length} task(s) are blocked, failed, or need review.`, 'Clear blockers before conversion asks or high-volume onboarding.'),
     gate('stale_sla', 'At-need work is fresh inside 24 hours', staleOpen.length ? 'blocked' : 'ready', `${staleOpen.length} open task(s) are stale past 24 hours.`, 'Refresh stale at-need work or record a waiting reason.'),
     gate('proof_capture', 'Handled work has proof', handledWithoutProof.length ? 'warning' : 'ready', `${handledWithoutProof.length} handled task(s) lack proof notes or saved detail.`, 'Require proof, reference, timestamp, or actor before closeout.'),
+    gate('card_contract', 'Cards explain action, owner, waiting party, and proof', cardContractGaps ? 'warning' : 'ready', `${cardContractGaps} open or handled task card(s) miss the simple action/owner/waiting/proof contract.`, 'Every visible task or request card should answer what to do, who owns it, who or what is waiting, what message is prepared, and where proof saves.'),
+    gate('message_route_hygiene', 'Prepared messages have a route', messageRouteGaps.length ? 'blocked' : 'ready', `${messageRouteGaps.length} open workflow action(s) have a channel without a recipient.`, 'Do not show a prepared send action until the person, channel, and privacy boundary are clear.'),
     gate('follow_up_queue', 'Follow-up promises do not expire silently', overdueFollowUps.length ? 'warning' : 'ready', `${overdueFollowUps.length} open task(s) have overdue follow-up timestamps.`, 'Send reminder, clear the wait, or update the next follow-up.'),
     gate('delivery_telemetry', 'Delivery and status events are flowing', events.length ? (deliveryFailures.length ? 'warning' : 'ready') : 'warning', `${events.length} task status event(s), ${providerEvents.length} provider event(s), ${deliveryFailures.length} delivery failure(s) in 7 days.`, 'Confirm reminders/webhooks are writing status events and failures are visible.'),
     gate('workflow_action_drift', 'Workflow actions do not drift', staleActions.length ? 'warning' : 'ready', `${staleActions.length} workflow action(s) are open past 48 hours.`, 'Either close, reassign, or turn the action into a named blocker.'),
@@ -248,6 +252,8 @@ export default async function handler(req, res) {
       unassignedOpenTasks: unassignedOpen.length,
       staleOpenTasks: staleOpen.length,
       handledWithoutProof: handledWithoutProof.length,
+      cardContractGaps,
+      messageRouteGaps: messageRouteGaps.length,
       overdueFollowUps: overdueFollowUps.length,
       staleWorkflowActions: staleActions.length,
       statusEventsLast7Days: events.length,
