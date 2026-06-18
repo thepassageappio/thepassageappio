@@ -94,6 +94,58 @@ function proofText(task) {
   return String(task?.notes || task?.waiting_on || task?.proof_required || task?.last_actor || '').trim();
 }
 
+function routeText(row) {
+  return String(row?.recipient || row?.assigned_to_email || row?.assigned_to_name || '').trim();
+}
+
+function taskEventMatches(task, event) {
+  return Boolean((event?.task_id && task?.id && event.task_id === task.id) || (event?.workflow_id && task?.workflow_id && event.workflow_id === task.workflow_id));
+}
+
+function taskAutomationReadiness(task, taskEvents = []) {
+  const owner = hasOwner(task);
+  const route = routeText(task);
+  const waitingDetail = String(task?.waiting_on || task?.notes || '').trim();
+  const proof = proofText(task);
+  const channel = String(task?.channel || '').trim();
+  const recentEvent = taskEvents.some(event => taskEventMatches(task, event));
+  const open = !isDone(task);
+  const blockers = [];
+
+  if (!owner) blockers.push('owner missing');
+  if (isBlocked(task)) blockers.push('needs-help state');
+  if (isWaiting(task) && !waitingDetail) blockers.push('waiting detail missing');
+  if (isDone(task) && !proof) blockers.push('proof missing');
+  if (channel && !route) blockers.push('message recipient missing');
+  if (open && isOlderThan(task?.last_action_at || task?.updated_at || task?.created_at, 24) && !waitingDetail) blockers.push('stale without waiting reason');
+
+  const criticalBlocker = blockers.some(item => /owner|recipient|needs-help/.test(item));
+  let level = 'manual';
+  if (!blockers.length && owner && (proof || waitingDetail || route) && recentEvent) level = 'automated';
+  else if (!criticalBlocker && owner && (proof || waitingDetail || route)) level = 'semi_automated';
+
+  return { taskId: task?.id, workflowId: task?.workflow_id, level, blockers, automatable: level !== 'manual' };
+}
+
+function summarizeAutomation(rows = []) {
+  const counts = { automated: 0, semiAutomated: 0, manual: 0 };
+  const blockerCounts = {};
+  rows.forEach(row => {
+    if (row.level === 'automated') counts.automated += 1;
+    else if (row.level === 'semi_automated') counts.semiAutomated += 1;
+    else counts.manual += 1;
+    row.blockers.forEach(blocker => { blockerCounts[blocker] = (blockerCounts[blocker] || 0) + 1; });
+  });
+  const total = rows.length;
+  const automatable = counts.automated + counts.semiAutomated;
+  return {
+    ...counts,
+    total,
+    automatable,
+    automationReadyPercent: total ? Math.round((automatable / total) * 100) : 0,
+    topBlockers: Object.entries(blockerCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([label, count]) => ({ label, count })),
+  };
+}
 function caseName(workflow) {
   return workflow?.deceased_name || workflow?.estate_name || workflow?.name || 'Unnamed case';
 }
@@ -109,6 +161,8 @@ function summarizeCase(workflow, tasks, events, actions) {
   const caseActions = actions.filter(action => action.workflow_id === workflow.id);
   const staleActions = caseActions.filter(action => !isDone(action) && isOlderThan(action.last_action_at || action.updated_at, 48));
   const recentEvents = events.filter(event => event.workflow_id === workflow.id || event.task_id && tasks.some(task => task.id === event.task_id));
+  const automationRows = tasks.map(task => taskAutomationReadiness(task, events.filter(event => taskEventMatches(task, event))));
+  const automation = summarizeAutomation(automationRows);
 
   const risks = [];
   if (!tasks.length) risks.push('No tasks are attached to this case.');
@@ -141,7 +195,12 @@ function summarizeCase(workflow, tasks, events, actions) {
       handledWithoutProof: handledWithoutProof.length,
       staleActions: staleActions.length,
       recentEvents: recentEvents.length,
+      automatedTasks: automation.automated,
+      semiAutomatedTasks: automation.semiAutomated,
+      manualTasks: automation.manual,
+      automationReadyPercent: automation.automationReadyPercent,
     },
+    automation,
     risks: risks.slice(0, 5),
     nextAction: risks[0] || 'Keep the case moving and preserve proof on every closeout.',
   };
@@ -203,6 +262,15 @@ export default async function handler(req, res) {
   const cardContractGaps = openTasks.filter(task => !hasOwner(task) || !String(task.waiting_on || task.recipient || task.notes || '').trim()).length + handledWithoutProof.length;
   const deliveryFailures = notifications.filter(item => /fail|bounce|error|undeliver/i.test(String(item.status || item.error_message || '')));
   const providerEvents = events.filter(event => event.provider || event.provider_message_id);
+  const automationRows = tasks.map(task => taskAutomationReadiness(task, events.filter(event => taskEventMatches(task, event))));
+  const automationSummary = summarizeAutomation(automationRows);
+  const automationCoverageStatus = automationSummary.total === 0
+    ? 'blocked'
+    : automationSummary.automationReadyPercent >= 80
+      ? 'ready'
+      : automationSummary.automationReadyPercent >= 50
+        ? 'warning'
+        : 'blocked';
 
   const caseSummaries = workflows.map(workflow => summarizeCase(
     workflow,
@@ -226,6 +294,7 @@ export default async function handler(req, res) {
     gate('follow_up_queue', 'Follow-up promises do not expire silently', overdueFollowUps.length ? 'warning' : 'ready', `${overdueFollowUps.length} open task(s) have overdue follow-up timestamps.`, 'Send reminder, clear the wait, or update the next follow-up.'),
     gate('delivery_telemetry', 'Delivery and status events are flowing', events.length ? (deliveryFailures.length ? 'warning' : 'ready') : 'warning', `${events.length} task status event(s), ${providerEvents.length} provider event(s), ${deliveryFailures.length} delivery failure(s) in 7 days.`, 'Confirm reminders/webhooks are writing status events and failures are visible.'),
     gate('workflow_action_drift', 'Workflow actions do not drift', staleActions.length ? 'warning' : 'ready', `${staleActions.length} workflow action(s) are open past 48 hours.`, 'Either close, reassign, or turn the action into a named blocker.'),
+    gate('automation_coverage', 'Automation level is measurable', automationCoverageStatus, `${automationSummary.automated} automated, ${automationSummary.semiAutomated} semi-automated, ${automationSummary.manual} manual; ${automationSummary.automationReadyPercent}% automatable.`, 'Clear owner, waiting detail, recipient route, proof, and stale-state blockers until the system can draft or complete more work without guesswork.'),
     gate('reminder_runtime', 'Reminder runtime can authenticate itself', process.env.PASSAGE_INTERNAL_API_SECRET ? 'ready' : 'blocked', process.env.PASSAGE_INTERNAL_API_SECRET ? 'Internal orchestration secret is configured.' : 'PASSAGE_INTERNAL_API_SECRET is missing.', 'Configure the internal secret before relying on scheduled reminders.'),
     gate('email_runtime', 'Outbound email provider is configured', process.env.RESEND_API_KEY ? 'ready' : 'warning', process.env.RESEND_API_KEY ? 'Resend API key is configured.' : 'RESEND_API_KEY is not configured.', 'Configure email before promising automated family or staff reminders.'),
   ];
@@ -258,9 +327,15 @@ export default async function handler(req, res) {
       staleWorkflowActions: staleActions.length,
       statusEventsLast7Days: events.length,
       deliveryFailuresLast7Days: deliveryFailures.length,
+      automatedTasks: automationSummary.automated,
+      semiAutomatedTasks: automationSummary.semiAutomated,
+      manualTasks: automationSummary.manual,
+      automationReadyPercent: automationSummary.automationReadyPercent,
+      automationBlockedTasks: automationSummary.manual,
       blockedGates: blocked,
       warningGates: warnings,
     },
+    automation: automationSummary,
     gates,
     cases: caseSummaries.slice(0, 25),
     sourceErrors: [
