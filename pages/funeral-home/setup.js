@@ -22,16 +22,16 @@ const C = {
 };
 
 const setupOutcomes = [
-  ['1', 'Confirm dashboard', 'Name, co-branding, owner, support contact, subscription, and first location.'],
+  ['1', 'Confirm customer dashboard', 'Name, support contact, subscription, and first location.'],
   ['2', 'Add operating roles', 'Invite directors and staff so each person starts in the right permission lane.'],
   ['3', 'Create first case', 'Add one real family case or import the case list from the system you already use.'],
-  ['4', 'Assign first next action', 'Every live case should show the owner, waiting point, drafted ask, and proof destination.'],
+  ['4', 'Assign the first next step', 'Every live case should show what staff does next, who owns it, who we are waiting on, the drafted message, and where proof saves.'],
 ];
 
 const doneRows = [
-  ['First task owner', 'A director can see who owns the next action before opening the full case.'],
+  ['First next-step owner', 'A director can see who owns the next step before opening the full case.'],
   ['First family update', 'A family-facing message is drafted for review. Nothing sends automatically.'],
-  ['First proof packet', 'Release, service detail, task outcome, and note proof have a place to land.'],
+  ['First proof packet', 'Release, service detail, work outcome, and note proof have a place to land.'],
 ];
 
 export default function FuneralHomeSetupPage() {
@@ -59,6 +59,7 @@ export default function FuneralHomeSetupPage() {
   });
 
   const selectedPlan = partnerPlanFor(form.planId);
+  const setupReady = Boolean(form.organizationName.trim() && form.locationAddress.trim());
 
   useEffect(() => {
     if (!supabase?.auth) return undefined;
@@ -114,6 +115,7 @@ export default function FuneralHomeSetupPage() {
       return;
     }
     if (!token) return setError('Sign in before creating the dashboard.');
+    if (!setupReady) return setError('Add funeral-home name and main location address before creating the dashboard.');
     setLoading(true);
     setError('');
     const response = await fetch('/api/partnerSelfServeSetup', {
@@ -138,7 +140,7 @@ export default function FuneralHomeSetupPage() {
     });
     const json = await response.json().catch(() => ({}));
     setLoading(false);
-    if (!response.ok) return setError(json.error || 'Could not create the partner dashboard.');
+    if (!response.ok) return setError(json.error || 'Could not create the funeral-home dashboard.');
     router.push(`/funeral-home/dashboard?partner=1&email=${encodeURIComponent(user.email)}`);
   }
 
@@ -148,10 +150,10 @@ export default function FuneralHomeSetupPage() {
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '30px 24px 60px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.8fr) minmax(320px,1fr)', gap: 16, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 26, boxShadow: '0 14px 38px rgba(55,45,35,.06)' }}>
-            <div style={eyebrow}>Partner setup</div>
+            <div style={eyebrow}>Funeral-home setup</div>
             <h1 style={{ fontSize: 52, lineHeight: 1, margin: '10px 0 12px', fontWeight: 400 }}>Create the funeral-home dashboard.</h1>
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65, margin: 0 }}>
-              Start with the organization, owner, subscription, and first location. Setup is complete only when the team can open a case and immediately see the next action, owner, waiting point, family update, and proof destination.
+              Start with the funeral-home name, owner, subscription, and first location. Setup is complete only when staff can open a case and see what to do next, who owns it, who Passage is waiting on, the family message, and where proof saves.
             </p>
             <div style={{ display: 'grid', gap: 8, marginTop: 18 }}>
               {setupOutcomes.map(([number, title, body]) => (
@@ -162,7 +164,7 @@ export default function FuneralHomeSetupPage() {
               ))}
             </div>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginTop: 14 }}>
-              <strong style={{ color: C.ink }}>What done means:</strong> the first case has an owner, a visible next action, a drafted family message, and a proof packet destination before the team starts using Passage with families.
+              <strong style={{ color: C.ink }}>What done means:</strong> the first case has an owner, a visible next step, a drafted family message, and a proof packet destination before the team starts using Passage with families.
             </div>
           </div>
 
@@ -183,6 +185,9 @@ export default function FuneralHomeSetupPage() {
             ) : (
               <form onSubmit={createWorkspace} style={{ display: 'grid', gap: 10 }}>
                 <div style={eyebrow}>Dashboard details</div>
+                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
+                  <strong style={{ color: C.ink }}>Recommended next action:</strong> add the funeral-home name and main location first. Then open the dashboard, create one real case, assign the next-step owner, and confirm where proof saves.
+                </div>
                 <input required value={form.organizationName} onChange={event => setForm(prev => ({ ...prev, organizationName: event.target.value }))} placeholder="Funeral home name" style={inputStyle} />
                 <input value={form.directorName} onChange={event => setForm(prev => ({ ...prev, directorName: event.target.value }))} placeholder="Director / owner name" style={inputStyle} />
                 <input type="email" value={form.supportEmail} onChange={event => setForm(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Family support email" style={inputStyle} />
@@ -202,15 +207,18 @@ export default function FuneralHomeSetupPage() {
                 <SmartAddressInput
                   label="Main location address"
                   value={form.locationAddress}
-                  onChange={(value, parsed = {}) => setForm(prev => ({
-                    ...prev,
-                    locationAddress: value,
-                    city: parsed.city || prev.city,
-                    state: parsed.state || prev.state,
-                    zip: parsed.postalCode || parsed.zip || prev.zip,
-                    country: parsed.country || prev.country,
-                    placeId: parsed.placeId || prev.placeId,
-                  }))}
+                  onChange={(value, parsed = {}) => {
+                    setError('');
+                    setForm(prev => ({
+                      ...prev,
+                      locationAddress: value,
+                      city: parsed.city || prev.city,
+                      state: parsed.state || prev.state,
+                      zip: parsed.postalCode || parsed.zip || prev.zip,
+                      country: parsed.country || prev.country,
+                      placeId: parsed.placeId || prev.placeId,
+                    }));
+                  }}
                   colors={C}
                   placeholder="Start typing the location address"
                 />
@@ -222,8 +230,9 @@ export default function FuneralHomeSetupPage() {
                   ))}
                 </div>
                 {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 12, padding: 10, fontSize: 13, lineHeight: 1.45 }}>{error}</div>}
-                <button disabled={loading} style={{ border: 'none', background: loading ? C.border : C.sage, color: '#fff', borderRadius: 13, minHeight: 52, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: loading ? 'wait' : 'pointer' }}>
-                  {loading ? 'Creating dashboard...' : 'Create dashboard and open funeral-home dashboard'}
+                {!setupReady && <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>Add required info: funeral-home name and main location address.</div>}
+                <button disabled={loading || !setupReady} style={{ border: 'none', background: loading || !setupReady ? C.border : C.sage, color: '#fff', borderRadius: 13, minHeight: 52, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: loading ? 'wait' : setupReady ? 'pointer' : 'not-allowed', opacity: loading || !setupReady ? .72 : 1 }}>
+                  {loading ? 'Creating dashboard...' : setupReady ? 'Create dashboard and open funeral-home dashboard' : 'Add required info'}
                 </button>
               </form>
             )}

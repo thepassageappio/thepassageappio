@@ -178,6 +178,12 @@ const personaSourceChecks = [
     forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}', 'Task / request', 'Proof loop', 'Task action'],
   },
   {
+    path: 'pages/funeral-home/setup.js',
+    label: 'Funeral-home setup source',
+    requires: ['Funeral-home setup', 'Recommended next action', 'Add required info: funeral-home name and main location address.', 'First next-step owner', 'work outcome'],
+    forbids: ['Partner setup', 'First task owner', 'task outcome', 'Could not create the partner dashboard.'],
+  },
+  {
     path: 'pages/participating.js',
     label: 'Participant request source',
     requires: ['Open the family request assigned to you.', 'Your one request', 'Action needed', 'Waiting on', 'Status and proof', 'Access boundary'],
