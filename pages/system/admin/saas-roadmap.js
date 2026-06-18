@@ -50,11 +50,11 @@ const takeaways = [
   ['Public funeral-home page', 'Reworked', 'Removed ARR/pilot-proof sales math from the funeral-home page and reframed it around calmer family/staff coordination.'],
   ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; public navigation is now audience-led and system routes render a System Admin boundary.'],
   ['Public surface scan', 'Green', 'Main public routes scan clean for owner revenue goals, roadmap language, sprint labels, QA language, and admin leakage.'],
-  ['Live public UAT sweep', 'In progress', 'Browser sweep found no console errors on public routes, confirmed the estate demo action-contract language, and flagged the sample funeral-home workspace as the next clarity fix while Vercel deployment quota is paused.'],
+  ['Live public UAT sweep', 'Blocked by release routing', 'Source deploys are succeeding, but www.thepassageapp.io is still serving an older public build. Treat domain/alias routing as P0 before LinkedIn promotion, paid pilots, or final persona QA signoff.'],
   ['Persona browser UAT matrix', 'In progress', 'Checked funeral-home buyer, workspace demo, sample case, staff, cases, setup, urgent family, planning, estate demo, participants, care providers, hospice, assisted living, vendors, vendor request/login/onboarding, and system admin gate. No route-level console errors on public/persona surfaces.'],
-  ['Task-language cleanup from UAT', 'Source queued / deploy blocked', 'Removed remaining visible task-spine/case-spine language from sample case, staff, planning, homepage, estate, and workspace demo; renamed family task completion to Save proof / mark done and shared record language.'],
+  ['Task-language cleanup from UAT', 'Source deployed', 'Shared task actions now use one simple contract across roles: I own this, mark waiting, needs help, and mark done with proof. Visible task language should explain what is needed, who owns it, what is waiting, and where proof saves.'],
   ['Form validation UAT', 'Live checked', 'Care-provider empty submit focuses the first required field. Vendor empty submit briefly shows Submitting while native validation resolves, then returns to Submit for review; keep watching for clearer inline required-field messaging.'],
-  ['Admin session UAT', 'Needs recheck', 'Chrome reached /system/admin but did not expose the authenticated admin cabinet and logged a Supabase auth-lock warning; recheck after deploy/auth session refresh before relying on browser-only admin UAT.'],  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; the standalone demo route redirects back into System Admin and no standalone roadmap/QA/admin top-level tabs should exist.'],
+  ['Admin session UAT', 'Source fixed / live recheck blocked', 'Admin users now get a visible System Admin entrance from normal signed-in pages. Recheck on www after the correct production domain is pointing at latest main.'],  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; the standalone demo route redirects back into System Admin and no standalone roadmap/QA/admin top-level tabs should exist.'],
   ['Funeral-home product UX', 'Source simplified / deploy verification pending', 'Director/staff dashboard now uses Case at a glance, Recommended next action, action-contract cards, one primary action, one waiting action, collapsed More actions, what Passage prepared, what staff does next, waiting point, proof saves, needs-help wording, and family-visible proof; authenticated UAT must verify My Day and task cards once deployment quota clears.'],
   ['Family and participant task UX', 'Source simplified / deploy verification pending', 'B2C task panels and participant requests now use Estate action plan, action-contract cards, one primary action, one waiting action, collapsed More actions, collapsed movement explainer, what Passage prepared, what the family does next, where proof saves, needs-help, and one-request language instead of workflow/blocker/workspace jargon.'],
   ['Automation layer', 'Source updated / deploy verification pending', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
@@ -64,25 +64,25 @@ const takeaways = [
 const sprints = [
   {
     name: 'Sprint 1: Boundary and public clarity',
-    status: 'Source green / deploy blocked',
+    status: 'Source green / domain verification blocked',
     owner: 'Product + QA',
     goal: 'Make it impossible for external users to see owner-only strategy, QA, or admin concepts.',
     tasks: [
-      'Keep shared header free of internal tabs except the System Admin entry on /system routes.',
+      'Keep shared header free of internal tabs; show System Admin only to true admin users and on system routes.',
       'Keep public readiness checks blocking ARR, sprint, roadmap, QA, and founder/internal language.',
-      'Audit homepage, funeral-home, pricing, contact, participants, vendors, and care-provider pages after every deploy.',
+      'Audit homepage, funeral-home, pricing, contact, participants, vendors, and care-provider pages after every deploy, and verify www points at the latest main deployment.',
       'Move any internal tool discovery into System Admin instead of creating new top-level tabs.',
     ],
     acceptance: 'A prospect sees only the product value, not Passage operating commentary.',
   },
   {
     name: 'Sprint 2: Funeral-home dashboard simplification',
-    status: 'Source simplified / deploy verification pending',
+    status: 'Source simplified / live domain verification pending',
     owner: 'Product + engineering',
     goal: 'Make funeral-home director and staff workflows obvious, calm, and operationally useful.',
     tasks: [
       'Director dashboard becomes My Day, cases needing action, staff load, family updates, exports, billing, and proof.',
-      'Staff view shows assigned work first as a simple pattern: 1. Do, 2. Ask, 3. Save proof; deeper automation detail stays collapsed until needed.',
+      'Staff view shows assigned work first as a simple pattern: what is needed, owner does next, waiting on, status and proof; deeper automation detail stays collapsed until needed.',
       'Remove demo/sales language from logged-in funeral-home operations.',
       'Use staff-facing terms like needs help, stuck point, family can see, earlier step, and where proof saves instead of blocker, dependency, orchestration, or audit-layer wording.',
       'Add recommended next action based on pre-death, day since death, service window, aftercare, needs-help state, stale waiting, and missing proof.',
@@ -92,7 +92,7 @@ const sprints = [
   },
   {
     name: 'Sprint 3: Automation layer hardening',
-    status: 'Source hardening active / deploy verification pending',
+    status: 'Source hardening active / live domain verification pending',
     owner: 'Engineering + QA',
     goal: 'Make Passage proactive instead of a passive task list.',
     tasks: [
@@ -105,7 +105,7 @@ const sprints = [
   },
   {
     name: 'Sprint 4: Persona UAT pass',
-    status: 'Active UAT while deployment quota clears',
+    status: 'Active UAT / release routing P0',
     owner: 'QA persona lead',
     goal: 'Walk every role end to end on desktop and mobile.',
     tasks: [
