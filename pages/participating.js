@@ -243,7 +243,7 @@ function requestContract(kind, estate, item) {
     payer: 'No payment or honorarium is confirmed inside Passage unless the coordinator adds it in notes.'
   };
   if (kind === 'executor') return {
-    label: 'Responsible family task',
+    label: 'Assigned family request',
     action: 'Choose I own this if you can help, or mark waiting so the family is not guessing.',
     authority: 'Only handle legal, financial, or account steps if you have authority or the coordinator confirms it.',
     serviceLine: 'Estate: ' + (estate?.deceased_name || estate?.name || 'this estate'),
@@ -252,7 +252,7 @@ function requestContract(kind, estate, item) {
   return {
     label: 'Your part',
     action: 'Accept it if you can help, mark waiting if you are stuck, or ask for help.',
-    authority: 'You are responsible for this task only, not the whole estate.',
+    authority: 'You are responsible for this request only, not the whole family record.',
     serviceLine,
     payer: 'The coordinator will see your update.'
   };
