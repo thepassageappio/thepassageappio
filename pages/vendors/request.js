@@ -364,7 +364,7 @@ export default function VendorRequestPage() {
                 ))}
               </div>
               <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
-                Vendors only see scoped request details. The family record, private notes, unrelated requests, and payout details stay outside this request view.
+                Vendors only see scoped request details. The family record, private notes, unrelated requests, and payment setup stay outside this request view.
               </div>
             </div>
 
@@ -444,7 +444,7 @@ export default function VendorRequestPage() {
                   <label style={{ ...labelStyle, marginTop: 9 }}>Work details and proof note<textarea value={serviceNotes} onChange={(e) => setServiceNotes(e.target.value)} placeholder="Arrival instructions, delivery details, proof expected, or what the family should know." style={{ ...inputStyle, minHeight: 62, resize: 'vertical' }} /></label>
                   {request.payment_collection_status && (
                     <div style={{ marginTop: 9, fontSize: 12.5, color: C.mid, lineHeight: 1.45 }}>
-                      Payment and payout details stay private. The vendor sees only the quote, scheduling, and completion details needed to respond.
+                      Payment setup stays private. The vendor sees only the quote, scheduling, and completion details needed to respond.
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
