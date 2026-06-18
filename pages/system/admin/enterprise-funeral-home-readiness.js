@@ -68,8 +68,8 @@ export default function EnterpriseFuneralHomeReadinessPage() {
     <Shell user={user} onSignOut={signOut}>
       <section style={wrap}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <div><div style={eyebrow}>System admin / enterprise funeral-home readiness</div><h1 style={h1}>B2B bones first. B2C gets easy when the partner spine is solid.</h1><p style={lead}>This owner-only gate checks whether funeral-home partners have enterprise-grade structure: locations, roles, cases, task ownership, audit trail, family updates, exports, billing, and controls.</p></div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={runCheck} disabled={checking} style={primaryButton}>{checking ? 'Checking...' : 'Run check'}</button><Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Spine</Link><Link href="/system/admin/conversion-plan" style={secondaryLink}>Conversion Plan</Link><Link href="/system/admin/saas-roadmap" style={secondaryLink}>Roadmap</Link></div>
+          <div><div style={eyebrow}>System admin / enterprise funeral-home readiness</div><h1 style={h1}>B2B bones first. B2C gets easy when the partner workflow is solid.</h1><p style={lead}>This owner-only gate checks whether funeral-home partners have enterprise-grade structure: locations, roles, cases, task ownership, waiting clarity, proof trail, family updates, exports, billing, and controls.</p></div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button onClick={runCheck} disabled={checking} style={primaryButton}>{checking ? 'Checking...' : 'Run check'}</button><Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Task Readiness</Link><Link href="/system/admin/conversion-plan" style={secondaryLink}>Conversion Plan</Link><Link href="/system/admin/saas-roadmap" style={secondaryLink}>Roadmap</Link></div>
         </div>
 
         {error && <Panel tone="risk"><strong>{error}</strong></Panel>}

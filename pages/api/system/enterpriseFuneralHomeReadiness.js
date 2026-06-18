@@ -188,16 +188,16 @@ export default async function handler(req, res) {
         familyUpdates: familyUpdateEvents.length,
       },
       gates,
-      nextAction: gates.find(item => item.status === 'blocked')?.action || gates.find(item => item.status === 'warning')?.action || 'Use this account as the reference enterprise funeral-home pilot.',
+      nextAction: gates.find(item => item.status === 'blocked')?.action || gates.find(item => item.status === 'warning')?.action || 'Use this account as the reference enterprise funeral-home workflow.',
     };
   }).sort((a, b) => a.readinessScore - b.readinessScore || b.metrics.cases - a.metrics.cases);
 
   const gates = [
     gate('enterprise_accounts', 'Enterprise partner accounts exist', accounts.length ? 'ready' : 'blocked', `${accounts.length} funeral-home-like organization(s) found.`, 'Create or classify real funeral-home organizations.'),
     gate('roles_locations', 'Roles and locations are modeled', accounts.some(account => account.metrics.staff >= 2 && account.metrics.locations >= 1) ? 'ready' : 'warning', 'Requires director/staff plus at least one active branch.', 'Make the B2B account structure real before expanding B2C.'),
-    gate('case_task_spine', 'Cases and task spine are active', accounts.some(account => account.metrics.cases && account.metrics.tasks) ? 'ready' : 'blocked', 'At least one account must have cases and tasks.', 'Create/import real cases and move work through the task spine.'),
+    gate('case_task_work', 'Cases and task work are active', accounts.some(account => account.metrics.cases && account.metrics.tasks) ? 'ready' : 'blocked', 'At least one account must have cases and tasks.', 'Create or import real cases and move work through the task workflow.'),
     gate('audit_proof', 'Audit/proof trail exists', accounts.some(account => account.metrics.proofEvents > 0) ? 'ready' : 'blocked', 'At least one account must produce status/proof events.', 'Record handled/waiting/blocked events with actor and timestamp.'),
-    gate('paid_path', 'Paid path is visible', accounts.some(account => account.mrr > 0) ? 'ready' : 'warning', 'At least one account should have an MRR or billing signal.', 'Connect pilot success to Stripe paid plan.'),
+    gate('paid_path', 'Paid path is visible', accounts.some(account => account.mrr > 0) ? 'ready' : 'warning', 'At least one account should have an MRR or billing signal.', 'Connect account success to a Stripe paid plan.'),
   ];
   const readinessScore = score(gates);
   const blocked = gates.filter(item => item.status === 'blocked').length;
