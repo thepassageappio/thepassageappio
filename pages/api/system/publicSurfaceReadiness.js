@@ -7,6 +7,7 @@ const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const authClient = supabaseUrl && supabaseAnon ? createClient(supabaseUrl, supabaseAnon) : null;
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
 const GOOGLE_ADDRESS_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const EXPECTED_COMMIT = process.env.VERCEL_GIT_COMMIT_SHA || '';
 
 const publicChecks = [
   {
@@ -182,6 +183,8 @@ export default async function handler(req, res) {
       const response = await fetch(url, { redirect: 'follow' });
       const html = await response.text();
       const text = visibleText(html);
+      const releaseCommit = response.headers.get('x-passage-commit') || '';
+      const releaseMismatch = Boolean(EXPECTED_COMMIT && releaseCommit !== EXPECTED_COMMIT);
       const missing = check.requires.filter(item => !text.includes(item));
       const lowerText = text.toLowerCase();
       const lowerHtml = html.toLowerCase();
@@ -192,9 +195,12 @@ export default async function handler(req, res) {
         path: check.path,
         url,
         status: response.status,
-        ok: response.ok && missing.length === 0 && forbidden.length === 0,
+        ok: response.ok && missing.length === 0 && forbidden.length === 0 && !releaseMismatch,
         missing,
         forbidden,
+        releaseCommit,
+        expectedCommit: EXPECTED_COMMIT,
+        releaseMismatch,
       });
     } catch (error) {
       results.push({
@@ -229,6 +235,10 @@ export default async function handler(req, res) {
     accessedBy: access.source,
     status: blockers.length ? 'needs_work' : 'ready',
     results,
+    release: {
+      expectedCommit: EXPECTED_COMMIT,
+      checkedSite: SITE_URL,
+    },
     integrations: {
       googleAddressAutocomplete: Boolean(GOOGLE_ADDRESS_KEY),
     },
