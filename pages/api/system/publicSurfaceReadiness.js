@@ -148,6 +148,23 @@ const forbiddenPublicMarkup = [
 
 const personaSourceChecks = [
   {
+    path: 'lib/taskActions.js',
+    label: 'Shared action confirmation source',
+    requires: ['own this next step', 'Proof saved. This next step is marked done.', 'own this request', 'accepted a request'],
+    forbids: ['own this task', 'This task is marked done', 'accepted a task', 'handled a task', 'marked a task waiting', 'updated a task', "normalized === 'acknowledged'"],
+  },
+  {
+    path: 'lib/taskWorkspace.js',
+    label: 'Shared workspace wording source',
+    requires: ['Prepared output and proof trail', 'Prepared output, next action, owner, and proof.', 'proof panel'],
+    forbids: ['Prepared task output', 'Task output and proof trail', 'before the task is closed', 'task proof panel', 'keep the task waiting'],
+  },
+  {
+    path: 'lib/communicationCenter.js',
+    label: 'Shared communication wording source',
+    requires: ['Accept the request, mark it done', 'work item remains the source of truth', 'proof stays on the scoped request'],
+    forbids: ['Accept it, mark it done', 'task remains the source of truth', 'proof stays on the task'],
+  },  {
     path: 'components/App.js',
     label: 'Family homepage and dashboard source',
     requires: ['Open sample case', 'Start urgent path', 'Prepare during care', 'Plan ahead', 'One family record', 'Active plan', 'Who owns each next step', 'Prepared output'],
