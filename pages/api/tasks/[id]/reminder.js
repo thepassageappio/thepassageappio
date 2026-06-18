@@ -41,7 +41,7 @@ function taskSpine(task, {
   recipient,
 } = {}) {
   return {
-    ask: task?.title || 'Assigned Passage task',
+    ask: task?.title || 'Assigned Passage request',
     owner: task?.assigned_to_name || task?.assigned_to_email || recipient || null,
     waiting: waiting || 'Waiting for the assigned person to update this request.',
     proof: proof || 'Reminder status stays attached to this family record.',
@@ -185,7 +185,7 @@ export default async function handler(req, res) {
         : 'Waiting for the assigned person to open the request and respond.',
       proof: dryRun
         ? 'Dry-run reminder returned without calling the provider.'
-        : 'Reminder delivery request and task event are attached to the spine.',
+        : 'Reminder delivery request and family-record event are attached to the family record.',
       notification: dryRun
         ? 'Prepared reminder to ' + (task.assigned_to_name || recipientEmail)
         : 'Sent reminder to ' + (task.assigned_to_name || recipientEmail),

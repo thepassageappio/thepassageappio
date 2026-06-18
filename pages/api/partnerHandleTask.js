@@ -34,16 +34,16 @@ function emailCopyFor(action, { orgName, subjectName, taskTitle }) {
       eyebrow: 'Work needs help',
       subject: passageSubject('Work needs help', taskTitle),
       title: 'The funeral home needs help on this work item.',
-      intro: `${orgName} recorded what is blocking ${taskTitle} for ${subjectName}.`,
+      intro: `${orgName} recorded what is needed for ${taskTitle} for ${subjectName}.`,
       preheader: `${orgName} needs help with ${taskTitle}.`,
-      sectionLabel: 'Blocker saved',
+      sectionLabel: 'Needs-help note saved',
     };
   }
   if (action === 'waiting') {
     return {
       eyebrow: 'Work waiting',
       subject: passageSubject('Work waiting', taskTitle),
-      title: 'The funeral home is waiting on this task.',
+      title: 'The funeral home is waiting on this work item.',
       intro: `${orgName} recorded what is still waiting for ${subjectName}.`,
       preheader: `${orgName} is waiting on ${taskTitle}.`,
       sectionLabel: 'Waiting point saved',
@@ -84,7 +84,7 @@ async function updateTaskWithSchemaFallback(task, updates) {
     remaining = nextRemaining;
   }
 
-  return { error: new Error('Partner task update could not be saved after schema fallback.') };
+  return { error: new Error('Work update could not be saved after schema fallback.') };
 }
 
 export default async function handler(req, res) {
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
   const user = auth.user;
   const actorEmail = String(user?.email || req.body?.actor || '').trim().toLowerCase();
   if (auth.source !== 'internal' && !actorEmail) {
-    return res.status(401).json({ error: 'Your Passage session expired. Refresh, sign in again, and retry this task action.' });
+    return res.status(401).json({ error: 'Your Passage session expired. Refresh, sign in again, and retry this work action.' });
   }
 
   const { taskId, note, sendFamilyEmail } = req.body || {};
