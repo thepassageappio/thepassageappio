@@ -189,7 +189,8 @@ const personaSourceChecks = [
     label: 'Vendor request create API wording',
     requires: ['what you own', 'Send quote or own request', 'Save completion proof'],
     forbids: ['what you accepted', 'Accept or send quote', 'Mark completed', 'This vendor does not match this task'],
-  },  {
+  },
+  {
     path: 'lib/taskActions.js',
     label: 'Shared action confirmation source',
     requires: ['own this next step', 'Proof saved. This next step is marked done.', 'own this request', 'accepted a request'],
