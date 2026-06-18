@@ -146,7 +146,7 @@ export default function VendorAdmin() {
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '22px' }}>
         <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage admin</div>
         <h1 style={{ fontSize: 44, lineHeight: 1.05, margin: '8px 0 16px', fontWeight: 400 }}>Vendor applications</h1>
-        <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.6, maxWidth: 720, marginTop: -4 }}>Review trusted local support partners before they appear inside family tasks. Approval makes the vendor active; the vendor signs in with the application email to manage requests from the vendor page.</p>
+        <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.6, maxWidth: 720, marginTop: -4 }}>Review trusted local support partners before they appear inside family requests. Approval makes the vendor active; the vendor signs in with the application email to manage requests from the vendor page.</p>
 
         <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, margin: '18px 0', display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
@@ -260,7 +260,7 @@ export default function VendorAdmin() {
                 <span style={{ color: vendor.status === 'active' ? C.sage : vendor.status === 'rejected' ? C.rose : C.soft, background: vendor.status === 'rejected' ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '5px 9px', fontSize: 12, fontWeight: 900 }}>{vendor.status}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 12 }}>
-                <div style={{ color: C.mid, fontSize: 13 }}>Availability: {vendor.rush_supported ? `rush${vendor.rush_window_hours ? ` (${vendor.rush_window_hours}h)` : ''}` : 'planned'}{vendor.planned_supported ? ' + planned' : ''} · Payment: {vendor.stripe_connect_account_id ? 'Connect linked' : 'Connect needed'} · Fee {vendor.marketplace_fee_percent ?? 12}%</div>
+                <div style={{ color: C.mid, fontSize: 13 }}>Availability: {vendor.rush_supported ? `rush${vendor.rush_window_hours ? ` (${vendor.rush_window_hours}h)` : ''}` : 'planned'}{vendor.planned_supported ? ' + planned' : ''} ?? Payment: {vendor.stripe_connect_account_id ? 'Connect linked' : 'Connect needed'} ?? Fee {vendor.marketplace_fee_percent ?? 12}%</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button disabled={updating === vendor.id + ':active'} onClick={() => setStatus(vendor.id, 'active')} style={{ ...smallButton, background: C.sage, color: '#fff', borderColor: C.sage }}>{updating === vendor.id + ':active' ? 'Approving...' : 'Approve vendor'}</button>
                   <button disabled={updating === vendor.id + ':inactive'} onClick={() => setStatus(vendor.id, 'inactive')} style={smallButton}>{updating === vendor.id + ':inactive' ? 'Pausing...' : 'Pause'}</button>
@@ -284,7 +284,7 @@ function statusMessage(status, vendor) {
       : 'Vendor approved. Add a contact email so they can sign in and manage their vendor page.';
   }
   if (status === 'inactive') return 'Vendor paused. They will not be recommended inside tasks while paused.';
-  if (status === 'rejected') return 'Vendor rejected. They will not appear in family tasks.';
+  if (status === 'rejected') return 'Vendor rejected. They will not appear in family requests.';
   return 'Vendor updated.';
 }
 

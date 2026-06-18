@@ -42,7 +42,7 @@ function isSystemAdminUser(user) {
 const portalCards = [
   {
     eyebrow: 'Family record',
-    title: 'Open your estate workspace',
+    title: 'Open your family record',
     body: 'For family coordinators managing the shared record, owners, documents, and next steps.',
     href: '/estate',
     action: 'Open my record',
@@ -57,7 +57,7 @@ const portalCards = [
   },
   {
     eyebrow: 'Funeral home director',
-    title: 'Open the partner command center',
+    title: 'Open the partner dashboard',
     body: 'For owners, directors, and managers reviewing cases, staff, warm inbounds, reporting, and setup.',
     href: '/funeral-home/login',
     action: 'Director sign in',
@@ -71,7 +71,7 @@ const portalCards = [
   },
   {
     eyebrow: 'Vendor partner',
-    title: 'Open the vendor workspace',
+    title: 'Open the vendor dashboard',
     body: 'For approved vendors reviewing quote requests, status updates, and completion proof.',
     href: '/vendors/login',
     action: 'Vendor owner portal',
@@ -156,9 +156,9 @@ export default function LoginPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.76fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage sign in</div>
-            <h1 style={{ fontSize: 52, lineHeight: .98, fontWeight: 400, margin: '10px 0 12px' }}>Choose the workspace you need.</h1>
+            <h1 style={{ fontSize: 52, lineHeight: .98, fontWeight: 400, margin: '10px 0 12px' }}>Choose where to continue.</h1>
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.62, margin: 0 }}>
-              Passage has separate front doors for families, invited helpers, funeral-home teams, and vendor partners. The same spine connects the work after you sign in.
+              Passage has separate front doors for families, invited helpers, funeral-home teams, and vendor partners. The same family record connects the work after you sign in, with privacy boundaries for each role.
             </p>
             <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 18 }}>
               {!user && (
@@ -168,7 +168,7 @@ export default function LoginPage() {
               )}
               {user && (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 13, padding: '12px 14px', color: C.mid, fontSize: 13.5, lineHeight: 1.45 }}>
-                  Signed in as <strong style={{ color: C.ink }}>{user.email}</strong>. Choose a workspace below.
+                  Signed in as <strong style={{ color: C.ink }}>{user.email}</strong>. Choose where to continue below.
                 </div>
               )}
               <Link href="/urgent" onClick={() => trackEvent('login_urgent_clicked', { href: '/urgent' })} style={{ minHeight: 48, display: 'inline-flex', alignItems: 'center', border: `1px solid ${C.rose}33`, background: C.roseFaint, color: C.rose, borderRadius: 13, padding: '0 18px', textDecoration: 'none', fontWeight: 900 }}>

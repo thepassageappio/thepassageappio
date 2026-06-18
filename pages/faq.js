@@ -20,7 +20,7 @@ const sections = [
     items: [
       ['What is Passage?', 'Passage is a coordination layer for the practical work around a death or future plan: tasks, owners, messages, proof, documents, and updates.'],
       ['Is Passage an emergency service?', 'No. If there is an emergency, danger, uncertainty about death, or local law requires it, call 911, hospice, police, medical staff, or the appropriate authority directly. Passage helps organize next steps after professional/local judgment.'],
-      ['What happens after I start urgent help?', 'Passage helps identify the situation, show one clear next step, create an estate command center, and track who owns each action.'],
+      ['What happens after I start urgent help?', 'Passage helps identify the situation, show one clear next step, create a family record, and track who owns each action.'],
       ['Can my family customize the workflow?', 'Yes. Passage provides best-practice guidance and workflow structure, but families and professionals can adapt tasks, owners, and notes to their situation.'],
     ],
   },
@@ -69,7 +69,7 @@ export default function FAQPage() {
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 28px 48px' }}>
         <div style={eyebrow}>Passage FAQ</div>
         <h1 style={h1}>Clear answers before anyone has to hunt.</h1>
-        <p style={lead}>Passage is built for coordination, not confusion. These answers explain how families, helpers, funeral homes, and vendors use the same operating spine.</p>
+        <p style={lead}>Passage is built for coordination, not confusion. These answers explain how families, helpers, funeral homes, and vendors use the same shared record without seeing more than they should.</p>
 
         <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', borderRadius: 18, padding: 18, marginTop: 18 }}>
           <div style={{ color: C.rose, fontSize: 12, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Important boundary</div>

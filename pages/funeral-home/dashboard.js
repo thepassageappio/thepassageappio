@@ -722,8 +722,8 @@ export default function FuneralHomeDashboard() {
         personaContext.demoData = true;
         personaContext.isPassageAdmin = adminDemo;
         personaContext.demoLabel = adminDemo
-          ? 'Passage admin demo workspace. Actions are simulated unless you leave demo mode.'
-          : 'Sample funeral-home workspace. Actions are simulated and no live records or messages are changed.';
+          ? 'Passage admin demo dashboard. Actions are simulated unless you leave demo mode.'
+          : 'Sample funeral-home dashboard. Actions are simulated and no live records or messages are changed.';
         setDemoMode(true);
         setUser(sessionUser || publicDemoUser);
         setToken(sessionToken || '');
@@ -1435,7 +1435,7 @@ export default function FuneralHomeDashboard() {
     setSelectedLocation('all');
     setExpandedCaseId(caseId);
     setCaseDetailTabs(prev => ({ ...prev, [caseId]: taskId ? 'proof' : (prev[caseId] || 'family') }));
-    setNotice(taskId ? 'Opening the recommended task workspace.' : (isDirectorRole ? 'Opening the full case context.' : 'Opening the scoped case context.'));
+    setNotice(taskId ? 'Opening the recommended next step.' : (isDirectorRole ? 'Opening the full case context.' : 'Opening the scoped case context.'));
     const scrollToCase = () => {
       const panel = document.getElementById(taskId ? 'partner-action-workspace-' + caseId : 'partner-case-' + caseId);
       if (panel) {
@@ -2843,7 +2843,7 @@ export default function FuneralHomeDashboard() {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 14, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 10 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director command center</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director dashboard</div>
                 <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Start with the next case, not the dashboard.</div>
                 <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>My Day shows the next case, waiting point, owner, proof, and draft. Everything else is a support view.</div>
               </div>
@@ -2911,7 +2911,7 @@ export default function FuneralHomeDashboard() {
         {false && user && !loading && data && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '11px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner command center</div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Partner dashboard</div>
               <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.4, marginTop: 3 }}>Cases are the work surface. Setup, lifecycle, import, and exports stay behind tools until needed.</div>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

@@ -47,7 +47,7 @@ const audiences = [
 ];
 
 const spineSteps = [
-  ['1', 'Record opens', 'Family or provider starts one shared workspace.'],
+  ['1', 'Record opens', 'Family or provider starts one shared record.'],
   ['2', 'Task holds truth', 'Owner, message, proof, waiting state, and status stay together.'],
   ['3', 'Right slice', 'Family, staff, vendor, or participant sees only what they need.'],
   ['4', 'Proof travels', 'Responses, documents, and status changes stay attached.'],
@@ -84,8 +84,8 @@ export default function ResourcesPage() {
     })),
     {
       id: 'spine',
-      label: 'Spine',
-      eyebrow: 'The spine',
+      label: 'How it works',
+      eyebrow: 'The pattern',
       title: 'One task. One owner. One proof trail.',
       body: 'The family record stays continuous while providers, staff, and helpers rotate in and out.',
       href: '/mission',
@@ -129,7 +129,7 @@ export default function ResourcesPage() {
               Start with the question you are carrying.
             </h1>
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.42, margin: 0, maxWidth: 610 }}>
-              Simple guides for families, funeral homes, invited helpers, and local support partners. Choose a path, then move from the same coordination spine.
+              Simple guides for families, funeral homes, invited helpers, and local support partners. Choose a path, then move from the same shared family record.
             </p>
             <Link href="/guides" style={{ ...primaryLink, marginTop: 14 }}>Open Free Guides</Link>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 7, marginTop: 14 }}>

@@ -130,7 +130,7 @@ export default function PricingPage() {
   const activeGroup = groups.find(g => g.key === activeChoice) || groups[0];
   const showingUrgent = activeChoice === 'urgent';
   const readiness = [
-    ['After checkout', 'Passage opens the right workspace so next step, owner, and proof stay together.'],
+    ['After checkout', 'Passage opens the right record or dashboard so next step, owner, and proof stay together.'],
     ['Nothing sends yet', 'Invites, packets, emails, and texts stay in review until someone chooses the exact action.'],
     ['Start small', 'Begin with one family record. Add people, documents, and provider handoffs when they matter.'],
   ];

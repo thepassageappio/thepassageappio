@@ -167,7 +167,7 @@ export default function PacketGeneratorModal({ estateId, taskId = '', packetType
                     <img src="/brand/passage-held-light.svg" alt="" width="28" height="28" style={mark} />
                     <div>
                       <div style={{ color: C.ink, fontSize: 17, fontWeight: 900 }}>Passage</div>
-                      <div style={{ color: C.mid, fontSize: 11.5 }}>Family coordination spine</div>
+                      <div style={{ color: C.mid, fontSize: 11.5 }}>Family coordination record</div>
                     </div>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export default function PacketGeneratorModal({ estateId, taskId = '', packetType
                     <img src="/brand/passage-held-light.svg" alt="" width="28" height="28" style={{ borderRadius: 7 }} />
                     <div>
                       <div style={{ fontSize: 22, fontWeight: 900 }}>Passage</div>
-                      <div style={{ color: C.mid, fontSize: 12 }}>Family coordination spine</div>
+                      <div style={{ color: C.mid, fontSize: 12 }}>Family coordination record</div>
                     </div>
                   </div>
                 </div>

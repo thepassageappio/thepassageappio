@@ -22,7 +22,7 @@ var AMBER = '#b07d2e';
 var AMBER_FAINT = '#fdf8ee';
 
 var AUDIENCES = [
-  { id: 'immediate_family', label: 'Immediate family', sub: 'Parents, siblings, children — closest family first', icon: '' },
+  { id: 'immediate_family', label: 'Immediate family', sub: 'Parents, siblings, children ??? closest family first', icon: '' },
   { id: 'close_friends', label: 'Close friends', sub: 'Friends who should hear before a broader announcement', icon: '' },
   { id: 'broader_community', label: 'Broader community', sub: 'Extended family, neighbors, colleagues, community', icon: '' },
   { id: 'public', label: 'Public and social media', sub: 'For when you are ready to share widely', icon: '' },
@@ -361,7 +361,7 @@ export default function AnnouncePage() {
   if (done) return (
     <Shell step={4} total={3} hideProgress>
       <div style={{ textAlign: 'center', paddingTop: 52 }}>
-        <div style={{ fontSize: 52, marginBottom: 24 }}>🕊️</div>
+        <div style={{ fontSize: 52, marginBottom: 24 }}>???????</div>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: 28, color: INK, lineHeight: 1.3, marginBottom: 16 }}>
           {channel === 'copy' ? 'Copied to clipboard.' : channel === 'email' ? 'Family update sent.' : 'Message saved.'}
         </div>
@@ -384,12 +384,12 @@ export default function AnnouncePage() {
     </Shell>
   );
 
-  // Step 1 — Who do you want to tell first
+  // Step 1 ??? Who do you want to tell first
   if (step === 1) return (
     <Shell step={1} total={3}>
       <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Who should receive the next update?</div>
       <div style={{ fontSize: 14, color: SOFT, marginBottom: 24, lineHeight: 1.6 }}>
-        Start with the people who should hear directly. Passage prepares the message as an estate-spine output; it does not send without explicit action.
+        Start with the people who should hear directly. Passage prepares the message from the family record; it does not send without explicit action.
       </div>
       {AUDIENCES.map(function(a) {
         return <Option key={a.id} label={a.label} sub={a.sub} selected={audience === a.id} onClick={function() { setAudience(a.id); }} />;
@@ -400,7 +400,7 @@ export default function AnnouncePage() {
     </Shell>
   );
 
-  // Step 2 — Draft the message
+  // Step 2 ??? Draft the message
   if (step === 2) return (
     <Shell step={2} total={3} onBack={back}>
       <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Prepare the family update</div>
@@ -422,7 +422,7 @@ export default function AnnouncePage() {
 
       {tone && (
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Your message — edit freely</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Your message ??? edit freely</div>
           <textarea value={message} onChange={function(e) { setMessage(e.target.value); }}
             style={{ width: '100%', height: 160, padding: '14px', borderRadius: 12, border: '1.5px solid ' + BORDER, fontFamily: 'Georgia, serif', fontSize: 14, color: INK, lineHeight: 1.75, resize: 'vertical', boxSizing: 'border-box', background: SUBTLE }} />
           <div style={{ marginTop: 12 }}>
@@ -445,7 +445,7 @@ export default function AnnouncePage() {
     </Shell>
   );
 
-  // Step 3 — Preview + safety layer
+  // Step 3 ??? Preview + safety layer
   if (step === 3) return (
     <Shell step={3} total={3} onBack={back}>
       <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Review before this leaves the record</div>

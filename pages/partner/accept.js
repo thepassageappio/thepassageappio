@@ -101,7 +101,7 @@ export default function PartnerAcceptPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 9, marginTop: 18 }}>
               {[
                 ['Role scoped', role === 'staff' ? 'Staff see assigned work, not business setup.' : 'Directors see cases, setup, staff, billing prompts, and reports.'],
-                ['Same spine', 'Tasks keep owner, message, waiting point, proof, and audit together.'],
+                ['Same record', 'Requests keep owner, message, waiting point, proof, and history together.'],
                 ['Invite-safe', 'Nothing sends from this page. Sign-in only opens the workspace tied to your email.'],
               ].map(([title, body]) => (
                 <div key={title} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13 }}>
@@ -122,7 +122,7 @@ export default function PartnerAcceptPage() {
                   Signed in as <strong style={{ color: C.ink }}>{user.email}</strong>.
                 </div>
                 <Link href={dashboardHref} style={{ minHeight: 50, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sage, color: '#fff', borderRadius: 13, textDecoration: 'none', fontWeight: 900 }}>
-                  Continue to workspace
+                  Continue
                 </Link>
               </div>
             ) : (
@@ -132,7 +132,7 @@ export default function PartnerAcceptPage() {
                   <input value={email} onChange={event => { setEmail(event.target.value); setError(''); setMagicSent(false); }} type="email" placeholder="invited@funeralhome.com" style={{ border: `1.5px solid ${error ? C.rose : C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
                   <button disabled={magicLoading} onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, minHeight: 48, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: magicLoading ? 'wait' : 'pointer', opacity: magicLoading ? .65 : 1 }}>{magicLoading ? 'Sending...' : 'Email me a sign-in link'}</button>
                 </div>
-                {magicSent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45 }}>Check your email. The secure link opens the correct Passage workspace.</div>}
+                {magicSent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45 }}>Check your email. The secure link opens the correct Passage dashboard or request.</div>}
               </div>
             )}
           </div>

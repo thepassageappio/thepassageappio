@@ -179,7 +179,7 @@ export default function PacketDemo() {
           <div>
             <div style={eyebrow}>Passage outputs</div>
             <h1 style={{ fontSize: 52, lineHeight: 1.02, margin: '8px 0 10px', fontWeight: 400 }}>Prepared outputs from the family record.</h1>
-            <p style={lead}>Every packet starts from the same spine: dates, owner, message, proof, and approval boundary. Nothing sends automatically; a person reviews the output before it leaves Passage.</p>
+            <p style={lead}>Every packet starts from the same family record: dates, owner, message, proof, and approval boundary. Nothing sends automatically; a person reviews the output before it leaves Passage.</p>
             <div style={{ display: 'inline-flex', marginTop: 12, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 10px', fontSize: 12, fontWeight: 900 }}>{loading ? 'Generating...' : displaySourceLabel}</div>
           </div>
           {demoMode ? (
@@ -227,7 +227,7 @@ export default function PacketDemo() {
                 <img className="packet-brand-icon" src="/passage-icon-light-onbg.svg" alt="Passage" style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0 }} />
                 <div>
                   <div className="packet-brand-name" style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.1, overflow: 'visible' }}>Passage</div>
-                  <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35 }}>Family coordination spine</div>
+                  <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35 }}>Family coordination record</div>
                 </div>
               </div>
               <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.45, textAlign: 'right' }}>
