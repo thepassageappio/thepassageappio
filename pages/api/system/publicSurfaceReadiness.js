@@ -175,7 +175,7 @@ const personaSourceChecks = [
     path: 'pages/funeral-home/dashboard.js',
     label: 'Funeral-home dashboard source',
     requires: ['Recommended next action', '1. Do next:', 'Message to send or use', 'Waiting on', 'Save proof', 'partnerPlanDisplayName'],
-    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}', 'Task / request', 'Proof loop', 'Task action', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Demo proof saved. The task', 'Could not update this task.', 'Could not assign this task.', 'task owner', 'task notification', 'demo task', 'Partner task owner', 'each task'],
+    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}', 'Task / request', 'Proof loop', 'Task action', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Demo proof saved. The task', 'Could not update this task.', 'Could not assign this task.', 'task owner', 'task notification', 'demo task', 'Partner task owner', 'each task', '0 tasks need an owner', 'Only open tasks', 'open partner task'],
   },
   {
     path: 'pages/funeral-home/setup.js',

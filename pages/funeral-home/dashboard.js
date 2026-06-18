@@ -4487,7 +4487,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 900, marginTop: 3 }}>
                   {unassignedTaskCount
                     ? `${unassignedTaskCount} task${unassignedTaskCount === 1 ? '' : 's'} need an owner across ${unassignedCaseCount} case${unassignedCaseCount === 1 ? '' : 's'}.`
-                    : '0 tasks need an owner. All visible open work is assigned.'}
+                    : '0 work items need an owner. All visible open work is assigned.'}
                 </div>
                 <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 4 }}>
                   Directors can assign a whole case to one employee, or open a case and assign individual tasks when the home works role-by-role.
@@ -4634,7 +4634,7 @@ export default function FuneralHomeDashboard() {
                 ? nextExpectedUpdate
                 : open
                   ? 'Open work remains; assign the next clear owner before the family update.'
-                  : 'Family can be told there is no open partner task right now.';
+                  : 'Family can be told there is no open funeral-home work right now.';
               const caseOperatingContract = [
                 ['Ask', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action ready', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
                 ['Owner', nextOwner, nextOwner === 'Unassigned' ? 'Assign an owner before this can reliably move.' : 'This person owns the next visible move.', nextOwner === 'Unassigned' ? C.amber : C.sage],
@@ -5016,7 +5016,7 @@ export default function FuneralHomeDashboard() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
                               {[
                                 ['task', 'This task', sharedTaskTitle(nextPartnerTask)],
-                                ['unassigned_open', `Unassigned in case (${unassignedCaseTasks.length})`, 'Only open tasks without an owner'],
+                                ['unassigned_open', `Unassigned in case (${unassignedCaseTasks.length})`, 'Only open work items without an owner'],
                                 ['all_open', `All open in case (${openCaseTasks.length})`, 'Move the whole case to one employee'],
                               ].map(([scopeKey, label, body]) => (
                                 <button key={scopeKey} onClick={() => setAssignmentDraft(prev => ({ ...prev, scope: scopeKey, caseId: item.id }))} style={{ textAlign: 'left', border: `1px solid ${assignmentDraft.scope === scopeKey ? C.sage : C.border}`, background: assignmentDraft.scope === scopeKey ? C.sageFaint : C.card, color: assignmentDraft.scope === scopeKey ? C.sage : C.mid, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
