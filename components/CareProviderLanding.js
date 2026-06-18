@@ -66,6 +66,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
   });
   const [state, setState] = useState('idle');
   const [error, setError] = useState('');
+  const requiredReady = Boolean(form.organizationName.trim() && form.contactEmail.trim());
 
   function update(key, value) {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -157,8 +158,9 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
                   <input value={form.activeFamiliesEstimate} onChange={e => update('activeFamiliesEstimate', e.target.value)} placeholder="Families supported monthly" style={inputStyle} />
                 </div>
                 <textarea value={form.message} onChange={e => update('message', e.target.value)} placeholder="What family handoff, care transition, or coordination problem should Passage help solve?" style={{ ...inputStyle, minHeight: 88, paddingTop: 11, resize: 'vertical' }} />
+                {!requiredReady && <div style={hintBox}>Add organization name and contact email to send the inquiry.</div>}
                 {error && <div style={errorBox}>{error}</div>}
-                <button disabled={state === 'sending'} style={primaryButton}>{state === 'sending' ? 'Sending...' : 'Send partner inquiry'}</button>
+                <button disabled={state === 'sending' || !requiredReady} style={{ ...primaryButton, background: state === 'sending' || !requiredReady ? C.border : C.sage, cursor: state === 'sending' ? 'wait' : !requiredReady ? 'not-allowed' : 'pointer' }}>{state === 'sending' ? 'Sending...' : requiredReady ? 'Send partner inquiry' : 'Add required info'}</button>
               </div>
             )}
           </form>
@@ -299,5 +301,6 @@ const planCard = { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', g
 const noteBox = { background: C.amberFaint, border: '1px solid #ead4ac', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 13 };
 const successBox = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 16 };
 const errorBox = { background: C.roseFaint, color: C.rose, border: '1px solid #e6c7c1', borderRadius: 12, padding: 10, fontSize: 13 };
+const hintBox = { background: C.bg, color: C.mid, border: '1px solid ' + C.border, borderRadius: 12, padding: 10, fontSize: 12.5, lineHeight: 1.4 };
 const relatedGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 14 };
 const relatedCard = { ...stepCard, color: C.ink, textDecoration: 'none', display: 'block' };

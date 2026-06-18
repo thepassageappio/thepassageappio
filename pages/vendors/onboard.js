@@ -12,6 +12,7 @@ export default function VendorOnboard() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const requiredReady = Boolean(form.businessName.trim() && form.zipCodes.trim() && form.email.trim());
   const setupPath = [
     ['Apply', 'Tell us the work you do, where you serve families, and how quickly you can respond.'],
     ['Review', 'Passage reviews each partner before any recommendation appears in a family request.'],
@@ -43,7 +44,7 @@ export default function VendorOnboard() {
       setError(data.error || 'Could not submit this vendor application.');
       return;
     }
-    setMessage('Thank you. Passage reviews every local support partner before showing them to families.');
+    setMessage('Application received. Recommended next action: book a vendor conversation or watch your email for review status. Nothing appears to families until Passage approves the partner.');
     setForm({ businessName: '', category: 'florist', serviceAddress: '', serviceCity: '', serviceState: '', serviceCountry: '', zipCodes: '', rushSupported: false, rushWindowHours: '24', plannedSupported: true, email: '', phone: '', website: '', description: '' });
   }
 
@@ -76,7 +77,7 @@ export default function VendorOnboard() {
           <form onSubmit={submit} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 14, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
             <div style={{ fontSize: 21, lineHeight: 1.1, marginBottom: 3 }}>Apply as a support partner</div>
             <p style={{ color: C.mid, fontSize: 12, lineHeight: 1.3, margin: '0 0 6px' }}>We review every application manually before a vendor can receive Passage requests.</p>
-            <p style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.35, margin: '0 0 8px' }}>Required: business name, service ZIPs, and email. Nothing appears to families until Passage approves the partner.</p>
+            <p style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.35, margin: '0 0 8px' }}>Required: business name, service ZIPs, and email. Recommended next action: submit the application, then book a vendor conversation. Nothing appears to families until Passage approves the partner.</p>
             <label style={labelStyle}>Business name<input required value={form.businessName} onChange={(e) => update('businessName', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Category<select value={form.category} onChange={(e) => update('category', e.target.value)} style={inputStyle}>{Object.entries(VENDOR_CATEGORIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(150px, .65fr)', gap: 8, marginBottom: 7 }}>
@@ -108,10 +109,11 @@ export default function VendorOnboard() {
             <label style={labelStyle}>Phone<input type="tel" value={form.phone} onChange={(e) => update('phone', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>Website<input type="url" value={form.website} onChange={(e) => update('website', e.target.value)} style={inputStyle} /></label>
             <label style={labelStyle}>How you help families<textarea value={form.description} onChange={(e) => update('description', e.target.value)} style={{ ...inputStyle, minHeight: 44, resize: 'vertical' }} /></label>
+            {!requiredReady && <div style={{ background: C.bg, border: '1px solid ' + C.border, color: C.mid, borderRadius: 11, padding: 10, marginBottom: 8, fontSize: 12.5 }}>Add business name, service ZIPs, and email to submit.</div>}
             {error && <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', color: C.rose, borderRadius: 11, padding: 10, marginBottom: 8 }}>{error}</div>}
             {message && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 11, padding: 10, marginBottom: 8, fontWeight: 800 }}>{message}</div>}
-            <button disabled={submitting} style={{ width: '100%', border: 'none', background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 14px', fontFamily: 'Georgia,serif', fontSize: 14, fontWeight: 900, cursor: submitting ? 'default' : 'pointer' }}>{submitting ? 'Submitting...' : 'Submit application'}</button>
-            <a href={calendlyUrl({ name: form.businessName, email: form.email, source: 'Vendor conversation' })} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', color: C.ink, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '9px 12px', textDecoration: 'none', fontSize: 12.5, marginTop: 8, fontWeight: 900 }}>Book a vendor conversation</a>
+            <button disabled={submitting || !requiredReady} style={{ width: '100%', border: 'none', background: submitting || !requiredReady ? C.border : C.sage, color: '#fff', borderRadius: 12, padding: '10px 14px', fontFamily: 'Georgia,serif', fontSize: 14, fontWeight: 900, cursor: submitting ? 'wait' : !requiredReady ? 'not-allowed' : 'pointer' }}>{submitting ? 'Submitting...' : requiredReady ? 'Submit application' : 'Add required info'}</button>
+            <a href={calendlyUrl({ name: form.businessName, email: form.email, source: 'Vendor conversation' })} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', color: C.ink, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '9px 12px', textDecoration: 'none', fontSize: 12.5, marginTop: 8, fontWeight: 900 }}>Recommended next action: book a vendor conversation</a>
             <Link href="/funeral-home" style={{ display: 'block', textAlign: 'center', color: C.sage, textDecoration: 'none', fontSize: 12, marginTop: 9, fontWeight: 800 }}>Funeral home partner information</Link>
           </form>
         </div>
