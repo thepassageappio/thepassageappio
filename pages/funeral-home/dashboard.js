@@ -199,6 +199,20 @@ function vendorRequestLabel(value) {
   return 'Quote requested';
 }
 
+function partnerPlanDisplayName(value, fallback = 'Single-location plan') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  const clean = raw.toLowerCase();
+  if (/group|multi/.test(clean)) return 'Multi-location plan';
+  if (/local|single/.test(clean)) return 'Single-location plan';
+  if (/pilot|trial/.test(clean)) return 'Trial plan';
+  if (/demo/.test(clean)) return 'Demo plan';
+  return raw
+    .replace(/^partner[_\s-]*/i, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
 function partnerCaseTypeLabel(item) {
   const stage = String(item?.setup_stage || '');
   const mode = String(item?.mode || '');
@@ -1974,7 +1988,7 @@ export default function FuneralHomeDashboard() {
   const partnerPlan = data?.partnerPlan || null;
   const locationSlots = data?.locationSlots || {
     planId: partnerPlan?.plan || 'partner_local',
-    planLabel: partnerPlan?.name || partnerPlan?.plan || 'Single location',
+    planLabel: partnerPlanDisplayName(partnerPlan?.name || partnerPlan?.plan, 'Single-location plan'),
     includedLocationSlots: partnerPlan?.includedLocationSlots || 1,
     usedLocationSlots: 0,
     remainingLocationSlots: 1,
@@ -2520,7 +2534,7 @@ export default function FuneralHomeDashboard() {
     ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case record.' : 'Assign the first task owner to create visible proof.', assignmentsCoordinated > 0],
   ];
   const billingReadinessRows = [
-    ['Plan', partnerPlan?.plan || partnerPlan?.name || (activationStatus === 'active_trial' ? 'Trial' : 'Setup pending')],
+    ['Plan', partnerPlanDisplayName(partnerPlan?.name || partnerPlan?.plan, activationStatus === 'active_trial' ? 'Trial plan' : 'Setup pending')],
     ['Billing', billingStatus === 'paid' ? 'Paid' : billingStatus === 'demo' ? 'Demo' : billingStatus === 'stripe_pending' ? 'Stripe pending' : 'Set up after approval'],
     ['Seats tracked', `${activeEmployeeRows.length || partnerStaff.length} employee${(activeEmployeeRows.length || partnerStaff.length) === 1 ? '' : 's'}`],
     ['Private operating inputs', activeEmployeeRows.some(member => moneyNumber(member.hourlyCost) || moneyNumber(member.annualSalary)) ? 'Labor cost available' : 'Add salary/hourly cost for staffing efficiency'],
@@ -2673,7 +2687,7 @@ export default function FuneralHomeDashboard() {
             {user && org && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', background: C.card, border: `1px solid ${C.border}`, borderRadius: 999, padding: '6px 10px', color: C.mid, fontSize: 12, fontWeight: 900 }}>
-                  Plan: {locationSlots.planLabel || partnerPlan?.plan || 'Single location'}
+                  Plan: {locationSlots.planLabel || partnerPlanDisplayName(partnerPlan?.name || partnerPlan?.plan, 'Single-location plan')}
                 </span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', background: locationSlots.needsUpgradeForNextLocation ? C.amberFaint : C.sageFaint, border: `1px solid ${locationSlots.needsUpgradeForNextLocation ? C.amber + '44' : C.sage + '22'}`, borderRadius: 999, padding: '6px 10px', color: locationSlots.needsUpgradeForNextLocation ? C.amber : C.sage, fontSize: 12, fontWeight: 900 }}>
                   Locations: {locationSlots.usedLocationSlots ?? locations.length} of {locationSlots.includedLocationSlots || 1} included
