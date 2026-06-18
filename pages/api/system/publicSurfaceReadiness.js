@@ -212,7 +212,7 @@ const personaSourceChecks = [
     path: 'components/CareProviderLanding.js',
     label: 'Care-provider source',
     requires: ['Help families leave care with a clearer next step.', 'Purpose of this page', 'not an operating dashboard', 'Care team inquiry', 'Add organization name and contact email to send the inquiry', 'Recommended next action: book a short walkthrough', 'Family owned', 'Scoped access', 'Proof based'],
-    forbids: ['task outcomes', 'operating dashboard', 'partner spine', 'Partner inquiry', 'Start partner inquiry', 'Send partner inquiry', 'Partner fit', 'Partner paths'],
+    forbids: ['task outcomes', 'full operating dashboard', 'partner spine', 'Partner inquiry', 'Start partner inquiry', 'Send partner inquiry', 'Partner fit', 'Partner paths'],
   },
 ];
 
