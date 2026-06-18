@@ -19,7 +19,7 @@ const C = {
 const vendorCards = [
   {
     eyebrow: 'Vendor owner',
-    title: 'Manage the vendor workspace',
+    title: 'Manage the vendor dashboard',
     body: 'Owners and managers sign in with the approved vendor email to see requests, invite employees, review payout readiness, and track completion proof.',
     href: '/vendors/request',
     action: 'Owner sign in',
@@ -92,10 +92,10 @@ export default function VendorLogin() {
       <section style={{ maxWidth: 1040, margin: '0 auto', padding: '30px 24px 56px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.78fr) minmax(320px,1fr)', gap: 18, alignItems: 'start' }}>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24, boxShadow: '0 12px 34px rgba(55,45,35,.055)' }}>
-            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor workspace</div>
+            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor dashboard</div>
             <h1 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Respond only to the work requested.</h1>
             <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
-              Vendor owners manage the workspace. Vendor employees open assigned work. Both are scoped to requests, timing, quote fields, and proof, never unrelated family records.
+              Vendor owners manage the dashboard. Vendor employees open assigned work. Both are scoped to requests, timing, quote fields, and proof, never unrelated family records.
             </p>
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
               Approved vendor owners sign in here. Vendor employees can use the employee doorway or the link sent to their email. New vendors apply first so Passage can review service area, category, and response expectations.
@@ -110,7 +110,7 @@ export default function VendorLogin() {
                   <input value={email} onChange={event => { setEmail(event.target.value); setError(''); setSent(false); }} type="email" placeholder="vendor@example.com" style={{ border: `1.5px solid ${error ? '#c47a7a' : C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
                   <button disabled={magicLoading} onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: magicLoading ? 'wait' : 'pointer', opacity: magicLoading ? .65 : 1 }}>{magicLoading ? 'Sending...' : 'Email link'}</button>
                 </div>
-                {sent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45 }}>Check your email. The secure link opens your vendor workspace.</div>}
+                {sent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45 }}>Check your email. The secure link opens your vendor dashboard.</div>}
               </div>
             )}
           </div>

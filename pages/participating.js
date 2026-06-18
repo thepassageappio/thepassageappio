@@ -142,7 +142,7 @@ function participantActionEffectCopy(action) {
   if (action === 'waiting') return 'This keeps the task open and shows exactly what you are waiting on.';
   if (action === 'handled' || action === 'confirmed') return 'This marks your part done, saves your note, and moves it out of your active work.';
   if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'This keeps the task visible as needing help so the coordinator can step in.';
-  if (action === 'quoted' || action === 'scheduled') return 'This saves your update to the same family record without exposing the full workspace.';
+  if (action === 'quoted' || action === 'scheduled') return 'This saves your update to the same family record without exposing the full family record.';
   return 'This update goes back to the coordinator and stays attached to the family record.';
 }
 
@@ -438,7 +438,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           </div>
         </div>
         <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>
-          <strong style={{ color: C.ink }}>Access boundary:</strong> The full estate workspace, private notes, and unrelated requests stay hidden.
+          <strong style={{ color: C.ink }}>Access boundary:</strong> The full family record, private notes, and unrelated requests stay hidden.
         </div>
       </details>
       {(savedPulse || savedNote) && (
@@ -871,7 +871,7 @@ export default function ParticipatingPage() {
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Participant access</div>
               <h2 style={{ fontSize: 52, lineHeight: .98, margin: '10px 0 12px', fontWeight: 400 }}>Help with one request, without opening the whole record.</h2>
               <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
-                Participants are relatives, friends, clergy, vendors, or helpers invited to handle one specific responsibility. Passage shows the request, waiting point, and proof needed. The full estate workspace stays private.
+                Participants are relatives, friends, clergy, vendors, or helpers invited to handle one specific responsibility. Passage shows the request, waiting point, and proof needed. The full family record stays private.
               </p>
               <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.45, marginTop: 16 }}>
                 Use the same email that received the invite. If you were added under a different email, sign in with that address or ask the coordinator to resend the assignment.
@@ -1015,7 +1015,7 @@ export default function ParticipatingPage() {
                   return (
                 <div className="participant-estate-card" key={estate.id} data-demo-anchor="demo-participant-work" style={{ background: C.card, border: `1px solid ${C.sage}88`, borderRadius: 22, padding: 0, marginBottom: 14, overflow: 'hidden', boxShadow: '0 14px 38px rgba(55,45,35,.05)' }}>
                   <div className="participant-estate-head" style={{ width: '100%', background: C.sageFaint, border: 'none', padding: '20px 22px 14px', fontFamily: 'Georgia,serif', textAlign: 'left' }}>
-                  <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Family request workspace</div>
+                  <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 6 }}>Family request</div>
                   <div className="participant-estate-head-main" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
                     <div>
                       <div style={{ fontSize: 22, lineHeight: 1.2, color: C.ink }}>{estate.deceased_name || estate.name || 'Estate plan'}</div>

@@ -167,7 +167,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
           <div style={panel}>
             <div style={eyebrow}>Partner fit</div>
             <h2 style={h2}>A calmer handoff before the first urgent call.</h2>
-            <p style={smallText}>Care teams can help families collect contacts, wishes, documents, and first-call context earlier, while day-to-day case work stays inside permissioned Passage workspaces.</p>
+            <p style={smallText}>Care teams can help families collect contacts, wishes, documents, and first-call context earlier, while day-to-day case work stays inside permissioned Passage dashboards.</p>
           </div>
           <div style={panel}>
             <div style={eyebrow}>Boundaries</div>
@@ -181,7 +181,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
       <section style={section}>
         <div style={sectionHeader}>
           <div style={eyebrow}>Care handoff path</div>
-          <h2 style={h2}>Care providers sit upstream of the funeral-home workspace.</h2>
+          <h2 style={h2}>Care providers sit upstream of the funeral-home handoff.</h2>
           <p style={lead}>They help families get organized earlier. When the family needs urgent or funeral-home coordination, Passage carries forward the right context instead of making everyone start over.</p>
         </div>
         <div style={stepGrid}>
@@ -236,7 +236,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
           <h2 style={h2}>Separate pages. Same family-owned record.</h2>
           <div style={relatedGrid}>
             {[
-              ['/funeral-home', 'Funeral homes', 'For funeral homes that need a calmer family and staff coordination workspace.'],
+              ['/funeral-home', 'Funeral homes', 'For funeral homes that need calmer family and staff coordination.'],
               ['/participants', 'Invited helpers', 'For relatives, clergy, friends, or trusted helpers assigned to one clear request.'],
               ['/vendors', 'Vendors', 'For local vendors that receive scoped service requests without seeing private family records.'],
             ].map(([href, title, body]) => (

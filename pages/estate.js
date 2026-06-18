@@ -549,13 +549,13 @@ function taskWorkspaceMode(item) {
 }
 
 function taskWorkspaceTitle(mode) {
-  if (mode === 'assignment') return 'Assignment message workspace';
-  if (mode === 'obituary') return 'Obituary draft workspace';
-  if (mode === 'message') return 'Message draft workspace';
-  if (mode === 'packet') return 'Packet / request workspace';
-  if (mode === 'call') return 'Call script workspace';
-  if (mode === 'official') return 'Official step workspace';
-  if (mode === 'record') return 'Estate record workspace';
+  if (mode === 'assignment') return 'Assignment message';
+  if (mode === 'obituary') return 'Obituary draft';
+  if (mode === 'message') return 'Message draft';
+  if (mode === 'packet') return 'Packet / request';
+  if (mode === 'call') return 'Call script';
+  if (mode === 'official') return 'Official step';
+  if (mode === 'record') return 'Family record';
   return 'Task details';
 }
 
@@ -2149,9 +2149,9 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
             {false && <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 18, padding: 15 }}>
               <SpineFact label="Owner" value={owner} tone={missingOwner ? 'warn' : 'good'} />
               <SpineFact label="Recipient / contact" value={recipient} tone={recipient.includes('Add recipient') ? 'warn' : 'good'} />
-              <SpineFact label="Status truth" value={status} tone={blockedCount ? 'warn' : 'good'} />
+              <SpineFact label="Status" value={status} tone={blockedCount ? 'warn' : 'good'} />
               <SpineFact label="Where proof saves" value={proof} />
-              <SpineFact label="Visibility" value="Estate roles and assigned helpers see task updates appropriate to their role." />
+              <SpineFact label="Visibility" value="Family roles and assigned helpers see updates appropriate to their role." />
               <SpineFact label="Last actor / time" value={lastTime ? lastActor + ' - ' + lastTime : lastActor} />
             </div>}
           </div>
@@ -4056,7 +4056,7 @@ export default function EstatePage() {
         detail: taskWorkspaceTitle(mode) + ' saved for ' + displayTaskTitle(task),
         prompt: mode === 'obituary'
           ? 'Draft the obituary here, copy it for the funeral home, newspaper, or social post, then save where it was submitted or who is reviewing it.'
-          : 'Use the prepared workspace below, copy or send what you need, then save proof, waiting status, or a help request.'
+          : 'Use the prepared draft or tool below, copy or send what you need, then save proof, waiting status, or a help request.'
       });
       return;
     }
@@ -4375,7 +4375,7 @@ export default function EstatePage() {
                     </div>
                     <div style={{ background: assignedEmailForSpine ? SAGE_FAINT : SUBTLE, border: '1px solid ' + (assignedEmailForSpine ? SAGE_LIGHT : BORDER), borderRadius: 12, padding: '9px 10px' }}>
                       <div style={{ fontSize: 10.5, fontWeight: 900, color: assignedEmailForSpine ? SAGE : MID, letterSpacing: '.11em', textTransform: 'uppercase' }}>2. Message</div>
-                      <div style={{ fontSize: 12.5, color: INK, fontWeight: 800, lineHeight: 1.35, marginTop: 3 }}>{pendingTaskAction.mode === 'assignment' ? 'Send handoff link' : pendingTaskAction.mode ? 'Use prepared workspace' : 'Optional update'}</div>
+                      <div style={{ fontSize: 12.5, color: INK, fontWeight: 800, lineHeight: 1.35, marginTop: 3 }}>{pendingTaskAction.mode === 'assignment' ? 'Send handoff link' : pendingTaskAction.mode ? 'Use prepared draft' : 'Optional update'}</div>
                     </div>
                     <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '9px 10px' }}>
                       <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.11em', textTransform: 'uppercase' }}>3. Proof</div>

@@ -3665,7 +3665,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
       ? `${selectedDashboardTask.assignedTo} owns the next move. Passage keeps the waiting point and proof attached to this estate.`
       : selectedDashboardTask
         ? 'Assign this before opening more work. A clear owner lowers family confusion.'
-        : 'Open the workspace only if you need documents, people, messages, or history.';
+        : 'Open the record only if you need documents, people, messages, or history.';
 
   const saveWishes = async () => {
     if (!user) {
@@ -3832,7 +3832,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 </button>
               ) : (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "13px 14px", color: C.sage, fontSize: 13, lineHeight: 1.55 }}>
-                  This estate has no open next move right now. Open the workspace for details, documents, people, and audit history.
+                  This family record has no open next move right now. Open the record for details, documents, people, and history.
                 </div>
               )}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
@@ -3892,7 +3892,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 </div>
               </div>}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-                <button onClick={() => onOpenPlan(selectedDashboardEstate)} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>{selectedDashboardEstate?.path === 'green' ? 'Open planning workspace' : 'Continue this estate'}</button>
+                <button onClick={() => onOpenPlan(selectedDashboardEstate)} style={{ border: "none", borderRadius: 11, padding: "10px 13px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>{selectedDashboardEstate?.path === 'green' ? 'Open planning record' : 'Continue this estate'}</button>
               </div>
             </div>
             <details style={{ background: C.bgCard, borderRadius: 14, padding: 0, border: `1px solid ${C.border}`, marginBottom: 12 }}>
@@ -4148,7 +4148,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                           </span>
                         </div>
                         <button onClick={() => onOpenPlan(wf)} style={{ width: "100%", border: "none", borderRadius: 10, padding: "10px 12px", background: C.sage, color: "#fff", fontFamily: "inherit", fontWeight: 900, cursor: "pointer", fontSize: 12.5 }}>
-                          Open planning workspace
+                          Open planning record
                         </button>
                       </div>
                     </div>
@@ -4184,7 +4184,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                         </div>
                         <div style={{ fontSize: 11.5, color: C.mid, marginTop: 3, lineHeight: 1.45 }}>
                           {greenWorkflows.length === 0 && i === 0
-                            ? "Visible before payment. Build the plan, then unlock full orchestration at checkout."
+                            ? "Visible before payment. Build the plan, then unlock full guidance at checkout."
                             : "Set up this estate separately when you are ready."}
                         </div>
                       </div>
@@ -4693,7 +4693,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       eyebrow: 'For providers',
       title: 'A clearer way to keep families and staff aligned.',
       body: 'Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to existing tools.',
-      cta: { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard', label: 'Open sample workspace' },
+      cta: { href: '/funeral-home/dashboard?demo=1&demoTour=funeral-home&demoStep=dashboard', label: 'Open sample case' },
       rows: [
         ['Case', 'Create or import', 'Start fresh or bring cases in by CSV without changing the current case system.'],
         ['Work', 'Assign the owner', 'Staff, family coordinators, and participants stay tied to the same next step and record.'],

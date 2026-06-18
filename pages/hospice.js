@@ -23,7 +23,7 @@ const C = {
 const lifecycle = [
   ['1', 'Preparing during care', 'Start the family record with people, hospice/on-call contact, likely dates, and the first-hour plan.'],
   ['2', 'Death occurs', 'Start urgent guidance from the same family record instead of asking the family to rebuild context.'],
-  ['3', 'Funeral-home handoff', 'Invite the funeral home into the record with contacts, dates, preferences, blockers, and proof needs.'],
+  ['3', 'Funeral-home handoff', 'Invite the funeral home into the record with contacts, dates, preferences, stuck points, and proof needs.'],
   ['4', 'Aftercare continues', 'Estate, benefits, accounts, family updates, grief support, and anniversaries stay in one record.'],
 ];
 
