@@ -3734,7 +3734,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
 
             {!hasAnyEstate && (
               <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
-                <div style={{ fontSize: 10.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 6 }}>Start one estate workspace</div>
+                <div style={{ fontSize: 10.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 6 }}>Start one family record</div>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.2, marginBottom: 6 }}>Create the estate before adding wishes, people, documents, memories, or tasks.</div>
                 <Sub>Each estate gets its own file, task list, participants, messages, proof, and exports. Nothing should float loose on this index page.</Sub>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 10, marginTop: 14 }}>
@@ -4024,7 +4024,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
               )}
               {isPaidPlan && (
                 <div style={{ background: C.sageFaint, borderRadius: 10, padding: "10px 14px", fontSize: 12, color: C.sage, fontWeight: 600, lineHeight: 1.5 }}>
-                  ??? Active plan ??? {availableGreenSeats > 0 ? `${availableGreenSeats} estate slot${availableGreenSeats === 1 ? '' : 's'} available` : 'all estate slots are currently used'}
+                  ??? Active plan ??? {availableGreenSeats > 0 ? `${availableGreenSeats} family record slot${availableGreenSeats === 1 ? '' : 's'} available` : 'all family record slots are currently used'}
                 </div>
               )}
               {isPaidPlan && (
@@ -4180,7 +4180,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                       <div>
                         <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink }}>
-                          {greenWorkflows.length === 0 && i === 0 ? "Starter planning estate" : `Available estate slot ${greenWorkflows.length + i + 1}`}
+                          {greenWorkflows.length === 0 && i === 0 ? "Starter planning estate" : `Available family record slot ${greenWorkflows.length + i + 1}`}
                         </div>
                         <div style={{ fontSize: 11.5, color: C.mid, marginTop: 3, lineHeight: 1.45 }}>
                           {greenWorkflows.length === 0 && i === 0
@@ -4196,12 +4196,12 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
                 ))}
                 {Math.max(0, estateSeatLimit - greenWorkflows.length) > 1 && (
                   <div style={{ background: C.bgSubtle, border: `1px dashed ${C.border}`, borderRadius: 12, padding: "11px 13px", color: C.mid, fontSize: 11.5, lineHeight: 1.45, marginBottom: 8 }}>
-                    {Math.max(0, estateSeatLimit - greenWorkflows.length) - 1} additional estate slot{Math.max(0, estateSeatLimit - greenWorkflows.length) - 1 === 1 ? "" : "s"} available. Use <strong>Set up</strong> when you are ready to create the next estate workspace.
+                    {Math.max(0, estateSeatLimit - greenWorkflows.length) - 1} additional family record slot{Math.max(0, estateSeatLimit - greenWorkflows.length) - 1 === 1 ? "" : "s"} available. Use <strong>Set up</strong> when you are ready to create the next family record.
                   </div>
                 )}
                 {plan === 'free' && greenWorkflows.length > 0 && (
                   <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.amber, lineHeight: 1.5 }}>
-                    Upgrade to unlock additional estate slots for a spouse, parent, or family plan.
+                    Upgrade to unlock additional family record slots for a spouse, parent, or family plan.
                   </div>
                 )}
               </div>

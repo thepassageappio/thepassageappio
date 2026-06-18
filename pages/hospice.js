@@ -87,7 +87,7 @@ const warmContinuity = [
 const careTeamSetup = [
   ['1', 'Location or care team', 'Start with the agency, facility, or home-care team that families already know.'],
   ['2', 'Care contacts', 'Save the on-call line, social worker, chaplain, primary caregiver, and family coordinator.'],
-  ['3', 'Family records', 'Create one family record at a time or import a small pilot list when approved.'],
+  ['3', 'Family records', 'Create one family record at a time or import a small approved family list.'],
   ['4', 'Care-prep next steps', 'Assign practical prep: first-hour plan, funeral-home choice, documents, visitors, and family updates.'],
   ['5', 'Handoff', 'When death occurs, the same record moves to urgent coordination and funeral-home coordination.'],
 ];
@@ -185,7 +185,7 @@ export default function HospiceWarmPath() {
       }
       const { data } = await supabase.auth.getSession();
       const token = data?.session?.access_token;
-      if (!token) throw new Error('Sign in once so Passage can save this workspace.');
+      if (!token) throw new Error('Sign in once so Passage can save this family record.');
       const res = await fetch('/api/warmPathEstate', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -355,7 +355,7 @@ export default function HospiceWarmPath() {
                 <details style={{ border: '1px solid ' + C.border, borderRadius: 13, background: C.bg, padding: 12 }}>
                   <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 14 }}>Add contacts, dates, and funeral-home preference</summary>
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, margin: '7px 0 10px' }}>
-                    Add only what the family actually knows. Unknown dates stay visible as tasks instead of blocking the record.
+                    Add only what the family actually knows. Unknown dates stay visible as next steps instead of blocking the record.
                   </div>
                   <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 10, marginBottom: 10 }}>
                     <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
@@ -425,7 +425,7 @@ export default function HospiceWarmPath() {
           <div>
             <div style={eyebrow}>Care-team context</div>
             <h2 style={{ ...h2, fontSize: 21, margin: '4px 0 4px' }}>Family coordination, not clinical software.</h2>
-            <p style={{ ...lead, fontSize: 12.6, lineHeight: 1.35 }}>Contacts, wishes, dates, tasks, permissions, and handoffs stay together without replacing medical records, facility systems, or care documentation.</p>
+            <p style={{ ...lead, fontSize: 12.6, lineHeight: 1.35 }}>Contacts, wishes, dates, next steps, permissions, and handoffs stay together without replacing medical records, facility systems, or care documentation.</p>
           </div>
           <button onClick={() => setShowDepth(prev => !prev)} style={showMoreButton}>
             {showDepth ? 'Hide details' : 'Show details'}
@@ -456,7 +456,7 @@ export default function HospiceWarmPath() {
         <div style={panel}>
           <div style={eyebrow}>Care-team setup</div>
           <h2 style={h2}>A hospice or care-facility location should start with care-team setup, not a blank dashboard.</h2>
-          <p style={lead}>This is the same Passage operating pattern as funeral-home onboarding, shifted upstream: set the location or care-team context once, add people once, then every family workspace reuses those roles and handoff paths.</p>
+          <p style={lead}>This is the same Passage operating pattern as funeral-home onboarding, shifted upstream: set the location or care-team context once, add people once, then every family record reuses those roles and handoff paths.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginTop: 16 }}>
             {careTeamSetup.map(([n, title, body]) => (
               <div key={title} style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, display: 'grid', gridTemplateColumns: '26px minmax(0,1fr)', gap: 9, alignItems: 'start' }}>

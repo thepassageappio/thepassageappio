@@ -1005,7 +1005,7 @@ export default function UrgentPage() {
               <div className="save-panel-head">
                 <div>
                   <div className="save-panel-title">Save this family record</div>
-                  <div className="save-panel-copy">Save when you want Passage to carry the next step, owner, notes, and proof into a private estate workspace.</div>
+                  <div className="save-panel-copy">Save when you want Passage to carry the next step, owner, notes, and proof into a private family record.</div>
                 </div>
                 <div style={{ color: C.sageDark, fontSize: 12, fontWeight: 800 }}>No messages send from this step.</div>
               </div>
