@@ -46,7 +46,7 @@ function shouldThrottleVendorCommerce(request) {
 }
 
 function vendorCommerceRateLimitResponse(limit) {
-  return NextResponse.json(
+  return withPassageReleaseHeaders(NextResponse.json(
     { error: 'Too many vendor, checkout, or payment attempts. Please wait before trying again.' },
     {
       status: 429,
@@ -54,7 +54,22 @@ function vendorCommerceRateLimitResponse(limit) {
         'Retry-After': String(limit.retryAfterSeconds || VENDOR_COMMERCE_WINDOW_SECONDS),
       },
     },
-  );
+  ));
+}
+
+function shouldNoStoreResponse(request) {
+  const path = request.nextUrl.pathname;
+  if (path.startsWith('/_next/static') || path.startsWith('/_next/image')) return false;
+  if (path === '/favicon.ico' || path === '/robots.txt' || path === '/sitemap.xml') return false;
+  return request.method === 'GET' || request.method === 'HEAD';
+}
+
+function withPassageReleaseHeaders(response, request) {
+  response.headers.set('X-Passage-Commit', process.env.VERCEL_GIT_COMMIT_SHA || 'local');
+  if (!request || shouldNoStoreResponse(request)) {
+    response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
+  }
+  return response;
 }
 
 export function middleware(request) {
@@ -62,21 +77,21 @@ export function middleware(request) {
   if (pathname === '/resources') {
     const url = request.nextUrl.clone();
     url.pathname = '/guides';
-    return NextResponse.redirect(url, 308);
+    return withPassageReleaseHeaders(NextResponse.redirect(url, 308), request);
   }
 
   if (pathname === '/funeral-home/dashboard' && searchParams.get('demo') === '1') {
     const url = request.nextUrl.clone();
     url.pathname = '/funeral-home/workspace-demo';
     url.search = '';
-    return NextResponse.redirect(url, 302);
+    return withPassageReleaseHeaders(NextResponse.redirect(url, 302), request);
   }
 
   if (pathname === '/system/demo') {
     const url = request.nextUrl.clone();
     url.pathname = '/system/admin';
     url.searchParams.set('tool', 'demo-studio');
-    return NextResponse.redirect(url, 302);
+    return withPassageReleaseHeaders(NextResponse.redirect(url, 302), request);
   }
 
   if (shouldThrottleVendorCommerce(request)) {
@@ -84,16 +99,11 @@ export function middleware(request) {
     if (!limit.allowed) return vendorCommerceRateLimitResponse(limit);
   }
 
-  return NextResponse.next();
+  return withPassageReleaseHeaders(NextResponse.next(), request);
 }
 
 export const config = {
   matcher: [
-    '/resources',
-    '/funeral-home/dashboard',
-    '/api/checkout',
-    '/api/vendorRequests/:path*',
-    '/api/vendors/:path*',
-    '/api/stripe/:path*',
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
   ],
 };
