@@ -2509,7 +2509,7 @@ export default function FuneralHomeDashboard() {
     ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first task owner', assignmentsCoordinated > 0],
     ['6', 'Proof loop', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
     ['7', 'Invite review', latestStaffInvite || partnerStaff.length ? 'Invite copy ready; nothing auto-sent' : 'Add staff before sending handoffs', latestStaffInvite || partnerStaff.length > 0],
-    ['8', 'Billing setup', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial' ? (partnerPlan?.plan ? `${partnerPlan.plan} visible` : 'Trial/demo visible') : 'Set up after pilot approval', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial'],
+    ['8', 'Billing setup', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial' ? (partnerPlan?.plan ? `${partnerPlan.plan} visible` : 'Trial/demo visible') : 'Set up after approval', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial'],
   ];
   const visiblePilotLaunchRows = isAdminDemo ? pilotLaunchRows : pilotLaunchRows.filter(row => !['Invite review', 'Billing setup'].includes(row[1]));
   const launchReadyCount = visiblePilotLaunchRows.filter(row => row[3]).length;
@@ -2520,8 +2520,8 @@ export default function FuneralHomeDashboard() {
     ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case record.' : 'Assign the first task owner to create visible proof.', assignmentsCoordinated > 0],
   ];
   const billingReadinessRows = [
-    ['Plan', partnerPlan?.plan || partnerPlan?.name || (activationStatus === 'active_trial' ? 'Pilot trial' : 'Pilot setup pending')],
-    ['Billing', billingStatus === 'paid' ? 'Paid' : billingStatus === 'demo' ? 'Demo' : billingStatus === 'stripe_pending' ? 'Stripe pending' : 'Set up after pilot approval'],
+    ['Plan', partnerPlan?.plan || partnerPlan?.name || (activationStatus === 'active_trial' ? 'Trial' : 'Setup pending')],
+    ['Billing', billingStatus === 'paid' ? 'Paid' : billingStatus === 'demo' ? 'Demo' : billingStatus === 'stripe_pending' ? 'Stripe pending' : 'Set up after approval'],
     ['Seats tracked', `${activeEmployeeRows.length || partnerStaff.length} employee${(activeEmployeeRows.length || partnerStaff.length) === 1 ? '' : 's'}`],
     ['Private operating inputs', activeEmployeeRows.some(member => moneyNumber(member.hourlyCost) || moneyNumber(member.annualSalary)) ? 'Labor cost available' : 'Add salary/hourly cost for staffing efficiency'],
   ];
@@ -2835,7 +2835,7 @@ export default function FuneralHomeDashboard() {
         )}
         {partnerTrialExpired && (
           <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, borderRadius: 14, padding: 16, color: C.rose, marginBottom: 12, lineHeight: 1.45 }}>
-            This partner trial has ended. Existing cases stay visible; ask Passage to reactivate billing before creating new pilot cases.
+            This account trial has ended. Existing cases stay visible; ask Passage to reactivate billing before creating new cases.
           </div>
         )}
 
@@ -2926,7 +2926,7 @@ export default function FuneralHomeDashboard() {
             <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(280px, 1.1fr)', gap: 18, alignItems: 'start' }}>
                 <div>
-                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>First-day pilot setup</div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>First-day setup</div>
                   <div style={{ color: C.ink, fontSize: 30, lineHeight: 1.08, marginTop: 6 }}>Set up once, then operate from the case pane.</div>
                   <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '10px 0 0' }}>A signed home should not hunt around. Confirm the workspace, add employees, create or import cases, assign one owner, record proof, then export the record back out.</p>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
@@ -3013,7 +3013,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.ink, fontSize: 24, lineHeight: 1.16, marginTop: 4 }}>Set up the workspace, then load cases one of two ways.</div>
                 <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, marginTop: 5 }}>After setup, every case reuses the same locations, saved employees, roles, family contacts, and preferred local support. Nobody should retype the same owner list case by case.</div>
               </div>
-              <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, maxWidth: 250 }}>Pilot-safe: imports preview first, invite messages are copied only, and no email or SMS is sent automatically.</div>
+              <div style={{ color: C.soft, fontSize: 11.5, lineHeight: 1.4, maxWidth: 250 }}>Safe setup: imports preview first, invite messages are copied only, and no email or SMS is sent automatically.</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 12 }}>
               {pilotLaunchRows.map(([n, title, body, done]) => (
@@ -3027,7 +3027,7 @@ export default function FuneralHomeDashboard() {
               ))}
             </div>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 14, padding: 12, marginTop: 12 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>First pilot day</div>
+              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>First day</div>
               <div style={{ color: C.ink, fontSize: 17, lineHeight: 1.25, fontWeight: 900, marginTop: 4 }}>A director should be able to do four things before lunch.</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 8, marginTop: 10 }}>
                 {[
@@ -3060,7 +3060,7 @@ export default function FuneralHomeDashboard() {
                 </div>
               </div>
               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Pilot readiness gates</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Readiness gates</div>
                 <div style={{ display: 'grid', gap: 7, marginTop: 10 }}>
                   {pilotReadyGates.map(([label, done, value]) => (
                     <div key={label} style={{ display: 'grid', gridTemplateColumns: '22px minmax(0,1fr)', gap: 8, alignItems: 'center', background: done ? C.sageFaint : C.amberFaint, border: `1px solid ${done ? C.sage + '22' : C.amber + '33'}`, borderRadius: 11, padding: '8px 9px' }}>
@@ -3072,7 +3072,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                   ))}
                 </div>
-                <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 10 }}>A pilot is ready to run when the director can create/import a case, assign one owner, record proof, and export the record without Passage staff doing the work for them.</div>
+                <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 10 }}>An account is ready to operate when the director can create or import a case, assign one owner, record proof, and export the record without Passage staff doing the work for them.</div>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginTop: 12 }}>
@@ -3115,7 +3115,7 @@ export default function FuneralHomeDashboard() {
               <a href="/api/partnerImportTemplate" style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Download template</a>
               <button onClick={() => downloadExport('spine')} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Download full record</button>
               <button onClick={() => emailExport('cases')} style={{ border: `1px solid ${C.border}`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.bg, color: C.mid, fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>{updating === 'email_case_export' ? 'Sending...' : 'Email case summary'}</button>
-              <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{partnerPlan?.plan ? `Billing: ${partnerPlan.plan}` : 'Start pilot billing'}</button>
+              <button onClick={() => startPartnerCheckout('partner_pilot')} style={{ border: `1px solid ${C.sage}33`, borderRadius: 14, minHeight: 52, padding: '0 16px', background: C.sageFaint, color: C.sage, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{partnerPlan?.plan ? `Billing: ${partnerPlan.plan}` : 'Set up billing'}</button>
             </div>
             <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 11, marginTop: 10 }}>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Export date range</div>
@@ -3587,7 +3587,7 @@ export default function FuneralHomeDashboard() {
                   <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Role permissions</div>
                   <div style={{ display: 'grid', gap: 8, marginTop: 9 }}>
                     {[
-                      ['Director / owner', 'All cases, all locations, staff setup, reports, exports, billing prompts, and pilot controls.'],
+                      ['Director / owner', 'All cases, all locations, staff setup, reports, exports, billing prompts, and setup controls.'],
                       ['Location manager', 'Cases and reporting for their location scope; can assign staff and move work.'],
                       ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close tasks.'],
                       ['Participant / family helper', 'Scoped to the task or estate slice they were invited to handle.'],
