@@ -29,7 +29,7 @@ const proof = [
   ['Proven', 'How we know it happened'],
 ];
 
-const pledgeCopy = 'Passage directs 10% of proceeds to grief and family-support work. For each paid urgent family command center, we also fund a remembrance tree dedication in the person\'s name.';
+const pledgeCopy = 'Passage directs 10% of proceeds to grief and family-support work. For each paid urgent family record, we also fund a remembrance tree dedication in the person\'s name.';
 
 export default function MissionPage() {
   const s0 = useState(0); const activePathIndex = s0[0]; const setActivePathIndex = s0[1];

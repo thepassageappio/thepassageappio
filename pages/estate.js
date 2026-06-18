@@ -1,5 +1,5 @@
 // pages/estate.js
-// Estate command center - single-estate view for urgent users
+// Single-family-record view for urgent users
 // Route: /estate?id=:estateId
 // Replaces generic dashboard for post-urgent users
 
@@ -317,7 +317,7 @@ function FuneralHomeRequestPanel({ estateId, estateName, coordinatorName, defaul
       });
       var data = await response.json().catch(function() { return {}; });
       if (!response.ok) throw new Error(data.error || 'Could not save this funeral-home request.');
-      var partner = data.matchedOrganization && data.matchedOrganization.name ? ' This funeral home can see the request inside their Passage workspace.' : ' Passage will keep this ready so the team can help connect the family when it is time.';
+      var partner = data.matchedOrganization && data.matchedOrganization.name ? ' This funeral home can see the request inside their Passage dashboard.' : ' Passage will keep this ready so the team can help connect the family when it is time.';
       setMessage('Funeral home request saved to this family record.' + partner + ' Nothing is sent without family approval.');
     } catch (error) {
       setMessage(error.message || 'Could not save this funeral-home request.');
@@ -499,12 +499,12 @@ class TaskPanelBoundary extends React.Component {
   render() {
     if (!this.state.error) return this.props.children;
     var title = this.props.title || 'Estate section recovered';
-    var detail = this.props.detail || 'One part of this estate workspace has a field Passage could not display safely.';
+    var detail = this.props.detail || 'One part of this family record has a field Passage could not display safely.';
     return (
       <div style={{ background: ROSE_FAINT, border: '1px solid ' + ROSE + '35', borderRadius: 14, padding: '13px 15px', marginBottom: 16 }}>
         <div style={{ fontSize: 11, fontWeight: 900, color: ROSE, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 5 }}>{title}</div>
         <div style={{ fontSize: 14, color: INK, fontWeight: 900, lineHeight: 1.35 }}>{detail}</div>
-        <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 5 }}>The estate is still intact. The rest of the workspace should remain usable while Passage isolates this section.</div>
+        <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 5 }}>The family record is still intact. The rest of the record should remain usable while Passage isolates this section.</div>
       </div>
     );
   }
