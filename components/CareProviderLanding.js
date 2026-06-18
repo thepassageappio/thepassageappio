@@ -127,12 +127,12 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
           <form id="care-provider-inquiry" onSubmit={submit} style={formCard}>
             <div style={eyebrow}>Partner inquiry</div>
             <h2 style={h2}>Tell us where the family handoff breaks.</h2>
-            <p style={{ ...smallText, marginBottom: 12 }}>Use this for hospice, assisted living, senior living, home-care, or care-facility partnership conversations. Required: organization name and contact email.</p>
+            <p style={{ ...smallText, marginBottom: 12 }}>Use this for hospice, assisted living, senior living, home-care, or care-facility partnership conversations. Required: organization name and contact email. We will use it to understand the handoff, permission boundary, and rollout fit.</p>
             {state === 'sent' ? (
               <div style={successBox}>
                 <div style={smallEyebrow}>Received</div>
                 <h3 style={{ ...h3, marginTop: 6 }}>We have your inquiry.</h3>
-                <p style={smallText}>A receipt was sent to the contact email. The next step is a short walkthrough so we can understand your family handoff, permissions, and rollout needs.</p>
+                <p style={smallText}>A receipt was sent to the contact email. Recommended next action: book a short walkthrough so we can understand your family handoff, permissions, and rollout needs.</p>
                 <a href={calendlyUrl({ name: form.contactName, email: form.contactEmail, source: 'Care provider discovery' })} target="_blank" rel="noreferrer" style={{ ...primaryLink, marginTop: 12 }}>Book the walkthrough</a>
               </div>
             ) : (
