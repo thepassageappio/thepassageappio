@@ -91,7 +91,7 @@ function score(gates) {
 }
 
 function orgName(org) {
-  return org?.name || org?.family_portal_name || org?.from_name || 'Unnamed funeral-home partner';
+  return org?.name || org?.family_portal_name || org?.from_name || 'Unnamed funeral-home account';
 }
 
 export default async function handler(req, res) {
@@ -195,7 +195,7 @@ export default async function handler(req, res) {
   const gates = [
     gate('enterprise_accounts', 'Enterprise partner accounts exist', accounts.length ? 'ready' : 'blocked', `${accounts.length} funeral-home-like organization(s) found.`, 'Create or classify real funeral-home organizations.'),
     gate('roles_locations', 'Roles and locations are modeled', accounts.some(account => account.metrics.staff >= 2 && account.metrics.locations >= 1) ? 'ready' : 'warning', 'Requires director/staff plus at least one active branch.', 'Make the B2B account structure real before expanding B2C.'),
-    gate('case_task_work', 'Cases and task work are active', accounts.some(account => account.metrics.cases && account.metrics.tasks) ? 'ready' : 'blocked', 'At least one account must have cases and tasks.', 'Create or import real cases and move work through the task workflow.'),
+    gate('case_task_work', 'Cases and work cards are active', accounts.some(account => account.metrics.cases && account.metrics.tasks) ? 'ready' : 'blocked', 'At least one account must have cases and work cards.', 'Create or import real cases and move work through the work-card flow.'),
     gate('audit_proof', 'Audit/proof trail exists', accounts.some(account => account.metrics.proofEvents > 0) ? 'ready' : 'blocked', 'At least one account must produce status/proof events.', 'Record handled/waiting/blocked events with actor and timestamp.'),
     gate('paid_path', 'Paid path is visible', accounts.some(account => account.mrr > 0) ? 'ready' : 'warning', 'At least one account should have an MRR or billing signal.', 'Connect account success to a Stripe paid plan.'),
   ];

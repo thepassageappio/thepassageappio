@@ -47,12 +47,12 @@ const qaRoutes = [
     promise: 'Runs today from My Day: next case, waiting items, coverage, family requests, proof, and reports.',
     pass: [
       'Director identifies the recommended next case in under 10 seconds.',
-      'Case pane shows family handoff context before task clutter.',
+      'Case pane shows family handoff context before work-card clutter.',
       'Director can assign work to staff and see the owner change.',
       'Reviewed family update cannot leave without clear approval/proof state.',
       'Completed or waiting work leaves proof and drops out of active attention.',
     ],
-    evidence: ['My Day screenshot', 'Selected case screenshot', 'Task owner/proof screenshot', 'Reports/export screenshot'],
+    evidence: ['My Day screenshot', 'Selected case screenshot', 'Work owner/proof screenshot', 'Reports/export screenshot'],
     priority: 'P0',
   },
   {
@@ -61,12 +61,12 @@ const qaRoutes = [
     promise: 'Sees assigned work only and can act without learning the director workspace.',
     pass: [
       'Assigned work appears first, not owner/admin clutter.',
-      'Task shows ask, owner, waiting point, proof destination, and notification state.',
+      'Work card shows ask, owner, waiting point, proof destination, and notification state.',
       'Waiting requires a meaningful waiting reason.',
       'Handled requires proof or detail.',
       'The saved state is visible immediately after action.',
     ],
-    evidence: ['Staff queue screenshot', 'Task action screenshot', 'Post-save screenshot'],
+    evidence: ['Staff queue screenshot', 'Work action screenshot', 'Post-save screenshot'],
     priority: 'P0',
   },
   {
@@ -85,14 +85,14 @@ const qaRoutes = [
   {
     persona: 'Participant/helper',
     route: '/participating?demo=1&persona=participant&demoTour=funeral-home&demoStep=participant',
-    promise: 'Completes one scoped task in under one minute.',
+    promise: 'Completes one scoped request in under one minute.',
     pass: [
-      'Participant understands the task in under 10 seconds.',
+      'Participant understands the request in under 10 seconds.',
       'Participant can respond, mark waiting, or leave proof without seeing full estate.',
       'Saved note or proof remains visible immediately.',
       'Missing scope or expired link state is warm and clear.',
     ],
-    evidence: ['Scoped task screenshot', 'Response/proof screenshot'],
+    evidence: ['Scoped request screenshot', 'Response/proof screenshot'],
     priority: 'P0',
   },
   {
@@ -118,7 +118,7 @@ const qaRoutes = [
       'Pilot health names account stage, blocker, next action, and ARR gap.',
       'Conversion Plan names ask-ready accounts, target plan, ARR impact, blocked asks, and the next paid conversion action.',
       'Partner Checkout Readiness names Stripe price, pilot discount, webhook, auth, metadata, and billing mirror status before paid asks scale.',
-      'Automation Spine Readiness names task assignment, waiting hygiene, blockers, stale work, proof gaps, delivery telemetry, and reminder runtime status.',
+      'Automation Readiness Readiness names task assignment, waiting hygiene, blockers, stale work, proof gaps, delivery telemetry, and reminder runtime status.',
       'Production reset is disabled, removed, or two-party gated once real customer data exists.',
     ],
     evidence: ['Roadmap screenshot', 'Rate-limit readiness result', 'Pilot-health result', 'Conversion-plan result', 'Partner-checkout-readiness result', 'Automation-spine-readiness result'],
@@ -129,14 +129,14 @@ const qaRoutes = [
 const viewportChecks = ['1440px desktop', '1280px laptop', '900px tablet-ish', '390px mobile'];
 const launchBlockers = [
   'Sample console needs founder narration to make ROI clear.',
-  'Staff workspace shows director/admin clutter.',
+  'Staff workspace shows director/admin clutter instead of assigned work first.',
   'Handled or waiting states can be saved without meaningful detail.',
-  'Family update, reminder, vendor update, or task assignment can send repeatedly without throttling.',
+  'Family update, reminder, vendor update, or work assignment can send repeatedly without throttling.',
   'HubSpot cannot show funeral-home lead or pilot stage.',
   'Stripe live webhook readiness is unknown for paid partner conversion.',
   'Proof-ready pilots do not have a named paid conversion ask, target plan, and ARR impact.',
   'Partner checkout readiness is blocked or unknown before paid conversion asks.',
-  'Automation spine readiness is blocked or unknown before pilots expand.',
+  'Automation readiness is blocked or unknown before pilots expand.',
   'Public pages imply HIPAA, SOC 1, SOC 2, legal, payment, or SMS readiness before review.',
   'Production reset can remove real customer, lead, estate, vendor, or partner records.',
 ];
@@ -197,11 +197,11 @@ export default function FuneralHomeQaPage() {
         <div>
           <div style={eyebrow}>System admin / funeral-home QA</div>
           <h1 style={h1}>Prove the funeral-home loop is flawless enough for pilots.</h1>
-          <p style={lead}>Run this checklist before every funeral-home demo, pilot invite, or release touching partner onboarding, staff work, tasks, notifications, exports, vendors, or family updates.</p>
+          <p style={lead}>Run this checklist before every funeral-home demo, pilot invite, or release touching funeral-home setup, staff work, work cards, notifications, exports, vendors, or family updates.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Link href="/system/admin/saas-roadmap" style={secondaryLink}>SaaS roadmap</Link>
-          <Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Spine</Link>
+          <Link href="/system/admin/automation-spine-readiness" style={secondaryLink}>Automation Readiness</Link>
           <Link href="/system/admin" style={secondaryLink}>System Admin</Link>
         </div>
       </div>
@@ -210,7 +210,7 @@ export default function FuneralHomeQaPage() {
         <div style={eyebrow}>Success standard</div>
         <h2 style={h2}>Director and employee can complete the core loop without narration.</h2>
         <div style={grid}>
-          {['Open sample console', 'See My Day', 'Inspect case context', 'Resolve coverage', 'Move task with proof', 'Preview family update', 'See delivery trail', 'Export/report status', 'Know pilot next step'].map(item => (
+          {['Open sample console', 'See My Day', 'Inspect case context', 'Resolve coverage', 'Move work with proof', 'Preview family update', 'See delivery trail', 'Export/report status', 'Know next account step'].map(item => (
             <div key={item} style={miniCard}>{item}</div>
           ))}
         </div>
