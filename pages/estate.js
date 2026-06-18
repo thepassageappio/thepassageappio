@@ -56,7 +56,7 @@ var PLAYBOOKS = {
   },
   documents: {
     title: 'Gather the right document',
-    draft: 'Please locate the document for this step. If you find a digital copy, upload it to the estate command center before sharing.',
+    draft: 'Please locate the document for this step. If you find a digital copy, upload it to the family record before sharing.',
     steps: ['Find the document or note its location', 'Upload a copy if available', 'Share only after review']
   },
   property: {
@@ -4257,7 +4257,7 @@ export default function EstatePage() {
           communications={coordinationSpine?.notifications || []}
         />
 
-        <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Command center recovered" detail="The command center hit a display issue, but the estate workspace is still available below.">
+        <TaskPanelBoundary resetKey={'command:' + estateId + ':' + tasks.length + ':' + outcomes.length} title="Record tools recovered" detail="This panel hit a display issue, but the family record is still available below.">
           <TaskSpineCommandCenter
             activeTab={activeCommandTab}
             setActiveTab={setActiveCommandTab}
