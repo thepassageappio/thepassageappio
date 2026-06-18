@@ -45,10 +45,10 @@ export default function AutomationSpineReadinessPage() {
       const token = session?.data?.session?.access_token || '';
       const response = await fetch('/api/system/automationSpineReadiness', { headers: token ? { Authorization: 'Bearer ' + token } : {} });
       const json = await response.json().catch(() => ({}));
-      if (!response.ok) { setError(json.error || 'Automation spine readiness could not load.'); setResult(null); return; }
+      if (!response.ok) { setError(json.error || 'Task and message readiness could not load.'); setResult(null); return; }
       setResult(json);
     } catch (err) {
-      setError(err.message || 'Automation spine readiness could not load.'); setResult(null);
+      setError(err.message || 'Task and message readiness could not load.'); setResult(null);
     } finally {
       setChecking(false);
     }
