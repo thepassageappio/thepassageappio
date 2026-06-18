@@ -14,7 +14,7 @@ export default function VendorOnboard() {
   const [submitting, setSubmitting] = useState(false);
   const setupPath = [
     ['Apply', 'Tell us the work you do, where you serve families, and how quickly you can respond.'],
-    ['Review', 'Passage reviews each partner before any recommendation appears in a family task.'],
+    ['Review', 'Passage reviews each partner before any recommendation appears in a family request.'],
     ['Respond', 'Approved partners receive one scoped request at a time, then send quote, schedule, and completion proof back to the case.'],
   ];
 
@@ -55,7 +55,7 @@ export default function VendorOnboard() {
           <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 15, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Trusted local support</div>
             <h1 style={{ fontSize: 32, lineHeight: 1, margin: 0, fontWeight: 400 }}>Help when a family actually needs you.</h1>
-            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.35, margin: '8px 0 0' }}>Passage suggests local support only inside the task where it helps. No public directory, no bidding wall, no browsing family records.</p>
+            <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.35, margin: '8px 0 0' }}>Passage suggests local support only when the family request needs it. No public directory, no bidding wall, no browsing family records.</p>
             <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
               {['Families see your help only when it fits the next step.', 'You receive one scoped request with the details needed to answer.', 'Your response sends quote, schedule, and completion status back so nobody has to chase it.'].map((item) => (
                 <div key={item} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 11, padding: '8px 10px', color: C.mid, fontSize: 12.5, lineHeight: 1.35 }}>{item}</div>

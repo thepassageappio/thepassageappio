@@ -4132,7 +4132,7 @@ export default function EstatePage() {
           </div>
         ) : (
           <div style={{ width: '100%', maxWidth: 760, background: CARD, border: '1px solid ' + BORDER, borderRadius: 20, padding: '30px 28px', boxShadow: '0 18px 54px rgba(55,45,35,.06)' }}>
-            <div style={{ fontSize: 11, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 12 }}>Your first estate workspace</div>
+            <div style={{ fontSize: 11, color: SAGE, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 12 }}>Your family record</div>
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 30, lineHeight: 1.12, color: INK, margin: '0 0 10px', fontWeight: 400 }}>Create the first family record.</h1>
             <div style={{ fontSize: 15, color: MID, lineHeight: 1.65, margin: '0 0 22px', maxWidth: 620 }}>
               You are signed in as <strong style={{ color: INK }}>{user.email}</strong>, but there are no estate records attached to this account yet. Start with the path that matches the moment.
@@ -4148,7 +4148,7 @@ export default function EstatePage() {
                 style={{ textAlign: 'left', border: '1px solid ' + ROSE + '33', background: ROSE_FAINT, color: INK, borderRadius: 16, padding: '17px 18px', cursor: 'pointer', fontFamily: 'inherit' }}>
                 <div style={{ color: ROSE, fontSize: 11, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Someone just passed</div>
                 <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 5 }}>Create an urgent record</div>
-                <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.5 }}>Start urgent help and create the command center from the first practical details.</div>
+                <div style={{ color: MID, fontSize: 13.5, lineHeight: 1.5 }}>Start urgent help and create the family record from the first practical details.</div>
               </button>
             </div>
           </div>
