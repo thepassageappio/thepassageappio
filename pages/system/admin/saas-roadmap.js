@@ -49,8 +49,8 @@ const governanceRules = [
 const takeaways = [
   ['Public funeral-home page', 'Reworked', 'Removed ARR/pilot-proof sales math from the funeral-home page and reframed it around calmer family/staff coordination.'],
   ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; public navigation is now audience-led and system routes render a System Admin boundary.'],
-  ['Public surface scan', 'Green', 'Main public routes scan clean for owner revenue goals, roadmap language, sprint labels, QA language, and admin leakage.'],
-  ['Live public UAT sweep', 'P0 release routing', 'Source deploys are green, but www.thepassageapp.io has served older funeral-home, vendor, care-provider, and homepage copy through Cloudflare/DNS. Treat domain/alias/cache routing as P0 before LinkedIn promotion, paid pilots, or final persona QA signoff.'],
+  ['Public surface scan', 'Source green', 'Current source exact-search is clean for command center, family task, and coordination spine; customer-facing copy now favors family record, request, dashboard, next step, owner, waiting point, and proof.'],
+  ['Live public UAT sweep', 'P0 release routing', 'Source deploys are green, but www.thepassageapp.io still serves older homepage copy including sample funeral-home console and Spine labels through Cloudflare/DNS. Treat domain/alias/cache routing as P0 before LinkedIn promotion, paid pilots, or final persona QA signoff.'],
   ['Persona browser UAT matrix', 'In progress', 'Checked funeral-home buyer, workspace demo, sample case, staff, cases, setup, urgent family, planning, estate demo, participants, care providers, hospice, assisted living, vendors, vendor request/login/onboarding, and system admin gate. No route-level console errors on public/persona surfaces.'],
   ['Task-language cleanup from UAT', 'Source green', 'Shared task actions now use one simple contract across roles: I own this, mark waiting, needs help, and mark done with proof. Public/vendor/helper wording now favors request, record, owner, waiting point, and proof over task-spine or command-center jargon.'],
   ['Form validation UAT', 'Source fixed / live domain stale', 'Vendor onboarding now requires business name, ZIPs, and email before submit state, and care-provider inquiry shows required organization plus email. Recheck live once www points at latest main.'],
@@ -71,7 +71,7 @@ const sprints = [
     goal: 'Make it impossible for external users to see owner-only strategy, QA, or admin concepts.',
     tasks: [
       'Keep shared header free of internal tabs; show System Admin only to true admin users and on system routes.',
-      'Keep public readiness checks blocking ARR, sprint, roadmap, QA, and founder/internal language.',
+      'Keep public readiness checks blocking ARR, sprint, roadmap, QA, founder/internal language, command center, family task, and coordination spine.'
       'Audit homepage, funeral-home, urgent, planning, hospice/care-prep, pricing, contact, participants, vendors, and care-provider pages after every deploy, and block launch if www serves older copy than the latest green main deployment.',
       'Move any internal tool discovery into System Admin instead of creating new top-level tabs.',
     ],
