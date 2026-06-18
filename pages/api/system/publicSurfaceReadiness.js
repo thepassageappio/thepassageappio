@@ -169,8 +169,8 @@ const personaSourceChecks = [
   {
     path: 'components/App.js',
     label: 'Family homepage and dashboard source',
-    requires: ['Open sample case', 'Start urgent path', 'Prepare during care', 'Plan ahead', 'One family record', 'Active plan', 'Who owns each next step', 'Prepared output', \
-    forbids: ['Plan ahead ???', 'Active plan ???', ' ?? Proof: ', 'Task output', 'Who owns each task', 'Coordinate people, tasks, and messages ??? all in one place.', '???', 'Open sample funeral-home console', 'Spine Journey Providers Lifecycle'],
+    requires: ['Open sample case', 'Start urgent path', 'Prepare during care', 'Plan ahead', 'One family record', 'Active plan', 'Who owns each next step', 'Prepared output', "You've been asked to handle a next step", 'Handoff ready', 'Same family record across planning, urgent help, funeral-home handoffs, and participant views.', 'own this next step', 'family-record work connected to you'],
+    forbids: ['Plan ahead ???', 'Active plan ???', ' ?? Proof: ', 'Task output', 'Who owns each task', 'Coordinate people, tasks, and messages ??? all in one place.', '???', 'Open sample funeral-home console', 'Spine Journey Providers Lifecycle', "You've been assigned a task", 'estate task in Passage', 'accept the task', 'task details', 'Partner ready', 'partner dashboard', 'assigned a task', 'estate task plan', 'real estate tasks later', 'Same record across planning, urgent, partner, and participant views.'],
   },
   {
     path: 'pages/funeral-home/workspace-demo.js',
