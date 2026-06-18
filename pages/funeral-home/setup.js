@@ -166,6 +166,9 @@ export default function FuneralHomeSetupPage() {
             <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginTop: 14 }}>
               <strong style={{ color: C.ink }}>What done means:</strong> the first case has an owner, a visible next step, a drafted family message, and a proof packet destination before the team starts using Passage with families.
             </div>
+            <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginTop: 10 }}>
+              <strong style={{ color: C.ink }}>Recommended next action:</strong> sign in as an owner or director, add the funeral-home name and main location, then create one real case so staff can see who owns the next step and where proof saves.
+            </div>
           </div>
 
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 22, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
