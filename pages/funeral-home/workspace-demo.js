@@ -20,10 +20,10 @@ const taskPreview = [
 ];
 const workflow = [
   ['1', 'My Day', 'Start with the case, owner, waiting point, and proof that need attention now.'],
-  ['2', 'Task action', 'Open the task to see the drafted ask, owner, status, proof requirement, and what done means.'],
+  ['2', 'Work action', 'Open the work item to see the drafted ask, owner, status, proof requirement, and what done means.'],
   ['3', 'Family update', 'Review the message before anything sends. Families see approved updates, not private staff notes.'],
   ['4', 'Staff queue', 'Employees see assigned work first with context, waiting point, and proof destination.'],
-  ['5', 'Export', 'Case status, task outcomes, notes, messages, and proof can be exported for existing systems.'],
+  ['5', 'Export', 'Case status, work outcomes, notes, messages, and proof can be exported for existing systems.'],
 ];
 
 const boundaries = [
@@ -88,8 +88,8 @@ export default function FuneralHomeWorkspaceDemo() {
 
         <section style={{ marginTop: 16 }}>
           <div className="wd-panel">
-            <div className="wd-kicker">Task card contract</div>
-            <h2 style={{ fontSize: 30, lineHeight: 1.1, margin: '7px 0 10px', fontWeight: 400 }}>Every task card should make the next move obvious.</h2>
+            <div className="wd-kicker">Work card contract</div>
+            <h2 style={{ fontSize: 30, lineHeight: 1.1, margin: '7px 0 10px', fontWeight: 400 }}>Every work card should make the next move obvious.</h2>
             <div className="wd-grid">
               {taskPreview.map(([label, title, body]) => (
                 <div className="wd-card" key={label}>

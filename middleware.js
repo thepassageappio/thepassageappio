@@ -80,12 +80,6 @@ export function middleware(request) {
     return withPassageReleaseHeaders(NextResponse.redirect(url, 308), request);
   }
 
-  if (pathname === '/funeral-home/dashboard' && searchParams.get('demo') === '1') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/funeral-home/workspace-demo';
-    url.search = '';
-    return withPassageReleaseHeaders(NextResponse.redirect(url, 302), request);
-  }
 
   if (pathname === '/system/demo') {
     const url = request.nextUrl.clone();

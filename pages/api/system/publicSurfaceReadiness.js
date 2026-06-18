@@ -28,7 +28,8 @@ const publicChecks = [
   },
   {
     path: '/funeral-home/workspace-demo',
-    requires: ['Sample funeral-home workspace', 'What opens after sign-in', 'Staff queue showing who owns what'],
+    requires: ['Sample funeral-home workspace', 'What opens after sign-in', 'Staff queue showing who owns what', 'Work card contract'],
+    forbids: ['Task card contract', 'Every task card', 'Task action', 'task outcomes'],
   },
   {
     path: '/care-providers',
@@ -170,6 +171,12 @@ const personaSourceChecks = [
     label: 'Family homepage and dashboard source',
     requires: ['Open sample case', 'Start urgent path', 'Prepare during care', 'Plan ahead', 'One family record', 'Active plan', 'Who owns each next step', 'Prepared output'],
     forbids: ['Plan ahead ???', 'Active plan ???', ' ?? Proof: ', 'Task output', 'Who owns each task', 'Coordinate people, tasks, and messages ??? all in one place.', '???', 'Open sample funeral-home console', 'Spine Journey Providers Lifecycle'],
+  },
+  {
+    path: 'pages/funeral-home/workspace-demo.js',
+    label: 'Funeral-home workspace demo source',
+    requires: ['Sample funeral-home workspace', 'Work card contract', 'Work action', 'work outcomes'],
+    forbids: ['Task card contract', 'Every task card', 'Task action', 'task outcomes'],
   },
   {
     path: 'pages/funeral-home/dashboard.js',
