@@ -47,7 +47,7 @@ const handoffSteps = [
 ];
 
 const planRows = [
-  ['Single team', 'For one care team or location proving the handoff model.', 'Partner inquiry'],
+  ['Single team', 'For one care team or location proving the handoff model.', 'Care team inquiry'],
   ['Multi-location', 'For operators that need repeatable family continuity across several locations.', 'Plan rollout'],
   ['Enterprise', 'For organizations that need governance, reporting, training, and account support.', 'Talk to Passage'],
 ];
@@ -105,18 +105,18 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
       <section style={shell}>
         <div className="care-hero" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(340px, .72fr)', gap: 16, alignItems: 'stretch' }}>
           <div style={heroCard}>
-            <div style={eyebrow}>Care-provider partnerships</div>
+            <div style={eyebrow}>Care-team support</div>
             <h1 style={heroTitle}>Help families leave care with a clearer next step.</h1>
             <p style={lead}>
               Passage helps hospice, assisted living, senior living, home-care, and care-facility teams support families before the moment of loss. Families can organize a care-prep record, keep control of access, and carry the same context into funeral-home coordination when needed.
             </p>
             <div style={actionRow}>
-              <a href="#care-provider-inquiry" style={primaryLink}>Start partner inquiry</a>
+              <a href="#care-provider-inquiry" style={primaryLink}>Start care-team inquiry</a>
               <a href={calendlyUrl({ source: 'Care provider discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Book walkthrough</a>
               <Link href="/hospice#start-warm-workspace" style={secondaryLink}>Create family care-prep record</Link>
             </div>
             <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 14 }}>
-              <strong style={{ color: C.ink }}>Purpose of this page:</strong> start a care-provider partnership conversation, book a walkthrough, or help a family begin a care-prep record. This is not an operating dashboard; active family work stays inside permissioned Passage records.
+              <strong style={{ color: C.ink }}>Purpose of this page:</strong> start a care-team inquiry, book a walkthrough, or help a family begin a care-prep record. This is not an operating dashboard; active family work stays inside permissioned Passage records.
             </div>
             <div className="care-purpose-grid" style={purposeGrid}>
               {purposes.map(([title, body]) => (
@@ -129,9 +129,9 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
           </div>
 
           <form id="care-provider-inquiry" onSubmit={submit} style={formCard}>
-            <div style={eyebrow}>Partner inquiry</div>
+            <div style={eyebrow}>Care team inquiry</div>
             <h2 style={h2}>Tell us where the family handoff breaks.</h2>
-            <p style={{ ...smallText, marginBottom: 12 }}>Use this for hospice, assisted living, senior living, home-care, or care-facility partnership conversations. Required: organization name and contact email. We will use it to understand the handoff, permission boundary, and rollout fit.</p>
+            <p style={{ ...smallText, marginBottom: 12 }}>Use this for hospice, assisted living, senior living, home-care, or care-facility handoff conversations. Required: organization name and contact email. We will use it to understand the handoff, permission boundary, and rollout fit.</p>
             {state === 'sent' ? (
               <div style={successBox}>
                 <div style={smallEyebrow}>Received</div>
@@ -160,7 +160,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
                 <textarea value={form.message} onChange={e => update('message', e.target.value)} placeholder="What family handoff, care transition, or coordination problem should Passage help solve?" style={{ ...inputStyle, minHeight: 88, paddingTop: 11, resize: 'vertical' }} />
                 {!requiredReady && <div style={hintBox}>Add organization name and contact email to send the inquiry.</div>}
                 {error && <div style={errorBox}>{error}</div>}
-                <button disabled={state === 'sending' || !requiredReady} style={{ ...primaryButton, background: state === 'sending' || !requiredReady ? C.border : C.sage, cursor: state === 'sending' ? 'wait' : !requiredReady ? 'not-allowed' : 'pointer' }}>{state === 'sending' ? 'Sending...' : requiredReady ? 'Send partner inquiry' : 'Add required info'}</button>
+                <button disabled={state === 'sending' || !requiredReady} style={{ ...primaryButton, background: state === 'sending' || !requiredReady ? C.border : C.sage, cursor: state === 'sending' ? 'wait' : !requiredReady ? 'not-allowed' : 'pointer' }}>{state === 'sending' ? 'Sending...' : requiredReady ? 'Send care-team inquiry' : 'Add required info'}</button>
               </div>
             )}
           </form>
@@ -170,7 +170,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
       <section style={section}>
         <div className="care-two" style={twoPanelGrid}>
           <div style={panel}>
-            <div style={eyebrow}>Partner fit</div>
+            <div style={eyebrow}>Care-team fit</div>
             <h2 style={h2}>A calmer handoff before the first urgent call.</h2>
             <p style={smallText}>Care teams can help families collect contacts, wishes, documents, and first-call context earlier, while day-to-day case work stays inside permissioned Passage dashboards.</p>
           </div>
@@ -217,7 +217,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
             </div>
           </div>
           <div style={panel}>
-            <div style={eyebrow}>Partner paths</div>
+            <div style={eyebrow}>Ways to start</div>
             <h2 style={h2}>Start small, then scale by team or location.</h2>
             <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
               {planRows.map(([title, body, cta]) => (
