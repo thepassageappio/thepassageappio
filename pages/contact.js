@@ -16,7 +16,7 @@ const categories = [
   'Book a funeral-home demo',
   'Vendor conversation',
   'Hospice or care-facility conversation',
-  'Funeral home / partner inquiry',
+  'Funeral home inquiry',
   'Local vendor interest',
   'Feature request',
   'Report a bug',
@@ -62,7 +62,7 @@ export default function ContactPage() {
           : rawCategory.includes('demo') || rawCategory.includes('walkthrough')
             ? 'Book a funeral-home demo'
             : rawCategory.includes('funeral') || rawCategory.includes('partner')
-              ? 'Funeral home / partner inquiry'
+              ? 'Funeral home inquiry'
           : prev.category;
       const planLine = plan ? `Interested plan: ${plan.replace(/_/g, ' ')}.` : '';
       const message = prev.message || planLine;
@@ -99,7 +99,7 @@ export default function ContactPage() {
         <div>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Contact Passage</div>
           <h1 style={{ fontSize: 32, lineHeight: .98, margin: '0 0 8px', fontWeight: 400 }}>How can we help right now?</h1>
-          <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: 0 }}>Book demos and partner conversations immediately. Use the form for support, billing, bugs, feature requests, urgent-flow feedback, or anything that can wait for a written reply.</p>
+          <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.42, margin: 0 }}>Book demos and provider conversations immediately. Use the form for support, billing, bugs, feature requests, urgent-flow feedback, or anything that can wait for a written reply.</p>
           <div style={{ marginTop: 10, background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 13, padding: '10px 11px', color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
             <strong style={{ color: C.ink }}>Emergencies:</strong> contact local emergency services or the appropriate funeral, medical, legal, or government office directly.<br />
             <strong style={{ color: C.ink }}>Support:</strong> <SupportEmail /><br />

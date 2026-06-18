@@ -27,7 +27,7 @@ const outcomes = [
 
 const workflow = [
   ['1', 'Open a case', 'Add the family contact, service context, known dates, and the person on your team who owns the next step.'],
-  ['2', 'Assign the work', 'Directors see the full case floor. Staff see only the assigned tasks and context needed to act.'],
+  ['2', 'Assign the work', 'Directors see the full case floor. Staff see only the assigned work and context needed to act.'],
   ['3', 'Ask once', 'Passage drafts the right family request or staff note so people are not chasing the same answer repeatedly.'],
   ['4', 'Record proof', 'Handled, waiting, and blocked items each get a note, owner, timestamp, and proof destination.'],
   ['5', 'Approve updates', 'Families see approved status and waiting points without private staff, billing, or admin information.'],
@@ -93,7 +93,7 @@ export default function FuneralHomePage() {
     const json = await res.json().catch(() => ({}));
     setBusy('');
     if (!res.ok) {
-      setError(json.error || 'Could not start partner checkout.');
+      setError(json.error || 'Could not start checkout.');
       return;
     }
     window.location.href = json.url;

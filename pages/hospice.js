@@ -23,7 +23,7 @@ const C = {
 const lifecycle = [
   ['1', 'Preparing during care', 'Start the family record with people, hospice/on-call contact, likely dates, and the first-hour plan.'],
   ['2', 'Death occurs', 'Start urgent guidance from the same family record instead of asking the family to rebuild context.'],
-  ['3', 'Funeral-home handoff', 'Invite the funeral home into the record with contacts, dates, preferences, stuck points, and proof needs.'],
+  ['3', 'Funeral-home handoff', 'Invite the funeral home into the record with contacts, dates, preferences, waiting points, and proof needs.'],
   ['4', 'Aftercare continues', 'Estate, benefits, accounts, family updates, grief support, and anniversaries stay in one record.'],
 ];
 
@@ -270,7 +270,7 @@ export default function HospiceWarmPath() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
               <a href="#start-warm-workspace" style={primaryLink}>Start care-prep record</a>
               <Link href="/urgent" style={secondaryLink}>Death has occurred</Link>
-              <Link href="/care-providers" style={secondaryLink}>Care-provider partnerships</Link>
+              <Link href="/care-providers" style={secondaryLink}>Care-provider inquiries</Link>
               <a href={calendlyUrl({ source: 'Hospice or care-facility discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Discuss care-team rollout</a>
             </div>
           </div>

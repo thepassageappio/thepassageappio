@@ -36,7 +36,7 @@ const boundaryRows = [
   'Family records stay family-owned unless access is explicitly invited.',
   'Care teams receive only the context their role requires.',
   'Passage is not a referral marketplace, lead router, or per-death placement system.',
-  'The practical next step is partnership inquiry, walkthrough, or a family care-prep record.',
+  'The practical next step is a care-team inquiry, walkthrough, or a family care-prep record.',
 ];
 
 const handoffSteps = [
@@ -208,7 +208,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
             <p style={smallText}>Passage makes care transitions easier while protecting family trust. Care teams support preparation without becoming a sales channel or owning downstream decisions.</p>
             <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
               {[
-                ['Family owned', 'The family decides who can see the record and what downstream partners receive.'],
+                ['Family owned', 'The family decides who can see the record and what downstream providers receive.'],
                 ['Scoped access', 'Care teams, funeral homes, helpers, and vendors only see what their role requires.'],
                 ['Proof based', 'Important decisions, notes, handoffs, and request outcomes stay attached to the record.'],
               ].map(([title, body]) => (
@@ -230,7 +230,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
                 </div>
               ))}
             </div>
-            <div style={noteBox}>Partnerships are reviewed before billing or rollout so scope, family ownership, location needs, and training expectations are clear.</div>
+            <div style={noteBox}>Care-team inquiries are reviewed before billing or rollout so scope, family ownership, location needs, and training expectations are clear.</div>
           </div>
         </div>
       </section>
