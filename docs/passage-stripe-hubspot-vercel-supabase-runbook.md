@@ -706,6 +706,14 @@ Current deployment pattern:
 - Push to GitHub.
 - Vercel Git integration builds production.
 
+Current release-risk note:
+
+- GitHub has shown two Vercel production contexts on commits: `Vercel - thepassageappio` and `Vercel - you-are-working-on-a-production`.
+- Treat `thepassageappio` as the canonical production project for `www.thepassageapp.io`.
+- In Vercel/GitHub integration settings, remove or disable the stray production integration before customer pilots so one push creates one production build.
+- Batch source changes before pushing while on Vercel build-rate limits; do not fire many tiny production deploys during persona QA.
+- Before public promotion, verify the latest `main` commit matches the deployed `X-Passage-Commit` header on `www.thepassageapp.io`.
+
 Deployment commands:
 
 ```powershell
