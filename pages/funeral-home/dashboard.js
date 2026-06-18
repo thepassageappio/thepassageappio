@@ -2922,7 +2922,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {false && user && !loading && data && (
+        {user && !loading && data && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: '11px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <div>
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Funeral-home dashboard</div>
@@ -2973,7 +2973,7 @@ export default function FuneralHomeDashboard() {
           </HelpOverlay>
         )}
 
-        {false && user && !loading && data && (
+        {user && !loading && data && (
           <div style={{ marginBottom: 10 }}>
             <SpineTrustStrip
               compact
@@ -3210,7 +3210,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
               {[
                 ['Import accepts', 'Passage template plus common case-system names such as decedent, family contact, case number, service date, funeral date, burial date, and obituary deadline.'],
-                ['Export includes', 'Case summary CSV for existing systems plus full record CSV for tasks, owners, messages, vendor requests, proof requirements, and payment/reporting fields where present.'],
+                ['Export includes', 'Case summary CSV for existing systems plus full record CSV for work items, owners, messages, vendor requests, proof requirements, and reporting fields where present.'],
                 ['Rollout posture', "CSV bridge now. Direct adapters should be mapped after we see each home's actual Passare, Gather, SRS, Tribute, or local export shape."],
               ].map(([title, body]) => (
                 <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 11px' }}>
@@ -3222,7 +3222,7 @@ export default function FuneralHomeDashboard() {
           </div>
         )}
 
-        {false && user && !loading && data && (
+        {user && !loading && data && (
           <div id="partner-today-section" style={{ background: C.card, color: C.ink, border: `1px solid ${C.border}`, borderBottom: 'none', borderRadius: '18px 18px 0 0', padding: 14, marginBottom: 0, boxShadow: '0 4px 20px rgba(0,0,0,.04)', scrollMarginTop: 92 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginBottom: 9 }}>
               <div>
@@ -3302,7 +3302,7 @@ export default function FuneralHomeDashboard() {
                 ))}
               </div>
             )}
-            {funeralHomeShare > 0 && <div style={{ color: C.sage, fontSize: 12.5, lineHeight: 1.45, marginTop: 9, fontWeight: 900 }}>Estimated partner share tracked: ${Math.round(funeralHomeShare)}.</div>}
+
             {false && isDirectorRole && showPilotGuide && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 }}>
                 {pilotFirstDayRows.map(([n, label, value]) => (
@@ -4611,7 +4611,7 @@ export default function FuneralHomeDashboard() {
                 ['proof', 'Proof', proofCount + (item.activity?.length || 0)],
                 ['family', 'Family', familyParticipants.length],
                 ['local', 'Local help', vendorRequests.length],
-                ['tasks', 'Tasks', topTasks.length],
+                ['tasks', 'Work', topTasks.length],
               ];
               const missingTimeline = Array.isArray(item.orchestration_summary?.missing_timeline_watch)
                 ? item.orchestration_summary.missing_timeline_watch.filter(Boolean).slice(0, 2)
@@ -4622,7 +4622,7 @@ export default function FuneralHomeDashboard() {
                 : waitingFamily.length
                   ? `${waitingFamily.length} family item${waitingFamily.length === 1 ? '' : 's'} waiting`
                   : waitingCount
-                    ? `${waitingCount} task${waitingCount === 1 ? '' : 's'} waiting`
+                    ? `${waitingCount} work item${waitingCount === 1 ? '' : 's'} waiting`
                     : 'Nothing urgent waiting';
               const proofEventCount = proofCount + (item.activity?.length || 0);
               const proofLabel = caseProofGapCount
@@ -5198,7 +5198,7 @@ export default function FuneralHomeDashboard() {
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No case-linked local support requests are open for this case.</div>
                   )}
                   {detailTab === 'tasks' && topTasks.length === 0 && (
-                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No staff task details are open right now.</div>
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, marginTop: 10, color: C.mid, fontSize: 12.5 }}>No staff work details are open right now.</div>
                   )}
                   {detailTab === 'tasks' && topTasks.map(task => (
                     <div key={task.id} style={{ borderTop: `1px solid ${C.border}`, paddingTop: 11, marginTop: 11 }}>
@@ -5218,7 +5218,7 @@ export default function FuneralHomeDashboard() {
                           )}
                           <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.45, marginTop: 2 }}><strong style={{ color: C.ink }}>Staff must do:</strong> {task.playbook?.waitingOn ? `confirm details with ${task.playbook.waitingOn}` : 'decide whether to handle, request family info, or mark done'}</div>
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-                            <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{task.playbook?.automationShortLabel || 'Task'}</span>
+                            <span style={{ background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{task.playbook?.automationShortLabel || 'Work'}</span>
                             <span style={{ background: C.amberFaint, color: C.amber, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>Waiting on {task.playbook?.waitingOn || 'recipient'}</span>
                             {task.playbook?.proofRequired && <span style={{ background: C.bg, color: C.mid, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {task.playbook.proofRequired}</span>}
                           </div>
@@ -5242,9 +5242,9 @@ export default function FuneralHomeDashboard() {
                       </div>
                       {task.playbook?.funeralHomeEligible && taskIsOpen(task) && (
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
-                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Mark waiting</button>
+                          <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Set waiting</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Done + proof', prompt: 'Add the proof note that shows what happened, then close this task so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Done + proof', prompt: 'Add the proof note that shows what happened, then close this work item so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
                         </div>
                       )}
                       {taskIsClosed(task) && (
