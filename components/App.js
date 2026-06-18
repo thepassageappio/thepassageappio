@@ -689,7 +689,7 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
  const taskPlaybook = task?.playbook || getTaskPlaybook(title);
  const deceased = deceasedName || 'your loved one';
  const coordinator = coordinatorName || 'the family coordinator';
- const defaultSms = `Passage: ${coordinator} is handling ${shorten(title, 42)} for ${shorten(deceased, 22)}. Please sign in to Passage if you were assigned this task.`;
+ const defaultSms = `Passage: ${coordinator} is handling ${shorten(title, 42)} for ${shorten(deceased, 22)}. Sign in to Passage if you were asked to help with this next step.`;
  const base = {
   executionMode: 'message',
   primaryLabel: 'Send message',
@@ -713,7 +713,7 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
  };
 
  if (lower.includes('document the date') || lower.includes('date, time') || lower.includes('location of death')) {
-  return {...base, executionMode: 'record', primaryLabel: 'Save official details', recipientLabel: 'your private estate notes', subject: `${deceased} - death details record`, draft: `For Passage records:\n\nName: ${deceased}\nDate of death:\nTime of death:\nLocation of death:\nPronouncing provider or official:\nFuneral home or next contact:\n\nNotes:\n`, sms: `Passage: ${coordinator} is recording official death details for ${shorten(deceased, 24)}. Sign in if you were assigned this task.`, steps: ['Write down the date, time, and exact location as provided by the medical professional or official.', 'Record who pronounced the death and how they can be reached.', 'Keep this private until death certificates are ordered.', 'Mark handled once the details are saved in notes.'] };
+  return {...base, executionMode: 'record', primaryLabel: 'Save official details', recipientLabel: 'your private estate notes', subject: `${deceased} - death details record`, draft: `For Passage records:\n\nName: ${deceased}\nDate of death:\nTime of death:\nLocation of death:\nPronouncing provider or official:\nFuneral home or next contact:\n\nNotes:\n`, sms: `Passage: ${coordinator} is recording official death details for ${shorten(deceased, 24)}. Sign in if you were asked to help with this next step.`, steps: ['Write down the date, time, and exact location as provided by the medical professional or official.', 'Record who pronounced the death and how they can be reached.', 'Keep this private until death certificates are ordered.', 'Mark handled once the details are saved in notes.'] };
  }
  if (lower.includes('funeral home') || lower.includes('funeral director')) {
   return {...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating funeral arrangements for ${shorten(deceased, 26)}. Sign in to Passage for the request details.`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
@@ -725,10 +725,10 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   return {...base, executionMode: 'link', primaryLabel: 'Open official records path', recipientLabel: 'physician, hospice nurse, coroner, or funeral director', link: 'https://www.cdc.gov/nchs/w2w/index.htm', linkLabel: 'Find state vital records office', subject: `${deceased} - official pronouncement / death certificates`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you confirm who will provide the official pronouncement and how we should order certified death certificates?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} needs help with death certificate steps for ${shorten(deceased, 26)}. Sign in to Passage for details.`, steps: ['Confirm who is legally pronouncing the death.', 'Ask how many certified death certificates to order.', 'Record the contact name and phone number.', 'Use the state vital records link if certificates must be ordered directly.', 'Mark handled once the document path is clear.'] };
  }
  if (lower.includes('minor children')) {
-  return {...base, recipientLabel: 'guardian or trusted family contact', subject: `${deceased} - immediate care for minor children`, draft: `Hello,\n\nWe need to confirm immediate care for the children connected to ${deceased}. Can you please confirm who has them, where they are staying, and whether any school, medication, or transportation needs must be handled today?\n\nThank you,\n${coordinator}`, sms: `Passage: urgent child-care coordination for ${shorten(deceased, 24)}. Please sign in to Passage if assigned.`, steps: ['Confirm the children are physically safe and with an approved adult.', 'Write down where they are, who is with them, and any medication or school needs.', 'Avoid permanent custody decisions until the legal guardian path is clear.', 'Mark handled when immediate care is confirmed.'] };
+  return {...base, recipientLabel: 'guardian or trusted family contact', subject: `${deceased} - immediate care for minor children`, draft: `Hello,\n\nWe need to confirm immediate care for the children connected to ${deceased}. Can you please confirm who has them, where they are staying, and whether any school, medication, or transportation needs must be handled today?\n\nThank you,\n${coordinator}`, sms: `Passage: urgent child-care coordination for ${shorten(deceased, 24)}. Sign in if you were asked to help.`, steps: ['Confirm the children are physically safe and with an approved adult.', 'Write down where they are, who is with them, and any medication or school needs.', 'Avoid permanent custody decisions until the legal guardian path is clear.', 'Mark handled when immediate care is confirmed.'] };
  }
  if (lower.includes('family') || lower.includes('notify')) {
-  return {...base, recipientLabel: 'family contact', subject: `${deceased} - family update`, draft: `Hello,\n\nI am so sorry to share that ${deceased} has passed away. ${coordinator} is helping coordinate next steps through Passage so the family can keep tasks, service details, and updates in one place.\n\nPlease sign in to Passage if you have been assigned a role or task.\n\nWith care,\n${coordinator}`, sms: `Passage: ${coordinator} shared a family update for ${shorten(deceased, 26)}. If assigned, sign in to Passage for details.`, steps: ['Choose the closest family contact first.', 'Use the prepared message or soften it in your own voice.', 'Avoid broadcasting service details until they are confirmed.', 'Mark handled once the first family circle knows who is coordinating.'] };
+  return {...base, recipientLabel: 'family contact', subject: `${deceased} - family update`, draft: `Hello,\n\nI am so sorry to share that ${deceased} has passed away. ${coordinator} is helping coordinate next steps through Passage so the family can keep next steps, service details, and updates in one place.\n\nPlease sign in to Passage if you have been asked to help with a role or next step.\n\nWith care,\n${coordinator}`, sms: `Passage: ${coordinator} shared a family update for ${shorten(deceased, 26)}. If you were asked to help, sign in to Passage for details.`, steps: ['Choose the closest family contact first.', 'Use the prepared message or soften it in your own voice.', 'Avoid broadcasting service details until they are confirmed.', 'Mark handled once the first family circle knows who is coordinating.'] };
  }
  if (lower.includes('cemetery') || lower.includes('crematorium')) {
   return {...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'cemetery or crematorium', subject: `${deceased} - cemetery or crematorium coordination`, draft: `Hello,\n\nI am helping coordinate arrangements for ${deceased}. Can you please confirm availability, timing, fees, required documents, and who should approve the next step?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating cemetery or crematorium details for ${shorten(deceased, 22)}. Sign in for details.`, steps: ['Call the cemetery or crematorium.', 'Ask about timing, fees, required documents, and approvals.', 'Save the contact name and next deadline.', 'Mark handled once the next step is confirmed.'] };
@@ -1809,7 +1809,7 @@ function ActivatePlanView({ workflowId, deceasedName, actions, tasks, events, on
     </div>
     <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
      <div style={{ fontSize: 12, fontWeight: 800, color: C.rose, marginBottom: 8 }}>Messages ready for approval</div>
-     {pendingActions.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No pending messages are queued yet. Assign people to tasks first.</div>: pendingActions.map((a, i) => (
+     {pendingActions.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No pending messages are queued yet. Assign a person to a next step first.</div>: pendingActions.map((a, i) => (
       <label key={a.id || i} style={{ borderTop: i ? `1px solid ${C.border}`: 'none', padding: "8px 0", fontSize: 13, color: C.mid, lineHeight: 1.5, display: "grid", gridTemplateColumns: "22px minmax(0, 1fr)", gap: 8, cursor: "pointer" }}>
        <input type="checkbox" checked={!a.id || selectedIds.includes(a.id)} onChange={e => setSelectedIds(prev => e.target.checked ? Array.from(new Set(prev.concat(a.id).filter(Boolean))): prev.filter(id => id !== a.id))} />
        <span><strong style={{ color: C.ink }}>{a.action_type === 'sms' ? 'Notify': 'Email'}</strong> - {a.recipient_name || a.recipient_email || a.recipient_phone || 'recipient'}<br /><span>{a.task_title || a.subject || a.body || 'Estate coordination notice'}</span><br /><span style={{ color: C.soft, fontSize: 12 }}>Action: {a.recipient_email || a.recipient_phone ? 'sends immediately, then waits for confirmation': 'recipient missing - edit before sending'}.</span></span>
@@ -1819,7 +1819,7 @@ function ActivatePlanView({ workflowId, deceasedName, actions, tasks, events, on
     {invalidSelected.length > 0 && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 12, padding: "10px 12px", color: C.rose, fontSize: 12.5, fontWeight: 800, marginBottom: 14 }}>Some selected messages are missing a recipient. Edit them before activating.</div>}
     <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
      <div style={{ fontSize: 12, fontWeight: 800, color: C.sage, marginBottom: 8 }}>Who owns what</div>
-     {assignedTasks.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No tasks are assigned yet.</div>: assignedTasks.map((t, i) => <div key={t.id || i} style={{ borderTop: i ? `1px solid ${C.border}`: 'none', padding: "7px 0", fontSize: 13, color: C.mid }}><strong style={{ color: C.ink }}>{t.title}</strong><br />Owner: {t.assignedTo || t.assignedEmail}</div>)}
+     {assignedTasks.length === 0 ? <div style={{ fontSize: 13, color: C.mid }}>No next steps are assigned yet.</div>: assignedTasks.map((t, i) => <div key={t.id || i} style={{ borderTop: i ? `1px solid ${C.border}`: 'none', padding: "7px 0", fontSize: 13, color: C.mid }}><strong style={{ color: C.ink }}>{t.title}</strong><br />Owner: {t.assignedTo || t.assignedEmail}</div>)}
     </div>
     {events?.length > 0 && <div style={{ background: C.bgSubtle, borderRadius: 13, padding: 14, marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 800, color: C.soft, marginBottom: 8 }}>Service details included</div>{events.map((e, i) => <div key={e.id || i} style={{ fontSize: 13, color: C.mid, padding: "5px 0" }}>{e.name || e.event_type}{e.date ? ` - ${e.date}`: ''}{e.location_name ? ` at ${e.location_name}`: ''}</div>)}</div>}
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8 }}>
@@ -2418,7 +2418,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
               <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "2px 9px", marginTop: 4 }}>
                <span style={{ fontSize: 10.5 }}></span>
                <span style={{ fontSize: 11, color: C.sage, fontWeight: 600 }}>{task.assignedTo}</span>
-               {task.assignedEmail && <span style={{ fontSize: 10.5, color: C.soft }}>?? {task.assignedEmail}</span>}
+               {task.assignedEmail && <span style={{ fontSize: 10.5, color: C.soft }}>Email: {task.assignedEmail}</span>}
               </div>
              )}
             </div>
@@ -3728,14 +3728,14 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
           Estate plan active: assign next steps to notify people when needed
         </div>
        ): (
-        <Sub>{hasAnyEstate ? "One family record at a time. Passage keeps the next move, owner, waiting point, and proof together.": "Open an estate first. Everything lives inside that estate: tasks, people, documents, wishes, memories, and updates."}</Sub>
+        <Sub>{hasAnyEstate ? "One family record at a time. Passage keeps the next move, owner, waiting point, and proof together.": "Open an estate first. Everything lives inside that family record: next steps, people, documents, wishes, memories, and updates."}</Sub>
        )}
       </div>
 
       {!hasAnyEstate && (
        <div style={{ background: C.bgCard, borderRadius: 18, padding: "18px", border: `1px solid ${C.border}`, marginBottom: 12 }}>
         <div style={{ fontSize: 10.5, letterSpacing: "0.15em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 6 }}>Start one family record</div>
-        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.2, marginBottom: 6 }}>Create the estate before adding wishes, people, documents, memories, or tasks.</div>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: 22, color: C.ink, lineHeight: 1.2, marginBottom: 6 }}>Create the family record before adding wishes, people, documents, memories, or next steps.</div>
         <Sub>Each estate gets its own file, next steps, participants, messages, proof, and exports. Nothing should float loose on this index page.</Sub>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 10, marginTop: 14 }}>
          <button onClick={onStartPlan} style={{ textAlign: "left", background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "14px", cursor: "pointer", fontFamily: "inherit" }}>
@@ -3870,7 +3870,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
           <div style={{ fontSize: 10.5, color: selectedDashboardEstate?.path === 'green' ? C.sage: C.rose, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 900 }}>Family first-day path</div>
           <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 3 }}>
            {selectedDashboardEstate?.path === 'green'
-            ? "Set up once: wishes, trusted people, documents, future activator, and the first planning task."
+            ? "Set up once: wishes, trusted people, documents, future activator, and the first planning next step."
            : "Stabilize first: one next action, one owner, what is waiting, and proof before closing anything."}
           </div>
          </div>
@@ -4662,7 +4662,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
  const panes = [
   {
    id: 'tasks',
-   label: 'Tasks',
+   label: 'Next steps',
    eyebrow: 'One clear next step',
    title: 'One next move. One owner. One proof trail.',
    body: 'Passage keeps attention on the work that matters now, then carries the same context through every handoff.',
