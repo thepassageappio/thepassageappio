@@ -369,7 +369,7 @@ export default function VendorRequestPage() {
                 {request.viewed_at && <Pill label="Viewed" time={request.viewed_at} />}
                 {request.responded_at && (
                   <Pill
-                    label={request.status === 'declined' ? 'Declined' : 'Accepted'}
+                    label={request.status === 'declined' ? 'Declined' : 'Quote sent'}
                     time={request.responded_at}
                   />
                 )}

@@ -36,7 +36,7 @@ async function notifyOwner(request, title, detail) {
     sections: [
       {
         label: 'Request',
-        html: `Task: <strong style="color:#1a1916;">${escapeHtml(request.task_title || 'Vendor request')}</strong><br/>Vendor: <strong style="color:#1a1916;">${escapeHtml(request.vendors?.business_name || 'Vendor')}</strong>`,
+        html: `Request: <strong style="color:#1a1916;">${escapeHtml(request.task_title || 'Vendor request')}</strong><br/>Vendor: <strong style="color:#1a1916;">${escapeHtml(request.vendors?.business_name || 'Vendor')}</strong>`,
       },
     ],
     ctaLabel: 'Open in Passage',
@@ -87,7 +87,7 @@ async function notifyOwner(request, title, detail) {
 
 export default async function handler(req, res) {
   const token = String(req.query.token || req.body?.token || '');
-  if (!token) return res.status(400).json({ error: 'Missing request token.' });
+  if (!token) return res.status(400).json({ error: 'Missing secure request link.' });
 
   const request = await loadRequest(token);
   if (!request) return res.status(404).json({ error: 'Request not found.' });

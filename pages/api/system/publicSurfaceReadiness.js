@@ -201,8 +201,8 @@ const personaSourceChecks = [
   {
     path: 'pages/api/vendorRequests/create.js',
     label: 'Vendor request create API wording',
-    requires: ['what you own', 'Send quote or own request', 'Save completion proof'],
-    forbids: ['what you accepted', 'Accept or send quote', 'Mark completed', 'This vendor does not match this task'],
+    requires: ['what you own', 'Send quote or own request', 'Save completion proof', 'Saved in Passage', 'Choose a valid request update'],
+    forbids: ['what you accepted', 'Accept or send quote', 'Mark completed', 'Saved to the spine', 'Invalid request status', 'This vendor does not match this task'],
   },
   {
     path: 'lib/taskActions.js',
@@ -303,8 +303,8 @@ const personaSourceChecks = [
   {
     path: 'pages/vendors/request.js',
     label: 'Vendor request source',
-    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof', 'full family record', 'public listing or open inbox', 'Save completion proof', 'family or funeral home can approve'],
-    forbids: ['family case and task', 'scoped task requests', 'task spine', 'full estate', 'public marketplace inbox', 'payout internals', 'Payment and fee details', 'Mark completed', 'can accept it before work starts', 'Requested, quoted, accepted, completed.', 'Service instructions', 'family or funeral home accepts it', 'Viewed, accepted'],
+    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof', 'full family record', 'public listing or open inbox', 'Save completion proof', 'family or funeral home can approve', 'Quote sent'],
+    forbids: ['family case and task', 'scoped task requests', 'task spine', 'full estate', 'public marketplace inbox', 'payout internals', 'Payment and fee details', 'Mark completed', 'can accept it before work starts', 'Requested, quoted, accepted, completed.', 'Service instructions', 'family or funeral home accepts it', 'Viewed, accepted', '>Accepted<'],
   },
   {
     path: 'pages/api/system/automationSpineReadiness.js',

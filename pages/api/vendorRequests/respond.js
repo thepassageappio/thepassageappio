@@ -47,8 +47,8 @@ async function sendStatusEmail({ request, title, detail, ctaUrl, subject }) {
     preheader: detail,
     sections: [
       {
-        label: 'Saved to the spine',
-        text: 'The family and any connected funeral home can see this status, the vendor, and the next expected action in Passage.',
+        label: 'Saved in Passage',
+        text: 'The family and any connected funeral home can see this request status, the vendor, and the next expected action in Passage.',
         tone: 'soft',
       },
     ],
@@ -87,8 +87,8 @@ export default async function handler(req, res) {
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
   const token = String(req.query.token || req.body?.token || '');
   const status = String(req.query.status || req.body?.status || '').toLowerCase();
-  if (!token) return res.status(400).send('Missing request token.');
-  if (!['accepted', 'in_progress', 'declined', 'completed'].includes(status)) return res.status(400).send('Invalid request status.');
+  if (!token) return res.status(400).send('Missing secure request link.');
+  if (!['accepted', 'in_progress', 'declined', 'completed'].includes(status)) return res.status(400).send('Choose a valid request update.');
 
   const { data: request, error } = await admin
     .from('vendor_requests')

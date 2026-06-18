@@ -56,7 +56,7 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
     sections: [
       {
         label: 'Request',
-        html: `<strong style="color:#1a1916;">Family case:</strong> ${familyName}<br><strong style="color:#1a1916;">Task:</strong> ${requestTitle}<br><strong style="color:#1a1916;">Urgency:</strong> ${request.urgency === 'rush' ? 'Rush' : 'Planned'}`,
+        html: `<strong style="color:#1a1916;">Family record:</strong> ${familyName}<br><strong style="color:#1a1916;">Request:</strong> ${requestTitle}<br><strong style="color:#1a1916;">Urgency:</strong> ${request.urgency === 'rush' ? 'Rush' : 'Planned'}`,
       },
       {
         label: 'Quick actions',
@@ -131,7 +131,7 @@ export default async function handler(req, res) {
       .maybeSingle();
     workflowId = latestWorkflow?.id || workflowId;
   }
-  if (!isUuid(workflowId)) return res.status(400).json({ error: 'Missing estate.' });
+  if (!isUuid(workflowId)) return res.status(400).json({ error: 'Choose a family record.' });
   if (!isUuid(vendorId)) return res.status(400).json({ error: 'Choose a vendor.' });
 
   const [{ data: workflow }, { data: task }, { data: vendor }] = await Promise.all([
@@ -139,10 +139,10 @@ export default async function handler(req, res) {
     isUuid(taskId) ? admin.from('tasks').select('id,title,workflow_id').eq('id', taskId).eq('workflow_id', workflowId).maybeSingle() : Promise.resolve({ data: null }),
     admin.from('vendors').select('*').eq('id', vendorId).eq('status', 'active').maybeSingle(),
   ]);
-  if (!workflow) return res.status(404).json({ error: 'Estate not found.' });
+  if (!workflow) return res.status(404).json({ error: 'Family record not found.' });
   if (!vendor) return res.status(404).json({ error: 'Vendor is not available.' });
   const allowed = await userCanAccessWorkflow(actor, workflow);
-  if (!allowed) return res.status(403).json({ error: 'You do not have access to this estate.' });
+  if (!allowed) return res.status(403).json({ error: 'You do not have access to this family record.' });
 
   const resolvedTaskTitle = task?.title || String(taskTitle || vendorCategoryLabel(vendor.category));
   const category = categoryForTask(task || resolvedTaskTitle);
