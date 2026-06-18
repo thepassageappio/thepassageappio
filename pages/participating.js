@@ -51,8 +51,8 @@ const demoParticipantContext = {
           recipient: 'demo-helper@passage.local',
           status: 'sent',
           statusLabel: 'sent',
-          title: 'Task assignment email',
-          subject: 'Passage task assignment: Send cemetery plot details',
+          title: 'Request assignment email',
+          subject: 'Passage request: Send cemetery plot details',
           detail: 'Passage emailed this scoped request and saved the delivery trail for the coordinator.',
           at: '2026-05-08T14:00:00Z',
         },
@@ -319,7 +319,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const workspace = taskWorkspaceFor({ ...item, playbook }, {
     estateName: estate?.deceased_name || estate?.name || 'this estate',
     coordinatorName: estate?.coordinator_name || 'the coordinator',
-    surface: 'your assigned task',
+    surface: 'your assigned request',
   });
   const explanation = taskExplanationFor(item, {
     estateName: estate?.deceased_name || estate?.name || 'this family record',
@@ -469,7 +469,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
               <div role="dialog" aria-modal="true" aria-label="Respond to assigned task" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em' }}>Task response</div>
+                    <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em' }}>Request response</div>
                     <div style={{ fontSize: 21, color: C.ink, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>{pendingAction ? actionLabel(pendingAction) : itemTitle(item)}</div>
                   </div>
                   <button onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} aria-label="Close response" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
@@ -895,7 +895,7 @@ export default function ParticipatingPage() {
                 ) : (
                   <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '14px 15px', color: C.mid, fontSize: 13.2, lineHeight: 1.55 }}>
                     <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Sent</div>
-                    <strong style={{ color: C.ink }}>Check your email.</strong> We sent a secure sign-in link to <strong style={{ color: C.ink }}>{emailLogin}</strong>. Open it on this device to see the task the family assigned to you.
+                    <strong style={{ color: C.ink }}>Check your email.</strong> We sent a secure sign-in link to <strong style={{ color: C.ink }}>{emailLogin}</strong>. Open it on this device to see the request the family assigned to you.
                   </div>
                 )}
               </div>
@@ -1084,7 +1084,7 @@ export default function ParticipatingPage() {
                             ))}
                           </div>
                         ) : (
-                          <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 7 }}>If Passage emails you, assigns you a task, or sends a reminder, the coordinator can see that delivery trail here. Your replies and notes are saved back to the family record.</div>
+                          <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 7 }}>If Passage emails you, assigns you a request, or sends a reminder, the coordinator can see that delivery trail here. Your replies and notes are saved back to the family record.</div>
                         )}
                       </div>
                       {allClear && (
