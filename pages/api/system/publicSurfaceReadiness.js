@@ -170,7 +170,8 @@ const personaSourceChecks = [
     label: 'Vendor onboarding source',
     requires: ['Required: business name, service ZIPs, and email', 'Add business name, service ZIPs, and email to submit', 'Recommended next action: book a vendor conversation', 'Nothing appears to families until Passage approves the partner'],
     forbids: ['marketplace fee', 'public marketplace inbox', 'browse family records'],
-  },  {
+  },
+  {
     path: 'pages/vendors/request.js',
     label: 'Vendor request source',
     requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof'],
