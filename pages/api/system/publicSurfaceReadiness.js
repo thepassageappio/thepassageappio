@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../../lib/adminAccess';
 import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
@@ -198,17 +196,20 @@ function visibleText(html) {
     .trim();
 }
 
-function readSourceText(relativePath) {
-  const normalized = String(relativePath || '').replace(/^[\\/]+/, '');
-  const absolutePath = path.join(process.cwd(), normalized);
-  if (!absolutePath.startsWith(process.cwd())) throw new Error('Invalid source path.');
-  return fs.readFileSync(absolutePath, 'utf8');
+async function readSourceText(relativePath) {
+  const normalized = String(relativePath || '').replace(/^[\/]+/, '');
+  if (!normalized || normalized.includes('..')) throw new Error('Invalid source path.');
+  const ref = EXPECTED_COMMIT || 'main';
+  const url = `https://raw.githubusercontent.com/thepassageappio/thepassageappio/${ref}/${normalized}`;
+  const response = await fetch(url, { redirect: 'follow' });
+  if (!response.ok) throw new Error(`Source fetch returned ${response.status}.`);
+  return response.text();
 }
 
-function runPersonaSourceChecks() {
-  return personaSourceChecks.map(check => {
+async function runPersonaSourceChecks() {
+  return Promise.all(personaSourceChecks.map(async check => {
     try {
-      const source = readSourceText(check.path);
+      const source = await readSourceText(check.path);
       const missing = check.requires.filter(item => !source.includes(item));
       const forbidden = check.forbids.filter(item => source.includes(item));
       return {
@@ -230,9 +231,8 @@ function runPersonaSourceChecks() {
         error: error.message || 'Source check failed.',
       };
     }
-  });
+  }));
 }
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -278,7 +278,7 @@ export default async function handler(req, res) {
     }
   }
 
-  const sourceResults = runPersonaSourceChecks();
+  const sourceResults = await runPersonaSourceChecks();
   const allResults = [...results, ...sourceResults];
 
   const blockers = allResults
