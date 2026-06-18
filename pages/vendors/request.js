@@ -345,7 +345,7 @@ export default function VendorRequestPage() {
                 ))}
               </div>
               <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
-                Vendors only see scoped request details. The family record, private notes, unrelated tasks, and payout internals stay outside this request view.
+                Vendors only see scoped request details. The family record, private notes, unrelated requests, and payout internals stay outside this request view.
               </div>
             </div>
 
@@ -611,7 +611,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Request loop</div>
           <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.22, fontWeight: 900, marginTop: 5 }}>Requested, quoted, accepted, completed.</div>
           <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.5, margin: '7px 0 0' }}>
-            Every response stays attached to the case task. Families and funeral homes see status and proof without giving vendors access to the full record.
+            Every response stays attached to the case request. Families and funeral homes see status and proof without giving vendors access to the full record.
           </p>
         </div>
         <div style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 14 }}>
@@ -634,7 +634,7 @@ function VendorDashboard({ vendor, requests, authToken, onRefresh }) {
           <summary style={{ cursor: 'pointer', fontWeight: 900, fontSize: 18 }}>Invite vendor employee</summary>
           <form onSubmit={sendVendorInvite} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
             <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
-              Invite an employee to respond to quote requests and update vendor proof. They will not see unrelated family records.
+              Invite an employee to respond to quote requests and save vendor proof. They will not see unrelated family records.
             </div>
             {inviteError && <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', color: C.rose, borderRadius: 11, padding: 10, fontSize: 12.5 }}>{inviteError}</div>}
             {inviteNotice && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 11, padding: 10, fontSize: 12.5, fontWeight: 900 }}>{inviteNotice}</div>}

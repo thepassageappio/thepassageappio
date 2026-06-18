@@ -900,7 +900,7 @@ export default function FuneralHomeDashboard() {
         await load(session.access_token);
         await loadPreferredVendors(session.access_token);
       }
-      setNotice('Partner workspace opened. Cases, staff work, reports, and proof are ready below.');
+      setNotice('Partner dashboard opened. Cases, staff work, reports, and proof are ready below.');
     } finally {
       setSigningIn(false);
     }
@@ -1067,7 +1067,7 @@ export default function FuneralHomeDashboard() {
     setNotice('');
     try {
       if (demoMode) {
-        demoTaskAction(task, 'assigned', 'Demo owner saved. In a live workspace this would update the task owner and prepare the invite path.', {
+        demoTaskAction(task, 'assigned', 'Demo owner saved. In a live dashboard this would update the task owner and prepare the invite path.', {
           assigned_to_name: payload.name || payload.email,
           assigned_to_email: payload.email,
           recipient: payload.email,
@@ -4351,7 +4351,7 @@ export default function FuneralHomeDashboard() {
         {user && !loading && data && data.organizations.length === 0 && !showNewCase && (
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 24 }}>
             <div style={{ fontSize: 22, marginBottom: 8 }}>Create your partner workspace.</div>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Create the first partner case to open the staff workspace.</p>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7 }}>Create the first partner case to open the staff dashboard.</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => openCasePanel('immediate')} style={{ border: 'none', borderRadius: 12, padding: '11px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Create first case</button>
             </div>
@@ -4442,7 +4442,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 13 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', marginBottom: 8 }}>
                     <div>
-                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Workspace readiness</div>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Dashboard readiness</div>
                       <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.4, marginTop: 3 }}>A quick setup check before the first case moves.</div>
                     </div>
                     <button onClick={() => setShowPilotGuide(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '6px 9px', fontFamily: 'Georgia,serif', fontSize: 11, fontWeight: 900, cursor: 'pointer' }}>Guide</button>
