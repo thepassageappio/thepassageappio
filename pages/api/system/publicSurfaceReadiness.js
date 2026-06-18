@@ -191,10 +191,16 @@ const personaSourceChecks = [
     forbids: ['Partner setup', 'First task owner', 'task outcome', 'Could not create the partner dashboard.'],
   },
   {
+    path: 'pages/participants.js',
+    label: 'Participant landing source',
+    requires: ['You open one clear request', 'Passage shows what is needed', 'Own the request, ask for help, show what is waiting, save a note, or mark done with proof.'],
+    forbids: ['Passage shows the task', 'Accept it, ask for help'],
+  },
+  {
     path: 'pages/participating.js',
     label: 'Participant request source',
     requires: ['Open the family request assigned to you.', 'Your one request', 'Action needed', 'Waiting on', 'Status and proof', 'Access boundary', 'Choose I own this if you can help', 'Respond to your request'],
-    forbids: ['Task response', 'task the family assigned to you', 'assigned tasks', 'more tasks assigned to you', 'Respond to assigned task', 'Respond to assigned request', 'Accept it if you can help', 'mark waiting if you are stuck', 'Accept it, ask for help', 'task status', 'The task stays open', 'keeps the task open', 'keeps the task visible'],
+    forbids: ['Task response', 'task the family assigned to you', 'assigned tasks', 'more tasks assigned to you', 'Respond to assigned task', 'Respond to assigned request', 'Accept it if you can help', 'mark waiting if you are stuck', 'Accept it, ask for help', 'accept it, mark what is waiting', 'You can accept it', 'task status', 'The task stays open', 'keeps the task open', 'keeps the task visible'],
   },
   {
     path: 'pages/vendors/onboard.js',
@@ -205,8 +211,8 @@ const personaSourceChecks = [
   {
     path: 'pages/vendors/request.js',
     label: 'Vendor request source',
-    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof', 'full family record', 'public listing or open inbox'],
-    forbids: ['family case and task', 'scoped task requests', 'task spine', 'full estate', 'public marketplace inbox', 'payout internals', 'Payment and fee details'],
+    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof', 'full family record', 'public listing or open inbox', 'Save completion proof', 'family or funeral home can approve'],
+    forbids: ['family case and task', 'scoped task requests', 'task spine', 'full estate', 'public marketplace inbox', 'payout internals', 'Payment and fee details', 'Mark completed', 'can accept it before work starts', 'Requested, quoted, accepted, completed.', 'Service instructions'],
   },
   {
     path: 'components/CareProviderLanding.js',
