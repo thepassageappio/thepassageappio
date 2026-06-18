@@ -885,7 +885,7 @@ function InlineProof({ onSave, onClose }) {
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
     <div role="dialog" aria-modal="true" aria-label="Record estate proof" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 5 }}>
-      <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Save proof and close task</div>
+      <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Mark done with proof</div>
         <button onClick={onClose} aria-label="Close proof" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 32, height: 32, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
       </div>
       <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginBottom: 10 }}>
@@ -2352,8 +2352,8 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
                     {!taskAssignedName(current.item) && !taskAssignedEmail(current.item) && (
                       <button onClick={function() { onTaskAction(current.item, 'assign'); }} style={miniBtn(CARD, SAGE, SAGE_LIGHT)}>Assign owner</button>
                     )}
-                    <button onClick={function() { onTaskAction(current.item, 'handled'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Confirm / record proof</button>
-                    <button onClick={function() { onTaskAction(current.item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Still waiting</button>
+                    <button onClick={function() { onTaskAction(current.item, 'handled'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Done + proof</button>
+                    <button onClick={function() { onTaskAction(current.item, 'waiting'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Mark waiting</button>
                     <button onClick={function() { onTaskAction(current.item, 'blocked'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
                   </>
                 )}
@@ -4334,7 +4334,7 @@ export default function EstatePage() {
               });
               return (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this task' : pendingTaskAction.status === 'handled' ? 'Mark done and save proof' : 'Save this update'}</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this task' : pendingTaskAction.status === 'handled' ? 'Mark done with proof' : pendingTaskAction.status === 'waiting' ? 'Mark waiting' : 'Save this update'}</div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{displayTaskTitle(pendingTaskAction.task)}</div>
                   <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{promptText}</div>
                   {pendingTaskAction.status === 'handled' && (
@@ -4687,8 +4687,8 @@ export default function EstatePage() {
                   Record what happened, mark waiting, or flag help.
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-                  <button onClick={function() { taskActionFromCommand(firstOpenTask, 'handled'); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Confirm / record proof</button>
-                  <button onClick={function() { taskActionFromCommand(firstOpenTask, 'waiting'); }} style={{ border: '1px solid ' + AMBER_BORDER, background: AMBER_FAINT, color: AMBER, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Still waiting</button>
+                  <button onClick={function() { taskActionFromCommand(firstOpenTask, 'handled'); }} style={{ border: '1px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Done + proof</button>
+                  <button onClick={function() { taskActionFromCommand(firstOpenTask, 'waiting'); }} style={{ border: '1px solid ' + AMBER_BORDER, background: AMBER_FAINT, color: AMBER, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Mark waiting</button>
                   <button onClick={function() { taskActionFromCommand(firstOpenTask, 'blocked'); }} style={{ border: '1px solid ' + ROSE + '35', background: CARD, color: ROSE, borderRadius: 10, padding: '9px 11px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>Needs help</button>
                 </div>
               </>
