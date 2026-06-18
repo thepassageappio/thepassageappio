@@ -156,9 +156,9 @@ export default async function handler(req, res) {
       gate('locations', 'Locations', orgLocations.length ? 'ready' : 'warning', `${orgLocations.length} active location record(s).`, 'Add real branches before multi-location rollout.'),
       gate('staff_roles', 'Staff and roles', orgMembers.length >= 2 ? 'ready' : orgMembers.length ? 'warning' : 'blocked', `${orgMembers.length} active staff/member record(s).`, 'Invite director plus at least one employee before calling this enterprise-ready.'),
       gate('case_volume', 'Cases loaded', orgWorkflows.length ? 'ready' : 'blocked', `${orgWorkflows.length} active case record(s).`, 'Create or import at least one real case.'),
-      gate('ownership', 'Open work ownership', unassignedTasks.length ? 'warning' : openTasks.length ? 'ready' : 'warning', `${unassignedTasks.length} unassigned open task(s).`, 'Assign every open task to staff, family, participant, or Passage.'),
+      gate('ownership', 'Open work ownership', unassignedTasks.length ? 'warning' : openTasks.length ? 'ready' : 'warning', `${unassignedTasks.length} unassigned open work item(s).`, 'Assign every open work item to staff, family, participant, or Passage.'),
       gate('blockers', 'Blockers controlled', blockedTasks.length ? 'blocked' : 'ready', `${blockedTasks.length} blocker/failed/needs-review task(s).`, 'Clear blockers before expansion or paid conversion ask.'),
-      gate('waiting_hygiene', 'Waiting clarity', waitingTasks.filter(task => !String(task.waiting_on || task.notes || '').trim()).length ? 'warning' : 'ready', `${waitingTasks.length} waiting task(s).`, 'Every wait should name who/what is missing.'),
+      gate('waiting_hygiene', 'Waiting clarity', waitingTasks.filter(task => !String(task.waiting_on || task.notes || '').trim()).length ? 'warning' : 'ready', `${waitingTasks.length} waiting work item(s).`, 'Every wait should name who or what is missing.'),
       gate('proof_audit', 'Proof and audit trail', orgEvents.length && proofGaps.length === 0 ? 'ready' : orgEvents.length ? 'warning' : 'blocked', `${orgEvents.length} status event(s), ${proofGaps.length} proof gap(s).`, 'Proof, actor, and timestamp must exist for real trust.'),
       gate('family_update', 'Family updates', familyUpdateEvents.length ? 'ready' : 'warning', `${familyUpdateEvents.length} family/delivery-style event(s).`, 'Make the family-facing update loop visible before relying on B2C.'),
       gate('billing', 'Billing path', partner?.stripe_subscription_id || mrr > 0 ? 'ready' : 'warning', mrr ? `$${Math.round(mrr)} MRR signal.` : 'No paid billing signal yet.', 'Tie enterprise readiness to pilot conversion and Stripe plan.'),
@@ -193,7 +193,7 @@ export default async function handler(req, res) {
   }).sort((a, b) => a.readinessScore - b.readinessScore || b.metrics.cases - a.metrics.cases);
 
   const gates = [
-    gate('enterprise_accounts', 'Enterprise partner accounts exist', accounts.length ? 'ready' : 'blocked', `${accounts.length} funeral-home-like organization(s) found.`, 'Create or classify real funeral-home organizations.'),
+    gate('enterprise_accounts', 'Enterprise funeral-home accounts exist', accounts.length ? 'ready' : 'blocked', `${accounts.length} funeral-home-like organization(s) found.`, 'Create or classify real funeral-home organizations.'),
     gate('roles_locations', 'Roles and locations are modeled', accounts.some(account => account.metrics.staff >= 2 && account.metrics.locations >= 1) ? 'ready' : 'warning', 'Requires director/staff plus at least one active branch.', 'Make the B2B account structure real before expanding B2C.'),
     gate('case_task_work', 'Cases and work cards are active', accounts.some(account => account.metrics.cases && account.metrics.tasks) ? 'ready' : 'blocked', 'At least one account must have cases and work cards.', 'Create or import real cases and move work through the work-card flow.'),
     gate('audit_proof', 'Audit/proof trail exists', accounts.some(account => account.metrics.proofEvents > 0) ? 'ready' : 'blocked', 'At least one account must produce status/proof events.', 'Record handled/waiting/blocked events with actor and timestamp.'),
