@@ -736,8 +736,8 @@ export default function FuneralHomeDashboard() {
         personaContext.demoData = true;
         personaContext.isPassageAdmin = adminDemo;
         personaContext.demoLabel = adminDemo
-          ? 'Passage admin demo dashboard. Actions are simulated unless you leave demo mode.'
-          : 'Sample funeral-home dashboard. Actions are simulated and no live records or messages are changed.';
+          ? 'Demo mode. Actions are simulated unless you leave demo mode.'
+          : 'Sample funeral-home workspace. Actions are simulated and no live records or messages are changed.';
         setDemoMode(true);
         setUser(sessionUser || publicDemoUser);
         setToken(sessionToken || '');
@@ -1409,7 +1409,7 @@ export default function FuneralHomeDashboard() {
           },
         } : membership),
       } : prev);
-      setNotice('Demo brand saved locally. In production this updates the family-facing partner view.');
+      setNotice('Demo brand saved locally. In production this updates the family-facing funeral-home view.');
       return;
     }
     setUpdating('partner_branding');
@@ -3007,8 +3007,8 @@ export default function FuneralHomeDashboard() {
           <div style={{ marginBottom: 10 }}>
             <SpineTrustStrip
               compact
-              eyebrow="Partner proof boundary"
-              title="Act on behalf of the family without trapping the record."
+              eyebrow="Operating boundary"
+              title="Know what staff can do, what families see, and what stays exportable."
               rows={[
                 ['Family sees', 'Status, approved updates, waiting points, and proof.'],
                 ['Staff sees', 'Assigned case work, owner, next action, and proof requirement.'],
