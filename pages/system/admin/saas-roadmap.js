@@ -71,7 +71,7 @@ const sprints = [
     goal: 'Make it impossible for external users to see owner-only strategy, QA, or admin concepts.',
     tasks: [
       'Keep shared header free of internal tabs; show System Admin only to true admin users and on system routes.',
-      'Keep public readiness checks blocking ARR, sprint, roadmap, QA, founder/internal language, command center, family task, and coordination spine.'
+      'Keep public readiness checks blocking ARR, sprint, roadmap, QA, founder/internal language, command center, family task, and coordination spine.',
       'Audit homepage, funeral-home, urgent, planning, hospice/care-prep, pricing, contact, participants, vendors, and care-provider pages after every deploy, and block launch if www serves older copy than the latest green main deployment.',
       'Move any internal tool discovery into System Admin instead of creating new top-level tabs.',
     ],
