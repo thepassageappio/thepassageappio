@@ -193,7 +193,7 @@ function printPreparedOutput(preview) {
 
 function vendorRequestLabel(value) {
   if (value === 'completed') return 'Completed';
-  if (value === 'in_progress') return 'Quote accepted';
+  if (value === 'in_progress') return 'Quote approved';
   if (value === 'accepted') return 'Quote ready';
   if (value === 'declined') return 'Declined';
   return 'Quote requested';
@@ -205,7 +205,7 @@ function partnerPlanDisplayName(value, fallback = 'Single-location plan') {
   const clean = raw.toLowerCase();
   if (/group|multi/.test(clean)) return 'Multi-location plan';
   if (/local|single/.test(clean)) return 'Single-location plan';
-  if (/pilot|trial/.test(clean)) return 'Trial plan';
+  if (/pilot|trial/.test(clean)) return 'Guided rollout plan';
   if (/demo/.test(clean)) return 'Demo plan';
   return raw
     .replace(/^partner[_\s-]*/i, '')

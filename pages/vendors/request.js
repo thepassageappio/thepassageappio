@@ -278,7 +278,7 @@ export default function VendorRequestPage() {
               <h1 style={{ fontSize: 32, lineHeight: 1.06, fontWeight: 400, margin: '10px 0' }}>{request.task_title || 'Local help request'}</h1>
               <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.65, margin: 0 }}>{demoMode ? 'Sample scoped request. No live family record is changed.' : 'One scoped request connected to the family record. You only see what is needed to answer this request.'}</p>
               <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 11px', color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 12 }}>
-                <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After your quote:</strong> the family or funeral home accepts it before work begins.
+                <strong style={{ color: C.ink }}>Urgency:</strong> {urgencyLabel}. <strong style={{ color: C.ink }}>After your quote:</strong> the family or funeral home approves it before work begins.
               </div>
               <div style={{ marginTop: 12 }}>
                 <SpineTrustStrip
@@ -288,7 +288,7 @@ export default function VendorRequestPage() {
                   rows={[
                     ['Vendor sees', 'Request, timing, family/case label, and response status.'],
                     ['Kept private', 'Private notes, unrelated requests, and the full family record.'],
-                    ['Case sees', 'Viewed, accepted, declined, completed, or needs details.'],
+                    ['Family record sees', 'Viewed, quoted, approved, completed, or needs details.'],
                   ]}
                 />
               </div>

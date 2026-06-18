@@ -25,6 +25,7 @@ const publicChecks = [
   {
     path: '/funeral-home/sample-case',
     requires: ['Show one family case from intake to proof.', 'Case clarity', 'How the workspace helps'],
+    forbids: ['Task action', 'task outcomes'],
   },
   {
     path: '/funeral-home/workspace-demo',
@@ -54,6 +55,7 @@ const publicChecks = [
   {
     path: '/vendors/request?demo=1',
     requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path'],
+    forbids: ['family or funeral home accepts it', 'Viewed, accepted'],
   },
   {
     path: '/pricing',
@@ -149,6 +151,17 @@ const forbiddenPublicMarkup = [
 
 const personaSourceChecks = [
   {
+    path: 'lib/vendorLifecycle.js',
+    label: 'Vendor lifecycle wording source',
+    requires: ['Quote Approved', 'Quote approved. Payment checkout is the next step.', 'approve and pay'],
+    forbids: ['Family Accepted', 'Family accepted the quote', 'accept and pay'],
+  },
+  {
+    path: 'pages/funeral-home/sample-case.js',
+    label: 'Funeral-home sample case wording source',
+    requires: ['Work action', 'work outcomes'],
+    forbids: ['Task action', 'task outcomes'],
+  },  {
     path: 'lib/communicationEvents.js',
     label: 'Communication event wording source',
     requires: ['Work assigned', 'Work updated', 'Work needs help', 'Work status updated'],
