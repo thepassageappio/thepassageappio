@@ -77,18 +77,18 @@ const handoff = [
   ['What is missing', 'The next items the funeral home or family should ask for'],
 ];
 
-const warmSpine = [
+const warmContinuity = [
   ['What happens now', 'Save the care contacts and first-hour plan before the crisis moment.'],
   ['Who owns it', 'A family coordinator, with Passage keeping the handoff organized.'],
   ['What is waiting', 'Unknown dates, funeral-home choice, and family approvals stay visible.'],
   ['How we know', 'Saved contacts, reviewed plan, known dates, and handoff packet proof.'],
 ];
 
-const hospicePilotSetup = [
+const careTeamSetup = [
   ['1', 'Location or care team', 'Start with the agency, facility, or home-care team that families already know.'],
   ['2', 'Care contacts', 'Save the on-call line, social worker, chaplain, primary caregiver, and family coordinator.'],
-  ['3', 'Family workspaces', 'Create one family record at a time or import a small pilot list when approved.'],
-  ['4', 'Care-prep tasks', 'Assign practical prep: first-hour plan, funeral-home choice, documents, visitors, and family updates.'],
+  ['3', 'Family records', 'Create one family record at a time or import a small pilot list when approved.'],
+  ['4', 'Care-prep next steps', 'Assign practical prep: first-hour plan, funeral-home choice, documents, visitors, and family updates.'],
   ['5', 'Handoff', 'When death occurs, the same record moves to urgent coordination and funeral-home coordination.'],
 ];
 
@@ -201,13 +201,13 @@ export default function HospiceWarmPath() {
         }),
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || 'Could not save care-prep workspace.');
-      setNotice('Care-prep workspace saved. Opening the command center.');
+      if (!res.ok) throw new Error(json.error || 'Could not save this care-prep record.');
+      setNotice('Care-prep record saved. Opening the family record.');
       window.setTimeout(() => {
         window.location.href = '/estate?id=' + encodeURIComponent(json.estateId);
       }, 600);
     } catch (err) {
-      setError(err.message || 'Could not save care-prep workspace.');
+      setError(err.message || 'Could not save this care-prep record.');
     } finally {
       setSaving(false);
     }
@@ -263,7 +263,7 @@ export default function HospiceWarmPath() {
               ))}
             </div>
             <div style={{ display: 'grid', gap: 6, marginTop: 11 }}>
-              {['Family owns permissions', 'Nothing shares without approval', 'Unknown dates become visible tasks'].map(item => (
+              {['Family owns permissions', 'Nothing shares without approval', 'Unknown dates become visible next steps'].map(item => (
                 <div key={item} style={statusRow}>{item}</div>
               ))}
             </div>
@@ -271,13 +271,13 @@ export default function HospiceWarmPath() {
               <a href="#start-warm-workspace" style={primaryLink}>Start care-prep record</a>
               <Link href="/urgent" style={secondaryLink}>Death has occurred</Link>
               <Link href="/care-providers" style={secondaryLink}>Care-provider partnerships</Link>
-              <a href={calendlyUrl({ source: 'Hospice or care-facility discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Discuss care-team pilot</a>
+              <a href={calendlyUrl({ source: 'Hospice or care-facility discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Discuss care-team rollout</a>
             </div>
           </div>
           <div id="start-warm-workspace" style={{ ...panel, padding: 16 }}>
-            <div style={eyebrow}>Create workspace</div>
+            <div style={eyebrow}>Create record</div>
             <h2 style={{ ...h2, fontSize: 24, margin: '5px 0 5px' }}>Start with what the family knows now.</h2>
-            <p style={{ ...lead, fontSize: 12.6, lineHeight: 1.35, marginBottom: 8 }}>This creates one family record. It does not send email or SMS. Unknown dates become visible tasks.</p>
+            <p style={{ ...lead, fontSize: 12.6, lineHeight: 1.35, marginBottom: 8 }}>This creates one family record. It does not send email or SMS. Unknown dates become visible next steps.</p>
             <div style={{ display: 'grid', gap: 7 }}>
               <input value={form.lovedOneName} onChange={event => updateField('lovedOneName', event.target.value)} placeholder="Loved one's name" style={inputStyle} />
               <input value={form.coordinatorName} onChange={event => updateField('coordinatorName', event.target.value)} placeholder="Family coordinator name" style={inputStyle} />
@@ -322,7 +322,7 @@ export default function HospiceWarmPath() {
               </details>
               {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{error}</div>}
               {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{notice}</div>}
-              <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save care-prep workspace' : 'Sign in and save workspace'}</button>
+              <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save care-prep record' : 'Sign in and save record'}</button>
             </div>
           </div>
         </div>
@@ -335,7 +335,7 @@ export default function HospiceWarmPath() {
               <div style={eyebrow}>Care-prep record</div>
               <h2 style={{ ...h2, fontSize: 27, marginBottom: 7 }}>Start with what the family knows now.</h2>
               <p style={{ ...lead, fontSize: 14.5 }}>
-                This creates one family record. It does not send email or SMS. Unknown dates become visible tasks instead of setup friction.
+                This creates one family record. It does not send email or SMS. Unknown dates become visible next steps instead of setup friction.
               </p>
               <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
                 {[
@@ -347,7 +347,7 @@ export default function HospiceWarmPath() {
               </div>
             </div>
             <div>
-              <div style={eyebrow}>Create workspace</div>
+              <div style={eyebrow}>Create record</div>
               <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
                 <input value={form.lovedOneName} onChange={event => updateField('lovedOneName', event.target.value)} placeholder="Loved one's name" style={inputStyle} />
                 <input value={form.coordinatorName} onChange={event => updateField('coordinatorName', event.target.value)} placeholder="Family coordinator name" style={inputStyle} />
@@ -355,7 +355,7 @@ export default function HospiceWarmPath() {
                 <details style={{ border: '1px solid ' + C.border, borderRadius: 13, background: C.bg, padding: 12 }}>
                   <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900, fontSize: 14 }}>Add contacts, dates, and funeral-home preference</summary>
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, margin: '7px 0 10px' }}>
-                    Add only what the family actually knows. Unknown dates stay visible as tasks instead of blocking the workspace.
+                    Add only what the family actually knows. Unknown dates stay visible as tasks instead of blocking the record.
                   </div>
                   <div className="warm-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, .7fr)', gap: 10, marginBottom: 10 }}>
                     <input value={form.hospiceContact} onChange={event => updateField('hospiceContact', event.target.value)} placeholder="Hospice/on-call contact" style={inputStyle} />
@@ -386,8 +386,8 @@ export default function HospiceWarmPath() {
                 </details>
                 {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{error}</div>}
                 {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{notice}</div>}
-                {!user && <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>Sign in once so Passage can save this to your family command center.</div>}
-                <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save care-prep workspace' : 'Sign in and save workspace'}</button>
+                {!user && <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>Sign in once so Passage can save this to your family record.</div>}
+                <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save care-prep record' : 'Sign in and save record'}</button>
               </div>
             </div>
           </div>
@@ -405,7 +405,7 @@ export default function HospiceWarmPath() {
             {[
               ['What we solve', 'Family communication, roles, first-hour preparation, visitor/helper coordination, and downstream handoff.'],
               ['What we avoid', 'Clinical documentation, medical advice, symptom tracking, medication administration, or EMR replacement.'],
-              ['Pilot question', 'Does a persistent family record reduce repeated questions and make death-event handoff calmer?'],
+              ['Proof question', 'Does a persistent family record reduce repeated questions and make death-event handoff calmer?'],
             ].map(([title, body]) => (
               <div key={title} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 13, padding: 12 }}>
                 <div style={{ color: C.ink, fontSize: 15, fontWeight: 900 }}>{title}</div>
@@ -437,7 +437,7 @@ export default function HospiceWarmPath() {
         <>
       <section style={section}>
         <div style={sectionHeader}>
-          <div style={eyebrow}>Lifecycle spine</div>
+          <div style={eyebrow}>Care continuity</div>
           <h2 style={h2}>Care preparation is the bridge between planning ahead and urgent coordination.</h2>
           <p style={lead}>This is not hospice, facility, or medical software. It is family coordination continuity before, during, and after the institutional handoff.</p>
         </div>
@@ -454,11 +454,11 @@ export default function HospiceWarmPath() {
 
       <section style={section}>
         <div style={panel}>
-          <div style={eyebrow}>Future hospice pilot setup</div>
+          <div style={eyebrow}>Care-team setup</div>
           <h2 style={h2}>A hospice or care-facility location should start with care-team setup, not a blank dashboard.</h2>
-          <p style={lead}>This is the same Passage spine as funeral-home onboarding, shifted upstream: set the location or care-team context once, add people once, then every family workspace reuses those roles and handoff paths.</p>
+          <p style={lead}>This is the same Passage operating pattern as funeral-home onboarding, shifted upstream: set the location or care-team context once, add people once, then every family workspace reuses those roles and handoff paths.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10, marginTop: 16 }}>
-            {hospicePilotSetup.map(([n, title, body]) => (
+            {careTeamSetup.map(([n, title, body]) => (
               <div key={title} style={{ background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, display: 'grid', gridTemplateColumns: '26px minmax(0,1fr)', gap: 9, alignItems: 'start' }}>
                 <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontSize: 11, fontWeight: 900 }}>{n}</span>
                 <span>
@@ -469,7 +469,7 @@ export default function HospiceWarmPath() {
             ))}
           </div>
           <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 12 }}>
-            Hospice, senior-living, and assisted-care setup should reuse the same SaaS pattern as funeral homes: organization, locations or care teams, employees and roles, family records, assigned tasks, communication, proof, and reporting. The product stays family-first; providers rotate through the persistent record.
+            Hospice, senior-living, and assisted-care setup should reuse the same SaaS pattern as funeral homes: organization, locations or care teams, employees and roles, family records, assigned next steps, communication, proof, and reporting. The product stays family-first; providers rotate through the persistent record.
           </div>
         </div>
       </section>
@@ -516,7 +516,7 @@ export default function HospiceWarmPath() {
           <div style={{ ...panel, background: C.roseFaint, borderColor: '#efcaca' }}>
             <div style={{ ...eyebrow, color: C.rose }}>When death occurs</div>
             <h2 style={h2}>Urgent coordination starts from what the family already prepared.</h2>
-            <p style={lead}>If this is an expected death in care, Passage should put the hospice, on-call, or facility release path first, then carry known contacts and preferences into the command center.</p>
+            <p style={lead}>If this is an expected death in care, Passage should put the hospice, on-call, or facility release path first, then carry known contacts and preferences into the family record.</p>
             <Link href="/urgent" style={{ ...primaryLink, background: C.rose, marginTop: 18 }}>Open urgent help</Link>
           </div>
           <div style={panel}>
@@ -545,8 +545,8 @@ export default function HospiceWarmPath() {
           <h2 style={h2}>What this gives the family and the next provider.</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 16 }}>
             {[
-              ['Spine events', 'Add care-prep events such as care contact recorded, when-it-happens plan prepared, and funeral-home handoff approved.'],
-              ['Task priority', 'Rank by lifecycle state, service dates, death date, unknown required dates, and who is waiting on whom.'],
+              ['Record events', 'Add care-prep events such as care contact recorded, when-it-happens plan prepared, and funeral-home handoff approved.'],
+              ['Next-step priority', 'Rank by lifecycle state, service dates, death date, unknown required dates, and who is waiting on whom.'],
               ['Provider handoff', 'Help the family arrive with context instead of making the funeral home start from zero.'],
               ['Announcement batch', 'Prepare one event one-pager and recipient groups before any send queue exists.'],
             ].map(([title, body]) => (

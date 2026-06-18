@@ -98,7 +98,7 @@ export default function PricingPage() {
         participantDiscount: participantDiscountOverride,
         createdAt: new Date().toISOString(),
       }));
-      setMessage(planId === 'urgent' ? 'Sign in once so Passage can open the urgent command center for you.' : 'Sign in once so Passage can attach the plan to your estate workspace.');
+      setMessage(planId === 'urgent' ? 'Sign in once so Passage can open the urgent family record for you.' : 'Sign in once so Passage can attach the plan to your family record.');
       await signIn();
       return;
     }
@@ -189,7 +189,7 @@ export default function PricingPage() {
               <>
                 <div style={{ fontSize: 11, color: C.rose, textTransform: 'uppercase', letterSpacing: '.17em', fontWeight: 900, marginBottom: 6 }}>Someone just passed</div>
                 <div style={{ fontSize: 32, lineHeight: .98, marginBottom: 7 }}>Get help now.</div>
-                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.34, marginBottom: 9 }}>A first-24-hours command center for calls, family notifications, owners, and proof.</div>
+                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.34, marginBottom: 9 }}>A first-24-hours family record for calls, family notifications, owners, and proof.</div>
                 <div style={{ background: C.card, border: `1px solid ${C.rose}22`, borderRadius: 11, padding: '7px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.28, marginBottom: 9 }}>
                   Includes a remembrance tree dedication and contributes to the 10% Passage family pledge.
                 </div>
@@ -241,7 +241,7 @@ export default function PricingPage() {
 
         {!user && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: '11px 13px', marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
-            <strong style={{ color: C.sage }}>Sign in once to checkout.</strong> Use the sign-in button above. Passage saves the plan to your estate workspace.
+            <strong style={{ color: C.sage }}>Sign in once to checkout.</strong> Use the sign-in button above. Passage saves the plan to your family record.
           </div>
         )}
 

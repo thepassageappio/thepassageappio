@@ -561,7 +561,7 @@ export default function UrgentPage() {
     trackEvent('urgent_command_center_clicked', { signedIn: Boolean(user), situation: selectedSituation || context.deathContext || '', hasName: Boolean(deceasedName.trim()) });
     setSaveError('');
     if (!deceasedName.trim()) {
-      setSaveError('Add their name so Passage can save this as a real estate command center.');
+      setSaveError('Add their name so Passage can save this as a real family record.');
       return;
     }
     if (!selectedSituation) {
@@ -579,7 +579,7 @@ export default function UrgentPage() {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
       const accessToken = sessionData?.session?.access_token;
-      if (!accessToken) throw new Error('Your session expired. Please sign in again so Passage can save this command center.');
+      if (!accessToken) throw new Error('Your session expired. Please sign in again so Passage can save this family record.');
 
       const primaryOwner = outcomes.find(o => o.id === 'funeral')?.owner || null;
       const firstOwner = primary?.owner || outcomes.find(o => o.owner)?.owner || primaryOwner || null;
@@ -616,7 +616,7 @@ export default function UrgentPage() {
       trackEvent('urgent_estate_create_failed', { message: error?.message || 'unknown', situation: selectedSituation || context.deathContext || '' });
       setSavingEstate(false);
       setHandoff(false);
-      setSaveError(error?.message || 'Passage could not save this command center yet. Please try again.');
+      setSaveError(error?.message || 'Passage could not save this family record yet. Please try again.');
     }
   };
 
@@ -788,7 +788,7 @@ export default function UrgentPage() {
           <div style={{ width: '100%', maxWidth: 420, background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 24, textAlign: 'center', boxShadow: '0 22px 70px rgba(55,45,35,.12)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 12 }}>Passage is saving this</div>
             <div style={{ fontFamily: 'Georgia,serif', fontSize: 26, lineHeight: 1.15, marginBottom: 10 }}>Setting things up for you...</div>
-            <div style={{ color: C.mid, fontSize: 14, lineHeight: 1.55 }}>Opening the estate command center where tasks, owners, notes, and proof will live.</div>
+            <div style={{ color: C.mid, fontSize: 14, lineHeight: 1.55 }}>Opening the family record where next steps, owners, notes, and proof will live.</div>
           </div>
         </div>
       )}
@@ -820,7 +820,7 @@ export default function UrgentPage() {
                   {[
                     ['Stabilize', 'Confirm the setting and official authority before anything else moves.'],
                     ['Coordinate', 'Name one owner for the next practical step and keep the family from repeating calls.'],
-                    ['Organize', 'Save the command center when you are ready so proof, roles, and next steps persist.'],
+                    ['Organize', 'Save the family record when you are ready so owners, notes, and proof persist.'],
                   ].map(([label, body], index) => (
                     <div key={label} className={`crisis-step ${context.deathContext ? (index === 1 ? 'active' : '') : (index === 0 ? 'active' : '')}`}>
                       <b>{label}</b>
@@ -1004,7 +1004,7 @@ export default function UrgentPage() {
             <div className="save-panel">
               <div className="save-panel-head">
                 <div>
-                  <div className="save-panel-title">Keep this command center</div>
+                  <div className="save-panel-title">Save this family record</div>
                   <div className="save-panel-copy">Save when you want Passage to carry the next step, owner, notes, and proof into a private estate workspace.</div>
                 </div>
                 <div style={{ color: C.sageDark, fontSize: 12, fontWeight: 800 }}>No messages send from this step.</div>
@@ -1025,15 +1025,15 @@ export default function UrgentPage() {
                   </div>
                 )}
                 <button className="secondary save-command" onClick={openCommandCenter} disabled={savingEstate}>
-                  {savingEstate ? 'Saving details...' : user ? 'Save and open command center' : 'Save with Google'}
+                  {savingEstate ? 'Saving details...' : user ? 'Save and open family record' : 'Save with Google'}
                 </button>
                 {!user && (
                   <button type="button" className="secondary save-command" onClick={signInWithEmail} style={{ background: C.card, color: C.sageDark, borderColor: C.sageLight }}>
                     {magicSent ? 'Check your email' : 'Email me a secure link'}
                   </button>
                 )}
-                <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the command center, owners, notes, proof, and the remembrance pledge.</div>
-                {magicSent && <div className="save-helper" style={{ color: C.sageDark, fontWeight: 800 }}>We sent a secure link to {coordinatorEmail}. Open it on this device to keep this command center.</div>}
+                <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the family record, owners, notes, proof, and the remembrance pledge.</div>
+                {magicSent && <div className="save-helper" style={{ color: C.sageDark, fontWeight: 800 }}>We sent a secure link to {coordinatorEmail}. Open it on this device to keep this family record.</div>}
                 {saveError && <div className="save-error">{saveError}</div>}
               </div>
             </div>
@@ -1041,7 +1041,7 @@ export default function UrgentPage() {
               <summary>Add optional details if you already know them</summary>
               <div className="context-grid" style={{ marginTop: 10, marginBottom: 0 }}>
                 <div className="context-title">Helpful later, not required now</div>
-                <div className="context-help">Skip this unless it helps the current step. Passage can save it into the command center when you are ready.</div>
+                <div className="context-help">Skip this unless it helps the current step. Passage can save it into the family record when you are ready.</div>
                 <div className="field compact">
                   <label>Official pronouncement</label>
                   <select value={context.pronouncementStatus} onChange={e => updateContext('pronouncementStatus', e.target.value)}>
