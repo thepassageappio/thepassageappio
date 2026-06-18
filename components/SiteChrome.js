@@ -212,7 +212,11 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
   const ownerConsoleActive = systemRouteActive;
   const partnerSurfaceActive = isActivePath(activePath, '/funeral-home') || isActivePath(activePath, '/vendors') || isActivePath(activePath, '/care-providers') || isActivePath(activePath, '/participating');
   const showFamilyDashboardLink = currentUser && !ownerConsoleActive && !partnerSurfaceActive;
-  const navLinks = ownerConsoleActive ? [['System admin', '/system/admin']] : PUBLIC_LINKS;
+  const navLinks = ownerConsoleActive
+    ? [['System admin', '/system/admin']]
+    : adminUser
+      ? [...PUBLIC_LINKS, ['System admin', '/system/admin']]
+      : PUBLIC_LINKS;
 
   const navLink = {
     color: CHROME_COLORS.mid,
