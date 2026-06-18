@@ -79,10 +79,10 @@ export function SpineTrustStrip({ eyebrow = 'Shared record', title = 'What stays
 
 export function RoleActionStrip({ role = 'Your role', action = 'Take the next action', waiting = 'Passage keeps the waiting point visible.', proof = 'Your update is saved as proof.', privacy = 'You only see the work connected to your role.', compact = false }) {
   const rows = [
-    ['What Passage shows', role],
-    ['1. Do', action],
-    ['2. Update', waiting],
-    ['3. Save proof', proof],
+    ['What is needed', role],
+    ['Owner does next', action],
+    ['Waiting on', waiting],
+    ['Status and proof', proof],
   ];
   return (
     <div style={{ background: CHROME_COLORS.sageFaint, border: '1px solid #c8deca', borderRadius: compact ? 13 : 15, padding: compact ? 10 : 12, color: CHROME_COLORS.mid }}>
