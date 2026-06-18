@@ -96,7 +96,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Could not request help.');
-      setMessage('Request sent - waiting for response. We will coordinate this for you here.');
+      setMessage('Request sent - waiting for response. The quote response will appear here.');
       setRequests((prev) => [data.request, ...prev].filter(Boolean).slice(0, 3));
       if (onRequested) onRequested(data);
     } catch (error) {
@@ -125,7 +125,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
       setRequests((prev) => prev.map((item) => item.id === request.id ? data.request : item));
       setMessage(action === 'approve_quote'
         ? 'Quote accepted - opening secure payment.'
-        : 'Marked as needing another option. The request stays visible on the proof trail.');
+        : 'Marked as needing another option. The request stays visible here with its reason and status.');
       if (onRequested) onRequested(data);
     } catch (error) {
       setMessage(error.message || 'Could not update this quote.');
@@ -138,23 +138,23 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
     <div style={{ background: C.card, border: '1px solid ' + C.sageLight, borderRadius: 12, padding: '13px 14px', marginBottom: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', marginBottom: 9 }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 900, color: C.sage, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 4 }}>Need help with this?</div>
-          <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.45 }}>Passage can suggest local support when it helps complete this step. We will coordinate this for you here.</div>
+          <div style={{ fontSize: 11, fontWeight: 900, color: C.sage, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 4 }}>Need outside help?</div>
+          <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.45 }}>Passage can suggest local support, request one quote, and keep the response attached to this step.</div>
         </div>
         {category && <span style={{ fontSize: 10.5, fontWeight: 900, color: C.sage, background: C.sageFaint, borderRadius: 999, padding: '4px 8px', whiteSpace: 'nowrap' }}>{vendorCategoryLabel(category)}</span>}
       </div>
       <div style={{ background: C.sageFaint, border: '1px solid ' + C.sageLight, borderRadius: 11, padding: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginBottom: 9 }}>
         <div>
           <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>1. Do</div>
-          <div style={{ fontSize: 12.2, color: C.ink, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>Choose one provider only when this task needs outside help.</div>
+          <div style={{ fontSize: 12.2, color: C.ink, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>Choose one provider only when this step needs outside help.</div>
         </div>
         <div>
           <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>2. Update</div>
-          <div style={{ fontSize: 12.2, color: C.mid, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>Viewed, accepted, in progress, and completed stay attached here.</div>
+          <div style={{ fontSize: 12.2, color: C.mid, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>Quote requested, quote ready, payment, scheduled, and completed stay attached here.</div>
         </div>
         <div>
           <div style={{ fontSize: 10.5, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em' }}>3. Save proof</div>
-          <div style={{ fontSize: 12.2, color: C.mid, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>The vendor sees only this task, timing, and contact boundary.</div>
+          <div style={{ fontSize: 12.2, color: C.mid, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>The vendor sees only this request, timing, and contact boundary.</div>
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 7, margin: '9px 0' }}>
@@ -212,7 +212,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
       )}
       {requests.length > 0 && (
         <div style={{ background: C.sageFaint, border: '1px solid ' + C.sageLight, borderRadius: 11, padding: 10, marginTop: 9 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, color: C.sage, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>Request proof</div>
+          <div style={{ fontSize: 11, fontWeight: 900, color: C.sage, textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>Request status</div>
           {requests.map((request) => (
             <div key={request.id} style={{ display: 'grid', gap: 5, padding: '6px 0', borderTop: '1px solid ' + C.sageLight }}>
               <div style={{ fontSize: 12.5, color: C.ink, fontWeight: 900 }}>{request.vendors?.business_name || 'Local support'} - {vendorRequestLabel(request.status)}</div>
@@ -264,7 +264,7 @@ export default function VendorSupport({ workflowId, taskId, taskTitle, authToken
           <div role="dialog" aria-modal="true" aria-label="Review vendor quote" onClick={(event) => event.stopPropagation()} style={{ width: 'min(560px, 100%)', background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
             <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Review before payment</div>
             <h3 style={{ color: C.ink, fontSize: 25, lineHeight: 1.15, margin: '6px 0 8px' }}>{paymentReview.vendors?.business_name || 'Vendor'} quote</h3>
-            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6, margin: '0 0 12px' }}>Passage will open secure Stripe checkout. After payment, the vendor sees the paid status and this task keeps the payment proof, service details, and next update in one place.</p>
+            <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.6, margin: '0 0 12px' }}>Passage will open secure Stripe checkout. After payment, the vendor sees that work can begin, and this step keeps the payment proof, service details, and next update in one place.</p>
             <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
               <InfoRow label="Request" value={paymentReview.task_title || taskTitle || 'Vendor service'} />
               <InfoRow label="Quote" value={'$' + Math.round(Number(paymentReview.final_value || paymentReview.estimated_value || 0))} />
