@@ -166,6 +166,11 @@ const personaSourceChecks = [
     forbids: ['Task response', 'task the family assigned to you', 'assigned tasks', 'more tasks assigned to you', 'Respond to assigned task', 'task status', 'The task stays open', 'keeps the task open', 'keeps the task visible'],
   },
   {
+    path: 'pages/vendors/onboard.js',
+    label: 'Vendor onboarding source',
+    requires: ['Required: business name, service ZIPs, and email', 'Add business name, service ZIPs, and email to submit', 'Recommended next action: book a vendor conversation', 'Nothing appears to families until Passage approves the partner'],
+    forbids: ['marketplace fee', 'public marketplace inbox', 'browse family records'],
+  },  {
     path: 'pages/vendors/request.js',
     label: 'Vendor request source',
     requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof'],
@@ -174,7 +179,7 @@ const personaSourceChecks = [
   {
     path: 'components/CareProviderLanding.js',
     label: 'Care-provider source',
-    requires: ['Help families leave care with a clearer next step.', 'Purpose of this page', 'not an operating dashboard', 'Partner inquiry', 'Family owned', 'Scoped access', 'Proof based'],
+    requires: ['Help families leave care with a clearer next step.', 'Purpose of this page', 'not an operating dashboard', 'Partner inquiry', 'Add organization name and contact email to send the inquiry', 'Recommended next action: book a short walkthrough', 'Family owned', 'Scoped access', 'Proof based'],
     forbids: ['task outcomes', 'operating dashboard', 'partner spine'],
   },
 ];
