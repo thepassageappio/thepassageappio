@@ -161,7 +161,8 @@ const personaSourceChecks = [
     label: 'Funeral-home sample case wording source',
     requires: ['Work action', 'work outcomes'],
     forbids: ['Task action', 'task outcomes'],
-  },  {
+  },
+  {
     path: 'lib/communicationEvents.js',
     label: 'Communication event wording source',
     requires: ['Work assigned', 'Work updated', 'Work needs help', 'Work status updated'],
@@ -243,7 +244,7 @@ const personaSourceChecks = [
     path: 'pages/funeral-home/dashboard.js',
     label: 'Funeral-home dashboard source',
     requires: ['Recommended next action', '1. Do next:', 'Message to send or use', 'Waiting on', 'Save proof', 'partnerPlanDisplayName'],
-    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}', 'Task / request', 'Proof loop', 'Task action', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Demo proof saved. The task', 'Could not update this task.', 'Could not assign this task.', 'task owner', 'task notification', 'demo task', 'Partner task owner', 'each task', '0 tasks need an owner', 'Only open tasks', 'open partner task', 'close tasks', 'Scoped to the task', 'Close task with this proof', 'Update partner task', 'closes the task', 'close the task', 'Task status', 'tasks are assigned', 'Partner invite opened', 'partner dashboard', 'partner account', 'partner workspace', 'Partner dashboard', 'Partner setup path', 'Partner account setup', 'Preferred in tasks', 'Create partner workspace', 'partner case', 'partner queue', 'partner case list', 'partner setup and reporting', 'partner action'],
+    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}', 'Task / request', 'Proof loop', 'Task action', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Demo proof saved. The task', 'Could not update this task.', 'Could not assign this task.', 'task owner', 'task notification', 'demo task', 'Partner task owner', 'each task', '0 tasks need an owner', 'Only open tasks', 'open partner task', 'close tasks', 'Scoped to the task', 'Close task with this proof', 'Update partner task', 'closes the task', 'close the task', 'Task status', 'tasks are assigned', 'Partner invite opened', 'partner dashboard', 'partner account', 'partner workspace', 'Partner dashboard', 'Partner setup path', 'Partner account setup', 'Preferred in tasks', 'Create partner workspace', 'partner case', 'partner queue', 'partner case list', 'partner setup and reporting', 'partner action', 'Quote accepted', 'Trial plan', 'Trial/demo visible'],
   },
   {
     path: 'pages/funeral-home/setup.js',
@@ -303,7 +304,7 @@ const personaSourceChecks = [
     path: 'pages/vendors/request.js',
     label: 'Vendor request source',
     requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof', 'full family record', 'public listing or open inbox', 'Save completion proof', 'family or funeral home can approve'],
-    forbids: ['family case and task', 'scoped task requests', 'task spine', 'full estate', 'public marketplace inbox', 'payout internals', 'Payment and fee details', 'Mark completed', 'can accept it before work starts', 'Requested, quoted, accepted, completed.', 'Service instructions'],
+    forbids: ['family case and task', 'scoped task requests', 'task spine', 'full estate', 'public marketplace inbox', 'payout internals', 'Payment and fee details', 'Mark completed', 'can accept it before work starts', 'Requested, quoted, accepted, completed.', 'Service instructions', 'family or funeral home accepts it', 'Viewed, accepted'],
   },
   {
     path: 'components/CareProviderLanding.js',
