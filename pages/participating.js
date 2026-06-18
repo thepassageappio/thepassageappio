@@ -137,11 +137,11 @@ function participantActionSaveLabel(action) {
 }
 
 function participantActionEffectCopy(action) {
-  if (action === 'save_note') return 'This saves a note for the coordinator without changing the task status.';
-  if (action === 'accept') return 'This tells the coordinator you are taking responsibility. The task stays open until you save proof or a waiting update.';
-  if (action === 'waiting') return 'This keeps the task open and shows exactly what you are waiting on.';
+  if (action === 'save_note') return 'This saves a note for the coordinator without changing the request status.';
+  if (action === 'accept') return 'This tells the coordinator you are taking responsibility. The request stays open until you save proof or a waiting update.';
+  if (action === 'waiting') return 'This keeps the request open and shows exactly what you are waiting on.';
   if (action === 'handled' || action === 'confirmed') return 'This marks your part done, saves your note, and moves it out of your active work.';
-  if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'This keeps the task visible as needing help so the coordinator can step in.';
+  if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'This keeps the request visible as needing help so the coordinator can step in.';
   if (action === 'quoted' || action === 'scheduled') return 'This saves your update to the same family record without exposing the full family record.';
   return 'This update goes back to the coordinator and stays attached to the family record.';
 }
@@ -466,7 +466,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <button onClick={() => setDetailsOpen(true)} style={{ border: 'none', background: 'transparent', color: C.sage, fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, padding: '9px 0 0', cursor: 'pointer' }}>Open details, proof, and visibility</button>
           {(pendingAction || detailsOpen) && (
             <div onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-              <div role="dialog" aria-modal="true" aria-label="Respond to assigned task" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+              <div role="dialog" aria-modal="true" aria-label="Respond to assigned request" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em' }}>Request response</div>
@@ -895,7 +895,7 @@ export default function ParticipatingPage() {
                 ) : (
                   <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '14px 15px', color: C.mid, fontSize: 13.2, lineHeight: 1.55 }}>
                     <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Sent</div>
-                    <strong style={{ color: C.ink }}>Check your email.</strong> We sent a secure sign-in link to <strong style={{ color: C.ink }}>{emailLogin}</strong>. Open it on this device to see the request the family assigned to you.
+                    <strong style={{ color: C.ink }}>Check your email.</strong> We sent a secure sign-in link to <strong style={{ color: C.ink }}>{emailLogin}</strong>. Open it on this device to see the private request assigned to you.
                   </div>
                 )}
               </div>
@@ -932,7 +932,7 @@ export default function ParticipatingPage() {
                     </div>
                     <div className="participant-helper-points" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(130px, 1fr))', gap: 8, flex: '1 1 390px' }}>
                       {[
-                        ['See your request', 'Only the assigned work appears.'],
+                        ['See your request', 'Only your assigned request appears.'],
                         ['Reply once', 'No repeated calls or side threads.'],
                         ['Proof is saved', 'Status and notes return to the record.'],
                       ].map(([title, body]) => (
