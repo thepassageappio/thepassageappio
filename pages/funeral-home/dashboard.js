@@ -2523,7 +2523,7 @@ export default function FuneralHomeDashboard() {
     ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first next-step owner', assignmentsCoordinated > 0],
     ['6', 'Proof trail', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
     ['7', 'Invite review', latestStaffInvite || partnerStaff.length ? 'Invite copy ready; nothing auto-sent' : 'Add staff before sending handoffs', latestStaffInvite || partnerStaff.length > 0],
-    ['8', 'Billing setup', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial' ? (partnerPlan ? `${partnerPlanDisplayName(partnerPlan.name || partnerPlan.plan)} visible` : 'Trial/demo visible') : 'Set up after approval', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial'],
+    ['8', 'Billing setup', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial' ? (partnerPlan ? `${partnerPlanDisplayName(partnerPlan.name || partnerPlan.plan)} visible` : 'Guided rollout visible') : 'Set up after approval', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial'],
   ];
   const visiblePilotLaunchRows = isAdminDemo ? pilotLaunchRows : pilotLaunchRows.filter(row => !['Invite review', 'Billing setup'].includes(row[1]));
   const launchReadyCount = visiblePilotLaunchRows.filter(row => row[3]).length;
@@ -2534,7 +2534,7 @@ export default function FuneralHomeDashboard() {
     ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case record.' : 'Assign the first next-step owner to create visible proof.', assignmentsCoordinated > 0],
   ];
   const billingReadinessRows = [
-    ['Plan', partnerPlanDisplayName(partnerPlan?.name || partnerPlan?.plan, activationStatus === 'active_trial' ? 'Trial plan' : 'Setup pending')],
+    ['Plan', partnerPlanDisplayName(partnerPlan?.name || partnerPlan?.plan, activationStatus === 'active_trial' ? 'Guided rollout plan' : 'Setup pending')],
     ['Billing', billingStatus === 'paid' ? 'Paid' : billingStatus === 'demo' ? 'Demo' : billingStatus === 'stripe_pending' ? 'Stripe pending' : 'Set up after approval'],
     ['Seats tracked', `${activeEmployeeRows.length || partnerStaff.length} employee${(activeEmployeeRows.length || partnerStaff.length) === 1 ? '' : 's'}`],
     ['Private operating inputs', activeEmployeeRows.some(member => moneyNumber(member.hourlyCost) || moneyNumber(member.annualSalary)) ? 'Labor cost available' : 'Add salary/hourly cost for staffing efficiency'],
@@ -5186,7 +5186,7 @@ export default function FuneralHomeDashboard() {
                           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 4 }}>
                             {request.viewed_at && <span style={miniPill}>Viewed</span>}
                             {request.responded_at && <span style={miniPill}>Quote ready</span>}
-                            {request.in_progress_at && <span style={miniPill}>Quote accepted</span>}
+                            {request.in_progress_at && <span style={miniPill}>Quote approved</span>}
                             {request.completed_at && <span style={miniPill}>Completed</span>}
                             {vendorValue(request) > 0 && <span style={miniPill}>Value ${Math.round(vendorValue(request))}</span>}
                           </div>
