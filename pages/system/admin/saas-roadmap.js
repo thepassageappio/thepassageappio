@@ -54,7 +54,9 @@ const takeaways = [
   ['Persona browser UAT matrix', 'In progress', 'Checked funeral-home buyer, workspace demo, sample case, staff, cases, setup, urgent family, planning, estate demo, participants, care providers, hospice, assisted living, vendors, vendor request/login/onboarding, and system admin gate. No route-level console errors on public/persona surfaces.'],
   ['Task-language cleanup from UAT', 'Source green', 'Shared task actions now use one simple contract across roles: I own this, mark waiting, needs help, and mark done with proof. Public/vendor/helper wording now favors request, record, owner, waiting point, and proof over task-spine or command-center jargon.'],
   ['Form validation UAT', 'Source fixed / live domain stale', 'Vendor onboarding now requires business name, ZIPs, and email before submit state, and care-provider inquiry shows required organization plus email. Recheck live once www points at latest main.'],
-  ['Admin session UAT', 'Source fixed / live recheck blocked', 'Admin users now get a visible System Admin entrance from normal signed-in pages. Recheck on www after the correct production domain is pointing at latest main.'],  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; the standalone demo route redirects back into System Admin and no standalone roadmap/QA/admin top-level tabs should exist.'],
+  ['Admin session UAT', 'Source fixed / live recheck blocked', 'Admin users now get a visible System Admin entrance from normal signed-in pages. Recheck on www after the correct production domain is pointing at latest main.'],
+  ['Release configuration', 'P0 duplicate production targets', 'GitHub reports two Vercel production contexts on each commit: thepassageappio and you-are-working-on-a-production. Confirm which project owns www, remove or disable the stray production target, and purge Cloudflare/cache before public promotion.'],
+  ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; the standalone demo route redirects back into System Admin and no standalone roadmap/QA/admin top-level tabs should exist.'],
   ['Funeral-home product UX', 'Source simplified / deploy verification pending', 'Director/staff dashboard now uses Case at a glance, Recommended next action, action-contract cards, one primary action, one waiting action, collapsed More actions, what Passage prepared, what staff does next, waiting point, proof saves, needs-help wording, and family-visible proof; authenticated UAT must verify My Day and task cards once deployment quota clears.'],
   ['Family, care, and participant UX', 'Source simplified / live domain stale', 'B2C, urgent, planning, hospice/care-prep, and participant requests now favor family record, request, next step, owner, waiting point, and proof. Exact source search is clean for command center and family task; live www must still be rechecked after routing/cache is fixed.'],
   ['Automation layer', 'Source updated / deploy verification pending', 'Timing-aware next-action scoring now feeds funeral-home recommendations; next deploy must browser-verify the visible timing label and why-now reason.'],
@@ -109,11 +111,11 @@ const sprints = [
     owner: 'QA persona lead',
     goal: 'Walk every role end to end on desktop and mobile.',
     tasks: [
-      'Family coordinator: urgent setup, planning setup, care-prep record, one recommended next action, what Passage prepares, where proof saves, approvals, family updates, and aftercare.'
+      'Family coordinator: urgent setup, planning setup, care-prep record, one recommended next action, what Passage prepares, where proof saves, approvals, family updates, and aftercare.',
       'Participant/helper: one scoped request, one response path, privacy boundary, authority boundary, needs-help/waiting state, and saved proof.',
       'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing, and clear task-card contracts.',
       'Funeral-home employee: assigned work, context, drafted message, waiting/stuck-point state, family-visible boundary, close-with-proof.',
-      'Vendor: scoped request, quote/update, payment state, service proof, no family-record browsing, and required-field validation that never feels stuck.'
+      'Vendor: scoped request, quote/update, payment state, service proof, no family-record browsing, and required-field validation that never feels stuck.',
     ],
     acceptance: 'Every persona has one clear next action and no internal product language.',
   },
