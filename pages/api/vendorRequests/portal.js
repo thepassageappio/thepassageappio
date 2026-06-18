@@ -102,7 +102,7 @@ export default async function handler(req, res) {
         estate_id: request.workflow_id,
         event_type: 'vendor_help_viewed',
         title: `${request.vendors?.business_name || 'Vendor'} viewed request`,
-        description: `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this task'} was viewed.`,
+        description: `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this request'} was viewed.`,
         actor: request.vendors?.business_name || 'Vendor',
       }]).then(() => {}, () => {});
       await recordStatusEvent({
@@ -191,8 +191,8 @@ export default async function handler(req, res) {
         ? `${vendorName} completed request`
         : `${vendorName} declined`;
   const detail = action === 'accepted'
-    ? `${vendorCategoryLabel(request.vendors?.category)} quote for ${request.task_title || 'this task'} is ready for family or funeral-home review.${estimatedValue > 0 ? ` Estimated value: $${Math.round(estimatedValue)}.` : ''}${serviceStartAt ? ` Service timing: ${serviceStartAt}.` : ''}${vendorNote ? ` Note: ${vendorNote}` : ''}`
-    : `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this task'} was ${nextStatus.replace('_', ' ')}.`;
+    ? `${vendorCategoryLabel(request.vendors?.category)} quote for ${request.task_title || 'this request'} is ready for family or funeral-home review.${estimatedValue > 0 ? ` Estimated value: $${Math.round(estimatedValue)}.` : ''}${serviceStartAt ? ` Service timing: ${serviceStartAt}.` : ''}${vendorNote ? ` Note: ${vendorNote}` : ''}`
+    : `${vendorCategoryLabel(request.vendors?.category)} request for ${request.task_title || 'this request'} was ${nextStatus.replace('_', ' ')}.`;
   await admin.from('estate_events').insert([{
     estate_id: request.workflow_id,
     event_type: action === 'completed' ? 'vendor_help_completed' : 'vendor_help_updated',

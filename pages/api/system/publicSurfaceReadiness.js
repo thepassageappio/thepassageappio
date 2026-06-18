@@ -149,6 +149,47 @@ const forbiddenPublicMarkup = [
 
 const personaSourceChecks = [
   {
+    path: 'lib/communicationEvents.js',
+    label: 'Communication event wording source',
+    requires: ['Work assigned', 'Work updated', 'Work needs help', 'Work status updated'],
+    forbids: ['Task assigned', 'Task updated', 'Task needs help', 'Task status updated'],
+  },
+  {
+    path: 'pages/api/partnerHandleTask.js',
+    label: 'Funeral-home work update API wording',
+    requires: ['Work needs help', 'Work waiting', 'Work handled', 'funeral-home case', 'Needs-help note saved'],
+    forbids: ['Task needs help', 'Task waiting', 'Task handled', 'partner case', 'Blocker saved', 'retry this task action'],
+  },
+  {
+    path: 'pages/api/tasks/[id]/assign.js',
+    label: 'Next-step assignment API wording',
+    requires: ['Next-step owner', 'Next step not found', 'family record'],
+    forbids: ['Task owner', 'Task not found', 'task spine'],
+  },
+  {
+    path: 'pages/api/tasks/[id]/reminder.js',
+    label: 'Reminder API wording',
+    requires: ['Reminder: Passage request waiting for you', 'own the request, mark it done', 'family record'],
+    forbids: ['Reminder: Passage task waiting for you', 'task spine'],
+  },
+  {
+    path: 'pages/api/tasks/[id]/send.js',
+    label: 'Request send API wording',
+    requires: ['request handoff', 'family record'],
+    forbids: ['task handoff', 'task spine', 'duplicate task'],
+  },
+  {
+    path: 'pages/api/tasks/[id]/status.js',
+    label: 'Work status API wording',
+    requires: ['Work update', 'Work item not found', 'needs-help note', 'Work event'],
+    forbids: ['Task update', 'Task not found', 'blocker note', 'Task spine event'],
+  },
+  {
+    path: 'pages/api/vendorRequests/create.js',
+    label: 'Vendor request create API wording',
+    requires: ['what you own', 'Send quote or own request', 'Save completion proof'],
+    forbids: ['what you accepted', 'Accept or send quote', 'Mark completed', 'This vendor does not match this task'],
+  },  {
     path: 'lib/taskActions.js',
     label: 'Shared action confirmation source',
     requires: ['own this next step', 'Proof saved. This next step is marked done.', 'own this request', 'accepted a request'],
@@ -241,8 +282,8 @@ const personaSourceChecks = [
   {
     path: 'pages/api/vendorRequests/decision.js',
     label: 'Vendor quote decision API wording',
-    requires: ['before it can be approved', 'family_accepted', 'needs_help'],
-    forbids: ['before it can be accepted', "status: action === 'approve_quote' ? 'waiting' : 'blocked'"],
+    requires: ['before it can be approved', 'family_accepted', "status: action === 'approve_quote' ? 'waiting' : 'blocked'"],
+    forbids: ['before it can be accepted', 'quote accepted for', 'quote was not accepted for'],
   },
   {
     path: 'pages/vendors/request.js',

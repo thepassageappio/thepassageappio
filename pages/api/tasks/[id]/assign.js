@@ -37,7 +37,7 @@ async function updateTaskAssignmentWithSchemaFallback(task, updates) {
     remaining = nextRemaining;
   }
 
-  return { error: new Error('Task owner could not be saved after schema fallback.'), skippedColumns };
+  return { error: new Error('Next-step owner could not be saved after schema fallback.'), skippedColumns };
 }
 
 async function userCanAssignTask(auth, task) {
@@ -105,7 +105,7 @@ export default async function handler(req, res) {
     .eq('id', taskId)
     .maybeSingle();
   if (error) return res.status(500).json({ error: error.message });
-  if (!task) return res.status(404).json({ error: 'Task not found.' });
+  if (!task) return res.status(404).json({ error: 'Next step not found.' });
 
   const allowed = await userCanAssignTask(auth, task);
   if (!allowed) return res.status(403).json({ error: 'You do not have access to assign this task.' });
@@ -146,12 +146,12 @@ export default async function handler(req, res) {
   return res.status(200).json({
     success: true,
     task: Object.assign({}, task, savedUpdates, { owner_label: assigneeName }),
-    confirmation: 'Owner saved to the task spine. Passage can send the handoff when you choose a send action.',
+    confirmation: 'Owner saved to the family record. Passage can send the handoff when you choose a send action.',
     spine: {
       ask: task.title,
       owner: assigneeName,
       waiting: 'Waiting for owner update or proof.',
-      proof: 'Assignment event saved to the task audit trail.',
+      proof: 'Assignment event saved to the family-record audit trail.',
       notification: 'No external handoff was sent by this owner-only save.',
     },
     skippedColumns,

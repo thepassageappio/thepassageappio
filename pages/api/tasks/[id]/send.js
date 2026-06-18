@@ -19,7 +19,7 @@ function taskSpine(task, {
     ask: task?.title || 'Assigned Passage task',
     owner: owner || task?.assigned_to_name || task?.assigned_to_email || recipient || null,
     waiting: waiting || 'Waiting for the recipient to accept, update, mark waiting, ask for help, or close with proof.',
-    proof: proof || 'Delivery and task status stay attached to this task spine.',
+    proof: proof || 'Delivery and task status stay attached to this family record.',
     notification: notification || 'No external message has been sent yet.',
     channel: channel || 'email',
     recipient: recipient || task?.assigned_to_email || null,
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
     .eq('id', taskId)
     .maybeSingle();
   if (error) return res.status(500).json({ error: error.message });
-  if (!task) return res.status(404).json({ error: 'Task not found.' });
+  if (!task) return res.status(404).json({ error: 'Request not found.' });
 
   const channel = req.body?.channel || (req.body?.toPhone ? 'sms' : 'email');
   const recipient = req.body?.to || req.body?.toEmail || req.body?.toPhone || (channel === 'sms' ? '' : task.assigned_to_email);
@@ -113,11 +113,11 @@ export default async function handler(req, res) {
     if (!limit.allowed) {
       res.setHeader('Retry-After', String(limit.retryAfterSeconds || 3600));
       return res.status(429).json({
-        error: 'This task handoff was recently sent or retried too many times. Review the delivery trail before sending again.',
+        error: 'This request handoff was recently sent or retried too many times. Review the delivery trail before sending again.',
         retryAfterSeconds: limit.retryAfterSeconds,
         spine: taskSpine(task, {
           waiting: 'Waiting for the next allowed send window before another handoff goes out.',
-          proof: 'Rate limit protected this task from duplicate outbound delivery.',
+          proof: 'Rate limit protected this request from duplicate outbound delivery.',
           notification: `Duplicate ${channel} send prevented for ${recipient}.`,
           deepLink,
           channel,
@@ -167,7 +167,7 @@ export default async function handler(req, res) {
           : 'Waiting for the recipient to open, accept, update, ask for help, or close with proof.',
         proof: dryRun
           ? 'Dry-run preview returned without calling the delivery provider.'
-          : 'Provider handoff was requested and the delivery record is attached to the task.',
+          : 'Provider handoff was requested and the delivery record is attached to the request.',
         notification: dryRun
           ? `Prepared ${channel} handoff for ${recipient}.`
           : `Sent ${channel} handoff to ${recipient}.`,

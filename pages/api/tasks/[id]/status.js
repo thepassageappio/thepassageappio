@@ -43,7 +43,7 @@ async function updateTaskWithSchemaFallback(task, updates) {
     remaining = nextRemaining;
   }
 
-  return { error: new Error('Task update could not be saved after schema fallback.') };
+  return { error: new Error('Work update could not be saved after schema fallback.') };
 }
 
 async function userCanUpdateTask(auth, task) {
@@ -92,15 +92,15 @@ export default async function handler(req, res) {
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
   const taskId = String(req.query.id || '').trim();
-  if (!taskId) return res.status(400).json({ error: 'Invalid task id.' });
+  if (!taskId) return res.status(400).json({ error: 'Invalid work item id.' });
 
   const { status, channel, recipient, detail, notes, outcomeStatus, followUpAt, actor } = req.body || {};
-  if (!allowedStatuses.has(status)) return res.status(400).json({ error: 'Invalid task status.' });
-  if (channel && !allowedChannels.has(channel)) return res.status(400).json({ error: 'Invalid task channel.' });
+  if (!allowedStatuses.has(status)) return res.status(400).json({ error: 'Invalid work status.' });
+  if (channel && !allowedChannels.has(channel)) return res.status(400).json({ error: 'Invalid work channel.' });
   const storedStatus = normalizeStoredStatus(status);
   const proofText = [detail, notes].map((value) => String(value || '').trim()).filter(Boolean).join(' ');
   if (['handled', 'waiting', 'blocked'].includes(storedStatus) && proofText.length < 8) {
-    return res.status(400).json({ error: 'Add a short proof, waiting point, or blocker note before saving this task update.' });
+    return res.status(400).json({ error: 'Add a short proof, waiting point, or needs-help note before saving this work item update.' });
   }
 
   const { data: task, error } = await serviceSupabase
@@ -109,9 +109,9 @@ export default async function handler(req, res) {
     .eq('id', taskId)
     .maybeSingle();
   if (error) return res.status(500).json({ error: error.message });
-  if (!task) return res.status(404).json({ error: 'Task not found.' });
+  if (!task) return res.status(404).json({ error: 'Work item not found.' });
   const allowed = await userCanUpdateTask(auth, task);
-  if (!allowed) return res.status(403).json({ error: 'You do not have access to update this task.' });
+  if (!allowed) return res.status(403).json({ error: 'You do not have access to update this work item.' });
 
   const now = new Date().toISOString();
   const actorName = actor || auth.user?.user_metadata?.full_name || auth.user?.email || 'Passage';
@@ -181,7 +181,7 @@ export default async function handler(req, res) {
       owner: task.assigned_to_name || task.assigned_to_email || null,
       waiting: waitingPoint || (storedStatus === 'handled' ? 'No waiting point after this update.' : detailText),
       proof: detailText,
-      notification: 'Task spine event saved. External messages are sent only through reviewed send actions.',
+      notification: 'Work event saved. External messages are sent only through reviewed send actions.',
     },
     skippedColumns,
   });

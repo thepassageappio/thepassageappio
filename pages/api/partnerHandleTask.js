@@ -31,9 +31,9 @@ function eventVerbFor(action) {
 function emailCopyFor(action, { orgName, subjectName, taskTitle }) {
   if (action === 'blocked') {
     return {
-      eyebrow: 'Task needs help',
-      subject: passageSubject('Task needs help', taskTitle),
-      title: 'The funeral home needs help on this task.',
+      eyebrow: 'Work needs help',
+      subject: passageSubject('Work needs help', taskTitle),
+      title: 'The funeral home needs help on this work item.',
       intro: `${orgName} recorded what is blocking ${taskTitle} for ${subjectName}.`,
       preheader: `${orgName} needs help with ${taskTitle}.`,
       sectionLabel: 'Blocker saved',
@@ -41,8 +41,8 @@ function emailCopyFor(action, { orgName, subjectName, taskTitle }) {
   }
   if (action === 'waiting') {
     return {
-      eyebrow: 'Task waiting',
-      subject: passageSubject('Task waiting', taskTitle),
+      eyebrow: 'Work waiting',
+      subject: passageSubject('Work waiting', taskTitle),
       title: 'The funeral home is waiting on this task.',
       intro: `${orgName} recorded what is still waiting for ${subjectName}.`,
       preheader: `${orgName} is waiting on ${taskTitle}.`,
@@ -50,8 +50,8 @@ function emailCopyFor(action, { orgName, subjectName, taskTitle }) {
     };
   }
   return {
-    eyebrow: 'Task handled',
-    subject: passageSubject('Task handled', taskTitle),
+    eyebrow: 'Work handled',
+    subject: passageSubject('Work handled', taskTitle),
     title: 'Handled for the family.',
     intro: `${orgName} recorded a completed update for ${subjectName}.`,
     preheader: `${orgName} handled ${taskTitle}.`,
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
   if (!taskId) return res.status(400).json({ error: 'Missing task.' });
   const cleanNote = String(note || '').trim();
   if (!cleanNote) {
-    return res.status(400).json({ error: action === 'handled' ? 'Add what was handled before notifying the family.' : 'Add what is waiting or blocking this task.' });
+    return res.status(400).json({ error: action === 'handled' ? 'Add what was handled before notifying the family.' : 'Add what is waiting or what the family needs to provide.' });
   }
 
   try {
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
       .eq('id', taskId)
       .maybeSingle();
     if (taskError) throw taskError;
-    if (!task) return res.status(404).json({ error: 'Task not found.' });
+    if (!task) return res.status(404).json({ error: 'Work item not found.' });
 
     const { data: workflow, error: workflowError } = await admin
       .from('workflows')
@@ -121,7 +121,7 @@ export default async function handler(req, res) {
       .eq('id', task.workflow_id)
       .maybeSingle();
     if (workflowError) throw workflowError;
-    if (!workflow?.organization_id) return res.status(403).json({ error: 'This is not a partner case.' });
+    if (!workflow?.organization_id) return res.status(403).json({ error: 'This is not a funeral-home case.' });
 
     const { data: member } = await admin
       .from('organization_members')
@@ -130,7 +130,7 @@ export default async function handler(req, res) {
       .ilike('email', actorEmail || '')
       .eq('status', 'active')
       .limit(1);
-    if (auth.source !== 'internal' && !member?.length && !isPassageAdmin(actorEmail)) return res.status(403).json({ error: 'You do not have access to this partner case.' });
+    if (auth.source !== 'internal' && !member?.length && !isPassageAdmin(actorEmail)) return res.status(403).json({ error: 'You do not have access to this funeral-home case.' });
 
     const { data: organization } = await admin
       .from('organizations')
@@ -242,7 +242,7 @@ export default async function handler(req, res) {
           provider: 'resend',
           provider_id: null,
           status: route.actual.length ? 'failed' : 'blocked',
-          error_message: route.actual.length ? (json?.message || json?.error || 'Family notification failed after partner action.') : 'QA notification mode had no override email configured.',
+          error_message: route.actual.length ? (json?.message || json?.error || 'Family notification failed after funeral-home update.') : 'QA notification mode had no override email configured.',
           source: 'funeral_home_task_proof',
           ...qaAuditFields(route),
         });
@@ -262,7 +262,7 @@ export default async function handler(req, res) {
       skippedColumns,
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message || 'Could not update this task for the family.' });
+    return res.status(500).json({ error: err.message || 'Could not update this work item for the family.' });
   }
 }
 

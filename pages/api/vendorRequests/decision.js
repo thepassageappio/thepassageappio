@@ -60,15 +60,15 @@ export default async function handler(req, res) {
   const category = vendorCategoryLabel(request.vendors?.category);
   const value = Number(request.final_value || request.estimated_value || 0);
   const detail = action === 'approve_quote'
-    ? `${vendorName} quote accepted for ${request.task_title || category}. ${value > 0 ? `Payment is the next step for $${Math.round(value)}.` : 'Value not recorded yet.'}`
-    : `${vendorName} quote was not accepted for ${request.task_title || category}; another local option is needed.`;
+    ? `${vendorName} quote approved for ${request.task_title || category}. ${value > 0 ? `Payment collection is the next step for $${Math.round(value)}.` : 'Value not recorded yet.'}`
+    : `${vendorName} quote was not approved for ${request.task_title || category}; another local option is needed.`;
 
   await recordTaskCommunicationEvent({
     verb: action === 'approve_quote' ? 'update' : 'escalate',
     workflowId: request.workflow_id,
     taskId: request.task_id,
     taskTitle: request.task_title,
-    status: action === 'approve_quote' ? 'waiting' : 'needs_help',
+    status: action === 'approve_quote' ? 'waiting' : 'blocked',
     actor: auth.user.email || 'Family coordinator',
     actorRole: request.workflows?.organization_id ? 'funeral_home' : 'family_coordinator',
     channel: 'vendor',

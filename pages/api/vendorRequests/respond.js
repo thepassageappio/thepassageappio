@@ -139,11 +139,11 @@ export default async function handler(req, res) {
     : status === 'in_progress'
       ? `${vendorName} started work`
     : status === 'completed'
-      ? `${vendorName} completed request`
+      ? `${vendorName} saved completion proof`
       : `${vendorName} declined`;
   const detail = status === 'accepted'
-    ? `${category} quote for ${request.task_title || 'this task'} is ready for review.${finalValue > 0 ? ` Value: $${Math.round(finalValue)}.` : ''}`
-    : `${category} request for ${request.task_title || 'this task'} was ${canonicalVendorStatus(status).replace('_', ' ')}.`;
+    ? `${category} quote for ${request.task_title || 'this request'} is ready for review.${finalValue > 0 ? ` Value: $${Math.round(finalValue)}.` : ''}`
+    : `${category} request for ${request.task_title || 'this request'} was ${canonicalVendorStatus(status).replace('_', ' ')}.`;
   const ctaUrl = `${SITE_URL}${request.organization_id ? '/funeral-home/dashboard' : '/estate'}?workflow=${encodeURIComponent(request.workflow_id)}&vendor_request=${encodeURIComponent(request.id)}`;
   const subject = passageSubject(status === 'accepted' ? 'Vendor quote ready' : 'Vendor update', request.task_title || category);
   await recordTaskCommunicationEvent({

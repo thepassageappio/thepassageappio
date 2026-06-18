@@ -43,8 +43,8 @@ function taskSpine(task, {
   return {
     ask: task?.title || 'Assigned Passage task',
     owner: task?.assigned_to_name || task?.assigned_to_email || recipient || null,
-    waiting: waiting || 'Waiting for the assigned person to update this task.',
-    proof: proof || 'Reminder status stays attached to this task spine.',
+    waiting: waiting || 'Waiting for the assigned person to update this request.',
+    proof: proof || 'Reminder status stays attached to this family record.',
     notification: notification || 'No reminder has been sent yet.',
     channel: 'email',
     recipient: recipient || task?.assigned_to_email || null,
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     .eq('id', taskId)
     .maybeSingle();
 
-  if (error || !task) return res.status(404).json({ error: 'Task not found.' });
+  if (error || !task) return res.status(404).json({ error: 'Request not found.' });
 
   const base = siteUrl(req);
   const link = `${base}/participating?estate=${encodeURIComponent(task.workflow_id)}&task=${encodeURIComponent(task.id)}`;
@@ -81,10 +81,10 @@ export default async function handler(req, res) {
       actor: actor || 'Passage',
       channel: 'record',
       recipient: task.assigned_to_name || task.recipient || '',
-      detail: 'Reminder blocked because this task has no assigned email. Assign an owner before sending a reminder.',
+      detail: 'Reminder blocked because this request has no assigned email. Assign an owner before sending a reminder.',
     });
     return res.status(400).json({
-      error: 'Assign this task to someone with an email before sending a reminder.',
+      error: 'Assign this request to someone with an email before sending a reminder.',
       needsAssignment: true,
       taskId: task.id,
       taskTitle: task.title,
@@ -107,7 +107,7 @@ export default async function handler(req, res) {
         retryAfterSeconds: limit.retryAfterSeconds,
         spine: taskSpine(task, {
           waiting: 'Waiting for the next allowed reminder window before another email goes out.',
-          proof: 'Rate limit protected this task from duplicate reminder delivery.',
+          proof: 'Rate limit protected this request from duplicate reminder delivery.',
           notification: 'Duplicate reminder prevented for ' + (task.assigned_to_name || recipientEmail),
           deepLink: link,
           recipient: recipientEmail,
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       to: recipientEmail,
       toName: task.assigned_to_name || recipientEmail,
-      subject: 'Reminder: Passage task waiting for you',
+      subject: 'Reminder: Passage request waiting for you',
       taskTitle: task.title,
       taskId: task.id,
       workflowId: task.workflow_id,
@@ -178,11 +178,11 @@ export default async function handler(req, res) {
     providerId: sendJson.id || null,
     message: dryRun
       ? 'Reminder prepared for review. No email was sent.'
-      : 'Reminder sent and saved to the task spine.',
+      : 'Reminder sent and saved to the family record.',
     spine: taskSpine(task, {
       waiting: dryRun
         ? 'Prepared only. Send when the family or coordinator approves the reminder.'
-        : 'Waiting for the assigned person to open the task and respond.',
+        : 'Waiting for the assigned person to open the request and respond.',
       proof: dryRun
         ? 'Dry-run reminder returned without calling the provider.'
         : 'Reminder delivery request and task event are attached to the spine.',

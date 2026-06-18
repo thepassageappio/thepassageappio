@@ -51,7 +51,7 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
   const html = passageEmailShell({
     eyebrow: 'Vendor request',
     title: `A family asked for help with ${requestTitle}.`,
-    intro: 'This scoped request came through Passage so the family and any connected funeral home can see what is waiting, what you accepted, and what is handled.',
+    intro: 'This scoped request came through Passage so the family and any connected funeral home can see what is waiting, what you own, and what is handled.',
     preheader: `Open the request to quote, decline, or mark progress for ${requestTitle}.`,
     sections: [
       {
@@ -60,7 +60,7 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
       },
       {
         label: 'Quick actions',
-        html: `<a href="${acceptUrl}" style="color:#6b8f71;font-weight:900;">Accept or send quote</a><br><a href="${declineUrl}" style="color:#6a6560;font-weight:900;">Decline request</a><br><a href="${completeUrl}" style="color:#6a6560;font-weight:900;">Mark completed</a>`,
+        html: `<a href="${acceptUrl}" style="color:#6b8f71;font-weight:900;">Send quote or own request</a><br><a href="${declineUrl}" style="color:#6a6560;font-weight:900;">Decline request</a><br><a href="${completeUrl}" style="color:#6a6560;font-weight:900;">Save completion proof</a>`,
         tone: 'soft',
       },
     ],
@@ -146,7 +146,7 @@ export default async function handler(req, res) {
 
   const resolvedTaskTitle = task?.title || String(taskTitle || vendorCategoryLabel(vendor.category));
   const category = categoryForTask(task || resolvedTaskTitle);
-  if (category && category !== vendor.category) return res.status(400).json({ error: 'This vendor does not match this task.' });
+  if (category && category !== vendor.category) return res.status(400).json({ error: 'This vendor does not match this request.' });
   const marketplaceFeePercent = Number(vendor.marketplace_fee_percent ?? 12);
   const funeralHomeSharePercent = workflow.organization_id ? Number(vendor.funeral_home_rev_share_percent || 0) : 0;
   const passageSharePercent = Math.max(marketplaceFeePercent - funeralHomeSharePercent, 0);
