@@ -2113,7 +2113,36 @@ export default function FuneralHomeDashboard() {
     caseItem,
     label: riskLabelForTask(task, caseItem),
   }))).filter(item => item.label).slice(0, 5);
-  const spineInbox = caseOrchestrationRows.flatMap(({ caseItem }) => {
+  const vendorQuoteItems = caseOrchestrationRows.flatMap(({ caseItem }) => {
+    const requests = caseItem.vendorRequests || caseItem.vendor_requests || [];
+    return requests.map(request => ({
+      request,
+      caseItem,
+      locationName: locationNameFor(caseItem),
+    }));
+  }).filter(({ request }) => {
+    const status = String(request.status || '').toLowerCase();
+    const payment = String(request.payment_collection_status || '').toLowerCase();
+    return ['accepted', 'quoted', 'family_accepted', 'payment_pending'].includes(status) && payment !== 'paid';
+  }).slice(0, 5);
+  const vendorQuoteInbox = vendorQuoteItems.map(({ request, caseItem, locationName }) => {
+    const amount = Number(request.final_value || request.estimated_value || request.gross_amount || 0);
+    const title = request.task_title || request.title || 'Vendor quote';
+    const amountText = amount > 0 ? `$${Math.round(amount)} ` : '';
+    return {
+      id: `vendor_${request.id}`,
+      caseId: caseItem.id,
+      caseName: caseItem.deceased_name || caseItem.estate_name || caseItem.name || 'Family case',
+      locationName,
+      status: 'needs_review',
+      attentionLevel: 'urgent',
+      attentionLabel: 'Quote review',
+      title: `${title} quote needs review`,
+      detail: `${amountText}${request.vendors?.business_name || 'Vendor'} quote is ready. Approve and pay, or choose another option before work begins.`,
+      expectedUpdate: 'Open the case to review the quote, payment, and next step.',
+    };
+  });
+  const spineAttentionItems = caseOrchestrationRows.flatMap(({ caseItem }) => {
     const source = caseItem.coordinationSpine?.attentionItems || [];
     return source.map(event => ({
     ...event,
@@ -2126,7 +2155,8 @@ export default function FuneralHomeDashboard() {
     const text = `${event.title || ''} ${event.detail || ''} ${event.statusLabel || ''}`.toLowerCase();
     return ['blocked', 'failed', 'needs_review', 'waiting', 'pending', 'requested', 'sent', 'acknowledged'].includes(status)
       || /waiting|needs help|failed|request|asked|declined|quote|accepted|in progress/.test(text);
-  }).slice(0, 6);
+  });
+  const spineInbox = vendorQuoteInbox.concat(spineAttentionItems).slice(0, 6);
   const currentMembership = (partnerStaff || []).find(member => String(member.email || '').toLowerCase() === String(user?.email || '').toLowerCase()) || null;
   const allPartnerLocationOptions = savedPartnerLocations
     .map(location => ({
@@ -3358,7 +3388,7 @@ export default function FuneralHomeDashboard() {
           </HelpOverlay>
         )}
 
-        {false && user && !loading && data && activePartnerView === 'work' && (
+        {user && !loading && data && activePartnerView === 'work' && (
           <PartnerDirectorFocus
             riskItems={riskItems}
             inboxItems={spineInbox}
