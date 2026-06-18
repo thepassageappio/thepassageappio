@@ -101,7 +101,6 @@ export default function AutomationSpineReadinessPage() {
           <div style={gateList}>{gates.map(item => <Gate key={item.id} item={item} />)}</div>
         </section>}
 
-        {result && <Panel tone={automationTone}><div style={eyebrow}>Automation coverage</div><h2 style={h2}>{automation.automationReadyPercent || 0}% automated or semi-automated</h2><p style={body}>Automated: {automation.automated || 0}. Semi-automated: {automation.semiAutomated || 0}. Manual: {automation.manual || 0}. Manual work is acceptable only when the system can explain the blocker and the next owner.</p>{!!automation.topBlockers?.length && <ul style={list}>{automation.topBlockers.map(item => <li key={item.label}>{item.label}: {item.count}</li>)}</ul>}</Panel>}
 
         {result && <section style={sectionBlock}>
           <h2 style={h2}>Cases that need attention</h2>
