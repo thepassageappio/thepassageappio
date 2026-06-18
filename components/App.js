@@ -1219,7 +1219,7 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
           <span style={{ fontSize: 20 }}>{t.icon}</span>
           <div>
            <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{t.label}</div>
-           <div style={{ fontSize: 11, color: C.soft, marginTop: 2 }}>{t.desc} ?? {t.tasks.length} tasks</div>
+           <div style={{ fontSize: 11, color: C.soft, marginTop: 2 }}>{t.desc} - {t.tasks.length} next steps</div>
           </div>
           <span style={{ marginLeft: "auto", color: C.mid }}></span>
          </div>
@@ -1472,7 +1472,7 @@ Passage`);
        style={{ width: '100%', height: 100, padding: '12px', borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: 'inherit', fontSize: 12.5, color: C.ink, lineHeight: 1.65, resize: 'vertical', boxSizing: 'border-box', background: C.bgSubtle }} />
       {(() => {
        const info = smsSegmentInfo(editedSMS);
-       return <div style={{ fontSize: 11, color: C.soft, marginTop: 4 }}>{info.length} characters ?? {info.segments} SMS segment{info.segments === 1 ? '': 's'}</div>;
+       return <div style={{ fontSize: 11, color: C.soft, marginTop: 4 }}>{info.length} characters - {info.segments} SMS segment{info.segments === 1 ? '': 's'}</div>;
       })()}
      </div>
     )}
@@ -2003,7 +2003,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
              <button key={person.id} onClick={() => handleSavedPersonSelect(person)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 11px", borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
               <span style={{ minWidth: 0 }}>
                <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: C.ink }}>{fullName || person.email || person.phone}</span>
-               <span style={{ display: "block", fontSize: 11, color: C.soft, marginTop: 2 }}>{person.relationship || 'Contact'}{person.email ? ` ?? ${person.email}`: ''}</span>
+               <span style={{ display: "block", fontSize: 11, color: C.soft, marginTop: 2 }}>{person.relationship || 'Contact'}{person.email ? ` - ${person.email}`: ''}</span>
               </span>
               <span style={{ color: C.sage, fontSize: 12, fontWeight: 700 }}>Use</span>
              </button>
@@ -3175,7 +3175,7 @@ function PeopleList({ userId }) {
      <div style={{ width: 32, height: 32, borderRadius: "50%", background: C.sageFaint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}></div>
      <div style={{ flex: 1 }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{p.first_name} {p.last_name}</div>
-      <div style={{ fontSize: 11, color: C.soft }}>{p.relationship || "No role"} {p.email ? "?? " + p.email: ""}</div>
+      <div style={{ fontSize: 11, color: C.soft }}>{p.relationship || "No role"}{p.email ? " - " + p.email: ""}</div>
      </div>
      <button onClick={() => startEdit(p)} style={{ border: "none", background: C.bgSubtle, borderRadius: 8, padding: "5px 10px", fontSize: 11, color: C.mid, cursor: "pointer", fontFamily: "inherit" }}>Edit</button>
     </div>
@@ -3794,9 +3794,9 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
           return (
            <button key={wf.id} onClick={() => setSelectedDashboardEstateId(String(wf.id))} style={{ flex: "0 0 auto", border: `1px solid ${selected ? (wf.path === 'green' ? C.sage: C.rose): C.border}`, background: selected ? (wf.path === 'green' ? C.sageFaint: C.roseFaint): C.bgSubtle, color: selected ? C.ink: C.mid, borderRadius: 999, padding: "7px 10px", fontFamily: "inherit", fontSize: 11.5, fontWeight: 900, cursor: "pointer", maxWidth: 210, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             <span style={{ color: wf.path === 'green' ? C.sage: C.rose }}>{wf.path === 'green' ? 'Planning': 'Active'}</span>
-            {' ?? '}
+            {' - '}
             {wf.name || 'Estate'}
-            {stats.required ? ` ?? ${stats.completed || 0}/${stats.required}`: ''}
+            {stats.required ? ` - ${stats.completed || 0}/${stats.required}`: ''}
            </button>
           );
          })}
@@ -3992,7 +3992,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
       <details style={{ background: C.bgCard, borderRadius: 14, padding: 0, border: `1px solid ${C.border}`, marginBottom: 0 }}>
        <summary style={{ cursor: "pointer", listStyle: "none", padding: "12px 14px", fontFamily: "Georgia, serif", fontSize: 14, color: C.mid, display: "flex", justifyContent: "space-between", gap: 10 }}>
         <span>Plan and billing</span>
-        <span style={{ color: pd.color, fontWeight: 800 }}>{pd.label} ?? {usedGreenSeats}/{estateSeatLimit} seats</span>
+        <span style={{ color: pd.color, fontWeight: 800 }}>{pd.label} - {usedGreenSeats}/{estateSeatLimit} seats</span>
        </summary>
        <div style={{ padding: "0 14px 14px" }}>
        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: plan === 'free' ? 10: 0 }}>
@@ -4066,7 +4066,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
              <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{wfName}</div>
               <div style={{ fontSize: 11, color: C.mid, marginTop: 2 }}>
-               {wfCoord && `Coordinator: ${wfCoord} ?? `}
+               {wfCoord && `Coordinator: ${wfCoord} - `}
                Started {safeDateLabel(wfDate)}
               </div>
               {taskStatsByWorkflow[wfId] && (() => {
