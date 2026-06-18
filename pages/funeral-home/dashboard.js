@@ -3401,7 +3401,7 @@ export default function FuneralHomeDashboard() {
                 {warmInbounds.map(request => {
                   const status = String(request.status || 'requested').toLowerCase();
                   const active = !['declined', 'archived', 'converted'].includes(status);
-                  const contactLine = [request.requested_by_name, request.requested_by_email, request.requested_by_phone].filter(Boolean).join(' · ');
+                  const contactLine = [request.requested_by_name, request.requested_by_email, request.requested_by_phone].filter(Boolean).join(' ?? ');
                   const addressText = String(request.address || '');
                   const addressAlreadyScoped = addressText && [request.city, request.state, request.zip].filter(Boolean).some(part => addressText.toLowerCase().includes(String(part).toLowerCase()));
                   const placeLine = addressAlreadyScoped ? addressText : [request.address, request.city, request.state, request.zip].filter(Boolean).join(', ');
@@ -3412,7 +3412,7 @@ export default function FuneralHomeDashboard() {
                           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{request.urgency || 'normal'} request</div>
                           <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 900, marginTop: 3 }}>{request.case_name || request.requested_provider_name || 'Family request'}</div>
                           <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 4 }}>
-                            {contactLine || 'Family contact not shared yet'}{placeLine ? ` · ${placeLine}` : ''}
+                            {contactLine || 'Family contact not shared yet'}{placeLine ? ` ?? ${placeLine}` : ''}
                           </div>
                         </div>
                         <span style={{ background: status === 'accepted' || status === 'converted' ? C.sage : status === 'declined' ? C.rose : C.card, color: status === 'accepted' || status === 'converted' ? '#fff' : status === 'declined' ? '#fff' : C.mid, border: `1px solid ${status === 'accepted' || status === 'converted' ? C.sage : status === 'declined' ? C.rose : C.border}`, borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 900 }}>
@@ -3926,17 +3926,17 @@ export default function FuneralHomeDashboard() {
                   </div>
                   <div style={{ display: 'grid', gap: 7, marginTop: 8 }}>
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                      <strong style={{ color: C.ink }}>1. Do:</strong> {taskGuidanceFor(firstStaffTask, { owner: firstStaffTask.assigned_to_name || firstStaffTask.assigned_to_email || 'staff', surface: 'staff work queue' }).nextStep || taskExpectedUpdate(firstStaffTask, 'funeral_home')}
+                      <strong style={{ color: C.ink }}>Action needed:</strong> {taskGuidanceFor(firstStaffTask, { owner: firstStaffTask.assigned_to_name || firstStaffTask.assigned_to_email || 'staff', surface: 'staff work queue' }).nextStep || taskExpectedUpdate(firstStaffTask, 'funeral_home')}
                     </div>
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
                       <strong style={{ color: C.ink }}>2. Ask:</strong> {draft}
                     </div>
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                      <strong style={{ color: C.ink }}>3. Save proof:</strong> {proofDestination}
+                      <strong style={{ color: C.ink }}>Status and proof:</strong> {proofDestination}
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Close with proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this task so it no longer appears as waiting work.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Close with proof</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Done + proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this task so it no longer appears as waiting work.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Close with proof</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark waiting</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Need family info</button>
                   </div>
@@ -3966,13 +3966,13 @@ export default function FuneralHomeDashboard() {
                         <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{rightPerson}</strong> - {statusLabel(task.status)}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 9 }}>
                           <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>1. Do:</strong> {guidance.nextStep || taskExpectedUpdate(task, 'funeral_home')}
+                            <strong style={{ color: C.ink }}>Action needed:</strong> {guidance.nextStep || taskExpectedUpdate(task, 'funeral_home')}
                           </div>
                           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
                             <strong style={{ color: C.ink }}>2. Ask:</strong> {preparedDraft}
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>3. Save proof:</strong> {proofDestination}
+                            <strong style={{ color: C.ink }}>Status and proof:</strong> {proofDestination}
                           </div>
                         </div>
                         <details style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
@@ -4954,7 +4954,7 @@ export default function FuneralHomeDashboard() {
                               {ownerMissing ? (
                                 <button onClick={() => { setAssignmentDraft({ taskId: nextPartnerTask.id, caseId: item.id, scope: 'task', name: nextPartnerTask.assigned_to_name || firstAssignee?.name || '', email: nextPartnerTask.assigned_to_email || firstAssignee?.email || '', role: nextPartnerTask.playbook?.partnerOwnerRole || firstAssignee?.role || 'staff', phone: '' }); setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Assign owner<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>{unassignedCaseTasks.length ? `${unassignedCaseTasks.length} to assign` : 'staff or case contact'}</span></button>
                               ) : (
-                                <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Close with proof', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this task. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Record proof / close<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>moves out of active work</span></button>
+                                <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Done + proof', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this task. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Done + proof<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>moves out of active work</span></button>
                               )}
                               <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'waiting', label: 'Waiting update', prompt: 'Write what is waiting and the next expected update.', draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${nextPartnerTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(nextPartnerTask)} can move forward. Next update expected tomorrow morning.`); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 11, padding: '12px 13px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Mark waiting<br /><span style={{ color: C.soft, fontWeight: 500 }}>next update</span></button>
                             </div>
@@ -5230,7 +5230,7 @@ export default function FuneralHomeDashboard() {
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                           <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Mark waiting</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Close with proof', prompt: 'Add the proof note that shows what happened, then close this task so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Done + proof', prompt: 'Add the proof note that shows what happened, then close this task so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
                         </div>
                       )}
                       {taskIsClosed(task) && (
@@ -5379,7 +5379,7 @@ function PartnerDirectorFocus({ riskItems, inboxItems, caseItems, isMultiLocatio
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director focus</div>
           <div style={{ fontSize: 22, marginTop: 3 }}>Risk, replies, and next case work.</div>
         </div>
-        <div style={{ color: C.mid, fontSize: 12.5 }}>{riskItems.length} at risk · {inboxItems.length} updates · {caseItems.length} next cases</div>
+        <div style={{ color: C.mid, fontSize: 12.5 }}>{riskItems.length} at risk ?? {inboxItems.length} updates ?? {caseItems.length} next cases</div>
       </div>
       {empty ? (
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.sage, fontSize: 13, fontWeight: 800 }}>
