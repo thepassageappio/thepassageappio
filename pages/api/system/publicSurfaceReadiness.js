@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import { isPassageAdmin } from '../../../lib/adminAccess';
 import { verifyDeliveryRequest } from '../../../lib/deliveryAuth';
@@ -147,6 +149,33 @@ const forbiddenPublicMarkup = [
   'utm_campaign=pilot-walkthrough',
 ];
 
+const personaSourceChecks = [
+  {
+    path: 'pages/funeral-home/dashboard.js',
+    label: 'Funeral-home dashboard source',
+    requires: ['Recommended next action', 'Action needed', 'Waiting on', 'Save proof', 'partnerPlanDisplayName'],
+    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}'],
+  },
+  {
+    path: 'pages/participating.js',
+    label: 'Participant request source',
+    requires: ['Open the family request assigned to you.', 'Your one request', 'Action needed', 'Waiting on', 'Status and proof', 'Access boundary'],
+    forbids: ['Task response', 'task the family assigned to you', 'assigned tasks', 'more tasks assigned to you'],
+  },
+  {
+    path: 'pages/vendors/request.js',
+    label: 'Vendor request source',
+    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof'],
+    forbids: ['family case and task', 'scoped task requests', 'task spine'],
+  },
+  {
+    path: 'components/CareProviderLanding.js',
+    label: 'Care-provider source',
+    requires: ['Help families leave care with a clearer next step.', 'Partner inquiry', 'Family owned', 'Scoped access', 'Proof based'],
+    forbids: ['task outcomes', 'operating dashboard', 'partner spine'],
+  },
+];
+
 async function requireSystemAccess(req) {
   const internal = await verifyDeliveryRequest(req);
   if (internal.ok && internal.source === 'internal') return { ok: true, source: 'internal' };
@@ -168,6 +197,41 @@ function visibleText(html) {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function readSourceText(relativePath) {
+  const normalized = String(relativePath || '').replace(/^[\\/]+/, '');
+  const absolutePath = path.join(process.cwd(), normalized);
+  if (!absolutePath.startsWith(process.cwd())) throw new Error('Invalid source path.');
+  return fs.readFileSync(absolutePath, 'utf8');
+}
+
+function runPersonaSourceChecks() {
+  return personaSourceChecks.map(check => {
+    try {
+      const source = readSourceText(check.path);
+      const missing = check.requires.filter(item => !source.includes(item));
+      const forbidden = check.forbids.filter(item => source.includes(item));
+      return {
+        type: 'source',
+        path: check.path,
+        label: check.label,
+        ok: missing.length === 0 && forbidden.length === 0,
+        missing,
+        forbidden,
+      };
+    } catch (error) {
+      return {
+        type: 'source',
+        path: check.path,
+        label: check.label,
+        ok: false,
+        missing: check.requires,
+        forbidden: [],
+        error: error.message || 'Source check failed.',
+      };
+    }
+  });
 }
 
 export default async function handler(req, res) {
@@ -215,7 +279,10 @@ export default async function handler(req, res) {
     }
   }
 
-  const blockers = results
+  const sourceResults = runPersonaSourceChecks();
+  const allResults = [...results, ...sourceResults];
+
+  const blockers = allResults
     .filter(result => !result.ok)
     .flatMap(result => {
       const notes = [];
@@ -235,6 +302,7 @@ export default async function handler(req, res) {
     accessedBy: access.source,
     status: blockers.length ? 'needs_work' : 'ready',
     results,
+    sourceResults,
     release: {
       expectedCommit: EXPECTED_COMMIT,
       checkedSite: SITE_URL,
