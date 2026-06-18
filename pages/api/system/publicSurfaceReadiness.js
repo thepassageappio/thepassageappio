@@ -307,6 +307,18 @@ const personaSourceChecks = [
     forbids: ['family case and task', 'scoped task requests', 'task spine', 'full estate', 'public marketplace inbox', 'payout internals', 'Payment and fee details', 'Mark completed', 'can accept it before work starts', 'Requested, quoted, accepted, completed.', 'Service instructions', 'family or funeral home accepts it', 'Viewed, accepted'],
   },
   {
+    path: 'pages/api/system/automationSpineReadiness.js',
+    label: 'Automation readiness API source',
+    requires: ['taskAutomationReadiness', 'automationReadyPercent', 'semiAutomated', 'topBlockers', 'automation_coverage'],
+    forbids: [],
+  },
+  {
+    path: 'pages/system/admin/automation-spine-readiness.js',
+    label: 'Automation readiness admin source',
+    requires: ['Automation coverage', 'Automation ready', 'Semi-auto', 'Manual', 'automated or semi-automated'],
+    forbids: [],
+  },
+  {
     path: 'components/CareProviderLanding.js',
     label: 'Care-provider source',
     requires: ['Help families leave care with a clearer next step.', 'Purpose of this page', 'not an operating dashboard', 'Care team inquiry', 'Add organization name and contact email to send the inquiry', 'Recommended next action: book a short walkthrough', 'Family owned', 'Scoped access', 'Proof based'],
