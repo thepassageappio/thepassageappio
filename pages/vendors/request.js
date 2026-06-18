@@ -209,38 +209,57 @@ export default function VendorRequestPage() {
     : request?.status === 'declined'
       ? 'Passage coordinator'
       : vendorName;
-  const waitingLabel = request?.status === 'completed'
+  const paymentState = request?.payment_collection_status || '';
+  const quoteReady = ['quoted', 'accepted'].includes(canonicalStatus);
+  const quoteApproved = canonicalStatus === 'family_accepted' || paymentState === 'family_accepted';
+  const paymentWaiting = ['payment_pending', 'checkout_created'].includes(canonicalStatus) || ['payment_pending', 'checkout_created'].includes(paymentState);
+  const paymentConfirmed = canonicalStatus === 'paid' || paymentState === 'paid';
+  const workScheduled = ['scheduled', 'in_progress'].includes(canonicalStatus);
+  const requestClosed = ['completed', 'declined', 'cancelled', 'refunded'].includes(canonicalStatus);
+  const waitingLabel = canonicalStatus === 'completed'
     ? 'Nothing. Status is saved.'
-    : request?.status === 'declined'
+    : canonicalStatus === 'declined'
       ? 'Another support option'
-      : ['quoted', 'accepted'].includes(request?.status)
+      : quoteReady
         ? 'Family or funeral-home quote approval'
-        : ['family_accepted', 'payment_pending'].includes(canonicalStatus)
-        ? 'Family payment'
-        : ['paid', 'scheduled', 'in_progress'].includes(canonicalStatus)
-        ? 'Completion update from vendor'
-        : 'Vendor response';
-  const proofLabel = request?.status === 'completed'
-    ? 'Completion timestamp and value stay on the request.'
-    : request?.status === 'declined'
+        : quoteApproved || paymentWaiting
+          ? 'Secure payment before work begins'
+          : paymentConfirmed || workScheduled
+            ? 'Completion update from vendor'
+            : 'Vendor response';
+  const proofLabel = canonicalStatus === 'completed'
+    ? 'Completion timestamp, proof note, and value stay on the request.'
+    : canonicalStatus === 'declined'
       ? 'Decline reason/status stays visible for replacement.'
-      : 'Viewed/responded timestamps and status changes are saved to the request.';
+      : quoteReady
+        ? 'Quote details are saved; scheduling stays locked until approval/payment.'
+        : 'Viewed/responded timestamps and status changes are saved to the request.';
   const needRows = vendorRequestNeedRows(request || {});
-  const recommendedVendorAction = ['quoted', 'accepted'].includes(request?.status)
-    ? ['in_progress', 'Mark scheduled']
-    : ['paid', 'scheduled', 'in_progress'].includes(canonicalStatus)
-      ? ['completed', 'Save completion proof']
-      : request?.status === 'completed'
-        ? null
-        : request?.status === 'declined'
-          ? null
-        : ['accepted', 'Send quote'];
-  const secondaryVendorActions = [
-    ['accepted', 'Send quote'],
-    ['in_progress', 'Mark scheduled'],
-    ['completed', 'Save completion proof'],
-    ['declined', 'Decline'],
-  ].filter(([action]) => !recommendedVendorAction || action !== recommendedVendorAction[0]);
+  const recommendedVendorAction = ['requested', 'viewed', '', undefined].includes(canonicalStatus)
+    ? ['accepted', 'Send quote']
+    : paymentConfirmed && !workScheduled
+      ? ['in_progress', 'Mark scheduled']
+      : workScheduled
+        ? ['completed', 'Save completion proof']
+        : null;
+  const passiveVendorState = requestClosed
+    ? 'This request is closed. The case now has the vendor status and completion note.'
+    : quoteReady
+      ? 'Quote sent. Waiting for the family or funeral home to approve before work begins.'
+      : quoteApproved || paymentWaiting
+        ? 'Quote approved. Waiting for secure payment before scheduling or completion proof.'
+        : 'Waiting for the next approved request step.';
+  const secondaryVendorActions = (
+    ['requested', 'viewed', '', undefined].includes(canonicalStatus)
+      ? [['accepted', 'Send quote'], ['declined', 'Decline']]
+      : quoteReady
+        ? [['accepted', 'Revise quote'], ['declined', 'Decline']]
+        : paymentConfirmed && !workScheduled
+          ? [['in_progress', 'Mark scheduled'], ['completed', 'Save completion proof']]
+          : workScheduled
+            ? [['completed', 'Save completion proof']]
+            : []
+  ).filter(([action]) => !recommendedVendorAction || action !== recommendedVendorAction[0]);
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
@@ -304,7 +323,7 @@ export default function VendorRequestPage() {
               <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Simple request path</div>
               <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginBottom: 8 }}>Owner: <strong style={{ color: C.ink }}>{ownerLabel}</strong></div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 8 }}>
-                <Info label="Action needed" value={recommendedVendorAction ? recommendedVendorAction[1] : requestStatus} />
+                <Info label="Action needed" value={recommendedVendorAction ? recommendedVendorAction[1] : passiveVendorState} />
                 <Info label="Waiting on" value={waitingLabel} />
                 <Info label="Status and proof" value={proofLabel} />
               </div>
@@ -388,16 +407,18 @@ export default function VendorRequestPage() {
               {recommendedVendorAction ? (
                 <button onClick={() => setPendingVendorAction(recommendedVendorAction[0])} disabled={!!updating} style={{ ...buttonStyle(C.sage), minHeight: 46, fontSize: 14, textAlign: 'left' }}>Recommended: {recommendedVendorAction[1]}</button>
               ) : (
-                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 11, color: C.sage, fontWeight: 900, fontSize: 13 }}>This request is closed. The case now has the vendor status and completion note.</div>
+                <div style={{ background: requestClosed ? C.sageFaint : C.amberFaint, border: '1px solid ' + (requestClosed ? '#c8deca' : '#ead4ac'), borderRadius: 12, padding: 11, color: requestClosed ? C.sage : C.amber, fontWeight: 900, fontSize: 13, lineHeight: 1.45 }}>{passiveVendorState}</div>
               )}
-              <details style={{ border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px', background: C.card }}>
-                <summary style={{ cursor: 'pointer', color: C.mid, fontWeight: 900, fontSize: 12.5 }}>Other responses</summary>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
-                  {secondaryVendorActions.map(([action, label]) => (
-                    <button key={action} onClick={() => setPendingVendorAction(action)} disabled={!!updating} style={action === 'declined' ? { ...buttonStyle('#fff'), color: C.rose, border: '1px solid ' + C.rose + '55' } : buttonStyle(action === 'in_progress' ? C.amber : C.sage)}>{label}</button>
-                  ))}
-                </div>
-              </details>
+              {secondaryVendorActions.length > 0 && (
+                <details style={{ border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px', background: C.card }}>
+                  <summary style={{ cursor: 'pointer', color: C.mid, fontWeight: 900, fontSize: 12.5 }}>Other responses</summary>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
+                    {secondaryVendorActions.map(([action, label]) => (
+                      <button key={action} onClick={() => setPendingVendorAction(action)} disabled={!!updating} style={action === 'declined' ? { ...buttonStyle('#fff'), color: C.rose, border: '1px solid ' + C.rose + '55' } : buttonStyle(action === 'in_progress' ? C.amber : C.sage)}>{label}</button>
+                    ))}
+                  </div>
+                </details>
+              )}
             </div>
             {pendingVendorAction && (
               <div onClick={() => setPendingVendorAction('')} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
@@ -405,7 +426,7 @@ export default function VendorRequestPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                     <div>
                       <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor response</div>
-                      <div style={{ color: C.ink, fontSize: 23, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{pendingVendorAction === 'accepted' ? 'Send quote for review' : labelForStatus(pendingVendorAction)}</div>
+                      <div style={{ color: C.ink, fontSize: 23, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{vendorActionTitle(pendingVendorAction)}</div>
                     </div>
                     <button onClick={() => setPendingVendorAction('')} aria-label="Close vendor response" style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                   </div>
@@ -444,7 +465,7 @@ export default function VendorRequestPage() {
 
 function applyVendorRequestTransition(current, action, values = {}) {
   const now = new Date().toISOString();
-  const status = ['completed', 'in_progress', 'declined'].includes(action) ? action : 'accepted';
+  const status = action === 'accepted' ? 'quoted' : ['completed', 'in_progress', 'declined'].includes(action) ? action : 'requested';
   const next = {
     ...current,
     status,
@@ -457,7 +478,7 @@ function applyVendorRequestTransition(current, action, values = {}) {
     service_location: values.serviceLocation || current?.service_location || '',
     service_notes: values.serviceNotes || current?.service_notes || '',
   };
-  if (status === 'accepted') {
+  if (status === 'quoted') {
     next.responded_at = now;
     next.in_progress_at = null;
     next.completed_at = null;
@@ -509,6 +530,14 @@ function vendorRequestNeedRows(request = {}) {
     ['Contact boundary', request.family_contact_name || request.family_contact_phone ? `${request.family_contact_name || 'Family contact'}${request.family_contact_phone ? `, ${request.family_contact_phone}` : ''}` : 'Coordinate through Passage until approved'],
     ['Payment', paymentStatusLabel(request.payment_collection_status || 'quote_needed')],
   ];
+}
+
+function vendorActionTitle(action) {
+  if (action === 'accepted') return 'Send quote for review';
+  if (action === 'in_progress') return 'Mark scheduled after approval/payment';
+  if (action === 'completed') return 'Save completion proof';
+  if (action === 'declined') return 'Decline this request';
+  return labelForStatus(action);
 }
 
 function noticeForAction(action, demo) {

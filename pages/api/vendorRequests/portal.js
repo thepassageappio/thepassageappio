@@ -125,6 +125,22 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Choose a valid update.' });
   }
 
+  const currentStatus = canonicalVendorStatus(request.status);
+  const paymentState = String(request.payment_collection_status || '');
+  const quoteCanBeSent = ['requested', 'viewed', 'quoted', 'declined'].includes(currentStatus);
+  const quoteCanBeDeclined = ['requested', 'viewed', 'quoted'].includes(currentStatus);
+  const paymentConfirmed = currentStatus === 'paid' || paymentState === 'paid';
+  const workCanBeUpdated = paymentConfirmed || ['scheduled', 'in_progress'].includes(currentStatus);
+  if (action === 'accepted' && !quoteCanBeSent) {
+    return res.status(409).json({ error: 'This quote is already approved or closed. Wait for payment before scheduling work.' });
+  }
+  if (action === 'declined' && !quoteCanBeDeclined) {
+    return res.status(409).json({ error: 'This request is already approved, paid, scheduled, or closed. Ask Passage to change it.' });
+  }
+  if (['in_progress', 'completed'].includes(action) && !workCanBeUpdated) {
+    return res.status(409).json({ error: 'Quote approval and payment must happen before the vendor can schedule or complete this request.' });
+  }
+
   const now = new Date().toISOString();
   const estimatedValue = Number(req.body?.estimatedValue || request.estimated_value || 0);
   const finalValue = Number(req.body?.finalValue || request.final_value || 0);
