@@ -2678,7 +2678,7 @@ export default function FuneralHomeDashboard() {
           <div>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 7 }}>Funeral-home dashboard</div>
             <h1 style={{ fontSize: 30, lineHeight: 1.08, margin: 0, fontWeight: 400 }}>{org?.name || 'Funeral-home sign-in'}</h1>
-            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 680, marginTop: 8 }}>{!user ? 'Sign in with your invited work email to open My Day, cases, staff work, family updates, proof, and exports.' : needsFirstDaySetup ? 'First finish setup: confirm locations, add employees, and create or import the first case. My Day becomes useful after real work exists.' : 'Start with My Day, then open the case, task, owner, proof, or report that needs attention.'}</p>
+            <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.45, maxWidth: 680, marginTop: 8 }}>{!user ? 'Sign in with your invited work email to open My Day, cases, staff work, family updates, proof, and exports.' : needsFirstDaySetup ? 'First finish setup: confirm locations, add employees, and create or import the first case. My Day becomes useful after real work exists.' : 'Start with My Day, then open the case, work item, owner, proof, or report that needs attention.'}</p>
             {user && org && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 999, padding: '6px 10px', color: C.sage, fontSize: 12, fontWeight: 900 }}>
                 Family-facing view: {partnerBrand.familyPortalName || org.name} + Passage
@@ -2877,8 +2877,8 @@ export default function FuneralHomeDashboard() {
                 },
                 {
                   label: 'Coverage',
-                  value: `${unassignedTaskCount} task${unassignedTaskCount === 1 ? '' : 's'}`,
-                  detail: unassignedCaseCount ? String(unassignedCaseCount) + ' case' + (unassignedCaseCount === 1 ? '' : 's') + ' need an owner' : 'Every open task has an owner',
+                  value: `${unassignedTaskCount} work item${unassignedTaskCount === 1 ? '' : 's'}`,
+                  detail: unassignedCaseCount ? String(unassignedCaseCount) + ' case' + (unassignedCaseCount === 1 ? '' : 's') + ' need an owner' : 'Every open work item has an owner',
                   tone: unassignedTaskCount ? C.amber : C.sage,
                   bg: unassignedTaskCount ? C.amberFaint : C.sageFaint,
                   action: () => unassignedCaseRows[0]?.caseItem?.id ? openPartnerWork(unassignedCaseRows[0].caseItem.id) : setActivePartnerView('staff'),
@@ -2982,7 +2982,7 @@ export default function FuneralHomeDashboard() {
               rows={[
                 ['Family sees', 'Status, approved updates, waiting points, and proof.'],
                 ['Staff sees', 'Assigned case work, owner, next action, and proof requirement.'],
-                ['Export keeps', 'Tasks, dates, owners, messages, vendor status, and proof trail.'],
+                ['Export keeps', 'Work items, dates, owners, messages, vendor status, and proof trail.'],
               ]}
             />
           </div>
@@ -4486,11 +4486,11 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: unassignedTaskCount ? C.amber : C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Assignment coverage</div>
                 <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 900, marginTop: 3 }}>
                   {unassignedTaskCount
-                    ? `${unassignedTaskCount} task${unassignedTaskCount === 1 ? '' : 's'} need an owner across ${unassignedCaseCount} case${unassignedCaseCount === 1 ? '' : 's'}.`
+                    ? `${unassignedTaskCount} work item${unassignedTaskCount === 1 ? '' : 's'} need an owner across ${unassignedCaseCount} case${unassignedCaseCount === 1 ? '' : 's'}.`
                     : '0 work items need an owner. All visible open work is assigned.'}
                 </div>
                 <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 4 }}>
-                  Directors can assign a whole case to one employee, or open a case and assign individual tasks when the home works role-by-role.
+                  Directors can assign a whole case to one employee, or open a case and assign individual work items when the home works role-by-role.
                 </div>
               </div>
               <button disabled={!unassignedTaskCount} onClick={() => unassignedCaseRows[0]?.caseItem?.id && openPartnerWork(unassignedCaseRows[0].caseItem.id)} style={{ border: `1px solid ${unassignedTaskCount ? C.amber + '55' : C.sage + '33'}`, background: unassignedTaskCount ? C.card : C.sageFaint, color: unassignedTaskCount ? C.amber : C.sage, borderRadius: 11, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: unassignedTaskCount ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
@@ -4788,8 +4788,8 @@ export default function FuneralHomeDashboard() {
                         <div style={{ color: unassignedCaseTasks.length ? C.amber : C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Case assignment</div>
                         <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 3 }}>
                           {unassignedCaseTasks.length
-                            ? `${unassignedCaseTasks.length} open task${unassignedCaseTasks.length === 1 ? '' : 's'} still need an owner.`
-                            : 'Every open task on this case has an owner.'}
+                            ? `${unassignedCaseTasks.length} open work item${unassignedCaseTasks.length === 1 ? '' : 's'} still need an owner.`
+                            : 'Every open work item on this case has an owner.'}
                         </div>
                       </div>
                       <button onClick={() => {
