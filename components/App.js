@@ -510,9 +510,9 @@ const saveWorkflowAction = async (workflowId, personData, taskTitle, actionType)
    recipient_person_id: personData.id,
    recipient_email: personData.email || null,
    recipient_phone: personData.phone || null,
-   subject: `You've been assigned a task`,
+   subject: `You've been asked to handle a next step`,
    task_title: taskTitle,
-   body: `${personData.first_name || personData.name} - you've been asked to help coordinate an estate task in Passage.\n\nTask: ${taskTitle}\n\nOpen Passage to accept the task, add notes, or ask for more details. The coordinator will see your update.`,
+   body: `${personData.first_name || personData.name} - you've been asked to help with one next step in Passage.\n\nRequest: ${taskTitle}\n\nOpen Passage to own it, add a note, or ask for more details. The coordinator will see your update.`,
    status: 'pending',
    delay_hours: 0,
   }]);
@@ -716,7 +716,7 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   return {...base, executionMode: 'record', primaryLabel: 'Save official details', recipientLabel: 'your private estate notes', subject: `${deceased} - death details record`, draft: `For Passage records:\n\nName: ${deceased}\nDate of death:\nTime of death:\nLocation of death:\nPronouncing provider or official:\nFuneral home or next contact:\n\nNotes:\n`, sms: `Passage: ${coordinator} is recording official death details for ${shorten(deceased, 24)}. Sign in if you were assigned this task.`, steps: ['Write down the date, time, and exact location as provided by the medical professional or official.', 'Record who pronounced the death and how they can be reached.', 'Keep this private until death certificates are ordered.', 'Mark handled once the details are saved in notes.'] };
  }
  if (lower.includes('funeral home') || lower.includes('funeral director')) {
-  return {...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating funeral arrangements for ${shorten(deceased, 26)}. Please sign in to Passage for task details.`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
+  return {...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'funeral home', subject: `${deceased} - funeral arrangements`, draft: `Hello,\n\nMy name is ${coordinator}. ${deceased} has passed away, and our family needs help with transportation and first arrangements.\n\nCan you please tell us what you need from us first, including documents, timing, and itemized pricing?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating funeral arrangements for ${shorten(deceased, 26)}. Sign in to Passage for the request details.`, steps: ['Call the funeral home if this is urgent.', 'Ask what they need for transportation and arrangements.', 'Request itemized pricing before approving services.', 'Save the contact and mark handled after the next step is scheduled.'] };
  }
  if (lower.includes('hospice') || lower.includes('home care') || lower.includes('facility provider')) {
   return {...base, executionMode: 'call', primaryLabel: 'Call and log outcome', recipientLabel: 'hospice, care team, or facility provider', subject: `${deceased} - care provider notification`, draft: `Hello,\n\nI am helping coordinate next steps for ${deceased}. Can you please confirm any equipment pickup, release path, final care records, medication disposal instructions, and billing or benefits steps we need to handle?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is notifying care providers for ${shorten(deceased, 23)}. Sign in to Passage for details.`, steps: ['Call the hospice, home care, or facility main contact.', 'Ask about equipment pickup, release path, medications, records, and final billing.', 'Record any pickup window, release instruction, or case number.', 'Mark handled after the provider confirms the next step.'] };
@@ -800,10 +800,10 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
 };
 
 const buildAssignmentSms = ({ toName, taskTitle, deceasedName, coordinatorName }) => {
- const task = shorten(taskTitle || 'estate task', 42);
+ const task = shorten(taskTitle || 'next step', 42);
  const deceased = shorten(deceasedName || 'an estate', 26);
  const coordinator = shorten(coordinatorName || 'the family coordinator', 24);
- return `Passage: ${coordinator} asked you to help with "${task}" for ${deceased}. Sign in to accept or update it: thepassageapp.io/participating`;
+ return `Passage: ${coordinator} asked you to help with "${task}" for ${deceased}. Sign in to own it or send an update: thepassageapp.io/participating`;
 };
 
 const safeFileName = (name) => String(name || 'file')
@@ -903,7 +903,7 @@ const fastActionForTask = (task) => {
  if (title.includes('notify') || title.includes('announcement')) return 'Notify the first person';
  if (title.includes('secure') || title.includes('home') || title.includes('pet')) return 'Ask someone to check the home';
  if (title.includes('document') || title.includes('will')) return 'Find the document';
- return task?.title || 'Open the first task';
+ return task?.title || 'Open the first next step';
 };
 
 // UI PRIMITIVES 
@@ -1175,7 +1175,7 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
    fetch("/api/handleEvent", {
     method: "POST", headers: { "Content-Type": "application/json",...authHeaders },
     body: JSON.stringify({ type: "task_assigned", payload: {
-     workflowId, taskTitle: selected.label + " (" + selected.tasks.length + " tasks)",
+     workflowId, taskTitle: selected.label + " (" + selected.tasks.length + " next steps)",
      deceasedName, coordinatorName,
      personEmail: email || null, personPhone: phone || null,
      personName: name, notifyChannel: "both",
@@ -1207,7 +1207,7 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
        <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: C.sage, marginBottom: 6 }}>ASSIGNED SO FAR</div>
         {assigned.map((a, i) => (
-         <div key={i} style={{ fontSize: 12, color: C.mid, marginBottom: 3 }}> {a.name} {a.role} ({a.tasks} tasks)</div>
+         <div key={i} style={{ fontSize: 12, color: C.mid, marginBottom: 3 }}> {a.name} {a.role} ({a.tasks} next steps)</div>
         ))}
        </div>
       )}
@@ -1422,7 +1422,7 @@ ${coordinatorName || 'A family member'} is coordinating the estate of ${deceased
 
 "${taskTitle}"
 
-Please open Passage to accept the task, add a note, or tell me if you need more details. Passage will show only the estate work connected to you.
+Please open Passage to own this next step, add a note, or tell me if you need more details. Passage will show only the family-record work connected to you.
 
 With gratitude,
 Passage`);
@@ -1640,9 +1640,9 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
      </div>
      {playbook.funeralHomeEligible && (
       <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}40`, borderRadius: 12, padding: "10px 12px" }}>
-       <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.gold, marginBottom: 4 }}>Partner ready</div>
+       <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.gold, marginBottom: 4 }}>Handoff ready</div>
        <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>Funeral home can help</div>
-       <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>This is visible in the partner dashboard when linked.</div>
+       <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>This can be shared with the funeral home when you connect them.</div>
       </div>
      )}
     </div>
@@ -1692,7 +1692,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
      <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared text message</div>
      <input value={recipientPhone} onChange={e => { setRecipientPhone(e.target.value); markSaved(); }} placeholder={`Phone for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
      <textarea value={smsDraft} onChange={e => { setSmsDraft(e.target.value); markSaved(); }} style={{ width: "100%", minHeight: 74, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.55 }} />
-     <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>Texts should stay short and point people back to Passage when they are assigned a task.</div>
+     <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>Texts should stay short and point people back to Passage when they are asked to handle a next step.</div>
     </div>
     <div style={{ marginBottom: 12 }}>
      <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Notes</div>
@@ -2655,7 +2655,7 @@ function EmergencyFlow({ onBack, user, onSignOut, onDashboard }) {
         </Btn>
        </div>
        <div style={{ marginTop: 10, background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.mid, lineHeight: 1.55 }}>
-        Includes the guided estate task plan, coordination tools, and a planned $20 memorial impact donation.
+        Includes the guided next-step plan, coordination tools, and a planned $20 memorial impact donation.
        </div>
        <button onClick={() => buildPlan(false)} disabled={!yourName || !yourEmail || building} style={{ width: "100%", marginTop: 10, background: "none", border: "none", fontSize: 12, color: C.soft, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>
         Preview first steps before checkout
@@ -2912,7 +2912,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     <Field label="Healthcare proxy / advance directive location" placeholder="e.g. fire safe, attorney, folder name, portal" value={documentLocation} onChange={setDocumentLocation} />
     <Field label="Medical records / care contacts" placeholder="e.g. hospital portal, primary doctor, hospice binder" value={medicalRecordsLocation} onChange={setMedicalRecordsLocation} />
     <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>
-     Financial accounts, SSA, insurance, DMV, and credit bureaus become real estate tasks later, where they can be assigned, prepared, and tracked with proof.
+     Financial accounts, SSA, insurance, DMV, and credit bureaus become later next steps, where they can be assigned, prepared, and tracked with proof.
     </div>
    </div>
    <div style={{ display: "flex", gap: 10 }}>
@@ -3508,7 +3508,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
        if (t.status !== 'not_applicable' && !handled) {
         grouped[t.workflow_id].openTasks.push({
          id: t.id || `${t.workflow_id}-${grouped[t.workflow_id].openTasks.length}`,
-         title: t.title || 'Estate task',
+         title: t.title || 'Next step',
          status: t.status || 'open',
          assignedTo: t.assigned_to_name || '',
          assignedEmail: t.assigned_to_email || '',
@@ -3596,7 +3596,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
    context: { estateName: wf.name || 'this estate', requesterName: userData?.first_name || user?.email || 'Passage' },
   })];
  }));
- const normalizeAttentionKey = (value) => String(value || 'task')
+ const normalizeAttentionKey = (value) => String(value || 'next step')
  .toLowerCase()
  .replace(/[^a-z0-9]+/g, ' ')
  .replace(/\b(a|an|the|of|and|or|to|for)\b/g, ' ')
@@ -3874,7 +3874,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
            : "Stabilize first: one next action, one owner, what is waiting, and proof before closing anything."}
           </div>
          </div>
-         <div style={{ color: C.soft, fontSize: 11.5, fontWeight: 800 }}>Same record across planning, urgent, partner, and participant views.</div>
+         <div style={{ color: C.soft, fontSize: 11.5, fontWeight: 800 }}>Same family record across planning, urgent help, funeral-home handoffs, and participant views.</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))", gap: 7, marginTop: 9 }}>
          {[
@@ -3928,7 +3928,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
            requesterName: userData?.first_name || user?.email || 'Passage',
           });
           const nextReason = item.nextAction?.reason || 'Move this next.';
-          const blockers = safeArray(item.nextAction?.blockers);
+          const waitingReasons = safeArray(item.nextAction?.blockers);
           const openAttentionItem = () => {
            if (!item?.workflow?.id) {
             if (typeof window !== 'undefined') window.location.href = '/?dashboard=1';
@@ -3955,7 +3955,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
              <div style={{ fontSize: 12, color: C.mid, marginTop: 4 }}>
               {groupedEstateText}
              </div>
-             <div style={{ marginTop: 9, background: blockers.length ? C.goldFaint: C.sageFaint, border: `1px solid ${blockers.length ? C.gold + '44': C.sageLight}`, borderRadius: 11, padding: "9px 10px", fontSize: 12, color: blockers.length ? C.amber: C.mid, lineHeight: 1.45 }}>
+             <div style={{ marginTop: 9, background: waitingReasons.length ? C.goldFaint: C.sageFaint, border: `1px solid ${waitingReasons.length ? C.gold + '44': C.sageLight}`, borderRadius: 11, padding: "9px 10px", fontSize: 12, color: waitingReasons.length ? C.amber: C.mid, lineHeight: 1.45 }}>
               <strong style={{ color: C.ink }}>Next expected update:</strong> {nextReason}
              </div>
              <div style={{ marginTop: 8, fontSize: 11.5, color: C.mid, lineHeight: 1.4 }}>
