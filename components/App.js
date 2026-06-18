@@ -1184,7 +1184,7 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
   }
 
   setAssigned(prev => [...prev, { name, role: selected.label, tasks: selected.tasks.length }]);
-  setToast(email ? ` ${name} notified as ${selected.label}`: ` ${name} assigned as ${selected.label}`);
+  setToast(email ? `${name} notified as ${selected.label}`: `${name} assigned as ${selected.label}`);
   setSaving(false);
   setStep("pick");
   setSelected(null);
@@ -1228,7 +1228,7 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
       </div>
       <div style={{ display: "flex", gap: 10 }}>
        <Btn variant="ghost" onClick={onClose}>Close</Btn>
-       {assigned.length > 0 && <Btn variant="sage" onClick={onDone} style={{ flex: 1 }}>Done: view task list</Btn>}
+       {assigned.length > 0 && <Btn variant="sage" onClick={onDone} style={{ flex: 1 }}>Done: view next steps</Btn>}
       </div>
      </>
     )}
@@ -1240,7 +1240,7 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
        <span style={{ fontSize: 18 }}>{selected.icon}</span>
        <div>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.sage }}>{selected.label}</div>
-        <div style={{ fontSize: 11, color: C.mid }}>{selected.tasks.length} tasks will be assigned</div>
+        <div style={{ fontSize: 11, color: C.mid }}>{selected.tasks.length} next steps will be assigned</div>
        </div>
       </div>
       {savedPeople.length > 0 && (
@@ -2547,7 +2547,7 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
    {showEvents && workflowId && (
     <EventsModal workflowId={workflowId} deceasedName={deceasedName}
      onClose={() => setShowEvents(false)}
-     onSaved={(count) => { setEventCount(count); setToast(` Service details saved and included in all notifications`); }} />
+     onSaved={(count) => { setEventCount(count); setToast(`Service details saved and included in all notifications`); }} />
    )}
 
    {showRoleTemplates && workflowId && (
@@ -2867,7 +2867,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
    </div>
 
    <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
-    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, marginBottom: 4 }}> Primary Executor</div>
+    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.sage, marginBottom: 4 }}>Primary Executor</div>
     <div style={{ fontSize: 12, color: C.mid, marginBottom: 12, lineHeight: 1.5 }}>Receives the full task list the moment both confirmations arrive.</div>
     <Field label="Full name" placeholder="e.g. Sarah Collins" value={executorName} onChange={setExecutorName} />
     <Field label="Email" type="email" placeholder="sarah@email.com" value={executorEmail} onChange={setExecutorEmail} hint="Used for automatic notification when plan activates." />
@@ -2875,7 +2875,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
    </div>
 
    <div style={{ background: C.bgSubtle, borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
-    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 4 }}> Second Confirmer</div>
+    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, marginBottom: 4 }}>Second Confirmer</div>
     <div style={{ fontSize: 12, color: C.mid, marginBottom: 10, lineHeight: 1.5 }}>The second person who confirms your passing. Use a different email than the executor so the confirmation is truly independent.</div>
     <Field label="Full name (optional)" placeholder="e.g. Michael Collins" value={secondConfirmerName} onChange={setSecondConfirmerName} />
     <Field label="Email (optional)" type="email" placeholder="michael@email.com" value={secondConfirmerEmail} onChange={setSecondConfirmerEmail} hint="If you add this now, Passage saves them as the second confirmation contact." />
@@ -4642,7 +4642,7 @@ function Landing({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
      <div style={{ textAlign: 'center' }}>
       <button onClick={onPlan}
        style={{ display: 'block', background: C.sage, color: '#fff', border: 'none', borderRadius: 14, padding: '16px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6 }}>
-       Plan ahead it's free
+       Plan ahead for free
       </button>
       <div style={{ fontSize: 12, color: C.soft }}>No credit card required</div>
      </div>
