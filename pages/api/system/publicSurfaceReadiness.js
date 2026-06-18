@@ -289,6 +289,7 @@ export default async function handler(req, res) {
       if (result.status < 200 || result.status >= 400) notes.push(`${result.path} returned ${result.status || 'no response'}.`);
       if (result.missing?.length) notes.push(`${result.path} is missing: ${result.missing.join(', ')}.`);
       if (result.forbidden?.length) notes.push(`${result.path} contains forbidden public/persona copy: ${result.forbidden.join(', ')}.`);
+      if (result.releaseMismatch) notes.push(`${result.path} is not serving the current deployment. Expected ${result.expectedCommit || "current commit"}, got ${result.releaseCommit || "no X-Passage-Commit header"}.`);
       if (result.error) notes.push(`${result.path}: ${result.error}`);
       return notes;
     });
