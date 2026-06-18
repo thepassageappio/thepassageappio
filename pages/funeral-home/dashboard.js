@@ -534,7 +534,7 @@ function buildDemoPartnerExport(data, view = 'spine') {
   const cases = data?.cases || [];
   const summaryView = view === 'cases';
   const rows = summaryView
-    ? [['Case', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Prepaid amount', 'Family contact', 'Family email', 'Location', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Next move', 'Updated at']]
+    ? [['Case', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Prepaid amount', 'Family contact', 'Family email', 'Location', 'Open work', 'Waiting work', 'Handled work', 'Next move', 'Updated at']]
     : [['Case', 'Record type', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Family contact', 'Family email', 'Location', 'Work / request', 'Owner', 'Status', 'Waiting on', 'Proof / reporting']];
 
   for (const item of cases) {
@@ -570,7 +570,7 @@ function buildDemoPartnerExport(data, view = 'spine') {
     for (const task of tasks) {
       rows.push([
         caseName,
-        'task',
+        'work_item',
         item.caseType || item.mode || 'At-need',
         item.caseReference || item.reference || '',
         caseValueNumber(item) || '',
@@ -984,7 +984,7 @@ export default function FuneralHomeDashboard() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(json.error || 'Could not update this task.');
+        setError(json.error || 'Could not update this work item.');
       } else {
         const nextStatus = normalizedTaskStatus(json.task?.status || json.status || status);
         setData(prev => prev ? {
@@ -1017,7 +1017,7 @@ export default function FuneralHomeDashboard() {
     setNotice('');
     try {
       if (demoMode) {
-        demoTaskAction(task, 'handled', 'Demo proof saved. The task moved out of active work without sending a live message.', {
+        demoTaskAction(task, 'handled', 'Demo proof saved. The work item moved out of active work without sending a live message.', {
           notes: cleanNote,
           outcome_status: 'completed',
           completed_at: new Date().toISOString(),
@@ -1081,7 +1081,7 @@ export default function FuneralHomeDashboard() {
     setNotice('');
     try {
       if (demoMode) {
-        demoTaskAction(task, 'assigned', 'Demo owner saved. In a live dashboard this would update the task owner and prepare the invite path.', {
+        demoTaskAction(task, 'assigned', 'Demo owner saved. In a live dashboard this updates the next-step owner and prepares the invite path.', {
           assigned_to_name: payload.name || payload.email,
           assigned_to_email: payload.email,
           recipient: payload.email,
@@ -1095,7 +1095,7 @@ export default function FuneralHomeDashboard() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(json.error || 'Could not assign this task.');
+        setError(json.error || 'Could not assign this work item.');
       } else {
         setData(prev => prev ? {
           ...prev,
@@ -1105,7 +1105,7 @@ export default function FuneralHomeDashboard() {
             partnerTasks: (item.partnerTasks || []).map(t => t.id === task.id ? { ...t, ...(json.task || {}), status: t.status || 'assigned' } : t),
           })),
         } : prev);
-        setNotice(json.confirmation || 'Owner saved. Passage can route the task notification when approved.');
+        setNotice(json.confirmation || 'Owner saved. Passage can route the next-step notification when approved.');
         setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
         await load(await getFreshPartnerToken());
       }
@@ -1146,7 +1146,7 @@ export default function FuneralHomeDashboard() {
             partnerTasks: (item.partnerTasks || []).map(t => ids.has(t.id) ? { ...t, assigned_to_name: payload.name || payload.email, assigned_to_email: payload.email, recipient: payload.email, last_actor: payload.actor, last_action_at: now } : t),
           } : item),
         } : prev);
-        setNotice(`${ids.size} demo task${ids.size === 1 ? '' : 's'} assigned. In a live dashboard this updates the shared case record and staff queue.`);
+        setNotice(`${ids.size} demo work item${ids.size === 1 ? '' : 's'} assigned. In a live dashboard this updates the shared case record and staff queue.`);
         setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' });
         return;
       }
@@ -2512,7 +2512,7 @@ export default function FuneralHomeDashboard() {
     ['Locations', locations.length > 1 ? `${locations.length} from case data` : 'Main location until imports add scope', locations.length > 0],
     ['Employees', partnerStaff.length ? `${partnerStaff.length} saved` : 'Add assignable staff', partnerStaff.length > 0],
     ['Roles', roleLabel(currentRole), !!currentRole],
-    ['Assignments', assignmentsCoordinated ? `${assignmentsCoordinated} task owner${assignmentsCoordinated === 1 ? '' : 's'}` : 'Use the owner dropdown', assignmentsCoordinated > 0],
+    ['Assignments', assignmentsCoordinated ? `${assignmentsCoordinated} next-step owner${assignmentsCoordinated === 1 ? '' : 's'}` : 'Use the owner dropdown', assignmentsCoordinated > 0],
     ['Local support', vendorPrefs.preferred?.length ? `${vendorPrefs.preferred.length} preferred` : 'Choose approved vendors', (vendorPrefs.preferred || []).length > 0],
   ];
   const pilotLaunchRows = [
@@ -2520,7 +2520,7 @@ export default function FuneralHomeDashboard() {
     ['2', 'Locations', isMultiLocation ? `${locations.length} visible` : 'Main location ready; CSV can add more', locations.length > 0],
     ['3', 'Employees', partnerStaff.length ? `${partnerStaff.length} assignable` : 'Add director, manager, staff', partnerStaff.length > 0],
     ['4', 'Cases', cases.length ? `${cases.length} case${cases.length === 1 ? '' : 's'} loaded` : 'Import CSV or create fresh', cases.length > 0],
-    ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first task owner', assignmentsCoordinated > 0],
+    ['5', 'First owner', assignmentsCoordinated ? 'Assignment dropdown in use' : 'Assign the first next-step owner', assignmentsCoordinated > 0],
     ['6', 'Proof trail', proofEventsLogged || totalHandled ? 'Status/proof is visible' : 'Record waiting, proof, or request', proofEventsLogged > 0 || totalHandled > 0],
     ['7', 'Invite review', latestStaffInvite || partnerStaff.length ? 'Invite copy ready; nothing auto-sent' : 'Add staff before sending handoffs', latestStaffInvite || partnerStaff.length > 0],
     ['8', 'Billing setup', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial' ? (partnerPlan ? `${partnerPlanDisplayName(partnerPlan.name || partnerPlan.plan)} visible` : 'Trial/demo visible') : 'Set up after approval', billingStatus === 'paid' || billingStatus === 'demo' || activationStatus === 'active_trial'],
@@ -2531,7 +2531,7 @@ export default function FuneralHomeDashboard() {
   const notificationReadinessRows = [
     ['Email', 'Prepared, reviewed, delivered, and logged on the case record.', true],
     ['SMS', 'Text fallback remains visible until carrier registration is active.', false],
-    ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case record.' : 'Assign the first task owner to create visible proof.', assignmentsCoordinated > 0],
+    ['Owner confirmation', assignmentsCoordinated ? 'Owner proof is already feeding the case record.' : 'Assign the first next-step owner to create visible proof.', assignmentsCoordinated > 0],
   ];
   const billingReadinessRows = [
     ['Plan', partnerPlanDisplayName(partnerPlan?.name || partnerPlan?.plan, activationStatus === 'active_trial' ? 'Trial plan' : 'Setup pending')],
@@ -3230,7 +3230,7 @@ export default function FuneralHomeDashboard() {
                   <span style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Today</span>
                   <span style={{ color: isDirectorRole ? C.sage : C.amber, background: isDirectorRole ? C.sageFaint : C.amberFaint, border: `1px solid ${isDirectorRole ? C.sage : C.amber}22`, borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900 }}>{roleLabel(currentRole)}</span>
                 </div>
-                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{isDirectorRole ? 'All cases, staff queues, location scope, reports, and delegation.' : 'Assigned work first. Case context stays attached to each task.'}</div>
+                <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{isDirectorRole ? 'All cases, staff queues, location scope, reports, and delegation.' : 'Assigned work first. Case context stays attached to each work item.'}</div>
               </div>
               <button onClick={() => setShowDirectorHelp(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>?</button>
             </div>
@@ -5005,7 +5005,7 @@ export default function FuneralHomeDashboard() {
                         </details>
                         {assignOpen && (
                           <div onClick={() => setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' })} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-                          <div role="dialog" aria-modal="true" aria-label="Assign task owner" onClick={event => event.stopPropagation()} style={{ width: 'min(700px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+                          <div role="dialog" aria-modal="true" aria-label="Assign next-step owner" onClick={event => event.stopPropagation()} style={{ width: 'min(700px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Assign owner</div>
                               <button onClick={() => setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' })} aria-label="Close assignment" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
@@ -5567,7 +5567,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
             </div>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
               <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Owner</div>
-              <div style={{ color: C.ink, fontSize: 12.1, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{task.assigned_to_name || task.assigned_to_email || 'Partner task owner'}</div>
+              <div style={{ color: C.ink, fontSize: 12.1, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{task.assigned_to_name || task.assigned_to_email || 'Next-step owner'}</div>
             </div>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
               <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting</div>

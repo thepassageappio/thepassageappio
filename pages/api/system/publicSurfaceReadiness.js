@@ -162,8 +162,8 @@ const personaSourceChecks = [
   {
     path: 'lib/communicationCenter.js',
     label: 'Shared communication wording source',
-    requires: ['Accept the request, mark it done', 'work item remains the source of truth', 'proof stays on the scoped request'],
-    forbids: ['Accept it, mark it done', 'task remains the source of truth', 'proof stays on the task'],
+    requires: ['Accept the request, mark it done', 'tell the coordinator what is needed', 'work item remains the source of truth', 'proof stays on the scoped request'],
+    forbids: ['Accept it, mark it done', 'what is blocking you', 'unblock', 'record the blocker', 'Waiting for an owner', 'task remains the source of truth', 'proof stays on the task'],
   },
   {
     path: 'components/App.js',
@@ -175,7 +175,7 @@ const personaSourceChecks = [
     path: 'pages/funeral-home/dashboard.js',
     label: 'Funeral-home dashboard source',
     requires: ['Recommended next action', '1. Do next:', 'Message to send or use', 'Waiting on', 'Save proof', 'partnerPlanDisplayName'],
-    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}', 'Task / request', 'Proof loop', 'Task action'],
+    forbids: ['First-day pilot setup', 'Start pilot billing', 'Pilot-safe', 'pilot controls', 'partner spine', 'Billing: ${partnerPlan.plan}', 'Task / request', 'Proof loop', 'Task action', 'Open tasks', 'Waiting tasks', 'Handled tasks', 'Demo proof saved. The task', 'Could not update this task.', 'Could not assign this task.', 'task owner', 'task notification', 'demo task', 'Partner task owner', 'each task'],
   },
   {
     path: 'pages/funeral-home/setup.js',
