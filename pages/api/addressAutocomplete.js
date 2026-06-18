@@ -1,6 +1,6 @@
 import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
-const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
 
 function cleanLimitKey(value, max = 140) {
   return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';

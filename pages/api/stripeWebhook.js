@@ -6,6 +6,7 @@ import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../.
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const STRIPE_SIGNATURE_TOLERANCE_SECONDS = 300;
 
 export const config = { api: { bodyParser: false } };
 
@@ -27,6 +28,11 @@ function verifyStripeSignature(raw, header, secret) {
     if (part.startsWith('v1=')) signatures.push(part.slice(3));
   }
   if (!timestamp || signatures.length === 0) return false;
+
+  const timestampSeconds = Number(timestamp);
+  if (!Number.isFinite(timestampSeconds)) return false;
+  const ageSeconds = Math.abs(Math.floor(Date.now() / 1000) - timestampSeconds);
+  if (ageSeconds > STRIPE_SIGNATURE_TOLERANCE_SECONDS) return false;
 
   const expected = crypto
     .createHmac('sha256', secret)

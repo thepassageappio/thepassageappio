@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
-import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRequestIp, durableRateLimit } from '../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,7 +14,7 @@ function cleanLimitKey(value, max = 160) {
   return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
 }
 
-function enforceFuneralHomeRequestLimit(req, user, scope = 'intake') {
+async function enforceFuneralHomeRequestLimit(req, user, scope = 'intake') {
   const policy = getRateLimitPolicy(scope === 'action' ? 'vendorCommerce' : 'contactIntake');
   if (!policy) return { allowed: true };
   const body = req.body || {};
@@ -28,7 +28,7 @@ function enforceFuneralHomeRequestLimit(req, user, scope = 'intake') {
     cleanLimitKey(body.workflowId || body.estateId || body.requestId || 'no-record'),
     cleanLimitKey(provider.name || body.providerName || body.action || 'no-provider').toLowerCase(),
   ].join(':');
-  return rateLimit({ key: identity, windowSeconds: policy.windowSeconds, maxRequests: policy.maxRequests });
+  return durableRateLimit(admin, { key: identity, windowSeconds: policy.windowSeconds, maxRequests: policy.maxRequests });
 }
 
 function clean(value, max = 500) {
@@ -154,7 +154,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const postLimit = enforceFuneralHomeRequestLimit(req, user, 'intake');
+    const postLimit = await enforceFuneralHomeRequestLimit(req, user, 'intake');
     if (!postLimit.allowed) {
       res.setHeader('Retry-After', String(postLimit.retryAfterSeconds || 3600));
       return res.status(429).json({ error: 'Too many funeral-home requests were saved recently. Review the existing request before adding another.', retryAfterSeconds: postLimit.retryAfterSeconds });
@@ -244,7 +244,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'PATCH') {
-    const actionLimit = enforceFuneralHomeRequestLimit(req, user, 'action');
+    const actionLimit = await enforceFuneralHomeRequestLimit(req, user, 'action');
     if (!actionLimit.allowed) {
       res.setHeader('Retry-After', String(actionLimit.retryAfterSeconds || 300));
       return res.status(429).json({ error: 'Too many inbound request actions were attempted recently. Refresh the request and wait before trying again.', retryAfterSeconds: actionLimit.retryAfterSeconds });

@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
 import { detailRows, sendSubmissionReceipt } from '../../lib/submissionReceipts';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
-import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRequestIp, durableRateLimit } from '../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const supabase = createClient(
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
   }
 
   const contactPolicy = getRateLimitPolicy('contactIntake');
-  const limit = rateLimit({
+  const limit = await durableRateLimit(supabase, {
     key: intakeKey(req, email),
     windowSeconds: contactPolicy.windowSeconds,
     maxRequests: contactPolicy.maxRequests,

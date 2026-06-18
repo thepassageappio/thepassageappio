@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRequestIp, durableRateLimit } from '../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
-const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
 const admin = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
   : null;
@@ -11,10 +11,10 @@ function cleanLimitKey(value, max = 140) {
   return String(value || '').replace(/[^a-zA-Z0-9@._:+-]/g, '').slice(0, max) || 'missing';
 }
 
-function enforceLookupLimit(req, { query, kind, near }) {
+async function enforceLookupLimit(req, { query, kind, near }) {
   const policy = getRateLimitPolicy('providerLookup');
   if (!policy) return { allowed: true };
-  return rateLimit({
+  return durableRateLimit(admin, {
     key: ['provider-search', getRequestIp(req), cleanLimitKey(query || kind).toLowerCase(), cleanLimitKey(near).toLowerCase()].join(':'),
     windowSeconds: policy.windowSeconds,
     maxRequests: policy.maxRequests,
@@ -77,7 +77,7 @@ export default async function handler(req, res) {
   const query = clean(req.query.q);
   const kind = clean(req.query.kind);
   const near = clean(req.query.near);
-  const limit = enforceLookupLimit(req, { query, kind, near });
+  const limit = await enforceLookupLimit(req, { query, kind, near });
   if (!limit.allowed) {
     res.setHeader('Retry-After', String(limit.retryAfterSeconds || 60));
     return res.status(429).json({ error: 'Too many provider searches. Please wait before searching again.', retryAfterSeconds: limit.retryAfterSeconds });

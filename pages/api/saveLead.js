@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { syncLeadToHubSpot } from '../../lib/hubspot';
-import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRequestIp, durableRateLimit } from '../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const supabase = createClient(
@@ -10,6 +10,16 @@ const supabase = createClient(
 
 function clean(value, max = 500) {
   return String(value || '').replace(/[<>]/g, '').trim().slice(0, max);
+}
+
+function isRealEmail(value) {
+  const email = clean(value, 180).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return false;
+  const domain = email.split('@')[1] || '';
+  if (!domain || domain.includes('..')) return false;
+  if (['example.com', 'test.com', 'fake.com', 'none.com', 'noemail.com'].includes(domain)) return false;
+  if (/^(test|fake|none|asdf|na|noreply|no-reply)@/.test(email)) return false;
+  return true;
 }
 
 function intakeKey(req, email) {
@@ -41,11 +51,15 @@ export default async function handler(req, res) {
     } = body;
 
     // Resolve email and name from either field name
-    const resolvedEmail = clean(email || your_email || executor_email, 180) || null;
+    const resolvedEmail = clean(email || your_email || executor_email, 180).toLowerCase();
     const resolvedName = clean(name || your_name || first_name || executor_name, 160) || null;
 
+    if (!isRealEmail(resolvedEmail)) {
+      return res.status(400).json({ error: 'Please enter a real email address.' });
+    }
+
     const contactPolicy = getRateLimitPolicy('contactIntake');
-    const limit = rateLimit({
+    const limit = await durableRateLimit(supabase, {
       key: intakeKey(req, resolvedEmail),
       windowSeconds: contactPolicy.windowSeconds,
       maxRequests: contactPolicy.maxRequests,
@@ -55,7 +69,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, throttled: true, reason: 'lead_intake_rate_limited' });
     }
 
-    console.log('Passage lead:', { resolvedEmail, resolvedName, flow_type, mode });
 
     // Write to Supabase leads table
     const { error } = await supabase.from('leads').insert([{

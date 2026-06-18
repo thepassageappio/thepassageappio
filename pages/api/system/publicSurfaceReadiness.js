@@ -6,7 +6,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const authClient = supabaseUrl && supabaseAnon ? createClient(supabaseUrl, supabaseAnon) : null;
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
-const GOOGLE_ADDRESS_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const GOOGLE_ADDRESS_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
 const EXPECTED_COMMIT = process.env.VERCEL_GIT_COMMIT_SHA || '';
 
 const publicChecks = [
@@ -311,6 +311,42 @@ const personaSourceChecks = [
     label: 'Automation readiness API source',
     requires: ['taskAutomationReadiness', 'automationReadyPercent', 'semiAutomated', 'topBlockers', 'automation_coverage'],
     forbids: [],
+  },
+  {
+    path: 'lib/inMemoryRateLimit.js',
+    label: 'Durable public rate-limit source',
+    requires: ['durableRateLimit', 'rate_limit_buckets', 'local_guard'],
+    forbids: [],
+  },
+  {
+    path: 'pages/api/saveLead.js',
+    label: 'Lead intake validation source',
+    requires: ['isRealEmail', 'durableRateLimit', 'Please enter a real email address.'],
+    forbids: ["console.log('Passage lead:'"],
+  },
+  {
+    path: 'pages/api/stripeWebhook.js',
+    label: 'Stripe webhook replay guard source',
+    requires: ['STRIPE_SIGNATURE_TOLERANCE_SECONDS', 'timestampSeconds', 'ageSeconds'],
+    forbids: [],
+  },
+  {
+    path: 'pages/api/addressAutocomplete.js',
+    label: 'Address lookup server key source',
+    requires: ['process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY'],
+    forbids: ['NEXT_PUBLIC_GOOGLE_PLACES_API_KEY', 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'],
+  },
+  {
+    path: 'pages/api/providerSearch.js',
+    label: 'Provider lookup server key source',
+    requires: ['process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY', 'durableRateLimit'],
+    forbids: ['NEXT_PUBLIC_GOOGLE_PLACES_API_KEY', 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'],
+  },
+  {
+    path: 'supabase/migrations/20260618161000_harden_public_intake_security.sql',
+    label: 'Public intake RLS hardening migration',
+    requires: ['drop policy if exists "lead intake can create leads"', 'rate_limit_buckets', 'service role manages leads'],
+    forbids: ['TO "authenticated", "anon" WITH CHECK (true)'],
   },
   {
     path: 'pages/system/admin/automation-spine-readiness.js',

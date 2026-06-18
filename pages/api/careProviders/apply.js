@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { syncLeadToHubSpot } from '../../../lib/hubspot';
 import { detailRows, sendSubmissionReceipt } from '../../../lib/submissionReceipts';
 import { escapeHtml, passageEmailShell } from '../../../lib/brandedEmail';
-import { getRequestIp, rateLimit } from '../../../lib/inMemoryRateLimit';
+import { getRequestIp, durableRateLimit } from '../../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../../lib/rateLimitPolicy';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -98,8 +98,9 @@ export default async function handler(req, res) {
   if (!application.organization_name) return res.status(400).json({ error: 'Add the organization name.' });
   if (!validEmail(application.contact_email)) return res.status(400).json({ error: 'Add a real contact email.' });
 
+  const admin = adminClient();
   const contactPolicy = getRateLimitPolicy('contactIntake');
-  const limit = rateLimit({
+  const limit = await durableRateLimit(admin, {
     key: intakeKey(req, application.contact_email),
     windowSeconds: contactPolicy.windowSeconds,
     maxRequests: contactPolicy.maxRequests,
@@ -112,7 +113,6 @@ export default async function handler(req, res) {
     });
   }
 
-  const admin = adminClient();
   let saved = null;
   if (admin) {
     const { data } = await admin

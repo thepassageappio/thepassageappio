@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
+import { getRequestIp, durableRateLimit } from '../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../lib/rateLimitPolicy';
 
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   if (!event) return res.status(400).json({ error: 'Event name is required.' });
 
   const trackingPolicy = getRateLimitPolicy('tracking');
-  const limit = rateLimit({
+  const limit = await durableRateLimit(supabase, {
     key: 'trackEvent:' + trackingIdentity(req, body),
     windowSeconds: trackingPolicy.windowSeconds,
     maxRequests: trackingPolicy.maxRequests,

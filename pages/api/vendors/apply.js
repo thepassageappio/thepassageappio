@@ -3,13 +3,19 @@ import { cleanZipList, normalizeVendorCategory, vendorCategoryLabel } from '../.
 import { escapeHtml, passageEmailShell } from '../../../lib/brandedEmail';
 import { detailRows, sendSubmissionReceipt } from '../../../lib/submissionReceipts';
 import { syncLeadToHubSpot } from '../../../lib/hubspot';
-import { getRequestIp, rateLimit } from '../../../lib/inMemoryRateLimit';
+import { getRequestIp, durableRateLimit } from '../../../lib/inMemoryRateLimit';
 import { getRateLimitPolicy } from '../../../lib/rateLimitPolicy';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 function validEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+  const email = String(value || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return false;
+  const domain = email.split('@')[1] || '';
+  if (!domain || domain.includes('..')) return false;
+  if (['example.com', 'test.com', 'fake.com', 'none.com', 'noemail.com'].includes(domain)) return false;
+  if (/^(test|fake|none|asdf|na|noreply|no-reply)@/.test(email)) return false;
+  return true;
 }
 
 function clean(value, max = 500) {
@@ -94,7 +100,7 @@ export default async function handler(req, res) {
   if (!zipCodes.length) return res.status(400).json({ error: 'Add at least one ZIP code served.' });
 
   const contactPolicy = getRateLimitPolicy('contactIntake');
-  const limit = rateLimit({
+  const limit = await durableRateLimit(supabase, {
     key: intakeKey(req, email),
     windowSeconds: contactPolicy.windowSeconds,
     maxRequests: contactPolicy.maxRequests,
