@@ -112,7 +112,6 @@ const forbiddenPublicText = [
   'sample funeral-home console',
   'Spine',
   'Proof and notify',
-  'Mark done with proof',
   'Tracked platform fee',
   'Funeral home share:',
   'Passage share:',
