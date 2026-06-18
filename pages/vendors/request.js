@@ -703,10 +703,10 @@ function Info({ label, value }) {
 function VendorRequestLoop({ next, owner, waiting, proof }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, margin: '0 0 14px' }}>
-      <Info label="1. Do" value={next} />
+      <Info label="Action needed" value={next} />
       <Info label="Owner" value={owner} />
-      <Info label="2. Update" value={waiting} />
-      <Info label="3. Save proof" value={proof} />
+      <Info label="Waiting on" value={waiting} />
+      <Info label="Status and proof" value={proof} />
     </div>
   );
 }
