@@ -255,7 +255,7 @@ export default function VendorRequestPage() {
             <div style={cardStyle}>
               <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor portal</div>
               <h1 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{user ? 'No approved vendor profile yet.' : 'Sign in to manage vendor requests.'}</h1>
-              <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first. Once approved, the primary contact can sign in here to respond to scoped task requests. Vendors do not browse families or cases.'}</p>
+              <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first. Once approved, the primary contact can sign in here to respond to scoped requests. Vendors do not browse families or cases.'}</p>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
                 {!user && <button onClick={() => supabase?.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } })} style={buttonStyle(C.sage)}>Sign in</button>}
                 <Link href="/vendors/onboard" style={{ ...buttonStyle(C.sage), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
@@ -409,7 +409,7 @@ export default function VendorRequestPage() {
                     </div>
                     <button onClick={() => setPendingVendorAction('')} aria-label="Close vendor response" style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                   </div>
-                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and task. It does not expose the full estate, and it does not send a live family message from this screen.</p>
+                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and request. It does not expose the full estate, and it does not send a live family message from this screen.</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                     <label style={labelStyle}>Estimated quote<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                     <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>

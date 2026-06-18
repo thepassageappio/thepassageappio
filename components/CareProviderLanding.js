@@ -205,7 +205,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
               {[
                 ['Family owned', 'The family decides who can see the record and what downstream partners receive.'],
                 ['Scoped access', 'Care teams, funeral homes, helpers, and vendors only see what their role requires.'],
-                ['Proof based', 'Important decisions, notes, handoffs, and task outcomes stay attached to the record.'],
+                ['Proof based', 'Important decisions, notes, handoffs, and request outcomes stay attached to the record.'],
               ].map(([title, body]) => (
                 <div key={title} style={rowBox}><strong>{title}</strong><span>{body}</span></div>
               ))}

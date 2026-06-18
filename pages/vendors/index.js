@@ -48,7 +48,7 @@ export default function VendorFrontDoor() {
     {
       eyebrow: 'Scoped access',
       title: 'Vendors never browse family records',
-      body: 'A request contains only the task, timing, contact boundary, and proof needed to complete the work.',
+      body: 'A request contains only the work requested, timing, contact boundary, and proof needed to complete it.',
       href: '/trust',
       action: 'Trust model',
     },
