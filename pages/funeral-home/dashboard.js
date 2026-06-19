@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
+import { consumeSupabaseOAuthHash } from '../../lib/supabaseOAuthHash';
 import { RoleActionStrip, SiteHeader, SiteFooter, SpineTrustStrip } from '../../components/SiteChrome';
 import PacketGeneratorModal from '../../components/PacketGeneratorModal';
 import SmartAddressInput from '../../components/SmartAddressInput';
@@ -725,7 +726,13 @@ export default function FuneralHomeDashboard() {
       setLoading(false);
       return;
     }
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    Promise.resolve()
+      .then(() => consumeSupabaseOAuthHash(supabase))
+      .then(async (oauthSession) => {
+        if (oauthSession) return { data: { session: oauthSession } };
+        return supabase.auth.getSession();
+      })
+      .then(({ data: { session } }) => {
       const sessionUser = session?.user || null;
       const sessionToken = session?.access_token || '';
       if (requestedDemoMode) {
@@ -761,6 +768,9 @@ export default function FuneralHomeDashboard() {
       else {
         setLoading(false);
       }
+    }).catch((authError) => {
+      setError(authError?.message || 'Google sign-in could not be completed. Please try again.');
+      setLoading(false);
     });
   }, [router.isReady, requestedDemoMode]);
 

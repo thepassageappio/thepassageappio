@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
+import { consumeSupabaseOAuthHash, destinationWithoutHash } from '../lib/supabaseOAuthHash';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import { trackEvent } from '../lib/trackEvent';
 
@@ -114,21 +115,29 @@ export default function LoginPage() {
       const adminUser = isSystemAdminUser(currentUser);
       const adminOnlyDestination = safeNext.startsWith('/system/');
       if (safeNext && (!adminOnlyDestination || adminUser)) {
-        window.location.replace(safeNext);
+        window.location.replace(destinationWithoutHash(safeNext));
         return;
       }
       if (adminUser) {
-        window.location.replace('/system/admin');
+        window.location.replace(destinationWithoutHash('/system/admin'));
       }
     }
-    supabase.auth.getSession().then(({ data }) => {
-      const currentUser = data.session?.user || null;
-      setUser(currentUser);
-      setAuthChecked(true);
-      routeIfAdmin(currentUser);
-    }).catch(() => {
-      setAuthChecked(true);
-    });
+    Promise.resolve()
+      .then(() => consumeSupabaseOAuthHash(supabase))
+      .then(async (oauthSession) => {
+        if (oauthSession) return { data: { session: oauthSession } };
+        return supabase.auth.getSession();
+      })
+      .then(({ data }) => {
+        const currentUser = data.session?.user || null;
+        setUser(currentUser);
+        setAuthChecked(true);
+        routeIfAdmin(currentUser);
+      })
+      .catch((error) => {
+        setAuthError(error?.message || 'Google sign-in could not be completed. Please try again.');
+        setAuthChecked(true);
+      });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUser = session?.user || null;
       setUser(currentUser);
