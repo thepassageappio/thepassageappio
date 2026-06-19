@@ -34,9 +34,9 @@ function eventVerbFor(action) {
 function emailCopyFor(action, { orgName, subjectName, taskTitle }) {
   if (action === 'blocked') {
     return {
-      eyebrow: 'Work needs help',
-      subject: passageSubject('Work needs help', taskTitle),
-      title: 'The funeral home needs help on this work item.',
+      eyebrow: 'Client step needs help',
+      subject: passageSubject('Client step needs help', taskTitle),
+      title: 'The funeral home needs help on this client step.',
       intro: `${orgName} recorded what is needed for ${taskTitle} for ${subjectName}.`,
       preheader: `${orgName} needs help with ${taskTitle}.`,
       sectionLabel: 'Needs-help note saved',
@@ -44,17 +44,17 @@ function emailCopyFor(action, { orgName, subjectName, taskTitle }) {
   }
   if (action === 'waiting') {
     return {
-      eyebrow: 'Work waiting',
-      subject: passageSubject('Work waiting', taskTitle),
-      title: 'The funeral home is waiting on this work item.',
+      eyebrow: 'Client step waiting',
+      subject: passageSubject('Client step waiting', taskTitle),
+      title: 'The funeral home is waiting on this client step.',
       intro: `${orgName} recorded what is still waiting for ${subjectName}.`,
       preheader: `${orgName} is waiting on ${taskTitle}.`,
       sectionLabel: 'Waiting point saved',
     };
   }
   return {
-    eyebrow: 'Work handled',
-    subject: passageSubject('Work handled', taskTitle),
+    eyebrow: 'Client step handled',
+    subject: passageSubject('Client step handled', taskTitle),
     title: 'Handled for the family.',
     intro: `${orgName} recorded a completed update for ${subjectName}.`,
     preheader: `${orgName} handled ${taskTitle}.`,
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
   const user = auth.user;
   const actorEmail = String(user?.email || req.body?.actor || '').trim().toLowerCase();
   if (auth.source !== 'internal' && !actorEmail) {
-    return res.status(401).json({ error: 'Your Passage session expired. Refresh, sign in again, and retry this work action.' });
+    return res.status(401).json({ error: 'Your Passage session expired. Refresh, sign in again, and retry this client-step action.' });
   }
 
   const { taskId, note, sendFamilyEmail } = req.body || {};
@@ -106,7 +106,7 @@ export default async function handler(req, res) {
   if (!taskId) return res.status(400).json({ error: 'Missing task.' });
   const cleanNote = String(note || '').trim();
   if (!cleanNote) {
-    return res.status(400).json({ error: action === 'handled' ? 'Add what was handled before notifying the family.' : 'Add what is waiting or what the family needs to provide.' });
+    return res.status(400).json({ error: action === 'handled' ? 'Add what your team handled before notifying the family.' : 'Add who or what this is waiting on before saving the client-step update.' });
   }
 
   try {
@@ -265,7 +265,7 @@ export default async function handler(req, res) {
       skippedColumns,
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message || 'Could not update this work item for the family.' });
+    return res.status(500).json({ error: err.message || 'Could not update this client step for the family.' });
   }
 }
 
