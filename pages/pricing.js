@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '../lib/supabaseBrowser';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { trackEvent } from '../lib/trackEvent';
@@ -69,11 +70,9 @@ export default function PricingPage() {
 
   async function signIn() {
     trackEvent('pricing_sign_in_clicked', { participantDiscount });
-    if (!supabase?.auth) {
-      setMessage('Sign-in is not configured in this environment.');
-      return;
-    }
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/pricing${participantDiscount ? '?participant=1' : ''}` } });
+    if (typeof window === 'undefined') return;
+    const next = '/pricing' + (participantDiscount ? '?participant=1' : '');
+    window.location.assign('/api/auth/google?next=' + encodeURIComponent(next));
   }
 
   async function signOut() {
@@ -201,9 +200,9 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button disabled={busy === 'urgent'} onClick={() => checkout('urgent')} style={{ width: '100%', border: selectedPlan === 'urgent' ? `2px solid ${C.ink}` : 'none', borderRadius: 13, padding: '12px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 16 }}>
-                  {busy === 'urgent' ? 'Opening checkout...' : 'Get help now \u2192 $79'}
-                </button>
+                <Link href="/urgent?source=pricing" onClick={() => trackEvent('pricing_get_help_now_clicked', { source: 'pricing' })} style={{ width: '100%', boxSizing: 'border-box', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', border: 'none', borderRadius: 13, padding: '12px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 16, textDecoration: 'none' }}>
+                  Get help now
+                </Link>
               </>
             ) : (
               <>
@@ -241,7 +240,7 @@ export default function PricingPage() {
 
         {!user && (
           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}35`, borderRadius: 14, padding: '11px 13px', marginBottom: 12, color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
-            <strong style={{ color: C.sage }}>Sign in once to checkout.</strong> Use the sign-in button above. Passage saves the plan to your family record.
+            <strong style={{ color: C.sage }}>Planning plans use sign-in at checkout.</strong> Urgent help opens first so you can start the family record without waiting on payment or Google sign-in.
           </div>
         )}
 
@@ -258,7 +257,7 @@ export default function PricingPage() {
         {message && (
           <div style={{ marginTop: 12, color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 13, fontSize: 13, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <span>{message}</span>
-            {!user && <button onClick={signIn} style={smallButton(C.rose)}>Sign in to continue</button>}
+            {!user && <Link href={'/api/auth/google?next=' + encodeURIComponent('/pricing' + (participantDiscount ? '?participant=1' : ''))} onClick={() => trackEvent('pricing_sign_in_clicked', { participantDiscount })} style={{ ...smallButton(C.rose), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Sign in to continue</Link>}
           </div>
         )}
       </section>
