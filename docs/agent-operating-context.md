@@ -169,3 +169,16 @@ Append or update this section before final response:
 - Added dedicated role playbooks under docs/agents/ for Product Manager, Development Engineer, QA Agent, and Deploy Agent.
 - Updated AGENTS.md and docs/release-train.md so the magic phrase triggers the dedicated role loop, not a generic all-purpose agent flow.
 - Deployed: no. Source-only governance hardening remains [skip deploy] pending sanity checks and a QA-approved release batch.
+
+### 2026-06-19 - Cycle 1 QA review, release-gate fix, agent write path
+
+- Date/time: 2026-06-19.
+- Branch/commit(s): main, working from HEAD 7518bead.
+- Production verified GREEN at f1b928b8 (release: deploy persona navigation and task action clarity [deploy]) on the canonical Vercel project; www.thepassageapp.io and the Vercel alias both serve that commit. The duplicate "you-are-working-on-a-production" project is gone.
+- Source-level QA of the queued operating-loop batch: PASS. lib/taskWorkspace.js taskOperatingContractFor returns the full Sprint 2/4 acceptance shape (owner, waiting party, audience, automation level + reason + next improvement, prepared output, human action, proof destination, one primary action with secondaries collapsed) with customer-safe copy and no internal-language leak. communicationContractFor resolves end to end. The taskNeedsHelp / taskIsWaiting helpers are pre-existing, so the dashboard render block does not crash on missing references.
+- Gate bug found and FIXED: scripts/vercel-ignore-build.js used /[qa-approved]/i and /[qa approved]/i, which are regex character classes (match any one of those characters), not literal strings. The [qa-approved] requirement was therefore a no-op, which is why a prior [deploy] commit released without QA sign-off. Escaped to /\[qa-approved\]/i and /\[qa approved\]/i so the release-train gate is real. The duplicate-project guard and the two check scripts (check-agent-context.js, check-release-train.js) were reviewed and escape correctly; no other regex changes needed.
+- Process gap recorded in docs/release-train.md: a green Vercel build is not proof a page renders. Every release now requires a live post-deploy render check per persona plus an X-Passage-Commit match before the cycle closes.
+- Agent write path: the official remote GitHub MCP connector ("Claude Github MCP Connector" GitHub App, installation 141421148) is write-capable, but its repository access must include thepassageappio/thepassageappio. Because the repo is public, the app reads it via public read-only but returns 403 "Resource not accessible by integration" on writes until the repo is granted to the installation. Until then, agents edit the connected local clone and the owner pushes.
+- Open caveat before release: the operating-loop batch has never rendered in a browser (no preview env; all post-green builds canceled). Source review clears the crash risks, but the real proof is the post-deploy persona render check above.
+- Deployed: no. These changes are [skip deploy] and remain queued; the production release still requires owner approval and a [deploy] [qa-approved] commit.
+- Next action: owner pushes this [skip deploy] batch, then approves the [deploy] [qa-approved] release; immediately after READY, run the per-persona render check and log results here.

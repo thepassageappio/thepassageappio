@@ -92,6 +92,8 @@ QA must mark one status:
 
 QA failures do not go straight back to development. They go to Product Manager first.
 
+Because this repo has no preview environment and all non-release commits are [skip deploy], a green Vercel build is not proof a page renders. Next.js builds do not catch runtime errors. Every release must therefore include a live post-deploy render check: after the [deploy] [qa-approved] build is READY, load each affected persona page in a real browser, confirm it renders without a client-side crash, verify X-Passage-Commit matches the release commit, and log the result in docs/agent-operating-context.md before the cycle is considered closed.
+
 ## Loop Limit
 
 A release batch gets a maximum of 3 Product Manager -> Development Engineer -> QA cycles.
