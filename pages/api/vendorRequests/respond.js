@@ -103,15 +103,19 @@ export default async function handler(req, res) {
   const paymentConfirmed = currentStatus === 'paid' || paymentState === 'paid';
   const quoteCanBeSent = ['requested', 'viewed', 'quoted', 'declined'].includes(currentStatus);
   const quoteCanBeDeclined = ['requested', 'viewed', 'quoted'].includes(currentStatus);
-  const workCanBeUpdated = paymentConfirmed || ['scheduled', 'in_progress'].includes(currentStatus);
+  const workCanBeScheduled = paymentConfirmed || ['scheduled', 'in_progress'].includes(currentStatus);
+  const workCanBeCompleted = ['scheduled', 'in_progress'].includes(currentStatus);
   if (status === 'accepted' && !quoteCanBeSent) {
     return res.status(409).send('This request is not waiting for a quote.');
   }
   if (status === 'declined' && !quoteCanBeDeclined) {
     return res.status(409).send('This request can no longer be declined from this link.');
   }
-  if (['in_progress', 'completed'].includes(status) && !workCanBeUpdated) {
-    return res.status(409).send('This request needs approval and payment before work can be scheduled or completed.');
+  if (status === 'in_progress' && !workCanBeScheduled) {
+    return res.status(409).send('This request needs approval and payment before work can be scheduled.');
+  }
+  if (status === 'completed' && !workCanBeCompleted) {
+    return res.status(409).send('Mark this request scheduled before saving completion proof.');
   }
 
   const now = new Date().toISOString();
