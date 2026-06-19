@@ -12,6 +12,24 @@ Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent 
 
 If QA fails or development uncovers a scope gap, the loop returns to the Product Manager Agent first.
 
+## Magic Phrase
+
+Use this exact phrase in any fresh Codex conversation:
+
+`Passage Release Train: start the loop.`
+
+That phrase means:
+
+1. Read AGENTS.md, docs/agent-operating-context.md, and this file before doing work.
+2. Start as Product Manager Agent and assess vision, roadmap, objective, scope, risks, and acceptance criteria.
+3. Create or update the PR handoff using the release train template when code work begins.
+4. Move to Development Engineer Agent only after scope is clear.
+5. Move to QA Agent only after development handoff is complete.
+6. Move to Deploy Agent only after QA is PASS or Product Manager approves a PARTIAL as non-blocking.
+7. Update docs/agent-operating-context.md before handoff, deploy, or final response.
+
+A shorter acceptable version is: `Start the Passage release train.` If the exact phrase is present, treat it as the stronger instruction.
+
 ## Required Start Loop
 
 Every agent starts by reading:

@@ -4,6 +4,8 @@ Last updated: 2026-06-19
 
 This is the living handoff for future agents. Read AGENTS.md first, then this file, before changing the product. Update this file before final handoff or before creating a deploy-triggering commit.
 
+Magic phrase for a fresh Codex chat: `Passage Release Train: start the loop.`
+
 ## Current Objective
 
 Make Passage a clear, enterprise-grade funeral-home coordination SaaS capable of supporting a $300k ARR business within one year, with B2B funeral homes as the wedge and B2C family experiences made easier by strong funeral-home workflows.
@@ -148,3 +150,9 @@ Append or update this section before final response:
 - Added .github/workflows/agent-context.yml and .github/pull_request_template.md for PR/push enforcement.
 - Updated deployment discipline so production release commits require [deploy] [qa-approved] going forward.
 - Deployed: no. This is still queued with [skip deploy] pending sanity checks and QA approval.
+
+### 2026-06-19 - Fresh-agent trigger phrase
+
+- Added the magic phrase `Passage Release Train: start the loop.` to AGENTS.md, docs/release-train.md, and this context file.
+- Future fresh chats should begin with that phrase plus the concrete roadmap item or defect to run through Product Manager -> Development Engineer -> QA Agent -> Deploy Agent.
+- Deployed: no. Source-only process hardening remains [skip deploy] until a QA-approved release batch is ready.
