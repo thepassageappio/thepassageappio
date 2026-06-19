@@ -76,8 +76,8 @@ var PLAYBOOKS = {
   },
   default: {
     title: 'Prepare the next step',
-    draft: 'Here is the task that needs attention. Review the details, decide who owns it, and mark it handled only when the family has confirmed it is taken care of.',
-    steps: ['Review what is needed', 'Assign or self-own the task', 'Track the outcome here']
+    draft: 'Here is what needs attention. Review the details, decide who owns it, and mark it handled only when the family has confirmed it is taken care of.',
+    steps: ['Review what is needed', 'Assign or own the next step', 'Track the outcome and proof here']
   }
 };
 
@@ -111,9 +111,9 @@ function providerKindFor(outcome) {
 function actionScripts(outcome, provider) {
   var p = playbookFor(outcome);
   var providerName = provider && provider.name ? provider.name : '[provider]';
-  var task = outcome.title || 'this task';
+  var task = outcome.title || 'this next step';
   var phoneScript = p.draft.replace(/\[name\]/g, '[loved one]').replace(/\[your name\]/g, '[your name]');
-  var textScript = 'Hi, this is [your name]. I am coordinating ' + task.toLowerCase() + ' through Passage. Can you confirm the next step and what you need from us?';
+  var textScript = 'Hi, this is [your name]. I am coordinating this next step through Passage: ' + task + '. Can you confirm the next step and what you need from us?';
   var emailSubject = 'Next step for ' + task;
   var emailBody = 'Hello ' + providerName + ',\n\n' + phoneScript + '\n\nPlease reply with the next step, any required documents, and the best contact number.\n\nThank you.';
   return { phone: phoneScript, text: textScript, emailSubject: emailSubject, emailBody: emailBody };
@@ -556,7 +556,7 @@ function taskWorkspaceTitle(mode) {
   if (mode === 'call') return 'Call script';
   if (mode === 'official') return 'Official step';
   if (mode === 'record') return 'Family record';
-  return 'Task details';
+  return 'Request details';
 }
 
 function taskWorkspaceSaveLabel(mode) {
@@ -566,11 +566,11 @@ function taskWorkspaceSaveLabel(mode) {
   if (mode === 'call') return 'Save call outcome';
   if (mode === 'official') return 'Save official step';
   if (mode === 'record') return 'Save estate detail';
-  return 'Save task update';
+  return 'Save update';
 }
 
 function taskActionPrimaryLabel(action) {
-  if (!action) return 'Save task update';
+  if (!action) return 'Save update';
   if (action.status === 'choose') return 'Save owner';
   if (action.status === 'handled') return 'Mark done and save proof';
   if (action.status === 'waiting') return 'Save waiting update';
@@ -586,7 +586,7 @@ function taskWorkspaceProofLabel(mode) {
   if (mode === 'call') return 'Call script and outcome';
   if (mode === 'official') return 'Official step notes';
   if (mode === 'record') return 'Estate record';
-  return 'Task details';
+  return 'Request details';
 }
 
 function displayTaskNext(item) {
@@ -677,9 +677,9 @@ function taskActionCopy(status) {
     confirmation: sharedConfirmation
   };
   return {
-    title: 'Update task',
+    title: 'Update request',
     save: 'Choose an update first',
-    detail: 'Task update',
+    detail: 'Request update',
     prompt: 'Choose what happened. Passage will save it here and keep the estate current.',
     placeholder: 'Add a short note if useful.',
     confirmation: 'Update saved.'
@@ -725,7 +725,7 @@ function outcomeVisualState(outcome) {
     color: '#2563eb',
     bg: '#eff6ff',
     eventType: 'task_updated',
-    eventTitle: 'Task updated',
+    eventTitle: 'Request updated',
     noteLabel: 'Latest note'
   };
   return {
@@ -733,7 +733,7 @@ function outcomeVisualState(outcome) {
     color: MID,
     bg: SUBTLE,
     eventType: 'task_updated',
-    eventTitle: 'Task updated',
+    eventTitle: 'Request updated',
     noteLabel: 'Latest note'
   };
 }
@@ -758,7 +758,7 @@ function participantSignal(item) {
   var at = item.completed_at || item.handled_at || item.accepted_at || item.updated_at || item.sent_at || item.created_at;
   var ago = timeAgo(at);
   if (item.completed_by_email && isHandledStatus(item)) return actor + ' marked this as handled' + (ago ? ' ' + ago : '');
-  if (item.accepted_at || item.status === 'acknowledged') return (actor || 'Someone') + ' accepted this task' + (ago ? ' ' + ago : '');
+  if (item.accepted_at || item.status === 'acknowledged') return (actor || 'Someone') + ' accepted this request' + (ago ? ' ' + ago : '');
   if ((item.status || item.delivery_status) === 'blocked' || (item.outcome_status === 'help' || item.outcome_status === 'unavailable')) return (actor || 'Someone') + ' needs help with this' + (ago ? ' ' + ago : '');
   if (['waiting', 'needs_review'].includes(item.status || item.delivery_status)) return (actor || 'Someone') + ' updated this' + (ago ? ' ' + ago : '');
   return '';
@@ -837,7 +837,7 @@ function InlineAssign({ onSave, onClose }) {
   }
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-    <div role="dialog" aria-modal="true" aria-label="Assign estate task" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(680px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SUBTLE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+    <div role="dialog" aria-modal="true" aria-label="Assign family request" onClick={function(evt) { evt.stopPropagation(); }} style={{ width: 'min(680px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: SUBTLE, border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 5 }}>
       <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Assign and prepare handoff</div>
         <button onClick={onClose} aria-label="Close assignment" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 32, height: 32, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
@@ -978,7 +978,7 @@ function OutcomeCard({ id, outcome, estateId, expanded, showAssign, showProof, o
             <div style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 12, padding: '13px 14px', marginBottom: 14 }}>
               {(() => {
                 var p = playbookFor(outcome);
-                var preparedTitle = textValue(p.title, 'Prepared task support');
+                var preparedTitle = textValue(p.title, 'Prepared support');
                 var preparedDraft = textValue(p.draft, '');
                 return (
                   <>
@@ -1568,7 +1568,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
   async function sendReminder(task) {
     var reminderRecipient = task.assigned_to_email || (String(task.recipient || '').includes('@') ? task.recipient : '');
     if (!reminderRecipient) {
-      setActionFeedback('Assign this task to someone with an email before sending a reminder. Open the task details, choose an owner, then return here.');
+      setActionFeedback('Assign this item to someone with an email before sending a reminder. Open the details, choose an owner, then return here.');
       return;
     }
     var session = await sb.auth.getSession();
@@ -1584,8 +1584,8 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
       var data = res ? await res.json().catch(function() { return {}; }) : {};
       var missingRecipient = data.needsAssignment || (data.error && /assign this task|participant email/i.test(data.error));
       setActionFeedback(missingRecipient
-        ? 'Assign this task to someone with an email before sending a reminder. Passage saved that this needs follow-up.'
-        : (data.error || 'Reminder could not be sent. Check that this task has a participant email.'));
+        ? 'Assign this item to someone with an email before sending a reminder. Passage saved that this needs follow-up.'
+        : (data.error || 'Reminder could not be sent. Check that this item has a participant email.'));
       return;
     }
     setActionFeedback('Reminder sent and saved in the estate record.');
@@ -1598,7 +1598,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, color: SAGE, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 5 }}>Next actions and proof</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: INK, lineHeight: 1.25 }}>What to do, who owns it, and what is saved</div>
-          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Each row shows what Passage prepared, what the family or partner does next, and where proof saves.</div>
+          <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.55, marginTop: 5 }}>Each row shows what Passage prepared, what the family, helper, or care team does next, and where proof saves.</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 800, color: SAGE, background: SAGE_FAINT, borderRadius: 999, padding: '5px 9px', whiteSpace: 'nowrap' }}>{actionTasks.length} open</span>
       </div>
@@ -1642,7 +1642,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
       {enriched.length > 0 && (
         <details style={{ border: '1px solid ' + BORDER, background: CARD, borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
           <summary style={{ cursor: 'pointer', color: INK, fontWeight: 900, fontSize: 12.5 }}>
-            What each task needs - {enriched.length} total
+            What each item needs - {enriched.length} total
           </summary>
           <div style={{ marginTop: 9, maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
             {enriched.map(function(task) {
@@ -1662,7 +1662,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
 
       {actionTasks.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Open tasks you can act on</div>
+          <div style={{ fontSize: 11, color: SOFT, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 6 }}>Open items you can act on</div>
           {actionTasks.map(function(task) {
             var state = statusBucket(task.status);
             var color = state === 'good' ? SAGE : state === 'bad' ? ROSE : state === 'wait' ? AMBER : MID;
@@ -1680,7 +1680,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     <div style={{ fontSize: 12, color: MID, lineHeight: 1.45, marginTop: 3 }}>{displayTaskNext(task)}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                       <span style={{ background: SAGE_FAINT, color: SAGE, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{familyExecutionTierLabel(task.playbook.executionTier)}</span>
-                      <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{textValue(task.playbook.executionModeLabel, 'Task details').replace(/Task\\s+workspace/gi, 'Task details')}</span>
+                      <span style={{ background: CARD, border: '1px solid ' + BORDER, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5, fontWeight: 800 }}>{textValue(task.playbook.executionModeLabel, 'Details').replace(/Task\\s+workspace/gi, 'Details')}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Owner: {ownerBucket(task)}</span>
                       <span style={{ background: SUBTLE, color: MID, borderRadius: 999, padding: '3px 8px', fontSize: 10.5 }}>Proof: {proof}</span>
                     </div>
@@ -1692,18 +1692,18 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 7, marginTop: 7 }}>
                       <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 9px' }}>
                         <div style={{ color: SAGE, fontSize: 10.5, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>What Passage prepares</div>
-                        <div style={{ color: INK, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{textValue(output.label, 'Task output and proof trail')}</div>
+                        <div style={{ color: INK, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{textValue(output.label, 'Output and proof trail')}</div>
                         <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(output.body, 'Passage prepares the next step, tracks the owner, and keeps proof visible.')}</div>
                       </div>
                       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
                         <div style={{ color: SOFT, fontSize: 10.5, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Where proof saves</div>
-                        <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(workspace.proofDestination, 'Saved in this estate task, the proof log, status view, reports, and export.')}</div>
+                        <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(workspace.proofDestination, 'Saved in this family record, the proof log, status view, reports, and export.')}</div>
                       </div>
                     </div>
                     <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 10, padding: '8px 9px', marginTop: 7 }}>
                       <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Passage handles</div>
                       <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(task.playbook.whatPassageDoes, 'Passage prepares the work and keeps proof visible.')}</div>
-                      <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 7 }}>Family or partner handles</div>
+                      <div style={{ color: SAGE, fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 7 }}>Family or helper handles</div>
                       <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 3 }}>{textValue(task.playbook.whatUserDoes, 'Record what happened, what is waiting, or who needs help.')}</div>
                     </div>
                     <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.45, marginTop: 6 }}>
@@ -1732,7 +1732,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
                   {state === 'bad' && <button disabled={updating === task.id + 'waiting'} onClick={function() { updateTask(task, 'waiting', 'Owner notified for review'); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>Mark waiting</button>}
                   {state === 'wait' && <button disabled={updating === task.id + 'reminder'} onClick={function() { sendReminder(task); }} style={miniBtn(AMBER_FAINT, AMBER, AMBER_BORDER)}>{updating === task.id + 'reminder' ? 'Sending...' : hasReminderRecipient ? 'Send reminder' : 'Assign before reminder'}</button>}
                   <button disabled={updating === task.id + 'handled'} onClick={function() { updateTask(task, 'handled', 'Proof recorded for ' + task.title, 'Reference number, note, or proof detail'); }} style={miniBtn(SAGE_FAINT, SAGE, SAGE_LIGHT)}>Done + proof</button>
-                  <button disabled={updating === task.id + 'blocked'} onClick={function() { updateTask(task, 'blocked', 'Owner notified: this task needs help', 'What is blocking this?'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
+                  <button disabled={updating === task.id + 'blocked'} onClick={function() { updateTask(task, 'blocked', 'Owner notified: this item needs help', 'What is blocking this?'); }} style={miniBtn(ROSE_FAINT, ROSE, ROSE + '35')}>Needs help</button>
                 </div>
               </div>
             );
@@ -1850,7 +1850,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
     serviceEvents: serviceEvents || [],
     estateName: estateName || 'this estate',
     coordinatorName: coordinatorName || 'the coordinator',
-    surface: 'the task proof trail'
+    surface: 'the proof trail'
   };
   var orchestrated = orchestrateTasks({
     tasks: tasks || [],
@@ -4061,7 +4061,7 @@ export default function EstatePage() {
       return;
     }
     if (action === 'open') {
-      startTaskUpdate({ task: task, status: 'choose', title: 'Update task', detail: 'Task update for ' + displayTaskTitle(task), prompt: 'Choose what happened.' });
+      startTaskUpdate({ task: task, status: 'choose', title: 'Update request', detail: 'Task update for ' + displayTaskTitle(task), prompt: 'Choose what happened.' });
       return;
     }
     if (action === 'handled') {
