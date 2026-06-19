@@ -30,6 +30,14 @@ Vercel builds are controlled by commit message:
 - [deploy] without [qa-approved] should not release going forward.
 - [deploy] [qa-approved] means one meaningful production release should build after Product Manager, Development Engineer, and QA handoffs are complete.
 
+Deploy budget:
+
+- Default maximum one production deploy train per hour.
+- Default maximum four deploy-triggering commits per calendar day.
+- Bundle two or three compatible small/medium fixes into one release candidate.
+- Never deploy docs-only, roadmap-only, context-only, QA-note-only, or source-only setup commits.
+- If Vercel returns build-rate-limit, deployment-rate-limit, quota, or upgrade-to-Pro, stop deploy-triggering commits, record the blocked release here, and continue only with [skip deploy] source/docs/QA prep until the reset window or explicit owner plan/quota approval.
+
 Canonical Vercel project:
 
 - Project ID: prj_b7CKwanQaKwFQSHInr3l6wsZy9nD
@@ -45,7 +53,7 @@ Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, rel
 
 Required loop: Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
 
-Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, or runtime failure returns immediately to Product Manager for re-scope. Pause only for true owner gates: credentials/auth the agent cannot access, destructive production data changes, spending money, or legal/compliance/privacy/security decisions.
+Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, runtime failure, or rate-limit gate returns immediately to Product Manager for re-scope or [skip deploy] consolidation. Pause only for true owner gates: credentials/auth the agent cannot access, destructive production data changes, spending money/plan approval, or legal/compliance/privacy/security decisions.
 
 Dedicated role briefs:
 
@@ -64,7 +72,7 @@ Current Product Manager scope: do not add new product surface while deploy quota
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
-Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap is current, QA passes, and Vercel canonical project is confirmed.
+Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap is current, QA passes, Vercel canonical project is confirmed, and the Deploy Budget Gate in docs/deployment-discipline.md is satisfied or an emergency/owner-approved exception is recorded.
 
 ## Recently Completed In Source
 
@@ -80,6 +88,7 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Updated AGENTS.md, docs/release-train.md, docs/deployment-discipline.md, and the PM/Deploy role briefs so the release train auto-advances instead of stopping after partial deploy QA handoff.
 - Added stable release-train demo proof paths to docs/funeral-home-flawless-qa.md.
 - Added `/funeral-homes` -> `/funeral-home` and `/funeral-homes/:path*` -> `/funeral-home/:path*` redirects in next.config.js; queued for deploy at 5c04986381385c8821f14282e757e2209ad71e0c but blocked by Vercel rate limit.
+- Added a deploy-budget rule to AGENTS.md, docs/release-train.md, docs/deployment-discipline.md, docs/agents/deploy-agent.md, and this context file so agents batch two or three compatible small/medium fixes and stop creating deploy-triggering commits on Vercel quota gates.
 
 ## Current Product/UX Truth
 
@@ -121,9 +130,10 @@ Family experience should prioritize:
 ## Open Work / Next Actions
 
 1. Do not create additional deploy-triggering commits until the Vercel build-rate-limit gate clears.
-2. Once Vercel can build again, deploy queued commit 5c04986381385c8821f14282e757e2209ad71e0c or make a new coherent release commit only if code changed again.
-3. Verify `/funeral-homes` redirects to `/funeral-home` and nested plural paths redirect to singular nested paths.
-4. Run real browser/Chrome QA after deploy for persona-by-persona testing:
+2. Keep any new docs, context, QA prep, or source consolidation commits [skip deploy] while quota is blocked.
+3. Once Vercel can build again, deploy queued commit 5c04986381385c8821f14282e757e2209ad71e0c or make a new coherent release commit only if code changed again and the Deploy Budget Gate is satisfied.
+4. Verify `/funeral-homes` redirects to `/funeral-home` and nested plural paths redirect to singular nested paths.
+5. Run real browser/Chrome QA after deploy for persona-by-persona testing:
    - Public landing and nav.
    - Urgent path.
    - Funeral-home sales page.
@@ -133,15 +143,16 @@ Family experience should prioritize:
    - Vendor request acceptance/update/quote/completion.
    - Reports/export proof.
    - System Admin owner roadmap after auth.
-5. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
-6. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
-7. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
+6. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
+7. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
+8. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 
 ## Known Watch Items
 
 - Google sign-in and general button behavior recently showed issues and needs live browser QA.
 - Smart address/location lookup during green-path onboarding was reported broken or confusing.
 - Vercel rate limits were hit again on Cycle 2 release commit 5c04986381385c8821f14282e757e2209ad71e0c.
+- Deploy discipline now requires batching two or three compatible small/medium fixes where possible; docs/context/QA notes/source-only setup stay [skip deploy].
 - Support email support@thepassageapp.io is not real and should not be shown as a direct support line.
 - Internal ARR/300k/roadmap/sprint/QA language must never appear on external pages.
 - Demo data has been near-empty before; the funeral-home demo loop must be seeded before claims are made.
@@ -248,3 +259,14 @@ Append or update this section before final response:
 - Failed/blocked: Vercel build rate limit still blocks the queued redirect release. Chrome console noise seen was from browser/extension messaging, not enough to mark a Passage app runtime blocker. Local `npm run agent:check` still not run because local shell is unreliable in this session.
 - Next action: when Vercel build quota clears, deploy 5c04986381385c8821f14282e757e2209ad71e0c and verify `/funeral-homes` redirect plus X-Passage-Commit. Then re-run Chrome hydrated QA on the deployed commit and close Cycle 2 if redirect and persona pages pass.
 - Auto-advance decision: loop is blocked only at Deploy by Vercel build-rate-limit. No further Development work is needed for this narrow Cycle 2 unless the queued deploy later fails build/runtime QA.
+
+### 2026-06-19 - Deploy budget rule hardening
+
+- Date/time: 2026-06-19 20:15 America/New_York.
+- Branch/commit(s): main docs commits 6049fc43, b858308a, ea6b1ee2, 56e82b49, and this context update.
+- Files changed: docs/deployment-discipline.md, AGENTS.md, docs/release-train.md, docs/agents/deploy-agent.md, docs/agent-operating-context.md.
+- Deployed: no. All changes are documentation/process updates with [skip deploy]. Latest production remains 2556914b4c16d9b27b2ca96f3f88432f92db1c6e on dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe. Queued redirect release 5c04986381385c8821f14282e757e2209ad71e0c remains not deployed.
+- Tested: checked official Vercel limits documentation: rate limits are hard limits that reset after duration; Hobby build limit is 32 builds per 3600 seconds and deployment limit is 100 per 86400 seconds. Documentation updated through GitHub connector.
+- Failed/blocked: Vercel build rate limit still blocks the queued redirect release. No new deploy was attempted by this docs hardening.
+- Next action: keep all prep [skip deploy] until Vercel quota clears. Then deploy the existing queued redirect commit if unchanged, or create one coherent release commit only if new code changed and the Deploy Budget Gate is satisfied.
+- Auto-advance decision: return to Product Manager only for [skip deploy] consolidation while quota is blocked; Deploy must not create another deploy-triggering commit until the rate-limit gate clears or the owner explicitly approves plan/quota action.
