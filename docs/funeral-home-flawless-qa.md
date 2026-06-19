@@ -17,6 +17,32 @@ A funeral-home director and employee must be able to complete the core loop with
 9. Export or report case status.
 10. Understand next step to pilot or subscribe.
 
+## Release-Train Demo Proof Paths
+
+Use these stable production paths for post-deploy browser QA before claiming the funeral-home release loop is closed:
+
+- Public buyer page: `/funeral-home`
+- Plural redirect check: `/funeral-homes` must redirect to `/funeral-home`
+- Public sample case: `/funeral-home/sample-case`
+- Public sample workspace: `/funeral-home/workspace-demo`
+- Director demo dashboard: `/funeral-home/dashboard?demo=1&persona=fh-director&demoTour=funeral-home&demoStep=dashboard`
+- Employee demo queue: `/funeral-home/dashboard?demo=1&persona=fh-employee&demoTour=funeral-home&demoStep=task&role=staff&email=arranger@samplefuneralhome.example`
+- Vendor scoped request: `/vendors/request?demo=1&persona=vendor&demoTour=funeral-home&demoStep=vendor`
+- Participant scoped request: `/participating?demo=1&persona=participant&demoTour=funeral-home&demoStep=participant`
+- Family urgent path: `/urgent?demo=1&persona=red-family`
+- Family estate path: `/estate?demo=1&persona=red-family`
+- Owner roadmap: `/system/admin/saas-roadmap`
+
+Fetch-only checks are not enough for demo dashboard, vendor request, participant, estate, or owner roadmap paths because they rely on client-side hydration and/or auth. Use a real browser/Chrome session and collect screenshots. If the owner roadmap remains auth-gated, record that as an expected owner-auth gate; do not weaken access just to make QA easier.
+
+For every deployed release, verify:
+
+- The page renders after hydration, not just server HTML.
+- The browser does not show a client-side crash.
+- The `X-Passage-Commit` response header matches the release commit where the fetch tool can read headers.
+- A screenshot or concise visual note proves the role-specific first screen.
+- Any auth-gated proof is named as auth-gated with the exact account or permission needed.
+
 ## Persona Scripts
 
 ### 1. Prospect Funeral Director
@@ -61,7 +87,7 @@ Evidence to collect:
 
 ### 3. Funeral-Home Employee
 
-Route: `/funeral-home/dashboard?demo=1&persona=fh-employee&demoTour=funeral-home&demoStep=task&role=staff`
+Route: `/funeral-home/dashboard?demo=1&persona=fh-employee&demoTour=funeral-home&demoStep=task&role=staff&email=arranger@samplefuneralhome.example`
 
 Pass criteria:
 - Employee sees assigned work first, not owner/admin clutter.
