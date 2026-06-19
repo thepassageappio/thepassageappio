@@ -30,9 +30,9 @@ Default transitions:
 - QA PASS -> Deploy Agent prepares or verifies release.
 - QA FAIL or PARTIAL -> Product Manager re-scopes before more development.
 - Deploy READY and post-deploy QA PASS -> Product Manager scopes the next highest-leverage roadmap item.
-- Deploy ERROR, runtime failure, wrong-project deploy, or incomplete post-deploy QA -> Product Manager re-scopes the failed or unproven acceptance area before more development.
+- Deploy ERROR, runtime failure, wrong-project deploy, rate-limit gate, or incomplete post-deploy QA -> Product Manager re-scopes the failed or unproven acceptance area before more development.
 
-A final response to the owner is appropriate only when the current loop is genuinely complete, blocked by an owner-approval gate, blocked by unavailable auth/credentials, blocked by a destructive production-data decision, or blocked by legal/compliance/privacy/security judgment. Otherwise the agent should keep moving and record the role transition in docs/agent-operating-context.md.
+A final response to the owner is appropriate only when the current loop is genuinely complete, blocked by an owner-approval gate, blocked by unavailable auth/credentials, blocked by a destructive production-data decision, blocked by a Vercel quota reset with no useful source/docs/QA prep remaining, or blocked by legal/compliance/privacy/security judgment. Otherwise the agent should keep moving and record the role transition in docs/agent-operating-context.md.
 
 ## Magic Phrase
 
@@ -48,7 +48,7 @@ That phrase means:
 4. Move to Development Engineer Agent only after scope is clear.
 5. Move to QA Agent only after development handoff is complete.
 6. Move to Deploy Agent only after QA is PASS or Product Manager approves a PARTIAL as non-blocking.
-7. After Deploy, return to Product Manager if the cycle is complete, failed, partial, or has any unproven post-deploy acceptance area.
+7. After Deploy, return to Product Manager if the cycle is complete, failed, partial, blocked by rate limit, or has any unproven post-deploy acceptance area.
 8. Update docs/agent-operating-context.md before handoff, deploy, final response, or role transition.
 
 A shorter acceptable version is: `Start the Passage release train.` If the exact phrase is present, treat it as the stronger instruction.
@@ -79,10 +79,11 @@ Before development starts, the Product Manager Agent must define:
 - Acceptance criteria.
 - Risks, owner approval gates, and non-goals.
 - Whether this is a deployable release batch or source-only setup.
+- Whether the batch is large enough to spend a deploy slot or should be grouped with the next compatible fix.
 
 If development finds a new gap, confusing UX, broken dependency, or risky expansion, work returns here before more coding. The Product Manager decides whether to fix, split, de-scope, rewrite acceptance, or escalate.
 
-If Deploy records a failed build, runtime failure, post-deploy QA failure, partial verification, or unproven hydrated/authenticated flow, the next Product Manager scope should be the smallest batch that makes that acceptance area provable or decides to split/de-scope it.
+If Deploy records a failed build, runtime failure, post-deploy QA failure, partial verification, rate-limit blocker, or unproven hydrated/authenticated flow, the next Product Manager scope should be the smallest batch that makes that acceptance area provable or decides to split/de-scope it. While rate limited, Product Manager may continue source/docs/QA prep only as [skip deploy].
 
 ## Development Engineer Agent
 
@@ -114,6 +115,21 @@ Because this repo has no preview environment and all non-release commits are [sk
 
 If post-deploy QA is incomplete because browser/auth/demo state is not available, do not mark the loop complete. Return to Product Manager to scope the smallest useful next step: make the QA path runnable, split the blocked flow from the release, or identify the exact owner-gated credential/action required.
 
+## Deploy Budget Gate
+
+A deploy slot is treated as scarce even if Vercel has remaining quota.
+
+Default Passage budget:
+
+- Maximum one production deploy train per hour.
+- Maximum four deploy-triggering commits per calendar day.
+- Bundle two or three compatible small/medium fixes into one release candidate.
+- Use [skip deploy] for docs, context, roadmap, QA notes, source-only setup, and intermediate batching.
+
+Exceptions are limited to production-down incidents, immediate repair of a broken release, security/privacy/compliance fixes approved under Agent Permissions, or explicit owner quota approval.
+
+If Vercel returns build-rate-limit, deployment-rate-limit, quota, or upgrade-to-Pro, the Deploy Agent must stop creating deploy-triggering commits, record the blocked release and current production commit, and return to Product Manager. Product Manager may keep consolidating source/docs/QA prep with [skip deploy], but the next deploy attempt must wait for the reset window or explicit owner plan/quota action.
+
 ## Loop Limit
 
 A release batch gets a maximum of 3 Product Manager -> Development Engineer -> QA cycles.
@@ -136,11 +152,13 @@ The Deploy Agent can deploy only when:
 - docs/agent-operating-context.md is updated.
 - The single website roadmap is updated if priority, sprint, milestone, or product doctrine changed.
 - Vercel project is canonical.
+- No unresolved Vercel rate-limit/quota gate is recorded for the current release train.
+- The release is large enough to spend a deploy slot under the Deploy Budget Gate, or an emergency/owner-approved exception is recorded.
 - The release commit uses [deploy] [qa-approved].
 
 After deployment, the Deploy Agent must record Vercel status, production URL/status, tested flows, failures, and next action in docs/agent-operating-context.md.
 
-Deploy Agent must not end the loop on a partial verification note. If production is repaired but hydrated persona QA remains unproven, immediately return to Product Manager to scope the QA enablement/fix batch.
+Deploy Agent must not end the loop on a partial verification note or a rate-limit note. If production is repaired but hydrated persona QA remains unproven, immediately return to Product Manager to scope the QA enablement/fix batch. If Vercel quota blocks deployment, immediately return to Product Manager to consolidate the next batch while waiting for reset.
 
 ## PR Requirements
 
@@ -151,6 +169,7 @@ Each meaningful batch should use a PR with the Passage release train template. T
 - QA handoff completed.
 - QA Status: PASS.
 - Deploy Decision: APPROVED.
+- Deploy Budget Gate satisfied or exception recorded.
 - Cycle is 1, 2, or 3.
 - Agent context updated.
 
@@ -182,6 +201,14 @@ When Deploy or post-deploy QA is partial, record:
 - Which persona flows remain unproven.
 - Why they remain unproven.
 - Product Manager decision for the next smallest cycle.
+
+When Vercel rate limit or quota blocks deployment, record:
+
+- Blocked release commit.
+- Vercel status or target URL.
+- Current production commit and deployment.
+- Reset/owner gate if known.
+- Whether work can continue as [skip deploy] prep.
 
 ## Best-Practice Bias
 
