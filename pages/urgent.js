@@ -247,7 +247,7 @@ const taskPlaybooks = {
   home: {
     title: 'Home check instructions prepared',
     body: 'Please check the home, pets, vehicle, mail, doors, windows, and any urgent safety concerns. Send a short update when it is handled, including anything that needs another person.',
-    steps: ['Confirm who has keys or access', 'Ask for a photo/update when handled', 'Mark the task handled only after the check is done'],
+    steps: ['Confirm who has keys or access', 'Ask for a photo/update when handled', 'Mark it handled only after the check is done'],
   },
 };
 
@@ -397,7 +397,7 @@ function AssignModal({ task, savedPeople, onClose, onSave }) {
           <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Optional" />
         </div>
 
-        <div className="modal-note">Passage will keep this owner available for other tasks and include task instructions when they receive a Passage assignment.</div>
+        <div className="modal-note">Passage will keep this owner available for other requests and include clear instructions when they receive a Passage assignment.</div>
         <div className="actions">
           <button className="ghost" onClick={onClose}>Cancel</button>
           <button className="primary" disabled={!name.trim()} onClick={() => onSave({ id: personId || `p_${Date.now()}`, name: name.trim(), role: role.trim(), phone: phone.trim(), email: email.trim() })}>
@@ -1222,7 +1222,7 @@ export default function UrgentPage() {
                   />
                 </div>
                 <div style={{ color: proofError ? C.rose : C.mid, fontSize: 12.5, lineHeight: 1.45, fontWeight: proofError ? 800 : 400 }}>
-                  {proofError || (proofSaved === primary.id ? 'Saved. This note stays with the task even if it is not ready to close yet.' : 'Passage keeps handled items tied to proof, not just a checked box.')}
+                  {proofError || (proofSaved === primary.id ? 'Saved. This note stays with the request even if it is not ready to close yet.' : 'Passage keeps handled items tied to proof, not just a checked box.')}
                 </div>
                 <button className="ghost" style={{ marginTop: 12 }} onClick={() => saveProofNote(primary.id)}>
                   Save note
