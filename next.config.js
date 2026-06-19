@@ -28,6 +28,20 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/funeral-homes',
+        destination: '/funeral-home',
+        permanent: true,
+      },
+      {
+        source: '/funeral-homes/:path*',
+        destination: '/funeral-home/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
