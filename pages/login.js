@@ -138,12 +138,16 @@ export default function LoginPage() {
   }, [safeNext]);
 
   async function signIn() {
-    if (!supabase?.auth || typeof window === 'undefined') return;
+    setAuthError('');
+    if (!supabase?.auth || typeof window === 'undefined') {
+      setAuthError('Passage sign-in is not configured in this environment. Use the contact form or book a meeting so we can help you get access.');
+      return;
+    }
     trackEvent('login_google_clicked', { next: safeNext || '' });
     const redirect = safeNext ? `/login?next=${encodeURIComponent(safeNext)}` : '/login';
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + redirect } });
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + redirect } });
+    if (error) setAuthError(error.message || 'Passage could not start Google sign-in. Please try again.');
   }
-
   async function signOut() {
     if (!supabase?.auth) return;
     await supabase.auth.signOut();
