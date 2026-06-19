@@ -74,8 +74,10 @@ const demoParticipantContext = {
 };
 
 async function signIn(returnTo = '/participating') {
-  if (!supabase?.auth) return;
-  await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + returnTo } });
+  if (!supabase?.auth) return { error: 'Sign-in is not configured in this environment. Use the email link or ask the coordinator to resend access.' };
+  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + returnTo } });
+  if (error) return { error: friendlyAuthError(error) };
+  return { error: '' };
 }
 
 function statusLabel(value) {
@@ -884,7 +886,7 @@ export default function ParticipatingPage() {
                 <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7, marginTop: 0 }}>
                   Sign in with Google or send a secure email link. After sign-in, you will land on the specific request assigned to you.
                 </p>
-                <button onClick={() => signIn(router.asPath || '/participating')} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+                <button onClick={async () => { setMagicError(''); const result = await signIn(router.asPath || '/participating'); if (result?.error) setMagicError(result.error); }} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
                 <div style={{ height: 12 }} />
                 {!magicSent ? (
                   <>
