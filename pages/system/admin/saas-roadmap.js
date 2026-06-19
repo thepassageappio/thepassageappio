@@ -54,6 +54,8 @@ const takeaways = [
   ['Persona UAT matrix', 'Chrome UAT active / browser-use bridge blocked', 'Source-audited funeral-home dashboard/staff/cases, vendor onboard/login/request, participant helper requests, care-provider landing, and admin readiness gates for language clarity, action ownership, waiting point, proof, and privacy boundary. The in-app browser-use bridge still refuses the trusted connection, but Chrome-controlled UAT hydrated the funeral-home director and staff demo routes. Staff action dialogs for Mark waiting, Request family info, and Close with proof opened correctly and showed owner, waiting state, proof destination, prepared copy, and demo-safe no-send behavior. Final persona signoff still needs the queued source deployed and rechecked on www.'],
   ['Task-card and request-card clarity', 'Source active / latest copy queued behind rate limit', 'Family and funeral-home cards now use a concrete operator contract: 1. do next, owner, waiting party, message to send or use, status/proof, and privacy boundary. Shared action confirmations, exports, owner assignment hints, bulk assignment notices, help text, dialogs, reports, communication events, reminders, assignment APIs, send/status APIs, vendor request APIs, and expected-update copy now default to next-step/request/client-step language so internal task wording is less likely to leak across personas. The visual model must always show who is involved, who owns the next step, what message Passage prepared, what the user does now, what is waiting, and where proof saves. Public/vendor/helper wording favors request, record, owner, waiting point, proof, and next step; participant confirmations and dialogs now say request instead of task, vendor/care-provider copy no longer leaks task wording or noisy payout-fee language into scoped external requests, and the funeral-home sample case now says work action/work outcomes. Latest deploy still needs custom-domain/browser verification after Vercel rate limits and www routing are corrected.'],
   ['Form validation UAT', 'Source fixed / live domain stale', 'Vendor onboarding now requires business name, ZIPs, and email before submit state, care-provider inquiry shows required organization plus email, and funeral-home setup now requires funeral-home name plus main location before creating a dashboard. Recheck live once www points at latest main.'],
+  ['Green-path onboarding lookup', 'Source fixed / deploy queued', 'Address entry now has a Passage-controlled fallback even when Google Maps is configured: server suggestions still run, Google script failures are handled, and users can choose Use typed address instead of getting stuck. Recheck urgent green-path, funeral-home setup, vendor onboarding, and any care-provider address capture once Vercel deploys.'],
+  ['Support and sign-in reliability', 'Source fixed / deploy queued', 'Removed the dead support email from contact/footer surfaces, routed contact form delivery to CONTACT_TO_EMAIL first with owner email fallback, and made Google sign-in failures visible on global login, vendor login, funeral-home setup, participant access, System Admin, and this roadmap. Next deploy must verify each role can either sign in or see a clear reason and alternate path.'],
   ['Admin session UAT', 'Source fixed / live recheck blocked', 'Admin users now get a dedicated Admin action outside the public audience nav, and System Admin remains the single internal cabinet. Recheck on www after the correct production domain is pointing at latest main.'],
   ['Release configuration', 'P0 duplicate production targets', 'GitHub reports two Vercel production contexts on each commit: thepassageappio and you-are-working-on-a-production. Middleware now adds X-Passage-Commit and no-store headers for non-static responses; still confirm which project owns www, remove or disable the stray production target, and purge Cloudflare/cache before public promotion.'],
   ['Admin operating model', 'Reworked', 'Internal tools live in the System Admin cabinet with grouped accordions; enterprise readiness now uses task readiness / funeral-home workflow language instead of spine jargon, and no standalone roadmap/QA/admin top-level tabs should exist.'],
@@ -116,6 +118,8 @@ const sprints = [
       'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing, inbound family requests, and clear work-card contracts.',
       'Funeral-home employee: assigned work, context, drafted message, waiting/stuck-point state, family-visible boundary, close-with-proof, and no unclear extra actions.',
       'Vendor: scoped request, quote/update, quote approval, scheduled work, completion proof, no family-record browsing, and required-field validation that never feels stuck.',
+      'Green-path onboarding: address/funeral-home lookup must show suggestions when available and Use typed address when Google Maps or server suggestions are unavailable; no user should be trapped by a silent dropdown failure.',
+      'Access reliability: global login, funeral-home setup, vendor, participant, and System Admin sign-in buttons must show a clear failure state and alternate path when auth is missing or OAuth fails.',
     ],
     acceptance: 'Every persona has one clear next action, action pending/status/proof language, and no internal product language.',
   },
@@ -154,6 +158,7 @@ function isSystemAdmin(user) {
 export default function SaasRoadmapPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     if (!supabase) {
@@ -174,8 +179,13 @@ export default function SaasRoadmapPage() {
   const admin = useMemo(() => isSystemAdmin(user), [user]);
 
   async function signIn() {
-    if (!supabase || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    setAuthError('');
+    if (!supabase || typeof window === 'undefined') {
+      setAuthError('Passage sign-in is not configured in this environment. Use the main login page or contact the owner inbox.');
+      return;
+    }
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    if (error) setAuthError(error.message || 'Passage could not start Google sign-in. Please try again.');
   }
 
   async function signOut() {
@@ -197,6 +207,7 @@ export default function SaasRoadmapPage() {
             <h1 style={h1}>This plan is restricted.</h1>
             <p style={lead}>Sign in with the Passage owner account to view the internal SaaS roadmap.</p>
             <button onClick={signIn} style={primaryButton}>Sign in</button>
+            {authError && <div style={{ marginTop: 12, background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 12, padding: '10px 12px', fontSize: 13.5, lineHeight: 1.45 }}>{authError}</div>}
           </Panel>
         </section>
       </Shell>
