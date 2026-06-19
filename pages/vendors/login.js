@@ -58,7 +58,7 @@ export default function VendorLogin() {
   async function signIn() {
     setError('');
     if (typeof window === 'undefined') return;
-    window.location.assign('/api/auth/google?next=' + encodeURIComponent('/vendors/request'));
+    window.location.assign('/auth/google?next=' + encodeURIComponent('/vendors/request'));
   }
 
   async function sendMagicLink() {

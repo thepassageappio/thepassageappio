@@ -85,7 +85,7 @@ export default function FuneralHomeSetupPage() {
   async function signInGoogle() {
     setError('');
     if (typeof window === 'undefined') return;
-    window.location.assign('/api/auth/google?next=' + encodeURIComponent('/funeral-home/setup'));
+    window.location.assign('/auth/google?next=' + encodeURIComponent('/funeral-home/setup'));
   }
 
   async function sendMagicLink() {
