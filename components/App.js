@@ -1969,7 +1969,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
    <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto" }}>
     <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
 
-    <Heading size={18}>{step === "pick" ? "Assign this task": "Add their details"}</Heading>
+    <Heading size={18}>{step === "pick" ? "Assign this request": "Add their details"}</Heading>
     <div style={{ fontSize: 12.5, color: C.mid, background: C.bgSubtle, borderRadius: 9, padding: "9px 13px", marginBottom: 18, lineHeight: 1.4 }}>{task.title}</div>
     {sendError && (
      <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}55`, color: C.rose, borderRadius: 11, padding: "10px 12px", marginBottom: 14, fontSize: 12.5, lineHeight: 1.45, fontWeight: 700 }}>

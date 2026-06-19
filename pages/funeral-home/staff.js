@@ -52,11 +52,11 @@ export default function FuneralHomeStaffLogin() {
           <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Funeral-home staff</div>
           <h1 style={{ fontSize: 52, lineHeight: 1, margin: '10px 0 12px', fontWeight: 400 }}>Open the work assigned to you.</h1>
           <p style={{ color: C.mid, fontSize: 15.5, lineHeight: 1.62, margin: 0 }}>
-            Staff sign in with the email invited by a director. Passage opens assigned case work first: what is due, what is waiting, and what proof closes the loop.
+            Staff sign in with the email invited by a director. Passage opens assigned client steps first: what is due, what is waiting, and what proof closes the loop.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 9, margin: '18px 0' }}>
             {[
-              ['Your queue', 'Only work assigned to you appears first.'],
+              ['Your queue', 'Only client steps assigned to you appear first.'],
               ['Case context', 'You see the family-facing status and the next expected update.'],
               ['Proof', 'Notes, proof, and completion updates return to the case record.'],
             ].map(([title, body]) => (

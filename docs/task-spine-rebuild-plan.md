@@ -237,9 +237,9 @@ Preference UI should be simple:
 
 - Family coordinator: "How should Passage notify you about this estate?"
 - Participant/helper: "How should Passage contact you about assigned work?"
-- Funeral-home employee: "How should Passage notify you about assigned case work?"
+- Funeral-home employee: "How should Passage notify you about assigned client steps?"
 - Funeral-home director/admin: "How should Passage notify you about case escalations, reports, and staff updates?"
-- Vendor: "How should Passage send task-linked requests and quote/status updates?"
+- Vendor: "How should Passage send scoped requests and quote/status updates?"
 
 No real SMS should be sent without the existing owner approval gates and provider compliance being respected. If SMS is not approved/configured, the UI should say "text draft" or "email fallback" instead of pretending it sent.
 

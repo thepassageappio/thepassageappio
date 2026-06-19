@@ -27,7 +27,7 @@ const roleCards = [
   {
     eyebrow: 'Customer login',
     title: 'Staff queue',
-    body: 'Open assigned case work first: what is due, what is waiting, the drafted ask, and the proof needed to close the loop.',
+    body: 'Open assigned client steps first: what is due, what is waiting, the drafted ask, and the proof needed to close the loop.',
     href: '/funeral-home/staff',
     action: 'Open staff login',
   },

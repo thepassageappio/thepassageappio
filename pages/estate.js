@@ -3558,7 +3558,7 @@ export default function EstatePage() {
     var recipientEmail = taskAssignedEmail(task);
     var recipientName = taskAssignedName(task) || recipientEmail || 'recipient';
     if (!recipientEmail) {
-      showToast('Assign this task to someone with an email before sending through Passage.');
+      showToast('Assign this request to someone with an email before sending through Passage.');
       return;
     }
     var body = String(messageText || '').trim();
@@ -4351,12 +4351,12 @@ export default function EstatePage() {
               });
               return (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this task' : pendingTaskAction.status === 'handled' ? 'Mark done with proof' : pendingTaskAction.status === 'waiting' ? 'Mark waiting' : 'Save this update'}</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this request' : pendingTaskAction.status === 'handled' ? 'Mark done with proof' : pendingTaskAction.status === 'waiting' ? 'Mark waiting' : 'Save this update'}</div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{displayTaskTitle(pendingTaskAction.task)}</div>
                   <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{promptText}</div>
                   {pendingTaskAction.status === 'handled' && (
                     <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '9px 10px', color: SAGE, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45, marginTop: 10 }}>
-                      This closes the task. Add the proof, reference, file, or short note the family should be able to trust later.
+                      This closes the request. Add the proof, reference, file, or short note the family should be able to trust later.
                     </div>
                   )}
                   <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px', marginTop: 12 }}>
