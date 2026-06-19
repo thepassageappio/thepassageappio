@@ -598,10 +598,7 @@ const handleCheckout = async (planId, userId, userEmail, workflowId = null) => {
      createdAt: new Date().toISOString(),
     }));
    }
-   await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: SITE_URL },
-   });
+   window.location.assign('/auth/google?next=' + encodeURIComponent('/'));
    return;
   }
   const { data: sessionData } = await supabase.auth.getSession();
@@ -812,10 +809,7 @@ const safeFileName = (name) => String(name || 'file')
 .slice(0, 90);
 
 const handleSignInWithGoogle = async () => {
- await supabase.auth.signInWithOAuth({
-  provider: 'google',
-  options: { redirectTo: SITE_URL },
- });
+ window.location.assign('/auth/google?next=' + encodeURIComponent('/'));
 };
 
 // MERGE helper merge DB tasks back onto static task list 

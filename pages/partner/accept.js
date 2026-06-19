@@ -51,10 +51,7 @@ export default function PartnerAcceptPage() {
 
   async function signInWithGoogle() {
     if (!supabase?.auth || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + dashboardHref },
-    });
+    window.location.assign('/auth/google?next=' + encodeURIComponent(dashboardHref));
   }
 
   async function sendMagicLink() {

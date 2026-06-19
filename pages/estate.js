@@ -3104,7 +3104,7 @@ export default function EstatePage() {
 
   async function signInToEstate() {
     if (!sb?.auth || typeof window === 'undefined') return;
-    await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    window.location.assign('/auth/google?next=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash));
   }
 
   useEffect(function() {

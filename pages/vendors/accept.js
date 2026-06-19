@@ -47,10 +47,7 @@ export default function VendorAcceptPage() {
 
   async function signInWithGoogle() {
     if (!supabase?.auth || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + workspaceHref },
-    });
+    window.location.assign('/auth/google?next=' + encodeURIComponent(workspaceHref));
   }
 
   async function sendMagicLink() {

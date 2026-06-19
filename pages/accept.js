@@ -65,10 +65,8 @@ export default function AcceptInvitePage() {
 
   async function signIn() {
     if (!supabase?.auth) return setError('Sign-in is not configured in this environment.');
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${SITE_URL}/accept?token=${encodeURIComponent(inviteToken)}` },
-    });
+    const next = '/accept?token=' + encodeURIComponent(inviteToken || '');
+    window.location.assign('/auth/google?next=' + encodeURIComponent(next));
   }
 
   async function sendMagicLink() {

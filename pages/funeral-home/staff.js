@@ -41,7 +41,7 @@ export default function FuneralHomeStaffLogin() {
 
   async function signInGoogle() {
     if (!supabase?.auth || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/funeral-home/dashboard?staff=1` } });
+    window.location.assign('/auth/google?next=' + encodeURIComponent('/funeral-home/dashboard?staff=1'));
   }
 
   return (

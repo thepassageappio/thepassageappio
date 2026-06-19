@@ -878,7 +878,7 @@ export default function FuneralHomeDashboard() {
       setError('Supabase browser auth is not configured in this environment.');
       return;
     }
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/funeral-home/dashboard' } });
+    window.location.assign('/auth/google?next=' + encodeURIComponent('/funeral-home/dashboard'));
   }
 
   async function signInWithPassword(event) {

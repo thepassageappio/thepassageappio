@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { recordTaskCommunicationEvent } from '../../lib/communicationEvents';
 import { isPassageAdmin } from '../../lib/adminAccess';
-import { taskActionConfirmation, taskActionOutcomeStatus } from '../../lib/taskActions';
+import { normalizeTaskAction, taskActionConfirmation, taskActionOutcomeStatus, taskActionStatus } from '../../lib/taskActions';
 import { verifyDeliveryRequest } from '../../lib/deliveryAuth';
 import { insertNotificationLog, qaAuditFields, routeEmailRecipients } from '../../lib/notificationSafety';
 import { passageEmailShell, passageSubject } from '../../lib/brandedEmail';
@@ -17,8 +17,11 @@ function missingColumnFrom(error) {
 }
 
 function normalizePartnerAction(value) {
-  const action = String(value || 'handled').trim().toLowerCase();
-  if (['handled', 'waiting', 'blocked'].includes(action)) return action;
+  const normalized = normalizeTaskAction(value || 'handled');
+  const status = taskActionStatus(normalized);
+  if (status === 'handled') return 'handled';
+  if (status === 'waiting') return 'waiting';
+  if (status === 'blocked') return 'blocked';
   return 'handled';
 }
 

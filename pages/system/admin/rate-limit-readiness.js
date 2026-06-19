@@ -32,7 +32,7 @@ export default function RateLimitReadinessPage() {
 
   async function signIn() {
     if (!supabase || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    window.location.assign('/auth/google?next=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash));
   }
 
   async function signOut() {

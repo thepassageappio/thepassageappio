@@ -509,7 +509,7 @@ export default function UrgentPage() {
     } catch {}
     try {
       if (!supabase?.auth) throw new Error('Passage sign-in is not configured in this environment.');
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + '/urgent' } });
+      const { error } = window.location.assign('/auth/google?next=' + encodeURIComponent('/urgent'));
       if (error) throw error;
     } catch (error) {
       setSaveError(error?.message || 'Passage could not start sign-in. Please try again.');
