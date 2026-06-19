@@ -2403,6 +2403,12 @@ export default function FuneralHomeDashboard() {
     const tasks = reportScopedTasks.filter(task => String(task.assigned_to_email || '').toLowerCase() === member.email);
     const hourly = hourlyCostForEmail(member.email);
     const handled = tasks.filter(taskIsClosed);
+    const waiting = tasks.filter(taskIsWaiting);
+    const blocked = tasks.filter(taskNeedsHelp);
+    const stale = waiting.filter(task => riskAgeHours(task.last_action_at || task.updated_at || task.created_at) >= 24);
+    const automated = tasks.filter(task => /automated/i.test(String(task.automation_level || task.automationLevel || task.playbook?.automationLevel || '')) && !/semi/i.test(String(task.automation_level || task.automationLevel || ''))).length;
+    const semiAutomated = tasks.filter(task => /semi|prepared|draft|route/i.test(String(task.automation_level || task.automationLevel || task.playbook?.automationLevel || task.playbook?.automationLabel || task.playbook?.automationShortLabel || ''))).length;
+    const automationCoverage = tasks.length ? Math.round(((automated + semiAutomated) / tasks.length) * 100) + '%' : '0%';
     const cost = handled.reduce((sum, task) => sum + taskCostEstimate(task), 0);
     return [
       member.label || member.email,
@@ -2412,14 +2418,28 @@ export default function FuneralHomeDashboard() {
       handled.length,
       cost ? moneyDisplay(cost) : '$0',
       handled.length && cost ? moneyDisplay(cost / handled.length) : '$0',
-      tasks.filter(taskIsWaiting).length,
-      tasks.filter(taskNeedsHelp).length,
+      waiting.length,
+      blocked.length,
+      stale.length,
+      automationCoverage,
     ];
   }).filter(row => row[2] || reportStaff !== 'all');
   if ((reportStaff === 'all' || reportStaff === 'unassigned') && reportScopedTasks.some(task => !task.assigned_to_email && !task.assigned_to_name)) {
     const tasks = reportScopedTasks.filter(task => !task.assigned_to_email && !task.assigned_to_name);
-    reportEmployeeRows.push(['Unassigned', 'Needs owner', 'Not set', tasks.length, 0, '$0', '$0', tasks.filter(taskIsWaiting).length, tasks.filter(taskNeedsHelp).length]);
+    const waiting = tasks.filter(taskIsWaiting);
+    const stale = waiting.filter(task => riskAgeHours(task.last_action_at || task.updated_at || task.created_at) >= 24);
+    reportEmployeeRows.push(['Unassigned', 'Needs owner', 'Not set', tasks.length, 0, '$0', '$0', waiting.length, tasks.filter(taskNeedsHelp).length, stale.length, '0%']);
   }
+
+  const reportVendorRows = reportScopedVendorRequests.map(request => [
+    request.vendors?.business_name || request.vendorName || request.business_name || 'Vendor contact',
+    request.caseName || 'Family case',
+    request.task_title || request.title || 'Vendor request',
+    String(request.status || 'requested').replace(/_/g, ' '),
+    request.payment_collection_status || 'Not collected',
+    vendorValue(request) ? moneyDisplay(vendorValue(request)) : '$0',
+    request.completed_at ? 'Completion proof saved' : request.in_progress_at ? 'Scheduled / in progress' : request.responded_at ? 'Quote waiting for approval' : 'Waiting on vendor response',
+  ]).slice(0, 18);
   const reportTaskSummaryRows = Array.from(reportScopedTasks.reduce((map, task) => {
     const title = sharedTaskTitle(task);
     const row = map.get(title) || { title, total: 0, handled: 0, waiting: 0, blocked: 0 };
@@ -4142,6 +4162,7 @@ export default function FuneralHomeDashboard() {
                   ['locations', 'Locations'],
                   ['staff', 'Staff'],
                   ['tasks', 'Tasks'],
+                  ['vendors', 'Vendors'],
                   ['inbounds', 'Family requests'],
                   ['cases', 'Cases'],
                 ].map(([key, label]) => (
@@ -4230,7 +4251,7 @@ export default function FuneralHomeDashboard() {
             {reportView === 'staff' && (
               <ReportTable
                 title="By employee"
-                columns={['Employee', 'Role', 'Private cost', 'Tasks', 'Handled', 'Est. cost', 'Cost / task', 'Waiting', 'Needs help']}
+                columns={['Employee', 'Role', 'Private cost', 'Tasks', 'Handled', 'Est. cost', 'Cost / task', 'Waiting', 'Needs help', 'Stale waiting', 'Automation %']}
                 rows={reportEmployeeRows}
               />
             )}
@@ -4239,6 +4260,13 @@ export default function FuneralHomeDashboard() {
                 title="By task type"
                 columns={['Task', 'Total', 'Handled', 'Waiting', 'Needs help']}
                 rows={reportTaskSummaryRows}
+              />
+            )}
+            {reportView === 'vendors' && (
+              <ReportTable
+                title="Vendor coordination"
+                columns={['Vendor', 'Case', 'Request', 'Status', 'Payment', 'Value', 'Next proof point']}
+                rows={reportVendorRows}
               />
             )}
             {reportView === 'inbounds' && (
