@@ -53,7 +53,9 @@ Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, rel
 
 Required loop: Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
 
-Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, runtime failure, or rate-limit gate returns immediately to Product Manager for re-scope or [skip deploy] consolidation. Pause only for true owner gates: credentials/auth the agent cannot access, destructive production data changes, spending money/plan approval, or legal/compliance/privacy/security decisions.
+Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, runtime failure, or rate-limit gate returns immediately to Product Manager for re-scope or [skip deploy] consolidation. Pause only for true owner gates: credentials/auth the agent cannot access after safe browser/Chrome/Claude-in-Chrome paths were tried, destructive production data changes, spending money/plan approval, or legal/compliance/privacy/security decisions.
+
+Self-service rule: user is last resort. Before asking the owner to restart, decide, click, verify, research, or unblock, agents must try safe available paths: repo docs, source review, tests/builds, GitHub/Vercel connectors, browser/Chrome automation, and a signed-in Claude session in Chrome when available. Claude in Chrome may assist with research, handoff review, agent-to-agent coordination, or authenticated browser-state checking, but it must not bypass Agent Permissions, spend money, reveal/request secrets, send real communications, make destructive production changes, or decide legal/privacy/security/compliance matters. Record whether Claude in Chrome was available or used.
 
 Dedicated role briefs:
 
@@ -89,6 +91,7 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Added stable release-train demo proof paths to docs/funeral-home-flawless-qa.md.
 - Added `/funeral-homes` -> `/funeral-home` and `/funeral-homes/:path*` -> `/funeral-home/:path*` redirects in next.config.js; queued for deploy at 5c04986381385c8821f14282e757e2209ad71e0c but blocked by Vercel rate limit.
 - Added a deploy-budget rule to AGENTS.md, docs/release-train.md, docs/deployment-discipline.md, docs/agents/deploy-agent.md, and this context file so agents batch two or three compatible small/medium fixes and stop creating deploy-triggering commits on Vercel quota gates.
+- Added the owner-last-resort / Claude-in-Chrome self-service rule to the scheduled automation prompt, AGENTS.md, docs/release-train.md, docs/agents/product-manager.md, and this context file.
 
 ## Current Product/UX Truth
 
@@ -131,9 +134,10 @@ Family experience should prioritize:
 
 1. Do not create additional deploy-triggering commits until the Vercel build-rate-limit gate clears.
 2. Keep any new docs, context, QA prep, or source consolidation commits [skip deploy] while quota is blocked.
-3. Once Vercel can build again, deploy queued commit 5c04986381385c8821f14282e757e2209ad71e0c or make a new coherent release commit only if code changed again and the Deploy Budget Gate is satisfied.
-4. Verify `/funeral-homes` redirects to `/funeral-home` and nested plural paths redirect to singular nested paths.
-5. Run real browser/Chrome QA after deploy for persona-by-persona testing:
+3. Before asking the owner for help, try safe self-service paths including Chrome/browser automation and Claude in Chrome if available.
+4. Once Vercel can build again, deploy queued commit 5c04986381385c8821f14282e757e2209ad71e0c or make a new coherent release commit only if code changed again and the Deploy Budget Gate is satisfied.
+5. Verify `/funeral-homes` redirects to `/funeral-home` and nested plural paths redirect to singular nested paths.
+6. Run real browser/Chrome QA after deploy for persona-by-persona testing:
    - Public landing and nav.
    - Urgent path.
    - Funeral-home sales page.
@@ -143,9 +147,9 @@ Family experience should prioritize:
    - Vendor request acceptance/update/quote/completion.
    - Reports/export proof.
    - System Admin owner roadmap after auth.
-6. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
-7. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
-8. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
+7. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
+8. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
+9. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 
 ## Known Watch Items
 
@@ -153,6 +157,7 @@ Family experience should prioritize:
 - Smart address/location lookup during green-path onboarding was reported broken or confusing.
 - Vercel rate limits were hit again on Cycle 2 release commit 5c04986381385c8821f14282e757e2209ad71e0c.
 - Deploy discipline now requires batching two or three compatible small/medium fixes where possible; docs/context/QA notes/source-only setup stay [skip deploy].
+- Owner escalation should be last resort after repo docs, connectors, browser/Chrome, and Claude in Chrome have been tried where safe.
 - Support email support@thepassageapp.io is not real and should not be shown as a direct support line.
 - Internal ARR/300k/roadmap/sprint/QA language must never appear on external pages.
 - Demo data has been near-empty before; the funeral-home demo loop must be seeded before claims are made.
@@ -168,6 +173,7 @@ Append or update this section before final response:
 - Deployed: yes/no, Vercel deployment URL/status:
 - Tested:
 - Failed/blocked:
+- Self-service attempted / Claude in Chrome:
 - Next action:
 - Auto-advance decision:
 
@@ -270,3 +276,15 @@ Append or update this section before final response:
 - Failed/blocked: Vercel build rate limit still blocks the queued redirect release. No new deploy was attempted by this docs hardening.
 - Next action: keep all prep [skip deploy] until Vercel quota clears. Then deploy the existing queued redirect commit if unchanged, or create one coherent release commit only if new code changed and the Deploy Budget Gate is satisfied.
 - Auto-advance decision: return to Product Manager only for [skip deploy] consolidation while quota is blocked; Deploy must not create another deploy-triggering commit until the rate-limit gate clears or the owner explicitly approves plan/quota action.
+
+### 2026-06-19 - Claude in Chrome self-service hardening
+
+- Date/time: 2026-06-19 20:35 America/New_York.
+- Branch/commit(s): main docs commits 520743eb, 3c0b7e61, fc98552e, and this context update. Automation `passage-release-train-loop` prompt was also updated.
+- Files changed: AGENTS.md, docs/release-train.md, docs/agents/product-manager.md, docs/agent-operating-context.md. Automation prompt changed in Codex app.
+- Deployed: no. All changes are documentation/process updates with [skip deploy]. Latest production remains 2556914b4c16d9b27b2ca96f3f88432f92db1c6e on dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe. Queued redirect release 5c04986381385c8821f14282e757e2209ad71e0c remains not deployed.
+- Tested: automation prompt updated to include user-last-resort/self-service rule. Docs updated through GitHub connector. No production deploy attempted.
+- Failed/blocked: Vercel build rate limit may still mark [skip deploy] docs commits as failed status noise. This did not represent an intended production deploy.
+- Self-service attempted / Claude in Chrome: no Claude-in-Chrome task was needed for this docs hardening. Rule now says future agents should try Claude in Chrome when safely available before owner escalation.
+- Next action: scheduled loop should use docs as source of truth, try repo/connectors/browser/Chrome/Claude-in-Chrome self-service before owner escalation, and wait for Vercel quota before deploying the queued redirect release.
+- Auto-advance decision: no product development should start solely from this instruction update. The next scheduled release-train run can continue from Product Manager with the owner-last-resort rule active.
