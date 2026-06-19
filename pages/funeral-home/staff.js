@@ -67,9 +67,12 @@ export default function FuneralHomeStaffLogin() {
             ))}
           </div>
           {error && <div style={{ background: '#fdf3f3', border: '1px solid #c47a7a33', color: '#c47a7a', borderRadius: 12, padding: 10, fontSize: 13, lineHeight: 1.45, marginBottom: 10 }}>{error}</div>}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8, alignItems: 'center', maxWidth: 560 }}>
-            <input value={email} onChange={event => { setEmail(event.target.value); setError(''); setSent(false); }} type="email" placeholder="employee@funeralhome.com" style={{ border: `1.5px solid ${error ? '#c47a7a' : C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
+          <div style={{ display: 'grid', gap: 6, maxWidth: 560 }}>
+            <label htmlFor="funeral-home-staff-email" style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Work email</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8, alignItems: 'center' }}>
+            <input id="funeral-home-staff-email" value={email} onChange={event => { setEmail(event.target.value); setError(''); setSent(false); }} type="email" placeholder="employee@funeralhome.com" style={{ border: `1.5px solid ${error ? '#c47a7a' : C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
             <button disabled={magicLoading} onClick={sendMagicLink} style={{ minHeight: 48, border: 'none', background: C.sage, color: '#fff', borderRadius: 13, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: magicLoading ? 'wait' : 'pointer', opacity: magicLoading ? .65 : 1 }}>{magicLoading ? 'Sending...' : 'Email link'}</button>
+            </div>
           </div>
           {sent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45, marginTop: 10 }}>Check your email. The secure link opens your staff queue.</div>}
           <button onClick={signInGoogle} style={{ marginTop: 10, minHeight: 48, border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>

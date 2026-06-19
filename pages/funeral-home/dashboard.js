@@ -3272,7 +3272,7 @@ export default function FuneralHomeDashboard() {
                 </div>
                 <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{isDirectorRole ? 'All cases, staff queues, location scope, reports, and delegation.' : 'Assigned client steps first. Case context stays attached to each step.'}</div>
               </div>
-              <button onClick={() => setShowDirectorHelp(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>?</button>
+              <button onClick={() => setShowDirectorHelp(true)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '8px 11px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer' }}>Guide</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
               {glanceItems.slice(0, 4).map(([label, value]) => (

@@ -116,7 +116,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
               <Link href="/hospice#start-warm-workspace" style={secondaryLink}>Create family care-prep record</Link>
             </div>
             <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 14 }}>
-              <strong style={{ color: C.ink }}>Purpose of this page:</strong> start a care-team inquiry, book a walkthrough, or help a family begin a care-prep record. This is not an operating dashboard; active family work stays inside permissioned Passage records.
+              Start an inquiry, book a walkthrough, or help a family begin a care-prep record. Active family work stays inside permissioned Passage records.
             </div>
             <div className="care-purpose-grid" style={purposeGrid}>
               {purposes.map(([title, body]) => (
