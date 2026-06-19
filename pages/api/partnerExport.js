@@ -116,6 +116,25 @@ function workflowCaseType(workflow) {
     : 'At-need';
 }
 
+function exportAutomationLevel(task) {
+  const explicit = String(task?.automation_level || task?.automationLevel || task?.playbook?.automationLevel || '').toLowerCase();
+  if (explicit.includes('auto') && !explicit.includes('semi')) return 'Automated';
+  if (explicit.includes('semi') || task?.playbook?.automationLabel || task?.playbook?.automationShortLabel) return 'Semi-automated';
+  return 'Manual guidance';
+}
+
+function exportCommunicationAudience(task, communication, vendorRequest) {
+  if (vendorRequest) return vendorRequest.vendors?.business_name || vendorRequest.vendors?.contact_email || 'Vendor contact';
+  return task?.communication_audience || task?.recipient || task?.assigned_to_name || task?.assigned_to_email || communication?.recipient_name || communication?.recipient_email || 'Family coordinator';
+}
+
+function exportReviewBoundary(task, communication, vendorRequest) {
+  if (vendorRequest) return 'Scoped vendor request: quote, approval, payment, schedule, and completion proof.';
+  if (communication) return 'Message delivery logged to the case record.';
+  if (task) return 'Prepared for review; save proof and send only after the funeral-home team approves the audience and wording.';
+  return '';
+}
+
 function taskDetail(task, fallback = '') {
   if (!task) return '';
   return [task.title, task.waiting_on || task.notes || task.proof_required || fallback]
@@ -151,6 +170,9 @@ function buildCsv(rows) {
     'Assigned participant',
     'Status',
     'Waiting on',
+    'Communication audience',
+    'Automation level',
+    'Review boundary',
     'Proof needed',
     'Proof / note saved',
     'Last action at',
@@ -193,6 +215,9 @@ function buildCsv(rows) {
       task?.assigned_to_name || task?.assigned_to_email,
       vendorRequest?.status || communication?.status || task?.status || workflow.status,
       task?.waiting_on,
+      exportCommunicationAudience(task, communication, vendorRequest),
+      vendorRequest ? 'Semi-automated' : communication ? 'Automated' : task ? exportAutomationLevel(task) : '',
+      exportReviewBoundary(task, communication, vendorRequest),
       task?.proof_required,
       task?.notes,
       task?.last_action_at,

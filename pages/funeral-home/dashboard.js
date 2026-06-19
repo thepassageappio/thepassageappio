@@ -531,12 +531,23 @@ function exportCsvCell(value) {
   return `"${text.replace(/"/g, '""')}"`;
 }
 
+
+function taskReportContract(task, item = {}) {
+  const context = {
+    caseName: item?.deceased_name || item?.estate_name || item?.name || item?.caseName || 'Family case',
+    coordinatorName: item?.coordinator_name || item?.coordinatorName || item?.primaryContactName || '',
+    role: 'funeral_home_director',
+    surface: 'Export and report',
+  };
+  return taskOperatingContractFor(task || {}, context);
+}
+
 function buildDemoPartnerExport(data, view = 'spine') {
   const cases = data?.cases || [];
   const summaryView = view === 'cases';
   const rows = summaryView
     ? [['Case', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Prepaid amount', 'Family contact', 'Family email', 'Location', 'Open client steps', 'Waiting client steps', 'Handled client steps', 'Next move', 'Updated at']]
-    : [['Case', 'Record type', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Family contact', 'Family email', 'Location', 'Client step / request', 'Owner', 'Status', 'Waiting on', 'Proof / reporting']];
+    : [['Case', 'Record type', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Family contact', 'Family email', 'Location', 'Client step / request', 'Owner', 'Status', 'Waiting on', 'Communication audience', 'Automation level', 'Review boundary', 'Proof / reporting']];
 
   for (const item of cases) {
     const tasks = [...(item.partnerTasks || []), ...(item.tasks || [])];
@@ -566,9 +577,10 @@ function buildDemoPartnerExport(data, view = 'spine') {
     }
 
     if (!tasks.length) {
-      rows.push([caseName, 'case', item.caseType || 'At-need', item.caseReference || '', caseValueNumber(item) || '', caseFinancials(item)?.is_prepaid ? 'Yes' : 'No', item.coordinatorName || '', item.coordinatorEmail || '', item.location || 'Main location', 'No open work', '', item.status || '', '', '']);
+      rows.push([caseName, 'case', item.caseType || 'At-need', item.caseReference || '', caseValueNumber(item) || '', caseFinancials(item)?.is_prepaid ? 'Yes' : 'No', item.coordinatorName || '', item.coordinatorEmail || '', item.location || 'Main location', 'No open work', '', item.status || '', '', '', '', '', '']);
     }
     for (const task of tasks) {
+      const contract = taskReportContract(task, item);
       rows.push([
         caseName,
         'work_item',
@@ -582,8 +594,11 @@ function buildDemoPartnerExport(data, view = 'spine') {
         task.title,
         task.assigned_to_name || task.assigned_to_email || task.owner || '',
         task.status || '',
-        task.waiting_on || task.playbook?.waitingOn || '',
-        task.proof_required || task.playbook?.proofRequired || 'Status, proof, and export trail',
+        contract.waitingOn || task.waiting_on || task.playbook?.waitingOn || '',
+        contract.communication.audience,
+        contract.automation.label,
+        contract.communication.reviewBoundary,
+        contract.proofDestination || task.proof_required || task.playbook?.proofRequired || 'Status, proof, and export trail',
       ]);
     }
     for (const request of item.vendorRequests || []) {
@@ -601,6 +616,9 @@ function buildDemoPartnerExport(data, view = 'spine') {
         request.vendorName || request.business_name || '',
         request.status || '',
         request.waiting_on || 'Vendor response',
+        request.vendors?.business_name || request.vendorName || 'Vendor contact',
+        'Semi-automated',
+        'Quote, approval, payment, schedule, and completion proof stay scoped to this vendor request.',
         'Viewed/responded timestamps and status report back to the case',
       ]);
     }
@@ -2334,6 +2352,14 @@ export default function FuneralHomeDashboard() {
   const reportWaitingTasks = reportScopedTasks.filter(taskIsWaiting);
   const reportBlockedTasks = reportScopedTasks.filter(taskNeedsHelp);
   const reportAssignments = reportScopedTasks.filter(task => task.assigned_to_email || task.assigned_to_name || task.owner_name || task.participant_id);
+  const reportAutomatedTasks = reportScopedTasks.filter(task => /automated/i.test(String(task.automation_level || task.automationLevel || task.playbook?.automationLevel || '')) && !/semi/i.test(String(task.automation_level || task.automationLevel || task.playbook?.automationLevel || ''))).length;
+  const reportSemiAutomatedTasks = reportScopedTasks.filter(task => /semi|prepared|draft|route/i.test(String(task.automation_level || task.automationLevel || task.playbook?.automationLevel || task.playbook?.automationLabel || task.playbook?.automationShortLabel || ''))).length;
+  const reportManualTasks = Math.max(0, reportScopedTasks.length - reportAutomatedTasks - reportSemiAutomatedTasks);
+  const reportAutomationCoverage = reportScopedTasks.length ? Math.round(((reportAutomatedTasks + reportSemiAutomatedTasks) / reportScopedTasks.length) * 100) : 0;
+  const reportUnassignedTasks = reportScopedTasks.filter(task => taskIsOpen(task) && !task.assigned_to_email && !task.assigned_to_name && !task.owner_name).length;
+  const reportStaleWaitingTasks = reportScopedTasks.filter(task => taskIsWaiting(task) && riskAgeHours(task.last_action_at || task.updated_at || task.created_at) >= 24).length;
+  const reportCommunicationAudienceCount = new Set(reportScopedTasks.map(task => taskReportContract(task, { caseName: task.caseName }).communication.audience).filter(Boolean)).size;
+
   const reportCallsAvoided = reportScopedMessages.length + reportAssignments.length + reportScopedVendorRequests.length;
   const reportVendorQuoteReady = reportScopedVendorRequests.filter(request => String(request.status || '').toLowerCase() === 'accepted').length;
   const reportVendorAccepted = reportScopedVendorRequests.filter(request => ['in_progress', 'completed'].includes(String(request.status || '').toLowerCase())).length;
@@ -4132,6 +4158,9 @@ export default function FuneralHomeDashboard() {
                 ['Case value', moneyDisplay(reportCaseValue)],
                 ['Avg case value', moneyDisplay(reportAvgCaseValue)],
                 ['Messages sent', reportScopedMessages.length],
+                ['Audience groups', reportCommunicationAudienceCount],
+                ['Automation coverage', `${reportAutomationCoverage}%`],
+                ['Manual steps', reportManualTasks],
                 ['Participants invited', reportScopedParticipants.length],
                 ['Participants accepted', reportAcceptedParticipants.length],
                 ['Family requests', reports.warmInboundRequests ?? warmInbounds.length],
@@ -4143,6 +4172,8 @@ export default function FuneralHomeDashboard() {
                 ['Avg client steps / case', reports.avgTasksPerEstate ?? reportAvgTasksPerEstate],
                 ['Steps / day', reportTasksPerDay],
                 ['Waiting + needs help', reportWaitingTasks.length + reportBlockedTasks.length],
+                ['Unassigned steps', reportUnassignedTasks],
+                ['Stale waiting', reportStaleWaitingTasks],
               ].map(([label, value]) => (
                 <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
                   <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>{label}</div>
@@ -4166,6 +4197,9 @@ export default function FuneralHomeDashboard() {
                     ['Cost per resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0', 'Directional cost based on an 8-minute coordination unit.'],
                     ['Tasks completed per day', reportTasksPerDay, 'Shows throughput for the selected range.'],
                     ['Messages sent', reportScopedMessages.length, 'Measures family-facing coordination volume.'],
+                    ['Audience groups', reportCommunicationAudienceCount, 'Shows whether steps clearly identify the family, employee, vendor, care team, or scoped helper audience.'],
+                    ['Automation coverage', `${reportAutomationCoverage}%`, 'Automated plus semi-automated steps out of all scoped steps. Goal is to improve this over time without hiding review boundaries.'],
+                    ['Manual steps remaining', reportManualTasks, 'Steps that still need better structure, trusted recipients, templates, or rules before Passage can prepare more of the work.'],
                     ['Participant activation', `${reportAcceptedParticipants.length}/${reportScopedParticipants.length}`, 'Shows whether family helpers accepted scoped access instead of joining the full workspace.'],
                     ['Warm family requests', `${warmInbounds.length} total / ${openWarmInbounds.length} open / ${acceptedWarmInbounds.length} accepted`, 'Families who asked to connect their record to this funeral home.'],
                     ['Vendor quote pipeline', `${reportScopedVendorRequests.length} requested / ${reportVendorQuoteReady} ready / ${reportVendorAccepted} accepted`, 'Shows local support requests without turning Passage into a directory.'],
@@ -4179,6 +4213,8 @@ export default function FuneralHomeDashboard() {
                     ['Marketplace value', money(reportVendorValue || reports.marketplace?.estimatedValue || totalVendorValue), 'Case-linked local support requests'],
                     ['Partner share', money(reports.marketplace?.funeralHomeShare ?? funeralHomeShare), 'Tracked only where value is present'],
                     ['Completed vendor work', reportVendorCompleted, 'Requests that reached proof/handled status.'],
+                    ['Unassigned client steps', reportUnassignedTasks, 'Director attention needed before the family can get a reliable update.'],
+                    ['Stale waiting points', reportStaleWaitingTasks, 'Open waiting steps older than 24 hours for the selected scope.'],
                     ['Portable proof', `${reportHandledTasks.length + reportScopedMessages.length} rows`, 'Exports back to existing case systems'],
                   ]}
                 />
