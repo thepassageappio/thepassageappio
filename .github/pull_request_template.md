@@ -2,7 +2,7 @@
 
 - Trigger phrase used when applicable: `Passage Release Train: start the loop.`
 - [ ] Product Manager scope completed
-- Vision/context checked: AGENTS.md, docs/agent-operating-context.md, docs/release-train.md, and the single admin roadmap if product priority changed.
+- Vision/context checked: AGENTS.md, docs/agent-operating-context.md, docs/release-train.md, the relevant docs/agents role brief, and the single admin roadmap if product priority changed.
 - Roadmap item:
 - Personas affected:
 - User problem:

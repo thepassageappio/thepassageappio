@@ -5,6 +5,12 @@ const fs = require('fs');
 const CONTEXT_FILE = 'docs/agent-operating-context.md';
 const GUIDE_FILE = 'AGENTS.md';
 const RELEASE_TRAIN_FILE = 'docs/release-train.md';
+const ROLE_FILES = [
+  'docs/agents/product-manager.md',
+  'docs/agents/development-engineer.md',
+  'docs/agents/qa-agent.md',
+  'docs/agents/deploy-agent.md',
+];
 const REQUIRED_CONTEXT_SECTIONS = [
   '## Current Objective',
   '## Canonical Sources',
@@ -24,7 +30,7 @@ function fail(message) {
   process.exit(1);
 }
 
-for (const path of [GUIDE_FILE, CONTEXT_FILE, RELEASE_TRAIN_FILE]) {
+for (const path of [GUIDE_FILE, CONTEXT_FILE, RELEASE_TRAIN_FILE, ...ROLE_FILES]) {
   if (!fs.existsSync(path)) fail('Missing required agent collaboration file: ' + path);
 }
 
@@ -37,7 +43,7 @@ if (!guide.includes(RELEASE_TRAIN_FILE)) fail('AGENTS.md must point agents to do
 for (const section of REQUIRED_CONTEXT_SECTIONS) {
   if (!context.includes(section)) fail(CONTEXT_FILE + ' is missing required section: ' + section);
 }
-for (const phrase of ['Product Manager', 'Development Engineer', 'QA Agent', 'Deploy Agent', 'maximum of 3']) {
+for (const phrase of ['Product Manager', 'Development Engineer', 'QA Agent', 'Deploy Agent', 'maximum of 3', 'docs/agents/product-manager.md']) {
   if (!releaseTrain.includes(phrase)) fail(RELEASE_TRAIN_FILE + ' must describe the release train phrase: ' + phrase);
 }
 

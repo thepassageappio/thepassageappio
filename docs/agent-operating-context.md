@@ -43,6 +43,13 @@ Recent source batch is queued behind [skip deploy] commits. Do not create anothe
 
 Required loop: Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent.
 
+Dedicated role briefs:
+
+- docs/agents/product-manager.md
+- docs/agents/development-engineer.md
+- docs/agents/qa-agent.md
+- docs/agents/deploy-agent.md
+
 Current cycle: 1.
 
 Current batch status: Product Manager scope in progress for agent workflow hardening, roadmap consolidation, and funeral-home operating-loop release candidate. Development changes are queued in source with [skip deploy]. QA has not approved a production release yet.
@@ -156,3 +163,9 @@ Append or update this section before final response:
 - Added the magic phrase `Passage Release Train: start the loop.` to AGENTS.md, docs/release-train.md, and this context file.
 - Future fresh chats should begin with that phrase plus the concrete roadmap item or defect to run through Product Manager -> Development Engineer -> QA Agent -> Deploy Agent.
 - Deployed: no. Source-only process hardening remains [skip deploy] until a QA-approved release batch is ready.
+
+### 2026-06-19 - Dedicated agent role briefs
+
+- Added dedicated role playbooks under docs/agents/ for Product Manager, Development Engineer, QA Agent, and Deploy Agent.
+- Updated AGENTS.md and docs/release-train.md so the magic phrase triggers the dedicated role loop, not a generic all-purpose agent flow.
+- Deployed: no. Source-only governance hardening remains [skip deploy] pending sanity checks and a QA-approved release batch.

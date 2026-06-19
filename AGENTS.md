@@ -8,7 +8,7 @@ Use this exact phrase in a fresh Codex chat to trigger the process:
 
 `Passage Release Train: start the loop.`
 
-When an agent sees that phrase, it must read this file, docs/agent-operating-context.md, and docs/release-train.md before proposing or changing anything. It should act as Product Manager first, scope the roadmap item, then move through Development Engineer, QA Agent, and Deploy Agent handoffs.
+When an agent sees that phrase, it must read this file, docs/agent-operating-context.md, docs/release-train.md, and the relevant dedicated role brief in docs/agents/ before proposing or changing anything. It should act as Product Manager first, scope the roadmap item, then move through Development Engineer, QA Agent, and Deploy Agent handoffs.
 
 ## Read Before Work
 
@@ -17,9 +17,10 @@ Before changing product, code, copy, docs, roadmap, or deployment state:
 1. Read this file.
 2. Read docs/agent-operating-context.md.
 3. Read docs/release-train.md and follow Product Manager -> Development Engineer -> QA -> Deploy.
-4. If the work affects roadmap, sprint order, product vision, or priorities, read pages/system/admin/saas-roadmap.js. That owner-only page is the only website roadmap.
-5. If the work affects deployment, read docs/deployment-discipline.md and verify the canonical Vercel project before creating a deploy-triggering commit.
-6. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
+4. Read the dedicated role brief in docs/agents/ for the role being played.
+5. If the work affects roadmap, sprint order, product vision, or priorities, read pages/system/admin/saas-roadmap.js. That owner-only page is the only website roadmap.
+6. If the work affects deployment, read docs/deployment-discipline.md and verify the canonical Vercel project before creating a deploy-triggering commit.
+7. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
 
 Before handoff or final commit, update docs/agent-operating-context.md with:
 

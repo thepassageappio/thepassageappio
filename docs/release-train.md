@@ -10,6 +10,13 @@ The required loop is:
 
 Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
 
+Dedicated role briefs live here:
+
+- docs/agents/product-manager.md
+- docs/agents/development-engineer.md
+- docs/agents/qa-agent.md
+- docs/agents/deploy-agent.md
+
 If QA fails or development uncovers a scope gap, the loop returns to the Product Manager Agent first.
 
 ## Magic Phrase
@@ -37,8 +44,9 @@ Every agent starts by reading:
 1. AGENTS.md
 2. docs/agent-operating-context.md
 3. docs/release-train.md
-4. pages/system/admin/saas-roadmap.js when roadmap, sprint, product priority, or persona scope changes
-5. docs/deployment-discipline.md when deployment is possible
+4. the dedicated role brief in docs/agents/ for the role being played
+5. pages/system/admin/saas-roadmap.js when roadmap, sprint, product priority, or persona scope changes
+6. docs/deployment-discipline.md when deployment is possible
 
 Every agent finishes by updating docs/agent-operating-context.md with what changed, what was tested, what failed, deployment state, and next action.
 
