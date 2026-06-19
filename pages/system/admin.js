@@ -24,13 +24,20 @@ const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 const toolSections = [
   {
-    title: 'Roadmap and operating truth',
-    summary: 'The only place for strategy, milestones, sprints, pilot evidence, and revenue movement.',
+    title: 'Canonical roadmap',
+    summary: 'One owner-only planning surface. Everything else below is evidence, readiness, QA, or operating tooling that feeds this roadmap.',
     tools: [
-      ['SaaS roadmap', '/system/admin/saas-roadmap', 'Single source of truth for the $300k ARR plan, milestones, and sprint governance.'],
-      ['Pilot health', '/system/admin/pilot-health', 'Account stage, launch grade, ARR potential, blockers, proof, and conversion next action.'],
-      ['Conversion plan', '/system/admin/conversion-plan', 'Owner-only plan for demo-to-pilot and pilot-to-paid movement.'],
-      ['Enterprise readiness', '/system/admin/enterprise-funeral-home-readiness', 'B2B bones: locations, roles, cases, owners, proof, exports, billing, and controls.'],
+      ['Single SaaS roadmap', '/system/admin/saas-roadmap', 'Strategy, milestones, sprint governance, business goal, product doctrine, and release acceptance live here only.'],
+    ],
+  },
+  {
+    title: 'Roadmap evidence and readiness tools',
+    summary: 'Operational evidence for the roadmap. These pages do not replace or fork the plan.',
+    tools: [
+      ['Pilot health', '/system/admin/pilot-health', 'Account stage, launch grade, blockers, proof, conversion next action, and account risk evidence.'],
+      ['Conversion evidence', '/system/admin/conversion-plan', 'Owner-only evidence for demo-to-pilot and pilot-to-paid movement.'],
+      ['Enterprise readiness', '/system/admin/enterprise-funeral-home-readiness', 'B2B readiness evidence: locations, roles, cases, owners, proof, exports, billing, and controls.'],
+      ['Partner checkout readiness', '/system/admin/partner-checkout-readiness', 'Checkout, entitlement, and billing readiness evidence.'],
     ],
   },
   {
@@ -71,6 +78,8 @@ const toolSections = [
 ];
 
 const launchRules = [
+  'The roadmap has one visible owner surface: /system/admin/saas-roadmap. Other admin pages are evidence or tools, not planning boards.',
+  'Future agents must read AGENTS.md and docs/agent-operating-context.md before changes, then update the context before handoff.',
   'Do not add new top-level internal tabs. Add internal tools to this cabinet or retire the old surface.',
   'Public and persona pages cannot expose ARR, sprint, roadmap, QA, founder/internal, or pilot-conversion language.',
   'Funeral-home views should explain what to do next: owner, waiting point, proof, drafted message, and outcome.',

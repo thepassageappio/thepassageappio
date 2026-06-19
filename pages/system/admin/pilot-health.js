@@ -116,7 +116,7 @@ export default function PilotHealthPage() {
         <Metric label="Waiting / blocked" value={(totals.waitingTasks || 0) + ' / ' + (totals.blockedTasks || 0)} />
       </section>}
       <Panel tone="sage">
-        <div style={eyebrow}>Sprint 2 / activation engine</div>
+        <div style={eyebrow}>Roadmap evidence / activation engine</div>
         <h2 style={h2}>The next sprint is not more planning. It is one complete paid-pilot proof loop.</h2>
         <p style={lead}>The business target is simple: prove the workflow with one funeral home, turn proof into conversion, then repeat until the gap to $300k ARR is closed.</p>
         <div style={sprintGrid}>{SPRINT_TWO.map(([number, title, body]) => <div key={title} style={stepCard}><span style={stepNumber}>{number}</span><strong>{title}</strong><p>{body}</p></div>)}</div>
@@ -192,7 +192,7 @@ function AccountCard({ row }) {
         <Metric label="ARR potential" value={money(row.metrics?.arrPotential || 0)} />
       </div>
       {evidenceRows.length ? <div style={innerPanel}><div style={eyebrow}>Export evidence</div>{evidenceRows.map(([label, items]) => <div key={label} style={evidenceRow}><strong>{label}</strong><ul style={ul}>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div> : null}
-      {row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers become Sprint 2 actions</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : <div style={innerPanel}><strong>Value signal is present. Next action: ask for paid conversion or expansion.</strong></div>}
+      {row.blockers?.length ? <div style={innerPanel}><div style={eyebrow}>Blockers become roadmap actions</div><ul style={ul}>{row.blockers.map(item => <li key={item}>{item}</li>)}</ul></div> : <div style={innerPanel}><strong>Value signal is present. Next action: ask for paid conversion or expansion.</strong></div>}
     </div>
   );
 }

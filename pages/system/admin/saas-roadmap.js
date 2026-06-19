@@ -33,6 +33,10 @@ const governanceRules = [
     body: 'The owner roadmap lives here: /system/admin/saas-roadmap. Do not create a second roadmap tab, public roadmap, demo roadmap, or persona-facing roadmap.',
   },
   {
+    title: 'Agent handoff lives in the repo',
+    body: 'Future agents must read AGENTS.md and docs/agent-operating-context.md before work, then update that context before handoff. Agent notes are not public pages and must not become a second roadmap.',
+  },
+  {
     title: 'Internal tools stay under System Admin',
     body: 'Roadmap, QA, pilot health, abuse controls, refresh/rate-limit readiness, demo tooling, destructive actions, and internal metrics must be reached from System Admin only.',
   },
