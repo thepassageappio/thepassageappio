@@ -165,7 +165,7 @@ export default function LoginPage() {
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.62, margin: 0 }}>
               Passage has separate front doors for families, invited helpers, funeral-home teams, and vendor partners. The same family record connects the work after you sign in, with privacy boundaries for each role.
             </p>
-            {authError && <div style={{ background: C.roseFaint, border: 1px solid 33, color: C.rose, borderRadius: 13, padding: '10px 12px', fontSize: 13.5, lineHeight: 1.45, marginTop: 14 }}>{authError}</div>}
+            {authError && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 13, padding: '10px 12px', fontSize: 13.5, lineHeight: 1.45, marginTop: 14 }}>{authError}</div>}
             <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 18 }}>
               {!user && (
                 <button onClick={signIn} style={{ minHeight: 48, border: 'none', background: C.sage, color: '#fff', borderRadius: 13, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
