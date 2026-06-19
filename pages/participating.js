@@ -74,9 +74,8 @@ const demoParticipantContext = {
 };
 
 async function signIn(returnTo = '/participating') {
-  if (!supabase?.auth) return { error: 'Sign-in is not configured in this environment. Use the email link or ask the coordinator to resend access.' };
-  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: SITE_URL + returnTo } });
-  if (error) return { error: friendlyAuthError(error) };
+  if (typeof window === 'undefined') return { error: '' };
+  window.location.assign('/api/auth/google?next=' + encodeURIComponent(returnTo || '/participating'));
   return { error: '' };
 }
 
