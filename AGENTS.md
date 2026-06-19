@@ -119,14 +119,20 @@ Repo docs may contain historical plans. When they conflict, the canonical roadma
 
 Use meaningful batches. Avoid small deploy chains that cause Vercel rate limiting and hide the real failing commit.
 
+Default deploy budget: one production deploy train per hour and no more than four deploy-triggering commits per day unless production is broken or the owner explicitly approves a quota exception.
+
+Batch rule: bundle two or three compatible small/medium fixes into one release candidate. Do not deploy docs-only, roadmap-only, context-only, QA-note-only, or source-only setup commits.
+
 Use [skip deploy] for source batching and documentation/context updates. Use one [deploy] [qa-approved] release commit only when a coherent release candidate has passed the release train.
+
+If Vercel returns a build-rate-limit, deployment-rate-limit, quota, or upgrade-to-Pro status, stop creating deploy-triggering commits. Record the blocked commit and current production state in docs/agent-operating-context.md, continue only with [skip deploy] prep, and wait for the reset window or explicit owner plan/quota approval before the next deploy attempt.
 
 Canonical Vercel project:
 
 - Project ID: prj_b7CKwanQaKwFQSHInr3l6wsZy9nD
 - Team ID: team_X0ta3bEEbRVGNM9xOwdBtCga
 
-Canceled Vercel deployments from [skip deploy] commits are expected. Treat failed builds, runtime errors, or wrong-project deploys as blockers.
+Canceled Vercel deployments from [skip deploy] commits are expected. Treat failed builds, runtime errors, wrong-project deploys, and quota/rate-limit gates as blockers.
 
 ## Agent Permissions
 
