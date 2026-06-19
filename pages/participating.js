@@ -121,7 +121,7 @@ function recommendedParticipantAction(availableActions, status) {
 function recommendedParticipantCopy(action) {
   if (action === 'accept') return 'Start here if you can take this on. Passage keeps the request open until you mark what is waiting or say it is done.';
   if (action === 'waiting') return 'Use this if you started but need a reply, document, date, or decision before the coordinator can move on.';
-  if (action === 'handled' || action === 'confirmed') return 'Use this only when your part is truly complete. Passage saves your note and moves this out of your active work.';
+  if (action === 'handled' || action === 'confirmed') return 'Use this only when your part is truly complete. Passage saves your note and moves this out of your active requests.';
   return 'Send one clear update so the coordinator knows what changed.';
 }
 
@@ -140,7 +140,7 @@ function participantActionEffectCopy(action) {
   if (action === 'save_note') return 'This saves a note for the coordinator without changing the request status.';
   if (action === 'accept') return 'This tells the coordinator you are taking responsibility. The request stays open until you save proof or a waiting update.';
   if (action === 'waiting') return 'This keeps the request open and shows exactly what you are waiting on.';
-  if (action === 'handled' || action === 'confirmed') return 'This marks your part done, saves your note, and moves it out of your active work.';
+  if (action === 'handled' || action === 'confirmed') return 'This marks your part done, saves your note, and moves it out of your active requests.';
   if (action === 'help' || action === 'needs_details' || action === 'unavailable') return 'This keeps the request visible as needing help so the coordinator can step in.';
   if (action === 'quoted' || action === 'scheduled') return 'This saves your update to the same family record without exposing the full family record.';
   return 'This update goes back to the coordinator and stays attached to the family record.';
