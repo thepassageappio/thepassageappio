@@ -984,7 +984,7 @@ export default function FuneralHomeDashboard() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(json.error || 'Could not update this work item.');
+        setError(json.error || 'Could not update this client step.');
       } else {
         const nextStatus = normalizedTaskStatus(json.task?.status || json.status || status);
         setData(prev => prev ? {
@@ -1017,7 +1017,7 @@ export default function FuneralHomeDashboard() {
     setNotice('');
     try {
       if (demoMode) {
-        demoTaskAction(task, 'handled', 'Demo proof saved. The work item moved out of active work without sending a live message.', {
+        demoTaskAction(task, 'handled', 'Demo proof saved. The client step moved out of active work without sending a live message.', {
           notes: cleanNote,
           outcome_status: 'completed',
           completed_at: new Date().toISOString(),
@@ -1095,7 +1095,7 @@ export default function FuneralHomeDashboard() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(json.error || 'Could not assign this work item.');
+        setError(json.error || 'Could not assign this client step.');
       } else {
         setData(prev => prev ? {
           ...prev,
@@ -2521,19 +2521,19 @@ export default function FuneralHomeDashboard() {
         label: 'Where proof saves',
         value: firstStaffTask ? 'Visible' : 'Clear',
         tone: firstStaffTask ? 'neutral' : 'good',
-        body: firstStaffTask ? 'Record proof, a stuck point, or a waiting point before leaving the task.' : 'New assignments will show the proof requirement here.',
+        body: firstStaffTask ? 'Record proof, a stuck point, or a waiting point before leaving the client step.' : 'New assignments will show the proof requirement here.',
       },
     ];
   const directorUseCases = [
-    ['Delegate', assignmentsCoordinated || assignedWorkQueue.length, 'assigned staff or participant work'],
+    ['Delegate', assignmentsCoordinated || assignedWorkQueue.length, 'assigned staff or helper steps'],
     ['Reduce calls', callsAvoided, 'updates, assignments, and requests captured'],
     ['Ask family', familyRequestsOpen || totalCommunications, 'family inputs routed through the case'],
-    ['Act for family', totalHandled, 'work handled with visible proof'],
+    ['Resolve for family', totalHandled, 'client steps closed with visible proof'],
     ['Coordinate support', totalVendorRequests, 'vendor requests without a directory'],
   ];
   const pilotFirstDayRows = [
     ['1', 'Create/open case', cases.length ? `${cases.length} active` : 'Start here'],
-    ['2', 'Move one task', firstOpenCase ? sharedTaskTitle(itemNextPartnerTask(firstOpenCase, orchestrationByCaseId.get(firstOpenCase.id)) || {}) : 'No case yet'],
+    ['2', 'Move one client step', firstOpenCase ? sharedTaskTitle(itemNextPartnerTask(firstOpenCase, orchestrationByCaseId.get(firstOpenCase.id)) || {}) : 'No case yet'],
     ['3', 'Ask or assign', assignmentsCoordinated ? `${assignmentsCoordinated} assigned` : familyRequestsOpen ? `${familyRequestsOpen} family request${familyRequestsOpen === 1 ? '' : 's'}` : 'Choose owner'],
     ['4', 'Export proof', callsAvoided ? `${callsAvoided} calls avoided` : 'After proof is saved'],
   ];
@@ -2908,7 +2908,7 @@ export default function FuneralHomeDashboard() {
                 {
                   label: 'Coverage',
                   value: `${unassignedTaskCount} work item${unassignedTaskCount === 1 ? '' : 's'}`,
-                  detail: unassignedCaseCount ? String(unassignedCaseCount) + ' case' + (unassignedCaseCount === 1 ? '' : 's') + ' need an owner' : 'Every open work item has an owner',
+                  detail: unassignedCaseCount ? String(unassignedCaseCount) + ' case' + (unassignedCaseCount === 1 ? '' : 's') + ' need an owner' : 'Every open client step has an owner',
                   tone: unassignedTaskCount ? C.amber : C.sage,
                   bg: unassignedTaskCount ? C.amberFaint : C.sageFaint,
                   action: () => unassignedCaseRows[0]?.caseItem?.id ? openPartnerWork(unassignedCaseRows[0].caseItem.id) : setActivePartnerView('staff'),
@@ -3240,7 +3240,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, marginTop: 10 }}>
               {[
                 ['Import accepts', 'Passage template plus common case-system names such as decedent, family contact, case number, service date, funeral date, burial date, and obituary deadline.'],
-                ['Export includes', 'Case summary CSV for existing systems plus full record CSV for work items, owners, messages, vendor requests, proof requirements, and reporting fields where present.'],
+                ['Export includes', 'Case summary CSV for existing systems plus full record CSV for client steps, owners, messages, vendor requests, proof requirements, and reporting fields where present.'],
                 ['Rollout posture', "CSV bridge now. Direct adapters should be mapped after we see each home's actual Passare, Gather, SRS, Tribute, or local export shape."],
               ].map(([title, body]) => (
                 <div key={title} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: '10px 11px' }}>
@@ -3633,7 +3633,7 @@ export default function FuneralHomeDashboard() {
                     {[
                       ['Director / owner', 'All cases, all locations, staff setup, reports, exports, billing prompts, and setup controls.'],
                       ['Location manager', 'Cases and reporting for their location scope; can assign staff and move work.'],
-                      ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close work items.'],
+                      ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close client steps.'],
                       ['Participant / family helper', 'Scoped to the request or family-record slice they were invited to handle.'],
                     ].map(([title, body]) => (
                       <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
@@ -3937,7 +3937,7 @@ export default function FuneralHomeDashboard() {
                   {[
                     ['Director', 'All cases, all locations, employee setup, reports, exports, and billing prompts.'],
                     ['Location manager', 'Cases and reports for their location scope; can move work and assign staff.'],
-                    ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close work items.'],
+                    ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close client steps.'],
                     ['Admin', 'Account setup and billing prompts; use sparingly for owners.'],
                   ].map(([title, body]) => (
                     <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
@@ -3982,14 +3982,15 @@ export default function FuneralHomeDashboard() {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Done + proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this task so it no longer appears as waiting work.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Close with proof</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark waiting</button>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Need family info</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Request family info</button>
                   </div>
+                  <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 10px', color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 9 }}><strong style={{ color: C.ink }}>Need director support?</strong> Mark waiting if something is blocked, request one family detail if that is the blocker, or open the case context before calling the family.</div>
                   <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{isDirectorRole ? 'Open full case context' : 'Open case context'}</button>
                 </div>
               );})()}
               {assignedWorkQueue.length === 0 ? (
                 <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 13 }}>
-                  No assigned work needs your attention right now. New requests from your director will appear here with case context, waiting point, and proof.
+                  No assigned client steps need your attention right now. New requests from your director will appear here with family context, waiting point, and proof.
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
@@ -4128,9 +4129,9 @@ export default function FuneralHomeDashboard() {
                 ['Vendor quotes', reportVendorQuoteReady],
                 ['Quotes accepted', reportVendorAccepted],
                 ['Work resolved', reportHandledTasks.length],
-                ['Cost / resolved task', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0'],
-                ['Avg work items / estate', reports.avgTasksPerEstate ?? reportAvgTasksPerEstate],
-                ['Tasks / day', reportTasksPerDay],
+                ['Cost / resolved step', reportCostPerResolvedTask ? moneyDisplay(reportCostPerResolvedTask) : '$0'],
+                ['Avg client steps / case', reports.avgTasksPerEstate ?? reportAvgTasksPerEstate],
+                ['Steps / day', reportTasksPerDay],
                 ['Waiting + needs help', reportWaitingTasks.length + reportBlockedTasks.length],
               ].map(([label, value]) => (
                 <div key={label} style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12 }}>
@@ -4517,7 +4518,7 @@ export default function FuneralHomeDashboard() {
                 <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 900, marginTop: 3 }}>
                   {unassignedTaskCount
                     ? `${unassignedTaskCount} work item${unassignedTaskCount === 1 ? '' : 's'} need an owner across ${unassignedCaseCount} case${unassignedCaseCount === 1 ? '' : 's'}.`
-                    : '0 work items need an owner. All visible open work is assigned.'}
+                    : '0 client steps need an owner. All visible open work is assigned.'}
                 </div>
                 <div style={{ color: C.mid, fontSize: 12.4, lineHeight: 1.45, marginTop: 4 }}>
                   Directors can assign a whole case to one employee, or open a case and assign individual work items when the home works role-by-role.
@@ -4978,10 +4979,10 @@ export default function FuneralHomeDashboard() {
                           <div>
                             <div style={{ color: taskClosed ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{taskClosed ? 'Closed with proof' : 'Next action'}</div>
                             <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(nextPartnerTask)}</div>
-                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{taskClosed ? 'This task is already handled. Passage keeps the proof, owner, notification, and family-visible status together.' : 'Pick one step. Passage keeps the owner, request, proof, and family-visible status on the same family record.'}</div>
+                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{taskClosed ? 'This client step is already handled. Passage keeps the proof, owner, notification, and family-visible status together.' : 'Pick one client step. Passage keeps the owner, family request, proof, and family-visible status on the same record.'}</div>
                             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
                               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', marginBottom: 8 }}>
-                                <strong style={{ color: C.ink }}>What this work item is:</strong> {explanation.what}
+                                <strong style={{ color: C.ink }}>What this client step is:</strong> {explanation.what}
                                 <br />
                                 <strong style={{ color: C.ink }}>What done means:</strong> {explanation.done}
                               </div>
@@ -4989,7 +4990,7 @@ export default function FuneralHomeDashboard() {
                               <br />
                               <strong style={{ color: C.ink }}>Expected timing:</strong> {guidance.timing}
                               <br />
-                              <strong style={{ color: C.ink }}>Family can see:</strong> approved status and proof. Staff notes stay in the funeral-home record.
+                              <strong style={{ color: C.ink }}>Family can see:</strong> approved status and proof. Staff notes stay in the funeral-home record.<br /><strong style={{ color: C.ink }}>Need support:</strong> mark the step waiting, request one family detail, or assign a director before promising the family a new update.
                             </div>
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 11 }}>
