@@ -52,7 +52,7 @@ Dedicated role briefs:
 
 Current cycle: 1.
 
-Current batch status: Product Manager scope in progress for agent workflow hardening, roadmap consolidation, and funeral-home operating-loop release candidate. Development changes are queued in source with [skip deploy]. QA has not approved a production release yet.
+Current batch status: Cycle 1 funeral-home operating-loop batch is QA-approved at source level (PASS) and shipping in this release commit. A live post-deploy per-persona render check plus an X-Passage-Commit match is required immediately after the build reaches READY, per docs/release-train.md. Rollback candidate is green f1b928b8.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -182,3 +182,12 @@ Append or update this section before final response:
 - Open caveat before release: the operating-loop batch has never rendered in a browser (no preview env; all post-green builds canceled). Source review clears the crash risks, but the real proof is the post-deploy persona render check above.
 - Deployed: no. These changes are [skip deploy] and remain queued; the production release still requires owner approval and a [deploy] [qa-approved] commit.
 - Next action: owner pushes this [skip deploy] batch, then approves the [deploy] [qa-approved] release; immediately after READY, run the per-persona render check and log results here.
+
+### 2026-06-19 - Cycle 1 release shipped
+
+- Date/time: 2026-06-19.
+- Branch/commit(s): main, release commit "release: ship Cycle 1 funeral-home operating-loop batch [deploy] [qa-approved]" on top of gate fix e8a4587 and docs 3693d37.
+- Deployed: triggered to the canonical Vercel project (prj_b7CKwanQaKwFQSHInr3l6wsZy9nD). Build status and production URL to be recorded once READY.
+- Tested: source-level PASS. Live post-deploy per-persona render check + X-Passage-Commit match pending build completion, per docs/release-train.md.
+- Failed/blocked: none at commit time. Rollback candidate is green f1b928b8 if any persona page white-screens.
+- Next action: confirm Vercel READY, verify X-Passage-Commit equals the release commit, run director/employee/family/vendor/reporting render checks, then log results and update the roadmap and next-sprint scope here for the next Codex or Claude agent.
