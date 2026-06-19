@@ -63,13 +63,20 @@ const deployPatterns = [
   /^deploy:/i,
   /^release:/i,
 ];
+const qaApprovalPatterns = [
+  /[qa-approved]/i,
+  /[qa approved]/i,
+];
 
 if (skipPatterns.some(pattern => pattern.test(message))) {
   ignore('commit explicitly opted out of deployment.');
 }
 
 if (deployPatterns.some(pattern => pattern.test(message))) {
-  allow('release marker found in commit message for canonical project guard.');
+  if (!qaApprovalPatterns.some(pattern => pattern.test(message))) {
+    ignore('deploy marker found without [qa-approved]. Finish Product Manager, Development Engineer, and QA handoffs before release.');
+  }
+  allow('release marker and QA approval marker found in commit message for canonical project guard.');
 }
 
-ignore('batch QA/work changes and add [deploy] to the release commit when ready.');
+ignore('batch QA/work changes and add [deploy] [qa-approved] to the release commit when ready.');

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "agent:check": "node scripts/check-agent-context.js && node scripts/check-release-train.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.39.0",

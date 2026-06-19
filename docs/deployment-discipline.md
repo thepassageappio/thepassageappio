@@ -6,11 +6,11 @@ Passage production deploys must be deliberate batches, not one small commit at a
 
 Vercel builds are skipped by default. A commit only deploys when its message contains one of these release markers:
 
-- [deploy]
-- [force deploy]
-- [prod deploy]
-- a subject that starts with deploy:
-- a subject that starts with release:
+- [deploy] [qa-approved]
+- [force deploy] [qa-approved]
+- [prod deploy] [qa-approved]
+- a subject that starts with deploy: and includes [qa-approved]
+- a subject that starts with release: and includes [qa-approved]
 
 Use [skip deploy] for roadmap, docs, QA notes, migrations that should be staged before a release, and work-in-progress commits.
 
@@ -27,6 +27,9 @@ A duplicate Vercel project named you-are-working-on-a-production is also attache
 1. Group related product, schema, and copy fixes into a single meaningful batch.
 2. Keep QA notes and roadmap updates in source without spending production builds.
 3. Deploy only after the batch has a clear verification target.
-4. After a release deploy, run the end-to-end persona script before starting another deployment batch.
+4. Run the Product Manager -> Development Engineer -> QA loop. Failed QA returns to Product Manager first.
+5. Use a maximum of 3 cycles before splitting, de-scoping, or escalating the batch.
+6. Deploy only with a release commit containing [deploy] [qa-approved].
+7. After a release deploy, run the end-to-end persona script before starting another deployment batch.
 
 This keeps Vercel quota available for real releases and prevents the production dashboard from filling with noisy failed deployments.

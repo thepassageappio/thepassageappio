@@ -8,17 +8,22 @@ Before changing product, code, copy, docs, roadmap, or deployment state:
 
 1. Read this file.
 2. Read docs/agent-operating-context.md.
-3. If the work affects roadmap, sprint order, product vision, or priorities, read pages/system/admin/saas-roadmap.js. That owner-only page is the only website roadmap.
-4. If the work affects deployment, read docs/deployment-discipline.md and verify the canonical Vercel project before creating a deploy-triggering commit.
-5. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
+3. Read docs/release-train.md and follow Product Manager -> Development Engineer -> QA -> Deploy.
+4. If the work affects roadmap, sprint order, product vision, or priorities, read pages/system/admin/saas-roadmap.js. That owner-only page is the only website roadmap.
+5. If the work affects deployment, read docs/deployment-discipline.md and verify the canonical Vercel project before creating a deploy-triggering commit.
+6. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
 
 Before handoff or final commit, update docs/agent-operating-context.md with:
 
-- What changed.
+- Product Manager scope and cycle number.
+- Development handoff and files changed.
+- QA status, failures, and whether the loop returned to Product Manager.
 - What is queued but not deployed.
 - What was tested and what failed.
 - Current Vercel/deploy status.
 - The next highest-leverage action.
+
+The repository enforces this loop with scripts/check-agent-context.js, scripts/check-release-train.js, the Agent release train GitHub Action, and the PR template.
 
 ## Product Context
 
@@ -90,7 +95,7 @@ Repo docs may contain historical plans. When they conflict, the canonical roadma
 
 Use meaningful batches. Avoid small deploy chains that cause Vercel rate limiting and hide the real failing commit.
 
-Use [skip deploy] for source batching and documentation/context updates. Use one [deploy] release commit only when a coherent release candidate is ready.
+Use [skip deploy] for source batching and documentation/context updates. Use one [deploy] [qa-approved] release commit only when a coherent release candidate has passed the release train.
 
 Canonical Vercel project:
 

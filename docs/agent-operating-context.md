@@ -25,7 +25,8 @@ Do not create a second website roadmap. Older repo docs are useful history, but 
 Vercel builds are controlled by commit message:
 
 - [skip deploy] means Vercel cancels by design.
-- [deploy] means one meaningful production release should build.
+- [deploy] without [qa-approved] should not release going forward.
+- [deploy] [qa-approved] means one meaningful production release should build after Product Manager, Development Engineer, and QA handoffs are complete.
 
 Canonical Vercel project:
 
@@ -35,6 +36,18 @@ Canonical Vercel project:
 Recent known green production before this context file: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, release: deploy persona navigation and task action clarity [deploy].
 
 Recent source batch is queued behind [skip deploy] commits. Do not create another small deploy. Consolidate, sanity-check, then use one [deploy] release commit.
+
+## Current Release Train
+
+Required loop: Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent.
+
+Current cycle: 1.
+
+Current batch status: Product Manager scope in progress for agent workflow hardening, roadmap consolidation, and funeral-home operating-loop release candidate. Development changes are queued in source with [skip deploy]. QA has not approved a production release yet.
+
+Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
+
+Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap is current, QA passes, and Vercel canonical project is confirmed.
 
 ## Recently Completed In Source
 
@@ -87,11 +100,12 @@ Family experience should prioritize:
 
 ## Open Work / Next Actions
 
-1. Consolidate visible website roadmap/navigation so System Admin has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
-2. Check that old /system/admin/sprint-2 links no longer look like a competing roadmap.
-3. Sanity-check the batched source changes remotely.
-4. Create one [deploy] release commit when the batch is coherent and Vercel is ready.
-5. Use browser/Chrome QA after deploy for persona-by-persona testing:
+1. Verify the release-train guard and PR template are present in GitHub.
+2. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
+3. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
+4. Sanity-check the batched source changes remotely.
+5. Create one [deploy] [qa-approved] release commit only after the Product Manager -> Development Engineer -> QA loop has passed.
+6. Use browser/Chrome QA after deploy for persona-by-persona testing:
    - Public landing and nav.
    - Urgent path.
    - Funeral-home sales page.
@@ -122,3 +136,15 @@ Append or update this section before final response:
 - Tested:
 - Failed/blocked:
 - Next action:
+
+## Latest Handoff Updates
+
+### 2026-06-19 - Release train enforcement
+
+- Added docs/release-train.md as the required Product Manager -> Development Engineer -> QA -> Deploy loop.
+- Added a maximum of 3 QA failure cycles before a batch must be split, de-scoped, or escalated.
+- Added scripts/check-agent-context.js to require AGENTS.md, release train, and living context updates for meaningful changes.
+- Added scripts/check-release-train.js to require PR body sections and completed handoff checklist before sign-off.
+- Added .github/workflows/agent-context.yml and .github/pull_request_template.md for PR/push enforcement.
+- Updated deployment discipline so production release commits require [deploy] [qa-approved] going forward.
+- Deployed: no. This is still queued with [skip deploy] pending sanity checks and QA approval.
