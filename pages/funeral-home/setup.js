@@ -83,8 +83,13 @@ export default function FuneralHomeSetupPage() {
   }, []);
 
   async function signInGoogle() {
-    if (!supabase?.auth || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    setError('');
+    if (!supabase?.auth || typeof window === 'undefined') {
+      setError('Sign-in is not configured in this environment. Use the email link or contact Passage for access.');
+      return;
+    }
+    const { error: authError } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    if (authError) setError(friendlyAuthError(authError));
   }
 
   async function sendMagicLink() {
