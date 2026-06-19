@@ -58,7 +58,9 @@ Current cycle: Cycle 2 Deploy blocked by Vercel build rate limit.
 
 Current batch status: Cycle 2 Product Manager and Development handoffs are complete for QA-enablement/release-closure. Source changes added stable demo proof paths to docs/funeral-home-flawless-qa.md and added Next.js redirects for `/funeral-homes` and nested plural paths to canonical `/funeral-home`. Deployment is not complete because Vercel rejected the deploy with build-rate-limit status before a deployment object appeared in the canonical project list.
 
-Current Product Manager scope: do not add new product surface while deploy quota is blocked. When the Vercel rate-limit gate clears, Deploy Agent should re-trigger or otherwise get 5c04986381385c8821f14282e757e2209ad71e0c deployed, then QA must verify the plural redirect, X-Passage-Commit, and real browser hydrated demo paths from docs/funeral-home-flawless-qa.md. If browser/Chrome is unavailable in the agent environment, record the exact connector/auth gate instead of marking hydrated QA complete.
+Chrome hydrated QA against current production 2556914b4c16d9b27b2ca96f3f88432f92db1c6e: director demo dashboard, employee demo dashboard, vendor request demo, and owner roadmap all hydrated past loading/sign-in shells. The plural `/funeral-homes` route still returns 404 in current production because queued redirect commit 5c04986381385c8821f14282e757e2209ad71e0c has not deployed.
+
+Current Product Manager scope: do not add new product surface while deploy quota is blocked. When the Vercel rate-limit gate clears, Deploy Agent should re-trigger or otherwise get 5c04986381385c8821f14282e757e2209ad71e0c deployed, then QA must verify the plural redirect, X-Passage-Commit, and real browser hydrated demo paths from docs/funeral-home-flawless-qa.md.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -131,10 +133,9 @@ Family experience should prioritize:
    - Vendor request acceptance/update/quote/completion.
    - Reports/export proof.
    - System Admin owner roadmap after auth.
-5. If browser/Chrome connector is unavailable, record that as a tool/auth gate and do not mark hydrated QA complete.
-6. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
-7. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
-8. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
+5. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
+6. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
+7. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 
 ## Known Watch Items
 
@@ -233,6 +234,17 @@ Append or update this section before final response:
 - Files changed: docs/funeral-home-flawless-qa.md and next.config.js.
 - Deployed: no. GitHub combined status for 5c04986381385c8821f14282e757e2209ad71e0c is Vercel failure with target URL `https://vercel.com/thepassageappio-7018s-projects?upgradeToPro=build-rate-limit`. No new deployment appeared in the canonical Vercel project list; current production remains 2556914b4c16d9b27b2ca96f3f88432f92db1c6e on dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe.
 - Tested: source-level review of next.config.js confirmed plural redirect rules are present on commit 5c04986381385c8821f14282e757e2209ad71e0c. docs/funeral-home-flawless-qa.md now lists stable proof paths and explicitly requires real browser hydration proof. scripts/vercel-ignore-build.js allows `[deploy] [qa-approved]`, so the deploy blocker is Vercel rate limit, not release marker logic.
-- Failed/blocked: deploy blocked by Vercel build rate limit. Opera browser connector is unavailable in this session (`Browser not connected. Make sure to enable "Allow AI connection"...`), so hydrated browser QA cannot be honestly completed here. Local shell also remains unavailable, so `npm run agent:check` was not run.
+- Failed/blocked: deploy blocked by Vercel build rate limit. Opera browser connector is unavailable in this session (`Browser not connected. Make sure to enable "Allow AI connection"...`). Local shell also remains unavailable, so `npm run agent:check` was not run.
 - Next action: Product Manager/Deploy should wait for Vercel quota reset or owner plan/quota action, then deploy 5c04986381385c8821f14282e757e2209ad71e0c and run post-deploy QA. If browser connector remains unavailable, the next agent must use a connected browser/Chrome session or record the auth/tool gate instead of closing QA.
 - Auto-advance decision: loop auto-advanced through PM, Development, QA source review, and Deploy. It is now blocked by true platform/tool gates: Vercel build rate limit and unavailable browser connector. Do not create more deploy-triggering commits until the Vercel gate clears.
+
+### 2026-06-19 - Chrome hydrated QA correction
+
+- Date/time: 2026-06-19 19:58 America/New_York.
+- Branch/commit(s): production still 2556914b4c16d9b27b2ca96f3f88432f92db1c6e; queued redirect release still 5c04986381385c8821f14282e757e2209ad71e0c and not deployed because of Vercel build rate limit.
+- Files changed: docs/agent-operating-context.md only.
+- Deployed: no. This is a [skip deploy] context correction. Vercel production remains dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe.
+- Tested: Chrome connected successfully. Current production hydrated director demo dashboard at `/funeral-home/dashboard?demo=1&persona=fh-director&demoTour=funeral-home&demoStep=dashboard`: no loading/sign-in shell, markers present for `Hudson Valley Funeral Group` and `My Day`. Employee demo dashboard at `/funeral-home/dashboard?demo=1&persona=fh-employee&demoTour=funeral-home&demoStep=task&role=staff&email=arranger@samplefuneralhome.example`: no loading/sign-in shell, markers present for `Demo staff member` and `assigned`. Vendor request demo at `/vendors/request?demo=1&persona=vendor&demoTour=funeral-home&demoStep=vendor`: no loading shell, markers present for `Livestream support`, `Send quote`, and `One request, not a family file`. Owner roadmap at `/system/admin/saas-roadmap`: hydrated for the current signed-in Chrome session with `SYSTEM ADMIN / SAAS ROADMAP`, `ARR TARGET`, `Director dashboard`, and `One roadmap only` visible. Current production `/funeral-homes` still returns 404, as expected until 5c04986381385c8821f14282e757e2209ad71e0c deploys.
+- Failed/blocked: Vercel build rate limit still blocks the queued redirect release. Chrome console noise seen was from browser/extension messaging, not enough to mark a Passage app runtime blocker. Local `npm run agent:check` still not run because local shell is unreliable in this session.
+- Next action: when Vercel build quota clears, deploy 5c04986381385c8821f14282e757e2209ad71e0c and verify `/funeral-homes` redirect plus X-Passage-Commit. Then re-run Chrome hydrated QA on the deployed commit and close Cycle 2 if redirect and persona pages pass.
+- Auto-advance decision: loop is blocked only at Deploy by Vercel build-rate-limit. No further Development work is needed for this narrow Cycle 2 unless the queued deploy later fails build/runtime QA.
