@@ -4599,6 +4599,12 @@ export default function FuneralHomeDashboard() {
               const partnerTasks = item.partnerTasks || [];
               const waitingFamily = item.waitingOnFamily || [];
               const vendorRequests = item.vendorRequests || [];
+              const quoteDecisionRequests = vendorRequests.filter(request => {
+                const status = String(request.status || '').toLowerCase();
+                const payment = String(request.payment_collection_status || '').toLowerCase();
+                return ['accepted', 'quoted', 'family_accepted', 'payment_pending'].includes(status) && payment !== 'paid';
+              });
+              const firstQuoteDecision = quoteDecisionRequests[0] || null;
               const familyParticipants = item.familyParticipants || [];
               const orchestration = orchestrationByCaseId.get(item.id) || orchestrateTasks({ tasks: item.tasks || [], role: 'funeral_home', context: { caseName: item.deceased_name || item.estate_name || item.name, coordinatorName: item.coordinator_name, deathDate: item.date_of_death, serviceEvents: item.serviceEvents || item.service_events || [], surface: 'case work' } });
               const topTasks = (partnerTasks.length ? partnerTasks : orchestration.tasks.length ? orchestration.tasks : item.tasks).slice(0, 3);
@@ -4722,6 +4728,30 @@ export default function FuneralHomeDashboard() {
                       ))}
                     </div>
                   </div>
+                  {firstQuoteDecision && (
+                    <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderLeft: `5px solid ${C.amber}`, borderRadius: 13, padding: 13, marginTop: 10 }}>
+                      <div style={{ color: C.amber, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor quote needing decision</div>
+                      <div style={{ color: C.ink, fontSize: 18, lineHeight: 1.2, fontWeight: 900, marginTop: 5 }}>{firstQuoteDecision.task_title || 'Vendor service'} quote is ready.</div>
+                      <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>
+                        {firstQuoteDecision.vendors?.business_name || 'Vendor'} is waiting. Approve and pay, or choose another option before work begins.
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 9 }}>
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
+                          <div style={{ color: C.amber, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Quote</div>
+                          <div style={{ color: C.ink, fontSize: 13, fontWeight: 900, marginTop: 3 }}>{moneyDisplay(firstQuoteDecision.final_value || firstQuoteDecision.estimated_value || firstQuoteDecision.gross_amount || 0) || 'Amount not recorded'}</div>
+                        </div>
+                        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px' }}>
+                          <div style={{ color: C.amber, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Next step</div>
+                          <div style={{ color: C.ink, fontSize: 13, fontWeight: 900, marginTop: 3 }}>Review, pay, or choose another option</div>
+                        </div>
+                      </div>
+                      {firstQuoteDecision.vendor_note && <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>Vendor note: {firstQuoteDecision.vendor_note}</div>}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                        <button onClick={() => { window.location.href = `/estate?workflow=${encodeURIComponent(item.id)}&vendor_request=${encodeURIComponent(firstQuoteDecision.id)}`; }} style={{ border: 'none', background: C.amber, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer' }}>Review quote and payment</button>
+                        <button onClick={() => setNotice('Open the family record to choose another option and keep the decision visible to the family and staff.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer' }}>Need another option</button>
+                      </div>
+                    </div>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, alignItems: 'stretch', marginTop: 12 }}>
                     <div style={{ background: blocked ? C.roseFaint : C.sageFaint, border: `1px solid ${blocked ? C.rose + '35' : C.sage}22`, borderRadius: 15, padding: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'start', flexWrap: 'wrap' }}>
