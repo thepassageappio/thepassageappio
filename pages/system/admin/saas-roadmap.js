@@ -121,6 +121,34 @@ const funeralHomeDashboardModel = [
   },
 ];
 
+
+const communicationArchitecture = [
+  {
+    title: 'Audience-aware messages',
+    body: 'Every operating step must know who the message is for: family coordinator, participant, funeral director, employee, care team, vendor, or admin. The user should never wonder who will see it.',
+  },
+  {
+    title: 'Review before send',
+    body: 'Passage should prepare thoughtful drafts, but sensitive family, funeral-home, vendor, and care-team communication must show what will be sent, who receives it, and whether it is saved only or delivered.',
+  },
+  {
+    title: 'Related-step context',
+    body: 'A message should show what it is connected to: case, operating step, vendor request, care handoff, proof, owner, waiting point, service date, and next expected update.',
+  },
+  {
+    title: 'Employee management',
+    body: 'Directors need visibility into staff ownership, reassignment, stale waiting, support requests, proof quality, and family communication risk without burying employees in admin dashboards.',
+  },
+  {
+    title: 'Vendor coordination',
+    body: 'Vendor messages must be scoped: request, quote, approval/payment, scheduled work, completion proof, and exception handling. Vendors should not see full family records or unclear next actions.',
+  },
+  {
+    title: 'Communication proof trail',
+    body: 'Prepared, copied, sent, delivered, replied, approved, declined, waiting, and completed states should log to the case so reports can prove what happened and what is still waiting.',
+  },
+];
+
 const reportingArchitecture = [
   {
     title: 'Operational health',
@@ -153,7 +181,7 @@ const transformationPhases = [
     milestones: [
       'Create a shared operating-step helper/model used by funeral-home, family, participant, vendor, and care-provider views.',
       'Tag each operating step as manual, semi-automated, or automated, with a reason and the next improvement that would move it up one automation level.',
-      'Convert funeral-home task cards into operating steps with one primary action, owner, waiting party, prepared output, proof destination, automation level, and visibility boundary.',
+      'Convert funeral-home task cards into operating steps with one primary action, owner, waiting party, prepared output, communication audience, proof destination, automation level, and visibility boundary.',
       'Move history, automation notes, dependency logic, and advanced controls into details accordions.',
       'Seed the demo loop with accepted family participants, vendor request states, proof events, and exports so the product can be demoed end to end.',
     ],
@@ -165,8 +193,8 @@ const transformationPhases = [
     owner: 'Product + QA',
     goal: 'Make funeral-home directors and staff able to run real cases with confidence.',
     milestones: [
-      'Director My Day shows case risk, staff load, waiting points, family updates, quote decisions, service-window pressure, proof gaps, and export/report actions.',
-      'Employee My Work shows assigned client steps, prepared message/output, case context, proof save, and escalation to director.',
+      'Director My Day shows case risk, staff load, waiting points, family updates, quote decisions, service-window pressure, proof gaps, employee support needs, and export/report actions.',
+      'Employee My Work shows assigned client steps, prepared message/output, related-step context, communication audience, proof save, and escalation to director.',
       'Case dashboard becomes the single operating page for family relationship context, step status, vendor state, proof, timeline, and exports.',
       'Inbound family requests can be accepted, assigned, converted into case steps, declined with reason, or escalated.',
     ],
@@ -179,8 +207,9 @@ const transformationPhases = [
     goal: 'Turn activity into decision-grade reports for directors, staff, and owner-only business health.',
     milestones: [
       'Create operational-health reports for open work, overdue/stale waiting, owner gaps, proof gaps, and time-to-close.',
-      'Create family-communication reports for sent/prepared/not-sent messages, replies waiting, approvals, and visibility boundaries.',
-      'Create vendor reports for quote response, approval/payment status, scheduled/completed work, proof, and vendor reliability.',
+      'Create family-communication reports for sent/prepared/not-sent messages, replies waiting, approvals, related operating steps, and visibility boundaries.',
+      'Create employee-management reports for ownership load, reassignment, stale waiting, support requests, communication risk, proof gaps, and completed client steps.',
+      'Create vendor reports for quote response, approval/payment status, scheduled/completed work, proof, related case steps, and vendor reliability.',
       'Create owner-only revenue readiness reports for pilots, usage, conversion, expansion, billing state, and renewal risk.',
     ],
     acceptance: 'A director can run the funeral home from reports, and Passage can prove value to convert pilots without exposing internal revenue goals externally.',
@@ -194,7 +223,7 @@ const transformationPhases = [
       'Classify every operating step as automated, semi-automated, or manual and show what prevents further automation.',
       'Track automation coverage over time by persona, case type, and account so Passage visibly improves from manual guidance to semi-automated preparation to safe automation.',
       'Recommend next action based on days since death or pre-death state, service dates, stale waiting, missing proof, role, authority, and emotional load.',
-      'Draft the right message to the right party, with review-before-send and delivery logging.',
+      'Draft the right message to the right party, linked to the related operating step, with review-before-send, approval boundary, and delivery logging.',
       'Add cooldowns/rate limits and abuse controls to all sends, refreshes, lookups, and invites.',
     ],
     acceptance: 'The product tells each persona what to do next, prepares the work, prevents unsafe sends, and records proof automatically wherever possible.',
@@ -418,6 +447,12 @@ export default function SaasRoadmapPage() {
           <div style={eyebrow}>Funeral-home dashboards</div>
           <h2 style={h2}>Director, employee, case, and relationship views each get one clear job.</h2>
           <div style={cardGrid}>{funeralHomeDashboardModel.map(item => <ProofCard key={item.title} title={item.title} body={item.body} />)}</div>
+        </Panel>
+
+        <Panel>
+          <div style={eyebrow}>Communication architecture</div>
+          <h2 style={h2}>Thoughtful messages connect the right people to the right step.</h2>
+          <div style={cardGrid}>{communicationArchitecture.map(item => <ProofCard key={item.title} title={item.title} body={item.body} />)}</div>
         </Panel>
 
         <Panel>
