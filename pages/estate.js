@@ -1599,7 +1599,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
     setUpdating('');
     if (!res || !res.ok) {
       var data = res ? await res.json().catch(function() { return {}; }) : {};
-      var missingRecipient = data.needsAssignment || (data.error && /assign this task|participant email/i.test(data.error));
+      var missingRecipient = data.needsAssignment || (data.error && /assign this (task|client step)|participant email/i.test(data.error));
       setActionFeedback(missingRecipient
         ? 'Assign this item to someone with an email before sending a reminder. Passage saved that this needs follow-up.'
         : (data.error || 'Reminder could not be sent. Check that this item has a participant email.'));
@@ -3629,7 +3629,7 @@ export default function EstatePage() {
     var session = await sb.auth.getSession();
     var token = session && session.data && session.data.session ? session.data.session.access_token : '';
     if (!token) {
-      showToast('Please sign in to assign this task.');
+      showToast('Please sign in to assign this request.');
       return null;
     }
     setAssigningTaskRecipient(true);
