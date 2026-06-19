@@ -5077,7 +5077,7 @@ export default function FuneralHomeDashboard() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
                               {[
                                 ['task', 'This task', sharedTaskTitle(nextPartnerTask)],
-                                ['unassigned_open', `Unassigned in case (${unassignedCaseTasks.length})`, 'Only open work items without an owner'],
+                                ['unassigned_open', `Unassigned in case (${unassignedCaseTasks.length})`, 'Only open client steps without an owner'],
                                 ['all_open', `All open in case (${openCaseTasks.length})`, 'Move the whole case to one employee'],
                               ].map(([scopeKey, label, body]) => (
                                 <button key={scopeKey} onClick={() => setAssignmentDraft(prev => ({ ...prev, scope: scopeKey, caseId: item.id }))} style={{ textAlign: 'left', border: `1px solid ${assignmentDraft.scope === scopeKey ? C.sage : C.border}`, background: assignmentDraft.scope === scopeKey ? C.sageFaint : C.card, color: assignmentDraft.scope === scopeKey ? C.sage : C.mid, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
@@ -5305,7 +5305,7 @@ export default function FuneralHomeDashboard() {
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                           <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Set waiting</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Done + proof', prompt: 'Add the proof note that shows what happened, then close this work item so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Done + proof', prompt: 'Add the proof note that shows what happened, then close this client step so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
                         </div>
                       )}
                       {taskIsClosed(task) && (
@@ -5580,7 +5580,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
   const copyLabel = taskDraft.status === 'blocked' ? 'Copy family request' : 'Copy proof packet';
   const copiedLabel = taskDraft.status === 'blocked' ? 'Family request copied.' : 'Prepared output copied.';
   const saveLabel = taskDraft.status === 'handled'
-    ? 'Close work item with this proof'
+    ? 'Close client step with this proof'
     : taskDraft.status === 'blocked'
       ? 'Save family request'
       : 'Save waiting update';
@@ -5610,7 +5610,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-      <div role="dialog" aria-modal="true" aria-label="Update work item" onClick={event => event.stopPropagation()} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+      <div role="dialog" aria-modal="true" aria-label="Update client step" onClick={event => event.stopPropagation()} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
           <div>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{taskDraft.label}</div>
@@ -5656,7 +5656,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
         <div style={{ color: C.soft, fontSize: 11.4, lineHeight: 1.45, marginTop: 6 }}>{proofDestination}</div>
         {taskDraft.status === 'handled' && (
           <div style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.45, marginTop: 8 }}>
-            This is the proof packet that closes the work item. Review it, copy or print it for the arrangement file if needed, then close the work item so the waiting/request actions disappear.
+            This is the proof packet that closes the client step. Review it, copy or print it for the arrangement file if needed, then close the step so the waiting/request actions disappear.
           </div>
         )}
         {taskDraft.status === 'blocked' && (
