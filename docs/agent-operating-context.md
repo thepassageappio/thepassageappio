@@ -37,6 +37,8 @@ Canonical Vercel project:
 
 Current production: 2556914b4c16d9b27b2ca96f3f88432f92db1c6e, fix(release): repair roadmap build blocker [deploy] [qa-approved]. Deployed to dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe in the canonical Vercel project and serving on www.thepassageapp.io with X-Passage-Commit matching 2556914b4c16d9b27b2ca96f3f88432f92db1c6e.
 
+Queued release not deployed: 5c04986381385c8821f14282e757e2209ad71e0c, fix(release): redirect plural funeral-home route [deploy] [qa-approved]. GitHub/Vercel status is failure because the canonical Vercel project is at build rate limit. Do not create more deploy-triggering commits until the Vercel gate clears.
+
 Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, release: deploy persona navigation and task action clarity [deploy].
 
 ## Current Release Train
@@ -52,11 +54,11 @@ Dedicated role briefs:
 - docs/agents/qa-agent.md
 - docs/agents/deploy-agent.md
 
-Current cycle: 1 post-deploy verification -> Product Manager re-scope.
+Current cycle: Cycle 2 Deploy blocked by Vercel build rate limit.
 
-Current batch status: Cycle 1 funeral-home operating-loop batch is deployed after a production build repair. Server-render smoke checks pass for the public pages and commit header, but the release is not fully closed until real browser/Chrome hydrated persona QA confirms the director dashboard, employee assigned work, vendor request flow, reports/export proof, and owner roadmap after auth/client-side hydration.
+Current batch status: Cycle 2 Product Manager and Development handoffs are complete for QA-enablement/release-closure. Source changes added stable demo proof paths to docs/funeral-home-flawless-qa.md and added Next.js redirects for `/funeral-homes` and nested plural paths to canonical `/funeral-home`. Deployment is not complete because Vercel rejected the deploy with build-rate-limit status before a deployment object appeared in the canonical project list.
 
-Current Product Manager scope: make post-deploy QA provable before adding more product surface. Smallest next cycle should (1) make hydrated/demo verification runnable for director, employee, vendor request, reports/export, and owner roadmap where possible without production credentials, (2) fix the plural `/funeral-homes` route by redirecting to `/funeral-home` unless there is a reason not to, and (3) document any true auth-only QA gate explicitly. After that scope is written, Development Engineer should continue without waiting for owner approval unless the implementation requires credentials or a restricted production action.
+Current Product Manager scope: do not add new product surface while deploy quota is blocked. When the Vercel rate-limit gate clears, Deploy Agent should re-trigger or otherwise get 5c04986381385c8821f14282e757e2209ad71e0c deployed, then QA must verify the plural redirect, X-Passage-Commit, and real browser hydrated demo paths from docs/funeral-home-flawless-qa.md. If browser/Chrome is unavailable in the agent environment, record the exact connector/auth gate instead of marking hydrated QA complete.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -74,6 +76,8 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Added employee and vendor reporting surfaces for automation coverage, stale waiting, unassigned work, vendor request state, payment, value, and next proof point.
 - Updated the roadmap with director, employee, vendor, reporting, and export release-candidate takeaways.
 - Updated AGENTS.md, docs/release-train.md, docs/deployment-discipline.md, and the PM/Deploy role briefs so the release train auto-advances instead of stopping after partial deploy QA handoff.
+- Added stable release-train demo proof paths to docs/funeral-home-flawless-qa.md.
+- Added `/funeral-homes` -> `/funeral-home` and `/funeral-homes/:path*` -> `/funeral-home/:path*` redirects in next.config.js; queued for deploy at 5c04986381385c8821f14282e757e2209ad71e0c but blocked by Vercel rate limit.
 
 ## Current Product/UX Truth
 
@@ -114,14 +118,10 @@ Family experience should prioritize:
 
 ## Open Work / Next Actions
 
-1. Product Manager auto-advance scope is active: make post-deploy hydrated QA provable before starting a new feature batch.
-2. Development Engineer next likely work:
-   - Confirm or add redirect from `/funeral-homes` to `/funeral-home`.
-   - Confirm `/funeral-home/dashboard?demo=1` hydrates to demo dashboard in a real browser; if not, fix demo-mode detection/hydration.
-   - Confirm `/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor` hydrates to the scoped demo vendor request and supports quote/schedule/complete local state.
-   - Add or document stable demo/QA paths for employee assigned work and reports/export proof.
-   - Keep System Admin roadmap auth-gated; if owner auth is required, document the gate instead of weakening access.
-3. Run real browser/Chrome QA after deploy for persona-by-persona testing:
+1. Do not create additional deploy-triggering commits until the Vercel build-rate-limit gate clears.
+2. Once Vercel can build again, deploy queued commit 5c04986381385c8821f14282e757e2209ad71e0c or make a new coherent release commit only if code changed again.
+3. Verify `/funeral-homes` redirects to `/funeral-home` and nested plural paths redirect to singular nested paths.
+4. Run real browser/Chrome QA after deploy for persona-by-persona testing:
    - Public landing and nav.
    - Urgent path.
    - Funeral-home sales page.
@@ -131,15 +131,16 @@ Family experience should prioritize:
    - Vendor request acceptance/update/quote/completion.
    - Reports/export proof.
    - System Admin owner roadmap after auth.
-4. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
-5. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
-6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
+5. If browser/Chrome connector is unavailable, record that as a tool/auth gate and do not mark hydrated QA complete.
+6. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
+7. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
+8. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 
 ## Known Watch Items
 
 - Google sign-in and general button behavior recently showed issues and needs live browser QA.
 - Smart address/location lookup during green-path onboarding was reported broken or confusing.
-- Vercel rate limits were hit earlier; use larger release batches.
+- Vercel rate limits were hit again on Cycle 2 release commit 5c04986381385c8821f14282e757e2209ad71e0c.
 - Support email support@thepassageapp.io is not real and should not be shown as a direct support line.
 - Internal ARR/300k/roadmap/sprint/QA language must never appear on external pages.
 - Demo data has been near-empty before; the funeral-home demo loop must be seeded before claims are made.
@@ -224,3 +225,14 @@ Append or update this section before final response:
 - Failed/blocked: none for docs. The underlying release remains PARTIAL until hydrated browser QA proves director, employee, vendor request, reports/export, and owner roadmap flows.
 - Next action: auto-advance to Product Manager scope for the next smallest cycle: make hydrated post-deploy QA runnable/provable and fix the `/funeral-homes` plural route mismatch unless Product Manager finds a reason to split it.
 - Auto-advance decision: continue to Product Manager automatically. Do not pause for owner approval unless the next implementation requires credentials/auth, destructive production action, spending money, or legal/compliance/privacy/security judgment.
+
+### 2026-06-19 - Cycle 2 QA-enablement release blocked by Vercel rate limit
+
+- Date/time: 2026-06-19 19:48 America/New_York.
+- Branch/commit(s): main. Docs commit cf196bb1db253ec599e9a10adfa7d4be7258e798 (`docs(qa): add release-train demo proof paths [skip deploy]`); queued release commit 5c04986381385c8821f14282e757e2209ad71e0c (`fix(release): redirect plural funeral-home route [deploy] [qa-approved]`).
+- Files changed: docs/funeral-home-flawless-qa.md and next.config.js.
+- Deployed: no. GitHub combined status for 5c04986381385c8821f14282e757e2209ad71e0c is Vercel failure with target URL `https://vercel.com/thepassageappio-7018s-projects?upgradeToPro=build-rate-limit`. No new deployment appeared in the canonical Vercel project list; current production remains 2556914b4c16d9b27b2ca96f3f88432f92db1c6e on dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe.
+- Tested: source-level review of next.config.js confirmed plural redirect rules are present on commit 5c04986381385c8821f14282e757e2209ad71e0c. docs/funeral-home-flawless-qa.md now lists stable proof paths and explicitly requires real browser hydration proof. scripts/vercel-ignore-build.js allows `[deploy] [qa-approved]`, so the deploy blocker is Vercel rate limit, not release marker logic.
+- Failed/blocked: deploy blocked by Vercel build rate limit. Opera browser connector is unavailable in this session (`Browser not connected. Make sure to enable "Allow AI connection"...`), so hydrated browser QA cannot be honestly completed here. Local shell also remains unavailable, so `npm run agent:check` was not run.
+- Next action: Product Manager/Deploy should wait for Vercel quota reset or owner plan/quota action, then deploy 5c04986381385c8821f14282e757e2209ad71e0c and run post-deploy QA. If browser connector remains unavailable, the next agent must use a connected browser/Chrome session or record the auth/tool gate instead of closing QA.
+- Auto-advance decision: loop auto-advanced through PM, Development, QA source review, and Deploy. It is now blocked by true platform/tool gates: Vercel build rate limit and unavailable browser connector. Do not create more deploy-triggering commits until the Vercel gate clears.
