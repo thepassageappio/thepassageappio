@@ -869,12 +869,12 @@ export default function UrgentPage() {
               {!selectedSituation && (
                 <div className="triage-grid">
                   {[
-                    ['unexpected', 'Yes, at home and unexpected'],
-                    ['hospice', 'Yes, under hospice care'],
-                    ['hospital', 'Yes, in a hospital'],
-                    ['facility', 'Yes, in a care facility'],
-                    ['home_expected', 'Yes, expected at home'],
-                    ['past', 'No, we are past the first official steps'],
+                    ['unexpected', 'Unexpected at home'],
+                    ['hospice', 'Under hospice care'],
+                    ['hospital', 'In a hospital'],
+                    ['facility', 'In a care facility'],
+                    ['home_expected', 'Expected at home'],
+                    ['past', 'Past first official steps'],
                   ].map(([value, label]) => (
                     <button key={value} className={`triage-choice ${context.deathContext === value ? 'active' : ''}`} onClick={() => updateContext('deathContext', value)}>
                       {label}
@@ -1046,7 +1046,7 @@ export default function UrgentPage() {
                     {magicSent ? 'Check your email' : 'Email me a secure link'}
                   </button>
                 )}
-                <div className="save-helper">Use the first step now. Sign in only when you want Passage to keep the family record, owners, notes, proof, and the remembrance pledge.</div>
+                <div className="save-helper">Nothing sends from this page until you approve a reviewed message, invite, or handoff. Use the first step now. Sign in only when you want Passage to keep the family record, owners, notes, proof, and the remembrance pledge.</div>
                 {magicSent && <div className="save-helper" style={{ color: C.sageDark, fontWeight: 800 }}>We sent a secure link to {coordinatorEmail}. Open it on this device to keep this family record.</div>}
                 {saveError && <div className="save-error">{saveError}</div>}
               </div>

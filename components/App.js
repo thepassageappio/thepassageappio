@@ -4656,7 +4656,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
  const panes = [
   {
    id: 'tasks',
-   label: 'Next steps',
+   label: 'Spine',
    eyebrow: 'One clear next step',
    title: 'One next move. One owner. One proof trail.',
    body: 'Passage keeps attention on the work that matters now, then carries the same context through every handoff.',
@@ -4669,7 +4669,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   },
   {
    id: 'journey',
-   label: 'Family record',
+   label: 'Journey',
    eyebrow: 'Before, during, after',
    title: 'Families should not have to start over at every door.',
    body: 'Care teams, funeral homes, vendors, attorneys, helpers, and executors may all rotate in. The family record remains continuous.',
@@ -4683,7 +4683,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   },
   {
    id: 'providers',
-   label: 'Care teams',
+   label: 'Providers',
    eyebrow: 'For providers',
    title: 'A clearer way to keep families and staff aligned.',
    body: 'Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to existing tools.',
@@ -4696,7 +4696,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
   },
   {
    id: 'lifecycle',
-   label: 'Continuity',
+   label: 'Lifecycle',
    eyebrow: 'Shared history',
    title: 'The same family record moves through every handoff.',
    body: 'Planning, care, hospice, funeral coordination, and family work should not become separate islands. Passage keeps the record together as people and providers change.',
@@ -4795,7 +4795,7 @@ function CompactLanding({ onPlan, onEmergency, user, onDashboard, onSignOut }) {
       <div className="home-actions">
        <button onClick={() => openPublicCta('Start urgent path', '/urgent')} className="home-action home-primary">Start urgent path</button>
        <button onClick={() => openPublicCta('Prepare during care', '/hospice')} className="home-action home-secondary">Prepare during care</button>
-       <button onClick={() => openPublicCta('Plan ahead', '/planning')} className="home-action home-tertiary">Plan ahead</button>
+       <button onClick={() => openPublicCta('Plan ahead', '/pricing')} className="home-action home-tertiary">Plan ahead</button>
       </div>
       <div className="home-note">Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.</div>
       <div className="home-proof-links" aria-label="See Passage examples">

@@ -51,6 +51,7 @@ const governanceRules = [
 ];
 
 const takeaways = [
+  ['Full QA script pass', 'Source fixes batched / Vercel rate-limited', 'The live checklist now drives release work. Current source batch fixes homepage QA labels/routes, urgent triage labels and Nothing sends trust copy, shared-header Google entry, and the family participant insert that blocked family access in the funeral-home demo loop. Next live pass after Vercel rate limits clear must verify the exact PASS/FAIL ledger across landing, urgent, funeral-home, demo loop, and infrastructure.'],
   ['Funeral-home action-card QA', 'Deployed green / source continuing', 'Latest green production fixed the broken address component, then clarified funeral-home director/staff cards into action needed, owner, waiting on, proof/status, prepared output, and one primary action. Current source routes login, pricing, participant, vendor, funeral-home setup, and roadmap sign-in through the same client Google starter so buttons do not silently depend on mixed OAuth paths.'],
   ['Public funeral-home page', 'Reworked', 'Removed ARR/pilot-proof sales math from the funeral-home page and reframed it around calmer family/staff coordination.'],
   ['Shared navigation', 'Reworked', 'Removed scattered Roadmap, QA, Pilot health, and Abuse links from the top navigation; public navigation is now audience-led and system routes render a System Admin boundary.'],

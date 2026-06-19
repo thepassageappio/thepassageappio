@@ -36,7 +36,7 @@ function slugify(value) {
 
 function schemaColumnError(error) {
   const message = String(error?.message || error || '');
-  return /schema cache|column .* does not exist|Could not find the .* column/i.test(message);
+  return /schema cache|column .* does not exist|Could not find the .* column|generated column|cannot insert a non-DEFAULT value into column/i.test(message);
 }
 
 async function createFamilyParticipantLink({ workflowId, taskId, familyName, familyEmail, familyPhone, now }) {
@@ -44,42 +44,52 @@ async function createFamilyParticipantLink({ workflowId, taskId, familyName, fam
   if (!workflowId || !email) return { created: false, reason: 'missing_family_email' };
 
   const inviteToken = randomUUID();
+  const base = {
+    email,
+    name: String(familyName || email).trim(),
+    phone: familyPhone || null,
+    role: 'family_coordinator',
+    invite_status: 'draft',
+    invite_token: inviteToken,
+    created_at: now,
+    updated_at: now,
+  };
   const attempts = [
+    { estate_id: workflowId, ...base, task_id: taskId || null },
+    { estate_id: workflowId, ...base },
+    {
+      estate_id: workflowId,
+      email,
+      role: 'family_coordinator',
+      invite_status: 'draft',
+      invite_token: inviteToken,
+      created_at: now,
+      updated_at: now,
+    },
     {
       workflow_id: workflowId,
       email,
       name: String(familyName || email).trim(),
       phone: familyPhone || null,
       role: 'family_coordinator',
-      invite_status: 'prepared',
+      invite_status: 'draft',
       invite_token: inviteToken,
       task_id: taskId || null,
-      created_at: now,
-      updated_at: now,
-    },
-    {
-      workflow_id: workflowId,
-      email,
-      role: 'family_coordinator',
-      invite_status: 'prepared',
-      invite_token: inviteToken,
-      task_id: taskId || null,
-      created_at: now,
-      updated_at: now,
-    },
-    {
-      workflow_id: workflowId,
-      email,
-      invite_status: 'prepared',
-      invite_token: inviteToken,
       created_at: now,
       updated_at: now,
     },
   ];
 
   for (const row of attempts) {
-    const result = await admin.from('estate_participants').insert([row]).select('id,invite_token').maybeSingle();
-    if (!result.error) return { created: true, id: result.data?.id || null, inviteToken: result.data?.invite_token || inviteToken };
+    const result = await admin.from('estate_participants').insert([row]).select('id,invite_token,invite_status').maybeSingle();
+    if (!result.error) {
+      return {
+        created: true,
+        id: result.data?.id || null,
+        inviteToken: result.data?.invite_token || inviteToken,
+        inviteStatus: result.data?.invite_status || row.invite_status || 'draft',
+      };
+    }
     if (!schemaColumnError(result.error)) return { created: false, error: result.error.message };
   }
 
