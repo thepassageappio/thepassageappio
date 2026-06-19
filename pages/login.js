@@ -102,6 +102,7 @@ export default function LoginPage() {
   const visiblePortalCards = portalCards.filter(card => !card.adminOnly || isAdmin);
   const requestedNext = typeof router.query.next === 'string' ? router.query.next : '';
   const safeNext = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '';
+  const googleSignInHref = '/api/auth/google' + (safeNext ? `?next=${encodeURIComponent(safeNext)}` : '');
 
   useEffect(() => {
     if (!supabase?.auth) {
@@ -139,14 +140,9 @@ export default function LoginPage() {
 
   async function signIn() {
     setAuthError('');
-    if (!supabase?.auth || typeof window === 'undefined') {
-      setAuthError('Passage sign-in is not configured in this environment. Use the contact form or book a meeting so we can help you get access.');
-      return;
-    }
+    if (typeof window === 'undefined') return;
     trackEvent('login_google_clicked', { next: safeNext || '' });
-    const redirect = safeNext ? `/login?next=${encodeURIComponent(safeNext)}` : '/login';
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + redirect } });
-    if (error) setAuthError(error.message || 'Passage could not start Google sign-in. Please try again.');
+    window.location.assign(googleSignInHref);
   }
   async function signOut() {
     if (!supabase?.auth) return;
@@ -168,9 +164,9 @@ export default function LoginPage() {
             {authError && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 13, padding: '10px 12px', fontSize: 13.5, lineHeight: 1.45, marginTop: 14 }}>{authError}</div>}
             <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 18 }}>
               {!user && (
-                <button onClick={signIn} style={{ minHeight: 48, border: 'none', background: C.sage, color: '#fff', borderRadius: 13, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
+                <a href={googleSignInHref} onClick={() => trackEvent('login_google_clicked', { next: safeNext || '' })} style={{ minHeight: 48, display: 'inline-flex', alignItems: 'center', border: 'none', background: C.sage, color: '#fff', borderRadius: 13, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', textDecoration: 'none' }}>
                   Continue with Google
-                </button>
+                </a>
               )}
               {user && (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}30`, borderRadius: 13, padding: '12px 14px', color: C.mid, fontSize: 13.5, lineHeight: 1.45 }}>
