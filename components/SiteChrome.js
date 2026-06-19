@@ -283,7 +283,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
         <span className="passage-nav-action-slot" style={{ width: showSystemAdminLink ? 176 : 96, display: 'inline-flex', justifyContent: 'flex-end', gap: 7, alignItems: 'center' }}>
           {!localAuthReady && <span aria-hidden="true" style={{ width: 92, minHeight: 38, display: 'inline-flex' }} />}
           {localAuthReady && showSystemAdminLink && (
-            <Link href="/system/admin" onClick={() => trackEvent('system_admin_action_clicked', { href: '/system/admin' })} style={{ minHeight: 38, border: '1px solid #c8deca', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 11, padding: '7px 10px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', ...typeStyle('button', { fontSize: 13, fontWeight: 900 }) }}>Admin</Link>
+            <Link href="/system/admin" onClick={() => trackEvent('system_admin_action_clicked', { href: '/system/admin' })} style={{ minHeight: 38, border: '1px solid #c8deca', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 11, padding: '7px 10px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', ...typeStyle('button', { fontSize: 13, fontWeight: 900 }) }} aria-label="Owner-only System Admin">Owner admin</Link>
           )}
           {localAuthReady && currentUser && (
             <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign out</button>
