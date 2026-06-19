@@ -18,7 +18,9 @@ Use [skip deploy] for roadmap, docs, QA notes, migrations that should be staged 
 
 The GitHub repo is thepassageappio/thepassageappio. The canonical Vercel project is thepassageappio.
 
-A duplicate Vercel project named you-are-working-on-a-production is also attached to the same repo. The ignored-build script blocks that duplicate project whenever Vercel exposes its project URL/name in build environment variables. The dashboard-side cleanup is to disconnect Git deployments for the duplicate project so production releases only create one Vercel deployment.
+Canonical Vercel project ID: prj_b7CKwanQaKwFQSHInr3l6wsZy9nD.
+
+A duplicate Vercel project named you-are-working-on-a-production is also attached to the same repo. The ignored-build script blocks known duplicate/non-canonical project contexts before it honors release markers. The dashboard-side cleanup is still required: disconnect Git deployments for the duplicate project so production releases only create one Vercel deployment.
 
 ## Operating rhythm
 
