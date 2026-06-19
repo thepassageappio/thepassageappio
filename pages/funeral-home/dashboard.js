@@ -4747,7 +4747,7 @@ export default function FuneralHomeDashboard() {
                       </div>
                       {firstQuoteDecision.vendor_note && <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8 }}>Vendor note: {firstQuoteDecision.vendor_note}</div>}
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-                        <button onClick={() => { window.location.href = `/estate?workflow=${encodeURIComponent(item.id)}&vendor_request=${encodeURIComponent(firstQuoteDecision.id)}`; }} style={{ border: 'none', background: C.amber, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer' }}>Review quote and payment</button>
+                        <button onClick={() => { window.location.href = `/estate?id=${encodeURIComponent(item.id)}&vendor_request=${encodeURIComponent(firstQuoteDecision.id)}`; }} style={{ border: 'none', background: C.amber, color: '#fff', borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer' }}>Review quote and payment</button>
                         <button onClick={() => setNotice('Open the family record to choose another option and keep the decision visible to the family and staff.')} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer' }}>Need another option</button>
                       </div>
                     </div>
