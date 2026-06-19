@@ -102,7 +102,7 @@ export default function LoginPage() {
   const visiblePortalCards = portalCards.filter(card => !card.adminOnly || isAdmin);
   const requestedNext = typeof router.query.next === 'string' ? router.query.next : '';
   const safeNext = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '';
-  const googleSignInHref = '/api/auth/google' + (safeNext ? `?next=${encodeURIComponent(safeNext)}` : '');
+  const googleSignInHref = '/auth/google' + (safeNext ? `?next=${encodeURIComponent(safeNext)}` : '');
 
   useEffect(() => {
     if (!supabase?.auth) {

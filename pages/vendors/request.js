@@ -276,7 +276,7 @@ export default function VendorRequestPage() {
               <h1 style={{ fontSize: 32, lineHeight: 1.05, fontWeight: 400, margin: '10px 0' }}>{user ? 'No approved vendor profile yet.' : 'Sign in to manage vendor requests.'}</h1>
               <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65 }}>{vendorMessage || 'Vendors apply first. Once approved, the primary contact can sign in here to respond to scoped requests. Vendors do not browse families or cases.'}</p>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-                {!user && <Link href={'/api/auth/google?next=' + encodeURIComponent('/vendors/request')} style={{ ...buttonStyle(C.sage), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>Sign in</Link>}
+                {!user && <Link href={'/auth/google?next=' + encodeURIComponent('/vendors/request')} style={{ ...buttonStyle(C.sage), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>Sign in</Link>}
                 <Link href="/vendors/onboard" style={{ ...buttonStyle(C.sage), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
                   Apply as a vendor
                 </Link>

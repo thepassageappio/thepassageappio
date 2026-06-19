@@ -187,7 +187,7 @@ export default function SaasRoadmapPage() {
     setAuthError('');
     if (typeof window === 'undefined') return;
     const next = window.location.pathname + window.location.search;
-    window.location.assign('/api/auth/google?next=' + encodeURIComponent(next || '/system/admin/saas-roadmap'));
+    window.location.assign('/auth/google?next=' + encodeURIComponent(next || '/system/admin/saas-roadmap'));
   }
 
   async function signOut() {
