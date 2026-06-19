@@ -3633,7 +3633,7 @@ export default function FuneralHomeDashboard() {
                     {[
                       ['Director / owner', 'All cases, all locations, staff setup, reports, exports, billing prompts, and setup controls.'],
                       ['Location manager', 'Cases and reporting for their location scope; can assign staff and move work.'],
-                      ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close client steps.'],
+                      ['Staff', 'Assigned client steps first; can mark waiting, request family info, record proof, and close client steps.'],
                       ['Participant / family helper', 'Scoped to the request or family-record slice they were invited to handle.'],
                     ].map(([title, body]) => (
                       <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
@@ -3937,7 +3937,7 @@ export default function FuneralHomeDashboard() {
                   {[
                     ['Director', 'All cases, all locations, employee setup, reports, exports, and billing prompts.'],
                     ['Location manager', 'Cases and reports for their location scope; can move work and assign staff.'],
-                    ['Staff', 'Assigned work first; can mark waiting, request family info, record proof, and close client steps.'],
+                    ['Staff', 'Assigned client steps first; can mark waiting, request family info, record proof, and close client steps.'],
                     ['Admin', 'Account setup and billing prompts; use sparingly for owners.'],
                   ].map(([title, body]) => (
                     <div key={title} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 10px' }}>
@@ -3951,7 +3951,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ marginTop: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8 }}>
                 <div>
-                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Delegation queue' : 'My assigned work'}</div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{isDirectorRole ? 'Delegation queue' : 'My assigned client steps'}</div>
                   <div style={{ fontSize: 18 }}>{isDirectorRole ? 'Next staff move' : 'Your next move'}</div>
                 </div>
                 <div style={{ color: C.mid, fontSize: 12.5 }}>Each client step shows the case, next action, owner, waiting point, proof, and status trail.</div>
@@ -3980,7 +3980,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Done + proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this client step so it no longer appears as waiting work.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Close with proof</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Save proof + close', prompt: 'Review or edit the Passage-prepared proof packet, then close this client step so it no longer appears as waiting steps.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Save proof + close</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark waiting</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Request family info</button>
                   </div>
@@ -3990,7 +3990,7 @@ export default function FuneralHomeDashboard() {
               );})()}
               {assignedWorkQueue.length === 0 ? (
                 <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 13 }}>
-                  No assigned client steps need your attention right now. New requests from your director will appear here with family context, waiting point, and proof.
+                  No assigned client steps need your attention right now. New requests from your director will appear here with family context, the waiting point, and proof needed.
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
@@ -4025,12 +4025,12 @@ export default function FuneralHomeDashboard() {
                           <div style={{ marginTop: 5 }}><strong style={{ color: C.ink }}>{preparedOutput.label}:</strong> {preparedOutput.body}</div>
                         </details>
                       </div>
-                      <button onClick={() => openPartnerWork(task.caseId, task.id)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}>Open this work</button>
+                      <button onClick={() => openPartnerWork(task.caseId, task.id)} style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}>Open this step</button>
                     </div>
                   );})}
                   {staffQueueHiddenCount > 0 && (
                     <details style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 11px', color: C.mid, fontSize: 12.5 }}>
-                      <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>Show {staffQueueHiddenCount} more assigned item{staffQueueHiddenCount === 1 ? '' : 's'}</summary>
+                      <summary style={{ cursor: 'pointer', color: C.sage, fontWeight: 900 }}>Show {staffQueueHiddenCount} more assigned step{staffQueueHiddenCount === 1 ? '' : 's'}</summary>
                       <div style={{ display: 'grid', gap: 7, marginTop: 9 }}>
                         {assignedWorkQueue.slice(firstStaffTask ? 3 : 4).map(task => (
                           <button key={`${task.caseId}_${task.id}_hidden`} onClick={() => openPartnerWork(task.caseId, task.id)} style={{ textAlign: 'left', border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
@@ -4052,7 +4052,7 @@ export default function FuneralHomeDashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 12 }}>
               <div>
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Funeral-home reporting</div>
-                <div style={{ fontSize: 24, marginTop: 3 }}>See workload, response risk, and Passage value by time, location, staff, request, or case.</div>
+                <div style={{ fontSize: 24, marginTop: 3 }}>See staff load, response risk, and Passage value by time, location, staff, request, or case.</div>
                 <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>Reporting reads the same case record: owner, message, proof, status, and export. No separate dashboard language for families.</div>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -5029,7 +5029,7 @@ export default function FuneralHomeDashboard() {
                               {ownerMissing ? (
                                 <button onClick={() => { setAssignmentDraft({ taskId: nextPartnerTask.id, caseId: item.id, scope: 'task', name: nextPartnerTask.assigned_to_name || firstAssignee?.name || '', email: nextPartnerTask.assigned_to_email || firstAssignee?.email || '', role: nextPartnerTask.playbook?.partnerOwnerRole || firstAssignee?.role || 'staff', phone: '' }); setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Assign owner<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>{unassignedCaseTasks.length ? `${unassignedCaseTasks.length} to assign` : 'staff or case contact'}</span></button>
                               ) : (
-                                <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Done + proof', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this client step. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Done + proof<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>moves out of active client steps</span></button>
+                                <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Save proof + close', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this client step. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Save proof + close<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>moves out of active client steps</span></button>
                               )}
                               <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'waiting', label: 'Waiting update', prompt: 'Write what is waiting and the next expected update.', draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${nextPartnerTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(nextPartnerTask)} can move forward. Next update expected tomorrow morning.`); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 11, padding: '12px 13px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Mark waiting<br /><span style={{ color: C.soft, fontWeight: 500 }}>next update</span></button>
                             </div>
@@ -5305,7 +5305,7 @@ export default function FuneralHomeDashboard() {
                         <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 9 }}>
                           <button disabled={updating === task.id + 'waiting'} onClick={() => { setTaskDraft({ task, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Set waiting</button>
                           <button disabled={updating === task.id + 'blocked'} onClick={() => { setTaskDraft({ task, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', task, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Request from family</button>
-                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Done + proof', prompt: 'Add the proof note that shows what happened, then close this client step so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
+                          <button disabled={updating === task.id + 'handle_for_family'} onClick={() => { setTaskDraft({ task, status: 'handled', label: 'Save proof + close', prompt: 'Add the proof note that shows what happened, then close this client step so it leaves the active queue.', draft, output, proofDestination }); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '7px 10px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{updating === task.id + 'handle_for_family' ? 'Saving...' : 'Close with proof'}</button>
                         </div>
                       )}
                       {taskIsClosed(task) && (
