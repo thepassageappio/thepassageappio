@@ -96,7 +96,7 @@ export default function VendorOnboard() {
                 colors={C}
                 inputStyle={{ background: C.bg }}
                 placeholder="Start typing your address or primary service area"
-                hint="Choose a suggestion to fill the ZIP field below."
+                hint="Type an address or service area, or choose a suggestion. If suggestions do not appear, use the typed address and enter ZIP codes below."
               />
               <label style={{ ...labelStyle, marginBottom: 0 }}>ZIP codes served<input required inputMode="numeric" value={form.zipCodes} onChange={(e) => update('zipCodes', e.target.value)} placeholder="12508, 12601" style={inputStyle} /></label>
             </div>
