@@ -1,3 +1,4 @@
+import { createHmac } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { recordStatusEvent } from '../../lib/taskStatus';
 import { getRequestIp, rateLimit } from '../../lib/inMemoryRateLimit';
@@ -29,6 +30,16 @@ function normalizePhone(value) {
   return '';
 }
 
+function voiceCallbackSecret() {
+  return process.env.PASSAGE_INTERNAL_API_SECRET || process.env.CRON_SECRET || process.env.TWILIO_AUTH_TOKEN || '';
+}
+
+function signVoiceCallback({ to, name, expires }) {
+  const secret = voiceCallbackSecret();
+  if (!secret) return '';
+  return createHmac('sha256', secret).update([to, name, expires].join('|')).digest('hex');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -54,9 +65,13 @@ export default async function handler(req, res) {
   const from = process.env.TWILIO_PHONE_NUMBER;
   if (!sid || !tokenSecret || !from) return res.status(500).json({ error: 'Twilio Voice is not configured.' });
 
+  const voiceName = recipientName || 'provider';
+  const voiceExpires = String(Date.now() + 5 * 60 * 1000);
   const voiceUrl = SITE_URL + '/api/twilioVoice?' + new URLSearchParams({
     to: toRecipient,
-    name: recipientName || 'provider',
+    name: voiceName,
+    expires: voiceExpires,
+    sig: signVoiceCallback({ to: toRecipient, name: voiceName, expires: voiceExpires }),
   }).toString();
   const statusCallback = SITE_URL + '/api/webhooks/twilioVoice?' + new URLSearchParams({
     workflowId,
