@@ -31,5 +31,7 @@ A duplicate Vercel project named you-are-working-on-a-production is also attache
 5. Use a maximum of 3 cycles before splitting, de-scoping, or escalating the batch.
 6. Deploy only with a release commit containing [deploy] [qa-approved].
 7. After a release deploy, run the end-to-end persona script before starting another deployment batch.
+8. If post-deploy proof is failed, partial, or fetch-only for hydrated/authenticated flows, immediately return to Product Manager to scope the smallest next cycle; do not wait for the owner just to restart the loop.
+9. If post-deploy proof is PASS, return to Product Manager to scope the next highest-leverage batch.
 
-This keeps Vercel quota available for real releases and prevents the production dashboard from filling with noisy failed deployments.
+This keeps Vercel quota available for real releases and prevents the production dashboard from filling with noisy failed deployments. It also prevents a repaired deploy from being mistaken for a completed release when persona QA is still unproven.
