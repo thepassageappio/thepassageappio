@@ -8,6 +8,7 @@ import { escapeHtml, passageEmailShell, passageSubject } from '../../../lib/bran
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ''));
 
 async function sendStatusEmail({ request, title, detail, ctaUrl, subject }) {
   if (!process.env.RESEND_API_KEY) return;
@@ -88,6 +89,7 @@ export default async function handler(req, res) {
   const token = String(req.query.token || req.body?.token || '');
   const status = String(req.query.status || req.body?.status || '').toLowerCase();
   if (!token) return res.status(400).send('Missing secure request link.');
+  if (!isUuid(token)) return res.status(404).send('Request not found or link expired.');
   if (!['accepted', 'in_progress', 'declined', 'completed'].includes(status)) return res.status(400).send('Choose a valid request update.');
 
   const { data: request, error } = await admin
