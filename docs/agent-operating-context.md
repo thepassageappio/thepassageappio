@@ -41,7 +41,9 @@ Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, rel
 
 ## Current Release Train
 
-Required loop: Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent.
+Required loop: Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
+
+Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, or runtime failure returns immediately to Product Manager for re-scope. Pause only for true owner gates: credentials/auth the agent cannot access, destructive production data changes, spending money, or legal/compliance/privacy/security decisions.
 
 Dedicated role briefs:
 
@@ -50,9 +52,11 @@ Dedicated role briefs:
 - docs/agents/qa-agent.md
 - docs/agents/deploy-agent.md
 
-Current cycle: 1 post-deploy verification.
+Current cycle: 1 post-deploy verification -> Product Manager re-scope.
 
 Current batch status: Cycle 1 funeral-home operating-loop batch is deployed after a production build repair. Server-render smoke checks pass for the public pages and commit header, but the release is not fully closed until real browser/Chrome hydrated persona QA confirms the director dashboard, employee assigned work, vendor request flow, reports/export proof, and owner roadmap after auth/client-side hydration.
+
+Current Product Manager scope: make post-deploy QA provable before adding more product surface. Smallest next cycle should (1) make hydrated/demo verification runnable for director, employee, vendor request, reports/export, and owner roadmap where possible without production credentials, (2) fix the plural `/funeral-homes` route by redirecting to `/funeral-home` unless there is a reason not to, and (3) document any true auth-only QA gate explicitly. After that scope is written, Development Engineer should continue without waiting for owner approval unless the implementation requires credentials or a restricted production action.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -69,6 +73,7 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Added communication/reporting/export fields for audience, automation level, and review boundary.
 - Added employee and vendor reporting surfaces for automation coverage, stale waiting, unassigned work, vendor request state, payment, value, and next proof point.
 - Updated the roadmap with director, employee, vendor, reporting, and export release-candidate takeaways.
+- Updated AGENTS.md, docs/release-train.md, docs/deployment-discipline.md, and the PM/Deploy role briefs so the release train auto-advances instead of stopping after partial deploy QA handoff.
 
 ## Current Product/UX Truth
 
@@ -109,7 +114,14 @@ Family experience should prioritize:
 
 ## Open Work / Next Actions
 
-1. Run real browser/Chrome QA after deploy for persona-by-persona testing:
+1. Product Manager auto-advance scope is active: make post-deploy hydrated QA provable before starting a new feature batch.
+2. Development Engineer next likely work:
+   - Confirm or add redirect from `/funeral-homes` to `/funeral-home`.
+   - Confirm `/funeral-home/dashboard?demo=1` hydrates to demo dashboard in a real browser; if not, fix demo-mode detection/hydration.
+   - Confirm `/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor` hydrates to the scoped demo vendor request and supports quote/schedule/complete local state.
+   - Add or document stable demo/QA paths for employee assigned work and reports/export proof.
+   - Keep System Admin roadmap auth-gated; if owner auth is required, document the gate instead of weakening access.
+3. Run real browser/Chrome QA after deploy for persona-by-persona testing:
    - Public landing and nav.
    - Urgent path.
    - Funeral-home sales page.
@@ -119,10 +131,9 @@ Family experience should prioritize:
    - Vendor request acceptance/update/quote/completion.
    - Reports/export proof.
    - System Admin owner roadmap after auth.
-2. Decide whether `/funeral-homes` should redirect to `/funeral-home`; production currently serves the singular route and returns 404 on the plural route.
-3. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
-4. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
-5. Keep logging any finding here before handing off.
+4. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
+5. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
+6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 
 ## Known Watch Items
 
@@ -145,6 +156,7 @@ Append or update this section before final response:
 - Tested:
 - Failed/blocked:
 - Next action:
+- Auto-advance decision:
 
 ## Latest Handoff Updates
 
@@ -201,3 +213,14 @@ Append or update this section before final response:
 - Tested: Vercel build logs show compiled successfully, generated static pages 64/64, and deployment READY. GitHub/Vercel status for 2556914b4c16d9b27b2ca96f3f88432f92db1c6e is success. Fetch smoke checks returned 200 plus matching X-Passage-Commit for `/`, `/urgent`, `/funeral-home`, `/funeral-home/sample-case`, `/participating`, `/vendors`, `/care-providers`, `/funeral-home/dashboard?demo=1`, `/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor`, and `/system/admin/saas-roadmap`.
 - Failed/blocked: original Cycle 1 release build failed before deploy because `pages/system/admin/saas-roadmap.js` used an unescaped apostrophe in the owner-only roadmap copy (`Today's risk`). The plural `/funeral-homes` route returns 404; the canonical route is `/funeral-home`. Fetch-only checks cannot prove hydrated/authenticated flows: `/funeral-home/dashboard?demo=1` server-rendered the funeral-home sign-in state, `/vendors/request?...` server-rendered `Loading request...`, and `/system/admin/saas-roadmap` server-rendered `Loading owner roadmap...` due auth/client-side loading. Local shell was unavailable in this Codex session, so checks used the GitHub and Vercel connectors rather than local `npm run agent:check`.
 - Next action: run real browser/Chrome hydrated QA with seeded/demo or authenticated state for funeral-home director dashboard, employee assigned work, family invited-by-funeral-home, vendor request accept/update/quote/complete, reports/export proof, and System Admin roadmap. If any of those fail, Product Manager should re-scope Cycle 1 instead of stacking another deploy; also decide whether `/funeral-homes` should redirect to `/funeral-home`.
+
+### 2026-06-19 - Release train auto-advance hardening
+
+- Date/time: 2026-06-19 19:30 America/New_York.
+- Branch/commit(s): main docs commits 4933a517, e2378681, adee0631, fc674b3, e74eb0f, and this context update.
+- Files changed: AGENTS.md, docs/release-train.md, docs/agents/product-manager.md, docs/agents/deploy-agent.md, docs/deployment-discipline.md, docs/agent-operating-context.md.
+- Deployed: no. All changes are documentation/process updates with [skip deploy]. Latest production remains repair commit 2556914b4c16d9b27b2ca96f3f88432f92db1c6e on dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe.
+- Tested: documentation reviewed via GitHub fetch/update path. No local `npm run agent:check` because local shell remained unavailable in this Codex session.
+- Failed/blocked: none for docs. The underlying release remains PARTIAL until hydrated browser QA proves director, employee, vendor request, reports/export, and owner roadmap flows.
+- Next action: auto-advance to Product Manager scope for the next smallest cycle: make hydrated post-deploy QA runnable/provable and fix the `/funeral-homes` plural route mismatch unless Product Manager finds a reason to split it.
+- Auto-advance decision: continue to Product Manager automatically. Do not pause for owner approval unless the next implementation requires credentials/auth, destructive production action, spending money, or legal/compliance/privacy/security judgment.
