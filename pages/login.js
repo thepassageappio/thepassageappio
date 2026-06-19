@@ -49,11 +49,11 @@ const portalCards = [
     tone: 'primary',
   },
   {
-    eyebrow: 'Participant task',
+    eyebrow: 'Participant request',
     title: 'See the one thing you were asked to handle',
-    body: 'For relatives, friends, clergy, vendors, or helpers who received a scoped Passage task.',
+    body: 'For relatives, friends, clergy, vendors, or helpers who received one scoped Passage request.',
     href: '/participating',
-    action: 'Open my task',
+    action: 'Open my request',
   },
   {
     eyebrow: 'Funeral home director',
@@ -65,7 +65,7 @@ const portalCards = [
   {
     eyebrow: 'Funeral home staff',
     title: 'Open assigned funeral-home work',
-    body: 'For arrangers, location managers, and staff working assigned tasks with proof and case context.',
+    body: 'For arrangers, location managers, and staff working assigned client steps with proof and case context.',
     href: '/funeral-home/staff',
     action: 'Staff sign in',
   },
@@ -97,6 +97,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [authError, setAuthError] = useState('');
   const isAdmin = isSystemAdminUser(user);
   const visiblePortalCards = portalCards.filter(card => !card.adminOnly || isAdmin);
   const requestedNext = typeof router.query.next === 'string' ? router.query.next : '';
@@ -160,6 +161,7 @@ export default function LoginPage() {
             <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.62, margin: 0 }}>
               Passage has separate front doors for families, invited helpers, funeral-home teams, and vendor partners. The same family record connects the work after you sign in, with privacy boundaries for each role.
             </p>
+            {authError && <div style={{ background: C.roseFaint, border: 1px solid 33, color: C.rose, borderRadius: 13, padding: '10px 12px', fontSize: 13.5, lineHeight: 1.45, marginTop: 14 }}>{authError}</div>}
             <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginTop: 18 }}>
               {!user && (
                 <button onClick={signIn} style={{ minHeight: 48, border: 'none', background: C.sage, color: '#fff', borderRadius: 13, padding: '0 18px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
