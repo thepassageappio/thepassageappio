@@ -289,7 +289,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
             <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign out</button>
           )}
           {localAuthReady && !currentUser && (
-            <button onClick={signInHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign in</button>
+            <Link href="/login" onClick={() => trackEvent('header_sign_in_clicked', { href: '/login' })} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
           )}
         </span>
       </div>
