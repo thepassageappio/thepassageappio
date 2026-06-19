@@ -255,7 +255,7 @@ export default function VendorRequestPage() {
       : quoteReady
         ? [['accepted', 'Revise quote'], ['declined', 'Decline']]
         : paymentConfirmed && !workScheduled
-          ? [['in_progress', 'Mark scheduled'], ['completed', 'Save completion proof']]
+          ? [['in_progress', 'Mark scheduled']]
           : workScheduled
             ? [['completed', 'Save completion proof']]
             : []
