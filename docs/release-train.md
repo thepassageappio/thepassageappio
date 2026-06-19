@@ -32,7 +32,15 @@ Default transitions:
 - Deploy READY and post-deploy QA PASS -> Product Manager scopes the next highest-leverage roadmap item.
 - Deploy ERROR, runtime failure, wrong-project deploy, rate-limit gate, or incomplete post-deploy QA -> Product Manager re-scopes the failed or unproven acceptance area before more development.
 
-A final response to the owner is appropriate only when the current loop is genuinely complete, blocked by an owner-approval gate, blocked by unavailable auth/credentials, blocked by a destructive production-data decision, blocked by a Vercel quota reset with no useful source/docs/QA prep remaining, or blocked by legal/compliance/privacy/security judgment. Otherwise the agent should keep moving and record the role transition in docs/agent-operating-context.md.
+A final response to the owner is appropriate only when the current loop is genuinely complete, blocked by an owner-approval gate, blocked by unavailable auth/credentials after safe browser/Chrome/Claude-in-Chrome paths were tried, blocked by a destructive production-data decision, blocked by a Vercel quota reset with no useful source/docs/QA prep remaining, or blocked by legal/compliance/privacy/security judgment. Otherwise the agent should keep moving and record the role transition in docs/agent-operating-context.md.
+
+## User Last Resort
+
+Agents must try safe self-service paths before asking the owner for help. Use the docs, local source review, tests, GitHub/Vercel connectors, browser automation, Chrome state, and, when available, a signed-in Claude session in Chrome to coordinate or research before escalating.
+
+Claude in Chrome may be used for agent-to-agent assistance, cross-checking, research, handoff review, or navigating an already-authenticated browser state. It must not be used to bypass Agent Permissions, reveal secrets, spend money, send real communications, change production data destructively, or decide legal/privacy/security/compliance matters.
+
+If Claude in Chrome is unavailable, blocked, or used, record that in docs/agent-operating-context.md. Owner escalation is valid only after the available self-service paths are unavailable, unsafe, insufficient, or a true owner gate remains.
 
 ## Magic Phrase
 
@@ -64,7 +72,7 @@ Every agent starts by reading:
 5. pages/system/admin/saas-roadmap.js when roadmap, sprint, product priority, or persona scope changes
 6. docs/deployment-discipline.md when deployment is possible
 
-Every agent finishes by updating docs/agent-operating-context.md with what changed, what was tested, what failed, deployment state, next action, and whether the train auto-advanced or why it could not.
+Every agent finishes by updating docs/agent-operating-context.md with what changed, what was tested, what failed, deployment state, next action, whether Chrome/Claude-in-Chrome assistance was used, and whether the train auto-advanced or why it could not.
 
 ## Product Manager Agent
 
@@ -80,6 +88,7 @@ Before development starts, the Product Manager Agent must define:
 - Risks, owner approval gates, and non-goals.
 - Whether this is a deployable release batch or source-only setup.
 - Whether the batch is large enough to spend a deploy slot or should be grouped with the next compatible fix.
+- Which self-service paths were tried before any owner escalation.
 
 If development finds a new gap, confusing UX, broken dependency, or risky expansion, work returns here before more coding. The Product Manager decides whether to fix, split, de-scope, rewrite acceptance, or escalate.
 
@@ -113,7 +122,7 @@ QA failures do not go straight back to development. They go to Product Manager f
 
 Because this repo has no preview environment and all non-release commits are [skip deploy], a green Vercel build is not proof a page renders. Next.js builds do not catch runtime errors. Every release must therefore include a live post-deploy render check: after the [deploy] [qa-approved] build is READY, load each affected persona page in a real browser, confirm it renders without a client-side crash, verify X-Passage-Commit matches the release commit, and log the result in docs/agent-operating-context.md before the cycle is considered closed.
 
-If post-deploy QA is incomplete because browser/auth/demo state is not available, do not mark the loop complete. Return to Product Manager to scope the smallest useful next step: make the QA path runnable, split the blocked flow from the release, or identify the exact owner-gated credential/action required.
+If post-deploy QA is incomplete because browser/auth/demo state is not available, do not mark the loop complete. Try available browser, Chrome, and Claude-in-Chrome self-service paths first. If they still cannot make the QA path runnable, return to Product Manager to scope the smallest useful next step: make the QA path runnable, split the blocked flow from the release, or identify the exact owner-gated credential/action required.
 
 ## Deploy Budget Gate
 
@@ -210,6 +219,13 @@ When Vercel rate limit or quota blocks deployment, record:
 - Reset/owner gate if known.
 - Whether work can continue as [skip deploy] prep.
 
+When owner escalation seems necessary, record:
+
+- The owner gate.
+- Which self-service paths were tried.
+- Whether Claude in Chrome was available or used.
+- Why the remaining decision cannot be made safely by agents.
+
 ## Best-Practice Bias
 
-Prefer larger coherent release batches over tiny deploys. Prefer explicit role handoffs over ambiguous agent memory. Prefer one source of truth over scattered roadmaps. Prefer proof over claims.
+Prefer larger coherent release batches over tiny deploys. Prefer explicit role handoffs over ambiguous agent memory. Prefer one source of truth over scattered roadmaps. Prefer proof over claims. Prefer safe agent/tool self-service over owner interruption.
