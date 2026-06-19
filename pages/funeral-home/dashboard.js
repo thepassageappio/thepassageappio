@@ -3990,7 +3990,7 @@ export default function FuneralHomeDashboard() {
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Done - save proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this step so it no longer appears as waiting.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Done - save proof</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Save proof + close', prompt: 'Review or edit the Passage-prepared proof packet, then close this step so it no longer appears as waiting.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Save proof + close</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Waiting - add update</button>
                     <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Ask family for info</button>
                   </div>
@@ -4349,7 +4349,7 @@ export default function FuneralHomeDashboard() {
                 colors={C}
                 inputStyle={{ background: C.card }}
                 placeholder="Start typing a service address, cemetery, chapel, or family address"
-                hint="Choose a Google suggestion when available. Passage saves city, state, ZIP, country, and place context with the case."
+                hint="Type the address or choose a suggestion. If Google suggestions do not appear, click Use this typed address; Passage still saves city, state, ZIP, country, and place context when it can parse them."
               />
             </div>
             <div style={{ background: C.sageFaint, border: `1px solid ${caseForm.totalCaseValue || caseForm.isPrepaid ? C.sage : C.sage + '22'}`, borderRadius: 13, padding: 12, marginTop: 10 }}>
@@ -5039,7 +5039,7 @@ export default function FuneralHomeDashboard() {
                               {ownerMissing ? (
                                 <button onClick={() => { setAssignmentDraft({ taskId: nextPartnerTask.id, caseId: item.id, scope: 'task', name: nextPartnerTask.assigned_to_name || firstAssignee?.name || '', email: nextPartnerTask.assigned_to_email || firstAssignee?.email || '', role: nextPartnerTask.playbook?.partnerOwnerRole || firstAssignee?.role || 'staff', phone: '' }); setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Assign owner<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>{unassignedCaseTasks.length ? `${unassignedCaseTasks.length} to assign` : 'staff or case contact'}</span></button>
                               ) : (
-                                <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Save proof + close', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this client step. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Done - save proof<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>removes from active steps</span></button>
+                                <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Save proof + close', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this client step. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Save proof + close<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>removes from active steps</span></button>
                               )}
                               <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'waiting', label: 'Waiting update', prompt: 'Write what is waiting and the next expected update.', draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${nextPartnerTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(nextPartnerTask)} can move forward. Next update expected tomorrow morning.`); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 11, padding: '12px 13px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Waiting - add update<br /><span style={{ color: C.soft, fontWeight: 500 }}>who or what is blocking it</span></button>
                             </div>
@@ -5590,7 +5590,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
   const copyLabel = taskDraft.status === 'blocked' ? 'Copy family request' : 'Copy proof packet';
   const copiedLabel = taskDraft.status === 'blocked' ? 'Family request copied.' : 'Prepared output copied.';
   const saveLabel = taskDraft.status === 'handled'
-    ? 'Done - save proof and close'
+    ? 'Save proof and close'
     : taskDraft.status === 'blocked'
       ? 'Save family request'
       : 'Waiting - save update';
@@ -5698,7 +5698,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
           <button
             disabled={!canSave}
             onClick={saveTaskAction}
-            style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 900, cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : .55, fontFamily: 'Georgia,serif' }}>
+            style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 9, padding: '10px 14px', fontSize: 12.5, fontWeight: 900, cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : .55, fontFamily: 'Georgia,serif', boxShadow: canSave ? '0 8px 18px rgba(107,143,113,.18)' : 'none' }}>
             {isSaving ? 'Saving...' : saveLabel}
           </button>
           <button onClick={onClose} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>

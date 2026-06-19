@@ -242,7 +242,7 @@ export default function SmartAddressInput({
           onClick={useTypedAddress}
           style={{ border: `1px solid ${C.sage}33`, background: C.sageFaint, color: C.sage, borderRadius: compact ? 9 : 10, padding: compact ? '7px 9px' : '8px 10px', fontFamily: 'Georgia,serif', fontSize: compact ? 11.5 : 12, fontWeight: 900, cursor: 'pointer', justifySelf: 'start' }}
         >
-          Use typed address{chips.length ? ` (${chips.join(', ')})` : ''}
+          Use this typed address{chips.length ? ` (${chips.join(', ')})` : ''}
         </button>
       )}
       {open && suggestions.length > 0 && (
@@ -257,7 +257,7 @@ export default function SmartAddressInput({
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
         <span style={{ color: C.soft, fontSize: compact ? 10.5 : 11 }}>
-          {hint || (hasPlacesKey ? 'Choose a suggestion to fill city, state, ZIP, and country.' : lookupState === 'loading' ? 'Checking address suggestions. Typed addresses still parse city, state, and ZIP.' : lookupState === 'not_configured' ? 'Typed addresses still parse city, state, and ZIP. Google suggestions need a server key.' : lookupState === 'error' ? 'Address suggestions are unavailable right now; typed addresses still parse city, state, and ZIP.' : 'Type the address here. Suggestions appear when the Google address key is configured; typed addresses still parse city, state, and ZIP.')}
+          {hint || (hasPlacesKey ? 'Type an address or choose a suggestion. If suggestions do not appear, use the typed address button.' : lookupState === 'loading' ? 'Checking address suggestions. You can still use the typed address if suggestions do not appear.' : lookupState === 'not_configured' ? 'Google suggestions are not configured. Use the typed address button; Passage still parses city, state, and ZIP.' : lookupState === 'error' ? 'Address suggestions are unavailable right now. Use the typed address button; Passage still parses city, state, and ZIP.' : 'Type an address here. Suggestions are optional; Passage can use the typed address and parse city, state, and ZIP.')}
         </span>
         {chips.map(chip => (
           <span key={chip} style={{ border: `1px solid ${C.sage}22`, background: C.sageFaint, color: C.sage, borderRadius: 999, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 }}>
