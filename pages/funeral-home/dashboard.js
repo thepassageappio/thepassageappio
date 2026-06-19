@@ -5310,7 +5310,7 @@ export default function FuneralHomeDashboard() {
                               <span style={{ background: taskNeedsHelp(task) ? C.roseFaint : taskIsWaiting(task) ? C.amberFaint : C.sageFaint, color: taskNeedsHelp(task) ? C.rose : taskIsWaiting(task) ? C.amber : C.sage, borderRadius: 999, padding: '5px 9px', fontSize: 11, fontWeight: 900, whiteSpace: 'nowrap' }}>{contract.statusLabel}</span>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 7, marginTop: 10 }}>
-                              {[['Owner', contract.owner], ['Waiting on', contract.waitingOn], ['Visible to', contract.visibility], ['Automation', contract.automation.label]].map(([label, value]) => (
+                              {[['Owner', contract.owner], ['Waiting on', contract.waitingOn], ['Audience', contract.communication.audience], ['Automation', contract.automation.label]].map(([label, value]) => (
                                 <div key={label} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '7px 8px', minHeight: 54 }}>
                                   <div style={{ color: C.soft, fontSize: 10, letterSpacing: '.09em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
                                   <div style={{ color: C.ink, fontSize: 12.2, lineHeight: 1.25, fontWeight: 900, marginTop: 3 }}>{value}</div>
@@ -5349,6 +5349,9 @@ export default function FuneralHomeDashboard() {
                               <summary style={{ cursor: 'pointer', color: C.mid, fontSize: 12, fontWeight: 900 }}>Message, automation, and proof details</summary>
                               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8, marginTop: 8 }}>
                                 <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.45 }}><strong style={{ color: C.ink }}>Prepared message:</strong> {draft}</div>
+                                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.45 }}><strong style={{ color: C.ink }}>Related context:</strong> {contract.communication.relatedContext}</div>
+                                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.45 }}><strong style={{ color: C.ink }}>Review boundary:</strong> {contract.communication.reviewBoundary}</div>
+                                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.45 }}><strong style={{ color: C.ink }}>Communication proof:</strong> {contract.communication.proofState}</div>
                                 <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.45 }}><strong style={{ color: C.ink }}>Automation:</strong> {contract.automation.reason} {contract.automation.nextImprovement}</div>
                               </div>
                             </details>
