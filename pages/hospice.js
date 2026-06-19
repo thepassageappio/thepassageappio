@@ -72,7 +72,7 @@ const dates = [
 const handoff = [
   ['Primary contacts', 'Family coordinator, caregiver, backup, decision maker'],
   ['Care context', 'Hospice agency, on-call line, facility or home address'],
-  ['Known dates', 'Only the dates the family knows; unknown dates become tasks'],
+  ['Known dates', 'Only the dates the family knows; unknown dates stay visible as waiting items'],
   ['Preferences', 'Disposition, service tone, faith or cultural needs, documents to find'],
   ['What is missing', 'The next items the funeral home or family should ask for'],
 ];
