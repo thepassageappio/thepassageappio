@@ -25,7 +25,7 @@ const steps = [
 ];
 
 const trustRows = [
-  ['Scoped access', 'Participants see only the estate slice and task they were invited to handle.'],
+  ['Scoped access', 'Participants see only the request, timing, and proof they were invited to handle.'],
   ['No noisy group chat', 'Updates are saved to the record instead of scattered across calls, texts, and inboxes.'],
   ['Proof-first', 'Notes, files, status, and timestamps stay attached to the responsibility.'],
 ];
