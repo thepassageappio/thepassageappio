@@ -59,7 +59,7 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
       },
       {
         label: 'Quick actions',
-        html: `<a href="${portalUrl}" style="color:#6b8f71;font-weight:900;">Open request details</a><br><a href="${acceptUrl}" style="color:#6b8f71;font-weight:900;">Send quote</a><br><a href="${declineUrl}" style="color:#6a6560;font-weight:900;">Decline request</a><br><span style="color:#6a6560;">Completion proof appears after quote approval and payment.</span>`,
+        html: `<a href="${portalUrl}" style="color:#6b8f71;font-weight:900;">Open request details</a><br><a href="${portalUrl}" style="color:#6b8f71;font-weight:900;">Send quote</a><br><a href="${declineUrl}" style="color:#6a6560;font-weight:900;">Decline request</a><br><span style="color:#6a6560;">Completion proof appears after quote approval and payment.</span>`,
         tone: 'soft',
       },
     ],

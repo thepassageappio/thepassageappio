@@ -122,6 +122,9 @@ export default async function handler(req, res) {
 
   const now = new Date().toISOString();
   const finalValue = Number(req.query.finalValue || req.body?.finalValue || 0);
+  if (status === 'accepted' && finalValue <= 0) {
+    return res.status(400).send('Open the vendor request and add a quote amount before sending it for approval.');
+  }
   const resetFromDeclined = request.status === 'declined' && status !== 'declined';
   const economics = calculateVendorEconomics({
     value: finalValue,

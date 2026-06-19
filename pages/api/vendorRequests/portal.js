@@ -150,7 +150,17 @@ export default async function handler(req, res) {
   const serviceEndAt = String(req.body?.serviceEndAt || '').trim();
   const serviceLocation = String(req.body?.serviceLocation || '').trim();
   const serviceNotes = String(req.body?.serviceNotes || '').trim();
-  const valueForFee = action === 'completed' ? finalValue : estimatedValue;
+  const quoteAmount = finalValue > 0 ? finalValue : estimatedValue;
+  if (action === 'accepted' && quoteAmount <= 0) {
+    return res.status(400).json({ error: 'Add the quote amount before sending it for family or funeral-home approval.' });
+  }
+  if (action === 'in_progress' && !serviceDate && !serviceStartAt && !serviceLocation && !serviceNotes) {
+    return res.status(400).json({ error: 'Add the scheduled date, time, location, or a scheduling note before marking this work scheduled.' });
+  }
+  if (action === 'completed' && String(serviceNotes || vendorNote || '').trim().length < 8) {
+    return res.status(400).json({ error: 'Add completion proof before saving this request as completed.' });
+  }
+  const valueForFee = action === 'completed' ? finalValue : quoteAmount;
   const resetFromDeclined = request.status === 'declined' && action !== 'declined';
   const economics = calculateVendorEconomics({
     value: valueForFee,

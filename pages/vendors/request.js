@@ -161,6 +161,21 @@ export default function VendorRequestPage() {
   }
 
   async function update(action) {
+    const quoteAmount = Number(finalValue || estimatedValue || request?.final_value || request?.estimated_value || 0);
+    const proofNote = String(serviceNotes || vendorNote || '').trim();
+    const scheduleDetail = String(serviceDate || serviceStartAt || serviceLocation || serviceNotes || '').trim();
+    if (action === 'accepted' && quoteAmount <= 0) {
+      setError('Add the quote amount before sending it for approval.');
+      return;
+    }
+    if (action === 'in_progress' && !scheduleDetail) {
+      setError('Add a scheduled date, time, location, or note before marking this scheduled.');
+      return;
+    }
+    if (action === 'completed' && proofNote.length < 8) {
+      setError('Add completion proof before saving this as completed.');
+      return;
+    }
     if (!token) {
       const next = applyVendorRequestTransition(request, action, { estimatedValue, finalValue, vendorNote, serviceDate, serviceStartAt, serviceLocation, serviceNotes });
       setRequest(next);
