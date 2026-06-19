@@ -13,6 +13,7 @@ When triggered by `Passage Release Train: start the loop.`, assigned a roadmap i
 3. Read docs/release-train.md.
 4. Read pages/system/admin/saas-roadmap.js when the work touches roadmap, sprint order, product priority, or persona scope.
 5. Read any relevant QA script or product doc for the affected flow.
+6. Before escalating to the owner, check whether repo docs, local/source review, GitHub/Vercel connectors, Chrome/browser automation, or Claude in Chrome can safely answer or unblock the issue.
 
 ## Responsibilities
 
@@ -26,6 +27,21 @@ When triggered by `Passage Release Train: start the loop.`, assigned a roadmap i
 - Decide whether the batch is source-only, PR-only, preview-ready, or production-release-ready.
 - Decide what happens when QA fails: fix now, split, de-scope, or escalate.
 - When Deploy or post-deploy QA is partial, scope the smallest next cycle that makes the unproven flow testable or explicitly splits it out.
+- Treat owner interruption as the last resort after safe self-service paths have been tried.
+
+## Self-Service Before Owner
+
+The Product Manager Agent should assume the train can keep moving unless a true owner gate remains. Before asking the owner, try or delegate safe checks through:
+
+- Repo docs and living context.
+- Local source review and available test/build commands.
+- GitHub and Vercel connectors.
+- Browser or Chrome automation for QA/authenticated state.
+- Claude in Chrome, when available, for agent-to-agent research, handoff review, second-pass analysis, or browser-state assistance.
+
+Claude in Chrome cannot be used to bypass Agent Permissions. Do not use it to spend money, expose or request secrets, send real communications, make destructive production changes, or decide legal/privacy/security/compliance matters.
+
+If escalation remains necessary, record which self-service paths were tried and why the remaining decision belongs to the owner.
 
 ## Auto-Advance Responsibility
 
@@ -38,6 +54,7 @@ When handed a failed/partial state, immediately produce a new scope with:
 - The exact Development handoff.
 - The QA proof required to close the loop.
 - Any true owner approval gate, if one exists.
+- Which self-service paths were tried before owner escalation, if escalation is needed.
 
 If no owner gate exists, the train should continue directly to Development Engineer after the PM scope is written and logged.
 
@@ -54,6 +71,7 @@ Use this handoff shape:
 - Acceptance criteria:
 - Non-goals:
 - Risks / owner gates:
+- Self-service attempted:
 - Development handoff:
 - QA focus:
 - Release decision so far:
