@@ -50,6 +50,136 @@ const governanceRules = [
   },
 ];
 
+
+const operatingArchitecture = [
+  {
+    title: 'Shared case record',
+    body: 'One case record sits underneath family, funeral-home, care-provider, participant, and vendor views. Each persona sees only their role, permissions, next step, messages, proof, and status trail.',
+  },
+  {
+    title: 'Operating step contract',
+    body: 'Every step has the same contract: what is happening, owner, waiting party, prepared output, human action, visibility, proof destination, and next status. This replaces vague task cards with one predictable interaction model.',
+  },
+  {
+    title: 'Persona dashboards',
+    body: 'Dashboards are role-specific views over the same record: directors manage risk and staff load, employees complete assigned work, families see reassurance and one ask, vendors see scoped requests, and care providers see handoff duties only.',
+  },
+  {
+    title: 'Proof and reporting layer',
+    body: 'Every meaningful action creates proof: status event, owner, timestamp, message or packet, delivery/visibility boundary, vendor quote/payment state, and export/report inclusion.',
+  },
+];
+
+const funeralHomeDashboardModel = [
+  {
+    title: 'Director dashboard',
+    body: 'First screen: Today's risk, cases needing action, unowned waiting points, staff load, family updates due, vendor quotes needing approval, proof gaps, service-window pressure, and reports/export controls.',
+  },
+  {
+    title: 'Employee dashboard',
+    body: 'First screen: assigned client steps only, case context, one primary action, prepared message/output, waiting state, proof field, escalation to director, and no billing/admin noise.',
+  },
+  {
+    title: 'Case dashboard',
+    body: 'One case page organized by operating state: next move, family relationship status, timeline, staff ownership, vendor support, proof trail, messages, exports, and reporting impact.',
+  },
+  {
+    title: 'Relationship dashboard',
+    body: 'A funeral home should know what the family has heard, what they are waiting on, who owns the next communication, what can be said safely, and which proof backs it up.',
+  },
+];
+
+const reportingArchitecture = [
+  {
+    title: 'Operational health',
+    body: 'Open cases, overdue service-window work, stale waiting points, unassigned steps, blocked cases, proof gaps, family update due, and average time-to-close by location and staff member.',
+  },
+  {
+    title: 'Family communication',
+    body: 'Requests sent, replies waiting, approvals received, updates prepared, notifications delivered, messages not sent, and family-visible proof by case.',
+  },
+  {
+    title: 'Staff performance',
+    body: 'Assigned load, completed client steps, waiting items by owner, stale ownership, proof quality, escalations, and director reassignment history without turning it into punitive surveillance.',
+  },
+  {
+    title: 'Vendor and services',
+    body: 'Requests created, quotes received, approvals/payment status, scheduled work, completion proof, vendor response time, service category demand, and preferred-vendor reliability.',
+  },
+  {
+    title: 'Revenue readiness',
+    body: 'Pilot usage, active locations, cases with proof, family-update usage, export/report usage, service revenue opportunities, subscription/billing state, renewal risk, and conversion next action. Owner-only only.',
+  },
+];
+
+const transformationPhases = [
+  {
+    name: 'Phase 1: Operating-step foundation',
+    status: 'Next build batch',
+    owner: 'Product + engineering',
+    goal: 'Replace confusing task-card mechanics with one reusable operating-step contract across personas.',
+    milestones: [
+      'Create a shared operating-step helper/model used by funeral-home, family, participant, vendor, and care-provider views.',
+      'Convert funeral-home task cards into operating steps with one primary action, owner, waiting party, prepared output, proof destination, and visibility boundary.',
+      'Move history, automation notes, dependency logic, and advanced controls into details accordions.',
+      'Seed the demo loop with accepted family participants, vendor request states, proof events, and exports so the product can be demoed end to end.',
+    ],
+    acceptance: 'A director, employee, family coordinator, vendor, participant, and care provider can each understand their page's next action without explanation.',
+  },
+  {
+    name: 'Phase 2: Funeral-home command workflow',
+    status: 'Planned after Phase 1 deploy',
+    owner: 'Product + QA',
+    goal: 'Make funeral-home directors and staff able to run real cases with confidence.',
+    milestones: [
+      'Director My Day shows case risk, staff load, waiting points, family updates, quote decisions, service-window pressure, proof gaps, and export/report actions.',
+      'Employee My Work shows assigned client steps, prepared message/output, case context, proof save, and escalation to director.',
+      'Case dashboard becomes the single operating page for family relationship context, step status, vendor state, proof, timeline, and exports.',
+      'Inbound family requests can be accepted, assigned, converted into case steps, declined with reason, or escalated.',
+    ],
+    acceptance: 'A funeral home can onboard one real case, assign work, communicate with the family, handle vendor support, save proof, and export/report the result.',
+  },
+  {
+    name: 'Phase 3: Reporting and accountability',
+    status: 'Planned',
+    owner: 'Engineering + ops',
+    goal: 'Turn activity into decision-grade reports for directors, staff, and owner-only business health.',
+    milestones: [
+      'Create operational-health reports for open work, overdue/stale waiting, owner gaps, proof gaps, and time-to-close.',
+      'Create family-communication reports for sent/prepared/not-sent messages, replies waiting, approvals, and visibility boundaries.',
+      'Create vendor reports for quote response, approval/payment status, scheduled/completed work, proof, and vendor reliability.',
+      'Create owner-only revenue readiness reports for pilots, usage, conversion, expansion, billing state, and renewal risk.',
+    ],
+    acceptance: 'A director can run the funeral home from reports, and Passage can prove value to convert pilots without exposing internal revenue goals externally.',
+  },
+  {
+    name: 'Phase 4: Automation and proactive guidance',
+    status: 'Planned',
+    owner: 'Engineering + product',
+    goal: 'Move Passage from task storage to proactive coordination.',
+    milestones: [
+      'Classify every operating step as automated, semi-automated, or manual and show what prevents further automation.',
+      'Recommend next action based on days since death or pre-death state, service dates, stale waiting, missing proof, role, and authority.',
+      'Draft the right message to the right party, with review-before-send and delivery logging.',
+      'Add cooldowns/rate limits and abuse controls to all sends, refreshes, lookups, and invites.',
+    ],
+    acceptance: 'The product tells each persona what to do next, prepares the work, prevents unsafe sends, and records proof automatically wherever possible.',
+  },
+  {
+    name: 'Phase 5: Enterprise beta readiness',
+    status: 'Planned',
+    owner: 'Founder + engineering + QA',
+    goal: 'Support multiple funeral-home betas with reliable permissions, data, support, and billing.',
+    milestones: [
+      'Harden org/location/staff roles, invite flows, RLS, notification logs, exports, audit history, and support escalation.',
+      'Add demo-data recovery and seeded UAT environments so demos never depend on wiped production data.',
+      'Verify Stripe, HubSpot, Resend, Twilio, Supabase, Vercel logs, security headers, and runtime errors in one release checklist.',
+      'Create beta launch dashboards for account health, usage, proof, risk, support issues, billing readiness, and conversion next action.',
+    ],
+    acceptance: 'Passage can onboard and support multiple funeral homes without founder-only manual recovery or unclear product state.',
+  },
+];
+
 const takeaways = [
   ['Current browser UAT release', 'Production green / next batch queued', 'Chrome UAT verified the latest deployed release: single Vercel project, Care providers in the public nav, System admin owner-only label, funeral-home demo dashboard, director My Day, staff persona dashboard, participant scoped request, vendor doorway, pre-need typed-address fallback, and Save proof + close action language. Next queued batch removes a bare Guide mystery button, adds a visible staff work-email label, and removes internal-sounding care-page meta copy before the next combined deploy.'],
   ['Security QA pass', 'Source hardening batched / deploy blocked', 'Source scan found no literal Stripe, GitHub, Google, Twilio, Slack, or JWT-style secrets, no RLS disable statements, and 102 RLS enable statements across migrations. Current batch signs Twilio voice callbacks and adds the missing CSV-template method guard. Remaining live security QA needs Supabase log review, Vercel runtime logs, and endpoint smoke tests after the real production deploy is unblocked.'],
@@ -245,6 +375,30 @@ export default function SaasRoadmapPage() {
         </Panel>
 
         <Panel>
+          <div style={eyebrow}>Product architecture</div>
+          <h2 style={h2}>Rethink Passage as one shared operating record with persona-specific dashboards.</h2>
+          <div style={cardGrid}>{operatingArchitecture.map(item => <ProofCard key={item.title} title={item.title} body={item.body} />)}</div>
+        </Panel>
+
+        <Panel tone="sage">
+          <div style={eyebrow}>Funeral-home dashboards</div>
+          <h2 style={h2}>Director, employee, case, and relationship views each get one clear job.</h2>
+          <div style={cardGrid}>{funeralHomeDashboardModel.map(item => <ProofCard key={item.title} title={item.title} body={item.body} />)}</div>
+        </Panel>
+
+        <Panel>
+          <div style={eyebrow}>Reporting architecture</div>
+          <h2 style={h2}>Reports must prove the work, not just count activity.</h2>
+          <div style={cardGrid}>{reportingArchitecture.map(item => <ProofCard key={item.title} title={item.title} body={item.body} />)}</div>
+        </Panel>
+
+        <Panel tone="sage">
+          <div style={eyebrow}>Transformation phases</div>
+          <h2 style={h2}>The rebuild path from confusing cards to enterprise-grade operating system.</h2>
+          <div style={{ display: 'grid', gap: 12 }}>{transformationPhases.map((phase, index) => <PhaseAccordion key={phase.name} phase={phase} open={index < 2} />)}</div>
+        </Panel>
+
+        <Panel>
           <div style={eyebrow}>Current takeaways</div>
           <h2 style={h2}>Where we are right now.</h2>
           <div style={{ display: 'grid', gap: 9 }}>{takeaways.map(([label, status, body]) => <StatusRow key={label} label={label} status={status} body={body} />)}</div>
@@ -310,6 +464,27 @@ function SprintAccordion({ sprint, open }) {
           <ul style={ul}>{sprint.tasks.map(task => <li key={task}>{task}</li>)}</ul>
         </div>
         <div style={doneBox}><strong>Acceptance:</strong> {sprint.acceptance}</div>
+      </div>
+    </details>
+  );
+}
+
+function PhaseAccordion({ phase, open }) {
+  const badge = phase.status === 'Next build batch' ? activePill : plannedPill;
+  return (
+    <details open={open} style={accordionPanel}>
+      <summary style={accordionSummary}>
+        <span>{phase.name}</span>
+        <span style={badge}>{phase.status}</span>
+      </summary>
+      <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+        <p style={{ ...smallText, margin: 0, color: C.ink }}>{phase.goal}</p>
+        <MetricRow label="Owner" value={phase.owner} />
+        <div style={innerPanel}>
+          <div style={eyebrow}>Milestones</div>
+          <ul style={ul}>{phase.milestones.map(milestone => <li key={milestone}>{milestone}</li>)}</ul>
+        </div>
+        <div style={doneBox}><strong>Acceptance:</strong> {phase.acceptance}</div>
       </div>
     </details>
   );
