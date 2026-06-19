@@ -3,6 +3,25 @@
 const message = String(process.env.VERCEL_GIT_COMMIT_MESSAGE || '').trim();
 const ref = String(process.env.VERCEL_GIT_COMMIT_REF || '').trim();
 const env = String(process.env.VERCEL_ENV || '').trim();
+const projectContext = [
+  process.env.VERCEL_PROJECT_NAME,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  process.env.VERCEL_URL,
+  process.env.NEXT_PUBLIC_VERCEL_URL,
+]
+  .filter(Boolean)
+  .join(' ')
+  .toLowerCase();
+
+const duplicateProjectPatterns = [
+  /you-are-working-on-a-production/,
+  /working-on-a-production/,
+];
+
+if (duplicateProjectPatterns.some(pattern => pattern.test(projectContext))) {
+  console.log('Vercel build ignored: duplicate Vercel project is attached to the Passage GitHub repo. Use canonical project thepassageappio only.');
+  process.exit(0);
+}
 
 const skipPatterns = [
   /\[(skip deploy|no deploy)\]/i,
