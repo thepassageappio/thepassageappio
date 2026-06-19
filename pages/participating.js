@@ -76,7 +76,7 @@ const demoParticipantContext = {
 
 async function signIn(returnTo = '/participating') {
   if (typeof window === 'undefined') return { error: '' };
-  window.location.assign('/api/auth/google?next=' + encodeURIComponent(returnTo || '/participating'));
+  window.location.assign('/auth/google?next=' + encodeURIComponent(returnTo || '/participating'));
   return { error: '' };
 }
 

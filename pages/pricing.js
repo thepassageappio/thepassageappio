@@ -72,7 +72,7 @@ export default function PricingPage() {
     trackEvent('pricing_sign_in_clicked', { participantDiscount });
     if (typeof window === 'undefined') return;
     const next = '/pricing' + (participantDiscount ? '?participant=1' : '');
-    window.location.assign('/api/auth/google?next=' + encodeURIComponent(next));
+    window.location.assign('/auth/google?next=' + encodeURIComponent(next));
   }
 
   async function signOut() {
@@ -257,7 +257,7 @@ export default function PricingPage() {
         {message && (
           <div style={{ marginTop: 12, color: C.rose, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: 13, fontSize: 13, display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <span>{message}</span>
-            {!user && <Link href={'/api/auth/google?next=' + encodeURIComponent('/pricing' + (participantDiscount ? '?participant=1' : ''))} onClick={() => trackEvent('pricing_sign_in_clicked', { participantDiscount })} style={{ ...smallButton(C.rose), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Sign in to continue</Link>}
+            {!user && <Link href={'/auth/google?next=' + encodeURIComponent('/pricing' + (participantDiscount ? '?participant=1' : ''))} onClick={() => trackEvent('pricing_sign_in_clicked', { participantDiscount })} style={{ ...smallButton(C.rose), textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Sign in to continue</Link>}
           </div>
         )}
       </section>
