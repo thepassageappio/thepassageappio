@@ -35,9 +35,9 @@ Canonical Vercel project:
 - Project ID: prj_b7CKwanQaKwFQSHInr3l6wsZy9nD
 - Team ID: team_X0ta3bEEbRVGNM9xOwdBtCga
 
-Recent known green production before this context file: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, release: deploy persona navigation and task action clarity [deploy].
+Current production: 2556914b4c16d9b27b2ca96f3f88432f92db1c6e, fix(release): repair roadmap build blocker [deploy] [qa-approved]. Deployed to dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe in the canonical Vercel project and serving on www.thepassageapp.io with X-Passage-Commit matching 2556914b4c16d9b27b2ca96f3f88432f92db1c6e.
 
-Recent source batch is queued behind [skip deploy] commits. Do not create another small deploy. Consolidate, sanity-check, then use one [deploy] release commit.
+Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, release: deploy persona navigation and task action clarity [deploy].
 
 ## Current Release Train
 
@@ -50,9 +50,9 @@ Dedicated role briefs:
 - docs/agents/qa-agent.md
 - docs/agents/deploy-agent.md
 
-Current cycle: 1.
+Current cycle: 1 post-deploy verification.
 
-Current batch status: Cycle 1 funeral-home operating-loop batch is QA-approved at source level (PASS) and shipping in this release commit. A live post-deploy per-persona render check plus an X-Passage-Commit match is required immediately after the build reaches READY, per docs/release-train.md. Rollback candidate is green f1b928b8.
+Current batch status: Cycle 1 funeral-home operating-loop batch is deployed after a production build repair. Server-render smoke checks pass for the public pages and commit header, but the release is not fully closed until real browser/Chrome hydrated persona QA confirms the director dashboard, employee assigned work, vendor request flow, reports/export proof, and owner roadmap after auth/client-side hydration.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -109,12 +109,7 @@ Family experience should prioritize:
 
 ## Open Work / Next Actions
 
-1. Verify the release-train guard and PR template are present in GitHub.
-2. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
-3. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
-4. Sanity-check the batched source changes remotely.
-5. Create one [deploy] [qa-approved] release commit only after the Product Manager -> Development Engineer -> QA loop has passed.
-6. Use browser/Chrome QA after deploy for persona-by-persona testing:
+1. Run real browser/Chrome QA after deploy for persona-by-persona testing:
    - Public landing and nav.
    - Urgent path.
    - Funeral-home sales page.
@@ -123,7 +118,11 @@ Family experience should prioritize:
    - Family invited by funeral home.
    - Vendor request acceptance/update/quote/completion.
    - Reports/export proof.
-6. Keep logging any finding here before handing off.
+   - System Admin owner roadmap after auth.
+2. Decide whether `/funeral-homes` should redirect to `/funeral-home`; production currently serves the singular route and returns 404 on the plural route.
+3. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
+4. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
+5. Keep logging any finding here before handing off.
 
 ## Known Watch Items
 
@@ -133,6 +132,7 @@ Family experience should prioritize:
 - Support email support@thepassageapp.io is not real and should not be shown as a direct support line.
 - Internal ARR/300k/roadmap/sprint/QA language must never appear on external pages.
 - Demo data has been near-empty before; the funeral-home demo loop must be seeded before claims are made.
+- Fetch-only Vercel checks cannot prove hydrated client flows. Use Chrome/browser with auth or seeded demo state before marking director, employee, vendor request, roadmap, or reports/export complete.
 
 ## Handoff Format For Future Agents
 
@@ -191,3 +191,13 @@ Append or update this section before final response:
 - Tested: source-level PASS. Live post-deploy per-persona render check + X-Passage-Commit match pending build completion, per docs/release-train.md.
 - Failed/blocked: none at commit time. Rollback candidate is green f1b928b8 if any persona page white-screens.
 - Next action: confirm Vercel READY, verify X-Passage-Commit equals the release commit, run director/employee/family/vendor/reporting render checks, then log results and update the roadmap and next-sprint scope here for the next Codex or Claude agent.
+
+### 2026-06-19 - Cycle 1 production repair and smoke checks
+
+- Date/time: 2026-06-19 19:15 America/New_York.
+- Branch/commit(s): main. Failed release commit c1df99afa5abac2d7f6394e1623769708ccde01a; repair commit 2556914b4c16d9b27b2ca96f3f88432f92db1c6e (`fix(release): repair roadmap build blocker [deploy] [qa-approved]`).
+- Files changed: pages/system/admin/saas-roadmap.js in the repair commit; docs/agent-operating-context.md in this handoff commit.
+- Deployed: yes. Canonical Vercel project prj_b7CKwanQaKwFQSHInr3l6wsZy9nD, deployment dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe, status READY, production aliases active. www.thepassageapp.io serves X-Passage-Commit 2556914b4c16d9b27b2ca96f3f88432f92db1c6e.
+- Tested: Vercel build logs show compiled successfully, generated static pages 64/64, and deployment READY. GitHub/Vercel status for 2556914b4c16d9b27b2ca96f3f88432f92db1c6e is success. Fetch smoke checks returned 200 plus matching X-Passage-Commit for `/`, `/urgent`, `/funeral-home`, `/funeral-home/sample-case`, `/participating`, `/vendors`, `/care-providers`, `/funeral-home/dashboard?demo=1`, `/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor`, and `/system/admin/saas-roadmap`.
+- Failed/blocked: original Cycle 1 release build failed before deploy because `pages/system/admin/saas-roadmap.js` used an unescaped apostrophe in the owner-only roadmap copy (`Today's risk`). The plural `/funeral-homes` route returns 404; the canonical route is `/funeral-home`. Fetch-only checks cannot prove hydrated/authenticated flows: `/funeral-home/dashboard?demo=1` server-rendered the funeral-home sign-in state, `/vendors/request?...` server-rendered `Loading request...`, and `/system/admin/saas-roadmap` server-rendered `Loading owner roadmap...` due auth/client-side loading. Local shell was unavailable in this Codex session, so checks used the GitHub and Vercel connectors rather than local `npm run agent:check`.
+- Next action: run real browser/Chrome hydrated QA with seeded/demo or authenticated state for funeral-home director dashboard, employee assigned work, family invited-by-funeral-home, vendor request accept/update/quote/complete, reports/export proof, and System Admin roadmap. If any of those fail, Product Manager should re-scope Cycle 1 instead of stacking another deploy; also decide whether `/funeral-homes` should redirect to `/funeral-home`.
