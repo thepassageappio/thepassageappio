@@ -1510,7 +1510,7 @@ export default function FuneralHomeDashboard() {
   }
 
   function directorFocusButtonLabel() {
-    if (recommendedActionCase?.id) return recommendedActionTask ? 'Open next work' : 'Open recommended case';
+    if (recommendedActionCase?.id) return recommendedActionTask ? 'Open next action' : 'Open recommended case';
     if (!cases.length) return 'Create case';
     if (!isDirectorRole) return firstStaffTask ? 'Open my client step' : 'Open my work';
     if (nextDirectorStep.key === 'staff') return unassignedTaskCount ? 'Resolve coverage' : 'Open staff';
@@ -2812,7 +2812,7 @@ export default function FuneralHomeDashboard() {
                 />
               </label>
               <button type="submit" disabled={signingIn} style={{ border: 'none', borderRadius: 13, padding: '13px 18px', background: signingIn ? C.border : C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: signingIn ? 'wait' : 'pointer' }}>
-                {signingIn ? 'Opening workspace...' : 'Open client stepsspace'}
+                {signingIn ? 'Opening workspace...' : 'Open funeral-home dashboard'}
               </button>
             </form>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.55, marginBottom: 12 }}>
@@ -3963,26 +3963,26 @@ export default function FuneralHomeDashboard() {
                 const packetText = taskPreparedPacketFor(firstStaffTask, { surface: 'staff client-step queue', caseName: firstStaffTask.caseName });
                 return (
                 <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 12, marginBottom: 10 }}>
-                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>Right now</div>
+                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 }}>Action needed</div>
                   <div style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.22, marginTop: 4 }}>{sharedTaskTitle(firstStaffTask)}</div>
                   <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>
-                    Case: {firstStaffTask.caseName} - Service/context: {firstStaffTask.locationName}. Family status: {statusLabel(firstStaffTask.status)}.
+                    Case: {firstStaffTask.caseName} - Service/context: {firstStaffTask.locationName}. Status: {statusLabel(firstStaffTask.status)}.
                   </div>
                   <div style={{ display: 'grid', gap: 7, marginTop: 8 }}>
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                      <strong style={{ color: C.ink }}>1. Do next:</strong> {taskGuidanceFor(firstStaffTask, { owner: firstStaffTask.assigned_to_name || firstStaffTask.assigned_to_email || 'staff', surface: 'staff client-step queue' }).nextStep || taskExpectedUpdate(firstStaffTask, 'funeral_home')}
+                      <strong style={{ color: C.ink }}>Action needed:</strong> {taskGuidanceFor(firstStaffTask, { owner: firstStaffTask.assigned_to_name || firstStaffTask.assigned_to_email || 'staff', surface: 'staff client-step queue' }).nextStep || taskExpectedUpdate(firstStaffTask, 'funeral_home')}
                     </div>
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                      <strong style={{ color: C.ink }}>2. Message to send or use:</strong> {draft}
+                      <strong style={{ color: C.ink }}>Message ready:</strong> {draft}
                     </div>
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                      <strong style={{ color: C.ink }}>Status and proof:</strong> {proofDestination}
+                      <strong style={{ color: C.ink }}>Proof/status:</strong> {proofDestination}
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 7, marginTop: 9 }}>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Save proof + close', prompt: 'Review or edit the Passage-prepared proof packet, then close this client step so it no longer appears as waiting steps.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Save proof + close</button>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Mark waiting</button>
-                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Request family info</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'handled', label: 'Done - save proof', prompt: 'Review or edit the Passage-prepared proof packet, then close this step so it no longer appears as waiting.', draft, output, proofDestination }); setTaskDraftNote(packetText); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Done - save proof</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'waiting', label: 'Waiting update', prompt: taskActionPrompt('waiting', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${firstStaffTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(firstStaffTask)} can move forward. Next update expected tomorrow morning.`); }} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Waiting - add update</button>
+                    <button onClick={() => { setTaskDraft({ task: firstStaffTask, status: 'blocked', label: 'Request this from family', prompt: taskActionPrompt('blocked', firstStaffTask, 'funeral_home'), draft, output, proofDestination }); setTaskDraftNote(draft); }} style={{ border: `1px solid ${C.amber}55`, background: C.amberFaint, color: C.amber, borderRadius: 10, padding: '8px 10px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Ask family for info</button>
                   </div>
                   <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 10px', color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 9 }}><strong style={{ color: C.ink }}>Need director support?</strong> Mark waiting if something is blocked, request one family detail if that is the blocker, or open the case context before calling the family.</div>
                   <button onClick={() => openPartnerWork(firstStaffTask.caseId)} style={{ border: `1px solid ${C.sage}33`, background: C.card, color: C.sage, borderRadius: 10, padding: '8px 10px', marginTop: 9, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{isDirectorRole ? 'Open full case context' : 'Open case context'}</button>
@@ -4008,20 +4008,20 @@ export default function FuneralHomeDashboard() {
                       <div>
                         <div style={{ color: C.soft, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{task.caseName} - {task.locationName}</div>
                         <div style={{ fontSize: 16, fontWeight: 900, marginTop: 3, lineHeight: 1.25 }}>{sharedTaskTitle(task)}</div>
-                        <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Owner: <strong style={{ color: C.ink }}>{rightPerson}</strong> - {statusLabel(task.status)}</div>
+                        <div style={{ color: C.mid, fontSize: 12.5, marginTop: 5 }}>Action status: <strong style={{ color: C.ink }}>{statusLabel(task.status)}</strong> | Owner: <strong style={{ color: C.ink }}>{rightPerson}</strong></div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8, marginTop: 9 }}>
                           <div style={{ background: blocked ? C.roseFaint : waiting ? C.amberFaint : C.sageFaint, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>1. Do next:</strong> {guidance.nextStep || taskExpectedUpdate(task, 'funeral_home')}
+                            <strong style={{ color: C.ink }}>Action needed:</strong> {guidance.nextStep || taskExpectedUpdate(task, 'funeral_home')}
                           </div>
                           <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>2. Message to send or use:</strong> {preparedDraft}
+                            <strong style={{ color: C.ink }}>Message ready:</strong> {preparedDraft}
                           </div>
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 10, padding: '8px 9px', color: C.mid, fontSize: 12, lineHeight: 1.4 }}>
-                            <strong style={{ color: C.ink }}>Status and proof:</strong> {proofDestination}
+                            <strong style={{ color: C.ink }}>Proof/status:</strong> {proofDestination}
                           </div>
                         </div>
                         <details style={{ color: C.mid, fontSize: 12, lineHeight: 1.4, marginTop: 8 }}>
-                          <summary style={{ color: C.sage, fontWeight: 900, cursor: 'pointer' }}>What Passage prepares</summary>
+                          <summary style={{ color: C.sage, fontWeight: 900, cursor: 'pointer' }}>What Passage prepared</summary>
                           <div style={{ marginTop: 5 }}><strong style={{ color: C.ink }}>{preparedOutput.label}:</strong> {preparedOutput.body}</div>
                         </details>
                       </div>
@@ -4673,10 +4673,10 @@ export default function FuneralHomeDashboard() {
                   ? 'Open client steps remains; assign the next clear owner before the family update.'
                   : 'Family can be told there is no open funeral-home work right now.';
               const caseOperatingContract = [
-                ['Ask', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action ready', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
+                ['Action needed', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action ready', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
                 ['Owner', nextOwner, nextOwner === 'Unassigned' ? 'Assign an owner before this can reliably move.' : 'This person owns the next visible move.', nextOwner === 'Unassigned' ? C.amber : C.sage],
-                ['Waiting', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting points create repeated family calls when they are not owned.', blocked ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
-                ['Proof', proofLabel, caseProofGapCount ? 'Close the proof gap before using this as a family status record.' : 'Proof stays attached to the case record.', caseProofGapCount ? C.amber : C.sage],
+                ['Waiting on', waitingLabel, waitingFamily[0]?.title || waitingFamily[0]?.detail || nextPartnerTask?.waiting_on || 'Waiting points create repeated family calls when they are not owned.', blocked ? C.rose : waitingCount || waitingFamily.length ? C.amber : C.sage],
+                ['Proof/status', proofLabel, caseProofGapCount ? 'Close the proof gap before using this as a family status record.' : 'Proof stays attached to the case record.', caseProofGapCount ? C.amber : C.sage],
                 ['Family update', familyUpdateLabel, 'Use this line to answer the next where-are-we call.', C.mid],
               ];
               return (
@@ -4694,12 +4694,12 @@ export default function FuneralHomeDashboard() {
                           if (!isDirectorRole) setStaffCaseContextOpen(false);
                           setCasePaneAutoOpened(true);
                           setShowAllCases(true);
-                          setNotice('Client-step pane closed. Showing the case list again.');
+                          setNotice('Case steps closed. Showing the case list again.');
                         } else {
                           setExpandedCaseId(item.id);
                           setShowAllCases(false);
                         }
-                      }} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close client-step pane' : 'Open client steps pane'}</button>
+                      }} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close case steps' : 'Open case steps'}</button>
                     </div>
                   </div>
                   {urgentContext.length > 0 && (
@@ -4775,11 +4775,11 @@ export default function FuneralHomeDashboard() {
                         </div>
                       )}
                       <div style={{ background: C.card, borderLeft: `4px solid ${blocked ? C.rose : waitingCount ? C.amber : C.sage}`, borderRadius: 11, padding: '9px 10px', marginTop: 10, color: C.mid, fontSize: 12.4, lineHeight: 1.45 }}>
-                        <strong style={{ color: C.ink }}>Next expected update:</strong> {nextExpectedUpdate}
+                        <strong style={{ color: C.ink }}>Status change expected:</strong> {nextExpectedUpdate}
                       </div>
                       {nextStateMachine && (
                         <div style={{ background: C.card, border: `1px solid ${nextStateMachine.escalation || nextStateMachine.state === 'blocked_by_dependency' ? C.amber + '44' : C.sage + '33'}`, borderRadius: 11, padding: '9px 10px', marginTop: 8, color: C.mid, fontSize: 12.2, lineHeight: 1.45 }}>
-                          <strong style={{ color: C.ink }}>Why Passage picked this:</strong> {` ${nextStateMachine.label}. ${nextStateMachine.reassurance}`}
+                          <strong style={{ color: C.ink }}>Why this is next:</strong> {` ${nextStateMachine.label}. ${nextStateMachine.reassurance}`}
                           {nextStateMachine.escalation ? <div style={{ marginTop: 4 }}><strong style={{ color: C.ink }}>If stuck:</strong> {nextStateMachine.escalation}</div> : null}
                         </div>
                       )}
@@ -4968,21 +4968,21 @@ export default function FuneralHomeDashboard() {
                     ];
                     const actionContractRows = [
                       ['Passage prepared', output.label || 'Prepared task packet'],
-                      ['You do next', nextPartnerTask ? sharedTaskNext(nextPartnerTask) : 'No staff action is open'],
+                      ['Action needed', nextPartnerTask ? sharedTaskNext(nextPartnerTask) : 'No staff action is open'],
                       ['Waiting on', nextPartnerTask?.waiting_on || nextPartnerTask?.playbook?.waitingOn || (nextOwner === 'Unassigned' ? 'An owner' : 'Next response')],
-                      ['Proof saves', proofDestination || output.label || 'Case record'],
+                      ['Proof/status saves', proofDestination || output.label || 'Case record'],
                     ];
                     const ownerMissing = nextOwner === 'Unassigned';
                     return (
                       <div id={'partner-action-workspace-' + item.id} data-demo-anchor="demo-task-action" style={{ background: C.card, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: 14, marginTop: 12, boxShadow: '0 8px 22px rgba(55,45,35,.04)', scrollMarginTop: 92 }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 12, alignItems: 'stretch' }}>
                           <div>
-                            <div style={{ color: taskClosed ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{taskClosed ? 'Closed with proof' : 'Next action'}</div>
+                            <div style={{ color: taskClosed ? C.sage : C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>{taskClosed ? 'Closed with proof' : 'Action needed'}</div>
                             <div style={{ color: C.ink, fontSize: 20, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>{sharedTaskTitle(nextPartnerTask)}</div>
-                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{taskClosed ? 'This client step is already handled. Passage keeps the proof, owner, notification, and family-visible status together.' : 'Pick one client step. Passage keeps the owner, family request, proof, and family-visible status on the same record.'}</div>
+                            <div style={{ color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 5 }}>{taskClosed ? 'This step is already handled. Passage keeps the proof, owner, notification, and family-visible status together.' : 'This step has one owner, one needed action, one waiting point, and one proof/status note.'}</div>
                             <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
                               <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '8px 9px', marginBottom: 8 }}>
-                                <strong style={{ color: C.ink }}>What this client step is:</strong> {explanation.what}
+                                <strong style={{ color: C.ink }}>What this is:</strong> {explanation.what}
                                 <br />
                                 <strong style={{ color: C.ink }}>What done means:</strong> {explanation.done}
                               </div>
@@ -5029,9 +5029,9 @@ export default function FuneralHomeDashboard() {
                               {ownerMissing ? (
                                 <button onClick={() => { setAssignmentDraft({ taskId: nextPartnerTask.id, caseId: item.id, scope: 'task', name: nextPartnerTask.assigned_to_name || firstAssignee?.name || '', email: nextPartnerTask.assigned_to_email || firstAssignee?.email || '', role: nextPartnerTask.playbook?.partnerOwnerRole || firstAssignee?.role || 'staff', phone: '' }); setTaskDraft(null); setTaskDraftNote(''); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Assign owner<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>{unassignedCaseTasks.length ? `${unassignedCaseTasks.length} to assign` : 'staff or case contact'}</span></button>
                               ) : (
-                                <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Save proof + close', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this client step. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Save proof + close<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>moves out of active client steps</span></button>
+                                <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'handled', label: 'Save proof + close', prompt: 'Review the Passage-prepared packet, add or edit the proof note, then close this client step. After it closes, family request and waiting actions move out of the way.', draft, output, proofDestination }); setTaskDraftNote(packetText); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, padding: '12px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Done - save proof<br /><span style={{ color: 'rgba(255,255,255,.78)', fontWeight: 500 }}>removes from active steps</span></button>
                               )}
-                              <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'waiting', label: 'Waiting update', prompt: 'Write what is waiting and the next expected update.', draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${nextPartnerTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(nextPartnerTask)} can move forward. Next update expected tomorrow morning.`); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 11, padding: '12px 13px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Mark waiting<br /><span style={{ color: C.soft, fontWeight: 500 }}>next update</span></button>
+                              <button onClick={() => { setTaskDraft({ task: nextPartnerTask, status: 'waiting', label: 'Waiting update', prompt: 'Write what is waiting and the next expected update.', draft, output, proofDestination }); setTaskDraftNote(`Waiting on ${nextPartnerTask.playbook?.waitingOn || 'confirmation'} before ${sharedTaskTitle(nextPartnerTask)} can move forward. Next update expected tomorrow morning.`); setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); }} style={{ border: `1px solid ${C.border}`, background: C.bg, color: C.mid, borderRadius: 11, padding: '12px 13px', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif', textAlign: 'left' }}>Waiting - add update<br /><span style={{ color: C.soft, fontWeight: 500 }}>who or what is blocking it</span></button>
                             </div>
                             <details style={{ border: `1px solid ${C.border}`, background: C.bg, borderRadius: 11, padding: '8px 10px', marginTop: 8 }}>
                               <summary style={{ cursor: 'pointer', color: C.mid, fontWeight: 900, fontSize: 12.2 }}>More actions</summary>
@@ -5580,10 +5580,10 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
   const copyLabel = taskDraft.status === 'blocked' ? 'Copy family request' : 'Copy proof packet';
   const copiedLabel = taskDraft.status === 'blocked' ? 'Family request copied.' : 'Prepared output copied.';
   const saveLabel = taskDraft.status === 'handled'
-    ? 'Close client step with this proof'
+    ? 'Done - save proof and close'
     : taskDraft.status === 'blocked'
       ? 'Save family request'
-      : 'Save waiting update';
+      : 'Waiting - save update';
   const previewTitle = taskDraft.status === 'blocked'
     ? 'Family request'
     : taskDraft.status === 'waiting'
@@ -5610,20 +5610,20 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 230, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-      <div role="dialog" aria-modal="true" aria-label="Update client step" onClick={event => event.stopPropagation()} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
+      <div role="dialog" aria-modal="true" aria-label="Update case step" onClick={event => event.stopPropagation()} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 16, padding: 16, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
           <div>
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{taskDraft.label}</div>
             <div style={{ color: C.ink, fontSize: 17, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>{sharedTaskTitle(task)}</div>
           </div>
-          <button onClick={onClose} aria-label="Close client-step action" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
+          <button onClick={onClose} aria-label="Close action dialog" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
         </div>
         <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 6 }}>{taskDraft.prompt}</div>
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '11px 12px', marginTop: 9 }}>
           <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>What happens next</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
-              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Asked of staff</div>
+              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Action button</div>
               <div style={{ color: C.ink, fontSize: 12.1, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{saveLabel}</div>
             </div>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
@@ -5631,12 +5631,12 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
               <div style={{ color: C.ink, fontSize: 12.1, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{task.assigned_to_name || task.assigned_to_email || 'Next-step owner'}</div>
             </div>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
-              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Waiting</div>
+              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Current status</div>
               <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>{taskExpectedUpdate(task, 'funeral_home')}</div>
             </div>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 11, padding: '8px 9px' }}>
-              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Save proof</div>
-              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>Proof saves to the case record; family-visible updates still require approval.</div>
+              <div style={{ color: C.sage, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>Proof/status</div>
+              <div style={{ color: C.mid, fontSize: 12, lineHeight: 1.35, fontWeight: 800, marginTop: 3 }}>Proof saves to the case record; any family-facing update still requires approval.</div>
             </div>
           </div>
           <div style={{ color: C.mid, fontSize: 11.8, lineHeight: 1.4, marginTop: 8 }}><strong style={{ color: C.ink }}>Where proof saves:</strong> {proofDestination}</div>
