@@ -19,6 +19,21 @@ Dedicated role briefs live here:
 
 If QA fails or development uncovers a scope gap, the loop returns to the Product Manager Agent first.
 
+## Auto-Advance Contract
+
+The release train should not pause merely because one role has produced a handoff. If the handoff names a next role and the agent has enough context and tool access to advance, continue immediately in the same session.
+
+Default transitions:
+
+- Product Manager scope complete -> Development Engineer implements.
+- Development handoff complete -> QA validates.
+- QA PASS -> Deploy Agent prepares or verifies release.
+- QA FAIL or PARTIAL -> Product Manager re-scopes before more development.
+- Deploy READY and post-deploy QA PASS -> Product Manager scopes the next highest-leverage roadmap item.
+- Deploy ERROR, runtime failure, wrong-project deploy, or incomplete post-deploy QA -> Product Manager re-scopes the failed or unproven acceptance area before more development.
+
+A final response to the owner is appropriate only when the current loop is genuinely complete, blocked by an owner-approval gate, blocked by unavailable auth/credentials, blocked by a destructive production-data decision, or blocked by legal/compliance/privacy/security judgment. Otherwise the agent should keep moving and record the role transition in docs/agent-operating-context.md.
+
 ## Magic Phrase
 
 Use this exact phrase in any fresh Codex conversation:
@@ -33,7 +48,8 @@ That phrase means:
 4. Move to Development Engineer Agent only after scope is clear.
 5. Move to QA Agent only after development handoff is complete.
 6. Move to Deploy Agent only after QA is PASS or Product Manager approves a PARTIAL as non-blocking.
-7. Update docs/agent-operating-context.md before handoff, deploy, or final response.
+7. After Deploy, return to Product Manager if the cycle is complete, failed, partial, or has any unproven post-deploy acceptance area.
+8. Update docs/agent-operating-context.md before handoff, deploy, final response, or role transition.
 
 A shorter acceptable version is: `Start the Passage release train.` If the exact phrase is present, treat it as the stronger instruction.
 
@@ -48,7 +64,7 @@ Every agent starts by reading:
 5. pages/system/admin/saas-roadmap.js when roadmap, sprint, product priority, or persona scope changes
 6. docs/deployment-discipline.md when deployment is possible
 
-Every agent finishes by updating docs/agent-operating-context.md with what changed, what was tested, what failed, deployment state, and next action.
+Every agent finishes by updating docs/agent-operating-context.md with what changed, what was tested, what failed, deployment state, next action, and whether the train auto-advanced or why it could not.
 
 ## Product Manager Agent
 
@@ -65,6 +81,8 @@ Before development starts, the Product Manager Agent must define:
 - Whether this is a deployable release batch or source-only setup.
 
 If development finds a new gap, confusing UX, broken dependency, or risky expansion, work returns here before more coding. The Product Manager decides whether to fix, split, de-scope, rewrite acceptance, or escalate.
+
+If Deploy records a failed build, runtime failure, post-deploy QA failure, partial verification, or unproven hydrated/authenticated flow, the next Product Manager scope should be the smallest batch that makes that acceptance area provable or decides to split/de-scope it.
 
 ## Development Engineer Agent
 
@@ -94,6 +112,8 @@ QA failures do not go straight back to development. They go to Product Manager f
 
 Because this repo has no preview environment and all non-release commits are [skip deploy], a green Vercel build is not proof a page renders. Next.js builds do not catch runtime errors. Every release must therefore include a live post-deploy render check: after the [deploy] [qa-approved] build is READY, load each affected persona page in a real browser, confirm it renders without a client-side crash, verify X-Passage-Commit matches the release commit, and log the result in docs/agent-operating-context.md before the cycle is considered closed.
 
+If post-deploy QA is incomplete because browser/auth/demo state is not available, do not mark the loop complete. Return to Product Manager to scope the smallest useful next step: make the QA path runnable, split the blocked flow from the release, or identify the exact owner-gated credential/action required.
+
 ## Loop Limit
 
 A release batch gets a maximum of 3 Product Manager -> Development Engineer -> QA cycles.
@@ -119,6 +139,8 @@ The Deploy Agent can deploy only when:
 - The release commit uses [deploy] [qa-approved].
 
 After deployment, the Deploy Agent must record Vercel status, production URL/status, tested flows, failures, and next action in docs/agent-operating-context.md.
+
+Deploy Agent must not end the loop on a partial verification note. If production is repaired but hydrated persona QA remains unproven, immediately return to Product Manager to scope the QA enablement/fix batch.
 
 ## PR Requirements
 
@@ -152,6 +174,14 @@ When development discovers a gap, record:
 - Why it matters.
 - Whether it changes acceptance criteria.
 - Product Manager decision before more implementation.
+
+When Deploy or post-deploy QA is partial, record:
+
+- What deployed or failed to deploy.
+- Which production URLs and commit headers were proven.
+- Which persona flows remain unproven.
+- Why they remain unproven.
+- Product Manager decision for the next smallest cycle.
 
 ## Best-Practice Bias
 
