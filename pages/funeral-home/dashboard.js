@@ -534,8 +534,8 @@ function buildDemoPartnerExport(data, view = 'spine') {
   const cases = data?.cases || [];
   const summaryView = view === 'cases';
   const rows = summaryView
-    ? [['Case', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Prepaid amount', 'Family contact', 'Family email', 'Location', 'Open work', 'Waiting work', 'Handled work', 'Next move', 'Updated at']]
-    : [['Case', 'Record type', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Family contact', 'Family email', 'Location', 'Work / request', 'Owner', 'Status', 'Waiting on', 'Proof / reporting']];
+    ? [['Case', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Prepaid amount', 'Family contact', 'Family email', 'Location', 'Open client steps', 'Waiting client steps', 'Handled client steps', 'Next move', 'Updated at']]
+    : [['Case', 'Record type', 'Case type', 'Reference', 'Case value', 'Prepaid', 'Family contact', 'Family email', 'Location', 'Client step / request', 'Owner', 'Status', 'Waiting on', 'Proof / reporting']];
 
   for (const item of cases) {
     const tasks = [...(item.partnerTasks || []), ...(item.tasks || [])];
@@ -2501,7 +2501,7 @@ export default function FuneralHomeDashboard() {
         label: 'Proof gaps',
         value: proofGapCount,
         tone: proofGapCount ? 'warn' : 'good',
-        body: proofGapCount ? 'Handled work needs a note, reference, actor, or timestamp.' : 'Handled work has enough visible proof for the family record.',
+        body: proofGapCount ? 'Handled client steps needs a note, reference, actor, or timestamp.' : 'Handled client steps has enough visible proof for the family record.',
       },
     ]
     : [
@@ -2812,7 +2812,7 @@ export default function FuneralHomeDashboard() {
                 />
               </label>
               <button type="submit" disabled={signingIn} style={{ border: 'none', borderRadius: 13, padding: '13px 18px', background: signingIn ? C.border : C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: signingIn ? 'wait' : 'pointer' }}>
-                {signingIn ? 'Opening workspace...' : 'Open workspace'}
+                {signingIn ? 'Opening workspace...' : 'Open client stepsspace'}
               </button>
             </form>
             <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 12, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.55, marginBottom: 12 }}>
@@ -4670,7 +4670,7 @@ export default function FuneralHomeDashboard() {
               const familyUpdateLabel = nextPartnerTask
                 ? nextExpectedUpdate
                 : open
-                  ? 'Open work remains; assign the next clear owner before the family update.'
+                  ? 'Open client steps remains; assign the next clear owner before the family update.'
                   : 'Family can be told there is no open funeral-home work right now.';
               const caseOperatingContract = [
                 ['Ask', nextPartnerTask ? sharedTaskTitle(nextPartnerTask) : 'No staff action ready', nextPartnerTask ? (orchestration.nextAction?.reason || sharedTaskNext(nextPartnerTask, 'funeral_home')) : 'No staff action is required right now.', nextPartnerTask ? C.ink : C.mid],
@@ -4699,7 +4699,7 @@ export default function FuneralHomeDashboard() {
                           setExpandedCaseId(item.id);
                           setShowAllCases(false);
                         }
-                      }} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close work pane' : 'Open work pane'}</button>
+                      }} style={{ color: '#fff', background: C.sage, border: 'none', borderRadius: 11, padding: '9px 13px', fontSize: 13, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>{isExpanded ? 'Close work pane' : 'Open client steps pane'}</button>
                     </div>
                   </div>
                   {urgentContext.length > 0 && (
@@ -4947,7 +4947,7 @@ export default function FuneralHomeDashboard() {
                       {
                         label: 'Conversation',
                         count: conversationCount,
-                        body: item.coordinationSpine?.conversation?.[0]?.title || item.coordinationSpine?.conversation?.[0]?.detail || 'Human request or reply stays on this task.',
+                        body: item.coordinationSpine?.conversation?.[0]?.title || item.coordinationSpine?.conversation?.[0]?.detail || 'Human request or reply stays on this client step.',
                       },
                       {
                         label: 'Proof',
@@ -5021,7 +5021,7 @@ export default function FuneralHomeDashboard() {
                         </div>
                         {taskClosed ? (
                           <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 12, padding: '11px 12px', color: C.sage, fontSize: 13, fontWeight: 900, marginTop: 12 }}>
-                            Done. Proof is saved below; no new family request or waiting state is needed for this task.
+                            Done. Proof is saved below; no new family request or waiting state is needed for this client step.
                           </div>
                         ) : (
                           <div style={{ marginTop: 12 }}>
@@ -5072,11 +5072,11 @@ export default function FuneralHomeDashboard() {
                               <button onClick={() => setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' })} aria-label="Close assignment" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                             </div>
                             <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>
-                              Choose a saved employee or case contact. Assign only this task, all unassigned work in this case, or every open task when one staff member owns the whole case.
+                              Choose a saved employee or case contact. Assign only this client step, all unassigned work in this case, or every open client step when one staff member owns the whole case.
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
                               {[
-                                ['task', 'This task', sharedTaskTitle(nextPartnerTask)],
+                                ['task', 'This client step', sharedTaskTitle(nextPartnerTask)],
                                 ['unassigned_open', `Unassigned in case (${unassignedCaseTasks.length})`, 'Only open client steps without an owner'],
                                 ['all_open', `All open in case (${openCaseTasks.length})`, 'Move the whole case to one employee'],
                               ].map(([scopeKey, label, body]) => (
@@ -5101,7 +5101,7 @@ export default function FuneralHomeDashboard() {
                               </div>
                             ) : (
                               <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: '9px 10px', color: C.amber, fontSize: 12.2, lineHeight: 1.45, marginTop: 10 }}>
-                                <div>{assignmentOptions.length ? 'Adding a one-time owner for this task. They will not become a saved employee until you add them in Management.' : 'No employees or case contacts are saved yet.'}</div>
+                                <div>{assignmentOptions.length ? 'Adding a one-time owner for this client step. They will not become a saved employee until you add them in Management.' : 'No employees or case contacts are saved yet.'}</div>
                                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginTop: 8 }}>
                                   {assignmentOptions.length > 0 && <button onClick={() => applyAssignee(firstAssignee)} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Use saved person</button>}
                                   <button onClick={() => { setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' }); openPartnerManagement('Opening employee setup. Add employees here so they appear in every owner dropdown with role and location context.'); setShowStaffSetup(true); }} style={{ border: `1px solid ${C.amber}44`, background: C.card, color: C.amber, borderRadius: 9, padding: '8px 10px', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Create employee in Management</button>
@@ -5120,7 +5120,7 @@ export default function FuneralHomeDashboard() {
                                 {updating === nextPartnerTask.id + 'assign' || updating === item.id + 'assign_case'
                                   ? 'Saving...'
                                   : assignmentDraft.scope === 'all_open'
-                                    ? `Assign ${openCaseTasks.length} open task${openCaseTasks.length === 1 ? '' : 's'}`
+                                    ? `Assign ${openCaseTasks.length} open client step${openCaseTasks.length === 1 ? '' : 's'}`
                                     : assignmentDraft.scope === 'unassigned_open'
                                       ? `Assign ${unassignedCaseTasks.length} unassigned`
                                       : assigningNewOwner ? 'Save one-time owner and proof' : 'Save owner and proof'}
@@ -5489,7 +5489,7 @@ function PartnerDirectorFocus({ riskItems, inboxItems, caseItems, isMultiLocatio
             bg={C.sageFaint}
             title={firstCase ? (firstCase.caseItem.deceased_name || firstCase.caseItem.estate_name || firstCase.caseItem.name || 'Family case') : 'No open case work'}
             body={firstCase ? `${sharedTaskTitle(firstCase.task)} - ${sharedTaskNext(firstCase.task, 'funeral_home')}` : 'Nothing needs funeral-home action right now.'}
-            cta={firstCase ? 'Open work' : ''}
+            cta={firstCase ? 'Open client steps' : ''}
             onClick={firstCase ? () => onOpenCase(firstCase.caseItem.id) : null}
           />
         </div>
@@ -5616,7 +5616,7 @@ function PartnerTaskActionDialog({ taskDraft, taskDraftNote, setTaskDraftNote, c
             <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{taskDraft.label}</div>
             <div style={{ color: C.ink, fontSize: 17, fontWeight: 900, lineHeight: 1.25, marginTop: 3 }}>{sharedTaskTitle(task)}</div>
           </div>
-          <button onClick={onClose} aria-label="Close work action" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
+          <button onClick={onClose} aria-label="Close client-step action" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
         </div>
         <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 6 }}>{taskDraft.prompt}</div>
         <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: '11px 12px', marginTop: 9 }}>
@@ -5719,7 +5719,7 @@ function PartnerAttentionInbox({ items, onOpenCase }) {
       ) : (
         <div style={{ display: 'grid', gap: 8 }}>
           {items.map(item => {
-            const kind = item.kind === 'vendor' ? 'Vendor' : item.kind === 'message' ? 'Message' : item.kind === 'task' ? 'Work status' : 'Case update';
+            const kind = item.kind === 'vendor' ? 'Vendor' : item.kind === 'message' ? 'Message' : item.kind === 'task' ? 'Client step' : 'Case update';
             const urgent = item.attentionLevel === 'urgent';
             const waiting = item.attentionLevel === 'waiting';
             const tone = urgent ? C.rose : waiting ? C.amber : C.sage;
