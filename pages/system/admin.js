@@ -104,6 +104,7 @@ export default function SystemAdminPage() {
   const [vendorSetupDraft, setVendorSetupDraft] = useState({ businessName: '', category: 'florist', email: '', phone: '', zipCodes: '', website: '', description: '' });
   const [vendorSetupResult, setVendorSetupResult] = useState(null);
   const [vendorSetupLoading, setVendorSetupLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     if (!supabase) {
@@ -136,8 +137,13 @@ export default function SystemAdminPage() {
   }
 
   async function signIn() {
-    if (!supabase || typeof window === 'undefined') return;
-    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    setAuthError('');
+    if (!supabase || typeof window === 'undefined') {
+      setAuthError('Passage sign-in is not configured in this environment. Use the main login page or contact the owner inbox.');
+      return;
+    }
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    if (error) setAuthError(error.message || 'Passage could not start Google sign-in. Please try again.');
   }
 
   async function signOut() {
@@ -252,6 +258,7 @@ export default function SystemAdminPage() {
             <h1 style={h1}>Sign in to continue.</h1>
             <p style={lead}>This area is restricted to Passage system operators. Customer dashboards, vendor portals, and participant requests live outside this admin cabinet.</p>
             <button onClick={signIn} style={primaryButton}>Sign in with Google</button>
+            {authError && <div style={{ marginTop: 12, background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 12, padding: '10px 12px', fontSize: 13.5, lineHeight: 1.45 }}>{authError}</div>}
           </Panel>
         </section>
       </Shell>
