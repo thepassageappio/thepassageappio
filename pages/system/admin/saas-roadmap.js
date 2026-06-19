@@ -244,6 +244,7 @@ const transformationPhases = [
 ];
 
 const takeaways = [
+  ['Director/employee/vendor operating loop', 'Source queued / deploy candidate ready', 'Assessment: director workflow now has operating-step cards, owner/waiting/audience/automation/proof fields, unassigned/stale waiting reporting, and exportable proof. Employee workflow now has assigned client steps, one primary action, communication audience/review boundary, stale waiting, and automation coverage by employee. Vendor workflow now has scoped request lifecycle, quote/approval/payment/completion proof language, export columns, and a Vendor coordination report. Remaining UAT after deploy: prove director assigns a case step, employee updates waiting/request/close-with-proof, family-visible proof remains clear, vendor quote is approved/paid before scheduled/completed work, and reports/export reflect all actions.',],
   ['Current browser UAT release', 'Production green / next batch queued', 'Chrome UAT verified the latest deployed release: single Vercel project, Care providers in the public nav, System admin owner-only label, funeral-home demo dashboard, director My Day, staff persona dashboard, participant scoped request, vendor doorway, pre-need typed-address fallback, and Save proof + close action language. Next queued batch removes a bare Guide mystery button, adds a visible staff work-email label, and removes internal-sounding care-page meta copy before the next combined deploy.'],
   ['Security QA pass', 'Source hardening batched / deploy blocked', 'Source scan found no literal Stripe, GitHub, Google, Twilio, Slack, or JWT-style secrets, no RLS disable statements, and 102 RLS enable statements across migrations. Current batch signs Twilio voice callbacks and adds the missing CSV-template method guard. Remaining live security QA needs Supabase log review, Vercel runtime logs, and endpoint smoke tests after the real production deploy is unblocked.'],
   ['Full QA script pass', 'Source fixes batched / Vercel rate-limited', 'The live checklist now drives release work. Current source batch fixes homepage QA labels/routes, urgent triage labels and Nothing sends trust copy, shared-header Google entry, and the family participant insert that blocked family access in the funeral-home demo loop. Next live pass after Vercel rate limits clear must verify the exact PASS/FAIL ledger across landing, urgent, funeral-home, demo loop, and infrastructure.'],
@@ -282,18 +283,18 @@ const sprints = [
   },
   {
     name: 'Sprint 2: Funeral-home dashboard simplification',
-    status: 'Production green / clarity batch queued',
+    status: 'Release candidate queued / deploy next',
     owner: 'Product + engineering',
-    goal: 'Make funeral-home director and staff workflows obvious, calm, and operationally useful.',
+    goal: 'Make funeral-home director, employee, and vendor workflows obvious, calm, measurable, and operationally useful.',
     tasks: [
       'Director dashboard becomes My Day, cases needing action, staff load, family updates, exports, billing, and proof.',
       'Staff view shows assigned client steps first as a simple pattern: what is needed, owner does next, waiting on, prepared message/output, status, proof, and what to do when support is needed; deeper automation detail stays collapsed until needed.',
       'Remove demo/sales language from logged-in funeral-home operations.',
       'Use staff-facing terms like needs help, stuck point, family can see, earlier step, and where proof saves instead of blocker, dependency, orchestration, or audit-layer wording.',
       'Add recommended next action based on pre-death, day since death, service window, aftercare, needs-help state, stale waiting, and missing proof.',
-      'Browser-verify My Day, Case at a glance, Recommended next action, vendor quote decision block, estate quote/payment handoff, Request family info, Record proof / close, Mark waiting, inbound family requests, and work-card copy.',
+      'Browser-verify My Day, Case at a glance, Recommended next action, vendor quote decision block, estate quote/payment handoff, Request family info, Record proof / close, Mark waiting, inbound family requests, employee stale-waiting reporting, vendor coordination reporting, automation coverage, and operating-step export columns.',
     ],
-    acceptance: 'A funeral director or employee can open one case, know the client relationship context, exactly what Passage prepared, what they must do, who is waiting, what the family can see, how to ask for support, and where proof saves.',
+    acceptance: 'A funeral director or employee can open one case, know the client relationship context, exactly what Passage prepared, what they must do, who is waiting, what the family/vendor can see, how to ask for support, where proof saves, and how reports/export prove the work.',
   },
   {
     name: 'Sprint 3: Automation layer hardening',
@@ -316,9 +317,9 @@ const sprints = [
     tasks: [
       'Family coordinator: urgent setup, planning setup, care-prep record, one recommended next action, request/open-item language, what Passage prepares, where proof saves, approvals, family updates, aftercare, and care-team waiting items.',
       'Participant/helper: one scoped request, one response path, privacy boundary, authority boundary, own/show-waiting/help/done-with-proof actions, saved proof, and no public task wording.',
-      'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing, inbound family requests, and clear work-card contracts.',
-      'Funeral-home employee: assigned work, context, drafted message, waiting/stuck-point state, family-visible boundary, close-with-proof, and no unclear extra actions.',
-      'Vendor: scoped request, quote/update, quote approval, scheduled work, completion proof, no family-record browsing, and required-field validation that never feels stuck.',
+      'Funeral-home director: cases, staff, proof, family update approval, reports, export, billing, inbound family requests, clear operating-step contracts, stale waiting, unassigned ownership, automation coverage, and vendor coordination.',
+      'Funeral-home employee: assigned work, context, drafted message, communication audience, review boundary, waiting/stuck-point state, family-visible boundary, close-with-proof, and no unclear extra actions.',
+      'Vendor: scoped request, quote/update, quote approval, scheduled work, completion proof, payment/approval boundary, no family-record browsing, and required-field validation that never feels stuck.',
       'Green-path onboarding: address/funeral-home lookup must show suggestions when the Vercel Google Places server key is configured and Use typed address when Maps or server suggestions are unavailable; no user should be trapped by a silent dropdown failure.',
       'Access reliability: global login, pricing checkout, estate, urgent, funeral-home dashboard/setup/staff, vendor, participant, invite accept, and System Admin sign-in buttons must all use /auth/google, show a clear failure state and alternate path when auth is missing or OAuth fails, and land the user back in the intended role page.',
     ],
@@ -344,7 +345,7 @@ const personaChecks = [
   ['Funeral-home employee', 'Open assigned work, understand context, mark waiting or complete, draft the message, save proof.'],
   ['Family coordinator', 'Understand what needs attention now, approve or request changes, see what the funeral home is waiting on.'],
   ['Participant/helper', 'Open one scoped request, respond without seeing the full estate, confirm proof saved.'],
-  ['Vendor', 'Apply with required-field guidance, understand the job, timing, quote/payment state, obligation boundary, recommended next action, and completion proof.'],
+  ['Vendor', 'Apply with required-field guidance, understand the job, timing, quote/payment state, obligation boundary, recommended next action, completion proof, and how the request reports back to the case without exposing the full family record.'],
   ['System admin', 'Operate readiness, metrics, pilot health, QA, abuse controls, and roadmap from one internal surface.'],
 ];
 
