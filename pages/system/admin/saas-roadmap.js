@@ -109,7 +109,7 @@ const operatingArchitecture = [
 const funeralHomeDashboardModel = [
   {
     title: 'Director dashboard',
-    body: 'First screen: Today's risk, cases needing action, unowned waiting points, staff load, family updates due, vendor quotes needing approval, proof gaps, service-window pressure, and reports/export controls.',
+    body: "First screen: Today's risk, cases needing action, unowned waiting points, staff load, family updates due, vendor quotes needing approval, proof gaps, service-window pressure, and reports/export controls.",
   },
   {
     title: 'Employee dashboard',
@@ -189,7 +189,7 @@ const transformationPhases = [
       'Move history, automation notes, dependency logic, and advanced controls into details accordions.',
       'Seed the demo loop with accepted family participants, vendor request states, proof events, and exports so the product can be demoed end to end.',
     ],
-    acceptance: 'A director, employee, family coordinator, vendor, participant, and care provider can each understand their page's next action without explanation: what this is, what to do now, who is waiting, what Passage prepared, what is automated or semi-automated, and what proof saves.',
+    acceptance: 'A director, employee, family coordinator, vendor, participant, and care provider can each understand their page\'s next action without explanation: what this is, what to do now, who is waiting, what Passage prepared, what is automated or semi-automated, and what proof saves.',
   },
   {
     name: 'Phase 2: Funeral-home command workflow',
