@@ -51,6 +51,38 @@ const governanceRules = [
 ];
 
 
+
+const experienceDoctrine = [
+  {
+    title: 'Five-year-old clarity',
+    body: 'Every screen should answer: what is this, what do I do now, who is waiting, and what happens after I click? Use plain words, one primary action, and visible confirmation.',
+  },
+  {
+    title: 'Smart below the surface',
+    body: 'The system can use timing, role, service dates, authority, dependencies, stale waiting, proof gaps, and automation maturity internally, but the user should see a calm recommendation instead of exposed machinery.',
+  },
+  {
+    title: 'Empathetic by default',
+    body: 'Assume users are grieving, busy, interrupted, or not technical. Copy should reduce shame and uncertainty: nothing sends without review, proof is saved, and help/escalation is always available.',
+  },
+  {
+    title: 'Proactive, not passive',
+    body: 'Passage should recommend the next move, prepare the message or packet, name the owner, prevent premature actions, and keep waiting points from disappearing.',
+  },
+  {
+    title: 'Automation improves over time',
+    body: 'Every operating step should be tagged manual, semi-automated, or automated. The product goal is to safely move more repeated work into prepared drafts, routed requests, logged updates, and eventually full automation where review is no longer needed.',
+  },
+  {
+    title: 'Future-ready without noise',
+    body: 'Build for multi-location funeral homes, vendors, care facilities, families, permissions, reporting, billing, and automation, but reveal only what each role needs in that moment.',
+  },
+  {
+    title: 'Beautiful because it is calm',
+    body: 'The experience should feel organized, restrained, warm, and dependable. Beauty comes from hierarchy, spacing, clarity, predictable actions, and not making people decode the product.',
+  },
+];
+
 const operatingArchitecture = [
   {
     title: 'Shared case record',
@@ -58,15 +90,15 @@ const operatingArchitecture = [
   },
   {
     title: 'Operating step contract',
-    body: 'Every step has the same contract: what is happening, owner, waiting party, prepared output, human action, visibility, proof destination, and next status. This replaces vague task cards with one predictable interaction model.',
+    body: 'Every step has the same contract: what is happening, owner, waiting party, prepared output, human action, visibility, proof destination, automation level, and next status. This replaces vague task cards with one predictable interaction model.',
   },
   {
     title: 'Persona dashboards',
     body: 'Dashboards are role-specific views over the same record: directors manage risk and staff load, employees complete assigned work, families see reassurance and one ask, vendors see scoped requests, and care providers see handoff duties only.',
   },
   {
-    title: 'Proof and reporting layer',
-    body: 'Every meaningful action creates proof: status event, owner, timestamp, message or packet, delivery/visibility boundary, vendor quote/payment state, and export/report inclusion.',
+    title: 'Proof, automation, and reporting layer',
+    body: 'Every meaningful action creates proof: status event, owner, timestamp, message or packet, delivery/visibility boundary, vendor quote/payment state, automation classification, and export/report inclusion.',
   },
 ];
 
@@ -92,7 +124,7 @@ const funeralHomeDashboardModel = [
 const reportingArchitecture = [
   {
     title: 'Operational health',
-    body: 'Open cases, overdue service-window work, stale waiting points, unassigned steps, blocked cases, proof gaps, family update due, and average time-to-close by location and staff member.',
+    body: 'Open cases, overdue service-window work, stale waiting points, unassigned steps, blocked cases, proof gaps, family update due, automation coverage, and average time-to-close by location and staff member.',
   },
   {
     title: 'Family communication',
@@ -120,11 +152,12 @@ const transformationPhases = [
     goal: 'Replace confusing task-card mechanics with one reusable operating-step contract across personas.',
     milestones: [
       'Create a shared operating-step helper/model used by funeral-home, family, participant, vendor, and care-provider views.',
-      'Convert funeral-home task cards into operating steps with one primary action, owner, waiting party, prepared output, proof destination, and visibility boundary.',
+      'Tag each operating step as manual, semi-automated, or automated, with a reason and the next improvement that would move it up one automation level.',
+      'Convert funeral-home task cards into operating steps with one primary action, owner, waiting party, prepared output, proof destination, automation level, and visibility boundary.',
       'Move history, automation notes, dependency logic, and advanced controls into details accordions.',
       'Seed the demo loop with accepted family participants, vendor request states, proof events, and exports so the product can be demoed end to end.',
     ],
-    acceptance: 'A director, employee, family coordinator, vendor, participant, and care provider can each understand their page's next action without explanation.',
+    acceptance: 'A director, employee, family coordinator, vendor, participant, and care provider can each understand their page's next action without explanation: what this is, what to do now, who is waiting, what Passage prepared, what is automated or semi-automated, and what proof saves.',
   },
   {
     name: 'Phase 2: Funeral-home command workflow',
@@ -159,7 +192,8 @@ const transformationPhases = [
     goal: 'Move Passage from task storage to proactive coordination.',
     milestones: [
       'Classify every operating step as automated, semi-automated, or manual and show what prevents further automation.',
-      'Recommend next action based on days since death or pre-death state, service dates, stale waiting, missing proof, role, and authority.',
+      'Track automation coverage over time by persona, case type, and account so Passage visibly improves from manual guidance to semi-automated preparation to safe automation.',
+      'Recommend next action based on days since death or pre-death state, service dates, stale waiting, missing proof, role, authority, and emotional load.',
       'Draft the right message to the right party, with review-before-send and delivery logging.',
       'Add cooldowns/rate limits and abuse controls to all sends, refreshes, lookups, and invites.',
     ],
