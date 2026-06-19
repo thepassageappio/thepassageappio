@@ -24,6 +24,20 @@ Do not stop after writing a handoff if that handoff names an unresolved next rol
 
 Only pause for the owner when the next step requires explicit approval under Agent Permissions, live credentials/auth the agent cannot access, destructive production data changes, spending money, legal/compliance/privacy/security judgment, or the same external blocker has repeated and no useful repo/docs/QA work remains. Otherwise proceed, log the transition in docs/agent-operating-context.md, and keep the train moving.
 
+## Self-Service Before Owner
+
+The owner is the last resort, not the default next step. Before asking the owner to restart, decide, click, verify, research, or unblock, agents must first try the safe self-service paths already available in the environment:
+
+- Repo docs and the living context.
+- Local source review, build/lint/test commands when available.
+- GitHub and Vercel connectors.
+- Browser or Chrome automation for QA and authenticated browser state.
+- A signed-in Claude session in Chrome, when available, for agent-to-agent coordination, research, handoff review, or tool-assisted checking.
+
+Claude in Chrome is an assistant path, not a permission bypass. Use it only within existing owner-approved access. Do not use Claude in Chrome to spend money, reveal or request secrets, send real customer/vendor/funeral-home communications, make destructive production data changes, bypass auth, or decide legal, privacy, security, medical, compliance, or funeral-director claims. If Claude in Chrome helps, record what it was asked to do and what it returned in docs/agent-operating-context.md.
+
+Ask the owner only after those paths are unavailable, unsafe, or insufficient and a true Agent Permissions gate remains.
+
 ## Read Before Work
 
 Before changing product, code, copy, docs, roadmap, or deployment state:
@@ -35,6 +49,7 @@ Before changing product, code, copy, docs, roadmap, or deployment state:
 5. If the work affects roadmap, sprint order, product vision, or priorities, read pages/system/admin/saas-roadmap.js. That owner-only page is the only website roadmap.
 6. If the work affects deployment, read docs/deployment-discipline.md and verify the canonical Vercel project before creating a deploy-triggering commit.
 7. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
+8. If an owner ask seems likely, first check whether browser/Chrome automation, Claude in Chrome, connectors, or source review can safely resolve it without owner involvement.
 
 Before handoff, final response, or final commit, update docs/agent-operating-context.md with:
 
@@ -46,6 +61,7 @@ Before handoff, final response, or final commit, update docs/agent-operating-con
 - Current Vercel/deploy status.
 - The next highest-leverage action.
 - Whether the train auto-advanced to the next role or why it could not.
+- Any Claude-in-Chrome or external-agent assistance used.
 
 The repository enforces this loop with scripts/check-agent-context.js, scripts/check-release-train.js, the Agent release train GitHub Action, and the PR template.
 
