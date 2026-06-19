@@ -2597,7 +2597,7 @@ export default function FuneralHomeDashboard() {
   const partnerViewTabs = isDirectorRole
     ? [
       ['work', 'My Day', 'Next case and proof'],
-      ['staff', 'Coverage', 'Owners and assignments'],
+      ['staff', 'Owner coverage', 'Owners and assignments'],
       ['inbounds', 'Family requests', openWarmInbounds.length ? String(openWarmInbounds.length) + ' open' : 'Family handoffs'],
       ['manage', 'Locations & access', 'Locations and permissions'],
       ['reports', 'Reports', 'Proof and export'],
@@ -2887,8 +2887,8 @@ export default function FuneralHomeDashboard() {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 14, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,.04)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 10 }}>
               <div>
-                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director dashboard</div>
-                <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Start with the next case, not the dashboard.</div>
+                <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Director focus</div>
+                <div style={{ color: C.ink, fontSize: 21, lineHeight: 1.18, fontWeight: 900, marginTop: 4 }}>Start with the next case.</div>
                 <div style={{ color: C.mid, fontSize: 12.6, lineHeight: 1.45, marginTop: 4 }}>My Day shows the next case, waiting point, owner, proof, and draft. Everything else is a support view.</div>
               </div>
               <button onClick={moveDirectorFocus} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 11, minHeight: 40, padding: '0 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>
