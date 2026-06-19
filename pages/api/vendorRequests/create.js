@@ -42,7 +42,6 @@ async function sendVendorEmail({ vendor, workflow, request, taskTitle }) {
   const from = process.env.RESEND_FROM_EMAIL || 'Passage <notifications@thepassageapp.io>';
   const encodedToken = encodeURIComponent(request.response_token || '');
   const portalUrl = `${BASE_URL}/vendors/request?token=${encodedToken}`;
-  const acceptUrl = `${BASE_URL}/api/vendorRequests/respond?token=${encodedToken}&status=accepted`;
   const declineUrl = `${BASE_URL}/api/vendorRequests/respond?token=${encodedToken}&status=declined`;
   const requestTitle = taskTitle || vendorCategoryLabel(vendor.category);
   const familyName = workflow.deceased_name || workflow.estate_name || workflow.name || 'Family case';
