@@ -61,11 +61,12 @@ If Vercel returns a build-rate-limit, deployment-rate-limit, quota, or upgrade-t
 1. Stop creating deploy-triggering commits immediately.
 2. Do not retry the same release in a loop.
 3. Record the blocked commit, Vercel status/target URL, current production commit, and next action in docs/agent-operating-context.md.
-4. Return to Product Manager to consolidate the next batch while waiting for reset, but keep all follow-up commits [skip deploy].
-5. Wait for the documented reset window or explicit owner plan/quota approval before the next deploy attempt.
-6. When quota clears, deploy the existing queued release if code has not changed; create a new [deploy] [qa-approved] commit only if the release candidate changed.
+4. Do not push additional main-branch commits while the active rate-limit gate is blocking Vercel, even if they are [skip deploy], unless the commit is necessary to preserve the handoff or repair production.
+5. If useful work remains, continue it as local/source review, notes, or a batch plan for the next release train; keep any eventual follow-up commit [skip deploy] until quota clears.
+6. Wait for the documented reset window or explicit owner plan/quota approval before the next deploy attempt.
+7. When quota clears, deploy the existing queued release if code has not changed; create a new [deploy] [qa-approved] commit only if the release candidate changed.
 
-A rate-limit blocker is an external Deploy gate, not a reason to pause the entire release train. Product Manager may continue scoping, docs, source review, and QA preparation, but Deploy must not burn another production build slot until the gate clears.
+A rate-limit blocker is an external Deploy gate, not a reason to pause the entire release train. Product Manager may continue scoping, docs, source review, and QA preparation, but Deploy must not burn another production build slot or create more Vercel status noise until the gate clears.
 
 ## Canonical project
 
@@ -80,14 +81,15 @@ A duplicate Vercel project named you-are-working-on-a-production was previously 
 ## Operating rhythm
 
 1. Group related product, schema, route/config, QA-enablement, and copy fixes into a single meaningful batch.
-2. Keep QA notes, roadmap updates, context updates, and source-only prep in [skip deploy] commits.
-3. Before any deploy-triggering commit, confirm no unresolved Vercel rate-limit gate is recorded in docs/agent-operating-context.md.
-4. Deploy only after the batch has a clear verification target.
-5. Run the Product Manager -> Development Engineer -> QA loop. Failed QA returns to Product Manager first.
-6. Use a maximum of 3 cycles before splitting, de-scoping, or escalating the batch.
-7. Deploy only with one release commit containing [deploy] [qa-approved].
-8. After a release deploy, run the end-to-end persona script before starting another deployment batch.
-9. If post-deploy proof is failed, partial, or fetch-only for hydrated/authenticated flows, immediately return to Product Manager to scope the smallest next cycle; do not wait for the owner just to restart the loop.
-10. If post-deploy proof is PASS, return to Product Manager to scope the next highest-leverage batch.
+2. Keep QA notes, roadmap updates, context updates, and source-only prep in [skip deploy] commits when Vercel is not actively rate-limited.
+3. During an active Vercel rate-limit gate, avoid pushing main-branch commits unless preserving handoff state or repairing production requires it.
+4. Before any deploy-triggering commit, confirm no unresolved Vercel rate-limit gate is recorded in docs/agent-operating-context.md.
+5. Deploy only after the batch has a clear verification target.
+6. Run the Product Manager -> Development Engineer -> QA loop. Failed QA returns to Product Manager first.
+7. Use a maximum of 3 cycles before splitting, de-scoping, or escalating the batch.
+8. Deploy only with one release commit containing [deploy] [qa-approved].
+9. After a release deploy, run the end-to-end persona script before starting another deployment batch.
+10. If post-deploy proof is failed, partial, or fetch-only for hydrated/authenticated flows, immediately return to Product Manager to scope the smallest next cycle; do not wait for the owner just to restart the loop.
+11. If post-deploy proof is PASS, return to Product Manager to scope the next highest-leverage batch.
 
 This keeps Vercel quota available for real releases and prevents the production dashboard from filling with noisy failed deployments. It also prevents a repaired deploy from being mistaken for a completed release when persona QA is still unproven.
