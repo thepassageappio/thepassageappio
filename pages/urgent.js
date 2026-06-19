@@ -331,6 +331,21 @@ function TaskPlaybook({ task }) {
   );
 }
 
+function isSelfOwner(owner) {
+  const key = String(owner?.id || owner?.name || '').trim().toLowerCase();
+  return key === 'self' || ['me', 'myself', 'i', 'i will handle this'].includes(key);
+}
+
+function ownerHoldingSentence(owner) {
+  return isSelfOwner(owner)
+    ? 'I am holding the next step. You can breathe for a moment.'
+    : (owner?.name || 'Someone') + ' is holding the next step. You can breathe for a moment.';
+}
+
+function ownerOwnsSentence(owner) {
+  return isSelfOwner(owner) ? 'I own this.' : (owner?.name || 'Someone') + ' owns this.';
+}
+
 function AssignModal({ task, savedPeople, onClose, onSave }) {
   const [personId, setPersonId] = useState('');
   const [name, setName] = useState('');
@@ -360,8 +375,8 @@ function AssignModal({ task, savedPeople, onClose, onSave }) {
 
         <button className="self-owner" onClick={() => onSave({
           id: 'self',
-          name: 'Me',
-          role: 'Handling this myself',
+          name: 'I will handle this',
+          role: 'Self',
           phone: '',
           email: '',
         })}>
@@ -465,7 +480,7 @@ export default function UrgentPage() {
   const reassurance = useMemo(() => {
     if (!selectedSituation) return 'We will start with the right real-world path, then show only the next action.';
     if (!primary) return 'Nothing urgent is missing right now.';
-    if (primary.owner) return `${primary.owner.name} is holding the next step. You can breathe for a moment.`;
+    if (primary.owner) return ownerHoldingSentence(primary.owner);
     return 'One thing at a time. Start by naming who owns the next practical step.';
   }, [primary, selectedSituation]);
 
@@ -1194,7 +1209,7 @@ export default function UrgentPage() {
             <div className="owner">
               {primary.owner ? (
                 <>
-                  <strong>{primary.owner.name}</strong> is handling this.
+                  {isSelfOwner(primary.owner) ? <strong>I am handling this.</strong> : <><strong>{primary.owner.name}</strong> is handling this.</>}
                   {primary.owner.phone || primary.owner.email ? <><br />Contact: {[primary.owner.phone, primary.owner.email].filter(Boolean).join(' / ')}</> : null}
                 </>
               ) : (
@@ -1250,7 +1265,7 @@ export default function UrgentPage() {
                       <div className="dot">{index + 1}</div>
                       <div>
                         <div className="next-title">{item.phase} - {item.title}</div>
-                        <div className="next-support">{item.owner ? `${item.owner.name} owns this.` : item.support}</div>
+                        <div className="next-support">{item.owner ? ownerOwnsSentence(item.owner) : item.support}</div>
                       </div>
                     </div>
                   ))}

@@ -108,7 +108,7 @@ export default async function handler(req, res) {
   if (!task) return res.status(404).json({ error: 'Next step not found.' });
 
   const allowed = await userCanAssignTask(auth, task);
-  if (!allowed) return res.status(403).json({ error: 'You do not have access to assign this task.' });
+  if (!allowed) return res.status(403).json({ error: 'You do not have access to assign this client step.' });
 
   const now = new Date().toISOString();
   const actorName = actor || auth.user?.user_metadata?.full_name || auth.user?.email || 'Passage';
@@ -137,7 +137,7 @@ export default async function handler(req, res) {
     recipientRole: assigneeRole || 'participant',
     channel: 'record',
     detail: [
-      task.title + ' assigned to ' + assigneeName + ' <' + assigneeEmail + '>',
+      'Client step "' + task.title + '" assigned to ' + assigneeName + ' <' + assigneeEmail + '>',
       assigneeRole ? 'Role: ' + assigneeRole : '',
       assigneePhone ? 'Phone: ' + assigneePhone : '',
     ].filter(Boolean).join(' | '),

@@ -41,7 +41,7 @@ async function updateCaseTaskAssignments({ workflowId, taskIds, updates }) {
     remaining = nextRemaining;
   }
 
-  return { error: new Error('Case tasks could not be assigned after schema fallback.'), skippedColumns };
+  return { error: new Error('Case client steps could not be assigned after schema fallback.'), skippedColumns };
 }
 
 async function userCanAssignWorkflow(auth, workflow) {
@@ -113,8 +113,8 @@ export default async function handler(req, res) {
       success: true,
       assignedCount: 0,
       confirmation: assignmentScope === 'all_open'
-        ? 'No open tasks need assignment on this case.'
-        : 'No unassigned open tasks remain on this case.',
+        ? 'No open client steps need assignment on this case.'
+        : 'No unassigned open client steps remain on this case.',
     });
   }
 
@@ -150,8 +150,8 @@ export default async function handler(req, res) {
     recipientRole: assigneeRole || 'staff',
     channel: 'record',
     detail: [
-      task.title + ' assigned to ' + assigneeName + ' <' + assigneeEmail + '>',
-      assignmentScope === 'all_open' ? 'Case assignment: all open tasks' : 'Case assignment: unassigned open tasks',
+'Client step "' + task.title + '" assigned to ' + assigneeName + ' <' + assigneeEmail + '>',
+      assignmentScope === 'all_open' ? 'Case assignment: all open client steps' : 'Case assignment: unassigned open client steps',
       assigneeRole ? 'Role: ' + assigneeRole : '',
       assigneePhone ? 'Phone: ' + assigneePhone : '',
     ].filter(Boolean).join(' | '),
@@ -162,7 +162,7 @@ export default async function handler(req, res) {
     assignedCount: targetTasks.length,
     assignee: { name: assigneeName, email: assigneeEmail, role: assigneeRole, phone: assigneePhone },
     scope: assignmentScope,
-    confirmation: `${targetTasks.length} open task${targetTasks.length === 1 ? '' : 's'} assigned to ${assigneeName}.`,
+    confirmation: `${targetTasks.length} open client step${targetTasks.length === 1 ? '' : 's'} assigned to ${assigneeName}.`,
     skippedColumns,
   });
 }

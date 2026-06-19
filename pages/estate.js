@@ -514,6 +514,23 @@ function ownerForTask(task) {
   return textValue(task.assigned_to_name || task.assigned_to_email || task.owner_label || task.owner_kind, 'Needs owner');
 }
 
+function isSelfOwnerLabel(value) {
+  var key = textValue(value, '').trim().toLowerCase();
+  return ['me', 'myself', 'i', 'you', 'i will handle this'].indexOf(key) >= 0;
+}
+
+function ownerOwnsPhrase(value) {
+  var label = textValue(value, '').trim();
+  if (!label) return 'Needs an owner';
+  return isSelfOwnerLabel(label) ? 'I own this' : label + ' owns this';
+}
+
+function ownerAssignedTarget(value) {
+  var label = textValue(value, '').trim();
+  if (!label) return 'owner';
+  return isSelfOwnerLabel(label) ? 'you' : label;
+}
+
 function displayTaskTitle(item) {
   var raw = textValue(item?.title || item?.name, '').trim();
   var key = raw.toLowerCase();
@@ -2374,7 +2391,7 @@ function SimpleCommandCenter({ activeTab, setActiveTab, outcomes, tasks, events,
                     <button key={(entry.item.id || index) + '_' + entry.kind} onClick={function() { chooseQueueItem(index); }}
                       style={{ width: '100%', border: '1px solid ' + (selectedIndex === index ? SAGE_LIGHT : BORDER), background: selectedIndex === index ? SAGE_FAINT : SUBTLE, borderRadius: 10, padding: '9px 10px', textAlign: 'left', fontFamily: 'inherit', cursor: 'pointer' }}>
                       <div style={{ color: INK, fontSize: 13, fontWeight: 900 }}>{index + 1}. {displayTaskTitle(entry.item)}</div>
-                      <div style={{ color: MID, fontSize: 11.5, marginTop: 2 }}>{entry.kind === 'task' ? displayTaskNext(entry.item) : (textValue(entry.item.owner_label, '') ? textValue(entry.item.owner_label, '') + ' owns this' : 'Needs an owner')}</div>
+                      <div style={{ color: MID, fontSize: 11.5, marginTop: 2 }}>{entry.kind === 'task' ? displayTaskNext(entry.item) : ownerOwnsPhrase(entry.item.owner_label)}</div>
                     </button>
                   );
                 })}
@@ -3381,14 +3398,14 @@ export default function EstatePage() {
     }
     var eventTitle = updates.owner_label ? 'Owner assigned' : visual.eventTitle;
     var eventDescription = updates.owner_label
-      ? outcome.title + ' assigned to ' + updates.owner_label
+      ? outcome.title + ' assigned to ' + ownerAssignedTarget(updates.owner_label)
       : outcome.title + (savedNote ? ': ' + savedNote : '');
     var eventRow = {
       estate_id: estateId,
       event_type: updates.owner_label ? 'owner_assigned' : visual.eventType,
       title: eventTitle,
       description: eventDescription,
-      actor: updates.owner_label || coordinatorName
+      actor: isSelfOwnerLabel(updates.owner_label) ? coordinatorName : (updates.owner_label || coordinatorName)
     };
     sb.from('estate_events').insert([eventRow]).then(function() {
       setEvents(function(prev) { return [Object.assign({ id: 'local_' + Date.now(), created_at: new Date().toISOString() }, eventRow)].concat(prev).slice(0, 8); });
@@ -3405,7 +3422,7 @@ export default function EstatePage() {
     else if (updates.outcome_status === 'help') showToast("Needs help is saved. We'll keep it visible.");
     else if (updates.outcome_status === 'waiting') showToast("Waiting state saved. We'll keep this visible.");
     else if (updates.status === 'in_progress') showToast('Marked as in progress');
-    else if (updates.owner_label) showToast('Assigned to ' + updates.owner_label);
+    else if (updates.owner_label) showToast('Assigned to ' + ownerAssignedTarget(updates.owner_label));
   }
 
   async function activatePlan() {

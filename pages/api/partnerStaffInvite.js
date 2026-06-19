@@ -62,11 +62,11 @@ function staffInviteHtml({ orgName, memberName, memberEmail, role, locationScope
     eyebrow: 'Employee invite',
     title: `${org} invited you to Passage.`,
     intro: `Hi ${name}, you have been added as ${roleLabel(role)} with ${location} scope.`,
-    preheader: 'Open Passage to see assigned case work, waiting points, family-safe updates, and proof.',
+    preheader: 'Open Passage to see assigned client steps, waiting points, family-safe updates, and proof.',
     sections: [
       {
         label: 'Your first screen',
-        text: 'Open Passage to see assigned case work, waiting points, family-safe updates, and proof. You only see the work your role is allowed to handle.',
+        text: 'Open Passage to see assigned client steps, waiting points, family-safe updates, and proof. You only see the client steps your role is allowed to handle.',
         tone: 'soft',
       },
       {

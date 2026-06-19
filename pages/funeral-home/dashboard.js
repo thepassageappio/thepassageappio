@@ -5072,13 +5072,13 @@ export default function FuneralHomeDashboard() {
                               <button onClick={() => setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' })} aria-label="Close assignment" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 32, height: 32, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                             </div>
                             <div style={{ color: C.mid, fontSize: 12.3, lineHeight: 1.45, marginTop: 4 }}>
-                              Choose a saved employee or case contact. Assign only this client step, all unassigned work in this case, or every open client step when one staff member owns the whole case.
+                              Choose a saved employee or case contact. Assign only this client step, all unassigned client steps in this case, or every open client step when one staff member owns the whole case.
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 7, marginTop: 10 }}>
                               {[
                                 ['task', 'This client step', sharedTaskTitle(nextPartnerTask)],
-                                ['unassigned_open', `Unassigned in case (${unassignedCaseTasks.length})`, 'Only open client steps without an owner'],
-                                ['all_open', `All open in case (${openCaseTasks.length})`, 'Move the whole case queue to one employee'],
+                                ['unassigned_open', `Unassigned client steps (${unassignedCaseTasks.length})`, 'Only open client steps without an owner'],
+                                ['all_open', `All open client steps (${openCaseTasks.length})`, 'Move the whole case queue to one employee'],
                               ].map(([scopeKey, label, body]) => (
                                 <button key={scopeKey} onClick={() => setAssignmentDraft(prev => ({ ...prev, scope: scopeKey, caseId: item.id }))} style={{ textAlign: 'left', border: `1px solid ${assignmentDraft.scope === scopeKey ? C.sage : C.border}`, background: assignmentDraft.scope === scopeKey ? C.sageFaint : C.card, color: assignmentDraft.scope === scopeKey ? C.sage : C.mid, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
                                   <span style={{ display: 'block', color: assignmentDraft.scope === scopeKey ? C.sage : C.ink, fontSize: 12.2, fontWeight: 900 }}>{label}</span>
@@ -5122,7 +5122,7 @@ export default function FuneralHomeDashboard() {
                                   : assignmentDraft.scope === 'all_open'
                                     ? `Assign ${openCaseTasks.length} open client step${openCaseTasks.length === 1 ? '' : 's'}`
                                     : assignmentDraft.scope === 'unassigned_open'
-                                      ? `Assign ${unassignedCaseTasks.length} unassigned`
+                                      ? `Assign ${unassignedCaseTasks.length} unassigned client step${unassignedCaseTasks.length === 1 ? '' : 's'}`
                                       : assigningNewOwner ? 'Save one-time owner' : 'Save owner'}
                               </button>
                               <button onClick={() => setAssignmentDraft({ taskId: '', caseId: '', scope: 'task', name: '', email: '', role: '', phone: '' })} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 9, padding: '8px 11px', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'Georgia,serif' }}>Cancel</button>
