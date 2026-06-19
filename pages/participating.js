@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { supabase } from '../lib/supabaseBrowser';
 import { RoleActionStrip, SiteHeader, SiteFooter, StatusBadge } from '../components/SiteChrome';
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
@@ -885,7 +886,7 @@ export default function ParticipatingPage() {
                 <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7, marginTop: 0 }}>
                   Sign in with Google or send a secure email link. After sign-in, you will land on the specific request assigned to you.
                 </p>
-                <button onClick={async () => { setMagicError(''); const result = await signIn(router.asPath || '/participating'); if (result?.error) setMagicError(result.error); }} style={{ width: '100%', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Continue with Google</button>
+                <a href={'/api/auth/google?next=' + encodeURIComponent(router.asPath || '/participating')} onClick={() => setMagicError('')} style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'inline-flex', justifyContent: 'center' }}>Continue with Google</a>
                 <div style={{ height: 12 }} />
                 {!magicSent ? (
                   <>
