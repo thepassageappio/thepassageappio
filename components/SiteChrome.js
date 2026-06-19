@@ -306,13 +306,7 @@ export function SiteFooter() {
         <Link href="/trust" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Trust</Link>
         <Link href="/privacy" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Privacy</Link>
         <Link href="/terms" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Terms</Link>
-        <a
-          href={`mailto:${PASSAGE_BRAND.supportEmail}`}
-          onClick={() => trackEvent('footer_email_clicked', { email: PASSAGE_BRAND.supportEmail })}
-          style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}
-        >
-          {PASSAGE_BRAND.supportEmail}
-        </a>
+        <Link href="/contact" onClick={() => trackEvent('footer_contact_clicked')} style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Contact</Link>
       </div>
     </footer>
   );
