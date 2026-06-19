@@ -3012,7 +3012,7 @@ export default function FuneralHomeDashboard() {
               rows={[
                 ['Family sees', 'Status, approved updates, waiting points, and proof.'],
                 ['Staff sees', 'Assigned client steps, owner, next action, and proof requirement.'],
-                ['Export keeps', 'Work items, dates, owners, messages, vendor status, and proof trail.'],
+                ['Export keeps', 'Client steps, dates, owners, messages, vendor status, and proof trail.'],
               ]}
             />
           </div>

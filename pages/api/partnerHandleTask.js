@@ -116,7 +116,7 @@ export default async function handler(req, res) {
       .eq('id', taskId)
       .maybeSingle();
     if (taskError) throw taskError;
-    if (!task) return res.status(404).json({ error: 'Work item not found.' });
+    if (!task) return res.status(404).json({ error: 'Client step not found.' });
 
     const { data: workflow, error: workflowError } = await admin
       .from('workflows')
