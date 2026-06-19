@@ -797,7 +797,7 @@ function proofRowsFor(actions, tasks, events) {
         timeLabel(t.last_action_at),
         t.recipient || t.assigned_to_name || t.assigned_to_email ? 'To: ' + textValue(t.recipient || t.assigned_to_name || t.assigned_to_email) : '',
         t.channel ? 'Channel: ' + textValue(t.channel === 'sms' ? 'SMS' : t.channel) : '',
-        t.outcome_status ? statusText(t.outcome_status) : (t.assigned_to_name || t.assigned_to_email ? 'Assigned to ' + textValue(t.assigned_to_name || t.assigned_to_email) : 'Task updated')
+        t.outcome_status ? statusText(t.outcome_status) : (t.assigned_to_name || t.assigned_to_email ? 'Assigned to ' + textValue(t.assigned_to_name || t.assigned_to_email) : 'Request updated')
       ].filter(Boolean).join(' | '),
       status: statusText(t.status),
       at: t.completed_at || t.follow_up_at || t.updated_at || t.created_at,
@@ -1668,7 +1668,7 @@ function ExecutionLayerPanel({ tasks, outcomes, estateId, coordinatorName, onRef
             var color = state === 'good' ? SAGE : state === 'bad' ? ROSE : state === 'wait' ? AMBER : MID;
             var proof = textValue(task.playbook.proofRequired, 'confirmation');
             var hasReminderRecipient = Boolean(task.assigned_to_email || (String(task.recipient || '').includes('@')));
-            var workspace = taskWorkspaceFor(task, { estateName: 'your loved one', coordinatorName: coordinatorName || 'the coordinator', surface: 'this estate task' });
+            var workspace = taskWorkspaceFor(task, { estateName: 'your loved one', coordinatorName: coordinatorName || 'the coordinator', surface: 'this family request' });
             var output = workspace && workspace.output ? workspace.output : {};
             var actionResultLabel = textValue(task.playbook.actionResultLabel, '');
             var noteText = textValue(task.notes, '');
@@ -2068,7 +2068,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               )}
               {item && (
                 <details style={{ background: SUBTLE, border: '1px solid ' + BORDER, borderRadius: 13, padding: '9px 11px', marginTop: 10 }}>
-                  <summary style={{ cursor: 'pointer', color: SAGE, fontSize: 12.2, fontWeight: 900 }}>How this task moves</summary>
+                  <summary style={{ cursor: 'pointer', color: SAGE, fontSize: 12.2, fontWeight: 900 }}>How this request moves</summary>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 6, marginTop: 9 }}>
                     {['Owner', 'Action needed', 'Waiting on', 'Status/proof', 'Done'].map(function(label, index) {
                       var active = index === lifecycleStep;
@@ -2089,7 +2089,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                 <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 13, padding: '10px 12px', marginTop: 10 }}>
                   <div style={{ color: SAGE, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>Recommended next move</div>
                   <div style={{ color: MID, fontSize: 12.4, lineHeight: 1.45, marginTop: 4 }}>
-                    {suggestedOutputs[0]?.reason || suggestedTasks[0]?.reason || 'Passage recommends the next useful output or task from the current state.'}
+                    {suggestedOutputs[0]?.reason || suggestedTasks[0]?.reason || 'Passage recommends the next useful output or request from the current state.'}
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 9 }}>
                     {suggestedOutputs.slice(0, 2).map(function(output) {
@@ -2141,7 +2141,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
                     {workspace?.output?.body && (
                       <div style={{ marginTop: 7 }}><strong style={{ color: INK }}>{workspace.output.label}:</strong> {workspace.output.body}</div>
                     )}
-                    <div style={{ marginTop: 7 }}><strong style={{ color: INK }}>Simple path:</strong> Passage shows the next step, someone updates the record, and proof is saved before the task is closed.</div>
+                    <div style={{ marginTop: 7 }}><strong style={{ color: INK }}>Simple path:</strong> Passage shows the next step, someone updates the record, and proof is saved before the request is closed.</div>
                   </div>
                 </details>
               )}
