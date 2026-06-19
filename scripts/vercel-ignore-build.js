@@ -64,8 +64,8 @@ const deployPatterns = [
   /^release:/i,
 ];
 const qaApprovalPatterns = [
-  /[qa-approved]/i,
-  /[qa approved]/i,
+  /\[qa-approved\]/i,
+  /\[qa approved\]/i,
 ];
 
 if (skipPatterns.some(pattern => pattern.test(message))) {
