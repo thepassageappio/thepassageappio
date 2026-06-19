@@ -10,6 +10,20 @@ Use this exact phrase in a fresh Codex chat to trigger the process:
 
 When an agent sees that phrase, it must read this file, docs/agent-operating-context.md, docs/release-train.md, and the relevant dedicated role brief in docs/agents/ before proposing or changing anything. It should act as Product Manager first, scope the roadmap item, then move through Development Engineer, QA Agent, and Deploy Agent handoffs.
 
+## Auto-Advance Rule
+
+The release train is a loop, not a single handoff. Once started, the agent must keep moving to the next role in the same session whenever it has enough context and tool access to do useful work.
+
+Do not stop after writing a handoff if that handoff names an unresolved next role. Immediately continue to that role:
+
+- Deploy PASS -> Product Manager scopes the next highest-leverage item.
+- Deploy PARTIAL or post-deploy QA incomplete -> Product Manager re-scopes the failed or unproven acceptance area.
+- QA FAIL or PARTIAL -> Product Manager decides fix now, split, de-scope, or escalate before Development continues.
+- Development gap -> Product Manager re-scopes before more implementation.
+- Product Manager scope complete -> Development Engineer implements the scoped batch.
+
+Only pause for the owner when the next step requires explicit approval under Agent Permissions, live credentials/auth the agent cannot access, destructive production data changes, spending money, legal/compliance/privacy/security judgment, or the same external blocker has repeated and no useful repo/docs/QA work remains. Otherwise proceed, log the transition in docs/agent-operating-context.md, and keep the train moving.
+
 ## Read Before Work
 
 Before changing product, code, copy, docs, roadmap, or deployment state:
@@ -22,7 +36,7 @@ Before changing product, code, copy, docs, roadmap, or deployment state:
 6. If the work affects deployment, read docs/deployment-discipline.md and verify the canonical Vercel project before creating a deploy-triggering commit.
 7. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
 
-Before handoff or final commit, update docs/agent-operating-context.md with:
+Before handoff, final response, or final commit, update docs/agent-operating-context.md with:
 
 - Product Manager scope and cycle number.
 - Development handoff and files changed.
@@ -31,6 +45,7 @@ Before handoff or final commit, update docs/agent-operating-context.md with:
 - What was tested and what failed.
 - Current Vercel/deploy status.
 - The next highest-leverage action.
+- Whether the train auto-advanced to the next role or why it could not.
 
 The repository enforces this loop with scripts/check-agent-context.js, scripts/check-release-train.js, the Agent release train GitHub Action, and the PR template.
 
