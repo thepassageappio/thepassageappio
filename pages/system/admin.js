@@ -138,12 +138,8 @@ export default function SystemAdminPage() {
 
   async function signIn() {
     setAuthError('');
-    if (!supabase || typeof window === 'undefined') {
-      setAuthError('Passage sign-in is not configured in this environment. Use the main login page or contact the owner inbox.');
-      return;
-    }
-    const { error } = window.location.assign('/auth/google?next=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash));
-    if (error) setAuthError(error.message || 'Passage could not start Google sign-in. Please try again.');
+    if (typeof window === 'undefined') return;
+    window.location.assign('/auth/google?next=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash));
   }
 
   async function signOut() {

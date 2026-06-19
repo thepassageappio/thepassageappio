@@ -508,9 +508,8 @@ export default function UrgentPage() {
       localStorage.setItem('passage_urgent_draft', JSON.stringify({ deceasedName, dateOfDeath, coordinatorName, coordinatorEmail, context, outcomes, people, proofByOutcome }));
     } catch {}
     try {
-      if (!supabase?.auth) throw new Error('Passage sign-in is not configured in this environment.');
-      const { error } = window.location.assign('/auth/google?next=' + encodeURIComponent('/urgent'));
-      if (error) throw error;
+      if (typeof window === 'undefined') return;
+      window.location.assign('/auth/google?next=' + encodeURIComponent('/urgent'));
     } catch (error) {
       setSaveError(error?.message || 'Passage could not start sign-in. Please try again.');
     }
