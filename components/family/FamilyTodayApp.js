@@ -201,7 +201,7 @@ export default function FamilyTodayApp({ user, session, onSignOut }) {
 
   return (
     <div style={{ minHeight: '100vh', background: DS.color.page, fontFamily: SANS, padding: '18px 8px', boxSizing: 'border-box', overflowX: 'hidden' }}>
-      <AppShell brand="Passage" active="Today">
+      <AppShell brand="Passage" active="Today" frame="app">
         {loading ? <LoadingState /> : (
           <div style={{ padding: '18px 18px 88px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 16 }}>

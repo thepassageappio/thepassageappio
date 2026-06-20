@@ -107,7 +107,14 @@ export function TaskSheet({ task, onClose }) {
 
 const NAV = [['Today', '☀'], ['Plan', '◈'], ['People', '○'], ['Help', '⊕']];
 
-export function AppShell({ children, brand = 'passage', active = 'Today' }) {
+export function AppShell({ children, brand = 'passage', active = 'Today', frame = 'device' }) {
+  if (frame === 'app') {
+    return (
+      <div style={{ width: '100%', maxWidth: 640, margin: '0 auto', background: DS.color.cream, border: `1px solid ${DS.color.hair}`, borderRadius: DS.radius.lg, overflow: 'hidden', fontFamily: SANS, color: DS.color.ink, minHeight: '60vh', boxShadow: DS.shadow.card }}>
+        {children}
+      </div>
+    );
+  }
   return (
     <div style={{ width: 360, maxWidth: '100%', margin: '0 auto', background: DS.color.cream,
       border: `1px solid ${DS.color.hair}`, borderRadius: 26, overflow: 'hidden', position: 'relative',
