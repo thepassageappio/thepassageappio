@@ -66,13 +66,13 @@ Dedicated role briefs:
 - docs/agents/qa-agent.md
 - docs/agents/deploy-agent.md
 
-Current cycle: Cycle 3 Deploy PASS; Product Manager should scope the next highest-leverage Sprint 4 persona UAT/source-prep item.
+Current cycle: Cycle 4 Sprint 4 source prep active; QA found the shared address dropdown did not expose native full-address recommendations while typing, so the current source batch hardens SmartAddressInput across shared address fields.
 
-Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Source changes include stable demo proof paths, Next.js redirects for `/funeral-homes` and nested plural paths to canonical `/funeral-home`, automation-readiness why-now reasons, next automation improvements, focus tasks, and backlog hygiene rules.
+Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Cycle 4 source prep adds native `<datalist>` full-address recommendations to the shared SmartAddressInput, keeps the custom full-address suggestion menu and typed-address fallback, and adds a public-surface source guard so the requirement stays enforced across hospice, urgent, vendor onboarding, funeral-home setup/dashboard, estate, and app-level address fields. This is not deployed yet; keep it [skip deploy] until batched with one or two compatible Sprint 4 fixes or until Product Manager approves a release candidate.
 
 Chrome hydrated QA against current production 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125: homepage, `/funeral-homes` redirect to `/funeral-home`, plural nested director demo route, singular director demo route, employee demo route, vendor request demo, owner roadmap, and owner Automation Readiness all hydrated past loading shells. Automation Readiness displayed blocked / 79%, 12% automation ready, owner-missing blockers, Next automation improvements, Why now, and Focus tasks. Vercel production runtime logs showed no error/fatal logs for the release window. Chrome console errors observed were from a browser extension URL, not Passage app source.
 
-Current Product Manager scope: proceed to the next highest-leverage Sprint 4 persona UAT/source-prep item. Keep deploy budget discipline: group the next two or three compatible small/medium fixes before another production deploy unless production is broken.
+Current Product Manager scope: continue Sprint 4 persona UAT/source prep with address lookup as fix-now and deploy-budget discipline intact. Group this source hardening with one or two compatible small/medium fixes before another production deploy unless production is broken.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -96,6 +96,7 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Added the owner-last-resort / Claude-in-Chrome self-service rule to the scheduled automation prompt, AGENTS.md, docs/release-train.md, docs/agents/product-manager.md, and this context file.
 - Added source hardening for automation-spine readiness: why-now reasons, next automation improvements, case-level automation blockers, and focus tasks for owner-only admin QA.
 - Added backlog hygiene rules so unrelated loop findings are classified into fix now, backlog, roadmap update, watch item, or owner gate instead of being lost or silently pulled into the sprint.
+- Added source hardening for shared address lookup: SmartAddressInput now exposes Google address predictions through native full-address datalist recommendations while typing, keeps the custom full-address suggestion menu, and preserves the Use this typed address fallback when Maps suggestions are unavailable.
 
 ## Current Product/UX Truth
 
@@ -151,11 +152,12 @@ Family experience should prioritize:
 4. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
 5. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
 6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
+7. Recheck address lookup after the next deploy with the Vercel production Google Places server key configured. Native full-address recommendations should appear while typing in every SmartAddressInput usage; if the key is missing, the typed-address fallback must remain obvious and non-blocking.
 
 ## Known Watch Items
 
 - Google sign-in and general button behavior recently showed issues and needs live browser QA.
-- Smart address/location lookup during green-path onboarding was reported broken or confusing.
+- Smart address/location lookup during green-path onboarding was reported broken or confusing. Current source adds native full-address datalist recommendations across shared SmartAddressInput usages, but live Google suggestions still require `GOOGLE_PLACES_API_KEY` or `GOOGLE_MAPS_API_KEY` in Vercel production.
 - Vercel rate limits were hit on Cycle 2 release commit 5c04986381385c8821f14282e757e2209ad71e0c, then cleared before Cycle 3 release 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125.
 - Deploy discipline now requires batching two or three compatible small/medium fixes where possible; docs/context/QA notes/source-only setup stay [skip deploy].
 - Owner escalation should be last resort after repo docs, connectors, browser/Chrome, and Claude in Chrome have been tried where safe.
@@ -180,6 +182,19 @@ Append or update this section before final response:
 - Auto-advance decision:
 
 ## Latest Handoff Updates
+
+### 2026-06-19 - Cycle 4 address lookup native suggestions source prep
+
+- Date/time: 2026-06-19 21:05 -04:00.
+- Branch/commit(s): main working tree on top of origin/main 8bca1a0; source prep not deployed yet.
+- Product Manager scope: Sprint 4 persona UAT found the shared address dropdown did not natively recommend full addresses while typing, which is a cross-site requirement for green-path onboarding and care/funeral/vendor address entry.
+- Files changed: components/SmartAddressInput.js, pages/api/system/publicSurfaceReadiness.js, pages/system/admin/saas-roadmap.js, docs/agent-operating-context.md.
+- Development handoff: SmartAddressInput now connects server autocomplete predictions to a native `<datalist>` with full address values, chooses the matching Google suggestion when a native option is selected, displays full-address text in the custom suggestion menu, and keeps Use this typed address as the fallback. Public-surface readiness now guards the shared component for addressAutocomplete, datalist, full-address suggestion copy, and fallback copy.
+- Tested: `npm run agent:check` passed, `npm run build` passed, and `git diff --check` passed after the source and documentation updates.
+- Failed/blocked: live Google recommendations still depend on `GOOGLE_PLACES_API_KEY` or `GOOGLE_MAPS_API_KEY` being configured server-side in Vercel production. Source is ready; production env/config must be verified during deploy QA.
+- Self-service attempted / Claude in Chrome: repo docs, source review, local build/check path. Chrome UAT identified the gap; Claude in Chrome was not used.
+- Next action: commit as [skip deploy] source prep, continue Sprint 4 PM/QA for one or two compatible fixes, then deploy one combined [deploy] [qa-approved] batch and verify native full-address suggestions in Chrome.
+- Auto-advance decision: QA finding became fix-now source prep; deploy is intentionally deferred by budget discipline, so the train continues in Product Manager/QA consolidation mode.
 
 ### 2026-06-19 - Cycle 3 release deployed and loop continued
 

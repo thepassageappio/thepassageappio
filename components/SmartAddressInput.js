@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 const DEFAULT_COLORS = {
   ink: '#1a1916',
@@ -105,6 +105,7 @@ export default function SmartAddressInput({
   const [suggestions, setSuggestions] = useState([]);
   const [lookupState, setLookupState] = useState('idle');
   const [open, setOpen] = useState(false);
+  const nativeListId = useId();
   const latestLookup = useRef(0);
   const hasPlacesKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
   const inputRef = useCallback((node) => {
@@ -168,25 +169,6 @@ export default function SmartAddressInput({
     ].filter(Boolean);
   }, [parsed, value]);
 
-  const handleChange = (event) => {
-    const nextValue = event.target.value;
-    const nextParsed = parseAddressText(nextValue);
-    setParsed(nextParsed);
-    setOpen(true);
-    onChange?.(nextValue, nextParsed);
-    onAddress?.(nextParsed);
-  };
-
-  const useTypedAddress = () => {
-    const next = parsed || parseAddressText(value);
-    setParsed(next);
-    setOpen(false);
-    setSuggestions([]);
-    setLookupState('selected');
-    onChange?.(next.formattedAddress || value || '', next);
-    onAddress?.(next);
-  };
-
   const chooseSuggestion = async (suggestion) => {
     if (!suggestion?.placeId) return;
     setOpen(false);
@@ -209,6 +191,27 @@ export default function SmartAddressInput({
     }
   };
 
+  const handleChange = (event) => {
+    const nextValue = event.target.value;
+    const nextParsed = parseAddressText(nextValue);
+    const matchedSuggestion = suggestions.find(suggestion => suggestion.description && suggestion.description === nextValue);
+    setParsed(nextParsed);
+    setOpen(true);
+    onChange?.(nextValue, nextParsed);
+    onAddress?.(nextParsed);
+    if (matchedSuggestion) chooseSuggestion(matchedSuggestion);
+  };
+
+  const useTypedAddress = () => {
+    const next = parsed || parseAddressText(value);
+    setParsed(next);
+    setOpen(false);
+    setSuggestions([]);
+    setLookupState('selected');
+    onChange?.(next.formattedAddress || value || '', next);
+    onAddress?.(next);
+  };
+
   return (
     <div style={{ display: 'grid', gap: compact ? 4 : 6, position: 'relative' }}>
       {label && <label style={{ fontSize: compact ? 9.8 : 10.5, color: C.soft, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>{label}</label>}
@@ -216,6 +219,7 @@ export default function SmartAddressInput({
         ref={inputRef}
         type="text"
         autoComplete="street-address"
+        list={suggestions.length ? nativeListId : undefined}
         value={value || ''}
         onChange={handleChange}
         onFocus={() => setOpen(true)}
@@ -235,6 +239,13 @@ export default function SmartAddressInput({
           ...inputStyle,
         }}
       />
+      {!!suggestions.length && (
+        <datalist id={nativeListId}>
+          {suggestions.map((suggestion) => (
+            <option key={suggestion.placeId} value={suggestion.description} label={suggestion.description} />
+          ))}
+        </datalist>
+      )}
       {String(value || '').trim().length >= 3 && (
         <button
           type="button"
@@ -249,8 +260,8 @@ export default function SmartAddressInput({
         <div style={{ position: 'absolute', zIndex: 40, left: 0, right: 0, top: label ? (compact ? 62 : 74) : (compact ? 38 : 47), background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: '0 14px 34px rgba(55,45,35,.16)', overflow: 'hidden' }}>
           {suggestions.map((suggestion) => (
             <button key={suggestion.placeId} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSuggestion(suggestion)} style={{ width: '100%', border: 'none', borderBottom: `1px solid ${C.border}`, background: C.card, color: C.ink, padding: compact ? '9px 10px' : '11px 12px', textAlign: 'left', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
-              <span style={{ display: 'block', fontSize: compact ? 12.5 : 13.5, fontWeight: 900, lineHeight: 1.25 }}>{suggestion.mainText || suggestion.description}</span>
-              {suggestion.secondaryText && <span style={{ display: 'block', color: C.mid, fontSize: compact ? 11 : 12, lineHeight: 1.35, marginTop: 2 }}>{suggestion.secondaryText}</span>}
+              <span style={{ display: 'block', fontSize: compact ? 12.5 : 13.5, fontWeight: 900, lineHeight: 1.25 }}>{suggestion.description}</span>
+              {suggestion.secondaryText && <span style={{ display: 'block', color: C.mid, fontSize: compact ? 11 : 12, lineHeight: 1.35, marginTop: 2 }}>Full address suggestion</span>}
             </button>
           ))}
         </div>

@@ -337,6 +337,12 @@ const personaSourceChecks = [
     forbids: ['NEXT_PUBLIC_GOOGLE_PLACES_API_KEY', 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'],
   },
   {
+    path: 'components/SmartAddressInput.js',
+    label: 'Smart address full-suggestion source',
+    requires: ['addressAutocomplete', '<datalist', 'Full address suggestion', 'Use this typed address', 'Suggestions are optional'],
+    forbids: [],
+  },
+  {
     path: 'pages/api/providerSearch.js',
     label: 'Provider lookup server key source',
     requires: ['process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY', 'durableRateLimit'],
