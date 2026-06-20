@@ -129,6 +129,8 @@ The website has one roadmap only: pages/system/admin/saas-roadmap.js, visible at
 
 Other admin pages are evidence or tools, not competing plans: Pilot Health, Conversion Plan, Enterprise Readiness, Funeral-home QA, Automation Readiness, Refresh Controls, Abuse Controls, and demo sandboxes.
 
+When any loop uncovers an issue outside the active sprint, do not drop it and do not silently expand scope. The Product Manager Agent must classify it as fix now, backlog, roadmap update, watch item, or owner gate; record source evidence and the decision in docs/agent-operating-context.md, and update the single roadmap when priority, sprint order, milestone, or product doctrine changes.
+
 Repo docs may contain historical plans. When they conflict, the canonical roadmap and this operating guide win.
 
 ## Deployment Rules

@@ -57,6 +57,8 @@ Auto-advance rule: once the train starts, do not stop after a role handoff if th
 
 Self-service rule: user is last resort. Before asking the owner to restart, decide, click, verify, research, or unblock, agents must try safe available paths: repo docs, source review, tests/builds, GitHub/Vercel connectors, browser/Chrome automation, and a signed-in Claude session in Chrome when available. Claude in Chrome may assist with research, handoff review, agent-to-agent coordination, or authenticated browser-state checking, but it must not bypass Agent Permissions, spend money, reveal/request secrets, send real communications, make destructive production changes, or decide legal/privacy/security/compliance matters. Record whether Claude in Chrome was available or used.
 
+Backlog hygiene rule: issues found outside the active sprint must be classified by Product Manager as fix now, backlog, roadmap update, watch item, or owner gate. Record source evidence, severity, and disposition here; update the single roadmap only when priority, sprint order, milestone wording, product doctrine, or a meaningful future backlog item changes.
+
 Dedicated role briefs:
 
 - docs/agents/product-manager.md
@@ -92,6 +94,8 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Added `/funeral-homes` -> `/funeral-home` and `/funeral-homes/:path*` -> `/funeral-home/:path*` redirects in next.config.js; queued for deploy at 5c04986381385c8821f14282e757e2209ad71e0c but blocked by Vercel rate limit.
 - Added a deploy-budget rule to AGENTS.md, docs/release-train.md, docs/deployment-discipline.md, docs/agents/deploy-agent.md, and this context file so agents batch two or three compatible small/medium fixes and stop creating deploy-triggering commits on Vercel quota gates.
 - Added the owner-last-resort / Claude-in-Chrome self-service rule to the scheduled automation prompt, AGENTS.md, docs/release-train.md, docs/agents/product-manager.md, and this context file.
+- Added source hardening for automation-spine readiness: why-now reasons, next automation improvements, case-level automation blockers, and focus tasks for owner-only admin QA.
+- Added backlog hygiene rules so unrelated loop findings are classified into fix now, backlog, roadmap update, watch item, or owner gate instead of being lost or silently pulled into the sprint.
 
 ## Current Product/UX Truth
 
@@ -158,6 +162,7 @@ Family experience should prioritize:
 - Vercel rate limits were hit again on Cycle 2 release commit 5c04986381385c8821f14282e757e2209ad71e0c.
 - Deploy discipline now requires batching two or three compatible small/medium fixes where possible; docs/context/QA notes/source-only setup stay [skip deploy].
 - Owner escalation should be last resort after repo docs, connectors, browser/Chrome, and Claude in Chrome have been tried where safe.
+- Dependency watch item from local QA: npm ci reports 3 audit findings (1 moderate, 2 high). Do not force unrelated dependency churn into an active sprint; Product Manager should classify this in a security/dependency hardening batch after reviewing `npm audit` detail.
 - Support email support@thepassageapp.io is not real and should not be shown as a direct support line.
 - Internal ARR/300k/roadmap/sprint/QA language must never appear on external pages.
 - Demo data has been near-empty before; the funeral-home demo loop must be seeded before claims are made.
@@ -178,6 +183,20 @@ Append or update this section before final response:
 - Auto-advance decision:
 
 ## Latest Handoff Updates
+
+### 2026-06-19 - Cycle 3 automation readiness source hardening
+
+- Date/time: 2026-06-19 20:06 -04:00.
+- Branch/commit(s): local main working tree on top of origin/main 7f518e4; not committed or deployed.
+- Product Manager scope: Sprint 3 Automation layer hardening while Vercel remains rate-limited. Source-only batch; no new product surface; no deploy-triggering commit.
+- Files changed: pages/api/system/automationSpineReadiness.js, pages/system/admin/automation-spine-readiness.js, pages/api/system/publicSurfaceReadiness.js, pages/system/admin/saas-roadmap.js, AGENTS.md, docs/release-train.md, docs/agents/product-manager.md, docs/agent-operating-context.md.
+- Development handoff: automation readiness API now returns task/case why-now reasons, next automation improvements, top improvements, case automation blockers, and focus tasks. Owner-only admin readiness page now displays those signals. Public-surface readiness source check now requires the new API/admin signals.
+- Backlog hygiene update: AGENTS.md, release train, Product Manager brief, owner roadmap, and this context now require unrelated loop findings to be classified as fix now, backlog, roadmap update, watch item, or owner gate with evidence.
+- Tested: `git diff --check` passed with only a CRLF normalization warning for pages/api/system/automationSpineReadiness.js. `npm run agent:check` passed. `npm ci` installed dependencies from lockfile and reported 3 audit findings (1 moderate, 2 high). `npm run build` passed, including /api/system/automationSpineReadiness, /system/admin/automation-spine-readiness, and /system/admin/saas-roadmap.
+- Failed/blocked: not deployed because Vercel build-rate-limit is still the active release gate; queued redirect release 5c04986381385c8821f14282e757e2209ad71e0c remains undeployed. Dependency audit findings were classified as a watch item/security backlog, not current sprint scope.
+- Self-service attempted / Claude in Chrome: repo docs, source review, local checks, and local build. Claude in Chrome was not used.
+- Next action: keep this source batch queued with the existing rate-limit-blocked release. When Vercel clears, PM should decide whether to combine this automation-readiness batch with the plural-route release and any other compatible small/medium fixes into one deploy slot.
+- Auto-advance decision: QA source PASS; Deploy remains blocked by Vercel rate limit, so the train should stay in Product Manager consolidation mode until a deploy slot is available.
 
 ### 2026-06-19 - Release train enforcement
 

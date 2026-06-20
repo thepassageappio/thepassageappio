@@ -309,7 +309,7 @@ const personaSourceChecks = [
   {
     path: 'pages/api/system/automationSpineReadiness.js',
     label: 'Automation readiness API source',
-    requires: ['taskAutomationReadiness', 'automationReadyPercent', 'semiAutomated', 'topBlockers', 'automation_coverage'],
+    requires: ['taskAutomationReadiness', 'automationReadyPercent', 'semiAutomated', 'topBlockers', 'topImprovements', 'whyNow', 'nextAutomationImprovement', 'automation_coverage'],
     forbids: [],
   },
   {
@@ -351,7 +351,7 @@ const personaSourceChecks = [
   {
     path: 'pages/system/admin/automation-spine-readiness.js',
     label: 'Automation readiness admin source',
-    requires: ['Automation coverage', 'Automation ready', 'Semi-auto', 'Manual', 'automated or semi-automated'],
+    requires: ['Automation coverage', 'Automation ready', 'Semi-auto', 'Manual', 'automated or semi-automated', 'Next automation improvements', 'Why now', 'Focus tasks'],
     forbids: [],
   },
   {

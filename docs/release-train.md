@@ -89,8 +89,11 @@ Before development starts, the Product Manager Agent must define:
 - Whether this is a deployable release batch or source-only setup.
 - Whether the batch is large enough to spend a deploy slot or should be grouped with the next compatible fix.
 - Which self-service paths were tried before any owner escalation.
+- How any unrelated issues found during the loop will be handled: fix now, backlog, roadmap update, watch item, or owner gate.
 
 If development finds a new gap, confusing UX, broken dependency, or risky expansion, work returns here before more coding. The Product Manager decides whether to fix, split, de-scope, rewrite acceptance, or escalate.
+
+If any agent finds an issue unrelated to the active sprint, the loop should not lose it or automatically absorb it. Record the issue, source evidence, affected persona/surface, severity, and Product Manager decision in docs/agent-operating-context.md. Update pages/system/admin/saas-roadmap.js only when the finding changes priority, sprint order, milestone wording, product doctrine, or a meaningful backlog item.
 
 If Deploy records a failed build, runtime failure, post-deploy QA failure, partial verification, rate-limit blocker, or unproven hydrated/authenticated flow, the next Product Manager scope should be the smallest batch that makes that acceptance area provable or decides to split/de-scope it. While rate limited, Product Manager may continue source/docs/QA prep only as [skip deploy].
 
@@ -202,6 +205,14 @@ When development discovers a gap, record:
 - Why it matters.
 - Whether it changes acceptance criteria.
 - Product Manager decision before more implementation.
+
+When any loop discovers an unrelated issue, record:
+
+- Issue and source evidence.
+- Affected persona, page, API, dependency, or process.
+- Severity and whether it blocks the active sprint.
+- Product Manager disposition: fix now, backlog, roadmap update, watch item, or owner gate.
+- Where it was added: docs/agent-operating-context.md only, roadmap, issue/PR, or next-sprint scope.
 
 When Deploy or post-deploy QA is partial, record:
 

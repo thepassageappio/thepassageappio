@@ -94,7 +94,13 @@ export default function AutomationSpineReadinessPage() {
           <Metric label="7-day events" value={summary.statusEventsLast7Days || 0} />
         </section>}
 
-        {result && <Panel tone={automationTone}><div style={eyebrow}>Automation coverage</div><h2 style={h2}>{automation.automationReadyPercent || 0}% automated or semi-automated</h2><p style={body}>Automated: {automation.automated || 0}. Semi-automated: {automation.semiAutomated || 0}. Manual: {automation.manual || 0}. Manual work is acceptable only when the system can explain the blocker and the next owner.</p>{!!automation.topBlockers?.length && <ul style={list}>{automation.topBlockers.map(item => <li key={item.label}>{item.label}: {item.count}</li>)}</ul>}</Panel>}
+        {result && <Panel tone={automationTone}>
+          <div style={eyebrow}>Automation coverage</div>
+          <h2 style={h2}>{automation.automationReadyPercent || 0}% automated or semi-automated</h2>
+          <p style={body}>Automated: {automation.automated || 0}. Semi-automated: {automation.semiAutomated || 0}. Manual: {automation.manual || 0}. Manual work is acceptable only when the system can explain the blocker and the next owner.</p>
+          {!!automation.topBlockers?.length && <ul style={list}>{automation.topBlockers.map(item => <li key={item.label}>{item.label}: {item.count}</li>)}</ul>}
+          {!!automation.topImprovements?.length && <div style={focusBox}><div style={eyebrow}>Next automation improvements</div><ul style={list}>{automation.topImprovements.map(item => <li key={item.label}>{item.label} ({item.count})</li>)}</ul></div>}
+        </Panel>}
 
         {result && <section style={sectionBlock}>
           <h2 style={h2}>Operating gates</h2>
@@ -135,7 +141,22 @@ function Gate({ item }) {
 function CaseCard({ item }) {
   const tone = toneFor(item.grade);
   const metrics = item.metrics || {};
-  return <div style={{ ...panel, ...(tone === 'good' ? { borderColor: C.sage } : tone === 'risk' ? { borderColor: C.rose } : { borderColor: C.amber }) }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}><h3 style={h3}>{item.name}</h3><span style={pill}>{labelFor(item.grade)}</span></div><p style={small}>{item.nextAction}</p><div style={miniGrid}><Metric label="Open" value={metrics.openTasks || 0} /><Metric label="Auto ready" value={(metrics.automationReadyPercent || 0) + '%'} /><Metric label="Manual" value={metrics.manualTasks || 0} /></div>{!!item.risks?.length && <ul style={list}>{item.risks.map((risk, index) => <li key={index}>{risk}</li>)}</ul>}</div>;
+  return <div style={{ ...panel, ...(tone === 'good' ? { borderColor: C.sage } : tone === 'risk' ? { borderColor: C.rose } : { borderColor: C.amber }) }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+      <h3 style={h3}>{item.name}</h3>
+      <span style={pill}>{labelFor(item.grade)}</span>
+    </div>
+    <p style={small}>{item.nextAction}</p>
+    {item.whyNow && <p style={body}><strong>Why now:</strong> {item.whyNow}</p>}
+    {item.nextAutomationImprovement && <p style={small}><strong>Next automation improvement:</strong> {item.nextAutomationImprovement}</p>}
+    {!!item.automationBlockers?.length && <div style={pillRow}>{item.automationBlockers.map(blocker => <span key={blocker} style={smallPill}>{blocker}</span>)}</div>}
+    <div style={miniGrid}><Metric label="Open" value={metrics.openTasks || 0} /><Metric label="Auto ready" value={(metrics.automationReadyPercent || 0) + '%'} /><Metric label="Manual" value={metrics.manualTasks || 0} /></div>
+    {!!item.automationFocus?.length && <div style={focusBox}>
+      <div style={eyebrow}>Focus tasks</div>
+      <ul style={list}>{item.automationFocus.map(task => <li key={task.taskId || task.title}>{task.title}: {task.nextImprovement}</li>)}</ul>
+    </div>}
+    {!!item.risks?.length && <ul style={list}>{item.risks.map((risk, index) => <li key={index}>{risk}</li>)}</ul>}
+  </div>;
 }
 
 const wrap = { maxWidth: 1180, margin: '0 auto', display: 'grid', gap: 18 };
@@ -145,6 +166,8 @@ const grid4 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(16
 const gateList = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 12 };
 const caseGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 12 };
 const miniGrid = { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginTop: 12 };
+const focusBox = { borderTop: `1px solid ${C.border}`, marginTop: 12, paddingTop: 12 };
+const pillRow = { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 };
 const metric = { background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14 };
 const metricValue = { fontSize: 28, fontWeight: 800, lineHeight: 1 };
 const metricLabel = { marginTop: 6, color: C.mid, fontSize: 13 };
@@ -158,4 +181,5 @@ const eyebrow = { textTransform: 'uppercase', letterSpacing: 0, fontSize: 12, co
 const primaryButton = { border: 0, borderRadius: 8, background: C.ink, color: '#fff', padding: '11px 14px', fontWeight: 800, cursor: 'pointer' };
 const secondaryLink = { border: `1px solid ${C.border}`, borderRadius: 8, background: C.card, color: C.ink, padding: '10px 12px', fontWeight: 800, textDecoration: 'none', display: 'inline-block' };
 const pill = { border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 8px', fontSize: 12, fontWeight: 800, textTransform: 'capitalize', whiteSpace: 'nowrap' };
+const smallPill = { border: `1px solid ${C.border}`, borderRadius: 999, padding: '4px 8px', fontSize: 12, color: C.mid, background: '#faf8f4' };
 const list = { margin: '10px 0 0', paddingLeft: 18, color: C.mid, lineHeight: 1.5 };

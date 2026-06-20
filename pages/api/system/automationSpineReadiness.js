@@ -102,6 +102,39 @@ function taskEventMatches(task, event) {
   return Boolean((event?.task_id && task?.id && event.task_id === task.id) || (event?.workflow_id && task?.workflow_id && event.workflow_id === task.workflow_id));
 }
 
+function blockerImprovement(blocker) {
+  const copy = {
+    'owner missing': 'Assign a named owner before automation drafts, sends, or closes work.',
+    'needs-help state': 'Resolve the stuck point or reassign it before automation continues.',
+    'waiting detail missing': 'Capture who or what is missing and when the next follow-up should happen.',
+    'proof missing': 'Attach proof, a reference, or an actor/timestamp before closeout is trusted.',
+    'message recipient missing': 'Add a recipient route before showing a prepared-send action.',
+    'stale without waiting reason': 'Refresh the task or record a waiting reason so stale work is intentional.',
+  };
+  return copy[blocker] || 'Make the owner, route, wait, and proof contract explicit.';
+}
+
+function taskWhyNow(task, blockers) {
+  const followUpTime = task?.follow_up_at ? new Date(task.follow_up_at).getTime() : 0;
+  if (isBlocked(task)) return 'This item is already in a needs-help state and can block the family or staff path.';
+  if (followUpTime && followUpTime < Date.now()) return 'The promised follow-up time has passed, so the next owner needs a fresh signal.';
+  if (blockers.includes('message recipient missing')) return 'A prepared message without a route can create privacy or delivery mistakes.';
+  if (blockers.includes('owner missing')) return 'Unowned work cannot be safely automated because no one is accountable for exceptions.';
+  if (blockers.includes('proof missing')) return 'Handled work without proof weakens the audit trail the operating loop depends on.';
+  if (blockers.includes('waiting detail missing')) return 'A waiting state without detail hides who or what should move next.';
+  if (blockers.includes('stale without waiting reason')) return 'Stale open work needs either a current next step or an explicit waiting reason.';
+  if (isWaiting(task)) return 'Waiting work should keep the named party and next follow-up visible.';
+  if (!isDone(task)) return 'Open at-need work should stay owner-led and proof-ready before it drifts.';
+  return 'The task is stable; keep proof and status events attached for auditability.';
+}
+
+function nextImprovementFor(level, blockers) {
+  if (blockers.length) return blockerImprovement(blockers[0]);
+  if (level === 'automated') return 'Monitor status events, delivery proof, and exceptions without adding manual steps.';
+  if (level === 'semi_automated') return 'Define the approval rule that would let the system complete the repeatable part safely.';
+  return 'Add owner, recipient route, waiting detail, and proof rules until the system can prepare the next action.';
+}
+
 function taskAutomationReadiness(task, taskEvents = []) {
   const owner = hasOwner(task);
   const route = routeText(task);
@@ -124,17 +157,28 @@ function taskAutomationReadiness(task, taskEvents = []) {
   if (!blockers.length && owner && (proof || waitingDetail || route) && recentEvent) level = 'automated';
   else if (!criticalBlocker && owner && (proof || waitingDetail || route)) level = 'semi_automated';
 
-  return { taskId: task?.id, workflowId: task?.workflow_id, level, blockers, automatable: level !== 'manual' };
+  return {
+    taskId: task?.id,
+    workflowId: task?.workflow_id,
+    title: task?.title || 'Untitled task',
+    level,
+    blockers,
+    automatable: level !== 'manual',
+    whyNow: taskWhyNow(task, blockers),
+    nextImprovement: nextImprovementFor(level, blockers),
+  };
 }
 
 function summarizeAutomation(rows = []) {
   const counts = { automated: 0, semiAutomated: 0, manual: 0 };
   const blockerCounts = {};
+  const improvementCounts = {};
   rows.forEach(row => {
     if (row.level === 'automated') counts.automated += 1;
     else if (row.level === 'semi_automated') counts.semiAutomated += 1;
     else counts.manual += 1;
     row.blockers.forEach(blocker => { blockerCounts[blocker] = (blockerCounts[blocker] || 0) + 1; });
+    if (row.nextImprovement) improvementCounts[row.nextImprovement] = (improvementCounts[row.nextImprovement] || 0) + 1;
   });
   const total = rows.length;
   const automatable = counts.automated + counts.semiAutomated;
@@ -144,7 +188,36 @@ function summarizeAutomation(rows = []) {
     automatable,
     automationReadyPercent: total ? Math.round((automatable / total) * 100) : 0,
     topBlockers: Object.entries(blockerCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([label, count]) => ({ label, count })),
+    topImprovements: Object.entries(improvementCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([label, count]) => ({ label, count })),
   };
+}
+
+function topAutomationRows(rows = []) {
+  return rows
+    .filter(row => row.level !== 'automated' || row.blockers.length)
+    .sort((a, b) => {
+      const rank = { manual: 0, semi_automated: 1, automated: 2 };
+      return (rank[a.level] ?? 3) - (rank[b.level] ?? 3) || b.blockers.length - a.blockers.length;
+    })
+    .slice(0, 3)
+    .map(row => ({
+      taskId: row.taskId,
+      title: row.title,
+      level: row.level,
+      blockers: row.blockers,
+      whyNow: row.whyNow,
+      nextImprovement: row.nextImprovement,
+    }));
+}
+
+function caseWhyNow({ blockedTasks, overdueFollowUps, staleOpen, waitingWithoutDetail, handledWithoutProof, automation }) {
+  if (blockedTasks.length) return 'Blocked work is already asking for human help, so it should lead the next operating pass.';
+  if (overdueFollowUps.length) return 'A promised follow-up has passed and should not wait for the next family or staff ping.';
+  if (staleOpen.length) return 'Open work has aged past the at-need freshness window and needs either movement or a waiting reason.';
+  if (waitingWithoutDetail.length) return 'Waiting work lacks the named missing party or detail the loop needs to continue unattended.';
+  if (handledWithoutProof.length) return 'Completed work is missing proof, which weakens the audit trail before more automation is added.';
+  if (automation.manual) return 'Manual tasks remain; improve the owner, route, waiting, or proof contract before broadening automation.';
+  return 'The case is ready for steady monitoring as long as proof and status events continue to land.';
 }
 function caseName(workflow) {
   return workflow?.deceased_name || workflow?.estate_name || workflow?.name || 'Unnamed case';
@@ -158,11 +231,14 @@ function summarizeCase(workflow, tasks, events, actions) {
   const staleOpen = openTasks.filter(task => isOlderThan(task.last_action_at || task.updated_at || task.created_at, 24));
   const waitingWithoutDetail = waitingTasks.filter(task => !String(task.waiting_on || task.notes || '').trim());
   const handledWithoutProof = tasks.filter(task => isDone(task) && !proofText(task));
+  const overdueFollowUps = openTasks.filter(task => task.follow_up_at && new Date(task.follow_up_at).getTime() < Date.now());
   const caseActions = actions.filter(action => action.workflow_id === workflow.id);
   const staleActions = caseActions.filter(action => !isDone(action) && isOlderThan(action.last_action_at || action.updated_at, 48));
   const recentEvents = events.filter(event => event.workflow_id === workflow.id || event.task_id && tasks.some(task => task.id === event.task_id));
   const automationRows = tasks.map(task => taskAutomationReadiness(task, events.filter(event => taskEventMatches(task, event))));
   const automation = summarizeAutomation(automationRows);
+  const automationFocus = topAutomationRows(automationRows);
+  const automationBlockers = Array.from(new Set(automationRows.flatMap(row => row.blockers))).slice(0, 5);
 
   const risks = [];
   if (!tasks.length) risks.push('No tasks are attached to this case.');
@@ -171,6 +247,7 @@ function summarizeCase(workflow, tasks, events, actions) {
   if (waitingWithoutDetail.length) risks.push(`${waitingWithoutDetail.length} waiting state${waitingWithoutDetail.length === 1 ? '' : 's'} lack detail.`);
   if (staleOpen.length) risks.push(`${staleOpen.length} open task${staleOpen.length === 1 ? '' : 's'} are stale past 24 hours.`);
   if (handledWithoutProof.length) risks.push(`${handledWithoutProof.length} handled task${handledWithoutProof.length === 1 ? '' : 's'} need proof notes.`);
+  if (overdueFollowUps.length) risks.push(`${overdueFollowUps.length} promised follow-up${overdueFollowUps.length === 1 ? '' : 's'} are overdue.`);
   if (staleActions.length) risks.push(`${staleActions.length} workflow action${staleActions.length === 1 ? '' : 's'} drifted past 48 hours.`);
   if (!recentEvents.length && tasks.length) risks.push('No recent task-status event proves status is being recorded.');
 
@@ -193,6 +270,7 @@ function summarizeCase(workflow, tasks, events, actions) {
       staleOpen: staleOpen.length,
       waitingWithoutDetail: waitingWithoutDetail.length,
       handledWithoutProof: handledWithoutProof.length,
+      overdueFollowUps: overdueFollowUps.length,
       staleActions: staleActions.length,
       recentEvents: recentEvents.length,
       automatedTasks: automation.automated,
@@ -201,8 +279,12 @@ function summarizeCase(workflow, tasks, events, actions) {
       automationReadyPercent: automation.automationReadyPercent,
     },
     automation,
+    automationBlockers,
+    automationFocus,
     risks: risks.slice(0, 5),
     nextAction: risks[0] || 'Keep the case moving and preserve proof on every closeout.',
+    whyNow: caseWhyNow({ blockedTasks, overdueFollowUps, staleOpen, waitingWithoutDetail, handledWithoutProof, automation }),
+    nextAutomationImprovement: automationFocus[0]?.nextImprovement || automation.topImprovements?.[0]?.label || 'Keep proof and status events attached while monitoring exceptions.',
   };
 }
 

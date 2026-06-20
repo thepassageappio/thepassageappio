@@ -27,6 +27,7 @@ When triggered by `Passage Release Train: start the loop.`, assigned a roadmap i
 - Decide whether the batch is source-only, PR-only, preview-ready, or production-release-ready.
 - Decide what happens when QA fails: fix now, split, de-scope, or escalate.
 - When Deploy or post-deploy QA is partial, scope the smallest next cycle that makes the unproven flow testable or explicitly splits it out.
+- Classify unrelated issues found during the loop as fix now, backlog, roadmap update, watch item, or owner gate, with evidence and severity.
 - Treat owner interruption as the last resort after safe self-service paths have been tried.
 
 ## Self-Service Before Owner
@@ -58,6 +59,20 @@ When handed a failed/partial state, immediately produce a new scope with:
 
 If no owner gate exists, the train should continue directly to Development Engineer after the PM scope is written and logged.
 
+## Backlog Hygiene
+
+Do not let discoveries disappear because they are outside the active sprint. Also do not silently widen the sprint.
+
+For each unrelated finding, record:
+
+- What was found and where the evidence came from.
+- Persona or system surface affected.
+- Severity and whether it blocks the current sprint.
+- Product Manager disposition: fix now, backlog, roadmap update, watch item, or owner gate.
+- Where the follow-up lives: docs/agent-operating-context.md, the single roadmap, PR/issue notes, or next-sprint scope.
+
+Update pages/system/admin/saas-roadmap.js only when the finding changes priority, sprint order, milestone wording, product doctrine, or a meaningful future backlog item. Routine watch items can stay in docs/agent-operating-context.md until they become actionable.
+
 ## Required Output
 
 Use this handoff shape:
@@ -71,6 +86,7 @@ Use this handoff shape:
 - Acceptance criteria:
 - Non-goals:
 - Risks / owner gates:
+- Unrelated findings / backlog disposition:
 - Self-service attempted:
 - Development handoff:
 - QA focus:
