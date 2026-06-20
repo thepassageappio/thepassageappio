@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DS, TYPE, SANS } from '../lib/designSystem';
 import { supabase } from '../lib/supabaseBrowser';
-import { Banner, Button, Card, Field, Input } from './calm/CalmControls';
+import { Banner, Button, Card, Input } from './calm/CalmControls';
 import FamilyTodayApp from './family/FamilyTodayApp';
 import LegacyApp from './App';
 
@@ -40,6 +40,7 @@ function EmailLinkForm() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
+  const emailId = 'passage-calm-email';
 
   const sendLink = async () => {
     const clean = email.trim();
@@ -64,12 +65,11 @@ function EmailLinkForm() {
 
   return (
     <div style={{ display: 'grid', gap: 9 }}>
-      <Field label="Secure email link">
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8 }}>
-          <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" />
-          <Button disabled={sending} onClick={sendLink}>{sending ? 'Sending' : 'Send link'}</Button>
-        </div>
-      </Field>
+      <label htmlFor={emailId} style={{ display: 'block', ...TYPE.small, fontWeight: 500, color: DS.color.ink }}>Secure email link</label>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8 }}>
+        <Input id={emailId} type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" />
+        <Button disabled={sending} onClick={sendLink}>{sending ? 'Sending' : 'Send link'}</Button>
+      </div>
       {sent && <Banner tone="success">Check {email.trim()} to continue.</Banner>}
       {error && <Banner tone="danger">{error}</Banner>}
     </div>
