@@ -28,6 +28,7 @@ export default function FamilyTaskSheet({ task, saving = false, error = '', noti
 
   const prepared = task.details?.find(([label]) => label === 'Passage prepared')?.[1] || task.why;
   const proof = task.details?.find(([label]) => label === 'Where this is saved')?.[1] || 'Saved to your family record.';
+  const statusGroupName = `family-task-status-${task.id || 'selected'}`;
 
   const copyPrepared = async () => {
     try {
@@ -52,8 +53,8 @@ export default function FamilyTaskSheet({ task, saving = false, error = '', noti
   };
 
   return (
-    <div role="presentation" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(29,27,23,.56)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px 12px 0' }}>
-      <section role="dialog" aria-modal="true" aria-label={task.title} style={{ width: '100%', maxWidth: 720, maxHeight: '94vh', overflowY: 'auto', overflowX: 'hidden', background: DS.color.cream, borderRadius: '22px 22px 0 0', boxShadow: DS.shadow.sheet, fontFamily: SANS }}>
+    <div role="presentation" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(29,27,23,.56)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px 8px 0', boxSizing: 'border-box', overflowX: 'hidden' }}>
+      <section role="dialog" aria-modal="true" aria-label={task.title} style={{ width: '100%', maxWidth: 720, maxHeight: '94vh', overflowY: 'auto', overflowX: 'hidden', background: DS.color.cream, borderRadius: '22px 22px 0 0', boxShadow: DS.shadow.sheet, fontFamily: SANS, boxSizing: 'border-box' }}>
         <div style={{ padding: '14px 18px 0' }}>
           <div aria-hidden="true" style={{ width: 34, height: 4, borderRadius: 2, background: DS.color.border, margin: '0 auto 14px' }} />
           <button ref={closeRef} type="button" onClick={onClose} style={{ minHeight: DS.tap.min, border: 'none', background: 'transparent', color: DS.color.sageDeep, font: 'inherit', fontSize: 13.5, fontWeight: 600, padding: 0, cursor: 'pointer' }}>
@@ -79,13 +80,20 @@ export default function FamilyTaskSheet({ task, saving = false, error = '', noti
           </div>
 
           <SectionLabel>What happens next</SectionLabel>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {STATUS_OPTIONS.map(([value, label]) => (
-              <button key={value} type="button" onClick={() => setNextStatus(value)} style={{ width: '100%', minHeight: DS.tap.min, textAlign: 'left', borderRadius: DS.radius.md, border: `1px solid ${nextStatus === value ? DS.color.sage : DS.color.border}`, background: nextStatus === value ? DS.color.sageFaint : DS.color.card, color: DS.color.ink, fontFamily: SANS, fontSize: 14, fontWeight: 500, padding: '10px 12px', cursor: 'pointer' }}>
-                {label}
-              </button>
-            ))}
-          </div>
+          <fieldset style={{ border: 0, margin: 0, padding: 0 }}>
+            <legend style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 }}>What happens next</legend>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {STATUS_OPTIONS.map(([value, label]) => {
+                const selected = nextStatus === value;
+                return (
+                  <label key={value} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', minHeight: DS.tap.min, textAlign: 'left', borderRadius: DS.radius.md, border: `1px solid ${selected ? DS.color.sage : DS.color.border}`, background: selected ? DS.color.sageFaint : DS.color.card, color: DS.color.ink, fontFamily: SANS, fontSize: 14, fontWeight: 500, padding: '10px 12px', cursor: 'pointer', boxSizing: 'border-box' }}>
+                    <input type="radio" name={statusGroupName} value={value} checked={selected} onChange={() => setNextStatus(value)} style={{ width: 18, height: 18, flex: '0 0 auto', margin: 0, accentColor: DS.color.sage }} />
+                    <span>{label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
 
           <SectionLabel>Private note</SectionLabel>
           <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={5} placeholder="Add the confirmation number, who replied, or what is still missing." />
