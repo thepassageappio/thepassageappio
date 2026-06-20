@@ -1,5 +1,5 @@
-import App from '../components/App'
+import AppCalm from '../components/AppCalm'
 
 export default function Home() {
-  return <App />
+  return <AppCalm />
 }
