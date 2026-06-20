@@ -9,6 +9,14 @@ Direction north star: the calm, guided, mobile-first operating system shown in t
 
 Tear down the surface and rebuild it better — public marketing site AND the logged-in app, together, as one calm system. This is not a polish pass or a persona-by-persona patch. The current product is piecemeal: pages were stitched on over time, the task model leaks internal vocabulary (lanes, sheets, owner/waiting/prepared-output/proof/visibility facts), and mobile was retrofitted. We rebuild the experience layer on top of the working backend.
 
+## Execution sequence (loop runbook)
+
+This sprint executes in the push- and deploy-enabled release-train loop (the Codex environment with git push + Vercel). Cowork can do PM / UI-UX / QA / design and single-file writes, but the repo-wide rebuild and the production deploy run in the loop. Trigger phrase for a fresh loop chat: `Passage Release Train: start the loop.`
+
+Cycle 0 — FIRST commit, before any rebuild: repo-wide line-ending normalization. Run `git add --renormalize .` then commit `chore: normalize line endings to LF [skip deploy]`. The repo .gitattributes already mandates LF but the committed blobs are CRLF, which makes every rebuild diff noisy. Normalize first so the burn-down diffs stay legible. Touch docs/agent-operating-context.md in the same commit to satisfy the agent-context guard.
+
+Then per cycle: PM (this brief, COMPLETE) -> UI/UX derives the design system + shell -> Development rebuilds surfaces (status-derivation layer first) -> QA proves on desktop + 390x844 + 360x640 -> Deploy gate (owner approval). Migrate surface-by-surface behind the shared shell; [skip deploy] until a coherent slice is green; one owner-gated [deploy] [qa-approved] per release. The owner is not the restart mechanism; the loop returns to the owner only at the deploy gate.
+
 ## Salvage map (keep vs rebuild)
 
 KEEP (do not rebuild — these are the foundation):
@@ -92,7 +100,7 @@ All rebuild commits [skip deploy] until the full acceptance checklist is green. 
 - Status-derivation leaks into API behavior -> additive layer + contract tests on existing endpoints.
 - Rebuild balloons past one sprint -> non-goals firm; migrate surface-by-surface behind the shared shell; ship in coherent slices.
 - Mobile regressions reappear -> permanent overflow/scroll + tap-target regression guard added to agent:check.
-- CRLF/line-ending churn obscures diffs -> normalize to the .gitattributes LF policy as a dedicated hygiene commit; keep rebuild diffs legible.
+- CRLF/line-ending churn obscures diffs -> Cycle 0 normalization to the .gitattributes LF policy; keep rebuild diffs legible.
 - Env thrash (EPERM, .next contention) -> one build owner per cycle.
 
 ## Owner gates (the only places the loop returns to the owner)
