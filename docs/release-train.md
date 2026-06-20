@@ -23,6 +23,8 @@ If QA fails or development uncovers a scope gap, the loop returns to the Product
 
 The release train should not pause merely because one role has produced a handoff. If the handoff names a next role and the agent has enough context and tool access to advance, continue immediately in the same session.
 
+A successful `[skip deploy]` commit, push, source-check pass, docs/context handoff, or roadmap update is not a terminal state. It preserves the train state and then immediately returns to the next useful role, usually Product Manager consolidation or the next Development/QA slice. Do not send a final status merely because GitHub is updated; send it only if a true stop condition below exists.
+
 Default transitions:
 
 - Product Manager scope complete -> Development Engineer implements.
@@ -58,6 +60,7 @@ That phrase means:
 6. Move to Deploy Agent only after QA is PASS or Product Manager approves a PARTIAL as non-blocking.
 7. After Deploy, return to Product Manager if the cycle is complete, failed, partial, blocked by rate limit, or has any unproven post-deploy acceptance area.
 8. Update docs/agent-operating-context.md before handoff, deploy, final response, or role transition.
+9. After any `[skip deploy]` commit/push, continue the next known PM/Development/QA role before ending the turn unless a true owner gate or external blocker prevents useful work.
 
 A shorter acceptable version is: `Start the Passage release train.` If the exact phrase is present, treat it as the stronger instruction.
 

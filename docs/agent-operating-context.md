@@ -53,7 +53,7 @@ Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, rel
 
 Required loop: Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
 
-Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, runtime failure, or rate-limit gate returns immediately to Product Manager for re-scope or [skip deploy] consolidation. Pause only for true owner gates: credentials/auth the agent cannot access after safe browser/Chrome/Claude-in-Chrome paths were tried, destructive production data changes, spending money/plan approval, or legal/compliance/privacy/security decisions.
+Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. A successful `[skip deploy]` commit/push is source-state preservation, not loop completion; after pushing it, immediately continue to Product Manager consolidation or the next scoped Development/QA slice if the next action is known and not owner-gated. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, runtime failure, or rate-limit gate returns immediately to Product Manager for re-scope or [skip deploy] consolidation. Pause only for true owner gates: credentials/auth the agent cannot access after safe browser/Chrome/Claude-in-Chrome paths were tried, destructive production data changes, spending money/plan approval, or legal/compliance/privacy/security decisions.
 
 Self-service rule: user is last resort. Before asking the owner to restart, decide, click, verify, research, or unblock, agents must try safe available paths: repo docs, source review, tests/builds, GitHub/Vercel connectors, browser/Chrome automation, and a signed-in Claude session in Chrome when available. Claude in Chrome may assist with research, handoff review, agent-to-agent coordination, or authenticated browser-state checking, but it must not bypass Agent Permissions, spend money, reveal/request secrets, send real communications, make destructive production changes, or decide legal/privacy/security/compliance matters. Record whether Claude in Chrome was available or used.
 
@@ -184,6 +184,19 @@ Append or update this section before final response:
 - Auto-advance decision:
 
 ## Latest Handoff Updates
+
+### 2026-06-19 - Skip-deploy continuation rule hardening
+
+- Date/time: 2026-06-19 20:43 -04:00.
+- Branch/commit(s): main working tree on top of origin/main 968adfe; documentation fix pending commit.
+- Product Manager scope: owner identified a process failure: after source/doc commits, the train still paused instead of returning immediately to PM/Development/QA for the next known slice.
+- Files changed: AGENTS.md, docs/release-train.md, docs/agent-operating-context.md.
+- Development handoff: the agent contract now states that a successful `[skip deploy]` commit/push is not a terminal state. It preserves source/docs/QA/context state, then must immediately continue to PM consolidation or the next useful Development/QA role when the next action is known and not owner-gated.
+- Tested: `npm run agent:check` passed and `git diff --check` passed after this docs update.
+- Failed/blocked: no owner gate. This is a process-doc repair only and must stay `[skip deploy]`.
+- Self-service attempted / Claude in Chrome: repo docs and source review. Claude in Chrome was not needed.
+- Next action: commit and push as `[skip deploy]`, then auto-advance to Product Manager for the next task-card/persona overhaul slice instead of stopping.
+- Auto-advance decision: continue immediately after the docs push; do not use the push itself as a final stopping point.
 
 ### 2026-06-19 - Cycle 4 address lookup native suggestions source prep
 

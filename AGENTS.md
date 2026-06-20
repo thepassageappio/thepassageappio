@@ -14,7 +14,7 @@ When an agent sees that phrase, it must read this file, docs/agent-operating-con
 
 The release train is a loop, not a single handoff. Once started, the agent must keep moving to the next role in the same session whenever it has enough context and tool access to do useful work.
 
-Do not stop after writing a handoff if that handoff names an unresolved next role. Immediately continue to that role:
+Do not stop after writing a handoff if that handoff names an unresolved next role. Do not stop after a successful `[skip deploy]` commit or push either. A `[skip deploy]` update preserves source, docs, QA, or context state; it does not close the loop. If the next PM, Development, QA, or Deploy-prep action is known and not owner-gated, immediately continue to that role:
 
 - Deploy PASS -> Product Manager scopes the next highest-leverage item.
 - Deploy PARTIAL or post-deploy QA incomplete -> Product Manager re-scopes the failed or unproven acceptance area.
@@ -22,7 +22,7 @@ Do not stop after writing a handoff if that handoff names an unresolved next rol
 - Development gap -> Product Manager re-scopes before more implementation.
 - Product Manager scope complete -> Development Engineer implements the scoped batch.
 
-Only pause for the owner when the next step requires explicit approval under Agent Permissions, live credentials/auth the agent cannot access, destructive production data changes, spending money, legal/compliance/privacy/security judgment, or the same external blocker has repeated and no useful repo/docs/QA work remains. Otherwise proceed, log the transition in docs/agent-operating-context.md, and keep the train moving.
+Only pause for the owner when the next step requires explicit approval under Agent Permissions, live credentials/auth the agent cannot access after safe self-service paths were tried, destructive production data changes, spending money, legal/compliance/privacy/security judgment, or the same external blocker has repeated and no useful repo/docs/QA work remains. Otherwise proceed, log the transition in docs/agent-operating-context.md, and keep the train moving.
 
 ## Self-Service Before Owner
 
