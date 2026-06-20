@@ -1,6 +1,6 @@
 # Passage Rebuild — Progress & Pickup Guide
 
-Last updated: 2026-06-20 (Cycle 5 App slice implemented remotely; Cycle 0/build/Playwright still pending). Keep this current at the end of every cycle.
+Last updated: 2026-06-20 (Cycle 5 App slice implemented; QA loopback fixes landed; build + agent:check VERIFIED GREEN in a clean checkout. Remaining: browser/Playwright visual QA + Cycle 0 LF normalization). Keep this current at the end of every cycle.
 Purpose: any agent can read this and know exactly where the calm-OS rebuild stands, how it is built, and how to continue. This is agent infrastructure — do not route progress bookkeeping to the owner.
 
 ## Read order for a fresh agent
@@ -46,7 +46,7 @@ Dedicated role handoffs are recorded in docs/cycle-5-app-migration-handoff.md:
 - PM (`Dewey`) COMPLETE for the first App slice.
 - UI/UX (`Archimedes`) PASS for the App acceptance bar.
 - Development remote implementation completed through GitHub commits.
-- QA is READY for source/build/browser validation, but NOT deploy approval.
+- QA: source review + clean `next build` + `npm run agent:check` all PASS (see Build Verification below). Browser/Playwright visual QA at 390x844 / 360x640 still pending. NOT deploy approval yet.
 
 Implemented remote source slice:
 
@@ -78,8 +78,28 @@ Still pending:
 - Cycle 0 LF normalization from a writable checkout.
 - Record this cycle into `docs/agent-operating-context.md` from a writable checkout.
 - Locate or classify `passage-direction-context-roadmap.patch` as `missing-context / superseded unless new roadmap doctrine is found`.
-- Run `git diff --check`, `npm run agent:check`, `npm run build`, and Playwright desktop/mobile.
-- Browser QA for logged-out `/`, `/?legacy=1`, Google/auth entry, signed-in Family Today, empty/loading/error/no-next-action states, task sheet open/close, and `/api/tasks/:id/status` save.
+- DONE: `git diff --check` clean, `npm run agent:check` PASS, `npm run build` clean (70/70). See Build Verification below.
+- Remaining: Playwright desktop 1366x900 + mobile 390x844 + 360x640, and browser QA for logged-out `/`, `/?legacy=1`, Google/auth entry, signed-in Family Today, empty/loading/error/no-next-action states, task sheet open/close, and `/api/tasks/:id/status` save.
+
+### 2026-06-20 QA loopback fixes (PARTIAL -> source-clean)
+
+QA returned PARTIAL on the first App slice. The three flagged source defects were fixed and landed on main:
+
+- `dfc9dd71` fix(app): use calm status spine on landing preview — AppCalm logged-out preview now renders status through `present()` + `CalmStatusPill` instead of hard-coded demo labels.
+- `0391d5ab` fix(app): restore task sheet focus to opener — `FamilyTaskSheet` moves focus to the close control on open and the dialog hardens overflowX.
+- `d76c61df` fix(app): use radio semantics for task status choices — status options are now real grouped `<input type=radio>` inside a `<fieldset>`/visually-hidden `<legend>`, replacing button toggles.
+
+### 2026-06-20 Build Verification (clean checkout)
+
+Ran the previously-unrun gates in a fresh full clone of `main` (Node 22.22.3, npm 10.9.8, Next 14.2.35, React 18.2.0):
+
+- `npm install` — clean.
+- `npm run agent:check` — PASS (`Agent context check: ... structural files are present.`; release-train PR check skipped for non-PR event). Exit 0.
+- `npm run build` (`next build`) — PASS. Lint + type-check passed, `Compiled successfully`, `Generating static pages (70/70)`, zero warnings/errors.
+- `git diff --check` — clean (no whitespace errors / conflict markers).
+- Route wiring confirmed in built source: `pages/index.js` -> `AppCalm`; `AppCalm` renders `LegacyApp` when `?legacy=1`; landing preview status via `present()`/`CalmStatusPill`; 4 `overflowX` guards across the calm/family files.
+
+Cycle 0 LF normalization is still outstanding. 13 tracked legacy files remain CRLF (build is unaffected; new calm files are already LF): components/VendorSupport.js, lib/taskActions.js, lib/taskPlaybooks.js, lib/taskWorkspace.js, pages/api/supportInquiry.js, pages/api/vendorRequests/create.js, pages/api/vendorRequests/respond.js, pages/contact.js, pages/funeral-home/dashboard.js, pages/hospice.js, pages/login.js, pages/participants.js, pages/participating.js. A proper one-shot `git add --renormalize .` must run from a push-capable checkout (the file-by-file contents API cannot do this in a single commit).
 
 ## How to continue (mechanics)
 
@@ -104,6 +124,7 @@ Still pending:
 - docs Cycle 5 continuation gate — e44feec
 - docs Cycle 5 App.js role handoff — c3af931
 - feat Cycle 5 remote App source slice — e921925, 5bad282, f542449, f7336ea, ab38681, 4b2a2df, fe10cde
+- fix Cycle 5 QA-loopback (status spine / focus return / radio semantics) — dfc9dd71, 0391d5ab, d76c61df
 
 Preview routes (deployable, noindex): /preview/calm-os (family), /preview/my-day (director), /preview/scoped (vendor + participant), /preview/my-work (employee).
 
