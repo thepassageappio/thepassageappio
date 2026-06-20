@@ -6,7 +6,7 @@ import { RoleActionStrip, SiteHeader, SiteFooter, StatusBadge } from '../compone
 import { taskDisplayTitle as sharedTaskTitle, taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionPlaceholder, taskActionPrompt, taskActionRequiresNote, taskActionStatus } from '../lib/taskActions';
 import { getTaskPlaybook } from '../lib/taskPlaybooks';
-import { taskExplanationFor, taskWorkspaceFor } from '../lib/taskWorkspace';
+import { taskExplanationFor, taskOperatingContractFor, taskWorkspaceFor } from '../lib/taskWorkspace';
 import { friendlyAuthError, isLikelyEmail, normalizeEmail } from '../lib/authFeedback';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
@@ -356,6 +356,21 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
   const notificationSummary = handled
     ? `${coordinatorLabel} can see the proof, timestamp, and note.`
     : `${coordinatorLabel} receives your update. Nothing is shared with everyone else from this card.`;
+  const operatingContract = taskOperatingContractFor({ ...item, playbook }, {
+    estateName: estate?.deceased_name || estate?.name || 'this family record',
+    coordinatorName: coordinatorLabel,
+    owner: ownerSummary,
+    role: 'participant',
+    surface: 'participant operating lane',
+  });
+  const participantFacts = [
+    ['Owner', operatingContract.owner || ownerSummary],
+    ['Waiting on', operatingContract.waitingOn || expectedUpdate],
+    ['Prepared output', operatingContract.output?.label || workspace.output.label],
+    ['Proof saves to', operatingContract.proofDestination || workspace.proofDestination],
+    ['Visibility', operatingContract.visibility || 'Only this scoped request'],
+    ['Next status', operatingContract.statusLabel || officialStatus],
+  ];
   useEffect(() => {
     if (!responseDialogOpen || typeof window === 'undefined') return undefined;
     const previousOverflow = document.body.style.overflow;
@@ -409,6 +424,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
         <StatusBadge status={itemStatus(item)} label={statusLabel(itemStatus(item))} />
       </div>
       <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 15, padding: primary ? '14px 15px' : '12px 13px', marginBottom: 10 }}>
+        <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Participant operating lane</div>
         <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Your one request</div>
         <div style={{ color: C.ink, fontSize: primary ? 16 : 14, lineHeight: 1.42, fontWeight: 900 }}>{explanation.what}</div>
         <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginTop: 6 }}>Owner: <strong style={{ color: C.ink }}>{ownerSummary}</strong></div>
@@ -468,23 +484,44 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
           <button onClick={() => setDetailsOpen(true)} style={{ border: 'none', background: 'transparent', color: C.sage, fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, padding: '9px 0 0', cursor: 'pointer' }}>Open details, proof, and visibility</button>
           {(pendingAction || detailsOpen) && (
             <div onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-              <div role="dialog" aria-modal="true" aria-label="Respond to your request" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: C.sage, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em' }}>Request response</div>
-                    <div style={{ fontSize: 21, color: C.ink, lineHeight: 1.2, fontWeight: 900, marginTop: 4 }}>{pendingAction ? actionLabel(pendingAction) : itemTitle(item)}</div>
-                  </div>
-                  <button onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} aria-label="Close response" style={{ border: `1px solid ${C.border}`, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
-                </div>
-                <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
-                  <div style={{ background: C.sageFaint, border: `1px solid ${C.border}`, borderRadius: 12, padding: 11, color: C.mid, fontSize: 12.5, lineHeight: 1.48 }}>
-                    <strong style={{ color: C.ink }}>Proof:</strong> {workspace.proofDestination}<br />
-                    <strong style={{ color: C.ink }}>Output/request:</strong> {workspace.output.label}. {workspace.output.body}<br />
-                    {workspace.guidance?.why && <><strong style={{ color: C.ink }}>Why this matters:</strong> {workspace.guidance.why}<br /></>}
-                    <strong style={{ color: C.ink }}>Visibility:</strong> you only see this responsibility; the coordinator sees the update in the family record. No email or SMS is sent from this dialog.
-                    {itemDescription(item) && <div style={{ marginTop: 6 }}>{itemDescription(item)}</div>}
+              <div role="dialog" aria-modal="true" aria-label="Participant operating sheet" onClick={event => event.stopPropagation()} style={{ width: 'min(720px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: '#fbfaf7', border: `1px solid ${C.border}`, borderRadius: 18, padding: 0, boxShadow: '0 24px 80px rgba(0,0,0,.2)', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', background: '#24221e', color: '#fff', padding: '18px 20px 16px' }}>
+                  <button onClick={() => { setPendingAction(''); setDetailsOpen(false); setProofWarning(''); }} aria-label="Close participant operating sheet" style={{ border: '1px solid rgba(255,255,255,.28)', background: 'rgba(255,255,255,.12)', color: '#fff', borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', position: 'absolute', top: 14, right: 16 }}>x</button>
+                  <div style={{ fontSize: 10.5, color: '#c8deca', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.15em' }}>Participant operating sheet</div>
+                  <div style={{ fontSize: 22, lineHeight: 1.18, fontWeight: 900, marginTop: 6, paddingRight: 38 }}>{pendingAction ? actionLabel(pendingAction) : itemTitle(item)}</div>
+                  <div style={{ color: '#ded8ce', fontSize: 12.5, lineHeight: 1.45, marginTop: 8 }}>{operatingContract.reassurance}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 145px), 1fr))', gap: 8, marginTop: 13 }}>
+                    {participantFacts.map(([label, value]) => (
+                      <div key={label} style={{ border: '1px solid rgba(255,255,255,.16)', background: 'rgba(255,255,255,.08)', borderRadius: 12, padding: '8px 9px' }}>
+                        <div style={{ color: '#c8deca', fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                        <div style={{ color: '#fff', fontSize: 12, lineHeight: 1.3, fontWeight: 800, marginTop: 3 }}>{value}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
+                <div style={{ padding: 18 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: 9 }}>
+                    <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.48 }}>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Prepared output</div>
+                      <strong style={{ color: C.ink }}>{operatingContract.output?.label || workspace.output.label}</strong>
+                      <div style={{ marginTop: 4 }}>{operatingContract.output?.body || workspace.output.body}</div>
+                    </div>
+                    <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.48 }}>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>What you do now</div>
+                      <strong style={{ color: C.ink }}>{pendingAction ? participantActionEffectCopy(pendingAction) : operatingContract.whatYouDo}</strong>
+                    </div>
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.5, lineHeight: 1.48 }}>
+                      <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Proof and visibility</div>
+                      <strong style={{ color: C.ink }}>Proof:</strong> {operatingContract.proofDestination || workspace.proofDestination}<br />
+                      <strong style={{ color: C.ink }}>Visibility:</strong> you only see this responsibility; the coordinator sees the update in the family record. No email or SMS is sent from this dialog.
+                    </div>
+                  </div>
+                  {workspace.guidance?.why && (
+                    <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 12 }}>
+                      <strong style={{ color: C.ink }}>Why this matters:</strong> {workspace.guidance.why}
+                    </div>
+                  )}
+                  {itemDescription(item) && <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 10 }}>{itemDescription(item)}</div>}
                 {pendingAction && (
                   <>
                     <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 12 }}>
@@ -516,6 +553,7 @@ function ParticipantItem({ item, notes, onNotes, onAction, linked, primary, esta
                     </div>
                   </>
                 )}
+                </div>
               </div>
             </div>
           )}
@@ -562,6 +600,7 @@ function participantUrgentContext(estate = {}) {
 export default function ParticipatingPage() {
   const router = useRouter();
   const [clientSearch, setClientSearch] = useState('');
+  const [authNextPath, setAuthNextPath] = useState('/participating');
   const requestedDemoMode = router.query.demoTour === 'funeral-home' || router.query.demo === '1' || clientSearch.includes('demoTour=funeral-home') || clientSearch.includes('demo=1');
   const [demoMode, setDemoMode] = useState(false);
   const [user, setUser] = useState(null);
@@ -590,6 +629,10 @@ export default function ParticipatingPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') setClientSearch(window.location.search || '');
   }, []);
+
+  useEffect(() => {
+    if (router.isReady) setAuthNextPath(router.asPath || '/participating');
+  }, [router.isReady, router.asPath]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -886,7 +929,7 @@ export default function ParticipatingPage() {
                 <p style={{ color: C.mid, fontSize: 14, lineHeight: 1.7, marginTop: 0 }}>
                   Sign in with Google or send a secure email link. After sign-in, you will land on the specific request assigned to you.
                 </p>
-                <a href={'/auth/google?next=' + encodeURIComponent(router.asPath || '/participating')} onClick={() => setMagicError('')} style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'inline-flex', justifyContent: 'center' }}>Continue with Google</a>
+                <a href={'/auth/google?next=' + encodeURIComponent(authNextPath)} onClick={() => setMagicError('')} style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderRadius: 13, padding: '14px 18px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'inline-flex', justifyContent: 'center' }}>Continue with Google</a>
                 <div style={{ height: 12 }} />
                 {!magicSent ? (
                   <>

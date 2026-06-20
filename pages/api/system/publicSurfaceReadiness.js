@@ -279,7 +279,7 @@ const personaSourceChecks = [
   {
     path: 'pages/participating.js',
     label: 'Participant request source',
-    requires: ['Open the family request assigned to you.', 'Your one request', 'Action needed', 'Waiting on', 'Status and proof', 'Access boundary', 'Choose I own this if you can help', 'Respond to your request'],
+    requires: ['Open the family request assigned to you.', 'Participant operating lane', 'Your one request', 'Action needed', 'Waiting on', 'Status and proof', 'Access boundary', 'Choose I own this if you can help', 'Participant operating sheet', 'Prepared output', 'Proof saves to', 'What you do now'],
     forbids: ['Task response', 'task the family assigned to you', 'assigned tasks', 'more tasks assigned to you', 'Respond to assigned task', 'Respond to assigned request', 'Accept it if you can help', 'mark waiting if you are stuck', 'Accept it, ask for help', 'accept it, mark what is waiting', 'You can accept it', 'task status', 'The task stays open', 'keeps the task open', 'keeps the task visible'],
   },
   {
