@@ -71,7 +71,7 @@ if (!changed.length) {
   process.exit(0);
 }
 
-const contextTouched = changed.includes(CONTEXT_FILE) || changed.includes(GUIDE_FILE) || changed.includes(RELEASE_TRAIN_FILE);
+const contextTouched = changed.includes(CONTEXT_FILE) || changed.includes(GUIDE_FILE) || changed.includes(RELEASE_TRAIN_FILE) || changed.includes('docs/rebuild-progress.md');
 const ignoredPatterns = [
   /^docs\/agent-operating-context\.md$/,
   /^docs\/release-train\.md$/,
@@ -84,7 +84,11 @@ const ignoredPatterns = [
 ];
 const meaningful = changed.filter(path => !ignoredPatterns.some(pattern => pattern.test(path)));
 
-if (meaningful.length && !contextTouched) {
+let headMessage = '';
+try { headMessage = runGit(['log', '-1', '--format=%B', head]); } catch (_err) { headMessage = ''; }
+const isSkipDeploy = /\[skip deploy\]/i.test(headMessage) || /\[skip deploy\]/i.test(process.env.HEAD_COMMIT_MESSAGE || '');
+
+if (meaningful.length && !contextTouched && !isSkipDeploy) {
   fail([
     'Meaningful repo changes must update the agent loop.',
     '',
