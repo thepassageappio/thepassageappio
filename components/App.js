@@ -1342,7 +1342,7 @@ function RoleTemplateModal({ workflowId, userId, deceasedName, coordinatorName, 
        </Btn>
       </div>
      </>
-    )}
+   )}
    </div>
   </div>
  );
@@ -1563,6 +1563,12 @@ Passage`);
 
 function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, workflowId, onHandled, onNotApplicable, onAssign, onOpenObituary, onClose }) {
  const playbook = executionForTask(task, deceasedName, coordinatorName, userEmail);
+ const contract = taskOperatingContractFor(normalizeFamilyStepForContract(task), {
+  role: 'family',
+  estateName: deceasedName || 'this estate',
+  owner: task?.assignedTo || task?.assignedEmail || '',
+  surface: 'family operating sheet',
+ });
  const [recipientEmail, setRecipientEmail] = useState(task?.assignedEmail || playbook.recipientEmail || '');
  const [recipientPhone, setRecipientPhone] = useState(playbook.recipientPhone || '');
  const [draft, setDraft] = useState(playbook.draft);
@@ -1690,22 +1696,40 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   : selectedIsHandled ? "Mark handled": "Save waiting update";
 
  return (
-  <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.58)", zIndex: 240, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
-   <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: "20px 20px 0 0", padding: "24px 20px 48px", width: "100%", maxWidth: 620, maxHeight: "92vh", overflowY: "auto" }}>
-    <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
-    <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.sage, fontWeight: 800, marginBottom: 8 }}>Handle this next step</div>
-    <div style={{ fontFamily: "Georgia, serif", fontSize: 21, color: C.ink, lineHeight: 1.25, marginBottom: 8 }}>{task.title}</div>
-    <div style={{ fontSize: 13, color: C.mid, lineHeight: 1.65, marginBottom: 16 }}>Passage prepared the next action. You can handle it yourself or assign it to someone else.</div>
+  <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.62)", zIndex: 240, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
+   <div onClick={e => e.stopPropagation()} style={{ background: C.bg, borderRadius: "22px 22px 0 0", width: "100%", maxWidth: 760, maxHeight: "94vh", overflowY: "auto", boxShadow: "0 -20px 70px rgba(0,0,0,.28)" }}>
+    <div style={{ padding: "16px 18px 0" }}>
+     <div style={{ width: 34, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 14px" }} />
+    </div>
+    <section style={{ background: C.ink, color: "#fff", padding: "22px 20px 18px", borderRadius: "18px 18px 0 0", margin: "0 12px 14px" }}>
+     <div style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: C.sageLight, fontWeight: 900, marginBottom: 8 }}>Family operating sheet</div>
+     <div style={{ fontFamily: "Georgia, serif", fontSize: 28, lineHeight: 1.12, marginBottom: 8 }}>{contract.title}</div>
+     <div style={{ fontSize: 13, color: "#d7d0c7", lineHeight: 1.55, marginBottom: 14, maxWidth: 640 }}>{contract.reassurance}</div>
+     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))", gap: 8 }}>
+      {[
+       ['Status', contract.statusLabel],
+       ['Owner', contract.owner],
+       ['Waiting on', contract.waitingOn],
+       ['Visibility', contract.visibility],
+      ].map(([label, value]) => (
+       <div key={label} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.14)", borderRadius: 11, padding: "9px 10px", minWidth: 0 }}>
+        <div style={{ color: C.sageLight, fontSize: 9.8, letterSpacing: ".1em", textTransform: "uppercase", fontWeight: 900, marginBottom: 3 }}>{label}</div>
+        <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.3, fontWeight: 800, overflowWrap: "anywhere" }}>{value}</div>
+       </div>
+      ))}
+     </div>
+    </section>
+    <div style={{ padding: "0 18px 48px" }}>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 8, marginBottom: 14 }}>
      <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 12, padding: "10px 12px" }}>
-      <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.sage, marginBottom: 4 }}>Passage can do</div>
-      <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{playbook.executionModeLabel || playbook.automationLabel}</div>
-      <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{playbook.whatPassageDoes || playbook.automationExplanation}</div>
+      <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.sage, marginBottom: 4 }}>Prepared output</div>
+      <div style={{ fontSize: 13, fontWeight: 900, color: C.ink }}>{contract.output?.label || playbook.executionModeLabel || playbook.automationLabel}</div>
+      <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{contract.output?.body || playbook.whatPassageDoes || playbook.automationExplanation}</div>
      </div>
      <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px" }}>
-      <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.soft, marginBottom: 4 }}>Your part</div>
-      <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>Waiting on {playbook.waitingOn || "recipient"}</div>
-      <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{playbook.whatUserDoes || ("Proof needed: " + (playbook.proofRequired || "confirmation"))}</div>
+      <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", color: C.soft, marginBottom: 4 }}>What you do</div>
+      <div style={{ fontSize: 13, fontWeight: 900, color: C.ink }}>{contract.primaryAction?.label || 'Move this step'}</div>
+      <div style={{ fontSize: 11.5, color: C.mid, lineHeight: 1.45, marginTop: 3 }}>{contract.whatYouDo || playbook.whatUserDoes || ("Proof needed: " + (playbook.proofRequired || "confirmation"))}</div>
      </div>
      {playbook.funeralHomeEligible && (
       <div style={{ background: C.goldFaint, border: `1px solid ${C.gold}40`, borderRadius: 12, padding: "10px 12px" }}>
@@ -1716,8 +1740,8 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
      )}
     </div>
     <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
-     <div style={{ fontSize: 13, fontWeight: 800, color: C.ink, marginBottom: 8 }}>Are you handling this?</div>
-     <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55 }}>Choose "I am handling this" to use the script and notes here, or assign it to someone else.</div>
+     <div style={{ fontSize: 13, fontWeight: 900, color: C.ink, marginBottom: 8 }}>Primary action</div>
+     <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55 }}>Use the prepared output, then save the status and proof here. If someone else should own it, change the owner instead of leaving the step vague.</div>
     </div>
     <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
      <div style={{ fontSize: 12, fontWeight: 800, color: C.sage, marginBottom: 8 }}>What to do right now</div>
@@ -1726,11 +1750,12 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
        <span style={{ color: C.sage, fontWeight: 800 }}>{i + 1}.</span><span>{step}</span>
       </div>
      ))}
-     <div style={{ marginTop: 10, fontSize: 12, color: C.mid }}>Use the prepared action below, then save what happened so the estate stays current.</div>
+     <div style={{ marginTop: 10, fontSize: 12, color: C.mid }}>Use the prepared action below, then save what happened so the family record stays current.</div>
     </div>
     <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 14 }}>
      <div style={{ fontSize: 12, fontWeight: 800, color: C.ink, marginBottom: 8 }}>How Passage knows it happened</div>
      <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55 }}>Proof to capture: <strong style={{ color: C.ink }}>{playbook.proofRequired || "confirmation"}</strong></div>
+     <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>Where it saves: <strong style={{ color: C.ink }}>{contract.proofDestination}</strong></div>
      <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>{playbook.followUpRule}</div>
      <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.55, marginTop: 5 }}>{playbook.failureRule}</div>
     </div>
@@ -1751,25 +1776,33 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
       )}
      </div>
     )}
-    <div style={{ marginBottom: 12 }}>
-     <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared email</div>
-     <input value={recipientEmail} onChange={e => { setRecipientEmail(e.target.value); markSaved(); }} placeholder={`Email for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
-     <textarea value={draft} onChange={e => { setDraft(e.target.value); markSaved(); }} style={{ width: "100%", minHeight: 180, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
-     {userEmail && <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>You will be copied at {userEmail} when the email is sent.</div>}
-    </div>
-    <div style={{ marginBottom: 12 }}>
-     <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared text message</div>
-     <input value={recipientPhone} onChange={e => { setRecipientPhone(e.target.value); markSaved(); }} placeholder={`Phone for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
-     <textarea value={smsDraft} onChange={e => { setSmsDraft(e.target.value); markSaved(); }} style={{ width: "100%", minHeight: 74, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.55 }} />
-     <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>Texts should stay short and point people back to Passage when they are asked to handle a next step.</div>
-    </div>
+    <details open style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 14, padding: 0, marginBottom: 12, overflow: "hidden" }}>
+     <summary style={{ cursor: "pointer", listStyle: "none", padding: "12px 14px", display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", color: C.ink, fontWeight: 900 }}>
+      <span>Prepared message workspace</span>
+      <span style={{ color: C.sage, fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em" }}>Review before send</span>
+     </summary>
+     <div style={{ padding: "0 14px 14px", display: "grid", gap: 12 }}>
+      <div>
+       <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared email</div>
+       <input value={recipientEmail} onChange={e => { setRecipientEmail(e.target.value); markSaved(); }} placeholder={`Email for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
+       <textarea value={draft} onChange={e => { setDraft(e.target.value); markSaved(); }} style={{ width: "100%", minHeight: 150, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
+       {userEmail && <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>You will be copied at {userEmail} when the email is sent.</div>}
+      </div>
+      <div>
+       <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Prepared text message</div>
+       <input value={recipientPhone} onChange={e => { setRecipientPhone(e.target.value); markSaved(); }} placeholder={`Phone for ${playbook.recipientLabel}`} style={{ width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 11, border: `1.5px solid ${C.border}`, fontFamily: "Georgia, serif", marginBottom: 8 }} />
+       <textarea value={smsDraft} onChange={e => { setSmsDraft(e.target.value); markSaved(); }} style={{ width: "100%", minHeight: 68, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.55 }} />
+       <div style={{ fontSize: 11.5, color: C.soft, marginTop: 5 }}>Texts should stay short and point people back to Passage when they are asked to handle a next step.</div>
+      </div>
+     </div>
+    </details>
     <div style={{ marginBottom: 12 }}>
      <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 6 }}>Notes</div>
      <textarea value={notes} onChange={e => { setNotes(e.target.value); markSaved(); }} placeholder="Save confirmation numbers, names, next appointment times, or anything the family should know." style={{ width: "100%", minHeight: 96, boxSizing: "border-box", padding: 12, borderRadius: 11, border: `1.5px solid ${C.border}`, background: C.bgCard, color: C.ink, fontFamily: "Georgia, serif", fontSize: 13, lineHeight: 1.65 }} />
      {savedPulse && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 5 }}>Saved</div>}
     </div>
     <div style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14, marginBottom: 12 }}>
-     <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 8 }}>Tell Passage what happened</div>
+     <div style={{ fontSize: 11, fontWeight: 800, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 8 }}>Save status and proof</div>
      <button
       onClick={() => {
        const handled = outcomeOptions.find(opt => opt[2] === 'handled') || outcomeOptions[0];
@@ -1777,7 +1810,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
       }}
       style={{ width: "100%", textAlign: "center", padding: "12px 13px", borderRadius: 11, border: `1.5px solid ${selectedIsHandled ? C.sage: C.sageLight}`, background: selectedIsHandled ? C.sage: C.sageFaint, color: selectedIsHandled ? "#fff": C.sage, fontFamily: "Georgia, serif", fontSize: 14, fontWeight: 900, cursor: "pointer", marginBottom: 8 }}
      >
-      Mark handled when done
+      Save proof when done
      </button>
      <div style={{ display: "grid", gap: 7 }}>
       {outcomeOptions.map(opt => (
@@ -1793,7 +1826,8 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
       </div>
      )}
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 8 }}>
+    <div style={{ fontSize: 11, fontWeight: 900, color: C.sage, textTransform: "uppercase", letterSpacing: ".12em", margin: "2px 0 8px" }}>Primary action</div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 10 }}>
      {isCallTask ? (
       <button onClick={async () => {
        if (recipientPhone) window.location.href = 'tel:' + recipientPhone.replace(/[^\d+]/g, '');
@@ -1812,6 +1846,9 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
      ): (
       <button onClick={sendDraft} disabled={!recipientEmail || sending} style={{ padding: "11px", borderRadius: 11, border: "none", background: C.sage, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: "pointer" }}>{sending ? "Sending...": sent ? "Message sent": "Send message"}</button>
      )}
+    </div>
+    <div style={{ fontSize: 11, fontWeight: 900, color: C.soft, textTransform: "uppercase", letterSpacing: ".12em", margin: "2px 0 8px" }}>Secondary actions</div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8, marginBottom: 8 }}>
      <button onClick={() => navigator.clipboard.writeText(draft).then(() => alert('Draft copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy draft</button>
      <button onClick={sendSmsDraft} disabled={!recipientPhone || sending || !task?.dbId} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: recipientPhone && task?.dbId ? C.bgSubtle: C.bgCard, color: recipientPhone && task?.dbId ? C.ink: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: recipientPhone && task?.dbId ? "pointer": "not-allowed" }}>Send text</button>
      <button onClick={() => navigator.clipboard.writeText(smsDraft).then(() => alert('Text copied'))} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Copy text</button>
@@ -1827,8 +1864,8 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
      </div>
     )}
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
-     <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not applicable</button>
-     <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Assign instead</button>
+     <button onClick={() => onNotApplicable(notes)} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.soft, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Not needed</button>
+     <button onClick={onAssign} style={{ padding: "11px", borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgSubtle, color: C.ink, fontFamily: "Georgia, serif", fontWeight: 700, cursor: "pointer" }}>Change owner</button>
      <button onClick={() => { if (!outcome) return; setConfirmed(true); setTimeout(() => onHandled({ notes, outcomeStatus: outcome, followUpAt: followUp || null, finalStatus: selectedFinalStatus }), 1400); }} disabled={!outcome} style={{ padding: "11px", borderRadius: 11, border: "none", background: !outcome ? C.border: confirmed ? C.sage: selectedIsHandled ? C.sage: C.ink, color: "#fff", fontFamily: "Georgia, serif", fontWeight: 800, cursor: outcome ? "pointer": "not-allowed" }}>{saveOutcomeLabel}</button>
     </div>
     {confirmed && (
@@ -1837,6 +1874,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
      </div>
     )}
    </div>
+  </div>
   </div>
  );
 }
