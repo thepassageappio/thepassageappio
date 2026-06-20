@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DS, TYPE, SANS } from '../../lib/designSystem';
 import { supabase } from '../../lib/supabaseBrowser';
 import { AppShell, HeroTask, ProgressLine, SectionLabel, TaskRow } from '../calm/CalmKit';
@@ -53,6 +53,7 @@ export default function FamilyTodayApp({ user, session, onSignOut }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [notice, setNotice] = useState('');
+  const taskOpenerRef = useRef(null);
 
   const loadWorkflows = useCallback(async () => {
     if (!user?.id) return;
@@ -119,10 +120,25 @@ export default function FamilyTodayApp({ user, session, onSignOut }) {
   const model = useMemo(() => selectedWorkflow ? buildFamilyTodayModel({ workflow: selectedWorkflow, tasks, user }) : familyEmptyModel(null), [selectedWorkflow, tasks, user]);
 
   const openTask = (task) => {
+    if (typeof document !== 'undefined') {
+      const opener = document.activeElement;
+      taskOpenerRef.current = opener && typeof opener.focus === 'function' ? opener : null;
+    }
     setSelectedTask(task);
     setSaveError('');
     setNotice('');
   };
+
+  const closeTaskSheet = useCallback(() => {
+    setSelectedTask(null);
+    const opener = taskOpenerRef.current;
+    taskOpenerRef.current = null;
+    if (opener && typeof opener.focus === 'function') {
+      const restoreFocus = () => opener.focus();
+      if (typeof window !== 'undefined') window.setTimeout(restoreFocus, 0);
+      else restoreFocus();
+    }
+  }, []);
 
   const markLocalTask = (task, status, notes) => {
     setTasks((current) => current.map((row) => {
@@ -184,7 +200,7 @@ export default function FamilyTodayApp({ user, session, onSignOut }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: DS.color.page, fontFamily: SANS, padding: '18px 12px' }}>
+    <div style={{ minHeight: '100vh', background: DS.color.page, fontFamily: SANS, padding: '18px 8px', boxSizing: 'border-box', overflowX: 'hidden' }}>
       <AppShell brand="Passage" active="Today">
         {loading ? <LoadingState /> : (
           <div style={{ padding: '18px 18px 88px' }}>
@@ -262,7 +278,7 @@ export default function FamilyTodayApp({ user, session, onSignOut }) {
         )}
       </AppShell>
 
-      <FamilyTaskSheet task={selectedTask} saving={saving} error={saveError} notice={notice} onClose={() => setSelectedTask(null)} onSave={saveTaskStatus} />
+      <FamilyTaskSheet task={selectedTask} saving={saving} error={saveError} notice={notice} onClose={closeTaskSheet} onSave={saveTaskStatus} />
     </div>
   );
 }
