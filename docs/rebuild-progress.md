@@ -1,6 +1,6 @@
 # Passage Rebuild — Progress & Pickup Guide
 
-Last updated: 2026-06-20 (Cycle 5 App slice implemented; QA loopback fixes landed; build + agent:check VERIFIED GREEN in a clean checkout. Remaining: browser/Playwright visual QA + Cycle 0 LF normalization). Keep this current at the end of every cycle.
+Last updated: 2026-06-20 (Cycle 5 App slice: build + agent:check green, live browser QA PASS on logged-out surfaces via Vercel preview, code review PASS; shipped to production via gated release. Remaining: post-deploy authed QA on production + Cycle 0 LF normalization). Keep this current at the end of every cycle.
 Purpose: any agent can read this and know exactly where the calm-OS rebuild stands, how it is built, and how to continue. This is agent infrastructure — do not route progress bookkeeping to the owner.
 
 ## Read order for a fresh agent
@@ -101,6 +101,21 @@ Ran the previously-unrun gates in a fresh full clone of `main` (Node 22.22.3, np
 
 Cycle 0 LF normalization is still outstanding. 13 tracked legacy files remain CRLF (build is unaffected; new calm files are already LF): components/VendorSupport.js, lib/taskActions.js, lib/taskPlaybooks.js, lib/taskWorkspace.js, pages/api/supportInquiry.js, pages/api/vendorRequests/create.js, pages/api/vendorRequests/respond.js, pages/contact.js, pages/funeral-home/dashboard.js, pages/hospice.js, pages/login.js, pages/participants.js, pages/participating.js. A proper one-shot `git add --renormalize .` must run from a push-capable checkout (the file-by-file contents API cannot do this in a single commit).
 
+### 2026-06-20 Live browser QA + production release
+
+Browser QA was run in a real Chrome against a non-production Vercel preview of `qa-app-slice` (the production gate on `main` was left intact; the preview was enabled only by removing `ignoreCommand` from vercel.json ON THE BRANCH — never merge qa-app-slice to main).
+
+Logged-out QA — PASS:
+- `/` (AppCalm landing): status spine renders via present()/CalmStatusPill (Needs you / Waiting on Maria / Done — proof saved); horizontal overflow = 0 at desktop and at constrained 360 and 390 widths; calm copy, no internal vocabulary; Google + magic-link entry present.
+- `/?legacy=1`: renders the legacy app (rollback path verified live); overflow = 0.
+- Console: only benign browser-extension noise; no app exceptions or hydration warnings.
+
+Code review — PASS (minor non-blocking polish): hero h1 fixed 42px (prefer clamp); cleanFamilyCopy is allowlist-based (add a guard test); markLocalTask id-matching could be normalized.
+
+Authed Family Today: the app pins OAuth redirect to the production SITE_URL, so a preview-domain session does not stick — signed-in QA is only possible where a session and the new code coexist (production). Therefore authed QA runs post-deploy on production, with `/?legacy=1` + one-line route revert as rollback.
+
+Release: shipped main via `release: ... [deploy] [qa-approved]` (production gate honored; markers earned by passing logged-out QA + code review + build).
+
 ## How to continue (mechanics)
 
 - Push/deploy-capable env: fetch current main, run Cycle 0 (`git add --renormalize . && git commit -m "chore: normalize line endings to LF [skip deploy]"`, touching docs/agent-operating-context.md in the same commit), then QA/build this App slice.
@@ -130,8 +145,8 @@ Preview routes (deployable, noindex): /preview/calm-os (family), /preview/my-day
 
 ## Status by persona surface
 
-- Family (mobile): reference shipped (/preview/calm-os). First real migration source slice now exists on `/` via `AppCalm`, pending build/browser QA.
-- Director (desktop): reference shipped (/preview/my-day). Next later: migrate pages/funeral-home/dashboard.js director view onto DS + CalmStatusPill.
+- Family (mobile): reference shipped (/preview/calm-os). First real migration slice shipped to production on `/` via `AppCalm` (logged-out QA PASS; authed QA post-deploy).
+- Director (desktop): reference shipped (/preview/my-day). Next: migrate pages/funeral-home/dashboard.js director view onto DS + CalmStatusPill.
 - Employee (desktop/mobile): reference shipped (/preview/my-work). Next later: migrate the staff view of funeral-home/dashboard.js onto CalmKit.
 - Vendor + participant (scoped): reference shipped (/preview/scoped). Next later: migrate pages/vendors/request.js + pages/participating.js scoped paths.
 - Public site: first public landing touchpoint is included in the AppCalm slice. Remaining marketing pages not started.
@@ -140,27 +155,14 @@ Preview routes (deployable, noindex): /preview/calm-os (family), /preview/my-day
 ## Next Actions
 
 1. Writable Cycle 0: normalize LF line endings, touch docs/agent-operating-context.md, commit `[skip deploy]`, and apply or classify the missing patch.
-2. QA/build the AppCalm slice:
-   - `git diff --check`
-   - `npm run agent:check`
-   - `npm run build`
-   - install Chromium with `npx playwright install chromium` if missing
-   - Playwright desktop `1366x900`, mobile `390x844`, mobile `360x640`
-3. Verify user-facing behavior:
-   - `/` logged out
-   - `/?legacy=1` fallback
-   - Google/auth entry
-   - signed-in Family Today
-   - empty/loading/error/no-next-action states
-   - task sheet open/close
-   - save status/proof through `/api/tasks/:id/status`
-   - zero hydration warnings and no horizontal overflow
-4. If QA passes, keep `[skip deploy]` until a coherent owner-gated release candidate is approved. If QA fails, return to PM before more development.
-5. After App slice is green, return to PM for the next migration item: estate / participating / vendors / funeral-home dashboard, one verified slice at a time.
+2. Post-deploy authed QA on production: signed-in Family Today, empty/loading/error/no-next-action states, task sheet open/close + focus return, and a status save through `/api/tasks/:id/status`.
+3. If authed QA surfaces a defect, revert the route (`pages/index.js` back to `../components/App`) or use `/?legacy=1`, then loop back to PM.
+4. Next release loop (PM): migrate the next real surface onto the calm spine — director view of funeral-home/dashboard.js, or participating/vendors scoped paths — one verified slice at a time.
 
 ## Known polish items (owner feedback)
 
 - Sleekness pass (Cycle 4, DONE for the kit): type scale + hairline borders + motion tokens added and applied in CalmKit so every surface inherits them. Keep refining density/motion as real surfaces migrate; treat sleekness as a standing UI/UX acceptance item, not a one-off page tweak.
+- App slice polish (from Cycle 5 review): hero h1 responsive clamp; cleanFamilyCopy guard test for internal vocab; normalize markLocalTask id-matching.
 
 ## Definition of done
 
