@@ -66,13 +66,13 @@ Dedicated role briefs:
 - docs/agents/qa-agent.md
 - docs/agents/deploy-agent.md
 
-Current cycle: Cycle 4 Sprint 4 source prep active; QA found the shared address dropdown did not expose native full-address recommendations while typing, so the current source batch hardens SmartAddressInput across shared address fields.
+Current cycle: Cycle 4 Sprint 4 source prep active; PM scope expanded from address lookup into the full task-card/persona overhaul. Address lookup is fixed in source, and the family coordinator task-list surface is now being replaced with contract-driven operating-step cards.
 
-Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Cycle 4 source prep adds native `<datalist>` full-address recommendations to the shared SmartAddressInput, keeps the custom full-address suggestion menu and typed-address fallback, and adds a public-surface source guard so the requirement stays enforced across hospice, urgent, vendor onboarding, funeral-home setup/dashboard, estate, and app-level address fields. This is not deployed yet; keep it [skip deploy] until batched with one or two compatible Sprint 4 fixes or until Product Manager approves a release candidate.
+Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Cycle 4 source prep adds native `<datalist>` full-address recommendations to the shared SmartAddressInput and replaces the family coordinator plan rows with `FamilyOperatingStepCard`, driven by `taskOperatingContractFor`: status, owner, waiting on, prepared output, proof destination, visibility, one primary action, and details behind the action. Public-surface readiness now guards both the full-address suggestion requirement and the family operating-step structure. This is not deployed yet; keep it [skip deploy] until batched with one or two compatible Sprint 4 fixes or until Product Manager approves a release candidate.
 
 Chrome hydrated QA against current production 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125: homepage, `/funeral-homes` redirect to `/funeral-home`, plural nested director demo route, singular director demo route, employee demo route, vendor request demo, owner roadmap, and owner Automation Readiness all hydrated past loading shells. Automation Readiness displayed blocked / 79%, 12% automation ready, owner-missing blockers, Next automation improvements, Why now, and Focus tasks. Vercel production runtime logs showed no error/fatal logs for the release window. Chrome console errors observed were from a browser extension URL, not Passage app source.
 
-Current Product Manager scope: continue Sprint 4 persona UAT/source prep with address lookup as fix-now and deploy-budget discipline intact. Group this source hardening with one or two compatible small/medium fixes before another production deploy unless production is broken.
+Current Product Manager scope: continue Sprint 4 persona UAT/source prep with the full task-card/persona overhaul as the product bar. The standard is not renamed cards; it is a different interaction model per persona: one recommended action, owner, waiting point, prepared output, proof, visibility boundary, and hidden secondary controls. Group this source hardening with one or two compatible small/medium fixes before another production deploy unless production is broken.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -97,6 +97,7 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Added source hardening for automation-spine readiness: why-now reasons, next automation improvements, case-level automation blockers, and focus tasks for owner-only admin QA.
 - Added backlog hygiene rules so unrelated loop findings are classified into fix now, backlog, roadmap update, watch item, or owner gate instead of being lost or silently pulled into the sprint.
 - Added source hardening for shared address lookup: SmartAddressInput now exposes Google address predictions through native full-address datalist recommendations while typing, keeps the custom full-address suggestion menu, and preserves the Use this typed address fallback when Maps suggestions are unavailable.
+- Began the non-cosmetic task-card overhaul on the family coordinator surface: the family plan list now renders contract-driven operating-step cards instead of legacy checkbox/task rows.
 
 ## Current Product/UX Truth
 
@@ -153,6 +154,7 @@ Family experience should prioritize:
 5. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
 6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 7. Recheck address lookup after the next deploy with the Vercel production Google Places server key configured. Native full-address recommendations should appear while typing in every SmartAddressInput usage; if the key is missing, the typed-address fallback must remain obvious and non-blocking.
+8. Continue the task-card/persona overhaul beyond the first family source slice: convert the execution modal and remaining estate/persona surfaces into the same operating-step model, then Chrome-QA desktop and mobile before claiming the overhaul complete.
 
 ## Known Watch Items
 
@@ -195,6 +197,19 @@ Append or update this section before final response:
 - Self-service attempted / Claude in Chrome: repo docs, source review, local build/check path. Chrome UAT identified the gap; Claude in Chrome was not used.
 - Next action: commit as [skip deploy] source prep, continue Sprint 4 PM/QA for one or two compatible fixes, then deploy one combined [deploy] [qa-approved] batch and verify native full-address suggestions in Chrome.
 - Auto-advance decision: QA finding became fix-now source prep; deploy is intentionally deferred by budget discipline, so the train continues in Product Manager/QA consolidation mode.
+
+### 2026-06-19 - Cycle 4 family operating-step overhaul source prep
+
+- Date/time: 2026-06-19 21:28 -04:00.
+- Branch/commit(s): main working tree after pushed 88ff157; current family overhaul source changes are not committed or deployed yet.
+- Product Manager scope: owner rejected a cosmetic task-card wording pass and reset the bar to a real persona experience overhaul. PM disposition: fix now for the family coordinator plan surface because it remained the largest legacy task-row island after the funeral-home director/staff redesign.
+- Files changed: components/App.js, pages/api/system/publicSurfaceReadiness.js, pages/system/admin/saas-roadmap.js, docs/agent-operating-context.md.
+- Development handoff: components/App.js now imports `taskOperatingContractFor`, normalizes family next-step rows into operating contracts, and renders `FamilyOperatingStepCard` for the primary "Just do this now" lane plus every tier row. Each family card shows status, owner/needs-owner state, prepared output, waiting on, proof destination, visibility, one primary action, and detail context behind the action. The source guard now requires `FamilyOperatingStepCard`, `taskOperatingContractFor`, one-owner/one-waiting/one-proof copy, and hidden-detail copy.
+- Tested: `npm run agent:check` passed, `git diff --check` passed, and `npm run build` passed after the family operating-step source and docs/roadmap updates.
+- Failed/blocked: not deployed by design; this is source prep for the next combined Sprint 4 release. The execution modal still needs a deeper redesign after this card layer so the full overhaul is not complete yet.
+- Self-service attempted / Claude in Chrome: repo docs, source review, local checks. Claude in Chrome was not used.
+- Next action: run build/QA, commit [skip deploy], continue converting remaining family/estate execution surfaces before claiming the task-card/persona overhaul complete.
+- Auto-advance decision: PM -> Development is active; next role is QA after local build and source checks.
 
 ### 2026-06-19 - Cycle 3 release deployed and loop continued
 

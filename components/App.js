@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabaseBrowser";
 import { getTaskPlaybook } from "../lib/taskPlaybooks";
 import { SiteFooter, SiteHeader } from "./SiteChrome";
 import SmartAddressInput from "./SmartAddressInput";
-import { taskWorkspaceFor } from "../lib/taskWorkspace";
+import { taskOperatingContractFor, taskWorkspaceFor } from "../lib/taskWorkspace";
 import { orchestrateTasks } from "../lib/taskOrchestration";
 import { recordOnboardingProgress } from "../lib/onboardingClient";
 import { trackEvent } from "../lib/trackEvent";
@@ -791,7 +791,7 @@ const executionForTask = (task, deceasedName, coordinatorName, userEmail) => {
   return {...base, recipientLabel: 'family reviewer', subject: `${deceased} - announcement review`, draft: `Hello,\n\nWe are preparing a family announcement for ${deceased}. Please review the wording before anything is shared publicly.\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is preparing an announcement for ${shorten(deceased, 24)}. Sign in to Passage to review if assigned.`, steps: ['Write a short, calm announcement.', 'Confirm immediate family has been notified first.', 'Have one person review before posting.', 'Mark handled once the family-approved version is saved.'] };
  }
  if (lower.includes('thank you') || lower.includes('memorial fund') || lower.includes('charitable') || lower.includes('donation') || lower.includes('estate sale') || lower.includes('belongings')) {
-  return {...base, recipientLabel: 'family coordinator or service provider', subject: `${deceased} - memorial follow-up`, draft: `Hello,\n\nI am helping coordinate follow-up for ${deceased}. Can you please confirm what is needed next, who owns it, and any deadlines or costs we should record?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating memorial follow-up for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Choose the person or provider responsible for this follow-up.', 'Send the prepared note or assign the task.', 'Save names, costs, deadlines, and confirmations.', 'Mark handled once the next step is clear.'] };
+ return {...base, recipientLabel: 'family coordinator or service provider', subject: `${deceased} - memorial follow-up`, draft: `Hello,\n\nI am helping coordinate follow-up for ${deceased}. Can you please confirm what is needed next, who owns it, and any deadlines or costs we should record?\n\nThank you,\n${coordinator}`, sms: `Passage: ${coordinator} is coordinating memorial follow-up for ${shorten(deceased, 24)}. Sign in for details.`, steps: ['Choose the person or provider responsible for this follow-up.', 'Send the prepared note or assign the next step.', 'Save names, costs, deadlines, and confirmations.', 'Mark handled once the next step is clear.'] };
  }
  return base;
 };
@@ -899,6 +899,81 @@ const fastActionForTask = (task) => {
  if (title.includes('document') || title.includes('will')) return 'Find the document';
  return task?.title || 'Open the first next step';
 };
+
+const normalizeFamilyStepForContract = (task = {}) => ({
+ ...task,
+ status: task.completed ? 'handled': task.status,
+ assigned_to_name: task.assignedTo || task.assigned_to_name || '',
+ assigned_to_email: task.assignedEmail || task.assigned_to_email || '',
+ owner_name: task.assignedTo || task.owner_name || '',
+ completed_at: task.completed ? (task.completed_at || new Date().toISOString()): task.completed_at,
+ proof_required: task.proof_required || task.playbook?.proofRequired || 'confirmation',
+ waiting_on: task.waiting_on || task.playbook?.waitingOn || '',
+ automation_level: task.automation_level || task.playbook?.automationLevel || '',
+});
+
+function FamilyOperatingStepCard({ task, meta, compact = false, featured = false, isLast = false, onOpen }) {
+ const normalized = normalizeFamilyStepForContract(task);
+ const contract = taskOperatingContractFor(normalized, {
+  role: 'family',
+  estateName: 'this estate',
+  owner: task?.assignedTo || task?.assignedEmail || '',
+  surface: 'family operating lane',
+ });
+ const ownerMissing = !task?.assignedTo && !task?.assignedEmail && contract.owner === 'Assign an owner';
+ const statusTone = contract.status === 'done'
+  ? { color: C.sage, bg: C.sageFaint, border: C.sageLight }
+  : contract.status === 'needs_help'
+    ? { color: C.rose, bg: C.roseFaint, border: C.rose + '35' }
+    : contract.status === 'waiting'
+      ? { color: C.amber, bg: C.goldFaint, border: C.gold + '35' }
+      : { color: meta?.color || C.sage, bg: meta?.bg || C.sageFaint, border: (meta?.color || C.sage) + '25' };
+ const primaryLabel = ownerMissing && contract.status !== 'done' ? 'Assign owner': contract.primaryAction?.label || 'Open next step';
+ const actionHint = contract.status === 'done'
+  ? 'Proof saved'
+  : ownerMissing
+    ? 'Someone needs to own this before it can reliably move.'
+    : contract.whatYouDo;
+ return (
+  <div style={{ padding: compact ? "10px 12px": "13px 14px", borderBottom: isLast ? "none": `1px solid ${C.border}`, background: task.completed ? "#fafaf8": C.bgCard }}>
+   <button type="button" onClick={onOpen} style={{ width: "100%", border: "none", background: "transparent", padding: 0, textAlign: "left", fontFamily: "inherit", cursor: "pointer" }}>
+    <div style={{ display: "grid", gridTemplateColumns: compact ? "minmax(0,1fr)": "minmax(0,1fr) auto", gap: 12, alignItems: "start" }}>
+     <div style={{ minWidth: 0 }}>
+      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", alignItems: "center", marginBottom: 7 }}>
+       <span style={{ fontSize: 10.5, color: statusTone.color, background: statusTone.bg, border: `1px solid ${statusTone.border}`, borderRadius: 999, padding: "3px 8px", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".08em" }}>{contract.statusLabel}</span>
+       <span style={{ fontSize: 10.5, color: ownerMissing ? C.amber: C.sage, background: ownerMissing ? C.goldFaint: C.sageFaint, border: `1px solid ${ownerMissing ? C.gold + '35': C.sageLight}`, borderRadius: 999, padding: "3px 8px", fontWeight: 800 }}>{ownerMissing ? 'Needs owner': contract.owner}</span>
+       {task.isCustom && <span style={{ fontSize: 10.5, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 999, padding: "3px 8px", fontWeight: 800 }}>Custom</span>}
+      </div>
+      <div style={{ color: task.completed ? C.mid: C.ink, fontSize: featured ? 17: 14, lineHeight: 1.32, fontWeight: 900 }}>{contract.title}</div>
+      {!compact && task.desc && !task.completed && <div style={{ color: C.soft, fontSize: 11.8, lineHeight: 1.45, marginTop: 4 }}>{task.desc}</div>}
+      <div style={{ marginTop: 9, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 11, padding: "9px 10px", color: C.mid, fontSize: 12, lineHeight: 1.45 }}>
+       <strong style={{ color: C.ink }}>{contract.output?.label || 'Prepared output'}:</strong> {contract.output?.body || 'Passage keeps the next action, owner, and proof together.'}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 7, marginTop: 8 }}>
+       {[
+        ['Waiting on', contract.waitingOn || 'No one yet'],
+        ['Where proof saves', contract.proofDestination || 'Family record'],
+        ['Visibility', contract.visibility || 'Family record'],
+       ].map(([label, value]) => (
+        <div key={label} style={{ background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 10, padding: "8px 9px", minWidth: 0 }}>
+         <div style={{ color: C.soft, fontSize: 9.8, letterSpacing: ".09em", textTransform: "uppercase", fontWeight: 900, marginBottom: 3 }}>{label}</div>
+         <div style={{ color: C.ink, fontSize: 11.4, lineHeight: 1.32, fontWeight: 800, overflowWrap: "anywhere" }}>{value}</div>
+        </div>
+       ))}
+      </div>
+      {taskAwareness(task) && <div style={{ color: C.sage, fontSize: 11.5, lineHeight: 1.4, fontWeight: 800, marginTop: 8 }}>{taskAwareness(task)}</div>}
+      {task.completed && <div style={{ color: C.sage, fontSize: 11.5, lineHeight: 1.4, fontWeight: 800, marginTop: 8 }}>That's taken care of. You're all set here.</div>}
+      {!task.completed && <div style={{ color: C.mid, fontSize: 11.6, lineHeight: 1.45, marginTop: 8 }}>{actionHint}</div>}
+     </div>
+     <div style={{ display: "grid", gap: 6, minWidth: compact ? "auto": 120 }}>
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 36, borderRadius: 10, background: ownerMissing ? C.goldFaint: contract.status === 'done' ? C.bgSubtle: C.sage, color: ownerMissing ? C.amber: contract.status === 'done' ? C.mid: "#fff", border: ownerMissing ? `1px solid ${C.gold}35`: contract.status === 'done' ? `1px solid ${C.border}`: "none", padding: "0 11px", fontSize: 11.5, fontWeight: 900, whiteSpace: "nowrap" }}>{primaryLabel}</span>
+      {!compact && <span style={{ color: C.soft, fontSize: 10.5, lineHeight: 1.25, textAlign: "center" }}>Details stay behind this action</span>}
+     </div>
+    </div>
+   </button>
+  </div>
+ );
+}
 
 // UI PRIMITIVES 
 const Btn = ({ children, onClick, variant = "primary", disabled, style = {} }) => {
@@ -1530,7 +1605,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-   setSendError(data.error || 'Passage could not save this yet. Try again before closing this task.');
+   setSendError(data.error || 'Passage could not save this yet. Try again before closing this step.');
    return false;
   }
   setActionNotice(detail || 'Saved to the estate record.');
@@ -1557,7 +1632,7 @@ function TaskExecutionView({ task, deceasedName, coordinatorName, userEmail, wor
    setSentAt(stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
    setActionNotice(`Message sent to ${recipientEmail} at ${stamp.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Waiting for confirmation.`);
   }
-  else setSendError(data.error || 'Failed to send - retry? You can copy the draft while Passage keeps this task open.');
+  else setSendError(data.error || 'Failed to send - retry? You can copy the draft while Passage keeps this step open.');
  };
 
  const sendSmsDraft = async () => {
@@ -2046,7 +2121,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
        return (
         <div style={{ background: canNotify ? C.sageFaint: C.goldFaint, border: `1px solid ${canNotify ? C.sageLight: C.gold}55`, borderRadius: 12, padding: "10px 12px", marginBottom: 14, fontSize: 12.5, lineHeight: 1.5, color: canNotify ? C.sage: C.amber, fontWeight: 700 }}>
          {canNotify
-          ? "This will assign the task, send the prepared message, and record the action on the estate."
+          ? "This will assign the next step, send the prepared message, and record the action on the estate."
          : "No email or phone is saved yet. Assign ownership now, then send the prepared message after contact info is added."}
         </div>
        );
@@ -2057,7 +2132,7 @@ function AssignModal({ task, workflowId, userId, onAssign, onClose, deceasedName
        </div>
       )}
       <Field label="Their name *" placeholder="e.g. Rabbi David Cohen" value={name} onChange={setName}
-       hint="The name that will appear on task assignments and notifications." />
+       hint="The name that will appear on next-step ownership and notifications." />
       <Field label="Email" type="email" placeholder="rabbi@temple.org" value={email} onChange={setEmail} />
       <Field label="Phone" placeholder="(555) 000-0000" value={phone} onChange={setPhone} />
 
@@ -2293,10 +2368,19 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
      )}
 
      {firstLiveTask && (
-      <button onClick={() => { rememberTask(firstLiveTask); setExecutingTask(firstLiveTask); }} style={{ width: "100%", textAlign: "left", background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 13, padding: "12px 14px", marginBottom: 10, fontFamily: "Georgia, serif", cursor: "pointer" }}>
-       <div style={{ fontSize: 11, color: C.rose, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 4 }}>Just do this now</div>
-       <div style={{ fontSize: 15, color: C.ink, fontWeight: 800 }}>{fastActionForTask(firstLiveTask)}</div>
-      </button>
+      <div style={{ background: C.bgCard, border: `1px solid ${C.rose}30`, borderLeft: `5px solid ${C.rose}`, borderRadius: 14, overflow: "hidden", marginBottom: 10 }}>
+       <div style={{ padding: "11px 14px 0" }}>
+        <div style={{ fontSize: 11, color: C.rose, fontWeight: 900, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 4 }}>Just do this now</div>
+        <div style={{ fontSize: 12.5, color: C.mid, lineHeight: 1.45, marginBottom: 4 }}>{fastActionForTask(firstLiveTask)}. One owner, one waiting point, one proof trail.</div>
+       </div>
+       <FamilyOperatingStepCard
+        task={firstLiveTask}
+        meta={tierMeta[firstLiveTask.tier]}
+        featured
+        isLast
+        onOpen={() => { rememberTask(firstLiveTask); setExecutingTask(firstLiveTask); }}
+       />
+      </div>
      )}
 
      <div style={{ background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 13, padding: "12px 14px", marginBottom: 10 }}>
@@ -2365,79 +2449,13 @@ function TaskList({ deceasedName, coordinatorName, workflowId, userId, userEmail
          )}
 
          {filtered.map((task, idx) => (
-          <div key={task.id} style={{ padding: "12px 14px", borderBottom: idx < filtered.length - 1 ? `1px solid ${C.border}`: "none", background: task.completed ? "#fafaf8": "white" }}>
-           <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
-            <button
-             onClick={() => { rememberTask(task); setExecutingTask(task); }}
-             aria-label={task.completed ? "Review handled step": "Handle this next step"}
-             title={task.completed ? "Review handled step": "Handle this next step"}
-             style={{ width: 21, height: 21, borderRadius: 6, flexShrink: 0, marginTop: 2, border: `2px solid ${task.completed ? C.sage: C.border}`, background: task.completed ? C.sage: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, transition: "all 0.15s" }}>
-             {task.completed && <svg width="11" height="8" viewBox="0 0 12 9"><path d="M1 4L4.5 7.5L11 1" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-            </button>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-             <div style={{ fontSize: 13, fontWeight: task.completed ? 500: 600, color: task.completed ? C.mid: C.ink, lineHeight: 1.4, marginBottom: 2 }}>
-              {task.title}
-              {task.isCustom && <span style={{ fontSize: 10.5, color: C.sage, fontWeight: 700, background: C.sageFaint, padding: "1px 6px", borderRadius: 5, marginLeft: 7, textDecoration: "none" }}>CUSTOM</span>}
-              {task.status === 'not_applicable' && <span style={{ fontSize: 10.5, color: C.soft, fontWeight: 700, background: C.bgSubtle, padding: "1px 6px", borderRadius: 5, marginLeft: 7 }}>NOT APPLICABLE</span>}
-             </div>
-             {task.desc && !task.completed && <div style={{ fontSize: 11.5, color: C.soft, lineHeight: 1.5, marginBottom: task.assignedTo ? 5: 0 }}>{task.desc}</div>}
-             {task.playbook && !task.completed && (
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 5 }}>
-               <span style={{ fontSize: 10.5, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 999, padding: "2px 8px", fontWeight: 800 }}>{task.playbook.automationShortLabel}</span>
-               <span style={{ fontSize: 10.5, color: C.mid, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 999, padding: "2px 8px" }}>Waiting on {task.playbook.waitingOn}</span>
-               {task.playbook.funeralHomeEligible && <span style={{ fontSize: 10.5, color: C.gold, background: C.goldFaint, border: `1px solid ${C.gold}40`, borderRadius: 999, padding: "2px 8px", fontWeight: 800 }}>Funeral home can help</span>}
-              </div>
-             )}
-             {taskAwareness(task) && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>{taskAwareness(task)}</div>}
-             {task.lastActionAt && (
-              <div style={{ fontSize: 10.8, color: C.soft, lineHeight: 1.45, marginTop: 4 }}>
-               {[
-                task.lastActor ? `By: ${task.lastActor}`: '',
-                `At: ${new Date(task.lastActionAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
-                task.recipient ? `To: ${task.recipient}`: '',
-                task.channel ? `Channel: ${task.channel === 'sms' ? 'SMS': task.channel}`: '',
-                `Status: ${humanStatus(task.status)}`,
-               ].filter(Boolean).join(' | ')}
-              </div>
-             )}
-             {['sent', 'delivered'].includes(task.status) && !task.acknowledgedAt && (
-              <div style={{ marginTop: 5, display: "flex", gap: 7, alignItems: "center", flexWrap: "wrap" }}>
-               <span style={{ fontSize: 11.5, color: C.soft, fontWeight: 700 }}>Waiting for confirmation</span>
-               <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ border: `1px solid ${C.border}`, background: C.bgCard, color: C.mid, borderRadius: 7, padding: "3px 8px", fontSize: 11, fontFamily: "inherit", cursor: "pointer" }}>Send reminder</button>
-              </div>
-             )}
-             {task.completed && <div style={{ fontSize: 11.5, color: C.sage, fontWeight: 800, marginTop: 4 }}>That's taken care of. You're all set here.</div>}
-             {task.assignedTo && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 9, padding: "2px 9px", marginTop: 4 }}>
-               <span style={{ fontSize: 10.5 }}></span>
-               <span style={{ fontSize: 11, color: C.sage, fontWeight: 600 }}>{task.assignedTo}</span>
-               {task.assignedEmail && <span style={{ fontSize: 10.5, color: C.soft }}>Email: {task.assignedEmail}</span>}
-              </div>
-             )}
-            </div>
-
-            {task.completed ? (
-             <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ fontSize: 11, fontWeight: 700, color: C.mid, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
-              Review
-             </button>
-            ): (
-             task.isSocial ? (
-              <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
-               Handle
-              </button>
-             ): task.isObituary ? (
-              <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
-               Handle
-              </button>
-             ): (
-              <button onClick={() => { rememberTask(task); setExecutingTask(task); }} style={{ fontSize: 11, fontWeight: 700, color: C.sage, background: C.sageFaint, border: `1px solid ${C.sageLight}`, borderRadius: 7, padding: "4px 9px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
-               Handle
-              </button>
-             )
-            )}
-           </div>
-          </div>
+          <FamilyOperatingStepCard
+           key={task.id}
+           task={task}
+           meta={meta}
+           isLast={idx >= filtered.length - 1}
+           onOpen={() => { rememberTask(task); setExecutingTask(task); }}
+          />
          ))}
 
          {/* Add custom */}
@@ -4345,7 +4363,7 @@ function Dashboard({ user, onStartPlan, onEmergency, onSignOut, onOpenPlan, onHo
      <div onClick={e => e.stopPropagation()} style={{ background: C.bgCard, borderRadius: 18, padding: "24px 20px 32px", width: "100%", maxWidth: 560, maxHeight: "88vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,.24)" }}>
       <div style={{ width: 32, height: 4, borderRadius: 2, background: C.border, margin: "0 auto 18px" }} />
       <div style={{ fontFamily: "Georgia, serif", fontSize: 19, color: C.ink, marginBottom: 4 }}>People for {activeFileWorkflow?.estate_name || activeFileWorkflow?.name || "this estate"}</div>
-      <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 20, lineHeight: 1.55 }}>Designate who handles what when this estate activates. They receive estate-specific tasks, not a global family checklist.</div>
+      <div style={{ fontSize: 12.5, color: C.mid, marginBottom: 20, lineHeight: 1.55 }}>Designate who handles what when this estate activates. They receive estate-specific next steps, not a global family checklist.</div>
       <div style={{ background: C.sageFaint, border: "1px solid " + C.sageLight, borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
        <div style={{ fontSize: 13, color: C.sage, fontWeight: 600, marginBottom: 6 }}>Use role templates from your estate plan</div>
        <div style={{ fontSize: 12, color: C.mid, lineHeight: 1.55 }}>Go to any active estate plan, tap Quick assign, and add role holders there. They will appear here automatically.</div>
