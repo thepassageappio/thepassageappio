@@ -209,7 +209,7 @@ Append or update this section before final response:
 ### 2026-06-20 - Role-agent and PM Sprint Brief gate hardening
 
 - Date/time: 2026-06-20 04:45 -04:00.
-- Branch/commit(s): main working tree in `repo-raw`; process hardening changes are not committed or deployed yet.
+- Branch/commit(s): main 7ad3323, `docs(release): require role agents and sprint brief [skip deploy]`; not deployed by design.
 - Role instance / delegated agent: main agent plus process-review sub-agent `019ee429-0280-76b2-becf-8e9fe392e7ba`, which reviewed the release-train/PM contract and recommended file/section targets.
 - Prior role handoff received: owner clarified that every loop should create or delegate a distinct agent per role and that PM must work with agents to outline a world-class sprint with clear development objectives before implementation.
 - PM Sprint Brief: COMPLETE for process hardening. Sprint goal: make the next release-train loop unambiguous that role separation and PM Sprint Brief completion are required gates before development.
