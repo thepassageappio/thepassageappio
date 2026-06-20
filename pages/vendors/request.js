@@ -334,16 +334,25 @@ export default function VendorRequestPage() {
             )}
 
             <div style={{ padding: 22 }}>
-            <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 15, padding: '12px 13px', marginBottom: 14 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>Simple request path</div>
-              <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.4, marginBottom: 8 }}>Owner: <strong style={{ color: C.ink }}>{ownerLabel}</strong></div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 8 }}>
-                <Info label="Action needed" value={recommendedVendorAction ? recommendedVendorAction[1] : passiveVendorState} />
-                <Info label="Waiting on" value={waitingLabel} />
-                <Info label="Status and proof" value={proofLabel} />
+            <div style={{ background: '#26362d', color: '#fff', borderRadius: 15, padding: '15px 16px', marginBottom: 14, border: '1px solid rgba(255,255,255,.12)' }}>
+              <div style={{ color: '#c8deca', fontSize: 10.5, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Vendor operating lane</div>
+              <div style={{ fontSize: 18, lineHeight: 1.25, fontWeight: 900 }}>{recommendedVendorAction ? recommendedVendorAction[1] : passiveVendorState}</div>
+              <div style={{ color: '#e9efe6', fontSize: 12.5, lineHeight: 1.45, marginTop: 6 }}>One scoped request. One response path. Proof stays attached without opening the full family record.</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8, marginTop: 11 }}>
+                {[
+                  ['Owner', ownerLabel],
+                  ['Waiting on', waitingLabel],
+                  ['Proof saves to', proofLabel],
+                  ['Payment gate', paymentStatusLabel(request?.payment_collection_status || 'quote_needed')],
+                ].map(([label, value]) => (
+                  <div key={label} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 10, padding: '9px 10px', minWidth: 0 }}>
+                    <div style={{ color: '#c8deca', fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                    <div style={{ color: '#fff', fontSize: 11.8, lineHeight: 1.35, fontWeight: 800, marginTop: 4, overflowWrap: 'anywhere' }}>{value}</div>
+                  </div>
+                ))}
               </div>
-              <div style={{ color: C.mid, fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
-                <strong style={{ color: C.ink }}>Access boundary:</strong> You can respond to this request only. Private family notes, unrelated requests, and the full family record stay hidden.
+              <div style={{ color: '#e9efe6', fontSize: 12.2, lineHeight: 1.45, marginTop: 9 }}>
+                <strong style={{ color: '#fff' }}>Access boundary:</strong> You can respond to this request only. Private family notes, unrelated requests, and the full family record stay hidden.
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(220px, .8fr)', gap: 12, marginBottom: 14 }}>
@@ -437,15 +446,28 @@ export default function VendorRequestPage() {
             </div>
             {pendingVendorAction && (
               <div onClick={() => setPendingVendorAction('')} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-                <div role="dialog" aria-modal="true" aria-label="Respond to vendor request" onClick={event => event.stopPropagation()} style={{ width: 'min(640px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 24px 80px rgba(0,0,0,.2)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
-                    <div>
-                      <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor response</div>
-                      <div style={{ color: C.ink, fontSize: 23, lineHeight: 1.15, fontWeight: 900, marginTop: 4 }}>{vendorActionTitle(pendingVendorAction)}</div>
+                <div role="dialog" aria-modal="true" aria-label="Vendor operating sheet" onClick={event => event.stopPropagation()} style={{ width: 'min(720px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: '#fbfaf7', border: '1px solid ' + C.border, borderRadius: 16, padding: 0, boxShadow: '0 24px 80px rgba(0,0,0,.24)', overflow: 'hidden' }}>
+                  <div style={{ background: '#26362d', color: '#fff', padding: '20px 22px 18px', position: 'relative' }}>
+                    <button onClick={() => setPendingVendorAction('')} aria-label="Close vendor operating sheet" style={{ border: '1px solid rgba(255,255,255,.28)', background: 'rgba(255,255,255,.12)', color: '#fff', borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', position: 'absolute', top: 14, right: 16 }}>x</button>
+                    <div style={{ color: '#c8deca', fontSize: 10.5, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 900 }}>Vendor operating sheet</div>
+                    <div style={{ color: '#fff', fontSize: 24, lineHeight: 1.15, fontWeight: 900, marginTop: 7, paddingRight: 40 }}>{vendorActionTitle(pendingVendorAction)}</div>
+                    <div style={{ color: '#e9efe6', fontSize: 13, lineHeight: 1.5, marginTop: 8 }}>Review the quote, schedule, or proof before saving. Nothing exposes the full family record.</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 145px), 1fr))', gap: 8, marginTop: 12 }}>
+                      {[
+                        ['Request', request.task_title || 'Local help request'],
+                        ['Owner', ownerLabel],
+                        ['Waiting on', waitingLabel],
+                        ['Proof destination', 'Scoped request status trail'],
+                      ].map(([label, value]) => (
+                        <div key={label} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 10, padding: '8px 9px' }}>
+                          <div style={{ color: '#c8deca', fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
+                          <div style={{ color: '#fff', fontSize: 11.5, lineHeight: 1.35, fontWeight: 800, marginTop: 4, overflowWrap: 'anywhere' }}>{value}</div>
+                        </div>
+                      ))}
                     </div>
-                    <button onClick={() => setPendingVendorAction('')} aria-label="Close vendor response" style={{ border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 999, width: 34, height: 34, fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>x</button>
                   </div>
-                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '12px 0' }}>This response stays connected to the family case and request. It does not expose the full family record, and it does not send a live family message from this screen.</p>
+                  <div style={{ padding: 18 }}>
+                  <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.55, margin: '0 0 12px' }}>This response stays connected to the family case and request. It does not expose the full family record, and it does not send a live family message from this screen.</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                     <label style={labelStyle}>Estimated quote<input value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
                     <label style={labelStyle}>Final value<input value={finalValue} onChange={(e) => setFinalValue(e.target.value)} placeholder="250" style={inputStyle} /></label>
@@ -465,6 +487,7 @@ export default function VendorRequestPage() {
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
                     <button onClick={() => update(pendingVendorAction)} disabled={!!updating} style={buttonStyle(pendingVendorAction === 'declined' ? C.rose : C.sage)}>{updating ? 'Updating...' : 'Save response'}</button>
                     <button onClick={() => setPendingVendorAction('')} style={{ ...buttonStyle('#fff'), color: C.mid, border: '1px solid ' + C.border }}>Cancel</button>
+                  </div>
                   </div>
                 </div>
               </div>

@@ -10,13 +10,15 @@ Implement the Product Manager scope cleanly, without expanding product surface o
 2. Read docs/agent-operating-context.md.
 3. Read docs/release-train.md.
 4. Read docs/agents/product-manager.md or the current Product Manager handoff.
-5. Read the relevant source files before editing.
+5. Read docs/agents/ui-ux-agent.md and the current UI/UX handoff when the work is user-facing.
+6. Read the relevant source files before editing.
 
 ## Responsibilities
 
 - Implement only the scoped release batch.
 - Keep changes consistent with existing helpers, design language, route structure, and data contracts.
 - Preserve public/internal boundaries.
+- Research official framework, library, API, browser, security, and platform behavior before implementing unfamiliar or unstable behavior; record the source or local source-review evidence.
 - Keep ARR, roadmap, sprint, QA, founder/internal, and pilot-conversion language off public/persona surfaces.
 - Update docs/agent-operating-context.md with files changed, decisions, known gaps, and deploy status.
 - Send product ambiguity back to Product Manager before expanding scope.
@@ -28,6 +30,8 @@ Use this handoff shape:
 - Role: Development Engineer Agent
 - Cycle:
 - Scope implemented:
+- UI/UX acceptance:
+- Best-practice research:
 - Files changed:
 - Data/API behavior changed:
 - UX behavior changed:

@@ -9,8 +9,8 @@ Validate that the release works for the affected personas, not just that the cod
 1. Read AGENTS.md.
 2. Read docs/agent-operating-context.md.
 3. Read docs/release-train.md.
-4. Read docs/agents/product-manager.md and docs/agents/development-engineer.md.
-5. Read the Product Manager acceptance criteria and Development handoff.
+4. Read docs/agents/product-manager.md, docs/agents/ui-ux-agent.md, and docs/agents/development-engineer.md.
+5. Read the Product Manager acceptance criteria, UI/UX acceptance criteria, and Development handoff.
 6. Use browser/Chrome verification when UI behavior matters.
 
 ## Responsibilities
@@ -20,6 +20,7 @@ Validate that the release works for the affected personas, not just that the cod
 - Confirm the page answers: what is this, what do I do now, who owns it, who is waiting, what proof saves, who can see it, and what happens after click.
 - Check public/internal boundaries.
 - Check mobile/desktop where relevant.
+- Research expected behavior, accessibility expectations, browser/device risk, and regression history before marking PASS.
 - Check Vercel/runtime/build logs when release readiness depends on deployment.
 - Update docs/agent-operating-context.md with tested flows, failures, evidence, and QA status.
 
@@ -38,6 +39,8 @@ Use this handoff shape:
 - QA Status:
 - Personas tested:
 - Routes tested:
+- UI/UX criteria tested:
+- Best-practice research:
 - Evidence:
 - Failures:
 - Product Manager loopback needed:

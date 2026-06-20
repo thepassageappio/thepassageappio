@@ -54,7 +54,7 @@ const publicChecks = [
   },
   {
     path: '/vendors/request?demo=1',
-    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path'],
+    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Vendor operating lane'],
     forbids: ['family or funeral home accepts it', 'Viewed, accepted'],
   },
   {
@@ -241,6 +241,12 @@ const personaSourceChecks = [
     forbids: ['Task panel recovered', 'Update estate task', 'Simple task path', 'task proof panel'],
   },
   {
+    path: 'pages/vendors/request.js',
+    label: 'Vendor operating lane source',
+    requires: ['Vendor operating lane', 'Vendor operating sheet', 'One scoped request. One response path.', 'Proof saves to', 'Payment gate', 'Proof destination', 'Scoped request status trail'],
+    forbids: ['Simple request path', 'Respond to vendor request'],
+  },
+  {
     path: 'pages/funeral-home/workspace-demo.js',
     label: 'Funeral-home workspace demo source',
     requires: ['Sample funeral-home workspace', 'Work card contract', 'Work action', 'work outcomes'],
@@ -309,7 +315,7 @@ const personaSourceChecks = [
   {
     path: 'pages/vendors/request.js',
     label: 'Vendor request source',
-    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Simple request path', 'Action needed', 'Waiting on', 'Status and proof', 'full family record', 'public listing or open inbox', 'Save completion proof', 'family or funeral home can approve', 'Quote sent'],
+    requires: ['Sample scoped vendor request', 'One request, not a family file.', 'Vendor operating lane', 'Vendor operating sheet', 'Proof saves to', 'Payment gate', 'full family record', 'public listing or open inbox', 'Save completion proof', 'family or funeral home can approve', 'Quote sent'],
     forbids: ['family case and task', 'scoped task requests', 'task spine', 'full estate', 'public marketplace inbox', 'payout internals', 'Payment and fee details', 'Mark completed', 'can accept it before work starts', 'Requested, quoted, accepted, completed.', 'Service instructions', 'family or funeral home accepts it', 'Viewed, accepted', '>Accepted<'],
   },
   {

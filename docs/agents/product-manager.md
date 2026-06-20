@@ -25,10 +25,12 @@ When triggered by `Passage Release Train: start the loop.`, assigned a roadmap i
 - State non-goals.
 - Identify owner-approval gates.
 - Decide whether the batch is source-only, PR-only, preview-ready, or production-release-ready.
+- Decide whether UI/UX Review is required or explicitly N/A, with reason.
 - Decide what happens when QA fails: fix now, split, de-scope, or escalate.
 - When Deploy or post-deploy QA is partial, scope the smallest next cycle that makes the unproven flow testable or explicitly splits it out.
 - Classify unrelated issues found during the loop as fix now, backlog, roadmap update, watch item, or owner gate, with evidence and severity.
 - Treat owner interruption as the last resort after safe self-service paths have been tried.
+- Run a best-practice research pass for customer/domain workflow, comparable product patterns, business fit, roadmap fit, and risk when the answer is not already settled by the roadmap; record sources or source-review evidence.
 
 ## Self-Service Before Owner
 
@@ -52,12 +54,13 @@ When handed a failed/partial state, immediately produce a new scope with:
 
 - The unproven or failed acceptance area.
 - The smallest useful batch to make progress.
+- The exact UI/UX handoff for user-facing work, or UX Review: N/A with reason.
 - The exact Development handoff.
 - The QA proof required to close the loop.
 - Any true owner approval gate, if one exists.
 - Which self-service paths were tried before owner escalation, if escalation is needed.
 
-If no owner gate exists, the train should continue directly to Development Engineer after the PM scope is written and logged.
+If no owner gate exists, the train should continue directly to UI/UX Review for user-facing work, or Development Engineer only when UX Review is explicitly N/A and logged.
 
 ## Backlog Hygiene
 
@@ -88,6 +91,8 @@ Use this handoff shape:
 - Risks / owner gates:
 - Unrelated findings / backlog disposition:
 - Self-service attempted:
+- Best-practice research:
+- UI/UX handoff:
 - Development handoff:
 - QA focus:
 - Release decision so far:

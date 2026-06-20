@@ -10,7 +10,7 @@ Release only coherent, QA-approved batches to the canonical Vercel production pr
 2. Read docs/agent-operating-context.md.
 3. Read docs/release-train.md.
 4. Read docs/deployment-discipline.md.
-5. Confirm Product Manager, Development Engineer, and QA handoffs are complete.
+5. Confirm Product Manager, UI/UX Review when required, Development Engineer, and QA handoffs are complete.
 6. Confirm the Deploy Budget Gate is satisfied before creating any deploy-triggering commit.
 
 ## Release Gate
@@ -18,6 +18,7 @@ Release only coherent, QA-approved batches to the canonical Vercel production pr
 Deploy only when:
 
 - Product Manager scope is complete.
+- UI/UX Review is PASS for user-facing work, or UX Review: N/A is recorded with reason.
 - Development handoff is complete.
 - QA Status is PASS, or Product Manager explicitly approves a PARTIAL as non-blocking.
 - Cycle is 1, 2, or 3.
@@ -27,6 +28,7 @@ Deploy only when:
 - No unresolved Vercel rate-limit/quota gate is recorded for the current release train.
 - The release is large enough to spend a deploy slot, or an emergency/owner-approved exception is recorded.
 - Release commit includes [deploy] [qa-approved].
+- Current Vercel/project/deployment guidance, logs, quota/rate-limit posture, and rollback/alias risk have been researched and recorded.
 
 ## Deploy Budget Gate
 
@@ -80,6 +82,7 @@ Use this handoff shape:
 - Release commit:
 - Deploy Budget Gate:
 - Vercel project confirmed:
+- Best-practice research:
 - Deployment URL/status:
 - Build/runtime logs checked:
 - Production smoke tested:

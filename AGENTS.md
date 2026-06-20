@@ -8,7 +8,7 @@ Use this exact phrase in a fresh Codex chat to trigger the process:
 
 `Passage Release Train: start the loop.`
 
-When an agent sees that phrase, it must read this file, docs/agent-operating-context.md, docs/release-train.md, and the relevant dedicated role brief in docs/agents/ before proposing or changing anything. It should act as Product Manager first, scope the roadmap item, then move through Development Engineer, QA Agent, and Deploy Agent handoffs.
+When an agent sees that phrase, it must read this file, docs/agent-operating-context.md, docs/release-train.md, and the relevant dedicated role brief in docs/agents/ before proposing or changing anything. It should act as Product Manager first, scope the roadmap item, then move through UI/UX Review, Development Engineer, QA Agent, and Deploy Agent handoffs.
 
 ## Auto-Advance Rule
 
@@ -19,8 +19,10 @@ Do not stop after writing a handoff if that handoff names an unresolved next rol
 - Deploy PASS -> Product Manager scopes the next highest-leverage item.
 - Deploy PARTIAL or post-deploy QA incomplete -> Product Manager re-scopes the failed or unproven acceptance area.
 - QA FAIL or PARTIAL -> Product Manager decides fix now, split, de-scope, or escalate before Development continues.
+- UI/UX FAIL or PARTIAL -> Product Manager re-scopes the experience bar before Development continues.
 - Development gap -> Product Manager re-scopes before more implementation.
-- Product Manager scope complete -> Development Engineer implements the scoped batch.
+- Product Manager scope complete for user-facing work -> UI/UX Review Agent defines the experience acceptance bar.
+- UI/UX PASS or UX Review: N/A -> Development Engineer implements the scoped batch.
 
 Only pause for the owner when the next step requires explicit approval under Agent Permissions, live credentials/auth the agent cannot access after safe self-service paths were tried, destructive production data changes, spending money, legal/compliance/privacy/security judgment, or the same external blocker has repeated and no useful repo/docs/QA work remains. Otherwise proceed, log the transition in docs/agent-operating-context.md, and keep the train moving.
 
@@ -38,13 +40,25 @@ Claude in Chrome is an assistant path, not a permission bypass. Use it only with
 
 Ask the owner only after those paths are unavailable, unsafe, or insufficient and a true Agent Permissions gate remains.
 
+## Best-Practice Research Rule
+
+Every role must ground decisions in best-in-class practice before locking scope, design, code, QA, or deployment.
+
+- Product Manager researches the customer, market, domain, workflow, business objective, and comparable product pattern when the decision is not already settled by the roadmap.
+- UI/UX Review researches current UX, accessibility, responsive, interaction, and visual standards before approving user-facing work. Default references include NN/g usability heuristics, W3C WCAG 2.2, and web.dev Core Web Vitals when applicable.
+- Development Engineer researches framework, library, API, browser, security, and platform behavior from official docs or source before implementing unfamiliar or unstable behavior.
+- QA Agent researches expected behavior, accessibility expectations, browser/device risk, and regression patterns before marking PASS.
+- Deploy Agent researches current Vercel/project/deployment behavior, quotas, logs, and platform guidance before spending a deploy slot.
+
+Research can be repo/source review when the answer is stable and internal. Use current external sources when the topic is changing, high-risk, user-facing, platform-specific, legal/security/privacy-adjacent, or likely to affect time or money. Record sources, assumptions, and how the research changed the handoff in docs/agent-operating-context.md.
+
 ## Read Before Work
 
 Before changing product, code, copy, docs, roadmap, or deployment state:
 
 1. Read this file.
 2. Read docs/agent-operating-context.md.
-3. Read docs/release-train.md and follow Product Manager -> Development Engineer -> QA -> Deploy.
+3. Read docs/release-train.md and follow Product Manager -> UI/UX Review -> Development Engineer -> QA -> Deploy for user-facing work; record UX Review: N/A for invisible backend/process-only changes.
 4. Read the dedicated role brief in docs/agents/ for the role being played.
 5. If the work affects roadmap, sprint order, product vision, or priorities, read pages/system/admin/saas-roadmap.js. That owner-only page is the only website roadmap.
 6. If the work affects deployment, read docs/deployment-discipline.md and verify the canonical Vercel project before creating a deploy-triggering commit.
@@ -54,6 +68,7 @@ Before changing product, code, copy, docs, roadmap, or deployment state:
 Before handoff, final response, or final commit, update docs/agent-operating-context.md with:
 
 - Product Manager scope and cycle number.
+- UI/UX status when work affects user-facing surfaces, or UX Review: N/A with reason.
 - Development handoff and files changed.
 - QA status, failures, and whether the loop returned to Product Manager.
 - What is queued but not deployed.

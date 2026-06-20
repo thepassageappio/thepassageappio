@@ -51,24 +51,27 @@ Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, rel
 
 ## Current Release Train
 
-Required loop: Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
+Required loop for user-facing work: Product Manager Agent -> UI/UX Review Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat. Backend-only, process-only, docs-only, or invisible API changes record `UX Review: N/A` with the reason.
 
-Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. A successful `[skip deploy]` commit/push is source-state preservation, not loop completion; after pushing it, immediately continue to Product Manager consolidation or the next scoped Development/QA slice if the next action is known and not owner-gated. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, runtime failure, or rate-limit gate returns immediately to Product Manager for re-scope or [skip deploy] consolidation. Pause only for true owner gates: credentials/auth the agent cannot access after safe browser/Chrome/Claude-in-Chrome paths were tried, destructive production data changes, spending money/plan approval, or legal/compliance/privacy/security decisions.
+Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. A successful `[skip deploy]` commit/push is source-state preservation, not loop completion; after pushing it, immediately continue to Product Manager consolidation or the next scoped UI/UX/Development/QA slice if the next action is known and not owner-gated. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, runtime failure, or rate-limit gate returns immediately to Product Manager for re-scope or [skip deploy] consolidation. Pause only for true owner gates: credentials/auth the agent cannot access after safe browser/Chrome/Claude-in-Chrome paths were tried, destructive production data changes, spending money/plan approval, or legal/compliance/privacy/security decisions.
 
 Self-service rule: user is last resort. Before asking the owner to restart, decide, click, verify, research, or unblock, agents must try safe available paths: repo docs, source review, tests/builds, GitHub/Vercel connectors, browser/Chrome automation, and a signed-in Claude session in Chrome when available. Claude in Chrome may assist with research, handoff review, agent-to-agent coordination, or authenticated browser-state checking, but it must not bypass Agent Permissions, spend money, reveal/request secrets, send real communications, make destructive production changes, or decide legal/privacy/security/compliance matters. Record whether Claude in Chrome was available or used.
+
+Best-practice research rule: every role must perform a research pass before its handoff is complete. Product Manager checks customer/domain/business/comparable workflow fit; UI/UX checks current usability, accessibility, responsive, visual, interaction, and performance standards; Development checks official framework/library/API/platform behavior before unfamiliar implementation; QA checks expected behavior, accessibility/browser/device risk, and regression history; Deploy checks current Vercel/project/log/quota/rollback behavior. Repo/source review is enough for stable internal facts. Use current external sources for changing, high-risk, user-facing, platform-specific, legal/security/privacy-adjacent, or time/money-impacting decisions. Record sources and decisions here.
 
 Backlog hygiene rule: issues found outside the active sprint must be classified by Product Manager as fix now, backlog, roadmap update, watch item, or owner gate. Record source evidence, severity, and disposition here; update the single roadmap only when priority, sprint order, milestone wording, product doctrine, or a meaningful future backlog item changes.
 
 Dedicated role briefs:
 
 - docs/agents/product-manager.md
+- docs/agents/ui-ux-agent.md
 - docs/agents/development-engineer.md
 - docs/agents/qa-agent.md
 - docs/agents/deploy-agent.md
 
 Current cycle: Cycle 4 Sprint 4 source prep active; PM scope expanded from address lookup into the full task-card/persona overhaul. Address lookup is fixed in source, and the family coordinator task-list surface is now being replaced with contract-driven operating-step cards.
 
-Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Cycle 4 source prep adds native `<datalist>` full-address recommendations to the shared SmartAddressInput and replaces the family coordinator plan rows with `FamilyOperatingStepCard`, driven by `taskOperatingContractFor`: status, owner, waiting on, prepared output, proof destination, visibility, one primary action, and details behind the action. The opened family step now renders as a visually distinct `Family operating sheet` with a dark status header, fact grid, prepared-output/action panels, review-before-send message workspace, primary action lane, secondary action lane, and proof/status save area. The estate detail modal now opens as an `Estate operating sheet` with a dark status header, owner/waiting/prepared-output/proof/visibility facts, operating path, and the existing save/send/attach behaviors preserved underneath. Public-surface readiness now guards the full-address suggestion requirement, family operating-step/sheet structure, and estate operating-sheet structure. This is not deployed yet; keep it [skip deploy] until batched with one or two compatible Sprint 4 fixes or until Product Manager approves a release candidate.
+Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Cycle 4 source prep adds native `<datalist>` full-address recommendations to the shared SmartAddressInput and replaces the family coordinator plan rows with `FamilyOperatingStepCard`, driven by `taskOperatingContractFor`: status, owner, waiting on, prepared output, proof destination, visibility, one primary action, and details behind the action. The opened family step now renders as a visually distinct `Family operating sheet` with a dark status header, fact grid, prepared-output/action panels, review-before-send message workspace, primary action lane, secondary action lane, and proof/status save area. The estate detail modal now opens as an `Estate operating sheet` with a dark status header, owner/waiting/prepared-output/proof/visibility facts, operating path, and the existing save/send/attach behaviors preserved underneath. Vendor requests are being converted from a simple request path into a `Vendor operating lane` and `Vendor operating sheet` with owner, waiting, proof destination, payment gate, scoped access, and one recommended response. Public-surface readiness now guards the full-address suggestion requirement, family operating-step/sheet structure, estate operating-sheet structure, and vendor operating-lane structure. This is not deployed yet; keep it [skip deploy] until batched with one or two compatible Sprint 4 fixes or until Product Manager approves a release candidate.
 
 Chrome hydrated QA against current production 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125: homepage, `/funeral-homes` redirect to `/funeral-home`, plural nested director demo route, singular director demo route, employee demo route, vendor request demo, owner roadmap, and owner Automation Readiness all hydrated past loading shells. Automation Readiness displayed blocked / 79%, 12% automation ready, owner-missing blockers, Next automation improvements, Why now, and Focus tasks. Vercel production runtime logs showed no error/fatal logs for the release window. Chrome console errors observed were from a browser extension URL, not Passage app source.
 
@@ -97,7 +100,7 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Added source hardening for automation-spine readiness: why-now reasons, next automation improvements, case-level automation blockers, and focus tasks for owner-only admin QA.
 - Added backlog hygiene rules so unrelated loop findings are classified into fix now, backlog, roadmap update, watch item, or owner gate instead of being lost or silently pulled into the sprint.
 - Added source hardening for shared address lookup: SmartAddressInput now exposes Google address predictions through native full-address datalist recommendations while typing, keeps the custom full-address suggestion menu, and preserves the Use this typed address fallback when Maps suggestions are unavailable.
-- Began the non-cosmetic task-card overhaul on the family coordinator surface: the family plan list now renders contract-driven operating-step cards instead of legacy checkbox/task rows, and the estate detail modal now opens as an Estate operating sheet rather than a dense task update panel.
+- Began the non-cosmetic task-card overhaul on the family coordinator surface: the family plan list now renders contract-driven operating-step cards instead of legacy checkbox/task rows, the estate detail modal now opens as an Estate operating sheet rather than a dense task update panel, and the vendor request page now has a Vendor operating lane/sheet structure in source.
 
 ## Current Product/UX Truth
 
@@ -154,7 +157,7 @@ Family experience should prioritize:
 5. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
 6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 7. Recheck address lookup after the next deploy with the Vercel production Google Places server key configured. Native full-address recommendations should appear while typing in every SmartAddressInput usage; if the key is missing, the typed-address fallback must remain obvious and non-blocking.
-8. Continue the task-card/persona overhaul beyond the first family and estate source slices: convert remaining participant/vendor detail surfaces into the same operating-step model, then Chrome-QA desktop and mobile before claiming the overhaul complete.
+8. Continue the task-card/persona overhaul beyond the first family, estate, and vendor source slices: finish any remaining participant/vendor detail gaps, then Chrome-QA desktop and mobile before claiming the overhaul complete.
 
 ## Known Watch Items
 
@@ -176,6 +179,8 @@ Append or update this section before final response:
 - Date/time:
 - Branch/commit(s):
 - Files changed:
+- UI/UX status:
+- Best-practice research:
 - Deployed: yes/no, Vercel deployment URL/status:
 - Tested:
 - Failed/blocked:
@@ -184,6 +189,21 @@ Append or update this section before final response:
 - Auto-advance decision:
 
 ## Latest Handoff Updates
+
+### 2026-06-20 - UI/UX and best-practice research loop hardening plus vendor operating lane
+
+- Date/time: 2026-06-20 04:01 -04:00.
+- Branch/commit(s): main working tree after pushed 502afb3; UI/UX role, research-rule, and vendor operating-lane source changes are not committed or deployed yet.
+- Product Manager scope: owner asked whether the release train needs a UI/UX agent and then required best-in-class research/best-practice assessment in every role. PM disposition: fix now as process hardening, and continue the active task-card/persona overhaul into the vendor request surface.
+- UI/UX status: PASS for source prep. New UI/UX Review Agent is required for user-facing work, with UX Review: N/A allowed only for backend/process/docs-only changes. Vendor request surface now has a visibly different operating lane/sheet, not only copy changes.
+- Best-practice research: repo docs/source review plus current external baselines: NN/g 10 usability heuristics for status visibility, real-world language, user control, consistency, error prevention, recognition, and minimalist design; W3C WCAG 2.2 for navigability, labels, focus visibility, and target-size expectations; web.dev Core Web Vitals for loading/interactivity/visual-stability quality signals; Vercel deployment docs for deployment methods/environments and why deploy slots should be treated as scarce.
+- Files changed: AGENTS.md, docs/release-train.md, docs/agents/ui-ux-agent.md, docs/agents/product-manager.md, docs/agents/development-engineer.md, docs/agents/qa-agent.md, docs/agents/deploy-agent.md, docs/agent-operating-context.md, pages/vendors/request.js, pages/api/system/publicSurfaceReadiness.js, pages/system/admin/saas-roadmap.js.
+- Development handoff: docs now add UI/UX Review as a first-class role and require every role to record best-practice research. Vendor request source replaces the simple request path with a `Vendor operating lane` and response modal with a `Vendor operating sheet`, showing owner, waiting, proof destination, payment gate, scoped access, and one recommended response while preserving existing quote/schedule/proof actions.
+- Tested: `npm run agent:check` passed, `git diff --check` passed, and `npm run build` passed.
+- Failed/blocked: not deployed by design; this is source/process prep for the next combined Sprint 4 release.
+- Self-service attempted / Claude in Chrome: repo docs/source review and external research from NN/g, W3C, web.dev, and Vercel docs. Claude in Chrome was not needed.
+- Next action: run checks, commit `[skip deploy]`, then continue PM/UI-UX for any remaining participant/vendor detail gaps and Chrome visual QA before claiming the persona overhaul complete.
+- Auto-advance decision: continue after the skip-deploy commit; do not stop at GitHub/source preservation.
 
 ### 2026-06-19 - Skip-deploy continuation rule hardening
 

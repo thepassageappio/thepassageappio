@@ -6,13 +6,16 @@ This is the required collaboration loop for Passage agents. It keeps product jud
 
 Passage is aiming for an enterprise-grade funeral-home coordination SaaS that can support a $300k ARR business within one year. The product is sensitive, multi-persona, and operationally complex. Agents must preserve the vision, reduce confusion, and prove flows before deployment.
 
-The required loop is:
+The required loop for user-facing work is:
 
-Product Manager Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
+Product Manager Agent -> UI/UX Review Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
+
+For backend-only, process-only, docs-only, or invisible API work, record `UX Review: N/A` with the reason and continue through Development, QA, and Deploy as appropriate.
 
 Dedicated role briefs live here:
 
 - docs/agents/product-manager.md
+- docs/agents/ui-ux-agent.md
 - docs/agents/development-engineer.md
 - docs/agents/qa-agent.md
 - docs/agents/deploy-agent.md
@@ -27,7 +30,9 @@ A successful `[skip deploy]` commit, push, source-check pass, docs/context hando
 
 Default transitions:
 
-- Product Manager scope complete -> Development Engineer implements.
+- Product Manager scope complete for user-facing work -> UI/UX Review Agent defines the experience acceptance bar.
+- UI/UX PASS or N/A -> Development Engineer implements.
+- UI/UX FAIL or PARTIAL -> Product Manager re-scopes before implementation continues.
 - Development handoff complete -> QA validates.
 - QA PASS -> Deploy Agent prepares or verifies release.
 - QA FAIL or PARTIAL -> Product Manager re-scopes before more development.
@@ -44,6 +49,18 @@ Claude in Chrome may be used for agent-to-agent assistance, cross-checking, rese
 
 If Claude in Chrome is unavailable, blocked, or used, record that in docs/agent-operating-context.md. Owner escalation is valid only after the available self-service paths are unavailable, unsafe, insufficient, or a true owner gate remains.
 
+## Best-Practice Research Contract
+
+Each role performs a best-practice research pass before its handoff is considered complete.
+
+- Product Manager: customer/domain/job-to-be-done, comparable workflow patterns, business fit, roadmap fit, and risk.
+- UI/UX Review: usability heuristics, accessibility, interaction conventions, visual hierarchy, responsive behavior, content clarity, and performance expectations.
+- Development Engineer: official framework/library/API/platform docs, local architecture, security boundaries, and implementation tradeoffs.
+- QA Agent: expected user behavior, accessibility and browser/device risk, regression history, and acceptance-test evidence.
+- Deploy Agent: current Vercel deployment behavior, project state, logs, quota/rate-limit posture, rollback/alias risk, and production verification.
+
+Use repo/source review for stable internal facts. Use current external research for changing or high-risk subjects. Preferred baseline sources for user-facing web work include NN/g's usability heuristics, W3C WCAG 2.2, web.dev Core Web Vitals, and official Vercel docs for deployment behavior. Record the sources checked, assumptions made, and resulting decision in docs/agent-operating-context.md.
+
 ## Magic Phrase
 
 Use this exact phrase in any fresh Codex conversation:
@@ -55,12 +72,13 @@ That phrase means:
 1. Read AGENTS.md, docs/agent-operating-context.md, and this file before doing work.
 2. Start as Product Manager Agent and assess vision, roadmap, objective, scope, risks, and acceptance criteria.
 3. Create or update the PR handoff using the release train template when code work begins.
-4. Move to Development Engineer Agent only after scope is clear.
-5. Move to QA Agent only after development handoff is complete.
-6. Move to Deploy Agent only after QA is PASS or Product Manager approves a PARTIAL as non-blocking.
-7. After Deploy, return to Product Manager if the cycle is complete, failed, partial, blocked by rate limit, or has any unproven post-deploy acceptance area.
-8. Update docs/agent-operating-context.md before handoff, deploy, final response, or role transition.
-9. After any `[skip deploy]` commit/push, continue the next known PM/Development/QA role before ending the turn unless a true owner gate or external blocker prevents useful work.
+4. Move to UI/UX Review Agent for user-facing work, or record UX Review: N/A with reason for invisible backend/process-only changes.
+5. Move to Development Engineer Agent only after scope and UX acceptance are clear.
+6. Move to QA Agent only after development handoff is complete.
+7. Move to Deploy Agent only after QA is PASS or Product Manager approves a PARTIAL as non-blocking.
+8. After Deploy, return to Product Manager if the cycle is complete, failed, partial, blocked by rate limit, or has any unproven post-deploy acceptance area.
+9. Update docs/agent-operating-context.md before handoff, deploy, final response, or role transition.
+10. After any `[skip deploy]` commit/push, continue the next known PM/UI-UX/Development/QA role before ending the turn unless a true owner gate or external blocker prevents useful work.
 
 A shorter acceptable version is: `Start the Passage release train.` If the exact phrase is present, treat it as the stronger instruction.
 
@@ -111,6 +129,20 @@ The Development Engineer Agent must:
 - Avoid new public/internal boundary leaks.
 - Update docs/agent-operating-context.md with files changed, key decisions, and known gaps.
 - Send any unplanned product question back to the Product Manager Agent instead of silently expanding scope.
+
+## UI/UX Review Agent
+
+Owns experience quality for user-facing work before Development starts and again when a visual or interaction change needs review.
+
+The UI/UX Review Agent must:
+
+- Define the experience acceptance bar from the Product Manager scope.
+- Confirm the surface changes the actual workflow, not just copy or styling.
+- Check persona fit, visual hierarchy, information density, responsive behavior, accessibility basics, copy clarity, empty/loading/error states, and one-primary-action structure.
+- Return FAIL or PARTIAL to Product Manager before Development continues when the experience bar is unclear, too cosmetic, visually confusing, inaccessible, or not testable.
+- Record Chrome/browser proof needed for QA when visual behavior matters.
+
+Backend-only, process-only, docs-only, or invisible API changes may record `UX Review: N/A` with a reason.
 
 ## QA Agent
 
@@ -180,6 +212,7 @@ Deploy Agent must not end the loop on a partial verification note or a rate-limi
 Each meaningful batch should use a PR with the Passage release train template. The PR remains unapproved until these are true:
 
 - Product Manager scope completed.
+- UI/UX handoff completed for user-facing work, or UX Review: N/A recorded.
 - Development handoff completed.
 - QA handoff completed.
 - QA Status: PASS.
