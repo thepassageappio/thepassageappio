@@ -12,7 +12,7 @@ import PacketGeneratorModal from '../components/PacketGeneratorModal';
 import SmartAddressInput from '../components/SmartAddressInput';
 import { taskExpectedUpdate } from '../lib/communicationCenter';
 import { taskActionConfirmation, taskActionOutcomeStatus, taskActionPlaceholder, taskActionPrompt } from '../lib/taskActions';
-import { taskExplanationFor, taskWorkspaceFor } from '../lib/taskWorkspace';
+import { taskExplanationFor, taskOperatingContractFor, taskWorkspaceFor } from '../lib/taskWorkspace';
 import { orchestrateTasks, taskImportance } from '../lib/taskOrchestration';
 
 // ?????? TOKENS ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
@@ -4331,36 +4331,71 @@ export default function EstatePage() {
         )}
 
         {pendingTaskAction && (
-          <TaskPanelBoundary resetKey={(pendingTaskAction.task?.id || '') + ':' + (pendingTaskAction.status || '') + ':' + (pendingTaskAction.mode || '')} title="Task panel recovered" detail="This task has one field Passage could not display safely.">
+          <TaskPanelBoundary resetKey={(pendingTaskAction.task?.id || '') + ':' + (pendingTaskAction.status || '') + ':' + (pendingTaskAction.mode || '')} title="Operating sheet recovered" detail="This step has one field Passage could not display safely.">
           <div onClick={clearPendingTaskAction} style={{ position: 'fixed', inset: 0, zIndex: 220, background: 'rgba(26,25,22,.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-          <div id="task-update-panel" role="dialog" aria-modal="true" aria-label="Update estate task" onClick={function(e) { e.stopPropagation(); }} style={{ width: 'min(760px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: CARD, border: '1px solid ' + SAGE_LIGHT, borderRadius: 18, padding: '20px 22px', boxShadow: '0 24px 80px rgba(0,0,0,.22)' }}>
+          <div id="estate-operating-sheet" role="dialog" aria-modal="true" aria-label="Estate operating sheet" onClick={function(e) { e.stopPropagation(); }} style={{ width: 'min(860px, 100%)', maxHeight: 'calc(100vh - 36px)', overflowY: 'auto', background: '#fbfaf7', border: '1px solid ' + SAGE_LIGHT, borderRadius: 16, padding: 0, boxShadow: '0 24px 80px rgba(0,0,0,.24)', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-              <button onClick={clearPendingTaskAction} aria-label="Close task action" style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 999, width: 34, height: 34, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer' }}>x</button>
+              <button onClick={clearPendingTaskAction} aria-label="Close operating step" style={{ border: '1px solid rgba(255,255,255,.28)', background: 'rgba(255,255,255,.12)', color: '#fff', borderRadius: 999, width: 34, height: 34, fontFamily: 'inherit', fontWeight: 900, cursor: 'pointer', position: 'absolute', top: 14, right: 16, zIndex: 2 }}>x</button>
             </div>
             {(() => {
               var assigningOnly = pendingTaskAction.status === 'choose';
               var copy = taskActionCopy(pendingTaskAction.status);
               var assignedEmailForSpine = taskAssignedEmail(pendingTaskAction.task);
               var promptText = textValue(pendingTaskAction.prompt || copy.prompt, 'Record what happened, who owns it, and what proof should be saved.');
-              var workspace = taskWorkspaceFor(pendingTaskAction.task, { estateName: name, coordinatorName: coordinatorName, surface: 'task proof panel' });
+              var workspace = taskWorkspaceFor(pendingTaskAction.task, { estateName: name, coordinatorName: coordinatorName, surface: 'estate operating sheet' });
               var explanation = taskExplanationFor(pendingTaskAction.task, {
                 estateName: name,
                 coordinatorName: coordinatorName,
                 output: workspace.output,
                 guidance: workspace.guidance,
               });
+              var contract = taskOperatingContractFor(pendingTaskAction.task, {
+                role: 'family',
+                estateName: name,
+                coordinatorName: coordinatorName,
+                owner: assignedEmailForSpine ? taskAssignedName(pendingTaskAction.task) || assignedEmailForSpine : '',
+                surface: 'estate operating sheet',
+              });
+              var statusTone = contract.status === 'done'
+                ? { bg: SAGE_FAINT, color: SAGE, border: SAGE_LIGHT }
+                : contract.status === 'needs_help'
+                  ? { bg: ROSE_FAINT, color: ROSE, border: ROSE + '35' }
+                  : contract.status === 'waiting'
+                    ? { bg: AMBER_FAINT, color: AMBER, border: AMBER_BORDER }
+                    : { bg: SAGE_FAINT, color: SAGE, border: SAGE_LIGHT };
+              var operatingFacts = [
+                ['Owner', assignedEmailForSpine ? taskAssignedName(pendingTaskAction.task) || assignedEmailForSpine : 'Choose who owns the next move.'],
+                ['Waiting on', contract.waitingOn || taskExpectedUpdate(pendingTaskAction.task, 'family')],
+                ['Prepared output', contract.output?.label || workspace.label || 'Prepared output'],
+                ['Proof saves to', contract.proofDestination || explanation.done],
+                ['Visibility', contract.visibility || 'Family and funeral home'],
+                ['Next status', assigningOnly ? 'Owner saved' : copy.title],
+              ];
               return (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>{assigningOnly ? 'Assign this request' : pendingTaskAction.status === 'handled' ? 'Mark done with proof' : pendingTaskAction.status === 'waiting' ? 'Mark waiting' : 'Save this update'}</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.25 }}>{displayTaskTitle(pendingTaskAction.task)}</div>
-                  <div style={{ fontSize: 12.5, color: MID, lineHeight: 1.5, marginTop: 6 }}>{promptText}</div>
-                  {pendingTaskAction.status === 'handled' && (
-                    <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '9px 10px', color: SAGE, fontSize: 12.5, fontWeight: 800, lineHeight: 1.45, marginTop: 10 }}>
-                      This closes the request. Add the proof, reference, file, or short note the family should be able to trust later.
+                  <div style={{ background: '#26362d', color: '#fff', padding: '22px 24px 20px', borderBottom: '1px solid rgba(255,255,255,.12)' }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE_LIGHT, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 7 }}>Estate operating sheet</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 9 }}>
+                      <span style={{ background: statusTone.bg, color: statusTone.color, border: '1px solid ' + statusTone.border, borderRadius: 999, padding: '4px 9px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.08em' }}>{contract.statusLabel}</span>
+                      <span style={{ background: assignedEmailForSpine ? SAGE_FAINT : AMBER_FAINT, color: assignedEmailForSpine ? SAGE : AMBER, border: '1px solid ' + (assignedEmailForSpine ? SAGE_LIGHT : AMBER_BORDER), borderRadius: 999, padding: '4px 9px', fontSize: 10.5, fontWeight: 900 }}>{assignedEmailForSpine ? 'Owner ready' : 'Owner needed'}</span>
+                      <span style={{ background: 'rgba(255,255,255,.1)', color: '#fff', border: '1px solid rgba(255,255,255,.18)', borderRadius: 999, padding: '4px 9px', fontSize: 10.5, fontWeight: 900 }}>{contract.automation?.label || 'Manual step'}</span>
                     </div>
-                  )}
-                  <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px', marginTop: 12 }}>
-                    <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Simple task path</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.2, paddingRight: 36 }}>{contract.title}</div>
+                    <div style={{ fontSize: 13, color: '#e9efe6', lineHeight: 1.5, marginTop: 8, maxWidth: 700 }}>{promptText}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 175px), 1fr))', gap: 8, marginTop: 14 }}>
+                      {operatingFacts.map(function(fact) {
+                        return (
+                          <div key={fact[0]} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 10, padding: '9px 10px', minWidth: 0 }}>
+                            <div style={{ fontSize: 9.5, color: SAGE_LIGHT, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 4 }}>{fact[0]}</div>
+                            <div style={{ fontSize: 12, color: '#fff', lineHeight: 1.35, fontWeight: 800, overflowWrap: 'anywhere' }}>{fact[1]}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div style={{ padding: '16px 18px 0' }}>
+                  <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px' }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 900, color: SAGE, letterSpacing: '.13em', textTransform: 'uppercase', marginBottom: 5 }}>Operating path</div>
                     <div style={{ fontSize: 14, color: INK, lineHeight: 1.4, fontWeight: 900 }}>{explanation.what}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 8, marginTop: 8 }}>
                       <div style={{ background: CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: '8px 9px' }}>
@@ -4489,9 +4524,11 @@ export default function EstatePage() {
                       </div>
                     );
                   })()}
+                  </div>
                 </>
               );
             })()}
+            <div style={{ padding: '0 18px 18px' }}>
             {pendingTaskAction.mode && (
               <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 14, padding: '12px 13px', marginTop: 12 }}>
                 {(() => {
@@ -4651,6 +4688,7 @@ export default function EstatePage() {
                 style={{ border: '1px solid ' + BORDER, background: CARD, color: MID, borderRadius: 10, padding: '9px 12px', fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer' }}>
                 Cancel
               </button>
+            </div>
             </div>
           </div>
           </div>

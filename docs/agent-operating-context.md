@@ -68,7 +68,7 @@ Dedicated role briefs:
 
 Current cycle: Cycle 4 Sprint 4 source prep active; PM scope expanded from address lookup into the full task-card/persona overhaul. Address lookup is fixed in source, and the family coordinator task-list surface is now being replaced with contract-driven operating-step cards.
 
-Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Cycle 4 source prep adds native `<datalist>` full-address recommendations to the shared SmartAddressInput and replaces the family coordinator plan rows with `FamilyOperatingStepCard`, driven by `taskOperatingContractFor`: status, owner, waiting on, prepared output, proof destination, visibility, one primary action, and details behind the action. The opened family step now renders as a visually distinct `Family operating sheet` with a dark status header, fact grid, prepared-output/action panels, review-before-send message workspace, primary action lane, secondary action lane, and proof/status save area. Public-surface readiness now guards both the full-address suggestion requirement and the family operating-step/sheet structure. This is not deployed yet; keep it [skip deploy] until batched with one or two compatible Sprint 4 fixes or until Product Manager approves a release candidate.
+Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Cycle 4 source prep adds native `<datalist>` full-address recommendations to the shared SmartAddressInput and replaces the family coordinator plan rows with `FamilyOperatingStepCard`, driven by `taskOperatingContractFor`: status, owner, waiting on, prepared output, proof destination, visibility, one primary action, and details behind the action. The opened family step now renders as a visually distinct `Family operating sheet` with a dark status header, fact grid, prepared-output/action panels, review-before-send message workspace, primary action lane, secondary action lane, and proof/status save area. The estate detail modal now opens as an `Estate operating sheet` with a dark status header, owner/waiting/prepared-output/proof/visibility facts, operating path, and the existing save/send/attach behaviors preserved underneath. Public-surface readiness now guards the full-address suggestion requirement, family operating-step/sheet structure, and estate operating-sheet structure. This is not deployed yet; keep it [skip deploy] until batched with one or two compatible Sprint 4 fixes or until Product Manager approves a release candidate.
 
 Chrome hydrated QA against current production 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125: homepage, `/funeral-homes` redirect to `/funeral-home`, plural nested director demo route, singular director demo route, employee demo route, vendor request demo, owner roadmap, and owner Automation Readiness all hydrated past loading shells. Automation Readiness displayed blocked / 79%, 12% automation ready, owner-missing blockers, Next automation improvements, Why now, and Focus tasks. Vercel production runtime logs showed no error/fatal logs for the release window. Chrome console errors observed were from a browser extension URL, not Passage app source.
 
@@ -97,7 +97,7 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Added source hardening for automation-spine readiness: why-now reasons, next automation improvements, case-level automation blockers, and focus tasks for owner-only admin QA.
 - Added backlog hygiene rules so unrelated loop findings are classified into fix now, backlog, roadmap update, watch item, or owner gate instead of being lost or silently pulled into the sprint.
 - Added source hardening for shared address lookup: SmartAddressInput now exposes Google address predictions through native full-address datalist recommendations while typing, keeps the custom full-address suggestion menu, and preserves the Use this typed address fallback when Maps suggestions are unavailable.
-- Began the non-cosmetic task-card overhaul on the family coordinator surface: the family plan list now renders contract-driven operating-step cards instead of legacy checkbox/task rows.
+- Began the non-cosmetic task-card overhaul on the family coordinator surface: the family plan list now renders contract-driven operating-step cards instead of legacy checkbox/task rows, and the estate detail modal now opens as an Estate operating sheet rather than a dense task update panel.
 
 ## Current Product/UX Truth
 
@@ -154,7 +154,7 @@ Family experience should prioritize:
 5. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
 6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 7. Recheck address lookup after the next deploy with the Vercel production Google Places server key configured. Native full-address recommendations should appear while typing in every SmartAddressInput usage; if the key is missing, the typed-address fallback must remain obvious and non-blocking.
-8. Continue the task-card/persona overhaul beyond the first family source slice: convert the execution modal and remaining estate/persona surfaces into the same operating-step model, then Chrome-QA desktop and mobile before claiming the overhaul complete.
+8. Continue the task-card/persona overhaul beyond the first family and estate source slices: convert remaining participant/vendor detail surfaces into the same operating-step model, then Chrome-QA desktop and mobile before claiming the overhaul complete.
 
 ## Known Watch Items
 
@@ -197,6 +197,19 @@ Append or update this section before final response:
 - Self-service attempted / Claude in Chrome: repo docs and source review. Claude in Chrome was not needed.
 - Next action: commit and push as `[skip deploy]`, then auto-advance to Product Manager for the next task-card/persona overhaul slice instead of stopping.
 - Auto-advance decision: continue immediately after the docs push; do not use the push itself as a final stopping point.
+
+### 2026-06-19 - Cycle 4 estate operating-sheet source prep
+
+- Date/time: 2026-06-19 20:47 -04:00.
+- Branch/commit(s): main working tree after pushed e8c32ee; estate operating-sheet source changes are not committed or deployed yet.
+- Product Manager scope: continue the non-cosmetic task-card/persona overhaul into `/estate`, because the opened estate step still behaved like a dense task update panel instead of a persona-safe operating lane.
+- Files changed: pages/estate.js, pages/api/system/publicSurfaceReadiness.js, pages/system/admin/saas-roadmap.js, docs/agent-operating-context.md.
+- Development handoff: pages/estate.js now imports `taskOperatingContractFor` and turns the opened estate step into an `Estate operating sheet` with a dark status header, status/owner/automation pills, owner/waiting/prepared-output/proof/visibility/next-status facts, operating path, and preserved owner save, prepared draft, send, attachment, proof, waiting, and needs-help actions. Public-surface readiness now guards the estate operating-sheet markers.
+- Tested: `npm run agent:check` passed, `git diff --check` passed, and `npm run build` passed after the estate source update.
+- Failed/blocked: not deployed by design; this remains Sprint 4 source prep for a combined release batch.
+- Self-service attempted / Claude in Chrome: repo docs and source review. Claude in Chrome was not needed.
+- Next action: run checks, commit `[skip deploy]`, then continue Product Manager scope for participant/vendor detail surfaces and Chrome visual QA before claiming the overhaul complete.
+- Auto-advance decision: continue the release train after this source commit; do not stop merely because the skip-deploy commit preserves the slice.
 
 ### 2026-06-19 - Cycle 4 address lookup native suggestions source prep
 

@@ -235,6 +235,12 @@ const personaSourceChecks = [
     forbids: ['Plan ahead ???', 'Active plan ???', ' ?? Proof: ', 'Task output', 'Who owns each task', 'Coordinate people, tasks, and messages ??? all in one place.', '???', 'Open sample funeral-home console', 'Spine Journey Providers Lifecycle', "You've been assigned a task", 'estate task in Passage', 'accept the task', 'task details', 'Partner ready', 'partner dashboard', 'assigned a task', 'estate task plan', 'real estate tasks later', 'Same record across planning, urgent, partner, and participant views.', 'characters ??', ' tasks</div>', 'pd.label} ??', "label: 'Tasks'"],
   },
   {
+    path: 'pages/estate.js',
+    label: 'Estate operating sheet source',
+    requires: ['Estate operating sheet', 'estate-operating-sheet', 'taskOperatingContractFor', 'Owner needed', 'Prepared output', 'Proof saves to', 'Operating path', 'estate operating sheet'],
+    forbids: ['Task panel recovered', 'Update estate task', 'Simple task path', 'task proof panel'],
+  },
+  {
     path: 'pages/funeral-home/workspace-demo.js',
     label: 'Funeral-home workspace demo source',
     requires: ['Sample funeral-home workspace', 'Work card contract', 'Work action', 'work outcomes'],
