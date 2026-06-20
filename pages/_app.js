@@ -87,22 +87,22 @@ export default function PassageApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>{title}</title>
-        <meta name="description" content={description} />
+        <title key="title">{title}</title>
+        <meta key="description" name="description" content={description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="canonical" href={canonicalUrl} />
+        <link key="canonical" rel="canonical" href={canonicalUrl} />
         <link rel="icon" href={PASSAGE_BRAND.assets.favicon} type="image/svg+xml" />
         <link rel="shortcut icon" href={PASSAGE_BRAND.assets.favicon} type="image/svg+xml" />
         <link rel="apple-touch-icon" href={PASSAGE_BRAND.assets.appleTouchIcon} />
-        <meta property="og:type" content="website" />
+        <meta key="og:type" property="og:type" content="website" />
         <meta property="og:site_name" content="Passage" />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={canonicalUrl} />
+        <meta key="og:title" property="og:title" content={title} />
+        <meta key="og:description" property="og:description" content={description} />
+        <meta key="og:url" property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={`${SITE_URL}${PASSAGE_BRAND.assets.socialImage}`} />
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
+        <meta key="twitter:title" name="twitter:title" content={title} />
+        <meta key="twitter:description" name="twitter:description" content={description} />
         <meta name="twitter:image" content={`${SITE_URL}${PASSAGE_BRAND.assets.socialImage}`} />
         <script
           type="application/ld+json"

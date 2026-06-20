@@ -32,9 +32,15 @@ export default function BlogPost({ post }) {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
       <Head>
-        <title>{post.title} | Passage</title>
-        <meta name="description" content={post.excerpt} />
-        <link rel="canonical" href={url} />
+        <title key="title">{post.title} | Passage</title>
+        <meta key="description" name="description" content={post.excerpt} />
+        <link key="canonical" rel="canonical" href={url} />
+        <meta key="og:type" property="og:type" content="article" />
+        <meta key="og:title" property="og:title" content={post.title} />
+        <meta key="og:description" property="og:description" content={post.excerpt} />
+        <meta key="og:url" property="og:url" content={url} />
+        <meta key="twitter:title" name="twitter:title" content={post.title} />
+        <meta key="twitter:description" name="twitter:description" content={post.excerpt} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       </Head>
       <SiteHeader />
