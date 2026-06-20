@@ -43,9 +43,9 @@ Canonical Vercel project:
 - Project ID: prj_b7CKwanQaKwFQSHInr3l6wsZy9nD
 - Team ID: team_X0ta3bEEbRVGNM9xOwdBtCga
 
-Current production: 2556914b4c16d9b27b2ca96f3f88432f92db1c6e, fix(release): repair roadmap build blocker [deploy] [qa-approved]. Deployed to dpl_XcLo42Wp2KawTPMAz3wf2MsAVPGe in the canonical Vercel project and serving on www.thepassageapp.io with X-Passage-Commit matching 2556914b4c16d9b27b2ca96f3f88432f92db1c6e.
+Current production: 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125, release: deploy plural route and automation readiness [deploy] [qa-approved]. Deployed to dpl_FH9gdBDRejwZqJft1znrrsFcYqUQ in the canonical Vercel project and aliased to www.thepassageapp.io, thepassageapp.io, and the Vercel production aliases.
 
-Queued release not deployed: 5c04986381385c8821f14282e757e2209ad71e0c, fix(release): redirect plural funeral-home route [deploy] [qa-approved]. GitHub/Vercel status is failure because the canonical Vercel project is at build rate limit. Do not create more deploy-triggering commits until the Vercel gate clears.
+Queued release not deployed: none. The plural funeral-home redirect and automation-readiness source batch shipped together in release commit 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125.
 
 Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, release: deploy persona navigation and task action clarity [deploy].
 
@@ -66,13 +66,13 @@ Dedicated role briefs:
 - docs/agents/qa-agent.md
 - docs/agents/deploy-agent.md
 
-Current cycle: Cycle 2 Deploy blocked by Vercel build rate limit.
+Current cycle: Cycle 3 Deploy PASS; Product Manager should scope the next highest-leverage Sprint 4 persona UAT/source-prep item.
 
-Current batch status: Cycle 2 Product Manager and Development handoffs are complete for QA-enablement/release-closure. Source changes added stable demo proof paths to docs/funeral-home-flawless-qa.md and added Next.js redirects for `/funeral-homes` and nested plural paths to canonical `/funeral-home`. Deployment is not complete because Vercel rejected the deploy with build-rate-limit status before a deployment object appeared in the canonical project list.
+Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure work plus Sprint 3 automation-readiness hardening. Source changes include stable demo proof paths, Next.js redirects for `/funeral-homes` and nested plural paths to canonical `/funeral-home`, automation-readiness why-now reasons, next automation improvements, focus tasks, and backlog hygiene rules.
 
-Chrome hydrated QA against current production 2556914b4c16d9b27b2ca96f3f88432f92db1c6e: director demo dashboard, employee demo dashboard, vendor request demo, and owner roadmap all hydrated past loading/sign-in shells. The plural `/funeral-homes` route still returns 404 in current production because queued redirect commit 5c04986381385c8821f14282e757e2209ad71e0c has not deployed.
+Chrome hydrated QA against current production 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125: homepage, `/funeral-homes` redirect to `/funeral-home`, plural nested director demo route, singular director demo route, employee demo route, vendor request demo, owner roadmap, and owner Automation Readiness all hydrated past loading shells. Automation Readiness displayed blocked / 79%, 12% automation ready, owner-missing blockers, Next automation improvements, Why now, and Focus tasks. Vercel production runtime logs showed no error/fatal logs for the release window. Chrome console errors observed were from a browser extension URL, not Passage app source.
 
-Current Product Manager scope: do not add new product surface while deploy quota is blocked. When the Vercel rate-limit gate clears, Deploy Agent should re-trigger or otherwise get 5c04986381385c8821f14282e757e2209ad71e0c deployed, then QA must verify the plural redirect, X-Passage-Commit, and real browser hydrated demo paths from docs/funeral-home-flawless-qa.md.
+Current Product Manager scope: proceed to the next highest-leverage Sprint 4 persona UAT/source-prep item. Keep deploy budget discipline: group the next two or three compatible small/medium fixes before another production deploy unless production is broken.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -91,7 +91,7 @@ Deploy rule: only use [deploy] [qa-approved] after context is updated, roadmap i
 - Updated the roadmap with director, employee, vendor, reporting, and export release-candidate takeaways.
 - Updated AGENTS.md, docs/release-train.md, docs/deployment-discipline.md, and the PM/Deploy role briefs so the release train auto-advances instead of stopping after partial deploy QA handoff.
 - Added stable release-train demo proof paths to docs/funeral-home-flawless-qa.md.
-- Added `/funeral-homes` -> `/funeral-home` and `/funeral-homes/:path*` -> `/funeral-home/:path*` redirects in next.config.js; queued for deploy at 5c04986381385c8821f14282e757e2209ad71e0c but blocked by Vercel rate limit.
+- Added `/funeral-homes` -> `/funeral-home` and `/funeral-homes/:path*` -> `/funeral-home/:path*` redirects in next.config.js; deployed in release commit 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125.
 - Added a deploy-budget rule to AGENTS.md, docs/release-train.md, docs/deployment-discipline.md, docs/agents/deploy-agent.md, and this context file so agents batch two or three compatible small/medium fixes and stop creating deploy-triggering commits on Vercel quota gates.
 - Added the owner-last-resort / Claude-in-Chrome self-service rule to the scheduled automation prompt, AGENTS.md, docs/release-train.md, docs/agents/product-manager.md, and this context file.
 - Added source hardening for automation-spine readiness: why-now reasons, next automation improvements, case-level automation blockers, and focus tasks for owner-only admin QA.
@@ -136,12 +136,9 @@ Family experience should prioritize:
 
 ## Open Work / Next Actions
 
-1. Do not create additional deploy-triggering commits until the Vercel build-rate-limit gate clears.
-2. Keep any new docs, context, QA prep, or source consolidation commits [skip deploy] while quota is blocked.
-3. Before asking the owner for help, try safe self-service paths including Chrome/browser automation and Claude in Chrome if available.
-4. Once Vercel can build again, deploy queued commit 5c04986381385c8821f14282e757e2209ad71e0c or make a new coherent release commit only if code changed again and the Deploy Budget Gate is satisfied.
-5. Verify `/funeral-homes` redirects to `/funeral-home` and nested plural paths redirect to singular nested paths.
-6. Run real browser/Chrome QA after deploy for persona-by-persona testing:
+1. Before asking the owner for help, try safe self-service paths including Chrome/browser automation and Claude in Chrome if available.
+2. Group the next two or three compatible small/medium fixes before another production deploy unless production is broken.
+3. Continue Sprint 4 persona UAT/source prep:
    - Public landing and nav.
    - Urgent path.
    - Funeral-home sales page.
@@ -151,15 +148,15 @@ Family experience should prioritize:
    - Vendor request acceptance/update/quote/completion.
    - Reports/export proof.
    - System Admin owner roadmap after auth.
-7. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
-8. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
-9. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
+4. Sanity-check that System Admin visibly has one canonical roadmap and every other admin page is clearly evidence, QA, or tooling.
+5. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
+6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 
 ## Known Watch Items
 
 - Google sign-in and general button behavior recently showed issues and needs live browser QA.
 - Smart address/location lookup during green-path onboarding was reported broken or confusing.
-- Vercel rate limits were hit again on Cycle 2 release commit 5c04986381385c8821f14282e757e2209ad71e0c.
+- Vercel rate limits were hit on Cycle 2 release commit 5c04986381385c8821f14282e757e2209ad71e0c, then cleared before Cycle 3 release 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125.
 - Deploy discipline now requires batching two or three compatible small/medium fixes where possible; docs/context/QA notes/source-only setup stay [skip deploy].
 - Owner escalation should be last resort after repo docs, connectors, browser/Chrome, and Claude in Chrome have been tried where safe.
 - Dependency watch item from local QA: npm ci reports 3 audit findings (1 moderate, 2 high). Do not force unrelated dependency churn into an active sprint; Product Manager should classify this in a security/dependency hardening batch after reviewing `npm audit` detail.
@@ -183,6 +180,19 @@ Append or update this section before final response:
 - Auto-advance decision:
 
 ## Latest Handoff Updates
+
+### 2026-06-19 - Cycle 3 release deployed and loop continued
+
+- Date/time: 2026-06-19 20:19 -04:00.
+- Branch/commit(s): main 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125, `release: deploy plural route and automation readiness [deploy] [qa-approved]`.
+- Product Manager scope: deploy one coherent batch containing the queued plural funeral-home redirect and Sprint 3 automation-readiness source hardening after Vercel accepted builds again.
+- Files changed since previous release: next.config.js plural redirects; pages/api/system/automationSpineReadiness.js; pages/system/admin/automation-spine-readiness.js; pages/api/system/publicSurfaceReadiness.js; pages/system/admin/saas-roadmap.js; AGENTS.md; docs/release-train.md; docs/agents/product-manager.md; docs/agent-operating-context.md; related QA/context docs from queued commits.
+- Deployed: yes. Canonical Vercel project prj_b7CKwanQaKwFQSHInr3l6wsZy9nD, deployment dpl_FH9gdBDRejwZqJft1znrrsFcYqUQ, status READY, aliased to www.thepassageapp.io and thepassageapp.io.
+- Tested: local `npm run agent:check` PASS and `npm run build` PASS before deploy. Vercel build logs showed release marker allowed, compiled successfully, generated static pages 64/64, and deployment READY. Chrome QA on production verified homepage hydrated, `/funeral-homes` redirected to `/funeral-home`, plural nested director demo route redirected/rendered, singular director demo route rendered Hudson Valley Funeral Group/My Day content, employee demo rendered staff/assigned work content, vendor request demo rendered Livestream support / One request copy, System Admin roadmap rendered owner-only roadmap, and Automation Readiness rendered blocked / 79%, 12% automation ready, owner-missing blockers, Next automation improvements, Why now, and Focus tasks. Vercel runtime logs for production showed no error/fatal logs in the release window.
+- Failed/blocked: direct shell fetch/header checks failed from this Windows environment due local TLS/proxy receive errors and curl Schannel credential errors. Use Vercel deployment metadata plus Chrome for current proof; retry shell header checks later from a clean network context if needed. Chrome console errors observed were from a browser extension URL and async extension listener noise, not Passage source.
+- Self-service attempted / Claude in Chrome: repo docs, local source/build checks, Vercel connector, Chrome automation, runtime logs. Claude in Chrome was not used.
+- Next action: auto-advance to Product Manager for Sprint 4 persona UAT/source prep. Group the next two or three compatible fixes before another deploy slot unless production breaks.
+- Auto-advance decision: Deploy PASS; return to Product Manager immediately for Sprint 4 rather than stopping.
 
 ### 2026-06-19 - Cycle 3 automation readiness source hardening
 
