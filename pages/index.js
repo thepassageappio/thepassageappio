@@ -1,5 +1,8 @@
-import AppCalm from '../components/AppCalm'
+import App from '../components/App'
 
+// Public marketing homepage. The calm family app lives at /today (see
+// docs/site-migration-plan.md). Do NOT repurpose this public route for an
+// authed surface — that regression was reverted 2026-06-20.
 export default function Home() {
-  return <AppCalm />
+  return <App />
 }
