@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
-import { DS, TYPE, SANS } from '../lib/designSystem';
+import { DS, TYPE, SANS, present } from '../lib/designSystem';
 import { supabase } from '../lib/supabaseBrowser';
 import { Banner, Button, Card, Input } from './calm/CalmControls';
+import { CalmStatusPill } from './calm/CalmKit';
 import FamilyTodayApp from './family/FamilyTodayApp';
 import LegacyApp from './App';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+
+const PREVIEW_ITEMS = [
+  { statusKey: 'yours_now', title: 'Confirm the funeral home contact', body: 'Passage prepared the call notes.' },
+  { statusKey: 'waiting', who: 'Maria', title: 'Photos for the service program', body: 'Nothing else for you to do yet.' },
+  { statusKey: 'done', proof: true, title: 'Death certificate path saved', body: 'Saved to your family record.' },
+];
 
 function useSession() {
   const [loading, setLoading] = useState(true);
@@ -66,9 +73,9 @@ function EmailLinkForm() {
   return (
     <div style={{ display: 'grid', gap: 9 }}>
       <label htmlFor={emailId} style={{ display: 'block', ...TYPE.small, fontWeight: 500, color: DS.color.ink }}>Secure email link</label>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
         <Input id={emailId} type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" />
-        <Button disabled={sending} onClick={sendLink}>{sending ? 'Sending' : 'Send link'}</Button>
+        <Button disabled={sending} onClick={sendLink} style={{ width: '100%' }}>{sending ? 'Sending' : 'Send link'}</Button>
       </div>
       {sent && <Banner tone="success">Check {email.trim()} to continue.</Banner>}
       {error && <Banner tone="danger">{error}</Banner>}
@@ -82,8 +89,8 @@ function Landing({ loading }) {
   };
 
   return (
-    <main style={{ minHeight: '100vh', background: DS.color.page, color: DS.color.ink, fontFamily: SANS }}>
-      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '22px 18px 44px' }}>
+    <main style={{ minHeight: '100vh', background: DS.color.page, color: DS.color.ink, fontFamily: SANS, overflowX: 'hidden' }}>
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '22px 18px 44px', boxSizing: 'border-box' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, marginBottom: 42 }}>
           <a href="/" style={{ color: DS.color.sageDeep, textDecoration: 'none', fontWeight: 700, letterSpacing: '.01em' }}>Passage</a>
           <nav aria-label="Primary" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -94,7 +101,7 @@ function Landing({ loading }) {
         </header>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 24, alignItems: 'start' }}>
-          <div style={{ paddingTop: 16 }}>
+          <div style={{ paddingTop: 16, minWidth: 0 }}>
             <p style={{ ...TYPE.label, color: DS.color.sageDeep, margin: '0 0 12px' }}>Family coordination, without the scramble</p>
             <h1 style={{ fontSize: 42, lineHeight: 1.05, letterSpacing: 0, fontWeight: 650, margin: '0 0 16px', maxWidth: 720 }}>The operating system for life&apos;s hardest logistics.</h1>
             <p style={{ ...TYPE.body, fontSize: 17, color: DS.color.mid, maxWidth: 650, margin: '0 0 22px' }}>
@@ -107,20 +114,19 @@ function Landing({ loading }) {
             {loading && <p style={{ ...TYPE.small, color: DS.color.soft, margin: 0 }}>Checking your secure session...</p>}
           </div>
 
-          <Card pad={18} style={{ borderRadius: DS.radius.lg }}>
+          <Card pad={18} style={{ borderRadius: DS.radius.lg, boxSizing: 'border-box', minWidth: 0 }}>
             <p style={{ ...TYPE.label, color: DS.color.soft, margin: '0 0 10px' }}>Today in Passage</p>
             <div style={{ display: 'grid', gap: 10 }}>
-              {[
-                ['Needs you', 'Confirm the funeral home contact', 'Passage prepared the call notes.'],
-                ['Waiting on Maria', 'Photos for the service program', 'Nothing else for you to do yet.'],
-                ['Done', 'Death certificate path saved', 'Saved to your family record.'],
-              ].map(([status, title, body]) => (
-                <div key={title} style={{ border: `1px solid ${DS.color.hair}`, borderRadius: DS.radius.md, padding: 12, background: DS.color.cream }}>
-                  <p style={{ ...TYPE.micro, color: status === 'Needs you' ? '#7a4f10' : status === 'Done' ? DS.color.sageDeep : DS.color.mid, margin: '0 0 5px', fontWeight: 600 }}>{status}</p>
-                  <p style={{ ...TYPE.body, color: DS.color.ink, margin: 0, fontWeight: 600 }}>{title}</p>
-                  <p style={{ ...TYPE.micro, color: DS.color.mid, margin: '4px 0 0' }}>{body}</p>
-                </div>
-              ))}
+              {PREVIEW_ITEMS.map((item) => {
+                const statusView = present(item.statusKey, { who: item.who, proof: item.proof });
+                return (
+                  <div key={item.title} style={{ border: `1px solid ${DS.color.hair}`, borderRadius: DS.radius.md, padding: 12, background: DS.color.cream, boxSizing: 'border-box', minWidth: 0 }}>
+                    <CalmStatusPill view={statusView} />
+                    <p style={{ ...TYPE.body, color: DS.color.ink, margin: '9px 0 0', fontWeight: 600 }}>{item.title}</p>
+                    <p style={{ ...TYPE.micro, color: DS.color.mid, margin: '4px 0 0' }}>{item.body}</p>
+                  </div>
+                );
+              })}
             </div>
             <div style={{ height: 16 }} />
             <EmailLinkForm />
@@ -129,7 +135,7 @@ function Landing({ loading }) {
       </section>
 
       <section style={{ borderTop: `1px solid ${DS.color.hair}`, background: DS.color.cream }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14 }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14, boxSizing: 'border-box' }}>
           {[
             ['One next action', 'The first screen shows what needs you now, not a giant checklist.'],
             ['Prepared before sending', 'Messages and requests stay in review until a person approves them.'],
