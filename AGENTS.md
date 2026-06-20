@@ -8,11 +8,13 @@ Use this exact phrase in a fresh Codex chat to trigger the process:
 
 `Passage Release Train: start the loop.`
 
-When an agent sees that phrase, it must read this file, docs/agent-operating-context.md, docs/release-train.md, and the relevant dedicated role brief in docs/agents/ before proposing or changing anything. It should act as Product Manager first, scope the roadmap item, then move through UI/UX Review, Development Engineer, QA Agent, and Deploy Agent handoffs.
+When an agent sees that phrase, it must read this file, docs/agent-operating-context.md, docs/release-train.md, and the relevant dedicated role brief in docs/agents/ before proposing or changing anything. It must instantiate or delegate to a distinct Product Manager Agent first, then distinct UI/UX Review, Development Engineer, QA, and Deploy role agents as the loop advances. A single undifferentiated agent must not approve multiple role responsibilities without a recorded role handoff in docs/agent-operating-context.md.
 
 ## Auto-Advance Rule
 
 The release train is a loop, not a single handoff. Once started, the agent must keep moving to the next role in the same session whenever it has enough context and tool access to do useful work.
+
+Distinct role rule: auto-advance means delegate to the next distinct role agent or explicit role context, not silently continue as the same role. Each role must record its role instance or delegation, cycle, brief or handoff received, decision, and next-role target.
 
 Do not stop after writing a handoff if that handoff names an unresolved next role. Do not stop after a successful `[skip deploy]` commit or push either. A `[skip deploy]` update preserves source, docs, QA, or context state; it does not close the loop. If the next PM, Development, QA, or Deploy-prep action is known and not owner-gated, immediately continue to that role:
 
@@ -65,8 +67,13 @@ Before changing product, code, copy, docs, roadmap, or deployment state:
 7. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
 8. If an owner ask seems likely, first check whether browser/Chrome automation, Claude in Chrome, connectors, or source review can safely resolve it without owner involvement.
 
+Development cannot begin until the Product Manager Agent has produced a PM Sprint Brief with a clear sprint goal, requirements, sprint components, development objectives, acceptance criteria, dependencies, QA plan, deploy plan, risks, non-goals, owner gates, and the next role agents to involve.
+
 Before handoff, final response, or final commit, update docs/agent-operating-context.md with:
 
+- Role instance or delegated agent for each role involved.
+- Prior role handoff received.
+- PM Sprint Brief status, goal, requirements, sprint components, development objectives, acceptance criteria, dependencies, and QA/deploy plan.
 - Product Manager scope and cycle number.
 - UI/UX status when work affects user-facing surfaces, or UX Review: N/A with reason.
 - Development handoff and files changed.

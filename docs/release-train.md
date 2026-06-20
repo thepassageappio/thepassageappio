@@ -10,6 +10,8 @@ The required loop for user-facing work is:
 
 Product Manager Agent -> UI/UX Review Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
 
+Each named role is a separate agent instance or explicit delegation context. Role separation is required for every loop: PM, UI/UX, Development, QA, and Deploy must not be collapsed into one generic agent judgment. If tooling cannot spawn a separate sub-agent, the agent must still create an explicit role context and record why a true sub-agent was unavailable.
+
 For backend-only, process-only, docs-only, or invisible API work, record `UX Review: N/A` with the reason and continue through Development, QA, and Deploy as appropriate.
 
 Dedicated role briefs live here:
@@ -25,6 +27,8 @@ If QA fails or development uncovers a scope gap, the loop returns to the Product
 ## Auto-Advance Contract
 
 The release train should not pause merely because one role has produced a handoff. If the handoff names a next role and the agent has enough context and tool access to advance, continue immediately in the same session.
+
+Continue immediately by handing off to the next distinct role agent. Do not treat auto-advance as permission for the current role to self-approve the next role's responsibilities.
 
 A successful `[skip deploy]` commit, push, source-check pass, docs/context handoff, or roadmap update is not a terminal state. It preserves the train state and then immediately returns to the next useful role, usually Product Manager consolidation or the next Development/QA slice. Do not send a final status merely because GitHub is updated; send it only if a true stop condition below exists.
 
@@ -73,7 +77,7 @@ That phrase means:
 2. Start as Product Manager Agent and assess vision, roadmap, objective, scope, risks, and acceptance criteria.
 3. Create or update the PR handoff using the release train template when code work begins.
 4. Move to UI/UX Review Agent for user-facing work, or record UX Review: N/A with reason for invisible backend/process-only changes.
-5. Move to Development Engineer Agent only after scope and UX acceptance are clear.
+5. Move to Development Engineer Agent only after the PM Sprint Brief is COMPLETE and UI/UX acceptance is clear, or UX Review: N/A is recorded.
 6. Move to QA Agent only after development handoff is complete.
 7. Move to Deploy Agent only after QA is PASS or Product Manager approves a PARTIAL as non-blocking.
 8. After Deploy, return to Product Manager if the cycle is complete, failed, partial, blocked by rate limit, or has any unproven post-deploy acceptance area.
@@ -99,16 +103,22 @@ Every agent finishes by updating docs/agent-operating-context.md with what chang
 
 Owns scope, priority, acceptance, and business fit.
 
-Before development starts, the Product Manager Agent must define:
+Before development starts, the Product Manager Agent must produce a PM Sprint Brief. Loose notes are not enough. The brief must define:
 
-- Objective.
+- Sprint brief status: COMPLETE or BLOCKED.
+- Sprint goal: one measurable objective that creates user or business value.
 - Roadmap item or reason for off-roadmap work.
 - Personas affected.
 - User problem and expected product behavior.
-- Acceptance criteria.
+- Requirements: functional, UX, data/API, privacy/visibility, analytics/proof, and operational requirements.
+- Sprint components: the broken-down slices that Development can implement and QA can verify.
+- Development objectives: files/surfaces likely affected, expected implementation shape, constraints, and explicit non-goals.
+- Acceptance criteria: testable pass/fail statements.
+- Dependencies: data, auth, browser state, external services, feature flags, environment variables, and prior commits.
+- QA plan: source checks, browser/device coverage, persona routes, API/data proof, and regression risks.
+- Deploy plan: source-only, PR-only, preview-ready, or production-release-ready; deploy budget posture; rollback/proof target if production deploy is allowed.
 - Risks, owner approval gates, and non-goals.
-- Whether this is a deployable release batch or source-only setup.
-- Whether the batch is large enough to spend a deploy slot or should be grouped with the next compatible fix.
+- Which role agents must be created or delegated next.
 - Which self-service paths were tried before any owner escalation.
 - How any unrelated issues found during the loop will be handled: fix now, backlog, roadmap update, watch item, or owner gate.
 
@@ -212,6 +222,7 @@ Deploy Agent must not end the loop on a partial verification note or a rate-limi
 Each meaningful batch should use a PR with the Passage release train template. The PR remains unapproved until these are true:
 
 - Product Manager scope completed.
+- PM Sprint Brief completed before Development handoff.
 - UI/UX handoff completed for user-facing work, or UX Review: N/A recorded.
 - Development handoff completed.
 - QA handoff completed.

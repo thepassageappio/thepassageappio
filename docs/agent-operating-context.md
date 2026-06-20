@@ -53,6 +53,10 @@ Previous green rollback candidate: f1b928b8755f2a965b18bacddaccf1adbadc8fd9, rel
 
 Required loop for user-facing work: Product Manager Agent -> UI/UX Review Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat. Backend-only, process-only, docs-only, or invisible API changes record `UX Review: N/A` with the reason.
 
+Every loop requires distinct role instances or explicit delegations. Record each role handoff separately; do not merge PM, UI/UX, Development, QA, and Deploy into one untracked agent judgment. If a true sub-agent cannot be spawned, record the explicit role context and why delegation was unavailable.
+
+Development is blocked until the Product Manager Agent records a PM Sprint Brief with status COMPLETE. The brief must include sprint goal, requirements, sprint components, development objectives, acceptance criteria, dependencies, QA plan, deploy plan, risks, non-goals, owner gates, and the next role agents to involve.
+
 Auto-advance rule: once the train starts, do not stop after a role handoff if the handoff names an unresolved next role and the agent has useful work it can do. A successful `[skip deploy]` commit/push is source-state preservation, not loop completion; after pushing it, immediately continue to Product Manager consolidation or the next scoped UI/UX/Development/QA slice if the next action is known and not owner-gated. Deploy PASS returns to Product Manager for the next item. Deploy PARTIAL, failed post-deploy QA, fetch-only proof for hydrated flows, build failure, runtime failure, or rate-limit gate returns immediately to Product Manager for re-scope or [skip deploy] consolidation. Pause only for true owner gates: credentials/auth the agent cannot access after safe browser/Chrome/Claude-in-Chrome paths were tried, destructive production data changes, spending money/plan approval, or legal/compliance/privacy/security decisions.
 
 Self-service rule: user is last resort. Before asking the owner to restart, decide, click, verify, research, or unblock, agents must try safe available paths: repo docs, source review, tests/builds, GitHub/Vercel connectors, browser/Chrome automation, and a signed-in Claude session in Chrome when available. Claude in Chrome may assist with research, handoff review, agent-to-agent coordination, or authenticated browser-state checking, but it must not bypass Agent Permissions, spend money, reveal/request secrets, send real communications, make destructive production changes, or decide legal/privacy/security/compliance matters. Record whether Claude in Chrome was available or used.
@@ -76,6 +80,8 @@ Current batch status: Cycle 3 deployed the queued QA-enablement/release-closure 
 Chrome hydrated QA against current production 4baa0d50a3496137ec1d627dbc7c1a56c8b8f125: homepage, `/funeral-homes` redirect to `/funeral-home`, plural nested director demo route, singular director demo route, employee demo route, vendor request demo, owner roadmap, and owner Automation Readiness all hydrated past loading shells. Automation Readiness displayed blocked / 79%, 12% automation ready, owner-missing blockers, Next automation improvements, Why now, and Focus tasks. Vercel production runtime logs showed no error/fatal logs for the release window. Chrome console errors observed were from a browser extension URL, not Passage app source.
 
 Current Product Manager scope: continue Sprint 4 persona UAT/source prep with the full task-card/persona overhaul as the product bar. The standard is not renamed cards; it is a different interaction model per persona: one recommended action, owner, waiting point, prepared output, proof, visibility boundary, and hidden secondary controls. Group this source hardening with one or two compatible small/medium fixes before another production deploy unless production is broken.
+
+Current PM Sprint Brief: status COMPLETE for source-prep consolidation, not production release. Sprint goal: finish the persona operating-lane overhaul and make each affected role's next action, owner, waiting point, prepared output, proof destination, and visibility boundary testable before the next deploy candidate. Requirements: no public/internal language leaks; one primary action per role; secondary controls hidden or de-emphasized; family, estate, vendor, and participant surfaces use operating-lane/sheet patterns; readiness guards enforce markers. Sprint components: address lookup source hardening; family operating-step cards/sheet; estate operating sheet; vendor operating lane/sheet; participant operating lane/sheet; desktop/mobile Chrome QA; release-candidate deploy proof after `[deploy] [qa-approved]`. Development objectives: preserve existing APIs/actions, reuse shared task operating contracts where available, update readiness guards and roadmap/context only when they reflect sprint truth. Acceptance criteria: local checks/build pass; desktop and mobile browser QA proves affected demo routes render, open expected sheets, and avoid console/runtime blockers; live production QA remains required after deploy. Dependencies: Vercel deploy budget, Google Places production key for live address suggestions, authenticated Chrome/session for owner-only admin checks where needed. QA plan: `npm run agent:check`, `git diff --check`, `npm run build`, local Chrome/Playwright desktop/mobile, then production X-Passage-Commit and persona route checks after release. Deploy plan: keep source-prep commits `[skip deploy]` until the combined release candidate is QA-approved and deploy-budget rules are satisfied.
 
 Failure rule: if QA fails, the next step is Product Manager re-scope before more development. A batch gets a maximum of 3 cycles before it must be split, de-scoped, or escalated instead of deployed.
 
@@ -178,6 +184,16 @@ Append or update this section before final response:
 
 - Date/time:
 - Branch/commit(s):
+- Role instance / delegated agent:
+- Prior role handoff received:
+- PM Sprint Brief: complete/incomplete
+- Sprint goal:
+- Requirements:
+- Sprint components:
+- Development objectives:
+- Acceptance criteria:
+- Dependencies:
+- QA/deploy plan:
 - Files changed:
 - UI/UX status:
 - Best-practice research:
@@ -189,6 +205,26 @@ Append or update this section before final response:
 - Auto-advance decision:
 
 ## Latest Handoff Updates
+
+### 2026-06-20 - Role-agent and PM Sprint Brief gate hardening
+
+- Date/time: 2026-06-20 04:45 -04:00.
+- Branch/commit(s): main working tree in `repo-raw`; process hardening changes are not committed or deployed yet.
+- Role instance / delegated agent: main agent plus process-review sub-agent `019ee429-0280-76b2-becf-8e9fe392e7ba`, which reviewed the release-train/PM contract and recommended file/section targets.
+- Prior role handoff received: owner clarified that every loop should create or delegate a distinct agent per role and that PM must work with agents to outline a world-class sprint with clear development objectives before implementation.
+- PM Sprint Brief: COMPLETE for process hardening. Sprint goal: make the next release-train loop unambiguous that role separation and PM Sprint Brief completion are required gates before development.
+- Requirements: AGENTS.md, docs/release-train.md, docs/agents/product-manager.md, and this context must require distinct role instances/delegations; PM must produce sprint goal, requirements, sprint components, development objectives, acceptance criteria, dependencies, QA plan, deploy plan, risks, non-goals, owner gates, and next role agents.
+- Sprint components: stable operating guide rule, release-train gate, PM role output shape, living-context handoff fields, current PM Sprint Brief, local `passage-release-train` Codex skill installation for future clean chats, and Playwright Chromium install for future browser QA.
+- Development objectives: documentation/process-only update; no product surface changes; keep future development blocked until PM Sprint Brief status is COMPLETE.
+- Acceptance criteria: docs clearly prohibit collapsing PM/UI/UX/Development/QA/Deploy into one untracked judgment; PM brief fields are present in stable docs and living context; Playwright Chromium install path is ready for future QA.
+- Dependencies: multi-agent tool availability for true sub-agent delegation; if unavailable, explicit role context must be recorded. Local Codex skill installed at `C:\Users\steve\.codex\skills\passage-release-train`. Playwright browser install completed with `npx playwright install chromium`, and managed Chromium launch smoke returned version 147.0.7727.15.
+- QA/deploy plan: run `npm run agent:check`, `git diff --check`, verify the installed skill file, and run a Playwright Chromium launch smoke after edits. Commit as `[skip deploy]`; no production deploy because this is governance/tooling prep.
+- UI/UX status: N/A, process-only.
+- Best-practice research: Scrum Guide 2020 for Sprint Goal/Sprint Backlog/Definition of Done and cross-functional accountability; Atlassian sprint planning guidance for sprint goal/backlog planning; NN/g heuristics for role-quality gates that require status visibility, real-world language, user control, consistency, and error prevention.
+- Failed/blocked: none currently. Production deploy intentionally not applicable.
+- Self-service attempted / Claude in Chrome: repo docs/source review, multi-agent process-review sub-agent, and external best-practice research. Claude in Chrome was not needed.
+- Next action: run checks, commit `[skip deploy]`, then future loops must instantiate/delegate distinct PM, UI/UX, Development, QA, and Deploy roles and block Development until PM Sprint Brief is COMPLETE.
+- Auto-advance decision: process hardening can stop after checks/commit because no product development slice is being opened by this owner instruction; next release-train loop starts from the hardened PM gate.
 
 ### 2026-06-20 - Cycle 4 participant operating lane source prep
 
