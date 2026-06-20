@@ -186,10 +186,10 @@ Vercel runs `scripts/vercel-ignore-build.js` as the Ignore Build Step (configure
 
 Consequences every session must know:
 
-- You CANNOT get a Vercel preview URL — even on a non-main branch — without a commit whose message has both a deploy marker and `[qa-approved]`. The gate keys on markers, not on branch; branch only decides production vs preview AFTER a build is allowed.
+- You CANNOT get a Vercel preview URL — even on a non-main branch — without a commit whose message has both a deploy marker and `[qa-approved]`. The gate keys on markers, not on branch; branch only decides production vs preview AFTER a build is allowed. (Exception for QA: you may remove `ignoreCommand` from vercel.json ON A THROWAWAY BRANCH ONLY to get a preview build; never merge that branch to main, and restore the gate when done.)
 - `[deploy] [qa-approved]` on `main` = PRODUCTION deploy. The same markers on a non-main branch (e.g. `qa-app-slice`) = a non-production PREVIEW deploy.
 - Never add `[qa-approved]` to a commit before QA has actually passed — that marker asserts QA passed and faking it defeats the gate. Earn it through the release train, then add it.
-- To browser-QA before deploy approval, run locally (`npm run dev`) and drive Chrome at localhost:3000, or have the owner open the gate (temporarily disable the Ignore Build Step / redeploy from the Vercel dashboard). Do not force a build by tagging an unproven commit.
+- To browser-QA before deploy approval, run locally (`npm run dev`) and drive Chrome at localhost:3000, or use the throwaway-branch preview above, or have the owner open the gate. Do not force a build by tagging an unproven commit.
 - To actually ship after the loop is green: one release commit on `main` whose message contains both markers, e.g. `release: <summary> [deploy] [qa-approved]`, within the deploy budget above.
 
 ## Agent Permissions
@@ -225,3 +225,5 @@ Agents must not proceed without explicit owner approval for:
 - Public and persona-facing pages must stay free of internal language.
 - Internal tools belong under System Admin.
 - Verification matters: build, deploy, browser QA, API/data proof, and screenshots where useful.
+- Mobile + web in tandem (cohesive responsive — REQUIRED): every real persona surface is built and QA'd at BOTH desktop (>=1366) and mobile (390 and 360) within the SAME slice — never ship one viewport without the other. Same status spine, same CalmKit/CalmControls components and copy across viewports so mobile and web stay cohesive; only layout (widths, stacking, density) adapts. Per-slice hard checks: zero horizontal overflow at 360/390/desktop, tap targets >= DS.tap.min, no hydration warnings.
+- Real app vs. preview shell: real signed-in/persona surfaces use `AppShell frame="app"` (clean, centered, responsive panel). The default `frame="device"` renders a phone mockup (fake "9:41" status bar + bottom tab bar) and is ONLY for /preview reference pages. Never ship the device mockup on a real surface (regression shipped + fixed 2026-06-20, commit 7dba2214).
