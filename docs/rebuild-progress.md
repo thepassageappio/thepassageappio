@@ -1,6 +1,6 @@
 # Passage Rebuild — Progress & Pickup Guide
 
-Last updated: 2026-06-20. Keep this current at the end of every cycle.
+Last updated: 2026-06-20 (through Cycle 4). Keep this current at the end of every cycle.
 Purpose: any agent can read this and know exactly where the calm-OS rebuild stands, how it is built, and how to continue. This is agent infrastructure — do not route progress bookkeeping to the owner.
 
 ## Read order for a fresh agent
@@ -17,8 +17,8 @@ One calm spine, every seat: families get a guided mobile experience; directors a
 
 ## Architecture (what to build on, do not reinvent)
 
-- lib/designSystem.js — DS tokens (color/space/radius/tap/shadow) + the single-status model. Use deriveCalmStatus(task, { viewer, operatingStatus }) and present(key, { who, proof }). Status keys: yours_now, blocked, in_review, waiting, not_started, done. Built ON the salvaged operatingStatus model (lib/taskWorkspace operatingStatus / taskOperatingContractFor) — do not fork it.
-- components/calm/CalmKit.js — reusable presentational components: AppShell, CalmStatusPill, ProgressLine, SectionLabel, HeroTask, TaskRow, TaskSheet. Pure (no data fetching). Public site + app surfaces migrate onto these.
+- lib/designSystem.js — DS tokens (color/space/radius/tap/shadow/motion) + TYPE scale + SANS + the single-status model. Use deriveCalmStatus(task, { viewer, operatingStatus }) and present(key, { who, proof }). Status keys: yours_now, blocked, in_review, waiting, not_started, done. Built ON the salvaged operatingStatus model (lib/taskWorkspace operatingStatus / taskOperatingContractFor) — do not fork it.
+- components/calm/CalmKit.js — reusable presentational components: AppShell, CalmStatusPill, ProgressLine, SectionLabel, HeroTask, TaskRow, TaskSheet. Pure (no data fetching). Public site + app surfaces migrate onto these. Polish lives here so every surface inherits it.
 - pages/preview/* — deployable, self-contained reference surfaces (sample data, noindex). These are the visual + behavioral target for migrating the real pages.
 
 ## Salvage boundary (from the brief)
@@ -36,7 +36,7 @@ KEEP: pages/api/* (~90 routes), lib/* business logic (taskActions, taskOrchestra
 ## How to continue (mechanics)
 
 - Push/deploy-capable env (Codex release-train, has git push + Vercel): run `Passage Release Train: start the loop`. Do Cycle 0 first (`git add --renormalize . && git commit -m "chore: normalize line endings to LF [skip deploy]"`, touch docs/agent-operating-context.md in the same commit), then migrate real pages onto CalmKit and run full build + Playwright before any owner-gated deploy.
-- Cowork env (single-file GitHub API, sandbox build/test, no push of repo-wide commits): keep shipping NEW files (components, preview routes, docs) verified via Babel. Avoid rewriting large existing files by hand (corruption risk) — that work belongs in the push-capable loop.
+- Cowork env (single-file GitHub API, sandbox build/test, no push of repo-wide commits): keep shipping NEW files (components, preview routes, docs) verified via Babel. Avoid rewriting large existing files by hand (corruption risk) — that work belongs in the push-capable loop. Note: the Cowork GitHub App token cannot edit .github/workflows/* (403, missing `workflows` permission).
 
 ## Shipped (commits on main)
 
@@ -47,21 +47,25 @@ KEEP: pages/api/* (~90 routes), lib/* business logic (taskActions, taskOrchestra
 - feat E2 pages/preview/calm-os.js (family mobile experience) — b768d1c
 - feat Cycle 2 pages/preview/my-day.js (director desktop My Day) — 06b5e41
 - feat Cycle 3 pages/preview/scoped.js (vendor + participant scoped) — 464c7f9
+- docs(agents) rebuild progress + pickup guide — f4213e4
+- refine Cycle 4 design tokens (type scale, motion, hairline) — 11d083d
+- refine Cycle 4 sleekness pass on CalmKit — cefa32a
+- feat Cycle 4 pages/preview/my-work.js (employee surface) — 001fc00
 
-Preview routes (deployable, noindex): /preview/calm-os (family), /preview/my-day (director), /preview/scoped (vendor + participant). Staged (not yet on main): roadmap + context + AGENTS pointer edits — applied by the loop in Cycle 0 (patch held in the owner's outputs as passage-direction-context-roadmap.patch).
+Preview routes (deployable, noindex): /preview/calm-os (family), /preview/my-day (director), /preview/scoped (vendor + participant), /preview/my-work (employee). Staged (not yet on main): roadmap + context + AGENTS pointer edits — applied by the loop in Cycle 0 (patch held in the owner's outputs as passage-direction-context-roadmap.patch).
 
 ## Status by persona surface
 
 - Family (mobile): reference shipped (/preview/calm-os). Next: migrate real pages/index.js + pages/estate.js + pages/participating.js onto CalmKit.
 - Director (desktop): reference shipped (/preview/my-day). Next: migrate pages/funeral-home/dashboard.js director view onto DS + CalmStatusPill.
-- Employee (desktop/mobile): reference shown (My Work in mockup); build pages/preview/my-work.js, then migrate the staff view of funeral-home/dashboard.js.
+- Employee (desktop/mobile): reference shipped (/preview/my-work). Next: migrate the staff view of funeral-home/dashboard.js onto CalmKit.
 - Vendor + participant (scoped): reference shipped (/preview/scoped). Next: migrate pages/vendors/request.js + pages/participating.js scoped paths.
 - Public site: not started. Rebuild pages/index.js + marketing pages on AppShell/DS; keep publicSurfaceReadiness clean.
 - Reporting/dashboards: design pass after surfaces migrate; read from spine + proof.
 
-## Next actions (Cycle 4 and beyond)
+## Next actions (Cycle 5 and beyond)
 
-1. Build pages/preview/my-work.js (employee surface) on CalmKit so the employee target is a deployable reference, not only a mockup.
+1. CI housekeeping (push-capable env only): bump .github/workflows/agent-context.yml actions/checkout@v4 -> v5 (Node 20 deprecation). The Cowork GitHub App token cannot edit workflow files (403, missing `workflows` permission).
 2. Begin REAL migration: in the push-capable loop, rebuild pages/index.js (public home) on AppShell/DS as the first production surface, behind a clean build + Playwright.
 3. Migrate estate / participating / vendors / funeral-home dashboard surfaces onto CalmKit, one verified slice each, [skip deploy] until a coherent slice is green.
 4. Reporting + dashboards pass per persona from spine + proof.
@@ -69,7 +73,7 @@ Preview routes (deployable, noindex): /preview/calm-os (family), /preview/my-day
 
 ## Known polish items (owner feedback)
 
-- Sleekness pass: direction is approved; the preview surfaces are functional drafts. Before/with real-page migration, run a visual-polish pass on CalmKit — tighter type rhythm and scale, more refined spacing/density, subtle motion on sheet open and status change, lighter borders/elevation, and a consistent icon set. Polish lives in CalmKit so every surface inherits it. Treat sleekness as a UI/UX acceptance item, not a one-off page tweak.
+- Sleekness pass (Cycle 4, DONE for the kit): type scale + hairline borders + motion tokens added and applied in CalmKit so every surface inherits them. Keep refining density/motion as real surfaces migrate; treat sleekness as a standing UI/UX acceptance item, not a one-off page tweak.
 
 ## Definition of done
 
