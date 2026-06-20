@@ -157,7 +157,7 @@ Family experience should prioritize:
 5. Confirm old /system/admin/sprint-2 links no longer look like a competing roadmap.
 6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 7. Recheck address lookup after the next deploy with the Vercel production Google Places server key configured. Native full-address recommendations should appear while typing in every SmartAddressInput usage; if the key is missing, the typed-address fallback must remain obvious and non-blocking.
-8. Continue the task-card/persona overhaul beyond the first family, estate, and vendor source slices: finish any remaining participant/vendor detail gaps, then Chrome-QA desktop and mobile before claiming the overhaul complete.
+8. Continue the task-card/persona overhaul beyond the first family, estate, and vendor source slices: finish the participant detail gap, then Chrome-QA desktop and mobile before claiming the overhaul complete.
 
 ## Known Watch Items
 
