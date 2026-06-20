@@ -93,7 +93,7 @@ function Landing({ loading }) {
           </nav>
         </header>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(280px, .95fr)', gap: 24, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 24, alignItems: 'start' }}>
           <div style={{ paddingTop: 16 }}>
             <p style={{ ...TYPE.label, color: DS.color.sageDeep, margin: '0 0 12px' }}>Family coordination, without the scramble</p>
             <h1 style={{ fontSize: 42, lineHeight: 1.05, letterSpacing: 0, fontWeight: 650, margin: '0 0 16px', maxWidth: 720 }}>The operating system for life&apos;s hardest logistics.</h1>
