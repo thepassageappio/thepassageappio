@@ -174,6 +174,24 @@ Canonical Vercel project:
 
 Canceled Vercel deployments from [skip deploy] commits are expected. Treat failed builds, runtime errors, wrong-project deploys, and quota/rate-limit gates as blockers.
 
+### Vercel build gate (scripts/vercel-ignore-build.js) — read before assuming deploys are broken
+
+Vercel runs `scripts/vercel-ignore-build.js` as the Ignore Build Step (configured via `ignoreCommand` in vercel.json) on EVERY git deployment, production and preview alike. Exit 0 = build canceled; exit 1 = build allowed. A `CANCELED` deployment is this gate doing its job — it is NOT a broken pipeline, a Vercel outage, or a read-only/credential problem. Decode the commit message before reacting:
+
+- Message contains `[skip deploy]`, `[no deploy]`, `[skip ci]`, or `[ci skip]` -> canceled.
+- Message contains a deploy marker (`[deploy]`, `[force deploy]`, `[prod deploy]`, `[production deploy]`, or starts with `deploy:` / `release:`) but NO `[qa-approved]` (or `[qa approved]`) -> canceled (finish PM/Dev/QA first).
+- Message contains a deploy marker AND `[qa-approved]` -> build allowed.
+- Any other message (no markers at all) -> canceled.
+- Non-canonical Vercel project id -> canceled (canonical is prj_b7CKwanQaKwFQSHInr3l6wsZy9nD only).
+
+Consequences every session must know:
+
+- You CANNOT get a Vercel preview URL — even on a non-main branch — without a commit whose message has both a deploy marker and `[qa-approved]`. The gate keys on markers, not on branch; branch only decides production vs preview AFTER a build is allowed.
+- `[deploy] [qa-approved]` on `main` = PRODUCTION deploy. The same markers on a non-main branch (e.g. `qa-app-slice`) = a non-production PREVIEW deploy.
+- Never add `[qa-approved]` to a commit before QA has actually passed — that marker asserts QA passed and faking it defeats the gate. Earn it through the release train, then add it.
+- To browser-QA before deploy approval, run locally (`npm run dev`) and drive Chrome at localhost:3000, or have the owner open the gate (temporarily disable the Ignore Build Step / redeploy from the Vercel dashboard). Do not force a build by tagging an unproven commit.
+- To actually ship after the loop is green: one release commit on `main` whose message contains both markers, e.g. `release: <summary> [deploy] [qa-approved]`, within the deploy budget above.
+
 ## Agent Permissions
 
 Agents may proceed without asking for:
