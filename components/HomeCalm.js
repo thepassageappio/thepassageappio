@@ -1,21 +1,71 @@
-// Passage — calm public marketing homepage (site-migration Slice 1).
-// Full functional parity with the legacy components/App.js CompactLanding, rebuilt
-// on the calm design system (lib/designSystem.js + components/calm/*). SSR-safe
-// (no window/document at module/render time), indexable (SEO comes from _app.js
-// PAGE_META for '/'; NO noindex here). Reuses SiteChrome's SiteHeader/SiteFooter so
-// the public nav link list + auth slot + footer logic stay a single source of truth.
-//
-// Mobile + web in tandem: zero horizontal overflow at 360/390/desktop, tap targets
-// >= DS.tap.min, no hydration warnings, no internal vocab on this public page.
+// Passage — calm public marketing homepage (site-migration Slice 1 + calm chrome).
+// Full functional parity with legacy CompactLanding, on the calm design system.
+// SSR-safe, indexable. Now uses an inline calm header/footer (sans-serif DS) instead
+// of the legacy serif SiteChrome so the public front door reads cohesively calm.
 import { useEffect, useState } from 'react';
 import { DS, TYPE, SANS } from '../lib/designSystem';
 import { PASSAGE_BRAND } from '../lib/brand';
 import { Button, Card } from './calm/CalmControls';
-import { SiteHeader, SiteFooter } from './SiteChrome';
+import { supabase } from '../lib/supabaseBrowser';
 import { trackEvent } from '../lib/trackEvent';
 
-// Story panes — copy carried verbatim from CompactLanding (How it works / Journey /
-// Providers / Lifecycle), including both panel CTAs.
+const NAV = [
+  ['Mission', '/mission'],
+  ['Our story', '/story'],
+  ['Resources', '/guides'],
+  ['Blog', '/blog'],
+  ['Pricing', '/pricing'],
+  ['Contact', '/contact'],
+  ['Funeral homes', '/funeral-home'],
+  ['Care providers', '/care-providers'],
+  ['Participants', '/participating'],
+  ['Vendors', '/vendors'],
+];
+
+const FOOTER_LINKS = [
+  ['FAQ', '/faq'],
+  ['Trust', '/trust'],
+  ['Privacy', '/privacy'],
+  ['Terms', '/terms'],
+  ['Contact', '/contact'],
+];
+
+function CalmHeader({ session }) {
+  return (
+    <header className="hc-header">
+      <a href="/" className="hc-logo" aria-label="Passage home">Passage</a>
+      <nav className="hc-nav" aria-label="Primary">
+        {NAV.map(([label, href]) => (
+          <a key={href} href={href} className={`hc-navlink${['/mission', '/story', '/guides', '/blog'].includes(href) ? ' hc-nav-secondary' : ''}`}>{label}</a>
+        ))}
+      </nav>
+      <div className="hc-auth">
+        {session?.user ? (
+          <>
+            <a href="/estate" className="hc-navlink">My estate</a>
+            <button type="button" className="hc-signin" onClick={() => { supabase.auth.signOut().finally(() => { if (typeof window !== 'undefined') window.location.assign('/'); }); }}>Sign out</button>
+          </>
+        ) : (
+          <a href="/login" className="hc-signin">Sign in</a>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function CalmFooter() {
+  return (
+    <footer className="hc-footer">
+      <span style={{ ...TYPE.micro, color: DS.color.soft }}>Passage coordinates life-to-death transitions with care.</span>
+      <nav className="hc-footer-nav" aria-label="Footer">
+        {FOOTER_LINKS.map(([label, href]) => (
+          <a key={label + href} href={href} className="hc-footlink">{label}</a>
+        ))}
+      </nav>
+    </footer>
+  );
+}
+
 const PANES = [
   {
     id: 'tasks',
@@ -107,9 +157,16 @@ function LifecycleMap() {
 
 export default function HomeCalm() {
   const [activePaneIndex, setActivePaneIndex] = useState(0);
+  const [session, setSession] = useState(null);
   const activePane = PANES[activePaneIndex] || PANES[0];
 
-  // Auto-rotate the story panes (reduced-motion safe). Effect-only, so SSR is unaffected.
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => { if (active) setSession(data?.session || null); }).catch(() => {});
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s || null));
+    return () => { active = false; data?.subscription?.unsubscribe?.(); };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
@@ -129,6 +186,13 @@ export default function HomeCalm() {
   return (
     <div style={{ background: DS.color.page, minHeight: '100vh', fontFamily: SANS, overflowX: 'hidden' }}>
       <style>{`
+        .hc-header { width: min(1180px, 100%); box-sizing: border-box; margin: 0 auto; padding: 16px 24px 8px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .hc-logo { font-family: ${SANS}; font-weight: 700; font-size: 20px; letter-spacing: -0.01em; color: ${DS.color.sageDeep}; text-decoration: none; }
+        .hc-nav { display: flex; gap: 14px; flex-wrap: wrap; flex: 1; min-width: 0; }
+        .hc-navlink { font-family: ${SANS}; font-size: 13.5px; color: ${DS.color.mid}; text-decoration: none; white-space: nowrap; }
+        .hc-navlink:hover { color: ${DS.color.ink}; }
+        .hc-auth { display: flex; align-items: center; gap: 10px; }
+        .hc-signin { font-family: ${SANS}; font-size: 13.5px; font-weight: 600; color: ${DS.color.sageDeep}; background: ${DS.color.card}; border: 1px solid ${DS.color.sage}55; border-radius: ${DS.radius.pill}px; min-height: 38px; padding: 0 14px; display: inline-flex; align-items: center; cursor: pointer; text-decoration: none; }
         .hc-shell { width: min(1180px, 100%); box-sizing: border-box; margin: 0 auto; padding: 16px 24px 28px; }
         .hc-hero { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, .9fr); gap: 30px; align-items: center; }
         .hc-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
@@ -140,6 +204,10 @@ export default function HomeCalm() {
         .hc-step { display: grid; grid-template-columns: minmax(80px, max-content) minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid ${DS.color.hair}; }
         .hc-step:last-child { border-bottom: none; }
         .hc-num { min-width: 42px; max-width: 100%; min-height: 28px; border-radius: ${DS.radius.pill}px; display: inline-flex; align-items: center; justify-content: center; background: ${DS.color.sageFaint}; color: ${DS.color.sageDeep}; font-size: 12px; font-weight: 600; padding: 6px 10px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+        .hc-footer { width: min(1180px, 100%); box-sizing: border-box; margin: 0 auto; padding: 20px 24px 32px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; border-top: 1px solid ${DS.color.hair}; margin-top: 8px; }
+        .hc-footer-nav { display: flex; gap: 14px; flex-wrap: wrap; }
+        .hc-footlink { font-family: ${SANS}; font-size: 12.5px; color: ${DS.color.mid}; text-decoration: none; }
+        .hc-footlink:hover { color: ${DS.color.ink}; }
         @media (max-width: 760px) {
           .hc-hero { grid-template-columns: 1fr; gap: 22px; }
           .hc-actions { flex-direction: column; }
@@ -150,10 +218,11 @@ export default function HomeCalm() {
           .hc-lifecycle-node { display: grid; grid-template-columns: 36px minmax(0, 1fr); column-gap: 9px; align-items: start; }
           .hc-lifecycle-node > div:first-child { grid-row: 1 / span 2; margin-bottom: 0; }
           .hc-lifecycle-center { grid-template-columns: 1fr; }
+          .hc-nav-secondary { display: none; }
         }
       `}</style>
 
-      <SiteHeader />
+      <CalmHeader session={session} />
 
       <main className="hc-shell">
         <section className="hc-hero">
@@ -246,7 +315,7 @@ export default function HomeCalm() {
         </section>
       </main>
 
-      <SiteFooter />
+      <CalmFooter />
     </div>
   );
 }
