@@ -1,25 +1,29 @@
-// Passage — calm public marketing homepage (site-migration Slice 1 + calm chrome).
-// Full functional parity with legacy CompactLanding, on the calm design system.
-// SSR-safe, indexable. Now uses an inline calm header/footer (sans-serif DS) instead
-// of the legacy serif SiteChrome so the public front door reads cohesively calm.
+// Passage — redesigned public marketing homepage (rendered at "/").
+// A full UX + visual redesign on the calm design system: one clear primary
+// path, generous whitespace, a strong modern type scale, and outcome-focused
+// copy that speaks to families first. SSR-safe and indexable. SEO title/desc
+// come from PAGE_META['/'] in pages/_app.js.
+//
+// Preserved from the prior homepage: the auth slot (Sign in / My estate / Sign
+// out via supabase session), every destination route, and the four analytics
+// events — homepage_cta_clicked, homepage_sample_case_clicked,
+// homepage_sample_vendor_clicked, homepage_panel_cta_clicked.
 import { useEffect, useState } from 'react';
 import { DS, TYPE, SANS } from '../lib/designSystem';
 import { PASSAGE_BRAND } from '../lib/brand';
-import { Button, Card } from './calm/CalmControls';
 import { supabase } from '../lib/supabaseBrowser';
 import { trackEvent } from '../lib/trackEvent';
+import { HELP_CARDS, PERSONA_CARDS, TRUST_ITEMS } from './home/HomeData';
 
+// Primary nav. Secondary items are de-emphasized and hidden on small screens.
 const NAV = [
-  ['Mission', '/mission'],
-  ['Our story', '/story'],
-  ['Resources', '/guides'],
-  ['Blog', '/blog'],
-  ['Pricing', '/pricing'],
-  ['Contact', '/contact'],
-  ['Funeral homes', '/funeral-home'],
-  ['Care providers', '/care-providers'],
-  ['Participants', '/participating'],
-  ['Vendors', '/vendors'],
+  ['Funeral homes', '/funeral-home', false],
+  ['Care providers', '/care-providers', false],
+  ['Pricing', '/pricing', false],
+  ['Mission', '/mission', true],
+  ['Our story', '/story', true],
+  ['Resources', '/guides', true],
+  ['Contact', '/contact', true],
 ];
 
 const FOOTER_LINKS = [
@@ -35,15 +39,25 @@ function CalmHeader({ session }) {
     <header className="hc-header">
       <a href="/" className="hc-logo" aria-label="Passage home">Passage</a>
       <nav className="hc-nav" aria-label="Primary">
-        {NAV.map(([label, href]) => (
-          <a key={href} href={href} className={`hc-navlink${['/mission', '/story', '/guides', '/blog'].includes(href) ? ' hc-nav-secondary' : ''}`}>{label}</a>
+        {NAV.map(([label, href, secondary]) => (
+          <a key={href} href={href} className={`hc-navlink${secondary ? ' hc-nav-secondary' : ''}`}>{label}</a>
         ))}
       </nav>
       <div className="hc-auth">
         {session?.user ? (
           <>
-            <a href="/estate" className="hc-navlink">My estate</a>
-            <button type="button" className="hc-signin" onClick={() => { supabase.auth.signOut().finally(() => { if (typeof window !== 'undefined') window.location.assign('/'); }); }}>Sign out</button>
+            <a href="/estate" className="hc-navlink hc-auth-link">My estate</a>
+            <button
+              type="button"
+              className="hc-signin"
+              onClick={() => {
+                supabase.auth.signOut().finally(() => {
+                  if (typeof window !== 'undefined') window.location.assign('/');
+                });
+              }}
+            >
+              Sign out
+            </button>
           </>
         ) : (
           <a href="/login" className="hc-signin">Sign in</a>
@@ -56,7 +70,9 @@ function CalmHeader({ session }) {
 function CalmFooter() {
   return (
     <footer className="hc-footer">
-      <span style={{ ...TYPE.micro, color: DS.color.soft }}>Passage coordinates life-to-death transitions with care.</span>
+      <span style={{ ...TYPE.micro, color: DS.color.soft }}>
+        Passage coordinates life-to-death transitions with care.
+      </span>
       <nav className="hc-footer-nav" aria-label="Footer">
         {FOOTER_LINKS.map(([label, href]) => (
           <a key={label + href} href={href} className="hc-footlink">{label}</a>
@@ -66,117 +82,19 @@ function CalmFooter() {
   );
 }
 
-const PANES = [
-  {
-    id: 'tasks',
-    label: 'How it works',
-    eyebrow: 'One clear next step',
-    title: 'One next move. One owner. One proof trail.',
-    body: 'Passage keeps attention on the work that matters now, then carries the same context through every handoff.',
-    cta: null,
-    rows: [
-      ['1', 'Stabilize', 'Confirm the setting, decision-maker, and one action that cannot wait.'],
-      ['2', 'Coordinate', 'Assign the owner, prepare the message or script, and show what is waiting.'],
-      ['3', 'Prove', 'Record the reply, upload proof, and carry the same context forward.'],
-    ],
-  },
-  {
-    id: 'journey',
-    label: 'Journey',
-    eyebrow: 'Before, during, after',
-    title: 'Families should not have to start over at every door.',
-    body: 'Care teams, funeral homes, vendors, attorneys, helpers, and executors may all rotate in. The family record remains continuous.',
-    cta: null,
-    rows: [
-      ['Planning', 'Plan before crisis', 'Wishes, contacts, documents, roles, and preferences are organized early.'],
-      ['Care prep', 'Prepare during care', 'Hospice, home care, senior living, or serious illness can become an earlier activation point.'],
-      ['Urgent', 'Move through the first hours', 'The experience narrows to one clear action, owner, and proof.'],
-      ['After', 'Carry the long tail', 'Estate, notifications, remembrance, vendors, and reporting stay tied together.'],
-    ],
-  },
-  {
-    id: 'providers',
-    label: 'Providers',
-    eyebrow: 'For providers',
-    title: 'A clearer way to keep families and staff aligned.',
-    body: 'Funeral homes can create or import cases, assign staff and participants, prepare family updates, track proof, and export the record back to existing tools.',
-    cta: { href: '/funeral-home/sample-case', label: 'Open sample case' },
-    rows: [
-      ['Case', 'Create or import', 'Start fresh or bring cases in by CSV without changing the current case system.'],
-      ['Work', 'Assign the owner', 'Staff, family coordinators, and participants stay tied to the same next step and record.'],
-      ['Proof', 'Close the loop', 'Proof, waiting states, and exports stay attached to the family record.'],
-    ],
-  },
-  {
-    id: 'lifecycle',
-    label: 'Lifecycle',
-    eyebrow: 'Shared history',
-    title: 'The same family record moves through every handoff.',
-    body: 'Planning, care, hospice, funeral coordination, and family work should not become separate islands. Passage keeps the record together as people and providers change.',
-    cta: { href: '/mission', label: 'See the mission' },
-    visual: 'lifecycle',
-    rows: [],
-  },
-];
-
-const LIFECYCLE_NODES = [
-  ['1', 'Pre-planning', 'Wishes, roles, contacts'],
-  ['2', 'Assisted living', 'Care context and people'],
-  ['3', 'Hospice', 'First-hour plan'],
-  ['4', 'Funeral home', 'Service and proof'],
-  ['5', 'Family', 'Aftercare and estate work'],
-];
-
-function LifecycleMap() {
-  return (
-    <div aria-label="Passage continuity map" style={{ display: 'grid', gap: DS.space.sm }}>
-      <div className="hc-lifecycle-track" style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 7, alignItems: 'stretch' }}>
-        <div aria-hidden="true" className="hc-lifecycle-line" style={{ position: 'absolute', left: '8%', right: '8%', top: 22, height: 2, background: DS.color.sage + '66', zIndex: 0 }} />
-        {LIFECYCLE_NODES.map((node) => (
-          <div key={node[1]} className="hc-lifecycle-node" style={{ position: 'relative', zIndex: 1, background: DS.color.card, border: `1px solid ${DS.color.hair}`, borderRadius: DS.radius.md, padding: '9px 8px 8px', minWidth: 0 }}>
-            <div style={{ width: 28, height: 28, borderRadius: DS.radius.pill, display: 'flex', alignItems: 'center', justifyContent: 'center', background: DS.color.sageFaint, border: `1px solid ${DS.color.sage}55`, color: DS.color.sageDeep, fontSize: 12, fontWeight: 600, marginBottom: 7 }}>{node[0]}</div>
-            <b style={{ display: 'block', ...TYPE.small, fontWeight: 600, color: DS.color.ink, marginBottom: 4 }}>{node[1]}</b>
-            <span style={{ display: 'block', ...TYPE.micro, color: DS.color.mid }}>{node[2]}</span>
-          </div>
-        ))}
-      </div>
-      <div className="hc-lifecycle-center" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .8fr) minmax(0, 1fr)', gap: 8, alignItems: 'stretch' }}>
-        <div style={{ background: DS.color.sageDeep, color: '#fff', borderRadius: DS.radius.lg, padding: 13, minWidth: 0 }}>
-          <small style={{ display: 'block', color: '#b9d2bd', ...TYPE.label, marginBottom: 7 }}>Passage record</small>
-          <strong style={{ display: 'block', ...TYPE.h2, color: '#fff', marginBottom: 6 }}>One family record</strong>
-          <span style={{ display: 'block', ...TYPE.micro, color: '#d8d0c7', lineHeight: 1.45 }}>The next step, owner, waiting point, permissions, and proof move forward together.</span>
-        </div>
-        <div style={{ background: DS.color.sageFaint, border: `1px solid ${DS.color.sage}44`, borderRadius: DS.radius.lg, padding: 12, minWidth: 0 }}>
-          <b style={{ display: 'block', ...TYPE.small, fontWeight: 600, color: DS.color.sageDeep, marginBottom: 6 }}>Provider handoff becomes clearer</b>
-          <span style={{ display: 'block', ...TYPE.micro, color: DS.color.mid, lineHeight: 1.45 }}>When the family chooses a funeral home, hospice, care facility, or vendor, the request carries context instead of starting another disconnected thread.</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function HomeCalm() {
-  const [activePaneIndex, setActivePaneIndex] = useState(0);
   const [session, setSession] = useState(null);
-  const activePane = PANES[activePaneIndex] || PANES[0];
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getSession().then(({ data }) => { if (active) setSession(data?.session || null); }).catch(() => {});
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s || null));
-    return () => { active = false; data?.subscription?.unsubscribe?.(); };
+    supabase?.auth?.getSession?.()
+      .then(({ data }) => { if (active) setSession(data?.session || null); })
+      .catch(() => {});
+    const sub = supabase?.auth?.onAuthStateChange?.((_e, s) => setSession(s || null));
+    return () => { active = false; sub?.data?.subscription?.unsubscribe?.(); };
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
-    const timer = window.setInterval(() => {
-      setActivePaneIndex((current) => (current + 1) % PANES.length);
-    }, 6500);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  function openPublicCta(label, href) {
+  function goCta(label, href) {
     trackEvent('homepage_cta_clicked', { label, href });
     if (typeof window !== 'undefined') window.location.href = href;
   }
@@ -184,134 +102,212 @@ export default function HomeCalm() {
   const slogan = PASSAGE_BRAND.slogan || "The operating system for life's hardest logistics.";
 
   return (
-    <div style={{ background: DS.color.page, minHeight: '100vh', fontFamily: SANS, overflowX: 'hidden' }}>
+    <div className="hc-root">
       <style>{`
-        .hc-header { width: min(1180px, 100%); box-sizing: border-box; margin: 0 auto; padding: 16px 24px 8px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-        .hc-logo { font-family: ${SANS}; font-weight: 700; font-size: 20px; letter-spacing: -0.01em; color: ${DS.color.sageDeep}; text-decoration: none; }
-        .hc-nav { display: flex; gap: 14px; flex-wrap: wrap; flex: 1; min-width: 0; }
-        .hc-navlink { font-family: ${SANS}; font-size: 13.5px; color: ${DS.color.mid}; text-decoration: none; white-space: nowrap; }
+        .hc-root { background: ${DS.color.page}; min-height: 100vh; font-family: ${SANS}; color: ${DS.color.ink}; overflow-x: hidden; }
+        .hc-wrap { width: min(1120px, 100%); box-sizing: border-box; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+
+        /* Header */
+        .hc-header { width: min(1120px, 100%); box-sizing: border-box; margin: 0 auto; padding: 18px 24px 10px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+        .hc-logo { font-family: ${SANS}; font-weight: 700; font-size: 21px; letter-spacing: -0.01em; color: ${DS.color.sageDeep}; text-decoration: none; }
+        .hc-nav { display: flex; gap: 18px; flex-wrap: wrap; flex: 1; min-width: 0; align-items: center; }
+        .hc-navlink { font-family: ${SANS}; font-size: 14px; color: ${DS.color.mid}; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; min-height: 36px; }
         .hc-navlink:hover { color: ${DS.color.ink}; }
-        .hc-auth { display: flex; align-items: center; gap: 10px; }
-        .hc-signin { font-family: ${SANS}; font-size: 13.5px; font-weight: 600; color: ${DS.color.sageDeep}; background: ${DS.color.card}; border: 1px solid ${DS.color.sage}55; border-radius: ${DS.radius.pill}px; min-height: 38px; padding: 0 14px; display: inline-flex; align-items: center; cursor: pointer; text-decoration: none; }
-        .hc-shell { width: min(1180px, 100%); box-sizing: border-box; margin: 0 auto; padding: 16px 24px 28px; }
-        .hc-hero { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, .9fr); gap: 30px; align-items: center; }
-        .hc-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+        .hc-auth { display: flex; align-items: center; gap: 12px; }
+        .hc-auth-link { font-weight: 600; color: ${DS.color.sageDeep}; }
+        .hc-signin { font-family: ${SANS}; font-size: 14px; font-weight: 600; color: ${DS.color.sageDeep}; background: ${DS.color.card}; border: 1px solid ${DS.color.sage}55; border-radius: ${DS.radius.pill}px; min-height: 40px; padding: 0 16px; display: inline-flex; align-items: center; cursor: pointer; text-decoration: none; }
+        .hc-signin:hover { background: ${DS.color.sageFaint}; }
+
+        /* Hero */
+        .hc-hero { padding-top: 40px; padding-bottom: 48px; max-width: 760px; }
+        .hc-eyebrow { ${cssType(TYPE.label)} color: ${DS.color.sage}; margin: 0 0 18px; }
+        .hc-h1 { font-size: clamp(34px, 6.2vw, 56px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; color: ${DS.color.ink}; margin: 0 0 20px; }
+        .hc-lede { font-size: clamp(16px, 2.2vw, 19px); line-height: 1.55; color: ${DS.color.mid}; margin: 0; max-width: 620px; }
+        .hc-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
         .hc-actions > * { min-width: 0; }
-        .hc-proof { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-        .hc-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; margin-bottom: 16px; }
-        .hc-tab { min-width: 0; border: 1px solid ${DS.color.border}; background: ${DS.color.page}; color: ${DS.color.mid}; border-radius: ${DS.radius.pill}px; min-height: 44px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 8px; transition: background ${DS.motion.fast} ${DS.motion.ease}, border-color ${DS.motion.fast} ${DS.motion.ease}; overflow-wrap: anywhere; }
-        .hc-tab[aria-selected="true"] { border-color: ${DS.color.sage}66; background: ${DS.color.sageFaint}; color: ${DS.color.sageDeep}; }
-        .hc-step { display: grid; grid-template-columns: minmax(80px, max-content) minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid ${DS.color.hair}; }
-        .hc-step:last-child { border-bottom: none; }
-        .hc-num { min-width: 42px; max-width: 100%; min-height: 28px; border-radius: ${DS.radius.pill}px; display: inline-flex; align-items: center; justify-content: center; background: ${DS.color.sageFaint}; color: ${DS.color.sageDeep}; font-size: 12px; font-weight: 600; padding: 6px 10px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
-        .hc-footer { width: min(1180px, 100%); box-sizing: border-box; margin: 0 auto; padding: 20px 24px 32px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; border-top: 1px solid ${DS.color.hair}; margin-top: 8px; }
-        .hc-footer-nav { display: flex; gap: 14px; flex-wrap: wrap; }
-        .hc-footlink { font-family: ${SANS}; font-size: 12.5px; color: ${DS.color.mid}; text-decoration: none; }
+        .hc-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; font-family: ${SANS}; font-size: 15px; font-weight: 600; border-radius: ${DS.radius.md}px; min-height: ${DS.tap.min}px; padding: 0 22px; cursor: pointer; text-decoration: none; border: 1px solid transparent; transition: background ${DS.motion.fast} ${DS.motion.ease}, border-color ${DS.motion.fast} ${DS.motion.ease}; }
+        .hc-btn-primary { background: ${DS.color.sageDeep}; color: #fff; }
+        .hc-btn-primary:hover { background: #2f4c34; }
+        .hc-btn-secondary { background: ${DS.color.card}; color: ${DS.color.sageDeep}; border-color: ${DS.color.sage}55; }
+        .hc-btn-secondary:hover { background: ${DS.color.sageFaint}; }
+        .hc-reassure { ${cssType(TYPE.small)} color: ${DS.color.soft}; line-height: 1.5; margin: 18px 0 0; max-width: 560px; }
+
+        /* Section scaffolding */
+        .hc-section { padding-top: 8px; padding-bottom: 48px; }
+        .hc-section-head { max-width: 640px; margin: 0 0 26px; }
+        .hc-kicker { ${cssType(TYPE.label)} color: ${DS.color.sage}; margin: 0 0 10px; }
+        .hc-h2 { font-size: clamp(24px, 3.4vw, 32px); font-weight: 600; letter-spacing: -0.012em; line-height: 1.15; color: ${DS.color.ink}; margin: 0 0 10px; }
+        .hc-sub { ${cssType(TYPE.body)} font-size: 16px; color: ${DS.color.mid}; margin: 0; }
+
+        /* Card grids */
+        .hc-grid { display: grid; gap: 16px; }
+        .hc-grid-3 { grid-template-columns: repeat(3, minmax(min(100%, 260px), 1fr)); }
+        .hc-grid-2 { grid-template-columns: repeat(2, minmax(min(100%, 300px), 1fr)); }
+        .hc-card { box-sizing: border-box; min-width: 0; background: ${DS.color.card}; border: 1px solid ${DS.color.hair}; border-radius: ${DS.radius.lg}px; padding: 22px; box-shadow: ${DS.shadow.hair}; }
+        .hc-card-title { ${cssType(TYPE.h2)} font-size: 17px; color: ${DS.color.ink}; margin: 0 0 8px; }
+        .hc-card-body { ${cssType(TYPE.small)} color: ${DS.color.mid}; line-height: 1.55; margin: 0; }
+
+        /* Persona cards (links) */
+        .hc-persona { display: flex; flex-direction: column; box-sizing: border-box; min-width: 0; background: ${DS.color.card}; border: 1px solid ${DS.color.hair}; border-radius: ${DS.radius.lg}px; padding: 20px; min-height: ${DS.tap.min}px; text-decoration: none; color: inherit; box-shadow: ${DS.shadow.hair}; transition: border-color ${DS.motion.fast} ${DS.motion.ease}, transform ${DS.motion.fast} ${DS.motion.ease}, box-shadow ${DS.motion.fast} ${DS.motion.ease}; }
+        .hc-persona:hover { border-color: ${DS.color.sage}66; box-shadow: ${DS.shadow.card}; transform: translateY(-2px); }
+        .hc-persona-primary { background: ${DS.color.sageFaint}; border-color: ${DS.color.sage}55; }
+        .hc-persona-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; ${cssType(TYPE.h2)} font-size: 16px; color: ${DS.color.ink}; margin: 0 0 8px; }
+        .hc-persona-arrow { color: ${DS.color.sage}; font-size: 20px; line-height: 1; flex: 0 0 auto; }
+        .hc-persona-body { ${cssType(TYPE.small)} color: ${DS.color.mid}; line-height: 1.5; margin: 0; }
+
+        /* Trust band */
+        .hc-trust { background: ${DS.color.sageDeep}; border-radius: ${DS.radius.xl}px; box-sizing: border-box; padding: clamp(24px, 4vw, 40px); margin-bottom: 8px; }
+        .hc-trust-kicker { ${cssType(TYPE.label)} color: #b9d2bd; margin: 0 0 10px; }
+        .hc-trust-h2 { font-size: clamp(22px, 3.2vw, 28px); font-weight: 600; letter-spacing: -0.012em; line-height: 1.18; color: #fff; margin: 0 0 8px; }
+        .hc-trust-sub { ${cssType(TYPE.body)} color: #d8d0c7; margin: 0 0 22px; max-width: 580px; }
+        .hc-trust-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(min(100%, 280px), 1fr)); }
+        .hc-trust-card { display: flex; flex-direction: column; box-sizing: border-box; min-width: 0; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16); border-radius: ${DS.radius.lg}px; padding: 18px; min-height: ${DS.tap.min}px; text-decoration: none; color: #fff; transition: background ${DS.motion.fast} ${DS.motion.ease}; }
+        .hc-trust-card:hover { background: rgba(255,255,255,0.12); }
+        .hc-trust-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; ${cssType(TYPE.h2)} font-size: 15.5px; color: #fff; margin: 0 0 6px; }
+        .hc-trust-body { ${cssType(TYPE.small)} color: #cfe0d2; line-height: 1.5; margin: 0; }
+        .hc-pledge { box-sizing: border-box; margin-top: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: ${DS.radius.md}px; padding: 16px 18px; ${cssType(TYPE.small)} color: #e8efe9; line-height: 1.55; }
+        .hc-pledge strong { color: #fff; font-weight: 600; }
+
+        /* Footer */
+        .hc-footer { width: min(1120px, 100%); box-sizing: border-box; margin: 20px auto 0; padding: 22px 24px 36px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; border-top: 1px solid ${DS.color.hair}; }
+        .hc-footer-nav { display: flex; gap: 18px; flex-wrap: wrap; }
+        .hc-footlink { font-family: ${SANS}; font-size: 13px; color: ${DS.color.mid}; text-decoration: none; min-height: 36px; display: inline-flex; align-items: center; }
         .hc-footlink:hover { color: ${DS.color.ink}; }
-        @media (max-width: 760px) {
-          .hc-hero { grid-template-columns: 1fr; gap: 22px; }
-          .hc-actions { flex-direction: column; }
-          .hc-actions > * { width: 100%; }
-          .hc-tabs { grid-template-columns: 1fr 1fr; }
-          .hc-lifecycle-track { grid-template-columns: 1fr; }
-          .hc-lifecycle-line { display: none; }
-          .hc-lifecycle-node { display: grid; grid-template-columns: 36px minmax(0, 1fr); column-gap: 9px; align-items: start; }
-          .hc-lifecycle-node > div:first-child { grid-row: 1 / span 2; margin-bottom: 0; }
-          .hc-lifecycle-center { grid-template-columns: 1fr; }
+
+        @media (max-width: 860px) {
+          .hc-grid-3 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 680px) {
           .hc-nav-secondary { display: none; }
+          .hc-grid-2, .hc-trust-grid { grid-template-columns: 1fr; }
+          .hc-actions { flex-direction: column; align-items: stretch; }
+          .hc-actions > * { width: 100%; }
+          .hc-hero { padding-top: 28px; padding-bottom: 36px; }
         }
       `}</style>
 
       <CalmHeader session={session} />
 
-      <main className="hc-shell">
-        <section className="hc-hero">
-          <div style={{ minWidth: 0 }}>
-            <div style={{ ...TYPE.label, color: DS.color.sage, marginBottom: 10 }}>{slogan}</div>
-            <h1 style={{ fontSize: 'clamp(30px, 6vw, 44px)', fontWeight: 600, letterSpacing: '-0.015em', lineHeight: 1.08, color: DS.color.ink, margin: '0 0 14px' }}>
-              One calm place for the hardest family handoffs.
-            </h1>
-            <p style={{ ...TYPE.body, fontSize: 16, color: DS.color.mid, lineHeight: 1.5, maxWidth: 640, margin: 0 }}>
-              Passage keeps the next step, the owner, the waiting point, and the proof in one shared family record, from preparation through death, funeral coordination, and the long tail after.
-            </p>
+      <main>
+        {/* Hero — one human promise, one primary path. */}
+        <section className="hc-wrap hc-hero">
+          <p className="hc-eyebrow">{slogan}</p>
+          <h1 className="hc-h1">When the hardest days come, you don&rsquo;t have to hold it all alone.</h1>
+          <p className="hc-lede">
+            Passage turns the overwhelming list of what-comes-next into one calm,
+            shared path &mdash; so families, funeral homes, and helpers always know
+            the next step, who has it, and that nothing is being missed.
+          </p>
 
-            <div className="hc-actions">
-              <Button variant="primary" onClick={() => openPublicCta('Start urgent path', '/urgent')}>Start urgent path</Button>
-              <Button variant="secondary" onClick={() => openPublicCta('Prepare during care', '/hospice')}>Prepare during care</Button>
-              <Button variant="ghost" onClick={() => openPublicCta('Plan ahead', '/pricing')} style={{ borderColor: DS.color.border, borderStyle: 'solid', borderWidth: 1 }}>Plan ahead</Button>
-            </div>
-
-            <p style={{ ...TYPE.micro, color: DS.color.soft, lineHeight: 1.45, marginTop: 12, maxWidth: 640 }}>
-              Nothing sends. Nothing shares. The family approves before Passage reaches outside the record.
-            </p>
-
-            <div className="hc-proof" aria-label="See Passage examples">
-              <a
-                href="/funeral-home/sample-case"
-                onClick={() => trackEvent('homepage_sample_case_clicked', { href: '/funeral-home/sample-case' })}
-                style={proofLinkStyle}
-              >
-                Open sample case
-              </a>
-              <a
-                href="/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor"
-                onClick={() => trackEvent('homepage_sample_vendor_clicked', { href: '/vendors/request?demo=1&demoTour=funeral-home&demoStep=vendor' })}
-                style={proofLinkStyle}
-              >
-                See vendor request example
-              </a>
-            </div>
-
-            <div style={{ display: 'inline-block', color: DS.color.sageDeep, background: DS.color.sageFaint, border: `1px solid ${DS.color.sage}44`, borderRadius: DS.radius.md, padding: '9px 11px', ...TYPE.micro, lineHeight: 1.4, marginTop: 12, maxWidth: 660 }}>
-              <strong style={{ fontWeight: 600 }}>The Passage family pledge:</strong> 10% of proceeds support grief and family-care work. Each paid urgent family record also funds a remembrance tree dedication.
-            </div>
+          <div className="hc-actions">
+            <a
+              href="/urgent"
+              className="hc-btn hc-btn-primary"
+              onClick={(e) => { e.preventDefault(); goCta('Start urgent path', '/urgent'); }}
+            >
+              Start urgent path
+            </a>
+            <a
+              href="/pricing"
+              className="hc-btn hc-btn-secondary"
+              onClick={(e) => { e.preventDefault(); goCta('Plan ahead', '/pricing'); }}
+            >
+              Plan ahead
+            </a>
+            <a
+              href="/funeral-home"
+              className="hc-btn hc-btn-secondary"
+              onClick={(e) => { e.preventDefault(); goCta('For funeral homes', '/funeral-home'); }}
+            >
+              For funeral homes
+            </a>
           </div>
 
-          <Card pad={16} style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }} aria-label="Passage coordination preview">
-            <div className="hc-tabs" role="tablist" aria-label="Passage story">
-              {PANES.map((pane, index) => (
-                <button
-                  key={pane.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activePane.id === pane.id}
-                  onClick={() => setActivePaneIndex(index)}
-                  className="hc-tab"
+          <p className="hc-reassure">
+            Nothing sends and nothing shares on its own. The family approves before
+            Passage ever reaches outside the record.
+          </p>
+        </section>
+
+        {/* How Passage helps families — outcome-focused reassurance. */}
+        <section className="hc-wrap hc-section">
+          <div className="hc-section-head">
+            <p className="hc-kicker">How Passage helps</p>
+            <h2 className="hc-h2">A calmer way through, for the people carrying it</h2>
+            <p className="hc-sub">
+              You shouldn&rsquo;t have to become a project manager in the middle of grief.
+              Passage quietly keeps the work organized so you can focus on each other.
+            </p>
+          </div>
+          <div className="hc-grid hc-grid-3">
+            {HELP_CARDS.map((c) => (
+              <div className="hc-card" key={c.id}>
+                <h3 className="hc-card-title">{c.title}</h3>
+                <p className="hc-card-body">{c.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Persona entry cards — the router. */}
+        <section className="hc-wrap hc-section">
+          <div className="hc-section-head">
+            <p className="hc-kicker">Find your starting point</p>
+            <h2 className="hc-h2">Wherever you are, there&rsquo;s a clear first step</h2>
+            <p className="hc-sub">
+              Passage meets families, providers, helpers, and vendors where they are &mdash;
+              each with a private, role-appropriate view of the same shared record.
+            </p>
+          </div>
+          <div className="hc-grid hc-grid-3">
+            {PERSONA_CARDS.map((p) => (
+              <a
+                key={p.id}
+                href={p.href}
+                className={`hc-persona${p.tone === 'primary' ? ' hc-persona-primary' : ''}`}
+                onClick={() => trackEvent('homepage_panel_cta_clicked', { label: p.label, href: p.href, pane: p.id })}
+              >
+                <span className="hc-persona-label">
+                  {p.label}
+                  <span aria-hidden="true" className="hc-persona-arrow">&rsaquo;</span>
+                </span>
+                <span className="hc-persona-body">{p.body}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        {/* Trust / proof band. */}
+        <section className="hc-wrap hc-section">
+          <div className="hc-trust">
+            <p className="hc-trust-kicker">See it for yourself</p>
+            <h2 className="hc-trust-h2">Built to be trusted on the hardest day</h2>
+            <p className="hc-trust-sub">
+              No pressure and no sign-up. Look inside real examples, and see exactly
+              how Passage keeps people informed without ever oversharing.
+            </p>
+            <div className="hc-trust-grid">
+              {TRUST_ITEMS.map((t) => (
+                <a
+                  key={t.id}
+                  href={t.href}
+                  className="hc-trust-card"
+                  onClick={() => trackEvent(t.event, { href: t.href })}
                 >
-                  {pane.label}
-                </button>
+                  <span className="hc-trust-label">
+                    {t.label}
+                    <span aria-hidden="true" className="hc-persona-arrow" style={{ color: '#b9d2bd' }}>&rsaquo;</span>
+                  </span>
+                  <span className="hc-trust-body">{t.body}</span>
+                </a>
               ))}
             </div>
-            <div style={{ borderBottom: `1px solid ${DS.color.hair}`, paddingBottom: 11, marginBottom: 10 }}>
-              <div style={{ ...TYPE.label, color: DS.color.sage, marginBottom: 7 }}>{activePane.eyebrow}</div>
-              <h2 style={{ ...TYPE.display, color: DS.color.ink, margin: '0 0 7px' }}>{activePane.title}</h2>
-              <p style={{ ...TYPE.small, color: DS.color.mid, margin: 0, maxWidth: 560 }}>{activePane.body}</p>
+            <div className="hc-pledge">
+              <strong>The Passage family pledge:</strong>{' '}
+              10% of proceeds support grief and family-care work, and each paid urgent
+              family record funds a remembrance tree dedication.
             </div>
-
-            {activePane.visual === 'lifecycle' ? (
-              <LifecycleMap />
-            ) : (
-              activePane.rows.map((row) => (
-                <div className="hc-step" key={row[1]}>
-                  <span className="hc-num">{row[0]}</span>
-                  <span style={{ minWidth: 0 }}>
-                    <b style={{ display: 'block', ...TYPE.small, fontWeight: 600, color: DS.color.ink, marginBottom: 3 }}>{row[1]}</b>
-                    <span style={{ display: 'block', ...TYPE.micro, color: DS.color.mid, lineHeight: 1.42 }}>{row[2]}</span>
-                  </span>
-                </div>
-              ))
-            )}
-
-            {activePane.cta && (
-              <a
-                href={activePane.cta.href}
-                onClick={() => trackEvent('homepage_panel_cta_clicked', { label: activePane.cta.label, href: activePane.cta.href, pane: activePane.id })}
-                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', marginTop: 14, alignSelf: 'flex-start', minHeight: DS.tap.min, borderRadius: DS.radius.md, padding: '0 16px', background: DS.color.sage, color: '#fff', fontSize: 13, fontWeight: 500 }}
-              >
-                {activePane.cta.label}
-              </a>
-            )}
-          </Card>
+          </div>
         </section>
       </main>
 
@@ -320,16 +316,15 @@ export default function HomeCalm() {
   );
 }
 
-const proofLinkStyle = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  minHeight: 44,
-  borderRadius: DS.radius.pill,
-  border: `1px solid ${DS.color.sage}44`,
-  background: DS.color.card,
-  color: DS.color.sageDeep,
-  textDecoration: 'none',
-  padding: '0 14px',
-  fontSize: 13,
-  fontWeight: 500,
-};
+// Serialize a TYPE token object into inline CSS declarations for the <style> block.
+function cssType(t) {
+  if (!t) return '';
+  const map = {
+    fontSize: (v) => `font-size: ${typeof v === 'number' ? v + 'px' : v};`,
+    fontWeight: (v) => `font-weight: ${v};`,
+    lineHeight: (v) => `line-height: ${v};`,
+    letterSpacing: (v) => `letter-spacing: ${v};`,
+    textTransform: (v) => `text-transform: ${v};`,
+  };
+  return Object.keys(t).map((k) => (map[k] ? map[k](t[k]) : '')).join(' ');
+}
