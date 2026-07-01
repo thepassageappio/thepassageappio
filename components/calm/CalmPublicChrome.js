@@ -47,6 +47,10 @@ export function cssType(t) {
   return Object.keys(t).map((k) => (map[k] ? map[k](t[k]) : '')).join(' ');
 }
 
+export function RawStyle({ css }) {
+  return <style dangerouslySetInnerHTML={{ __html: css }} />;
+}
+
 export function CalmHeader({ session }) {
   return (
     <header className="hc-header">
@@ -97,8 +101,7 @@ export function CalmFooter() {
 
 // The shared calm CSS for chrome + section/grid/card/trust primitives.
 export function CalmPublicStyles() {
-  return (
-    <style>{`
+  const css = `
       .hc-root { background: ${DS.color.page}; min-height: 100vh; font-family: ${SANS}; color: ${DS.color.ink}; overflow-x: hidden; }
       .hc-wrap { width: min(1120px, 100%); box-sizing: border-box; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
 
@@ -179,8 +182,9 @@ export function CalmPublicStyles() {
         .hc-actions > * { width: 100%; }
         .hc-hero { padding-top: 28px; padding-bottom: 36px; }
       }
-    `}</style>
-  );
+    `;
+
+  return <RawStyle css={css} />;
 }
 
 // Full page shell: styles + header + children + footer, all inside .hc-root.

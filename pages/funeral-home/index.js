@@ -22,7 +22,7 @@ import { DS, TYPE, SANS } from '../../lib/designSystem';
 import { supabase } from '../../lib/supabaseBrowser';
 import { calendlyUrl } from '../../lib/scheduling';
 import { trackEvent } from '../../lib/trackEvent';
-import CalmPublicChrome, { cssType } from '../../components/calm/CalmPublicChrome';
+import CalmPublicChrome, { cssType, RawStyle } from '../../components/calm/CalmPublicChrome';
 import FuneralHomeLegacy from '../../components/funeralHome/FuneralHomeLegacy';
 import {
   FH_BENEFITS,
@@ -111,16 +111,7 @@ export default function FuneralHomePage() {
   if (legacy) return <FuneralHomeLegacy />;
 
   const walkthroughHref = calendlyUrl({ source: 'Funeral home walkthrough' });
-
-  function goWalkthrough(e) {
-    trackEvent('funeral_home_cta_clicked', { label: 'Book walkthrough', href: walkthroughHref });
-    // Allow the native anchor (new tab) to proceed.
-    void e;
-  }
-
-  return (
-    <CalmPublicChrome session={session}>
-      <style>{`
+  const pageCss = `
         /* Funeral-home page-scoped layout on top of the shared hc-* language. */
         .fhx-hero { padding-top: 40px; padding-bottom: 44px; }
         .fhx-hero-grid { display: grid; gap: 28px; align-items: start;
@@ -129,7 +120,7 @@ export default function FuneralHomePage() {
         .fhx-h1 { font-size: clamp(34px, 6.2vw, 56px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; color: ${DS.color.ink}; margin: 0 0 18px; }
         .fhx-lede { font-size: clamp(16px, 2.2vw, 19px); line-height: 1.55; color: ${DS.color.mid}; margin: 0; max-width: 600px; }
 
-        /* Hero proof panel — a calm "what a case shows" preview. */
+        /* Hero proof panel - a calm "what a case shows" preview. */
         .fhx-proof { min-width: 0; box-sizing: border-box; background: ${DS.color.card}; border: 1px solid ${DS.color.hair}; border-radius: ${DS.radius.xl}px; padding: 22px; box-shadow: ${DS.shadow.card}; }
         .fhx-proof-kicker { ${cssType(TYPE.label)} color: ${DS.color.sage}; margin: 0 0 6px; }
         .fhx-proof-head { ${cssType(TYPE.h1)} font-size: 18px; color: ${DS.color.ink}; margin: 0 0 14px; }
@@ -156,7 +147,17 @@ export default function FuneralHomePage() {
           .fhx-case-row { grid-template-columns: 1fr; gap: 3px; }
           .fhx-hero { padding-top: 28px; padding-bottom: 32px; }
         }
-      `}</style>
+      `;
+
+  function goWalkthrough(e) {
+    trackEvent('funeral_home_cta_clicked', { label: 'Book walkthrough', href: walkthroughHref });
+    // Allow the native anchor (new tab) to proceed.
+    void e;
+  }
+
+  return (
+    <CalmPublicChrome session={session}>
+      <RawStyle css={pageCss} />
 
       <main>
         {/* Hero — confident B2B value prop + one primary path (start setup). */}
