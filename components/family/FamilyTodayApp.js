@@ -227,7 +227,7 @@ export default function FamilyTodayApp({ user, session, onSignOut }) {
                 <p style={{ ...TYPE.label, color: DS.color.sageDeep, margin: '0 0 8px' }}>Start a family record</p>
                 <h2 style={{ ...TYPE.h2, color: DS.color.ink, margin: 0 }}>Everything lives in one calm place.</h2>
                 <p style={{ ...TYPE.small, color: DS.color.mid, margin: '8px 0 14px' }}>Create or open a family record so Passage can keep next steps, people, messages, and saved proof together.</p>
-                <Button onClick={() => window.location.assign('/?legacy=1')}>Open setup</Button>
+                <Button onClick={() => window.location.assign('/today?legacy=1')}>Open setup</Button>
               </Card>
             )}
 

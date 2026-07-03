@@ -140,6 +140,7 @@ export function StatusBadge({ status = 'draft', label, compact = false }) {
 export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDashboard, onHome }) {
   const router = useRouter();
   const path = router?.pathname || '';
+  const asPath = router?.asPath || path || '/';
   const dashboardHref = '/estate';
   const [hydrated, setHydrated] = useState(false);
   const controlled = typeof user !== 'undefined';
@@ -211,6 +212,9 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
 
   const signInHandler = onSignIn || defaultSignIn;
   const signOutHandler = onSignOut || defaultSignOut;
+  const currentPathWithQuery = (typeof window !== 'undefined' ? window.location.pathname + window.location.search : asPath) || '/';
+  const safeCurrentPath = currentPathWithQuery.startsWith('/') && !currentPathWithQuery.startsWith('//') ? currentPathWithQuery : '/';
+  const headerSignInHref = safeCurrentPath && safeCurrentPath !== '/' ? `/login?next=${encodeURIComponent(safeCurrentPath)}` : '/login';
   const adminUser = isSystemAdminUser(currentUser);
   const systemRouteActive = isActivePath(activePath, '/system');
   const ownerConsoleActive = systemRouteActive;
@@ -258,6 +262,14 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
     lineHeight: PASSAGE_TYPE.nav.lineHeight,
   };
 
+  function handleHeaderSignIn(event) {
+    trackEvent('header_sign_in_clicked', { href: headerSignInHref });
+    if (typeof onSignIn === 'function') {
+      event.preventDefault();
+      signInHandler();
+    }
+  }
+
   return (
     <nav style={{ width: 'min(1180px, 100%)', boxSizing: 'border-box', maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, fontFamily: PASSAGE_FONT.family }}>
       <style>{`
@@ -293,7 +305,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
             <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign out</button>
           )}
           {localAuthReady && !currentUser && (
-            <Link href="/login" onClick={() => trackEvent('header_sign_in_clicked', { href: '/login' })} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
+            <Link href={headerSignInHref} onClick={handleHeaderSignIn} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
           )}
         </span>
       </div>

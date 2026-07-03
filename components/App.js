@@ -9,6 +9,13 @@ import { recordOnboardingProgress } from "../lib/onboardingClient";
 import { trackEvent } from "../lib/trackEvent";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thepassageapp.io").replace(/\/$/, "");
+const DEFAULT_AUTH_RETURN_PATH = "/";
+
+function currentAuthReturnPath() {
+ if (typeof window === 'undefined') return DEFAULT_AUTH_RETURN_PATH;
+ const next = `${window.location.pathname || DEFAULT_AUTH_RETURN_PATH}${window.location.search || ''}`;
+ return next.startsWith('/') && !next.startsWith('//') ? next : DEFAULT_AUTH_RETURN_PATH;
+}
 
 // DESIGN TOKENS 
 const C = {
@@ -598,7 +605,7 @@ const handleCheckout = async (planId, userId, userEmail, workflowId = null) => {
      createdAt: new Date().toISOString(),
     }));
    }
-   window.location.assign('/auth/google?next=' + encodeURIComponent('/'));
+   window.location.assign('/auth/google?next=' + encodeURIComponent(currentAuthReturnPath()));
    return;
   }
   const { data: sessionData } = await supabase.auth.getSession();
@@ -809,7 +816,7 @@ const safeFileName = (name) => String(name || 'file')
 .slice(0, 90);
 
 const handleSignInWithGoogle = async () => {
- window.location.assign('/auth/google?next=' + encodeURIComponent('/'));
+ window.location.assign('/auth/google?next=' + encodeURIComponent(currentAuthReturnPath()));
 };
 
 // MERGE helper merge DB tasks back onto static task list 
@@ -1111,7 +1118,7 @@ const GoogleSignInBtn = ({ label = "Continuewith Google", compact = false }) => 
  </button>
 );
 
-const EmailSignInBridge = ({ redirectPath = "/", compact = false }) => {
+const EmailSignInBridge = ({ redirectPath, compact = false }) => {
  const [email, setEmail] = useState("");
  const [sent, setSent] = useState(false);
  const [error, setError] = useState("");
@@ -1124,7 +1131,7 @@ const EmailSignInBridge = ({ redirectPath = "/", compact = false }) => {
   setError("");
   const { error: authError } = await supabase.auth.signInWithOtp({
    email: clean,
-   options: { emailRedirectTo: SITE_URL + redirectPath },
+   options: { emailRedirectTo: SITE_URL + (redirectPath || currentAuthReturnPath()) },
   });
   if (authError) {
    setError(authError.message || "Passage could not send that link.");
@@ -2835,7 +2842,7 @@ function PlanFlow({ onComplete, onBack, user, onSignOut, onDashboard }) {
     { value: "parent", icon: "2", title: "A loved one", desc: "Help someone I love get organized before it is urgent." },
     { value: "spouse", icon: "3", title: "My spouse or partner", desc: "Plan together so neither of us is left guessing." },
    ].map(o => <OptionCard key={o.value} {...o} selected={forWhom === o.value} onClick={() => setForWhom(o.value)} />)}
-   {!user && <div style={{ marginTop: 14, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14 }}><div style={{ fontSize: 12.5, color: C.mid, marginBottom: 10, lineHeight: 1.45 }}>Sign in once so Passage can save this plan to your family record.</div><div style={{ display: "grid", gap: 10 }}><GoogleSignInBtn /><EmailSignInBridge redirectPath="/" /></div></div>}
+   {!user && <div style={{ marginTop: 14, background: C.bgSubtle, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14 }}><div style={{ fontSize: 12.5, color: C.mid, marginBottom: 10, lineHeight: 1.45 }}>Sign in once so Passage can save this plan to your family record.</div><div style={{ display: "grid", gap: 10 }}><GoogleSignInBtn /><EmailSignInBridge /></div></div>}
    {planError && <div style={{ marginTop: 12, background: C.roseFaint, border: `1px solid ${C.rose}30`, borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.rose, lineHeight: 1.5, fontWeight: 700 }}>{planError}</div>}
    <Btn onClick={() => setStep(1)} disabled={!forWhom} style={{ width: "100%", marginTop: 12 }}>Continue</Btn>
   </Card>,
@@ -5016,7 +5023,7 @@ function Success({ mode, onDashboard, workflowId }) {
      <>
       <GoogleSignInBtn label="Sign in to keep building" />
       <div style={{ marginTop: 10 }}>
-       <EmailSignInBridge redirectPath="/" />
+       <EmailSignInBridge />
       </div>
      </>
     )}

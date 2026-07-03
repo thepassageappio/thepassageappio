@@ -7,6 +7,7 @@ import FamilyTodayApp from './family/FamilyTodayApp';
 import LegacyApp from './App';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thepassageapp.io').replace(/\/$/, '');
+const TODAY_PATH = '/today';
 
 const PREVIEW_ITEMS = [
   { statusKey: 'yours_now', title: 'Confirm the funeral home contact', body: 'Passage prepared the call notes.' },
@@ -19,6 +20,11 @@ function useSession() {
   const [session, setSession] = useState(null);
 
   useEffect(() => {
+    if (!supabase?.auth) {
+      setSession(null);
+      setLoading(false);
+      return undefined;
+    }
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
@@ -50,6 +56,11 @@ function EmailLinkForm() {
   const emailId = 'passage-calm-email';
 
   const sendLink = async () => {
+    if (!supabase?.auth) {
+      setError('Secure email sign-in is not configured in this environment yet.');
+      setSent(false);
+      return;
+    }
     const clean = email.trim();
     if (!clean || !clean.includes('@')) {
       setError('Enter an email address first.');
@@ -60,7 +71,7 @@ function EmailLinkForm() {
     setSent(false);
     const { error: authError } = await supabase.auth.signInWithOtp({
       email: clean,
-      options: { emailRedirectTo: `${SITE_URL}/` },
+      options: { emailRedirectTo: `${SITE_URL}${TODAY_PATH}` },
     });
     setSending(false);
     if (authError) {
@@ -75,7 +86,7 @@ function EmailLinkForm() {
       <label htmlFor={emailId} style={{ display: 'block', ...TYPE.small, fontWeight: 500, color: DS.color.ink }}>Secure email link</label>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 8 }}>
         <Input id={emailId} type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" />
-        <Button disabled={sending} onClick={sendLink} style={{ width: '100%' }}>{sending ? 'Sending' : 'Send link'}</Button>
+        <Button disabled={sending || !supabase?.auth} onClick={sendLink} style={{ width: '100%' }}>{sending ? 'Sending' : 'Send link'}</Button>
       </div>
       {sent && <Banner tone="success">Check {email.trim()} to continue.</Banner>}
       {error && <Banner tone="danger">{error}</Banner>}
@@ -85,7 +96,7 @@ function EmailLinkForm() {
 
 function Landing({ loading }) {
   const startGoogle = () => {
-    window.location.assign('/auth/google?next=' + encodeURIComponent('/'));
+    window.location.assign('/auth/google?next=' + encodeURIComponent(TODAY_PATH));
   };
 
   return (
@@ -164,7 +175,7 @@ export default function AppCalm() {
   if (legacy) return <LegacyApp />;
 
   if (session?.user) {
-    return <FamilyTodayApp user={session.user} session={session} onSignOut={async () => { await supabase.auth.signOut(); }} />;
+    return <FamilyTodayApp user={session.user} session={session} onSignOut={async () => { if (supabase?.auth) await supabase.auth.signOut(); }} />;
   }
 
   return <Landing loading={loading} />;

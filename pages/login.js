@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseBrowser';
 import { consumeSupabaseOAuthHash, destinationWithoutHash } from '../lib/supabaseOAuthHash';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
@@ -38,6 +37,11 @@ function systemAdminEmails() {
 function isSystemAdminUser(user) {
   const email = normalizeEmail(user?.email);
   return !!email && systemAdminEmails().includes(email);
+}
+
+function safeNextFromValue(value) {
+  const requested = typeof value === 'string' ? value : '';
+  return requested.startsWith('/') && !requested.startsWith('//') ? requested : '';
 }
 
 const portalCards = [
@@ -94,15 +98,13 @@ const portalCards = [
   },
 ];
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function LoginPage({ initialNext = '' }) {
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [authError, setAuthError] = useState('');
   const isAdmin = isSystemAdminUser(user);
   const visiblePortalCards = portalCards.filter(card => !card.adminOnly || isAdmin);
-  const requestedNext = typeof router.query.next === 'string' ? router.query.next : '';
-  const safeNext = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '';
+  const safeNext = safeNextFromValue(initialNext);
   const googleSignInHref = '/auth/google' + (safeNext ? `?next=${encodeURIComponent(safeNext)}` : '');
 
   useEffect(() => {
@@ -207,4 +209,12 @@ export default function LoginPage() {
       <SiteFooter />
     </main>
   );
+}
+
+export async function getServerSideProps({ query }) {
+  return {
+    props: {
+      initialNext: safeNextFromValue(query?.next),
+    },
+  };
 }

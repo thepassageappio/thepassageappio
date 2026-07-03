@@ -21,10 +21,18 @@ function safeNextFromSearch(search) {
   return requested.startsWith('/') && !requested.startsWith('//') ? requested : '';
 }
 
-export default function GoogleAuthStartPage() {
+function safeNextFromValue(value) {
+  const requested = typeof value === 'string' ? value : '';
+  return requested.startsWith('/') && !requested.startsWith('//') ? requested : '';
+}
+
+export default function GoogleAuthStartPage({ initialNext = '' }) {
   const [error, setError] = useState('');
   const [started, setStarted] = useState(false);
-  const next = useMemo(() => (typeof window === 'undefined' ? '' : safeNextFromSearch(window.location.search)), []);
+  const next = useMemo(() => {
+    if (initialNext) return safeNextFromValue(initialNext);
+    return typeof window === 'undefined' ? '' : safeNextFromSearch(window.location.search);
+  }, [initialNext]);
 
   useEffect(() => {
     let active = true;
@@ -66,4 +74,12 @@ export default function GoogleAuthStartPage() {
       </section>
     </main>
   );
+}
+
+export async function getServerSideProps({ query }) {
+  return {
+    props: {
+      initialNext: safeNextFromValue(query?.next),
+    },
+  };
 }
