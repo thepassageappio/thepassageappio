@@ -3,73 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <title>Threshold — Funeral Home Demo Path (Record · Invite · Documents)</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,440;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --pine-900:#0F2A24; --pine-700:#1C4A3E; --pine-500:#2E6B58; --pine-100:#E4EDE9;
-    --clay-600:#B5622F; --clay-400:#D08A56; --clay-100:#F5E4D6;
-    --bone-100:#FBF8F3; --bone-200:#F3EEE4; --bone-300:#E9E1D2;
-    --ink-900:#221E1A; --ink-600:#5A5348; --ink-400:#8B8478;
-    --ok-600:#4C7A5C; --ok-100:#E3EEE4;
-    --wait-600:#B5862F; --wait-100:#F5EAD6;
-    --urgent-600:#A44A3F; --urgent-100:#F3DFDA;
-    --line:#DED5C2;
+    --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B; --pine-500:#2E6B58;
+    --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+    --clay-700:#9A4F26; --clay-600:#B5622F; --clay-500:#C97841; --clay-400:#D08A56; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+    --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+    --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081;
+    --ok-700:#3D6449; --ok-600:#4C7A5C; --ok-100:#E3EEE4;
+    --wait-700:#946B23; --wait-600:#B5862F; --wait-100:#F5EAD6;
+    --line-soft:#EFE8DA;
+    --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+    --e1:0 1px 1px rgba(20,30,25,.03),0 2px 4px rgba(20,30,25,.03);
+    --e2:0 2px 6px rgba(20,30,25,.05),0 10px 24px -8px rgba(20,30,25,.10);
+    --ease:cubic-bezier(.22,1,.36,1);
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:'Inter',sans-serif;color:var(--ink-900);background:#D9D2C2;}
-  .screen{max-width:1280px;margin:0 auto 40px;background:var(--bone-100);min-height:760px;position:relative;overflow:hidden;}
-  .screen-label{background:var(--pine-900);color:var(--bone-100);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:10px 24px;display:flex;justify-content:space-between;}
-  .screen-label .state{color:#C9D6CF;font-weight:500;text-transform:none;letter-spacing:0;}
-  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;border-radius:8px;padding:9px 16px;border:1px solid transparent;cursor:pointer;text-decoration:none;}
-  .btn-primary{background:var(--clay-600);color:#fff;}
-  .btn-secondary{background:#fff;color:var(--pine-700);border-color:var(--pine-500);}
-  .btn-ghost{background:transparent;color:var(--pine-700);border:1px solid var(--line);}
-  .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:100px;white-space:nowrap;}
-  .status-yours{background:var(--clay-100);color:var(--clay-600);}
-  .status-waiting{background:var(--wait-100);color:var(--wait-600);}
-  .status-done{background:var(--ok-100);color:var(--ok-600);}
-  .status-blocked{background:var(--urgent-100);color:var(--urgent-600);}
-  .chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;background:var(--bone-300);color:var(--ink-600);}
-  .chip-sent{background:var(--wait-100);color:var(--wait-600);}
-  .chip-accepted{background:var(--ok-100);color:var(--ok-600);}
+  html{-webkit-font-smoothing:antialiased;}
+  body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink-900);background:#DCD5C4;letter-spacing:-.005em;}
+  .screen{max-width:1320px;margin:0 auto 48px;background:var(--bone-50);min-height:780px;position:relative;overflow:hidden;border-radius:var(--r-lg);box-shadow:0 8px 20px -6px rgba(20,30,25,.14),0 24px 48px -20px rgba(20,30,25,.18);}
+  .screen-label{background:var(--pine-950);color:var(--bone-100);font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:12px 28px;display:flex;justify-content:space-between;}
+  .screen-label .state{color:#9FB3A9;font-weight:500;text-transform:none;letter-spacing:0;}
+  .icon{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;border-radius:var(--r-full);padding:11px 20px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .18s var(--ease);}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-primary{background:linear-gradient(155deg,var(--clay-500),var(--clay-700));color:#fff;box-shadow:0 1px 2px rgba(154,79,38,.2),0 8px 16px -6px rgba(154,79,38,.4);}
+  .btn-ghost{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);}
+  .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:var(--r-full);white-space:nowrap;}
+  .status-pill .sdot{width:5px;height:5px;border-radius:50%;flex:none;}
+  .status-yours{background:var(--clay-50);color:var(--clay-700);border:1px solid var(--clay-200);}
+  .status-yours .sdot{background:var(--clay-600);}
+  .status-waiting{background:var(--wait-100);color:var(--wait-700);border:1px solid #E9D6A8;}
+  .status-waiting .sdot{background:var(--wait-600);}
+  .status-done{background:var(--ok-100);color:var(--ok-700);border:1px solid #C7DECB;}
+  .status-done .sdot{background:var(--ok-600);}
+  .status-blocked{background:#FBEDE9;color:#A44A3F;border:1px solid #F0CFC5;}
+  .status-blocked .sdot{background:#C05A44;}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:var(--r-full);background:var(--bone-300);color:var(--ink-500);}
+  .chip-sent{background:var(--wait-100);color:var(--wait-700);}
+  .chip-accepted{background:var(--ok-100);color:var(--ok-700);}
   .chip-draft{background:var(--bone-300);color:var(--ink-400);}
 
-  /* Shared operator shell */
-  .op-shell{background:var(--pine-900);min-height:780px;color:var(--bone-100);}
-  .op-topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid rgba(255,255,255,.1);}
-  .op-topbar .org{font-family:'Fraunces';font-size:16px;font-weight:500;}
-  .op-crumb{font-size:12px;color:#9FB3A9;margin-top:2px;}
+  .op-shell{background:linear-gradient(165deg,var(--pine-800),var(--pine-950));min-height:780px;color:var(--bone-100);}
+  .op-topbar{display:flex;justify-content:space-between;align-items:center;padding:18px 30px;border-bottom:1px solid rgba(255,255,255,.08);}
+  .op-topbar .org{font-family:'Fraunces';font-size:16.5px;font-weight:480;letter-spacing:-.01em;}
+  .op-crumb{font-size:12px;color:#93A79D;margin-top:3px;}
   .op-body{display:flex;}
-  .op-nav{width:220px;padding:20px 0;border-right:1px solid rgba(255,255,255,.08);flex:none;}
-  .op-nav .grp-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#7C9088;padding:14px 24px 6px;}
-  .op-nav a{display:block;padding:9px 24px;color:#C9D6CF;font-size:13px;text-decoration:none;font-weight:500;}
-  .op-nav a.active{background:rgba(255,255,255,.08);color:#fff;border-right:2px solid var(--clay-400);}
-  .op-main{flex:1;padding:28px 32px;background:var(--bone-100);color:var(--ink-900);border-top-left-radius:20px;overflow:hidden;}
-  .op-title{font-family:'Fraunces';font-weight:500;font-size:22px;color:var(--pine-900);margin:0 0 3px;}
-  .op-sub{color:var(--ink-600);font-size:13px;margin:0 0 20px;}
-  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
-  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-400);padding:11px 14px;background:var(--bone-200);font-weight:600;}
-  td{padding:12px 14px;font-size:13px;border-top:1px solid var(--bone-300);vertical-align:middle;}
-  .empty-cat{color:var(--ink-400);font-size:12.5px;font-style:italic;padding:16px;text-align:center;border:1px dashed var(--line);border-radius:8px;}
+  .op-nav{width:224px;padding:22px 0;border-right:1px solid rgba(255,255,255,.06);flex:none;}
+  .op-nav .grp-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#6E837A;padding:15px 24px 7px;font-weight:700;}
+  .op-nav a{display:flex;align-items:center;gap:10px;padding:9.5px 24px;color:#B4C5BC;font-size:13px;text-decoration:none;font-weight:500;border-right:2px solid transparent;}
+  .op-nav a.active{background:rgba(255,255,255,.06);color:#fff;font-weight:600;border-right-color:var(--clay-400);}
+  .op-main{flex:1;padding:32px 36px;background:var(--bone-50);color:var(--ink-900);border-top-left-radius:var(--r-lg);overflow:hidden;}
+  .op-title{font-family:'Fraunces';font-weight:460;font-size:23px;color:var(--pine-950);margin:0 0 4px;letter-spacing:-.01em;}
+  .op-sub{color:var(--ink-500);font-size:13px;margin:0 0 24px;}
+  table{width:100%;border-collapse:collapse;background:var(--bone-50);border:1px solid var(--line-soft);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--e1);}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-400);padding:12px 16px;background:var(--bone-200);font-weight:700;}
+  td{padding:13px 16px;font-size:13px;border-top:1px solid var(--line-soft);vertical-align:middle;}
+  .empty-cat{color:var(--ink-400);font-size:12.5px;font-style:italic;padding:18px;text-align:center;border:1.5px dashed var(--bone-400);border-radius:var(--r-sm);}
 
-  /* Screen A: record sub-nav */
-  .record-shell{display:flex;gap:20px;}
-  .rec-subnav{width:170px;flex:none;}
-  .rec-subnav a{display:block;padding:8px 12px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--ink-600);text-decoration:none;margin-bottom:2px;}
-  .rec-subnav a.active{background:var(--pine-100);color:var(--pine-900);font-weight:600;}
-  .rec-content{flex:1;}
-  .drawer-note{background:var(--pine-100);border:1px solid var(--pine-500);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--pine-900);margin-top:16px;}
+  .drawer-note{background:linear-gradient(155deg,var(--pine-50),var(--pine-100));border:1px solid #D5E4DC;border-radius:var(--r-md);padding:16px 20px;font-size:12.8px;line-height:1.6;color:var(--pine-900);margin-top:20px;}
 
-  /* Screen B: Invite */
-  .invite-form{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px;max-width:460px;margin-bottom:24px;}
-  .invite-form label{display:block;font-size:12px;font-weight:600;color:var(--ink-600);margin:0 0 6px;}
-  .invite-form input,.invite-form select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font-size:13.5px;margin-bottom:14px;font-family:'Inter';}
+  .invite-form{background:var(--bone-50);border:1px solid var(--line-soft);border-radius:var(--r-lg);padding:28px;max-width:460px;margin-bottom:28px;box-shadow:var(--e1);}
+  .invite-form label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-500);margin:0 0 7px;text-transform:uppercase;letter-spacing:.03em;}
+  .invite-form input,.invite-form select{width:100%;padding:11px 14px;border:1px solid var(--bone-400);border-radius:var(--r-sm);font-size:13.8px;margin-bottom:16px;font-family:'Inter';background:#fff;}
 
-  /* Screen C: Documents */
-  .doc-cats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
-  .doc-cat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;}
-  .doc-cat h4{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--pine-900);}
-  .doc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12.5px;border-top:1px solid var(--bone-300);}
+  .doc-cats{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  .doc-cat{background:var(--bone-50);border:1px solid var(--line-soft);border-radius:var(--r-md);padding:20px;box-shadow:var(--e1);}
+  .doc-cat h4{margin:0 0 12px;font-size:13px;font-weight:700;color:var(--pine-950);display:flex;align-items:center;gap:8px;}
+  .doc-cat .icon-wrap{width:26px;height:26px;border-radius:8px;background:var(--pine-100);display:flex;align-items:center;justify-content:center;color:var(--pine-700);}
+  .doc-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:12.5px;border-top:1px solid var(--line-soft);}
   .doc-row:first-of-type{border-top:none;}
 </style>
 </head>
@@ -77,16 +80,25 @@
 
 <!-- ============ SCREEN A: PASSAGE RECORD + TASK SPINE (operator) ============ -->
 <div class="screen">
-  <div class="screen-label"><span>Funeral Home Demo Path — A3: Passage Record + Tasks (operator-styled)</span><span class="state">Loaded state · viewer: operator</span></div>
+  <div class="screen-label"><span>Funeral Home Demo Path — A3: Passage Record + Tasks (operator-styled)</span><span class="state">Loaded state · viewer: operator · v2 craft standard</span></div>
   <div class="op-shell">
     <div class="op-topbar">
       <div><div class="org">Margaret Reyes — Passage</div><div class="op-crumb">Rivera Funeral Home / Active cases / Margaret Reyes</div></div>
-      <div style="display:flex;gap:10px;"><a class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3);">Back to cases</a></div>
+      <a class="btn btn-ghost"><svg class="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Back to cases</a>
     </div>
     <div class="op-body">
       <div class="op-nav">
         <div class="grp-label">Record</div>
-        <a>Today</a><a>Horizon</a><a class="active">Tasks</a><a>People</a><a>Documents</a><a>Estate</a><a>Medical</a><a>Wishes</a><a>Messages</a><a>Audit</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8M6 10v10h12V10"/></svg>Today</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Horizon</a>
+        <a class="active"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>Tasks</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg>People</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v13H8l-4 3V5Z"/></svg>Documents</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Estate</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7l7-4Z"/></svg>Medical</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.9 2.3 5 6 5c2 0 3.3 1 4 2.2C10.7 6 12 5 14 5c3.7 0 5.3 3.9 3.5 7.5C19 16.65 12 21 12 21Z"/></svg>Wishes</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v13H8l-4 3V5Z"/></svg>Messages</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M9 5H4v15h16V5h-5M9 5v4h6V5M9 5a3 3 0 016 0"/></svg>Audit</a>
       </div>
       <div class="op-main">
         <h2 class="op-title">Tasks — 6 open, 1 blocked, 2 unowned</h2>
@@ -94,14 +106,14 @@
         <table>
           <thead><tr><th><input type="checkbox"></th><th>Task</th><th>Owner</th><th>Status</th><th>Section</th><th>Age</th></tr></thead>
           <tbody>
-            <tr><td><input type="checkbox"></td><td>Approve obituary draft</td><td>Elena Reyes (family)</td><td><span class="status-pill status-yours">Your move</span></td><td>Messages</td><td>1d</td></tr>
-            <tr><td><input type="checkbox"></td><td>Confirm burial plot paperwork</td><td>Maria Rivera</td><td><span class="status-pill status-yours">Your move</span></td><td>Estate</td><td>2d</td></tr>
-            <tr><td><input type="checkbox"></td><td>Send vendor quote — florist</td><td>Bloom &amp; Co (vendor)</td><td><span class="status-pill status-waiting">Waiting on vendor</span></td><td>Vendors</td><td>3d</td></tr>
-            <tr><td><input type="checkbox"></td><td>Select casket options</td><td>—</td><td><span class="status-pill status-blocked">Unowned — needs assignment</span></td><td>Wishes</td><td>4d</td></tr>
-            <tr><td><input type="checkbox"></td><td>Life insurance claim doc request</td><td>—</td><td><span class="status-pill status-blocked">Unowned — needs assignment</span></td><td>Documents</td><td>5d</td></tr>
-            <tr><td><input type="checkbox"></td><td>Confirm service date with cemetery</td><td>Maria Rivera</td><td><span class="status-pill status-yours">Blocked — needs a decision</span></td><td>Horizon</td><td>1d</td></tr>
-            <tr><td><input type="checkbox"></td><td>Draft printed program</td><td>James T. (staff)</td><td><span class="status-pill status-waiting">In progress</span></td><td>Wishes</td><td>2d</td></tr>
-            <tr><td><input type="checkbox"></td><td>Life insurance claim started</td><td>David Reyes (family)</td><td><span class="status-pill status-done">Done — proof saved</span></td><td>Estate</td><td>—</td></tr>
+            <tr><td><input type="checkbox"></td><td>Approve obituary draft</td><td>Elena Reyes (family)</td><td><span class="status-pill status-yours"><span class="sdot"></span>Your move</span></td><td>Messages</td><td>1d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Confirm burial plot paperwork</td><td>Maria Rivera</td><td><span class="status-pill status-yours"><span class="sdot"></span>Your move</span></td><td>Estate</td><td>2d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Send vendor quote — florist</td><td>Bloom &amp; Co (vendor)</td><td><span class="status-pill status-waiting"><span class="sdot"></span>Waiting on vendor</span></td><td>Vendors</td><td>3d</td></tr>
+            <tr><td><input type="checkbox" checked></td><td>Select casket options</td><td>—</td><td><span class="status-pill status-blocked"><span class="sdot"></span>Unowned — needs assignment</span></td><td>Wishes</td><td>4d</td></tr>
+            <tr><td><input type="checkbox" checked></td><td>Life insurance claim doc request</td><td>—</td><td><span class="status-pill status-blocked"><span class="sdot"></span>Unowned — needs assignment</span></td><td>Documents</td><td>5d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Confirm service date with cemetery</td><td>Maria Rivera</td><td><span class="status-pill status-blocked"><span class="sdot"></span>Blocked — needs a decision</span></td><td>Horizon</td><td>1d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Draft printed program</td><td>James T. (staff)</td><td><span class="status-pill status-waiting"><span class="sdot"></span>In progress</span></td><td>Wishes</td><td>2d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Life insurance claim started</td><td>David Reyes (family)</td><td><span class="status-pill status-done"><span class="sdot"></span>Done — proof saved</span></td><td>Estate</td><td>—</td></tr>
           </tbody>
         </table>
         <div class="drawer-note"><b>Interaction note:</b> clicking any row opens a right-side drawer with full task detail (owner, waiting party, automation level, what Passage prepared, proof destination) — the case-list and task-table context stays visible behind it. Selecting the 2 unowned rows enables "Assign to..." as a bulk action in the toolbar (bulk actions exist only here, never on family-facing surfaces).</div>
@@ -112,7 +124,7 @@
 
 <!-- ============ SCREEN B: INVITE ============ -->
 <div class="screen">
-  <div class="screen-label"><span>Funeral Home Demo Path — A4: Invite</span><span class="state">Loaded state · operator variant (family variant uses warmer copy, same component)</span></div>
+  <div class="screen-label"><span>Funeral Home Demo Path — A4: Invite</span><span class="state">Loaded state · operator variant · v2 craft standard</span></div>
   <div class="op-shell">
     <div class="op-topbar">
       <div><div class="org">Margaret Reyes — Passage</div><div class="op-crumb">Rivera Funeral Home / Active cases / Margaret Reyes / People</div></div>
@@ -120,7 +132,16 @@
     <div class="op-body">
       <div class="op-nav">
         <div class="grp-label">Record</div>
-        <a>Today</a><a>Horizon</a><a>Tasks</a><a class="active">People</a><a>Documents</a><a>Estate</a><a>Medical</a><a>Wishes</a><a>Messages</a><a>Audit</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8M6 10v10h12V10"/></svg>Today</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Horizon</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>Tasks</a>
+        <a class="active"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg>People</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v13H8l-4 3V5Z"/></svg>Documents</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Estate</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7l7-4Z"/></svg>Medical</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.9 2.3 5 6 5c2 0 3.3 1 4 2.2C10.7 6 12 5 14 5c3.7 0 5.3 3.9 3.5 7.5C19 16.65 12 21 12 21Z"/></svg>Wishes</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v13H8l-4 3V5Z"/></svg>Messages</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M9 5H4v15h16V5h-5M9 5v4h6V5M9 5a3 3 0 016 0"/></svg>Audit</a>
       </div>
       <div class="op-main">
         <h2 class="op-title">Invite someone to this Passage</h2>
@@ -132,18 +153,18 @@
           <select><option>Executor</option><option>Inner circle</option><option>Witness</option><option>Recipient</option><option>Guardian</option><option>Co-editor</option><option>Attorney</option><option>Advisor</option></select>
           <label>Contact method</label>
           <input placeholder="Email or phone">
-          <div style="display:flex;gap:10px;margin-top:6px;">
+          <div style="display:flex;gap:10px;margin-top:8px;">
             <a class="btn btn-primary">Send invite</a>
-            <a class="btn btn-ghost">Cancel</a>
+            <a class="btn" style="background:#fff;color:var(--pine-800);border-color:var(--bone-400);">Cancel</a>
           </div>
         </div>
-        <h4 style="font-size:13px;margin:24px 0 10px;color:var(--pine-900);">Pending &amp; active invites</h4>
+        <h4 style="font-size:13px;margin:26px 0 12px;color:var(--pine-950);font-weight:700;">Pending &amp; active invites</h4>
         <table>
           <thead><tr><th>Name</th><th>Role</th><th>Contact</th><th>Invite status</th><th></th></tr></thead>
           <tbody>
-            <tr><td>David Reyes</td><td>Co-executor</td><td>david@reyes.com</td><td><span class="chip chip-accepted">Accepted</span></td><td><a style="font-size:12px;color:var(--ink-400);">—</a></td></tr>
-            <tr><td>Sofia Reyes</td><td>Inner circle</td><td>(555) 019-2231</td><td><span class="chip chip-sent">Sent — awaiting response</span></td><td><a style="font-size:12px;color:var(--pine-500);font-weight:600;">Resend</a></td></tr>
-            <tr><td>Patricia Nunez</td><td>Witness</td><td>pnunez@email.com</td><td><span class="chip chip-draft">Draft — not yet sent</span></td><td><a style="font-size:12px;color:var(--pine-500);font-weight:600;">Send now</a></td></tr>
+            <tr><td>David Reyes</td><td>Co-executor</td><td>david@reyes.com</td><td><span class="chip chip-accepted">Accepted</span></td><td><span style="font-size:12px;color:var(--ink-400);">—</span></td></tr>
+            <tr><td>Sofia Reyes</td><td>Inner circle</td><td>(555) 019-2231</td><td><span class="chip chip-sent">Sent — awaiting response</span></td><td><a style="font-size:12px;color:var(--pine-600);font-weight:700;">Resend</a></td></tr>
+            <tr><td>Patricia Nunez</td><td>Witness</td><td>pnunez@email.com</td><td><span class="chip chip-draft">Draft — not yet sent</span></td><td><a style="font-size:12px;color:var(--pine-600);font-weight:700;">Send now</a></td></tr>
           </tbody>
         </table>
       </div>
@@ -153,38 +174,47 @@
 
 <!-- ============ SCREEN C: DOCUMENTS ============ -->
 <div class="screen">
-  <div class="screen-label"><span>Funeral Home Demo Path — A5: Documents</span><span class="state">Loaded state · grouped by document_type, empty state per category</span></div>
+  <div class="screen-label"><span>Funeral Home Demo Path — A5: Documents</span><span class="state">Loaded state · grouped by document_type · v2 craft standard</span></div>
   <div class="op-shell">
     <div class="op-topbar">
       <div><div class="org">Margaret Reyes — Passage</div><div class="op-crumb">Rivera Funeral Home / Active cases / Margaret Reyes / Documents</div></div>
-      <a class="btn btn-primary">Request from family</a>
+      <a class="btn btn-primary"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M12 5v14M5 12h14"/></svg>Request from family</a>
     </div>
     <div class="op-body">
       <div class="op-nav">
         <div class="grp-label">Record</div>
-        <a>Today</a><a>Horizon</a><a>Tasks</a><a>People</a><a class="active">Documents</a><a>Estate</a><a>Medical</a><a>Wishes</a><a>Messages</a><a>Audit</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8M6 10v10h12V10"/></svg>Today</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Horizon</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>Tasks</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg>People</a>
+        <a class="active"><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v13H8l-4 3V5Z"/></svg>Documents</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Estate</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7l7-4Z"/></svg>Medical</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.9 2.3 5 6 5c2 0 3.3 1 4 2.2C10.7 6 12 5 14 5c3.7 0 5.3 3.9 3.5 7.5C19 16.65 12 21 12 21Z"/></svg>Wishes</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v13H8l-4 3V5Z"/></svg>Messages</a>
+        <a><svg class="icon" viewBox="0 0 24 24"><path d="M9 5H4v15h16V5h-5M9 5v4h6V5M9 5a3 3 0 016 0"/></svg>Audit</a>
       </div>
       <div class="op-main">
         <h2 class="op-title">Documents</h2>
         <p class="op-sub">Grouped by type — drag to upload, or request directly from the family (creates a task).</p>
         <div class="doc-cats">
           <div class="doc-cat">
-            <h4>Legal</h4>
+            <h4><div class="icon-wrap"><svg class="icon" viewBox="0 0 24 24"><path d="M9 12h6M9 16h6M9 8h2M4 4h16v16H4z"/></svg></div>Legal</h4>
             <div class="doc-row"><span>Advance directive.pdf</span><span class="chip chip-accepted">Saved</span></div>
             <div class="doc-row"><span>Will (draft).pdf</span><span class="chip chip-sent">Pending review</span></div>
-            <div class="empty-cat" style="margin-top:8px;">No power of attorney on file — <a style="color:var(--clay-600);font-weight:600;">request from family</a></div>
+            <div class="empty-cat" style="margin-top:10px;">No power of attorney on file — <a style="color:var(--clay-600);font-weight:700;">request from family</a></div>
           </div>
           <div class="doc-cat">
-            <h4>Identity</h4>
+            <h4><div class="icon-wrap"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg></div>Identity</h4>
             <div class="doc-row"><span>Birth certificate.pdf</span><span class="chip chip-accepted">Saved</span></div>
             <div class="doc-row"><span>Marriage certificate.pdf</span><span class="chip chip-accepted">Saved</span></div>
           </div>
           <div class="doc-cat">
-            <h4>Financial</h4>
-            <div class="empty-cat">Nothing here yet — <a style="color:var(--clay-600);font-weight:600;">request tax return or financial statement</a></div>
+            <h4><div class="icon-wrap"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg></div>Financial</h4>
+            <div class="empty-cat">Nothing here yet — <a style="color:var(--clay-600);font-weight:700;">request tax return or financial statement</a></div>
           </div>
           <div class="doc-cat">
-            <h4>Service</h4>
+            <h4><div class="icon-wrap"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg></div>Service</h4>
             <div class="doc-row"><span>Funeral contract — signed.pdf</span><span class="chip chip-accepted">Saved</span></div>
           </div>
         </div>
