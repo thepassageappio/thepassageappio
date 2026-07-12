@@ -1,5 +1,17 @@
 # Passage Agent Operating Guide
 
+## UX Redesign Directive — 2026-07-11 (owner-approved)
+
+Active initiative: full greenfield UX/UI/IA redesign, codename "Threshold". Source of truth: `docs/UX-REDESIGN-BRIEF.md` — read it FIRST for any redesign, design-system, information-architecture, or persona-surface work.
+
+The owner (Steve) has explicitly authorized a complete teardown and rebuild of the UI/UX/IA. For redesign work this supersedes the "prefer existing design language / CalmKit" guidance below: keep the Supabase data model, roles, and feature scope as fixed truth, but treat visual design, UX, and IA as greenfield per the brief. Retain only viewer-relative status from CalmKit; rebuild it.
+
+Deliverable priority: the funeral-home demo path must be production-ready first. Also design the admin-access model (dedicated Admin Portal + secure view/impersonate) and a demo-instance strategy that never exposes demo pages in production. Details in the brief.
+
+A scheduled agent run resumes this redesign work on 2026-07-12 at ~12:30pm ET. Prior artifacts are in the workspace folder `Passage-UX-Redesign/`.
+
+---
+
 This file is the first-read contract for agents working on Passage. It is stable guidance. The living status and handoff lives in docs/agent-operating-context.md.
 
 ## Magic Phrase
