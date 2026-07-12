@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Threshold — Funeral Home Demo Path (Record · Invite · Documents)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine-900:#0F2A24; --pine-700:#1C4A3E; --pine-500:#2E6B58; --pine-100:#E4EDE9;
+    --clay-600:#B5622F; --clay-400:#D08A56; --clay-100:#F5E4D6;
+    --bone-100:#FBF8F3; --bone-200:#F3EEE4; --bone-300:#E9E1D2;
+    --ink-900:#221E1A; --ink-600:#5A5348; --ink-400:#8B8478;
+    --ok-600:#4C7A5C; --ok-100:#E3EEE4;
+    --wait-600:#B5862F; --wait-100:#F5EAD6;
+    --urgent-600:#A44A3F; --urgent-100:#F3DFDA;
+    --line:#DED5C2;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;color:var(--ink-900);background:#D9D2C2;}
+  .screen{max-width:1280px;margin:0 auto 40px;background:var(--bone-100);min-height:760px;position:relative;overflow:hidden;}
+  .screen-label{background:var(--pine-900);color:var(--bone-100);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:10px 24px;display:flex;justify-content:space-between;}
+  .screen-label .state{color:#C9D6CF;font-weight:500;text-transform:none;letter-spacing:0;}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;border-radius:8px;padding:9px 16px;border:1px solid transparent;cursor:pointer;text-decoration:none;}
+  .btn-primary{background:var(--clay-600);color:#fff;}
+  .btn-secondary{background:#fff;color:var(--pine-700);border-color:var(--pine-500);}
+  .btn-ghost{background:transparent;color:var(--pine-700);border:1px solid var(--line);}
+  .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:100px;white-space:nowrap;}
+  .status-yours{background:var(--clay-100);color:var(--clay-600);}
+  .status-waiting{background:var(--wait-100);color:var(--wait-600);}
+  .status-done{background:var(--ok-100);color:var(--ok-600);}
+  .status-blocked{background:var(--urgent-100);color:var(--urgent-600);}
+  .chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;background:var(--bone-300);color:var(--ink-600);}
+  .chip-sent{background:var(--wait-100);color:var(--wait-600);}
+  .chip-accepted{background:var(--ok-100);color:var(--ok-600);}
+  .chip-draft{background:var(--bone-300);color:var(--ink-400);}
+
+  /* Shared operator shell */
+  .op-shell{background:var(--pine-900);min-height:780px;color:var(--bone-100);}
+  .op-topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid rgba(255,255,255,.1);}
+  .op-topbar .org{font-family:'Fraunces';font-size:16px;font-weight:500;}
+  .op-crumb{font-size:12px;color:#9FB3A9;margin-top:2px;}
+  .op-body{display:flex;}
+  .op-nav{width:220px;padding:20px 0;border-right:1px solid rgba(255,255,255,.08);flex:none;}
+  .op-nav .grp-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#7C9088;padding:14px 24px 6px;}
+  .op-nav a{display:block;padding:9px 24px;color:#C9D6CF;font-size:13px;text-decoration:none;font-weight:500;}
+  .op-nav a.active{background:rgba(255,255,255,.08);color:#fff;border-right:2px solid var(--clay-400);}
+  .op-main{flex:1;padding:28px 32px;background:var(--bone-100);color:var(--ink-900);border-top-left-radius:20px;overflow:hidden;}
+  .op-title{font-family:'Fraunces';font-weight:500;font-size:22px;color:var(--pine-900);margin:0 0 3px;}
+  .op-sub{color:var(--ink-600);font-size:13px;margin:0 0 20px;}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-400);padding:11px 14px;background:var(--bone-200);font-weight:600;}
+  td{padding:12px 14px;font-size:13px;border-top:1px solid var(--bone-300);vertical-align:middle;}
+  .empty-cat{color:var(--ink-400);font-size:12.5px;font-style:italic;padding:16px;text-align:center;border:1px dashed var(--line);border-radius:8px;}
+
+  /* Screen A: record sub-nav */
+  .record-shell{display:flex;gap:20px;}
+  .rec-subnav{width:170px;flex:none;}
+  .rec-subnav a{display:block;padding:8px 12px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--ink-600);text-decoration:none;margin-bottom:2px;}
+  .rec-subnav a.active{background:var(--pine-100);color:var(--pine-900);font-weight:600;}
+  .rec-content{flex:1;}
+  .drawer-note{background:var(--pine-100);border:1px solid var(--pine-500);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--pine-900);margin-top:16px;}
+
+  /* Screen B: Invite */
+  .invite-form{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px;max-width:460px;margin-bottom:24px;}
+  .invite-form label{display:block;font-size:12px;font-weight:600;color:var(--ink-600);margin:0 0 6px;}
+  .invite-form input,.invite-form select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:7px;font-size:13.5px;margin-bottom:14px;font-family:'Inter';}
+
+  /* Screen C: Documents */
+  .doc-cats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .doc-cat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;}
+  .doc-cat h4{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--pine-900);}
+  .doc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12.5px;border-top:1px solid var(--bone-300);}
+  .doc-row:first-of-type{border-top:none;}
+</style>
+</head>
+<body>
+
+<!-- ============ SCREEN A: PASSAGE RECORD + TASK SPINE (operator) ============ -->
+<div class="screen">
+  <div class="screen-label"><span>Funeral Home Demo Path — A3: Passage Record + Tasks (operator-styled)</span><span class="state">Loaded state · viewer: operator</span></div>
+  <div class="op-shell">
+    <div class="op-topbar">
+      <div><div class="org">Margaret Reyes — Passage</div><div class="op-crumb">Rivera Funeral Home / Active cases / Margaret Reyes</div></div>
+      <div style="display:flex;gap:10px;"><a class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3);">Back to cases</a></div>
+    </div>
+    <div class="op-body">
+      <div class="op-nav">
+        <div class="grp-label">Record</div>
+        <a>Today</a><a>Horizon</a><a class="active">Tasks</a><a>People</a><a>Documents</a><a>Estate</a><a>Medical</a><a>Wishes</a><a>Messages</a><a>Audit</a>
+      </div>
+      <div class="op-main">
+        <h2 class="op-title">Tasks — 6 open, 1 blocked, 2 unowned</h2>
+        <p class="op-sub">Filtered: all owners · Bulk-assign available for unowned rows</p>
+        <table>
+          <thead><tr><th><input type="checkbox"></th><th>Task</th><th>Owner</th><th>Status</th><th>Section</th><th>Age</th></tr></thead>
+          <tbody>
+            <tr><td><input type="checkbox"></td><td>Approve obituary draft</td><td>Elena Reyes (family)</td><td><span class="status-pill status-yours">Your move</span></td><td>Messages</td><td>1d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Confirm burial plot paperwork</td><td>Maria Rivera</td><td><span class="status-pill status-yours">Your move</span></td><td>Estate</td><td>2d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Send vendor quote — florist</td><td>Bloom &amp; Co (vendor)</td><td><span class="status-pill status-waiting">Waiting on vendor</span></td><td>Vendors</td><td>3d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Select casket options</td><td>—</td><td><span class="status-pill status-blocked">Unowned — needs assignment</span></td><td>Wishes</td><td>4d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Life insurance claim doc request</td><td>—</td><td><span class="status-pill status-blocked">Unowned — needs assignment</span></td><td>Documents</td><td>5d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Confirm service date with cemetery</td><td>Maria Rivera</td><td><span class="status-pill status-yours">Blocked — needs a decision</span></td><td>Horizon</td><td>1d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Draft printed program</td><td>James T. (staff)</td><td><span class="status-pill status-waiting">In progress</span></td><td>Wishes</td><td>2d</td></tr>
+            <tr><td><input type="checkbox"></td><td>Life insurance claim started</td><td>David Reyes (family)</td><td><span class="status-pill status-done">Done — proof saved</span></td><td>Estate</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="drawer-note"><b>Interaction note:</b> clicking any row opens a right-side drawer with full task detail (owner, waiting party, automation level, what Passage prepared, proof destination) — the case-list and task-table context stays visible behind it. Selecting the 2 unowned rows enables "Assign to..." as a bulk action in the toolbar (bulk actions exist only here, never on family-facing surfaces).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN B: INVITE ============ -->
+<div class="screen">
+  <div class="screen-label"><span>Funeral Home Demo Path — A4: Invite</span><span class="state">Loaded state · operator variant (family variant uses warmer copy, same component)</span></div>
+  <div class="op-shell">
+    <div class="op-topbar">
+      <div><div class="org">Margaret Reyes — Passage</div><div class="op-crumb">Rivera Funeral Home / Active cases / Margaret Reyes / People</div></div>
+    </div>
+    <div class="op-body">
+      <div class="op-nav">
+        <div class="grp-label">Record</div>
+        <a>Today</a><a>Horizon</a><a>Tasks</a><a class="active">People</a><a>Documents</a><a>Estate</a><a>Medical</a><a>Wishes</a><a>Messages</a><a>Audit</a>
+      </div>
+      <div class="op-main">
+        <h2 class="op-title">Invite someone to this Passage</h2>
+        <p class="op-sub">They'll get read-only access to what you choose to share — no account required to view.</p>
+        <div class="invite-form">
+          <label>Name</label>
+          <input placeholder="e.g. David Reyes">
+          <label>Relationship / role</label>
+          <select><option>Executor</option><option>Inner circle</option><option>Witness</option><option>Recipient</option><option>Guardian</option><option>Co-editor</option><option>Attorney</option><option>Advisor</option></select>
+          <label>Contact method</label>
+          <input placeholder="Email or phone">
+          <div style="display:flex;gap:10px;margin-top:6px;">
+            <a class="btn btn-primary">Send invite</a>
+            <a class="btn btn-ghost">Cancel</a>
+          </div>
+        </div>
+        <h4 style="font-size:13px;margin:24px 0 10px;color:var(--pine-900);">Pending &amp; active invites</h4>
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Contact</th><th>Invite status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>David Reyes</td><td>Co-executor</td><td>david@reyes.com</td><td><span class="chip chip-accepted">Accepted</span></td><td><a style="font-size:12px;color:var(--ink-400);">—</a></td></tr>
+            <tr><td>Sofia Reyes</td><td>Inner circle</td><td>(555) 019-2231</td><td><span class="chip chip-sent">Sent — awaiting response</span></td><td><a style="font-size:12px;color:var(--pine-500);font-weight:600;">Resend</a></td></tr>
+            <tr><td>Patricia Nunez</td><td>Witness</td><td>pnunez@email.com</td><td><span class="chip chip-draft">Draft — not yet sent</span></td><td><a style="font-size:12px;color:var(--pine-500);font-weight:600;">Send now</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN C: DOCUMENTS ============ -->
+<div class="screen">
+  <div class="screen-label"><span>Funeral Home Demo Path — A5: Documents</span><span class="state">Loaded state · grouped by document_type, empty state per category</span></div>
+  <div class="op-shell">
+    <div class="op-topbar">
+      <div><div class="org">Margaret Reyes — Passage</div><div class="op-crumb">Rivera Funeral Home / Active cases / Margaret Reyes / Documents</div></div>
+      <a class="btn btn-primary">Request from family</a>
+    </div>
+    <div class="op-body">
+      <div class="op-nav">
+        <div class="grp-label">Record</div>
+        <a>Today</a><a>Horizon</a><a>Tasks</a><a>People</a><a class="active">Documents</a><a>Estate</a><a>Medical</a><a>Wishes</a><a>Messages</a><a>Audit</a>
+      </div>
+      <div class="op-main">
+        <h2 class="op-title">Documents</h2>
+        <p class="op-sub">Grouped by type — drag to upload, or request directly from the family (creates a task).</p>
+        <div class="doc-cats">
+          <div class="doc-cat">
+            <h4>Legal</h4>
+            <div class="doc-row"><span>Advance directive.pdf</span><span class="chip chip-accepted">Saved</span></div>
+            <div class="doc-row"><span>Will (draft).pdf</span><span class="chip chip-sent">Pending review</span></div>
+            <div class="empty-cat" style="margin-top:8px;">No power of attorney on file — <a style="color:var(--clay-600);font-weight:600;">request from family</a></div>
+          </div>
+          <div class="doc-cat">
+            <h4>Identity</h4>
+            <div class="doc-row"><span>Birth certificate.pdf</span><span class="chip chip-accepted">Saved</span></div>
+            <div class="doc-row"><span>Marriage certificate.pdf</span><span class="chip chip-accepted">Saved</span></div>
+          </div>
+          <div class="doc-cat">
+            <h4>Financial</h4>
+            <div class="empty-cat">Nothing here yet — <a style="color:var(--clay-600);font-weight:600;">request tax return or financial statement</a></div>
+          </div>
+          <div class="doc-cat">
+            <h4>Service</h4>
+            <div class="doc-row"><span>Funeral contract — signed.pdf</span><span class="chip chip-accepted">Saved</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
