@@ -1,1 +1,187 @@
-PLACEHOLDER_01
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Threshold — Passage Design System Foundation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine-900:#0F2A24; --pine-700:#1C4A3E; --pine-500:#2E6B58; --pine-100:#E4EDE9;
+    --clay-600:#B5622F; --clay-400:#D08A56; --clay-100:#F5E4D6;
+    --bone-100:#FBF8F3; --bone-200:#F3EEE4; --bone-300:#E9E1D2;
+    --ink-900:#221E1A; --ink-600:#5A5348; --ink-400:#8B8478;
+    --ok-600:#4C7A5C; --ok-100:#E3EEE4;
+    --wait-600:#B5862F; --wait-100:#F5EAD6;
+    --urgent-600:#A44A3F; --urgent-100:#F3DFDA;
+    --line:#DED5C2;
+    --radius:10px; --radius-sm:6px;
+    --shadow-1:0 1px 2px rgba(15,42,36,0.06), 0 1px 1px rgba(15,42,36,0.04);
+    --shadow-2:0 4px 16px rgba(15,42,36,0.09);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bone-100);color:var(--ink-900);font-family:'Inter',sans-serif;line-height:1.5;}
+  .wrap{max-width:1120px;margin:0 auto;padding:56px 32px 120px;}
+  header.page{margin-bottom:64px;}
+  .kicker{font-family:'Inter';font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--clay-600);}
+  h1.title{font-family:'Fraunces',serif;font-weight:500;font-size:52px;line-height:1.05;margin:10px 0 14px;color:var(--pine-900);}
+  .sub{font-size:17px;color:var(--ink-600);max-width:640px;}
+  section{margin-top:72px;}
+  h2.sec{font-family:'Fraunces',serif;font-weight:500;font-size:28px;color:var(--pine-900);margin:0 0 6px;}
+  .sec-desc{color:var(--ink-600);font-size:14.5px;max-width:680px;margin-bottom:28px;}
+  .grid{display:grid;gap:16px;}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:repeat(2,1fr);}
+  .swatch{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:#fff;}
+  .swatch .fill{height:84px;}
+  .swatch .meta{padding:10px 12px;font-size:12.5px;}
+  .swatch .meta .name{font-weight:600;}
+  .swatch .meta .hex{color:var(--ink-400);font-family:monospace;font-size:11.5px;}
+  .type-row{display:flex;align-items:baseline;gap:18px;padding:18px 0;border-top:1px solid var(--line);}
+  .type-row:last-child{border-bottom:1px solid var(--line);}
+  .type-label{width:150px;flex:none;font-size:12px;color:var(--ink-400);font-family:monospace;}
+  .rule{background:var(--pine-100);border:1px solid var(--pine-500);border-radius:var(--radius);padding:16px 20px;font-size:14px;color:var(--pine-900);margin-top:18px;}
+  .rule b{color:var(--pine-700);}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-1);}
+  .card h3{margin:0 0 6px;font-size:15px;}
+  .card p{margin:0;color:var(--ink-600);font-size:13.5px;}
+  .space-row{display:flex;align-items:center;gap:14px;padding:8px 0;}
+  .space-box{background:var(--clay-400);height:14px;border-radius:3px;}
+  .space-label{font-family:monospace;font-size:12px;color:var(--ink-400);width:70px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:'Inter';font-weight:600;font-size:14px;border-radius:8px;padding:10px 18px;border:1px solid transparent;cursor:pointer;}
+  .btn-primary{background:var(--pine-700);color:#fff;}
+  .btn-secondary{background:#fff;color:var(--pine-700);border-color:var(--pine-500);}
+  .btn-clay{background:var(--clay-600);color:#fff;}
+  .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:5px 11px;border-radius:100px;}
+  .status-yours{background:var(--clay-100);color:var(--clay-600);}
+  .status-waiting{background:var(--wait-100);color:var(--wait-600);}
+  .status-done{background:var(--ok-100);color:var(--ok-600);}
+  .status-urgent{background:var(--urgent-100);color:var(--urgent-600);}
+  .temp-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .temp-card{border-radius:14px;padding:28px;}
+  .temp-family{background:var(--bone-200);border:1px solid var(--line);}
+  .temp-operator{background:var(--pine-900);color:var(--bone-100);}
+  .temp-card h3{font-family:'Fraunces';font-weight:500;font-size:20px;margin:0 0 10px;}
+  .temp-operator h3{color:#fff;}
+  .temp-card ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.7;}
+  .temp-operator ul{color:#D8E4DE;}
+  .footer-note{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);color:var(--ink-400);font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <div class="kicker">Passage — Design System Foundation</div>
+    <h1 class="title">Threshold</h1>
+    <p class="sub">Rebuilt 2026-07-12 from <code>docs/UX-REDESIGN-BRIEF.md</code> (prior workspace artifacts were not recoverable — this is the authoritative version going forward, committed to the repo). One system, two temperatures: warm and unhurried for grieving families, structured and dense-capable for the operators coordinating around them.</p>
+  </header>
+
+  <section>
+    <h2 class="sec">Color</h2>
+    <p class="sec-desc">Deep Pine for authority and continuity. Warm Clay for humanity and action. Bone paper underneath everything. No siren-red anywhere in the system — urgency is communicated through Clay, layout, and language, not alarm color.</p>
+    <div class="grid grid-4">
+      <div class="swatch"><div class="fill" style="background:var(--pine-900)"></div><div class="meta"><div class="name">Pine 900</div><div class="hex">#0F2A24 — headlines, primary text on light</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--pine-700)"></div><div class="meta"><div class="name">Pine 700</div><div class="hex">#1C4A3E — primary buttons, nav</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--pine-500)"></div><div class="meta"><div class="name">Pine 500</div><div class="hex">#2E6B58 — links, active state</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--pine-100)"></div><div class="meta"><div class="name">Pine 100</div><div class="hex">#E4EDE9 — operator surface tint</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--clay-600)"></div><div class="meta"><div class="name">Clay 600</div><div class="hex">#B5622F — "your move," key actions</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--clay-400)"></div><div class="meta"><div class="name">Clay 400</div><div class="hex">#D08A56 — accents, highlights</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--bone-100)"></div><div class="meta"><div class="name">Bone 100</div><div class="hex">#FBF8F3 — page background</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--bone-300)"></div><div class="meta"><div class="name">Bone 300</div><div class="hex">#E9E1D2 — dividers, subtle fills</div></div></div>
+    </div>
+    <p style="margin-top:20px;font-size:13.5px;color:var(--ink-600);"><b>Status colors</b> (earthy, never siren): <span class="status-pill status-yours">Your move</span> <span class="status-pill status-waiting">Waiting on Rivera Funeral Home</span> <span class="status-pill status-done">Done</span> <span class="status-pill status-urgent">Needs attention today</span> — even the urgent state stays a muted rust, not red, so the highest-stakes screen in the product is also the calmest.</p>
+  </section>
+
+  <section>
+    <h2 class="sec">Type</h2>
+    <p class="sec-desc">One rule at every decision: <b>moment, or mechanism?</b> Fraunces carries the moments — names, milestones, empathetic headlines. Inter carries the mechanisms — everything you act on, scan, or fill in.</p>
+    <div>
+      <div class="type-row"><div class="type-label">Fraunces 500 / 44</div><div style="font-family:'Fraunces';font-weight:500;font-size:44px;color:var(--pine-900);">Margaret's Passage is ready for you.</div></div>
+      <div class="type-row"><div class="type-label">Fraunces 500 / 28</div><div style="font-family:'Fraunces';font-weight:500;font-size:28px;color:var(--pine-900);">Everything Rivera Funeral Home needs, in one place.</div></div>
+      <div class="type-row"><div class="type-label">Inter 600 / 16</div><div style="font-family:'Inter';font-weight:600;font-size:16px;">Section labels, table headers, button text</div></div>
+      <div class="type-row"><div class="type-label">Inter 400 / 15</div><div style="font-family:'Inter';font-weight:400;font-size:15px;color:var(--ink-600);">Body copy, form labels, task descriptions — built for scanning under stress, not reading for pleasure.</div></div>
+      <div class="type-row"><div class="type-label">Inter 500 / 12.5</div><div style="font-family:'Inter';font-weight:500;font-size:12.5px;color:var(--ink-400);letter-spacing:.03em;">METADATA, TIMESTAMPS, STATUS LABELS</div></div>
+    </div>
+    <div class="rule"><b>Rule of thumb:</b> if the sentence is being said <i>to</i> the family about their life, it's a moment (Fraunces). If it tells someone what to do or shows them data, it's a mechanism (Inter). A screen title can be Fraunces; the buttons and lists beneath it are always Inter.</div>
+  </section>
+
+  <section>
+    <h2 class="sec">Spacing &amp; grid</h2>
+    <p class="sec-desc">8px base unit. 12-column grid, 1120px max content width on desktop consoles; single-column, thumb-safe stacking on Family mobile.</p>
+    <div>
+      <div class="space-row"><div class="space-label">4</div><div class="space-box" style="width:4px;"></div></div>
+      <div class="space-row"><div class="space-label">8</div><div class="space-box" style="width:8px;"></div></div>
+      <div class="space-row"><div class="space-label">16</div><div class="space-box" style="width:16px;"></div></div>
+      <div class="space-row"><div class="space-label">24</div><div class="space-box" style="width:24px;"></div></div>
+      <div class="space-row"><div class="space-label">32</div><div class="space-box" style="width:32px;"></div></div>
+      <div class="space-row"><div class="space-label">48</div><div class="space-box" style="width:48px;"></div></div>
+      <div class="space-row"><div class="space-label">64</div><div class="space-box" style="width:64px;"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec">Elevation, radius, motion</h2>
+    <div class="grid grid-3">
+      <div class="card"><h3>Elevation</h3><p>Two levels only. Level 1 (resting cards, list rows) = barely-there. Level 2 (modals, active task drawer) = a soft lift, never a hard drop shadow. Nothing floats aggressively — this is a record, not a dashboard trying to impress.</p></div>
+      <div class="card"><h3>Radius</h3><p>10px standard, 6px for compact controls (pills, chips, inline badges). Consistent everywhere — no mixing of sharp admin corners and round consumer corners.</p></div>
+      <div class="card"><h3>Motion</h3><p>180–220ms ease-out on state changes. No bounce, no confetti, no celebratory motion tied to death-adjacent actions. Motion exists to orient ("this task just moved to done"), never to delight.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec">Components — tone in practice</h2>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Buttons</h3>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary">Continue</button>
+          <button class="btn btn-secondary">Not right now</button>
+          <button class="btn btn-clay">Invite a family member</button>
+        </div>
+        <p style="margin-top:12px;">Primary = Pine (calm authority). Clay reserved for the one action that moves the family record forward. Never more than one Clay action per screen.</p>
+      </div>
+      <div class="card">
+        <h3>Viewer-relative status (the one CalmKit idea we kept)</h3>
+        <div style="display:flex;gap:8px;flex-direction:column;margin-top:10px;">
+          <span class="status-pill status-yours">Your move — confirm the obituary draft</span>
+          <span class="status-pill status-waiting">Waiting on Rivera Funeral Home</span>
+          <span class="status-pill status-done">Done — proof saved</span>
+        </div>
+        <p style="margin-top:12px;">Same underlying task, three different labels depending on who's looking. Rebuilt as a first-class component, not a CSS class — see Task Spine doc.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec">One kit, two temperatures</h2>
+    <p class="sec-desc">Same tokens, same components, same status language — density and pacing adapt to who's using it.</p>
+    <div class="temp-cols">
+      <div class="temp-card temp-family">
+        <h3>Family — warm</h3>
+        <ul>
+          <li>Mobile-first, one thing at a time</li>
+          <li>Generous whitespace, larger type</li>
+          <li>One clear next action per screen</li>
+          <li>Compassionate, plain-language copy</li>
+          <li>Progress always visible, never a raw percentage</li>
+        </ul>
+      </div>
+      <div class="temp-card temp-operator">
+        <h3>Operator — structured</h3>
+        <ul>
+          <li>Desktop console, dense-capable tables</li>
+          <li>Funeral home / vendor / admin surfaces</li>
+          <li>Bulk actions, filters, exports</li>
+          <li>Zero ambiguity in ownership, always visible</li>
+          <li>Efficient over delightful — respects a busy desk</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-note">Threshold v1 · docs/redesign/01-design-system-foundation.html · Passage UX Redesign · committed 2026-07-12</div>
+</div>
+</body>
+</html>
