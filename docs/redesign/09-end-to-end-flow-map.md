@@ -113,4 +113,4 @@ Vendor never navigates outside this one scoped view — no cross-links to family
 - Vendor quote-submission form (currently inline-implied on the request card)
 - Admin "Recent grants" audit list detail view
 
-These are small, well-scoped additions — next candidates once the current batch (auth flow, remaining record sections, messages/notifications/settings) ships.
+These are small, well-scoped additions. Status as of 2026-07-12: the batch referenced above (auth-flow-mockups.html, family-record-sections-mockups.html, messages-notifications-settings-mockups.html) has shipped — every non-open-item screen in this map now has a real mockup file. These 5 remain the only gap. See `10-handoff-next-steps.md` for the plan to close them and for the first real production deploy.
