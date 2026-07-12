@@ -4,112 +4,165 @@
 <meta charset="UTF-8">
 <title>Threshold — Passage Design System Foundation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,440;9..144,520;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --pine-900:#0F2A24; --pine-700:#1C4A3E; --pine-500:#2E6B58; --pine-100:#E4EDE9;
-    --clay-600:#B5622F; --clay-400:#D08A56; --clay-100:#F5E4D6;
-    --bone-100:#FBF8F3; --bone-200:#F3EEE4; --bone-300:#E9E1D2;
-    --ink-900:#221E1A; --ink-600:#5A5348; --ink-400:#8B8478;
-    --ok-600:#4C7A5C; --ok-100:#E3EEE4;
-    --wait-600:#B5862F; --wait-100:#F5EAD6;
-    --urgent-600:#A44A3F; --urgent-100:#F3DFDA;
-    --line:#DED5C2;
-    --radius:10px; --radius-sm:6px;
-    --shadow-1:0 1px 2px rgba(15,42,36,0.06), 0 1px 1px rgba(15,42,36,0.04);
-    --shadow-2:0 4px 16px rgba(15,42,36,0.09);
+    --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B; --pine-500:#2E6B58;
+    --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+    --clay-700:#9A4F26; --clay-600:#B5622F; --clay-500:#C97841; --clay-400:#D08A56; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+    --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+    --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081; --ink-300:#BEB6A8;
+    --ok-700:#3D6449; --ok-600:#4C7A5C; --ok-100:#E3EEE4;
+    --wait-700:#946B23; --wait-600:#B5862F; --wait-100:#F5EAD6;
+    --line:#E6DDCB; --line-soft:#EFE8DA;
+    --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+    --e1:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03);
+    --e2:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10);
+    --e3:0 8px 20px -6px rgba(20,30,25,.14), 0 24px 48px -20px rgba(20,30,25,.18);
+    --ease:cubic-bezier(.22,1,.36,1);
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bone-100);color:var(--ink-900);font-family:'Inter',sans-serif;line-height:1.5;}
-  .wrap{max-width:1120px;margin:0 auto;padding:56px 32px 120px;}
-  header.page{margin-bottom:64px;}
-  .kicker{font-family:'Inter';font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--clay-600);}
-  h1.title{font-family:'Fraunces',serif;font-weight:500;font-size:52px;line-height:1.05;margin:10px 0 14px;color:var(--pine-900);}
-  .sub{font-size:17px;color:var(--ink-600);max-width:640px;}
-  section{margin-top:72px;}
-  h2.sec{font-family:'Fraunces',serif;font-weight:500;font-size:28px;color:var(--pine-900);margin:0 0 6px;}
-  .sec-desc{color:var(--ink-600);font-size:14.5px;max-width:680px;margin-bottom:28px;}
-  .grid{display:grid;gap:16px;}
+  html{-webkit-font-smoothing:antialiased;}
+  body{margin:0;background:var(--bone-100);color:var(--ink-900);font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.005em;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 40px 160px;}
+
+  /* ---- glass top bar ---- */
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(251,248,243,.72);backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid rgba(230,221,203,.7);}
+  .topbar-inner{max-width:1180px;margin:0 auto;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:9px;font-family:'Fraunces';font-weight:520;font-size:17px;color:var(--pine-900);}
+  .brand .mark{width:22px;height:22px;border-radius:7px;background:linear-gradient(155deg,var(--pine-700),var(--pine-900));box-shadow:inset 0 1px 1px rgba(255,255,255,.25);}
+  .topnav{display:flex;gap:28px;font-size:13px;font-weight:600;color:var(--ink-500);}
+  .topnav span.on{color:var(--pine-900);}
+
+  header.page{padding:96px 0 64px;}
+  .kicker{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--clay-600);background:var(--clay-50);border:1px solid var(--clay-200);padding:6px 13px 6px 10px;border-radius:var(--r-full);}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--clay-600);}
+  h1.title{font-family:'Fraunces',serif;font-weight:440;font-size:clamp(44px,6vw,68px);line-height:1.02;letter-spacing:-.02em;margin:22px 0 20px;color:var(--pine-950);}
+  .sub{font-size:18px;line-height:1.6;color:var(--ink-600);max-width:660px;font-weight:400;}
+  .sub code{background:var(--bone-300);padding:2px 7px;border-radius:6px;font-size:14.5px;color:var(--pine-800);}
+
+  section{margin-top:104px;}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:32px;gap:24px;}
+  h2.sec{font-family:'Fraunces',serif;font-weight:460;font-size:33px;letter-spacing:-.015em;color:var(--pine-950);margin:0;}
+  .sec-index{font-size:12px;font-weight:700;color:var(--ink-300);letter-spacing:.06em;}
+  .sec-desc{color:var(--ink-600);font-size:15.5px;line-height:1.65;max-width:700px;margin:-14px 0 32px;}
+
+  .grid{display:grid;gap:14px;}
   .grid-4{grid-template-columns:repeat(4,1fr);}
   .grid-3{grid-template-columns:repeat(3,1fr);}
   .grid-2{grid-template-columns:repeat(2,1fr);}
-  .swatch{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:#fff;}
-  .swatch .fill{height:84px;}
-  .swatch .meta{padding:10px 12px;font-size:12.5px;}
-  .swatch .meta .name{font-weight:600;}
-  .swatch .meta .hex{color:var(--ink-400);font-family:monospace;font-size:11.5px;}
-  .type-row{display:flex;align-items:baseline;gap:18px;padding:18px 0;border-top:1px solid var(--line);}
-  .type-row:last-child{border-bottom:1px solid var(--line);}
-  .type-label{width:150px;flex:none;font-size:12px;color:var(--ink-400);font-family:monospace;}
-  .rule{background:var(--pine-100);border:1px solid var(--pine-500);border-radius:var(--radius);padding:16px 20px;font-size:14px;color:var(--pine-900);margin-top:18px;}
+
+  /* ---- color swatches, refined ---- */
+  .swatch{border-radius:var(--r-md);overflow:hidden;background:var(--bone-50);box-shadow:var(--e1);border:1px solid var(--line-soft);transition:transform .25s var(--ease),box-shadow .25s var(--ease);}
+  .swatch:hover{transform:translateY(-3px);box-shadow:var(--e2);}
+  .swatch .fill{height:96px;position:relative;}
+  .swatch .fill::after{content:'';position:absolute;inset:0;background:linear-gradient(155deg,rgba(255,255,255,.14),rgba(0,0,0,.06));}
+  .swatch .meta{padding:14px 16px 16px;}
+  .swatch .meta .name{font-weight:600;font-size:13.5px;color:var(--ink-900);}
+  .swatch .meta .hex{color:var(--ink-500);font-family:'SF Mono',ui-monospace,monospace;font-size:11px;margin-top:3px;line-height:1.5;}
+
+  .status-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:var(--r-full);box-shadow:var(--e1);}
+  .status-pill .sdot{width:6px;height:6px;border-radius:50%;}
+  .status-yours{background:var(--clay-50);color:var(--clay-700);border:1px solid var(--clay-200);}
+  .status-yours .sdot{background:var(--clay-600);}
+  .status-waiting{background:var(--wait-100);color:var(--wait-700);border:1px solid #E9D6A8;}
+  .status-waiting .sdot{background:var(--wait-600);}
+  .status-done{background:var(--ok-100);color:var(--ok-700);border:1px solid #C7DECB;}
+  .status-done .sdot{background:var(--ok-600);}
+
+  /* ---- type ---- */
+  .type-row{display:grid;grid-template-columns:170px 1fr;gap:24px;padding:26px 0;border-top:1px solid var(--line-soft);align-items:baseline;}
+  .type-row:last-child{border-bottom:1px solid var(--line-soft);}
+  .type-label{font-size:11.5px;color:var(--ink-400);font-family:'SF Mono',ui-monospace,monospace;letter-spacing:.02em;}
+  .rule{background:linear-gradient(155deg,var(--pine-50),var(--pine-100));border:1px solid #D5E4DC;border-radius:var(--r-md);padding:22px 26px;font-size:14.5px;line-height:1.65;color:var(--pine-900);margin-top:26px;}
   .rule b{color:var(--pine-700);}
-  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-1);}
-  .card h3{margin:0 0 6px;font-size:15px;}
-  .card p{margin:0;color:var(--ink-600);font-size:13.5px;}
-  .space-row{display:flex;align-items:center;gap:14px;padding:8px 0;}
-  .space-box{background:var(--clay-400);height:14px;border-radius:3px;}
-  .space-label{font-family:monospace;font-size:12px;color:var(--ink-400);width:70px;}
-  .btn{display:inline-flex;align-items:center;gap:8px;font-family:'Inter';font-weight:600;font-size:14px;border-radius:8px;padding:10px 18px;border:1px solid transparent;cursor:pointer;}
-  .btn-primary{background:var(--pine-700);color:#fff;}
-  .btn-secondary{background:#fff;color:var(--pine-700);border-color:var(--pine-500);}
-  .btn-clay{background:var(--clay-600);color:#fff;}
-  .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:5px 11px;border-radius:100px;}
-  .status-yours{background:var(--clay-100);color:var(--clay-600);}
-  .status-waiting{background:var(--wait-100);color:var(--wait-600);}
-  .status-done{background:var(--ok-100);color:var(--ok-600);}
-  .status-urgent{background:var(--urgent-100);color:var(--urgent-600);}
-  .temp-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
-  .temp-card{border-radius:14px;padding:28px;}
-  .temp-family{background:var(--bone-200);border:1px solid var(--line);}
-  .temp-operator{background:var(--pine-900);color:var(--bone-100);}
-  .temp-card h3{font-family:'Fraunces';font-weight:500;font-size:20px;margin:0 0 10px;}
+
+  .card{background:var(--bone-50);border:1px solid var(--line-soft);border-radius:var(--r-md);padding:26px;box-shadow:var(--e1);transition:box-shadow .25s var(--ease),transform .25s var(--ease);}
+  .card:hover{box-shadow:var(--e2);transform:translateY(-2px);}
+  .card .icon-wrap{width:38px;height:38px;border-radius:11px;background:var(--pine-100);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .card .icon-wrap svg{width:19px;height:19px;stroke:var(--pine-700);}
+  .card h3{margin:0 0 8px;font-size:15.5px;font-weight:600;color:var(--ink-900);}
+  .card p{margin:0;color:var(--ink-600);font-size:13.8px;line-height:1.65;}
+
+  .space-row{display:flex;align-items:center;gap:16px;padding:9px 0;}
+  .space-box{background:linear-gradient(90deg,var(--clay-500),var(--clay-400));height:12px;border-radius:4px;box-shadow:var(--e1);}
+  .space-label{font-family:'SF Mono',ui-monospace,monospace;font-size:11.5px;color:var(--ink-400);width:36px;}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;border-radius:var(--r-full);padding:12px 22px;border:1px solid transparent;cursor:pointer;transition:transform .18s var(--ease),box-shadow .18s var(--ease);}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-primary{background:linear-gradient(155deg,var(--pine-600),var(--pine-800));color:#fff;box-shadow:0 1px 2px rgba(15,42,36,.15),0 8px 16px -6px rgba(15,42,36,.35);}
+  .btn-secondary{background:var(--bone-50);color:var(--pine-800);border-color:var(--line);box-shadow:var(--e1);}
+  .btn-clay{background:linear-gradient(155deg,var(--clay-500),var(--clay-700));color:#fff;box-shadow:0 1px 2px rgba(154,79,38,.2),0 8px 16px -6px rgba(154,79,38,.4);}
+
+  .temp-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .temp-card{border-radius:var(--r-lg);padding:34px;position:relative;overflow:hidden;}
+  .temp-family{background:linear-gradient(165deg,var(--bone-50),var(--bone-200));border:1px solid var(--line-soft);box-shadow:var(--e1);}
+  .temp-operator{background:linear-gradient(165deg,var(--pine-800),var(--pine-950));color:var(--bone-100);box-shadow:var(--e3);}
+  .temp-card .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.6;}
+  .temp-card h3{font-family:'Fraunces';font-weight:480;font-size:24px;margin:8px 0 16px;letter-spacing:-.01em;}
   .temp-operator h3{color:#fff;}
-  .temp-card ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.7;}
-  .temp-operator ul{color:#D8E4DE;}
-  .footer-note{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);color:var(--ink-400);font-size:12.5px;}
+  .temp-card ul{margin:0;padding:0;list-style:none;font-size:14px;line-height:2;}
+  .temp-card ul li{padding-left:22px;position:relative;}
+  .temp-card ul li::before{content:'';position:absolute;left:0;top:11px;width:5px;height:5px;border-radius:50%;background:var(--clay-500);}
+  .temp-operator ul{color:#CBD9D1;}
+  .temp-operator ul li::before{background:var(--clay-400);}
+
+  .footer-note{margin-top:120px;padding-top:28px;border-top:1px solid var(--line-soft);color:var(--ink-400);font-size:12.5px;display:flex;justify-content:space-between;}
 </style>
 </head>
 <body>
+
+<div class="topbar"><div class="topbar-inner">
+  <div class="brand"><div class="mark"></div>Threshold</div>
+  <div class="topnav"><span class="on">Foundation</span><span>Color</span><span>Type</span><span>Components</span><span>Temperature</span></div>
+</div></div>
+
 <div class="wrap">
 
   <header class="page">
-    <div class="kicker">Passage — Design System Foundation</div>
-    <h1 class="title">Threshold</h1>
-    <p class="sub">Rebuilt 2026-07-12 from <code>docs/UX-REDESIGN-BRIEF.md</code> (prior workspace artifacts were not recoverable — this is the authoritative version going forward, committed to the repo). One system, two temperatures: warm and unhurried for grieving families, structured and dense-capable for the operators coordinating around them.</p>
+    <div class="kicker"><span class="dot"></span>Passage — Design System Foundation</div>
+    <h1 class="title">Calm authority.<br>Warm on approach.</h1>
+    <p class="sub">Rebuilt 2026-07-12 from <code>docs/UX-REDESIGN-BRIEF.md</code>. One system, two temperatures — unhurried and human for grieving families, precise and dense-capable for the operators coordinating around them. Every token below is meant to be lived in, not admired.</p>
   </header>
 
   <section>
-    <h2 class="sec">Color</h2>
-    <p class="sec-desc">Deep Pine for authority and continuity. Warm Clay for humanity and action. Bone paper underneath everything. No siren-red anywhere in the system — urgency is communicated through Clay, layout, and language, not alarm color.</p>
+    <div class="sec-head"><h2 class="sec">Color</h2><span class="sec-index">01 / 06</span></div>
+    <p class="sec-desc">Deep Pine for authority and continuity. Warm Clay for humanity and the single action that matters. Bone paper underneath everything, never stark white. No siren-red anywhere in the system — urgency lives in Clay, layout, and language.</p>
     <div class="grid grid-4">
-      <div class="swatch"><div class="fill" style="background:var(--pine-900)"></div><div class="meta"><div class="name">Pine 900</div><div class="hex">#0F2A24 — headlines, primary text on light</div></div></div>
-      <div class="swatch"><div class="fill" style="background:var(--pine-700)"></div><div class="meta"><div class="name">Pine 700</div><div class="hex">#1C4A3E — primary buttons, nav</div></div></div>
-      <div class="swatch"><div class="fill" style="background:var(--pine-500)"></div><div class="meta"><div class="name">Pine 500</div><div class="hex">#2E6B58 — links, active state</div></div></div>
-      <div class="swatch"><div class="fill" style="background:var(--pine-100)"></div><div class="meta"><div class="name">Pine 100</div><div class="hex">#E4EDE9 — operator surface tint</div></div></div>
-      <div class="swatch"><div class="fill" style="background:var(--clay-600)"></div><div class="meta"><div class="name">Clay 600</div><div class="hex">#B5622F — "your move," key actions</div></div></div>
-      <div class="swatch"><div class="fill" style="background:var(--clay-400)"></div><div class="meta"><div class="name">Clay 400</div><div class="hex">#D08A56 — accents, highlights</div></div></div>
-      <div class="swatch"><div class="fill" style="background:var(--bone-100)"></div><div class="meta"><div class="name">Bone 100</div><div class="hex">#FBF8F3 — page background</div></div></div>
-      <div class="swatch"><div class="fill" style="background:var(--bone-300)"></div><div class="meta"><div class="name">Bone 300</div><div class="hex">#E9E1D2 — dividers, subtle fills</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--pine-950)"></div><div class="meta"><div class="name">Pine 950</div><div class="hex">#0A1F1A<br>Deepest surfaces, operator shell</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--pine-700)"></div><div class="meta"><div class="name">Pine 700</div><div class="hex">#1C4A3E<br>Primary buttons, nav, headlines</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--pine-500)"></div><div class="meta"><div class="name">Pine 500</div><div class="hex">#2E6B58<br>Links, active state</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--pine-50)"></div><div class="meta"><div class="name">Pine 50</div><div class="hex">#F2F6F3<br>Rule callouts, quiet tint</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--clay-600)"></div><div class="meta"><div class="name">Clay 600</div><div class="hex">#B5622F<br>"Your move," the one key action</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--clay-400)"></div><div class="meta"><div class="name">Clay 400</div><div class="hex">#D08A56<br>Accents, gentle highlights</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--bone-50)"></div><div class="meta"><div class="name">Bone 50</div><div class="hex">#FEFDFB<br>Page background, paper</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--bone-400)"></div><div class="meta"><div class="name">Bone 400</div><div class="hex">#DDD2BB<br>Dividers, resting borders</div></div></div>
     </div>
-    <p style="margin-top:20px;font-size:13.5px;color:var(--ink-600);"><b>Status colors</b> (earthy, never siren): <span class="status-pill status-yours">Your move</span> <span class="status-pill status-waiting">Waiting on Rivera Funeral Home</span> <span class="status-pill status-done">Done</span> <span class="status-pill status-urgent">Needs attention today</span> — even the urgent state stays a muted rust, not red, so the highest-stakes screen in the product is also the calmest.</p>
+    <p style="margin-top:28px;font-size:14px;color:var(--ink-600);"><b style="color:var(--ink-900);">Status, earthy and never siren:</b></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+      <span class="status-pill status-yours"><span class="sdot"></span>Your move</span>
+      <span class="status-pill status-waiting"><span class="sdot"></span>Waiting on Rivera Funeral Home</span>
+      <span class="status-pill status-done"><span class="sdot"></span>Done — proof saved</span>
+    </div>
   </section>
 
   <section>
-    <h2 class="sec">Type</h2>
-    <p class="sec-desc">One rule at every decision: <b>moment, or mechanism?</b> Fraunces carries the moments — names, milestones, empathetic headlines. Inter carries the mechanisms — everything you act on, scan, or fill in.</p>
+    <div class="sec-head"><h2 class="sec">Type</h2><span class="sec-index">02 / 06</span></div>
+    <p class="sec-desc">One rule at every decision: <b style="color:var(--ink-900);">moment, or mechanism?</b> Fraunces carries the moments — names, milestones, empathetic headlines, set loose and warm. Inter carries the mechanisms — everything you act on, scan, or fill in, set tight and legible.</p>
     <div>
-      <div class="type-row"><div class="type-label">Fraunces 500 / 44</div><div style="font-family:'Fraunces';font-weight:500;font-size:44px;color:var(--pine-900);">Margaret's Passage is ready for you.</div></div>
-      <div class="type-row"><div class="type-label">Fraunces 500 / 28</div><div style="font-family:'Fraunces';font-weight:500;font-size:28px;color:var(--pine-900);">Everything Rivera Funeral Home needs, in one place.</div></div>
-      <div class="type-row"><div class="type-label">Inter 600 / 16</div><div style="font-family:'Inter';font-weight:600;font-size:16px;">Section labels, table headers, button text</div></div>
-      <div class="type-row"><div class="type-label">Inter 400 / 15</div><div style="font-family:'Inter';font-weight:400;font-size:15px;color:var(--ink-600);">Body copy, form labels, task descriptions — built for scanning under stress, not reading for pleasure.</div></div>
-      <div class="type-row"><div class="type-label">Inter 500 / 12.5</div><div style="font-family:'Inter';font-weight:500;font-size:12.5px;color:var(--ink-400);letter-spacing:.03em;">METADATA, TIMESTAMPS, STATUS LABELS</div></div>
+      <div class="type-row"><div class="type-label">Fraunces 440 / 52</div><div style="font-family:'Fraunces';font-weight:440;font-size:44px;letter-spacing:-.02em;color:var(--pine-950);line-height:1.08;">Margaret's Passage is ready for you.</div></div>
+      <div class="type-row"><div class="type-label">Fraunces 480 / 28</div><div style="font-family:'Fraunces';font-weight:480;font-size:27px;letter-spacing:-.01em;color:var(--pine-950);">Everything Rivera Funeral Home needs, in one place.</div></div>
+      <div class="type-row"><div class="type-label">Inter 600 / 16</div><div style="font-weight:600;font-size:16px;letter-spacing:-.005em;">Section labels, table headers, button text</div></div>
+      <div class="type-row"><div class="type-label">Inter 400 / 15.5</div><div style="font-weight:400;font-size:15.5px;color:var(--ink-600);line-height:1.65;">Body copy, form labels, task descriptions — built for scanning under stress, not reading for pleasure.</div></div>
+      <div class="type-row"><div class="type-label">Inter 600 / 11.5</div><div style="font-weight:600;font-size:11.5px;color:var(--ink-400);letter-spacing:.07em;text-transform:uppercase;">Metadata, timestamps, status labels</div></div>
     </div>
     <div class="rule"><b>Rule of thumb:</b> if the sentence is being said <i>to</i> the family about their life, it's a moment (Fraunces). If it tells someone what to do or shows them data, it's a mechanism (Inter). A screen title can be Fraunces; the buttons and lists beneath it are always Inter.</div>
   </section>
 
   <section>
-    <h2 class="sec">Spacing &amp; grid</h2>
-    <p class="sec-desc">8px base unit. 12-column grid, 1120px max content width on desktop consoles; single-column, thumb-safe stacking on Family mobile.</p>
+    <div class="sec-head"><h2 class="sec">Spacing &amp; grid</h2><span class="sec-index">03 / 06</span></div>
+    <p class="sec-desc">8px base unit, generous by default. 12-column grid, 1180px max width on desktop consoles; single-column, thumb-safe stacking on Family mobile.</p>
     <div>
       <div class="space-row"><div class="space-label">4</div><div class="space-box" style="width:4px;"></div></div>
       <div class="space-row"><div class="space-label">8</div><div class="space-box" style="width:8px;"></div></div>
@@ -122,54 +175,65 @@
   </section>
 
   <section>
-    <h2 class="sec">Elevation, radius, motion</h2>
+    <div class="sec-head"><h2 class="sec">Elevation, radius, motion</h2><span class="sec-index">04 / 06</span></div>
     <div class="grid grid-3">
-      <div class="card"><h3>Elevation</h3><p>Two levels only. Level 1 (resting cards, list rows) = barely-there. Level 2 (modals, active task drawer) = a soft lift, never a hard drop shadow. Nothing floats aggressively — this is a record, not a dashboard trying to impress.</p></div>
-      <div class="card"><h3>Radius</h3><p>10px standard, 6px for compact controls (pills, chips, inline badges). Consistent everywhere — no mixing of sharp admin corners and round consumer corners.</p></div>
-      <div class="card"><h3>Motion</h3><p>180–220ms ease-out on state changes. No bounce, no confetti, no celebratory motion tied to death-adjacent actions. Motion exists to orient ("this task just moved to done"), never to delight.</p></div>
+      <div class="card">
+        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M7 6V5a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></div>
+        <h3>Elevation</h3><p>Two soft levels only. Resting cards barely lift off the page; active surfaces (drawers, modals) get a deeper, warmer shadow. Nothing floats aggressively — this is a record, not a dashboard trying to impress.</p>
+      </div>
+      <div class="card">
+        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="7"/></svg></div>
+        <h3>Radius</h3><p>18px standard, 26px for hero surfaces, full-pill for buttons and status. Consistent everywhere — no mixing of sharp admin corners and round consumer corners.</p>
+      </div>
+      <div class="card">
+        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg></div>
+        <h3>Motion</h3><p>200–260ms ease-out on state changes. No bounce, no confetti, no celebratory motion tied to death-adjacent actions. Motion exists to orient, never to delight.</p>
+      </div>
     </div>
   </section>
 
   <section>
-    <h2 class="sec">Components — tone in practice</h2>
+    <div class="sec-head"><h2 class="sec">Components — tone in practice</h2><span class="sec-index">05 / 06</span></div>
     <div class="grid grid-2">
       <div class="card">
         <h3>Buttons</h3>
-        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
           <button class="btn btn-primary">Continue</button>
           <button class="btn btn-secondary">Not right now</button>
           <button class="btn btn-clay">Invite a family member</button>
         </div>
-        <p style="margin-top:12px;">Primary = Pine (calm authority). Clay reserved for the one action that moves the family record forward. Never more than one Clay action per screen.</p>
+        <p style="margin-top:16px;">Primary = Pine gradient, quiet authority. Clay reserved for the one action that moves the family record forward. Never more than one Clay action per screen. Pill radius throughout — nothing on this system has a hard corner button.</p>
       </div>
       <div class="card">
-        <h3>Viewer-relative status (the one CalmKit idea we kept)</h3>
-        <div style="display:flex;gap:8px;flex-direction:column;margin-top:10px;">
-          <span class="status-pill status-yours">Your move — confirm the obituary draft</span>
-          <span class="status-pill status-waiting">Waiting on Rivera Funeral Home</span>
-          <span class="status-pill status-done">Done — proof saved</span>
+        <h3>Viewer-relative status</h3>
+        <div style="display:flex;gap:8px;flex-direction:column;margin-top:14px;align-items:flex-start;">
+          <span class="status-pill status-yours"><span class="sdot"></span>Your move — confirm the obituary draft</span>
+          <span class="status-pill status-waiting"><span class="sdot"></span>Waiting on Rivera Funeral Home</span>
+          <span class="status-pill status-done"><span class="sdot"></span>Done — proof saved</span>
         </div>
-        <p style="margin-top:12px;">Same underlying task, three different labels depending on who's looking. Rebuilt as a first-class component, not a CSS class — see Task Spine doc.</p>
+        <p style="margin-top:16px;">Same underlying task, three different labels depending on who's looking. The one CalmKit idea we kept — rebuilt as a first-class component with a resting dot and soft-tint fill, not a flat CSS class.</p>
       </div>
     </div>
   </section>
 
   <section>
-    <h2 class="sec">One kit, two temperatures</h2>
+    <div class="sec-head"><h2 class="sec">One kit, two temperatures</h2><span class="sec-index">06 / 06</span></div>
     <p class="sec-desc">Same tokens, same components, same status language — density and pacing adapt to who's using it.</p>
     <div class="temp-cols">
       <div class="temp-card temp-family">
-        <h3>Family — warm</h3>
+        <div class="eyebrow">Family</div>
+        <h3>Warm</h3>
         <ul>
           <li>Mobile-first, one thing at a time</li>
           <li>Generous whitespace, larger type</li>
           <li>One clear next action per screen</li>
           <li>Compassionate, plain-language copy</li>
-          <li>Progress always visible, never a raw percentage</li>
+          <li>Progress felt, never a raw percentage</li>
         </ul>
       </div>
       <div class="temp-card temp-operator">
-        <h3>Operator — structured</h3>
+        <div class="eyebrow">Operator</div>
+        <h3>Structured</h3>
         <ul>
           <li>Desktop console, dense-capable tables</li>
           <li>Funeral home / vendor / admin surfaces</li>
@@ -181,7 +245,7 @@
     </div>
   </section>
 
-  <div class="footer-note">Threshold v1 · docs/redesign/01-design-system-foundation.html · Passage UX Redesign · committed 2026-07-12</div>
+  <div class="footer-note"><span>Threshold v2 · docs/redesign/01-design-system-foundation.html</span><span>Passage UX Redesign · updated 2026-07-12</span></div>
 </div>
 </body>
 </html>
