@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Threshold — Admin Portal · Vendor Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine-900:#0F2A24; --pine-700:#1C4A3E; --pine-500:#2E6B58; --pine-100:#E4EDE9;
+    --clay-600:#B5622F; --clay-400:#D08A56; --clay-100:#F5E4D6;
+    --bone-100:#FBF8F3; --bone-200:#F3EEE4; --bone-300:#E9E1D2;
+    --ink-900:#221E1A; --ink-600:#5A5348; --ink-400:#8B8478;
+    --ok-600:#4C7A5C; --ok-100:#E3EEE4;
+    --wait-600:#B5862F; --wait-100:#F5EAD6;
+    --urgent-600:#A44A3F; --urgent-100:#F3DFDA;
+    --line:#DED5C2;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;color:var(--ink-900);background:#D9D2C2;}
+  .screen{max-width:1280px;margin:0 auto 40px;background:var(--bone-100);min-height:760px;position:relative;overflow:hidden;}
+  .screen-label{background:var(--pine-900);color:var(--bone-100);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:10px 24px;display:flex;justify-content:space-between;}
+  .screen-label .state{color:#C9D6CF;font-weight:500;text-transform:none;letter-spacing:0;}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;border-radius:8px;padding:9px 16px;border:1px solid transparent;cursor:pointer;text-decoration:none;}
+  .btn-primary{background:var(--clay-600);color:#fff;}
+  .btn-secondary{background:#fff;color:var(--pine-700);border-color:var(--pine-500);}
+  .btn-ghost{background:transparent;color:var(--pine-700);border:1px solid var(--line);}
+  .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:100px;white-space:nowrap;}
+  .status-yours{background:var(--clay-100);color:var(--clay-600);}
+  .status-waiting{background:var(--wait-100);color:var(--wait-600);}
+  .status-done{background:var(--ok-100);color:var(--ok-600);}
+  .status-blocked{background:var(--urgent-100);color:var(--urgent-600);}
+  .op-shell{background:var(--pine-900);min-height:780px;color:var(--bone-100);}
+  .op-topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid rgba(255,255,255,.1);}
+  .op-topbar .org{font-family:'Fraunces';font-size:16px;font-weight:500;}
+  .op-crumb{font-size:12px;color:#9FB3A9;margin-top:2px;}
+  .op-body{display:flex;}
+  .op-nav{width:220px;padding:20px 0;border-right:1px solid rgba(255,255,255,.08);flex:none;}
+  .op-nav .grp-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#7C9088;padding:14px 24px 6px;}
+  .op-nav a{display:block;padding:9px 24px;color:#C9D6CF;font-size:13px;text-decoration:none;font-weight:500;}
+  .op-nav a.active{background:rgba(255,255,255,.08);color:#fff;border-right:2px solid var(--clay-400);}
+  .op-main{flex:1;padding:28px 32px;background:var(--bone-100);color:var(--ink-900);border-top-left-radius:20px;overflow:hidden;}
+  .op-title{font-family:'Fraunces';font-weight:500;font-size:22px;color:var(--pine-900);margin:0 0 3px;}
+  .op-sub{color:var(--ink-600);font-size:13px;margin:0 0 20px;}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-400);padding:11px 14px;background:var(--bone-200);font-weight:600;}
+  td{padding:12px 14px;font-size:13px;border-top:1px solid var(--bone-300);vertical-align:middle;}
+
+  /* Admin: search-only empty state */
+  .search-box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;max-width:560px;margin-bottom:20px;}
+  .search-box input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:'Inter';}
+  .search-hint{font-size:12px;color:var(--ink-400);margin-top:8px;}
+  .banner-viewas{background:var(--clay-100);border:1px solid var(--clay-400);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--clay-600);font-weight:600;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;}
+  .audit-note{font-size:12px;color:var(--ink-400);margin-top:14px;}
+
+  /* Vendor portal - narrow, request-scoped */
+  .vendor-shell{min-height:780px;background:var(--bone-100);}
+  .vendor-top{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;border-bottom:1px solid var(--line);}
+  .vendor-logo{font-family:'Fraunces';font-weight:600;font-size:18px;color:var(--pine-900);}
+  .vendor-main{padding:32px 40px;max-width:900px;}
+  .req-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start;}
+  .req-card h4{margin:0 0 4px;font-family:'Fraunces';font-weight:500;font-size:17px;color:var(--pine-900);}
+  .req-card p{margin:0;font-size:12.5px;color:var(--ink-600);}
+  .pay-tracker{display:flex;gap:4px;margin-top:10px;}
+  .pay-step{height:5px;flex:1;border-radius:3px;background:var(--bone-300);}
+  .pay-step.done{background:var(--ok-600);}
+  .pay-step.current{background:var(--clay-600);}
+  .scope-note{background:var(--pine-100);border:1px solid var(--pine-500);border-radius:10px;padding:14px 18px;font-size:12.5px;color:var(--pine-900);margin-top:20px;}
+</style>
+</head>
+<body>
+
+<!-- ============ SCREEN A: ADMIN PORTAL — CASE SUPPORT (view-as) ============ -->
+<div class="screen">
+  <div class="screen-label"><span>Admin Portal — Case Support (view-as)</span><span class="state">Two states shown: search (empty) → active view-as banner</span></div>
+  <div class="op-shell">
+    <div class="op-topbar">
+      <div><div class="org">System Admin</div><div class="op-crumb">Steve T. · Admin</div></div>
+    </div>
+    <div class="op-body">
+      <div class="op-nav">
+        <div class="grp-label">Case Support</div>
+        <a class="active">Search / view-as</a><a>Recent grants</a>
+        <div class="grp-label">Platform Ops</div>
+        <a>Roadmap</a><a>Pilot health</a><a>Funeral-home QA</a><a>Automation readiness</a><a>Abuse &amp; refresh controls</a>
+        <div class="grp-label">Org Management</div>
+        <a>Funeral homes</a><a>Vendors</a><a>Org onboarding</a>
+      </div>
+      <div class="op-main">
+        <h2 class="op-title">Case Support</h2>
+        <p class="op-sub">Search-only — no standing list of families is ever shown here.</p>
+        <div class="search-box">
+          <input placeholder="Search by name, email, or organization…">
+          <div class="search-hint">Every search and every "view as" grant is logged with your name, timestamp, and duration.</div>
+        </div>
+
+        <div class="banner-viewas">
+          <span>Viewing as Elena Reyes — read-only, logged, expires in 27 min</span>
+          <a class="btn btn-secondary" style="padding:5px 12px;font-size:12px;">End view</a>
+        </div>
+        <table>
+          <thead><tr><th>Section</th><th>What you see</th><th>Can you act?</th></tr></thead>
+          <tbody>
+            <tr><td>Today / Tasks</td><td>Same view Elena sees</td><td>No — read-only</td></tr>
+            <tr><td>Documents</td><td>File list + metadata</td><td>No — cannot download originals</td></tr>
+            <tr><td>Messages</td><td>Sent/received history</td><td>No — cannot send</td></tr>
+            <tr><td>Payments</td><td>Hidden entirely</td><td>N/A</td></tr>
+          </tbody>
+        </table>
+        <div class="audit-note">This grant will auto-expire and appear in "Recent grants" with your name, the viewed user, start time, and duration — visible to you and exportable for compliance review.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN B: VENDOR PORTAL ============ -->
+<div class="screen">
+  <div class="screen-label"><span>Vendor Portal — scoped Dashboard</span><span class="state">Loaded state · viewer: vendor contact, Bloom &amp; Co</span></div>
+  <div class="vendor-shell">
+    <div class="vendor-top">
+      <div class="vendor-logo">passage <span style="color:var(--ink-400);font-weight:400;font-size:13px;">for vendors</span></div>
+      <div style="font-size:13px;color:var(--ink-600);">Bloom &amp; Co · signed in as Maya</div>
+    </div>
+    <div class="vendor-main">
+      <h2 style="font-family:'Fraunces';font-weight:500;font-size:24px;color:var(--pine-900);margin:0 0 4px;">Your requests</h2>
+      <p style="color:var(--ink-600);font-size:13.5px;margin:0 0 24px;">3 open · 1 needs a quote today</p>
+
+      <div class="req-card">
+        <div>
+          <h4>Reyes service — floral arrangement</h4>
+          <p>Requested by Rivera Funeral Home · service date Jul 18</p>
+          <div class="pay-tracker" style="width:220px;">
+            <div class="pay-step done"></div><div class="pay-step done"></div><div class="pay-step current"></div><div class="pay-step"></div><div class="pay-step"></div>
+          </div>
+          <p style="margin-top:6px;color:var(--ink-400);">Requested → Viewed → <b style="color:var(--clay-600);">Quote needed</b> → Accepted → Paid</p>
+        </div>
+        <span class="status-pill status-yours">Your move — send a quote</span>
+      </div>
+      <div class="req-card">
+        <div>
+          <h4>Kim service — sympathy wreath</h4>
+          <p>Requested by Rivera Funeral Home · service date Jul 15</p>
+          <div class="pay-tracker" style="width:220px;">
+            <div class="pay-step done"></div><div class="pay-step done"></div><div class="pay-step done"></div><div class="pay-step done"></div><div class="pay-step current"></div>
+          </div>
+          <p style="margin-top:6px;color:var(--ink-400);">Quoted → Accepted → Paid → Scheduled → <b style="color:var(--wait-600);">Payout pending</b></p>
+        </div>
+        <span class="status-pill status-waiting">Passage holds payment until service is confirmed</span>
+      </div>
+      <div class="req-card">
+        <div>
+          <h4>Fields service — casket spray</h4>
+          <p>Completed Jul 3</p>
+        </div>
+        <span class="status-pill status-done">Paid out</span>
+      </div>
+
+      <div class="scope-note"><b>What you can't see:</b> the family record, other vendors' quotes, or any document not directly attached to your request. This is enforced by database-level access rules, not just hidden in the interface.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
