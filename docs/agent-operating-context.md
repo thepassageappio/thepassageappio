@@ -1,6 +1,6 @@
 # Passage Agent Operating Context
 
-Last updated: 2026-06-30
+Last updated: 2026-07-12
 
 This is the living handoff for future agents. Read AGENTS.md first, then this file, before changing the product. Update this file before final handoff or before creating a deploy-triggering commit.
 
@@ -149,12 +149,13 @@ Family experience should prioritize:
 
 ## Open Work / Next Actions
 
-1. Before asking the owner for help, keep trying safe self-service paths: repo docs, local checks, Vercel/GitHub connectors, and browser/Chrome automation when available.
-2. Preserve the stale scheduled-run checkout at `C:\Users\steve\Documents\GitHub\thepassageappio`; continue product work from the clean `origin/main` worktree unless the dirty `pages/participating.js` state is intentionally reconciled first.
-3. Start Product Manager discovery for the next family-facing batch, with `/estate` calm migration/auth-entry consistency as the first candidate.
-4. Keep using live browser QA plus direct HTML/header checks after every family-auth deploy; this run proved the four `/today` route-preservation seams and should be the template for the next family workflow batch.
-5. Re-run authenticated browser QA for full family sign-in completion when a safe session path is available. This run proved route preservation and post-deploy production behavior, not a complete signed-in family session.
-6. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
+1. Apply the v2 visual-craft standard (docs/redesign/08-visual-craft-standard.md) to the three Threshold mockup files still at v1 flat styling: docs/redesign/hero-screens-mockup.html, docs/redesign/funeral-home-demo-path-mockups.html, and docs/redesign/admin-and-vendor-portal-mockups.html. These predate the 2026-07-12 v2 craft pass on 01-design-system-foundation.html (layered shadows, pill-radius scale, gradient buttons, inline SVG icons, glass sticky nav, refined type scale, hover/lift micro-interactions) and still use flat color-box icon placeholders and flat surfaces that the owner explicitly flagged as substandard. This is UX Review / design-system work; no app code, no deploy implication.
+2. Before asking the owner for help, keep trying safe self-service paths: repo docs, local checks, Vercel/GitHub connectors, and browser/Chrome automation when available.
+3. Preserve the stale scheduled-run checkout at `C:\Users\steve\Documents\GitHub\thepassageappio`; continue product work from the clean `origin/main` worktree unless the dirty `pages/participating.js` state is intentionally reconciled first.
+4. Start Product Manager discovery for the next family-facing batch, with `/estate` calm migration/auth-entry consistency as the first candidate; the Threshold redesign work (items 1 above) is currently running in parallel as owner-directed UX Review work outside that loop.
+5. Keep using live browser QA plus direct HTML/header checks after every family-auth deploy; this run proved the four `/today` route-preservation seams and should be the template for the next family workflow batch.
+6. Re-run authenticated browser QA for full family sign-in completion when a safe session path is available. This run proved route preservation and post-deploy production behavior, not a complete signed-in family session.
+7. Keep logging any finding here before handing off, and state whether the train auto-advanced or why it could not.
 
 ## Known Watch Items
 
@@ -200,10 +201,29 @@ Append or update this section before final response:
 
 ## Latest Handoff Updates
 
+### 2026-07-12 - Threshold UX redesign docs backfilled, funeral-home + admin/vendor mockups added, v2 visual-craft standard introduced (agent-context catch-up)
+
+- Date/time: 2026-07-12 (retroactive catch-up entry; underlying commits span roughly 2026-07-12T18:50Z-19:13Z).
+- Branch/commit(s): main, docs-only commits: e7ad585d9dd390c72f0043c23fd84b6d3075c845 (rebuild Threshold artifacts [skip deploy]), 776d2a4edf24b97a7b58b6d5c61fc500cebca4fb + aa2e9d72d79b1f162d9719540e0d0c8c0ccdf48d (placeholder-content corrections [skip deploy]), 70d7b7d9fd782fd4e2bc6f473259b7cc87ac47bf (hero-screens-mockup.html [skip deploy]), 47c0247418afb268fa66c3116dbfcb2c97646445 (funeral-home-demo-path-mockups.html, no [skip deploy]), b1ef9803b23b61ae314e8768c1e4dd3d0b595691 (admin-and-vendor-portal-mockups.html, no [skip deploy]), ef1143f3ede8daa18b02987add83686850222ae3 (01-design-system-foundation.html v2 visual-craft pass, no [skip deploy]), 082f8666e70e0cd3993e35ae43fa60acd1e99061 (08-visual-craft-standard.md, no [skip deploy]), 970477dce9ae80bebf0af60084bbbe787f606a0c (UX-REDESIGN-BRIEF.md pointer + craft-standard requirement, no [skip deploy]). All changes are confined to docs/redesign/ and docs/UX-REDESIGN-BRIEF.md; no app code touched.
+- Role instance / delegated agent: UI/UX Review role only (design-system/mockup authoring); no Product Manager, Development Engineer, QA, or Deploy role instance was engaged because no app code changed.
+- Prior role handoff received: 2026-07-03 family auth consistency deploy PASS handoff (Product Manager scoped `/estate` as the next candidate; that scope remains open and is unaffected by this docs-only work).
+- PM Sprint Brief: N/A — this was owner-directed design-system/visual-quality work, not a PM-scoped development sprint.
+- Sprint goal: N/A. Requirements: N/A. Sprint components: N/A. Development objectives: N/A. Acceptance criteria: N/A. Dependencies: N/A. QA/deploy plan: N/A (UX Review / design-artifact work, not a Development Engineer change).
+- Files changed: docs/redesign/00-system-findings.md, 01-design-system-foundation.html (rebuilt, then rewritten again as v2), 02-information-architecture.md, 03-journey-maps.md, 04-wireframes-annotated.md, 05-task-spine-coordination-logic.md, 06-admin-access-demo-instance.md, 07-sprint-plan.md, hero-screens-mockup.html, funeral-home-demo-path-mockups.html (new), admin-and-vendor-portal-mockups.html (new), 08-visual-craft-standard.md (new); docs/UX-REDESIGN-BRIEF.md (updated to point at docs/redesign/ in-repo as the durable source of truth and to require reading 08-visual-craft-standard.md alongside the brief).
+- UI/UX status: Mixed / in progress. Owner (Steve) reviewed the initial mockups and gave direct visual-quality feedback that they "looked like shit" and needed to be "much sleeker apple with empathy." In response, 01-design-system-foundation.html was rewritten as v2 with real visual craft: layered soft shadows, generous pill-radius scale, gradient buttons with depth, inline SVG icons (replacing flat color-box placeholders), glass sticky nav, refined type scale with negative letter-spacing, and hover/lift micro-interactions. 08-visual-craft-standard.md now codifies this as a mandatory checklist for all future Threshold deliverables. hero-screens-mockup.html, funeral-home-demo-path-mockups.html, and admin-and-vendor-portal-mockups.html are still at v1 flat styling and have NOT yet had the v2 pass applied — see Open Work item 1.
+- Development: N/A (docs/design artifacts only, no app code changed).
+- Best-practice research: none beyond direct owner feedback; this was a visual-craft response to explicit human review rather than an external research pass.
+- Deployed: N/A (no app code, no deploy-triggering change). Every commit above is docs-only; four of the nine carried `[skip deploy]`, but five (47c0247, b1ef980, ef1143f, 082f866, 970477d) did not include `[skip deploy]` and also did not update this context file at commit time, which tripped `scripts/check-agent-context.js` and failed the "Agent release train guard - main" GitHub Action. This entry is the catch-up fix for that gate failure; no code or deploy behavior was affected by the gate failure itself.
+- Tested: N/A — pure markdown/HTML design artifacts, no build, no app code, no QA loop applies.
+- Failed/blocked: CI gate (`scripts/check-agent-context.js`) was red on `main` going into this entry because the commits listed above changed "meaningful" files without updating docs/agent-operating-context.md and without `[skip deploy]`. Resolved by this commit.
+- Self-service attempted / Claude in Chrome: repo/source review via GitHub MCP tools (`get_file_contents`, `list_commits`) to reconstruct the commit history and confirm which commits tripped the gate. Claude in Chrome was not used/needed for this docs-only catch-up.
+- Next action: apply the v2 visual-craft standard (docs/redesign/08-visual-craft-standard.md) to the three remaining v1-styled mockup files — hero-screens-mockup.html, funeral-home-demo-path-mockups.html, and admin-and-vendor-portal-mockups.html — so all Threshold mockups meet the same visual bar before the redesign moves back into the Product Manager -> UI/UX -> Development Engineer loop for implementation.
+- Auto-advance decision: Held at UX Review. This was owner-directed design-system work outside the standard release train; the standard Product Manager -> UI/UX -> Development -> QA -> Deploy loop resumes once the Threshold mockups are visually consistent and Product Manager scopes them (or the `/estate` batch) into a development sprint.
+
 ### 2026-07-03 - Family auth consistency release deployed and verified
 
 - Date/time: 2026-07-03 13:24 -04:00.
-- Branch/commit(s): production release commit c86ee14a9573f943ea280d82fb4936382c2e9c55 (ix(auth): keep /today family sign-in returns coherent [deploy] [qa-approved]), deployed to canonical Vercel deployment dpl_FkT6rtY8qJWVfcNzAxWq5fbLUcEZ. Source-prep branch codex/today-route-consistency remains preserved locally at 1fd09fb8c49ba11ec5373dd340f8d8a886cd38d6 with the full docs handoff. Scheduled-run checkout C:\Users\steve\Documents\GitHub\thepassageappio remains stale local main with preserved unrelated drift and was not mutated.
+- Branch/commit(s): production release commit c86ee14a9573f943ea280d82fb4936382c2e9c55 (ix(auth): keep /today family sign-in returns coherent [deploy] [qa-approved]), deployed to canonical Vercel deployment dpl_FkT6rtY8qJWVfcNzAxWq5fbLUcEZ. Source-prep branch codex/today-route-consistency remains preserved locally at 1fd09fb8c49ba11ec5373dd340f8d8a886cd38d6 with the full docs handoff. Scheduled-run checkout C:\Users\steve\Documents\GitHub\thepassageappio remains stale local main with preserved unrelated drift and was not mutated.
 - Role instance / delegated agent: explicit in-session Product Manager, UI/UX Review, Development Engineer, QA, and Deploy contexts only; true sub-agent delegation was unavailable in this run.
 - Prior role handoff received: 2026-07-03 family-auth release-candidate handoff with QA PASS and Deploy READY.
 - PM Sprint Brief: COMPLETE for the deployed family-auth consistency batch. The next PM scope is not started yet.
@@ -273,7 +293,7 @@ Append or update this section before final response:
 - Product Manager scope: fix now, hold deploy. Development uncovered that the queued fallback-button change was incomplete because legacy App auth still hardcoded `/`; that is a same-slice gap, not a new roadmap item.
 - UI/UX status: PASS. The experience bar is unchanged: whether the user stays on the calm family route or temporarily uses the rollback seam, sign-in should bring them back to the same family entry context instead of dumping them onto the public homepage.
 - Best-practice research: repo source review (`components/App.js`, `components/AppCalm.js`, `components/family/FamilyTodayApp.js`, `docs/site-migration-plan.md`, `docs/cycle-5-app-migration-handoff.md`), current GitHub/Vercel production metadata, and current official Vercel limits guidance already recorded on June 29, 2026. Product doctrine stays aligned with the migration rule that `/` remains public marketing and `/today` is the family app.
-- Development handoff: added `currentAuthReturnPath()` in `components/App.js` so legacy Google sign-in, OTP sign-in, and pending-checkout sign-in preserve the current route instead of hardcoding `/`; removed the old explicit `redirectPath=\"/\"` usage in legacy sign-in prompts so `/today?legacy=1` remains sticky. Existing APIs, Supabase contracts, and route structure are unchanged.
+- Development handoff: added `currentAuthReturnPath()` in `components/App.js` so legacy Google sign-in, OTP sign-in, and pending-checkout sign-in preserve the current route instead of hardcoding `/`; removed the old explicit `redirectPath="/"` usage in legacy sign-in prompts so `/today?legacy=1` remains sticky. Existing APIs, Supabase contracts, and route structure are unchanged.
 - Files changed: `components/App.js`, `docs/agent-operating-context.md`.
 - Data/API behavior changed: none. Existing Supabase auth, `/api/myEstates`, `/api/tasks/:id/status`, `/api/checkout`, and schema/contracts are preserved.
 - UX behavior changed: the queued source branch now keeps family auth on `/today` for the calm entry and on `/today?legacy=1` for the legacy rollback seam, instead of letting legacy sign-in bounce the user back to `/`.
