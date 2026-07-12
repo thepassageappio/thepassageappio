@@ -1,6 +1,8 @@
 # Passage — UX Redesign Brief ("Threshold")
 
-Source-of-truth brief for the full UX redesign of The Passage App IO (www.thepassageapp.io). Read this first, then `AGENTS.md` and the live Supabase schema, before doing redesign work. Prior redesign artifacts are saved in the workspace folder `Passage-UX-Redesign/` (00-system-findings.md, 01-current-state-critique.md, 01-design-system-foundation.html, 02-information-architecture.md, and a hero-screens mockup HTML).
+Source-of-truth brief for the full UX redesign of The Passage App IO (www.thepassageapp.io). Read this first, then `AGENTS.md` and the live Supabase schema, before doing redesign work. Prior redesign artifacts live in `docs/redesign/` in this repo (committed 2026-07-12 — do not look for a workspace-folder copy, the repo is the durable copy).
+
+**Required reading alongside this brief: `docs/redesign/08-visual-craft-standard.md`.** Owner correction 2026-07-12: early mockups were functionally right but visually flat. Every deliverable from here forward — mockup or shipped code — must meet that craft bar (layered shadows, generous pill-radius, gradient buttons with real depth, real SVG icons not color boxes, glass surfaces, refined type scale). `docs/redesign/01-design-system-foundation.html` v2 is the reference implementation.
 
 ## Founding truth
 A founder helped plan his grandmother's funeral while navigating Medicaid and care decisions. The people were kind; the system failed everyone — documents got lost, context didn't travel, coordination collapsed back onto the family. Passage exists to make the family record travel cleanly across every party who needs it. Design must be warm and empathetic for grieving families, enterprise-grade for funeral homes, frictionless for vendors, and immediately trustworthy at onboarding.
@@ -18,6 +20,7 @@ The backend spine and product thesis are strong and stay. The UI grew by accreti
 - Type: Fraunces for emotional "moments"; Inter for mechanisms. One rule at every decision: "moment or mechanism?"
 - One kit, two temperatures: Family (warm, mobile-first, one-thing-at-a-time) and Operator (structured, dense-capable, desktop console). One system, not two apps.
 - Emotional register by user: Family = calm, compassionate, low-friction, one clear next action. Funeral home/vendor/admin = efficient, structured, purpose-built, zero ambiguity.
+- Visual craft bar: see `docs/redesign/08-visual-craft-standard.md` — layered shadows, generous pill-radius, gradient CTAs with depth, real SVG iconography, glass/gradient surfaces used sparingly, refined type scale. This is not optional polish; it's part of the spec.
 
 ## Information architecture — object-shaped
 One Passage record, navigated identically from every role. Sections: Today · Horizon · Tasks · People · Documents · Estate · Medical · Wishes · Messages · Audit. Purpose-built consoles per role (Family, Funeral Home, Vendor, Admin). Hard wall around System Admin. Map every screen to the real Supabase tables and current routes.
@@ -39,7 +42,7 @@ Produce demo instances with NO weird/demo pages ever visible in production. Pref
 5. Sprint plan: prioritized sprints, each with goal, pages/features, dependencies, definition of "done"; sequence so the funeral-home demo path is production-ready first.
 
 ## Constraints (hold throughout)
-Enterprise-grade reliability/structure for B2B. Warmth and emotional safety for grieving B2C — never cold, clinical, or alarming. Zero ambiguity in task ownership. The family record must feel portable and living, not a static folder. B2C onboarding completable under emotional duress (minimal friction, clear progress, compassionate copy). Every portal purpose-built, not a bolted-on tab.
+Enterprise-grade reliability/structure for B2B. Warmth and emotional safety for grieving B2C — never cold, clinical, or alarming. Zero ambiguity in task ownership. The family record must feel portable and living, not a static folder. B2C onboarding completable under emotional duress (minimal friction, clear progress, compassionate copy). Every portal purpose-built, not a bolted-on tab. Visual execution must meet `docs/redesign/08-visual-craft-standard.md` — no flat borderline-wireframe mockups treated as final.
 
 ## Systems
 GitHub repo: `thepassageappio/thepassageappio` (Next.js). Live data model: Supabase (use the Supabase MCP for tables/roles/RLS). Also live: the Passage site, Vercel, HubSpot, Stripe. Design references: Apple, Notion, Everplans, Tomorrow, Salesforce Health Cloud.
