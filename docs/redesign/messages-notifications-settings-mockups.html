@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Threshold — Messages · Notifications · Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,440;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B; --pine-500:#2E6B58;
+    --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+    --clay-700:#9A4F26; --clay-600:#B5622F; --clay-500:#C97841; --clay-400:#D08A56; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+    --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+    --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081;
+    --ok-700:#3D6449; --ok-600:#4C7A5C; --ok-100:#E3EEE4;
+    --line-soft:#EFE8DA;
+    --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+    --e1:0 1px 1px rgba(20,30,25,.03),0 2px 4px rgba(20,30,25,.03);
+    --e2:0 2px 6px rgba(20,30,25,.05),0 10px 24px -8px rgba(20,30,25,.10);
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-font-smoothing:antialiased;}
+  body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink-900);background:#DCD5C4;letter-spacing:-.005em;}
+  .screen{max-width:1320px;margin:0 auto 48px;background:var(--bone-50);min-height:800px;position:relative;overflow:hidden;border-radius:var(--r-lg);box-shadow:0 8px 20px -6px rgba(20,30,25,.14),0 24px 48px -20px rgba(20,30,25,.18);}
+  .screen-label{background:var(--pine-950);color:var(--bone-100);font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:12px 28px;display:flex;justify-content:space-between;}
+  .screen-label .state{color:#9FB3A9;font-weight:500;text-transform:none;letter-spacing:0;}
+  .icon{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13.8px;border-radius:var(--r-full);padding:11px 20px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .18s var(--ease);}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-primary{background:linear-gradient(155deg,var(--clay-500),var(--clay-700));color:#fff;box-shadow:0 1px 2px rgba(154,79,38,.2),0 8px 16px -6px rgba(154,79,38,.4);}
+  .btn-secondary{background:var(--bone-50);color:var(--pine-800);border-color:var(--bone-400);border-width:1px;border-style:solid;box-shadow:var(--e1);}
+  .btn-ghost{background:transparent;color:var(--ink-500);}
+
+  .fam-shell{display:flex;min-height:800px;}
+  .fam-nav{width:84px;background:linear-gradient(180deg,var(--pine-900),var(--pine-950));display:flex;flex-direction:column;align-items:center;padding:28px 0;gap:18px;flex:none;}
+  .fam-nav .navicon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#8FA79B;position:relative;}
+  .fam-nav .navicon.active{background:linear-gradient(155deg,var(--clay-500),var(--clay-700));color:#fff;box-shadow:0 6px 14px -4px rgba(154,79,38,.5);}
+  .fam-nav .navicon .dot{position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:var(--clay-500);border:2px solid var(--pine-950);}
+  .fam-main{flex:1;padding:44px 52px;background:var(--bone-50);}
+  .fam-title{font-family:'Fraunces';font-weight:460;font-size:28px;letter-spacing:-.015em;color:var(--pine-950);margin:0 0 6px;}
+  .fam-sub{color:var(--ink-500);font-size:14px;margin:0 0 32px;}
+  .panel{background:var(--bone-50);border:1px solid var(--line-soft);border-radius:var(--r-md);padding:24px;box-shadow:var(--e1);}
+  .panel h4{font-size:13px;font-weight:700;margin:0 0 16px;color:var(--pine-950);display:flex;align-items:center;gap:8px;}
+
+  /* messages stepper */
+  .stepper{display:flex;align-items:center;gap:0;margin-bottom:32px;max-width:460px;}
+  .step{display:flex;align-items:center;gap:8px;}
+  .step .num{width:26px;height:26px;border-radius:50%;background:var(--bone-300);color:var(--ink-500);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .step.done .num{background:linear-gradient(155deg,var(--ok-600),var(--ok-700));color:#fff;}
+  .step.active .num{background:linear-gradient(155deg,var(--clay-500),var(--clay-700));color:#fff;box-shadow:0 4px 10px -3px rgba(154,79,38,.5);}
+  .step span.label{font-size:12.5px;font-weight:600;color:var(--ink-600);}
+  .step.active span.label{color:var(--pine-950);}
+  .step-line{width:44px;height:2px;background:var(--bone-300);margin:0 8px;}
+  .step-line.done{background:var(--ok-600);}
+  .msg-compose{background:var(--bone-50);border:1px solid var(--line-soft);border-radius:var(--r-lg);padding:28px;max-width:600px;box-shadow:var(--e2);}
+  .msg-compose textarea{width:100%;min-height:130px;border:1px solid var(--bone-400);border-radius:var(--r-sm);padding:14px;font-family:'Inter';font-size:14px;resize:none;background:#fff;}
+  .msg-compose .to-row{font-size:12.5px;color:var(--ink-500);margin-bottom:14px;}
+  .msg-compose .to-row b{color:var(--pine-950);}
+
+  /* notifications */
+  .digest-card{background:linear-gradient(150deg,#fff,var(--pine-50));border:1px solid var(--pine-100);border-radius:var(--r-lg);padding:24px;max-width:600px;margin-bottom:22px;box-shadow:var(--e1);}
+  .digest-card .tag{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--pine-600);}
+  .digest-card h4{font-family:'Fraunces';font-weight:480;font-size:19px;margin:8px 0 12px;color:var(--pine-950);}
+  .digest-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--pine-100);font-size:13.5px;color:var(--ink-700);}
+  .digest-item:first-of-type{border-top:none;}
+  .urgent-card{background:linear-gradient(150deg,#fff,var(--clay-50));border:1px solid var(--clay-200);border-radius:var(--r-lg);padding:20px 24px;max-width:600px;display:flex;gap:14px;align-items:center;box-shadow:var(--e2);}
+  .urgent-card .icon-wrap{width:38px;height:38px;border-radius:11px;background:linear-gradient(155deg,var(--clay-500),var(--clay-700));display:flex;align-items:center;justify-content:center;color:#fff;flex:none;}
+  .urgent-card h5{margin:0 0 3px;font-size:14px;font-weight:700;color:var(--pine-950);}
+  .urgent-card p{margin:0;font-size:12.5px;color:var(--ink-500);}
+
+  /* settings */
+  .settings-tabs{display:flex;gap:8px;margin-bottom:28px;}
+  .stab{padding:9px 18px;border-radius:var(--r-full);font-size:13px;font-weight:600;color:var(--ink-500);border:1px solid var(--bone-400);}
+  .stab.active{background:var(--pine-950);color:#fff;border-color:var(--pine-950);}
+  .access-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid var(--line-soft);}
+  .access-row:first-of-type{border-top:none;}
+  .access-row .left{display:flex;align-items:center;gap:12px;}
+  .avatar-sm{width:36px;height:36px;border-radius:50%;background:linear-gradient(155deg,var(--pine-100),#cfe0d8);display:flex;align-items:center;justify-content:center;font-family:'Fraunces';font-weight:600;font-size:12.5px;color:var(--pine-700);}
+  .role-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:var(--r-full);background:var(--pine-100);color:var(--pine-700);}
+</style>
+</head>
+<body>
+
+<!-- ============ SCREEN A: MESSAGES — DRAFT → APPROVE → SEND ============ -->
+<div class="screen">
+  <div class="screen-label"><span>Messages — draft → approve → send stepper (matches messages.status)</span><span class="state">v2 craft standard</span></div>
+  <div class="fam-shell">
+    <div class="fam-nav">
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8M6 10v10h12V10"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg></div>
+      <div class="navicon active"><svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v13H8l-4 3V5Z"/></svg></div>
+    </div>
+    <div class="fam-main">
+      <h2 class="fam-title">Messages</h2>
+      <p class="fam-sub">Obituary draft — everyone with access can see this once it's sent.</p>
+      <div class="stepper">
+        <div class="step done"><div class="num">✓</div><span class="label">Draft</span></div>
+        <div class="step-line done"></div>
+        <div class="step active"><div class="num">2</div><span class="label">Approve</span></div>
+        <div class="step-line"></div>
+        <div class="step"><div class="num">3</div><span class="label">Send</span></div>
+      </div>
+      <div class="msg-compose">
+        <div class="to-row">To: <b>All 5 people with access</b> · From: Elena Reyes</div>
+        <textarea readonly>Margaret Anne Reyes, 78, passed peacefully on July 4th surrounded by family. A visitation will be held July 18th at 2:00 PM at Rivera Funeral Home, followed by burial at Sunset Memorial Gardens...</textarea>
+        <div style="display:flex;gap:10px;margin-top:18px;">
+          <a class="btn btn-primary">Approve &amp; continue</a>
+          <a class="btn btn-secondary">Edit draft</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN B: NOTIFICATIONS ============ -->
+<div class="screen">
+  <div class="screen-label"><span>Notifications — digest-first, urgent-override tier</span><span class="state">v2 craft standard</span></div>
+  <div class="fam-shell">
+    <div class="fam-nav">
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8M6 10v10h12V10"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg></div>
+      <div class="navicon active"><span class="dot"></span><svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg></div>
+    </div>
+    <div class="fam-main">
+      <h2 class="fam-title">Notifications</h2>
+      <p class="fam-sub">One digest a day, unless something truly needs you now.</p>
+      <div class="urgent-card" style="margin-bottom:24px;">
+        <div class="icon-wrap"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><path d="M12 9v4M12 17h.01M10.3 3.9L2.5 17a2 2 0 001.7 3h15.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0Z"/></svg></div>
+        <div><h5>Vendor quote needs your approval</h5><p>Rivera Florals submitted a quote — this one couldn't wait for the digest.</p></div>
+      </div>
+      <div class="digest-card">
+        <span class="tag">Today's digest · 8:00 AM</span>
+        <h4>3 updates since yesterday</h4>
+        <div class="digest-item"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;margin-top:1px;"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>David completed "Confirm headcount" task</div>
+        <div class="digest-item"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;margin-top:1px;"><path d="M4 5h16v13H8l-4 3V5Z"/></svg>Obituary draft ready for your review</div>
+        <div class="digest-item"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;margin-top:1px;"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg>Sofia Reyes accepted her invite</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN C: SETTINGS — MY ACCOUNT / WHO HAS ACCESS ============ -->
+<div class="screen">
+  <div class="screen-label"><span>Settings — My account vs Who has access</span><span class="state">v2 craft standard</span></div>
+  <div class="fam-shell">
+    <div class="fam-nav">
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8M6 10v10h12V10"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg></div>
+      <div class="navicon"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg></div>
+      <div class="navicon active"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1Z"/></svg></div>
+    </div>
+    <div class="fam-main">
+      <h2 class="fam-title">Settings</h2>
+      <p class="fam-sub">Manage your account, and see exactly who can see what.</p>
+      <div class="settings-tabs">
+        <div class="stab">My account</div>
+        <div class="stab active">Who has access</div>
+      </div>
+      <div class="panel" style="max-width:600px;">
+        <h4>People with access to Margaret's Passage</h4>
+        <div class="access-row"><div class="left"><div class="avatar-sm">ER</div><div><div style="font-size:13.8px;font-weight:700;color:var(--pine-950);">Elena Reyes</div><div style="font-size:11.5px;color:var(--ink-400);">Executor · you</div></div></div><span class="role-pill">Full access</span></div>
+        <div class="access-row"><div class="left"><div class="avatar-sm">DR</div><div><div style="font-size:13.8px;font-weight:700;color:var(--pine-950);">David Reyes</div><div style="font-size:11.5px;color:var(--ink-400);">Co-executor</div></div></div><span class="role-pill">Full access</span></div>
+        <div class="access-row"><div class="left"><div class="avatar-sm">RF</div><div><div style="font-size:13.8px;font-weight:700;color:var(--pine-950);">Rivera Funeral Home</div><div style="font-size:11.5px;color:var(--ink-400);">Funeral director</div></div></div><span class="role-pill">Coordination only</span></div>
+        <div class="access-row"><div class="left"><div class="avatar-sm">SR</div><div><div style="font-size:13.8px;font-weight:700;color:var(--pine-950);">Sofia Reyes</div><div style="font-size:11.5px;color:var(--ink-400);">Inner circle</div></div></div><span class="role-pill">Read-only</span></div>
+        <div style="margin-top:18px;"><a class="btn btn-secondary">Invite someone new</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
