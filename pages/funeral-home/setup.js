@@ -6,19 +6,15 @@ import { supabase } from '../../lib/supabaseBrowser';
 import { friendlyAuthError, isLikelyEmail, normalizeEmail } from '../../lib/authFeedback';
 import { FUNERAL_HOME_PLAN_OPTIONS, partnerPlanFor } from '../../lib/partnerPlans';
 
-const C = {
-  bg: '#f6f3ee',
-  card: '#fffdf9',
-  ink: '#1a1916',
-  mid: '#6a6560',
-  soft: '#a09890',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageFaint: '#f0f5f1',
-  amber: '#a97832',
-  amberFaint: '#fdf8ee',
-  rose: '#c47a7a',
-  roseFaint: '#fdf3f3',
+const ADDRESS_COLORS = {
+  ink: '#1C1917',
+  mid: '#5A5348',
+  soft: '#79705F',
+  border: '#E6DDCB',
+  card: '#FBF8F3',
+  bg: '#FBF8F3',
+  sage: '#245A4B',
+  sageFaint: '#F2F6F3',
 };
 
 const setupOutcomes = [
@@ -146,68 +142,252 @@ export default function FuneralHomeSetupPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
+    <main className="th-shell">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
+        :root{
+          --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B;
+          --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+          --clay-700:#9A4F26; --clay-600:#B5622F; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+          --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+          --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081; --ink-300:#BEB6A8;
+          --line:#E6DDCB; --line-soft:#EFE8DA;
+          --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+          --e1:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03);
+          --e2:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10);
+          --ease:cubic-bezier(.22,1,.36,1);
+        }
+      `}</style>
+      <style jsx>{`
+        .th-shell {
+          min-height: 100vh;
+          background: var(--bone-100);
+          color: var(--ink-900);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          letter-spacing: -.005em;
+        }
+        .wrap { max-width: 1040px; margin: 0 auto; padding: 30px 24px 60px; }
+        .grid { display: grid; grid-template-columns: minmax(0,.8fr) minmax(320px,1fr); gap: 18px; align-items: start; }
+        .panel {
+          background: var(--bone-50);
+          border: 1px solid var(--line-soft);
+          border-radius: var(--r-lg);
+          padding: 28px;
+          box-shadow: var(--e2);
+        }
+        .eyebrow { color: var(--clay-600); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; }
+        h1 {
+          font-family: 'Fraunces', serif;
+          font-weight: 440;
+          font-size: clamp(30px, 4.6vw, 44px);
+          line-height: 1.06;
+          letter-spacing: -.018em;
+          color: var(--pine-950);
+          margin: 12px 0 14px;
+        }
+        h2 {
+          font-family: 'Fraunces', serif;
+          font-weight: 460;
+          font-size: 25px;
+          line-height: 1.16;
+          letter-spacing: -.01em;
+          color: var(--pine-950);
+          margin: 8px 0 10px;
+        }
+        p.lede { color: var(--ink-500); font-size: 15.5px; line-height: 1.62; margin: 0; }
+        .outcome-list { display: grid; gap: 9px; margin-top: 20px; }
+        .outcome-row {
+          display: grid;
+          grid-template-columns: 32px minmax(0,1fr);
+          gap: 12px;
+          background: var(--pine-50);
+          border: 1px solid #D5E4DC;
+          border-radius: var(--r-md);
+          padding: 13px;
+          color: var(--ink-600);
+          font-size: 13.5px;
+          line-height: 1.48;
+          box-shadow: var(--e1);
+        }
+        .outcome-num {
+          color: var(--pine-700);
+          text-align: center;
+          font-weight: 700;
+          font-family: 'Fraunces', serif;
+          font-size: 16px;
+        }
+        .outcome-row strong { color: var(--ink-900); }
+        .callout {
+          border-radius: var(--r-md);
+          padding: 14px;
+          font-size: 13.2px;
+          line-height: 1.52;
+          margin-top: 16px;
+        }
+        .callout.clay { background: var(--clay-50); border: 1px solid var(--clay-200); color: var(--ink-600); }
+        .callout.clay strong { color: var(--clay-700); }
+        .callout.pine { background: var(--pine-50); border: 1px solid #D5E4DC; color: var(--ink-600); }
+        .callout.pine strong { color: var(--pine-700); }
+        .th-error {
+          background: var(--clay-50);
+          border: 1px solid var(--clay-200);
+          color: var(--clay-700);
+          border-radius: var(--r-sm);
+          padding: 11px 14px;
+          font-size: 13px;
+          line-height: 1.48;
+          margin-bottom: 10px;
+        }
+        .th-confirm {
+          background: var(--pine-50);
+          border: 1px solid #D5E4DC;
+          color: var(--pine-700);
+          border-radius: var(--r-sm);
+          padding: 11px 14px;
+          font-size: 13px;
+          line-height: 1.48;
+          margin-top: 10px;
+        }
+        .th-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-family: 'Inter', sans-serif;
+          font-weight: 600;
+          font-size: 14px;
+          border-radius: var(--r-full);
+          padding: 12px 20px;
+          border: 1px solid transparent;
+          cursor: pointer;
+          transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+        }
+        .th-btn:hover { transform: translateY(-1px); }
+        .th-btn:disabled { cursor: not-allowed; opacity: .68; transform: none; }
+        .th-btn-primary {
+          background: linear-gradient(155deg, var(--pine-600), var(--pine-800));
+          color: #fff;
+          box-shadow: 0 1px 2px rgba(15,42,36,.15), 0 8px 16px -6px rgba(15,42,36,.35);
+        }
+        .th-btn-secondary {
+          background: var(--bone-50);
+          color: var(--pine-800);
+          border-color: var(--line);
+          box-shadow: var(--e1);
+        }
+        .th-btn-full { width: 100%; min-height: 50px; margin-bottom: 9px; }
+        input, select {
+          border: 1.5px solid var(--line);
+          border-radius: var(--r-sm);
+          background: var(--bone-100);
+          padding: 13px 14px;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          color: var(--ink-900);
+          outline: none;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        input.has-error { border-color: var(--clay-600); }
+        .field-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+        .plan-block {
+          background: var(--pine-50);
+          border: 1px solid #D5E4DC;
+          border-radius: var(--r-md);
+          padding: 14px;
+        }
+        .plan-label {
+          display: block;
+          color: var(--pine-700);
+          font-size: 10.5px;
+          letter-spacing: .14em;
+          text-transform: uppercase;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+        .plan-note { color: var(--ink-500); font-size: 12.5px; line-height: 1.48; margin: 9px 0 0; }
+        .done-rows { display: grid; gap: 7px; }
+        .done-row {
+          background: var(--bone-100);
+          border: 1px solid var(--line-soft);
+          border-radius: var(--r-sm);
+          padding: 9px 11px;
+          color: var(--ink-500);
+          font-size: 12.5px;
+          line-height: 1.42;
+        }
+        .done-row strong { color: var(--ink-900); }
+        .not-ready { color: var(--ink-500); font-size: 12.5px; line-height: 1.48; }
+        form { display: grid; gap: 10px; }
+
+        @media (max-width: 780px) {
+          .wrap { padding: 18px 16px 44px; }
+          .grid { grid-template-columns: 1fr; }
+          .panel { padding: 20px; border-radius: var(--r-md); }
+          .field-row { grid-template-columns: 1fr; }
+        }
+      `}</style>
       <SiteHeader user={user} />
-      <section style={{ maxWidth: 1040, margin: '0 auto', padding: '30px 24px 60px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.8fr) minmax(320px,1fr)', gap: 16, alignItems: 'start' }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 26, boxShadow: '0 14px 38px rgba(55,45,35,.06)' }}>
-            <div style={eyebrow}>Funeral-home setup</div>
-            <h1 style={{ fontSize: 52, lineHeight: 1, margin: '10px 0 12px', fontWeight: 400 }}>Create the funeral-home dashboard.</h1>
-            <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.65, margin: 0 }}>
+      <section className="wrap">
+        <div className="grid">
+          <div className="panel">
+            <span className="eyebrow">Funeral-home setup</span>
+            <h1>Create the funeral-home dashboard.</h1>
+            <p className="lede">
               Start with the funeral-home name, owner, subscription, and first location. Setup is complete only when staff can open a case and see what to do next, who owns it, who Passage is waiting on, the family message, and where proof saves.
             </p>
-            <div style={{ display: 'grid', gap: 8, marginTop: 18 }}>
+            <div className="outcome-list">
               {setupOutcomes.map(([number, title, body]) => (
-                <div key={title} style={{ display: 'grid', gridTemplateColumns: '30px minmax(0,1fr)', gap: 10, background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 11, color: C.mid, fontSize: 13.5, lineHeight: 1.45 }}>
-                  <strong style={{ color: C.sage, textAlign: 'center' }}>{number}</strong>
-                  <span><strong style={{ color: C.ink }}>{title}</strong><br />{body}</span>
+                <div key={title} className="outcome-row">
+                  <span className="outcome-num">{number}</span>
+                  <span><strong>{title}</strong><br />{body}</span>
                 </div>
               ))}
             </div>
-            <div style={{ background: C.amberFaint, border: `1px solid ${C.amber}33`, borderRadius: 14, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginTop: 14 }}>
-              <strong style={{ color: C.ink }}>What done means:</strong> the first case has an owner, a visible next step, a drafted family message, and a proof packet destination before the team starts using Passage with families.
+            <div className="callout clay">
+              <strong>What done means:</strong> the first case has an owner, a visible next step, a drafted family message, and a proof packet destination before the team starts using Passage with families.
             </div>
-            <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 12, color: C.mid, fontSize: 13.2, lineHeight: 1.5, marginTop: 10 }}>
-              <strong style={{ color: C.ink }}>Recommended next action:</strong> sign in as an owner or director, add the funeral-home name and main location, then create one real case so staff can see who owns the next step and where proof saves.
+            <div className="callout pine">
+              <strong>Recommended next action:</strong> sign in as an owner or director, add the funeral-home name and main location, then create one real case so staff can see who owns the next step and where proof saves.
             </div>
           </div>
 
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 22, boxShadow: '0 10px 30px rgba(55,45,35,.045)' }}>
+          <div className="panel">
             {!user ? (
               <div>
-                <div style={eyebrow}>Sign in first</div>
-                <h2 style={{ fontSize: 26, lineHeight: 1.15, margin: '8px 0 10px', fontWeight: 400 }}>Use your work email.</h2>
-                <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.5, margin: '0 0 12px' }}>Only an approved funeral-home owner or director should create the dashboard. Staff should use the staff queue after they are invited.</p>
-                {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 12, padding: 10, fontSize: 13, lineHeight: 1.45, marginBottom: 10 }}>{error}</div>}
-                <button onClick={signInGoogle} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 13, minHeight: 50, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', width: '100%', marginBottom: 9 }}>Continue with Google</button>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 8 }}>
-                  <input value={email} onChange={event => { setEmail(event.target.value); setError(''); setMagicSent(false); }} type="email" placeholder="director@funeralhome.com" style={{ border: `1.5px solid ${error ? C.rose : C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14 }} />
-                  <button disabled={magicLoading} onClick={sendMagicLink} style={{ border: `1px solid ${C.border}`, background: C.card, color: C.ink, borderRadius: 13, padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: magicLoading ? 'wait' : 'pointer', opacity: magicLoading ? .65 : 1 }}>{magicLoading ? 'Sending...' : 'Email link'}</button>
+                <span className="eyebrow">Sign in first</span>
+                <h2>Use your work email.</h2>
+                <p className="lede" style={{ fontSize: 13.2, marginBottom: 12 }}>Only an approved funeral-home owner or director should create the dashboard. Staff should use the staff queue after they are invited.</p>
+                {error && <div className="th-error">{error}</div>}
+                <button onClick={signInGoogle} className="th-btn th-btn-primary th-btn-full">Continue with Google</button>
+                <div className="field-row">
+                  <input value={email} onChange={event => { setEmail(event.target.value); setError(''); setMagicSent(false); }} type="email" placeholder="director@funeralhome.com" className={error ? 'has-error' : ''} />
+                  <button disabled={magicLoading} onClick={sendMagicLink} className="th-btn th-btn-secondary">{magicLoading ? 'Sending...' : 'Email link'}</button>
                 </div>
-                {magicSent && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.sage, fontSize: 13, lineHeight: 1.45, marginTop: 10 }}>Check your email. Come back here after signing in.</div>}
+                {magicSent && <div className="th-confirm">Check your email. Come back here after signing in.</div>}
               </div>
             ) : (
-              <form onSubmit={createWorkspace} style={{ display: 'grid', gap: 10 }}>
-                <div style={eyebrow}>Dashboard details</div>
-                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: 10, color: C.mid, fontSize: 13, lineHeight: 1.45 }}>
-                  <strong style={{ color: C.ink }}>Recommended next action:</strong> add the funeral-home name and main location first. Then open the dashboard, create one real case, assign the next-step owner, and confirm where proof saves.
+              <form onSubmit={createWorkspace}>
+                <span className="eyebrow">Dashboard details</span>
+                <div className="callout pine" style={{ marginTop: 8 }}>
+                  <strong>Recommended next action:</strong> add the funeral-home name and main location first. Then open the dashboard, create one real case, assign the next-step owner, and confirm where proof saves.
                 </div>
-                <input required value={form.organizationName} onChange={event => setForm(prev => ({ ...prev, organizationName: event.target.value }))} placeholder="Funeral home name" style={inputStyle} />
-                <input value={form.directorName} onChange={event => setForm(prev => ({ ...prev, directorName: event.target.value }))} placeholder="Director / owner name" style={inputStyle} />
-                <input type="email" value={form.supportEmail} onChange={event => setForm(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Family support email" style={inputStyle} />
-                <input type="tel" value={form.supportPhone} onChange={event => setForm(prev => ({ ...prev, supportPhone: event.target.value }))} placeholder="Family support phone" style={inputStyle} />
-                <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 12 }}>
-                  <label style={{ display: 'block', color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Subscription and location slots</label>
-                  <select value={form.planId} onChange={event => setForm(prev => ({ ...prev, planId: event.target.value }))} style={{ ...inputStyle, width: '100%', background: C.card }}>
+                <input required value={form.organizationName} onChange={event => setForm(prev => ({ ...prev, organizationName: event.target.value }))} placeholder="Funeral home name" />
+                <input value={form.directorName} onChange={event => setForm(prev => ({ ...prev, directorName: event.target.value }))} placeholder="Director / owner name" />
+                <input type="email" value={form.supportEmail} onChange={event => setForm(prev => ({ ...prev, supportEmail: event.target.value }))} placeholder="Family support email" />
+                <input type="tel" value={form.supportPhone} onChange={event => setForm(prev => ({ ...prev, supportPhone: event.target.value }))} placeholder="Family support phone" />
+                <div className="plan-block">
+                  <label className="plan-label">Subscription and location slots</label>
+                  <select value={form.planId} onChange={event => setForm(prev => ({ ...prev, planId: event.target.value }))}>
                     {Object.values(FUNERAL_HOME_PLAN_OPTIONS).map(plan => (
                       <option key={plan.id} value={plan.id}>{plan.label} - {plan.includedLocationSlots} location{plan.includedLocationSlots === 1 ? '' : 's'} included</option>
                     ))}
                   </select>
-                  <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, margin: '8px 0 0' }}>
+                  <p className="plan-note">
                     {selectedPlan.description} Additional locations are tracked as paid slots at ${(selectedPlan.additionalLocationFeeCents / 100).toFixed(0)}/mo each.
                   </p>
                 </div>
-                <input value={form.locationName} onChange={event => setForm(prev => ({ ...prev, locationName: event.target.value }))} placeholder="Main location name" style={inputStyle} />
+                <input value={form.locationName} onChange={event => setForm(prev => ({ ...prev, locationName: event.target.value }))} placeholder="Main location name" />
                 <SmartAddressInput
                   label="Main location address"
                   value={form.locationAddress}
@@ -223,19 +403,20 @@ export default function FuneralHomeSetupPage() {
                       placeId: parsed.placeId || prev.placeId,
                     }));
                   }}
-                  colors={C}
+                  colors={ADDRESS_COLORS}
+                  inputStyle={{ fontFamily: 'Inter, sans-serif', borderRadius: 12 }}
                   placeholder="Start typing the location address"
                 />
-                <div style={{ display: 'grid', gap: 7 }}>
+                <div className="done-rows">
                   {doneRows.map(([title, body]) => (
-                    <div key={title} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: '9px 10px', color: C.mid, fontSize: 12.5, lineHeight: 1.4 }}>
-                      <strong style={{ color: C.ink }}>{title}:</strong> {body}
+                    <div key={title} className="done-row">
+                      <strong>{title}:</strong> {body}
                     </div>
                   ))}
                 </div>
-                {error && <div style={{ background: C.roseFaint, border: `1px solid ${C.rose}33`, color: C.rose, borderRadius: 12, padding: 10, fontSize: 13, lineHeight: 1.45 }}>{error}</div>}
-                {!setupReady && <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45 }}>Add required info: funeral-home name and main location address.</div>}
-                <button disabled={loading || !setupReady} style={{ border: 'none', background: loading || !setupReady ? C.border : C.sage, color: '#fff', borderRadius: 13, minHeight: 52, padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: loading ? 'wait' : setupReady ? 'pointer' : 'not-allowed', opacity: loading || !setupReady ? .72 : 1 }}>
+                {error && <div className="th-error">{error}</div>}
+                {!setupReady && <div className="not-ready">Add required info: funeral-home name and main location address.</div>}
+                <button disabled={loading || !setupReady} className="th-btn th-btn-primary th-btn-full" style={{ minHeight: 52 }}>
                   {loading ? 'Creating dashboard...' : setupReady ? 'Create dashboard and open funeral-home dashboard' : 'Add required info'}
                 </button>
               </form>
@@ -247,6 +428,3 @@ export default function FuneralHomeSetupPage() {
     </main>
   );
 }
-
-const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
-const inputStyle = { border: `1.5px solid ${C.border}`, borderRadius: 13, background: C.bg, padding: '13px 14px', fontFamily: 'Georgia,serif', fontSize: 14, color: C.ink };
