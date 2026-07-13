@@ -3,8 +3,6 @@ import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter } from '../../components/SiteChrome';
 
-const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1' };
-
 function statusLabel(value) {
   if (value === 'handled' || value === 'completed' || value === 'done') return 'Handled';
   if (value === 'delivered') return 'Delivered';
@@ -12,6 +10,23 @@ function statusLabel(value) {
   if (value === 'waiting' || value === 'pending' || value === 'sent' || value === 'assigned') return 'Waiting';
   if (value === 'blocked' || value === 'failed') return 'Needs attention';
   return 'Draft';
+}
+
+function statusTone(label) {
+  if (label === 'Handled' || label === 'Delivered' || label === 'Confirmed') return 'done';
+  if (label === 'Waiting') return 'waiting';
+  if (label === 'Needs attention') return 'attention';
+  return 'draft';
+}
+
+function StatusPill({ label }) {
+  const tone = statusTone(label);
+  return (
+    <span className={`th-pill tone-${tone}`}>
+      <span className="sdot" />
+      {label}
+    </span>
+  );
 }
 
 export default function PartnerCaseSummary() {
@@ -42,70 +57,272 @@ export default function PartnerCaseSummary() {
     : 'At-need coordination';
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink, padding: 22 }}>
-      <style>{`
+    <main className="th-shell">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
+
+        :root{
+          --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B;
+          --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+          --clay-700:#9A4F26; --clay-600:#B5622F; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+          --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+          --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081; --ink-300:#BEB6A8;
+          --ok-700:#3D6449; --ok-600:#4C7A5C; --ok-100:#E3EEE4;
+          --wait-700:#946B23; --wait-600:#B5862F; --wait-100:#F5EAD6;
+          --line:#E6DDCB; --line-soft:#EFE8DA;
+          --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+          --e1:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03);
+          --e2:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10);
+          --ease:cubic-bezier(.22,1,.36,1);
+        }
+      `}</style>
+      <style jsx>{`
+        .th-shell {
+          min-height: 100vh;
+          background: var(--bone-100);
+          color: var(--ink-900);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          letter-spacing: -.005em;
+          padding: 22px;
+        }
         @media print {
-          body { background: #fff !important; }
+          .th-shell { background: #fff !important; padding: 0 !important; }
           .no-print { display: none !important; }
           .sheet { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: none !important; }
         }
+        .toolbar {
+          max-width: 840px;
+          margin: 0 auto 14px;
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+        }
+        .th-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-family: 'Inter', sans-serif;
+          font-weight: 600;
+          font-size: 14px;
+          border-radius: var(--r-full);
+          padding: 12px 20px;
+          min-height: 44px;
+          border: 1px solid transparent;
+          cursor: pointer;
+          transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+        }
+        .th-btn:hover { transform: translateY(-1px); }
+        .th-btn-secondary {
+          background: var(--bone-50);
+          color: var(--pine-800);
+          border-color: var(--line);
+          box-shadow: var(--e1);
+        }
+        .th-btn-primary {
+          background: linear-gradient(155deg, var(--pine-600), var(--pine-800));
+          color: #fff;
+          box-shadow: 0 1px 2px rgba(15,42,36,.15), 0 8px 16px -6px rgba(15,42,36,.35);
+        }
+        .th-notice {
+          max-width: 840px;
+          margin: 0 auto 14px;
+          background: var(--clay-50);
+          border: 1px solid var(--clay-200);
+          color: var(--clay-700);
+          border-radius: var(--r-sm);
+          padding: 12px 16px;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+        .th-loading {
+          max-width: 840px;
+          margin: 0 auto;
+          color: var(--ink-500);
+          font-size: 14px;
+        }
+        .sheet {
+          max-width: 840px;
+          margin: 0 auto;
+          background: var(--bone-50);
+          border: 1px solid var(--line-soft);
+          border-radius: var(--r-lg);
+          padding: 34px;
+          box-shadow: var(--e2);
+        }
+        .sheet-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 20px;
+          border-bottom: 1px solid var(--line-soft);
+          padding-bottom: 20px;
+          margin-bottom: 24px;
+        }
+        .eyebrow {
+          font-family: 'Inter', sans-serif;
+          color: var(--clay-600);
+          font-size: 11px;
+          letter-spacing: .14em;
+          text-transform: uppercase;
+          font-weight: 700;
+        }
+        .case-title {
+          font-family: 'Fraunces', serif;
+          font-weight: 440;
+          font-size: clamp(30px, 5vw, 40px);
+          line-height: 1.08;
+          letter-spacing: -.018em;
+          color: var(--pine-950);
+          margin: 10px 0 0;
+        }
+        .case-meta { color: var(--ink-500); font-size: 13px; margin-top: 8px; }
+        .brand-meta {
+          text-align: right;
+          color: var(--ink-500);
+          font-size: 12px;
+          line-height: 1.6;
+          flex-shrink: 0;
+        }
+        .brand-meta img { width: 34px; height: 34px; border-radius: var(--r-xs); display: inline-block; margin-bottom: 8px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+        .info-card {
+          border-radius: var(--r-md);
+          padding: 16px;
+          box-shadow: var(--e1);
+        }
+        .info-card.tint { background: var(--pine-50); border: 1px solid #D5E4DC; }
+        .info-card.plain { background: var(--bone-50); border: 1px solid var(--line-soft); }
+        .info-label {
+          color: var(--pine-700);
+          font-size: 10.5px;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+          font-weight: 700;
+        }
+        .info-value { font-size: 17px; margin-top: 6px; color: var(--ink-900); font-weight: 500; }
+        .info-sub { color: var(--ink-500); font-size: 13px; line-height: 1.55; margin-top: 3px; }
+        .section-block { margin-bottom: 22px; }
+        .section-label {
+          color: var(--pine-700);
+          font-size: 10.5px;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+          font-weight: 700;
+          margin-bottom: 10px;
+        }
+        .row {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 12px;
+          align-items: center;
+          padding: 11px 0;
+          border-top: 1px solid var(--line-soft);
+          font-size: 13.5px;
+        }
+        .row-title { color: var(--ink-900); }
+        .row-sub { color: var(--ink-400); font-size: 12px; margin-top: 2px; }
+        .comm-row { padding: 10px 0; border-top: 1px solid var(--line-soft); font-size: 13px; color: var(--ink-700); }
+        .empty-note { color: var(--ink-500); font-size: 13px; }
+        .th-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          font-size: 12px;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: var(--r-full);
+          white-space: nowrap;
+        }
+        .th-pill .sdot { width: 6px; height: 6px; border-radius: 50%; }
+        .th-pill.tone-done { background: var(--ok-100); color: var(--ok-700); border: 1px solid #C7DECB; }
+        .th-pill.tone-done .sdot { background: var(--ok-600); }
+        .th-pill.tone-waiting { background: var(--wait-100); color: var(--wait-700); border: 1px solid #E9D6A8; }
+        .th-pill.tone-waiting .sdot { background: var(--wait-600); }
+        .th-pill.tone-attention { background: var(--clay-50); color: var(--clay-700); border: 1px solid var(--clay-200); }
+        .th-pill.tone-attention .sdot { background: var(--clay-600); }
+        .th-pill.tone-draft { background: var(--bone-200); color: var(--ink-500); border: 1px solid var(--line-soft); }
+        .th-pill.tone-draft .sdot { background: var(--ink-300); }
+        .sheet-footer {
+          border-top: 1px solid var(--line-soft);
+          padding-top: 14px;
+          color: var(--ink-400);
+          font-size: 11.5px;
+          line-height: 1.55;
+        }
+
+        @media (max-width: 640px) {
+          .th-shell { padding: 14px; }
+          .sheet { padding: 22px 18px; border-radius: var(--r-md); }
+          .sheet-header { flex-direction: column; gap: 14px; }
+          .brand-meta { text-align: left; }
+          .info-grid { grid-template-columns: 1fr; }
+          .row { grid-template-columns: 1fr; align-items: flex-start; }
+          .toolbar { padding: 0 2px; }
+        }
       `}</style>
-      <div className="no-print" style={{ maxWidth: 840, margin: '0 auto 12px', display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-        <button onClick={() => router.back()} style={{ border: `1px solid ${C.border}`, background: C.card, borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>Back</button>
-        <button onClick={() => window.print()} style={{ border: 'none', background: C.sage, color: '#fff', borderRadius: 10, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>Print / Save PDF</button>
+
+      <div className="toolbar no-print">
+        <button className="th-btn th-btn-secondary" onClick={() => router.back()}>Back</button>
+        <button className="th-btn th-btn-primary" onClick={() => window.print()}>Print / Save PDF</button>
       </div>
-      {error && <div style={{ maxWidth: 840, margin: '0 auto', color: '#c47a7a' }}>{error}</div>}
-      {!data && !error && <div style={{ maxWidth: 840, margin: '0 auto', color: C.soft }}>Loading summary...</div>}
+
+      {error && <div className="th-notice">{error}</div>}
+      {!data && !error && <div className="th-loading">Loading summary&hellip;</div>}
+
       {data && (
-        <section className="sheet" style={{ maxWidth: 840, margin: '0 auto', background: '#fff', border: `1px solid ${C.border}`, borderRadius: 18, padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,.07)' }}>
-          <header style={{ display: 'flex', justifyContent: 'space-between', gap: 18, borderBottom: `1px solid ${C.border}`, paddingBottom: 16, marginBottom: 18 }}>
+        <section className="sheet">
+          <header className="sheet-header">
             <div>
-              <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>{org.from_name || org.name || 'Funeral home'} family summary</div>
-              <h1 style={{ fontSize: 34, lineHeight: 1.05, fontWeight: 400, margin: '8px 0 0' }}>{caseName}</h1>
-              <div style={{ color: C.mid, fontSize: 13, marginTop: 6 }}>{caseType}{workflow.organization_case_reference ? ` - ${workflow.organization_case_reference}` : ''}</div>
+              <div className="eyebrow">{org.from_name || org.name || 'Funeral home'} family summary</div>
+              <h1 className="case-title">{caseName}</h1>
+              <div className="case-meta">{caseType}{workflow.organization_case_reference ? ` — ${workflow.organization_case_reference}` : ''}</div>
             </div>
-            <div style={{ textAlign: 'right', color: C.mid, fontSize: 12, lineHeight: 1.55 }}>
-              <img src="/passage-icon-light-onbg.svg" alt="Passage" style={{ width: 34, height: 34, borderRadius: 9, display: 'inline-block', marginBottom: 6 }} /><br />
+            <div className="brand-meta">
+              <img src="/passage-icon-light-onbg.svg" alt="Passage" />
+              <br />
               Prepared {new Date().toLocaleDateString()}<br />
               Powered by Passage<br />
               thepassageapp.io
             </div>
           </header>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
-            <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}22`, borderRadius: 13, padding: 14 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Family contact</div>
-              <div style={{ fontSize: 18, marginTop: 5 }}>{workflow.coordinator_name || 'Not added yet'}</div>
-              <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5 }}>{workflow.coordinator_email || ''}<br />{workflow.coordinator_phone || ''}</div>
+          <div className="info-grid">
+            <div className="info-card tint">
+              <div className="info-label">Family contact</div>
+              <div className="info-value">{workflow.coordinator_name || 'Not added yet'}</div>
+              <div className="info-sub">{workflow.coordinator_email || ''}{workflow.coordinator_email && workflow.coordinator_phone ? <br /> : null}{workflow.coordinator_phone || ''}</div>
             </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 13, padding: 14 }}>
-              <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Meeting readiness</div>
-              <div style={{ fontSize: 18, marginTop: 5 }}>Enough to get started</div>
-              <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.5 }}>Bring this summary to the arrangement meeting or send it ahead so everyone starts from the same facts.</div>
+            <div className="info-card plain">
+              <div className="info-label">Meeting readiness</div>
+              <div className="info-value">Enough to get started</div>
+              <div className="info-sub">Bring this summary to the arrangement meeting or send it ahead so everyone starts from the same facts.</div>
             </div>
           </div>
 
-          <section style={{ marginBottom: 16 }}>
-            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Open work</div>
+          <section className="section-block">
+            <div className="section-label">Open work</div>
             {(data.tasks || []).slice(0, 8).map(task => (
-              <div key={task.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, padding: '8px 0', borderTop: `1px solid ${C.border}`, fontSize: 13.5 }}>
-                <div>{task.title}<div style={{ color: C.soft, fontSize: 12 }}>{task.assigned_to_name || task.last_actor || 'Unassigned'}</div></div>
-                <div style={{ color: C.sage, fontWeight: 900 }}>{statusLabel(task.status)}</div>
+              <div key={task.id} className="row">
+                <div>
+                  <div className="row-title">{task.title}</div>
+                  <div className="row-sub">{task.assigned_to_name || task.last_actor || 'Unassigned'}</div>
+                </div>
+                <StatusPill label={statusLabel(task.status)} />
               </div>
             ))}
           </section>
 
-          <section style={{ marginBottom: 16 }}>
-            <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Communication log</div>
-            {(data.communications || []).length === 0 && <div style={{ color: C.mid, fontSize: 13 }}>No messages sent yet.</div>}
+          <section className="section-block">
+            <div className="section-label">Communication log</div>
+            {(data.communications || []).length === 0 && <div className="empty-note">No messages sent yet.</div>}
             {(data.communications || []).slice(0, 5).map(item => (
-              <div key={item.id} style={{ padding: '7px 0', borderTop: `1px solid ${C.border}`, fontSize: 13 }}>
-                {item.subject || 'Family update'} - {item.recipient_name || item.recipient_email || item.recipient_phone || 'recipient'} - {statusLabel(item.status)}
+              <div key={item.id} className="comm-row">
+                {item.subject || 'Family update'} — {item.recipient_name || item.recipient_email || item.recipient_phone || 'recipient'} — {statusLabel(item.status)}
               </div>
             ))}
           </section>
 
-          <footer style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12, color: C.soft, fontSize: 11.5, lineHeight: 1.5 }}>
+          <footer className="sheet-footer">
             Prepared with Passage. Powered by Passage | thepassageapp.io. Based on standard funeral home intake information and the family coordination details available at the time this summary was created.
           </footer>
         </section>
