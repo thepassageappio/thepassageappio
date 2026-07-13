@@ -4,7 +4,6 @@ import { supabase } from '../../lib/supabaseBrowser';
 import { SiteFooter, SiteHeader } from '../../components/SiteChrome';
 import { vendorCategoryLabel } from '../../lib/vendors';
 
-const C = { bg: '#f6f3ee', card: '#fff', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
 const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
 function isSystemAdmin(user) {
@@ -141,60 +140,151 @@ export default function VendorAdmin() {
   const admin = isSystemAdmin(user);
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
-      <SiteHeader user={user} onSignIn={user ? null : signIn} onSignOut={user ? signOut : null} />
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '22px' }}>
-        <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Passage admin</div>
-        <h1 style={{ fontSize: 44, lineHeight: 1.05, margin: '8px 0 16px', fontWeight: 400 }}>Vendor applications</h1>
-        <p style={{ color: C.mid, fontSize: 16, lineHeight: 1.6, maxWidth: 720, marginTop: -4 }}>Review trusted local support partners before they appear inside family requests. Approval makes the vendor active; the vendor signs in with the application email to manage requests from the vendor page.</p>
+    <main className="th-shell">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
+        :root{
+          --pine-950:#0A1F1A; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B;
+          --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+          --clay-700:#9A4F26; --clay-600:#B5622F; --clay-200:#EBC6A4; --clay-50:#FBF0E7;
+          --bone-50:#FEFDFB; --bone-100:#FBF8F3;
+          --ink-900:#1C1917; --ink-600:#5A5348; --ink-500:#79705F;
+          --line:#E6DDCB; --line-soft:#EFE8DA;
+          --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+          --e1:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03);
+          --e2:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10);
+          --ease:cubic-bezier(.22,1,.36,1);
+        }
+      `}</style>
+      <style jsx>{`
+        .th-shell {
+          min-height: 100vh;
+          background: var(--bone-100);
+          color: var(--ink-900);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          letter-spacing: -.005em;
+        }
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 26px 22px 56px; }
+        .eyebrow { color: var(--clay-600); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; }
+        h1 {
+          font-family: 'Fraunces', serif; font-weight: 440; font-size: clamp(28px, 4vw, 40px);
+          line-height: 1.06; letter-spacing: -.018em; color: var(--pine-950); margin: 10px 0 14px;
+        }
+        p.lede { color: var(--ink-500); font-size: 14.5px; line-height: 1.58; max-width: 720px; margin-top: -4px; }
+        .status-panel {
+          background: var(--bone-50); border: 1px solid var(--line-soft); border-radius: var(--r-lg); padding: 18px;
+          margin: 16px 0; display: flex; justify-content: space-between; gap: 14px; align-items: center; flex-wrap: wrap;
+          box-shadow: var(--e2);
+        }
+        .status-title { font-size: 17px; font-weight: 600; margin-top: 4px; color: var(--ink-900); }
+        .status-sub { color: var(--ink-500); font-size: 13px; line-height: 1.45; margin-top: 3px; }
+        .path-panel { background: var(--bone-50); border: 1px solid var(--line-soft); border-radius: var(--r-lg); padding: 18px; margin: 16px 0; box-shadow: var(--e1); }
+        .path-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-top: 10px; }
+        .path-card { background: var(--pine-50); border: 1px solid #D5E4DC; border-radius: var(--r-md); padding: 12px; }
+        .path-num { color: var(--pine-700); font-size: 11px; font-weight: 700; }
+        .path-title { font-size: 15px; font-weight: 600; margin-top: 4px; color: var(--ink-900); }
+        .path-body { color: var(--ink-500); font-size: 12.5px; line-height: 1.45; margin-top: 4px; }
+        .th-confirm { background: var(--pine-50); border: 1px solid #D5E4DC; color: var(--pine-700); border-radius: var(--r-sm); padding: 12px; margin-bottom: 12px; font-size: 13px; }
+        .th-error { background: var(--clay-50); border: 1px solid var(--clay-200); color: var(--clay-700); border-radius: var(--r-sm); padding: 12px; margin-bottom: 12px; font-size: 13px; }
+        .empty-panel { background: var(--bone-50); border: 1px solid var(--line-soft); border-radius: var(--r-lg); padding: 20px; color: var(--ink-900); margin-bottom: 14px; box-shadow: var(--e1); }
+        .empty-title { font-size: 21px; margin-bottom: 6px; font-weight: 600; }
+        .empty-body { color: var(--ink-500); line-height: 1.55; margin-top: 0; font-size: 14px; }
+        .th-btn { border: none; border-radius: var(--r-full); padding: 12px 16px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: transform .18s var(--ease); text-decoration: none; display: inline-flex; }
+        .th-btn:hover { transform: translateY(-1px); }
+        .th-btn-primary { background: linear-gradient(155deg, var(--pine-600), var(--pine-800)); color: #fff; box-shadow: 0 1px 2px rgba(15,42,36,.15), 0 8px 16px -6px rgba(15,42,36,.35); }
+        .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .filter-btn {
+          border: 1px solid var(--line); background: var(--bone-50); color: var(--ink-500);
+          border-radius: var(--r-full); padding: 9px 13px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12.5px; cursor: pointer;
+        }
+        .filter-btn.active { border-color: var(--pine-600); background: var(--pine-600); color: #fff; }
+        .vendor-list { display: grid; gap: 10px; }
+        .vendor-card { background: var(--bone-50); border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 16px; box-shadow: var(--e1); }
+        .vendor-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+        .vendor-name { font-size: 19px; font-weight: 600; color: var(--ink-900); }
+        .vendor-meta { color: var(--ink-500); font-size: 13px; margin-top: 3px; }
+        .vendor-contact { color: var(--ink-500); font-size: 12.5px; margin-top: 5px; opacity: .85; }
+        .vendor-desc { color: var(--ink-500); font-size: 13px; margin-top: 7px; line-height: 1.5; }
+        .connect-row { display: grid; grid-template-columns: minmax(220px,1fr) 130px 150px; gap: 8px; margin-top: 10px; max-width: 620px; }
+        .connect-row input[type='text'], .connect-row input:not([type]) {
+          border: 1px solid var(--line); background: var(--bone-100); color: var(--ink-900);
+          border-radius: var(--r-sm); padding: 8px 9px; font-family: 'Inter', sans-serif; font-size: 12.5px; min-width: 0;
+        }
+        .status-pill {
+          border-radius: var(--r-full); padding: 5px 10px; font-size: 12px; font-weight: 700;
+        }
+        .status-pill.active { color: var(--pine-700); background: var(--pine-50); }
+        .status-pill.rejected { color: var(--clay-700); background: var(--clay-50); }
+        .status-pill.other { color: var(--ink-500); background: var(--bone-100); }
+        .vendor-bottom { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+        .vendor-avail { color: var(--ink-500); font-size: 12.5px; }
+        .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .small-btn {
+          border: 1px solid var(--line); background: var(--bone-50); color: var(--ink-500);
+          border-radius: var(--r-full); padding: 8px 11px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; cursor: pointer;
+        }
+        .small-btn.approve { background: var(--pine-600); color: #fff; border-color: var(--pine-600); }
+        .small-btn.reject { color: var(--clay-700); }
 
-        <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, margin: '18px 0', display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+        @media (max-width: 780px) {
+          .wrap { padding: 18px 16px 40px; }
+          .path-grid { grid-template-columns: 1fr 1fr; }
+          .connect-row { grid-template-columns: 1fr; }
+        }
+      `}</style>
+      <SiteHeader user={user} onSignIn={user ? null : signIn} onSignOut={user ? signOut : null} />
+      <section className="wrap">
+        <span className="eyebrow">Passage admin</span>
+        <h1>Vendor applications</h1>
+        <p className="lede">Review trusted local support partners before they appear inside family requests. Approval makes the vendor active; the vendor signs in with the application email to manage requests from the vendor page.</p>
+
+        <div className="status-panel">
           <div>
-            <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Admin status</div>
-            <div style={{ fontSize: 18, fontWeight: 900, marginTop: 4 }}>{loading ? 'Checking access...' : admin ? 'Signed in as system admin' : 'System admin sign-in required'}</div>
-            <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 3 }}>{user ? user.email : 'Only Passage system admins can approve vendors before they appear in task recommendations.'}</div>
+            <span className="eyebrow">Admin status</span>
+            <div className="status-title">{loading ? 'Checking access...' : admin ? 'Signed in as system admin' : 'System admin sign-in required'}</div>
+            <div className="status-sub">{user ? user.email : 'Only Passage system admins can approve vendors before they appear in task recommendations.'}</div>
           </div>
-          <button onClick={() => token && admin ? load(token) : signIn()} style={primaryButton}>{token && admin ? 'Refresh applications' : 'Sign in to review'}</button>
+          <button onClick={() => token && admin ? load(token) : signIn()} className="th-btn th-btn-primary">{token && admin ? 'Refresh applications' : 'Sign in to review'}</button>
         </div>
 
-        <div style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 16, margin: '18px 0', display: 'grid', gap: 12 }}>
-          <div style={{ color: C.sage, fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900 }}>Approval path</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
+        <div className="path-panel">
+          <span className="eyebrow">Approval path</span>
+          <div className="path-grid">
             {[
               ['1', 'Vendor applies', 'Business, category, ZIPs, email, and phone are captured.'],
               ['2', 'System admin reviews', 'Only Passage system admins can approve, pause, or reject.'],
               ['3', 'Vendor signs in', 'Their contact email becomes the business login identity.'],
               ['4', 'Task-native requests', 'Families see vendors only inside relevant tasks.'],
             ].map(([number, title, body]) => (
-              <div key={title} style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 12 }}>
-                <div style={{ color: C.sage, fontSize: 11, fontWeight: 900 }}>{number}</div>
-                <div style={{ fontSize: 16, fontWeight: 900, marginTop: 4 }}>{title}</div>
-                <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>{body}</div>
+              <div key={title} className="path-card">
+                <div className="path-num">{number}</div>
+                <div className="path-title">{title}</div>
+                <div className="path-body">{body}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {message && <div style={{ background: C.sageFaint, border: '1px solid #c8deca', color: C.sage, borderRadius: 12, padding: 12, marginBottom: 12 }}>{message}</div>}
-        {error && <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '55', color: C.rose, borderRadius: 12, padding: 12, marginBottom: 12 }}>{error}</div>}
+        {message && <div className="th-confirm">{message}</div>}
+        {error && <div className="th-error">{error}</div>}
 
         {!user && !loading && (
-          <div style={emptyStyle}>
-            <div style={{ fontSize: 24, marginBottom: 6 }}>Sign in as a Passage system admin.</div>
-            <p style={{ color: C.mid, lineHeight: 1.6, marginTop: 0 }}>Vendor approvals are restricted because approving a vendor controls who families may see inside tasks.</p>
-            <button onClick={signIn} style={primaryButton}>Sign in with Google</button>
+          <div className="empty-panel">
+            <div className="empty-title">Sign in as a Passage system admin.</div>
+            <p className="empty-body">Vendor approvals are restricted because approving a vendor controls who families may see inside tasks.</p>
+            <button onClick={signIn} className="th-btn th-btn-primary">Sign in with Google</button>
           </div>
         )}
 
         {user && !admin && !loading && (
-          <div style={emptyStyle}>
-            <div style={{ fontSize: 24, marginBottom: 6 }}>This vendor approval area is not available for this account.</div>
-            <p style={{ color: C.mid, lineHeight: 1.6, marginTop: 0 }}>Vendor approval is restricted to Passage system admins.</p>
+          <div className="empty-panel">
+            <div className="empty-title">This vendor approval area is not available for this account.</div>
+            <p className="empty-body">Vendor approval is restricted to Passage system admins.</p>
           </div>
         )}
 
         {user && admin && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+          <div className="filter-row">
             {[
               ['pending', `Pending (${counts.pending})`],
               ['active', `Approved (${counts.active})`],
@@ -202,40 +292,39 @@ export default function VendorAdmin() {
               ['rejected', `Rejected (${counts.rejected})`],
               ['all', `All (${counts.all})`],
             ].map(([value, label]) => (
-              <button key={value} onClick={() => setFilter(value)} style={{ border: '1px solid ' + (filter === value ? C.sage : C.border), background: filter === value ? C.sage : C.card, color: filter === value ? '#fff' : C.mid, borderRadius: 999, padding: '9px 12px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' }}>{label}</button>
+              <button key={value} onClick={() => setFilter(value)} className={filter === value ? 'filter-btn active' : 'filter-btn'}>{label}</button>
             ))}
           </div>
         )}
 
-        {loading && <div style={emptyStyle}>Loading vendor applications...</div>}
+        {loading && <div className="empty-panel">Loading vendor applications...</div>}
 
         {user && admin && !loading && vendors.length === 0 && (
-          <div style={emptyStyle}>
-            <div style={{ fontSize: 24, marginBottom: 6 }}>No vendor applications yet.</div>
-            <p style={{ color: C.mid, lineHeight: 1.6, marginTop: 0 }}>When a vendor submits the support partner form, it will appear here for system-admin approval.</p>
-            <Link href="/vendors/onboard" style={{ ...primaryButton, display: 'inline-flex', textDecoration: 'none' }}>Open vendor application form</Link>
+          <div className="empty-panel">
+            <div className="empty-title">No vendor applications yet.</div>
+            <p className="empty-body">When a vendor submits the support partner form, it will appear here for system-admin approval.</p>
+            <Link href="/vendors/onboard" className="th-btn th-btn-primary">Open vendor application form</Link>
           </div>
         )}
 
         {user && admin && !loading && vendors.length > 0 && visibleVendors.length === 0 && (
-          <div style={emptyStyle}>No {filter} vendors right now.</div>
+          <div className="empty-panel">No {filter} vendors right now.</div>
         )}
 
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div className="vendor-list">
           {admin && visibleVendors.map((vendor) => (
-            <div key={vendor.id} style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div key={vendor.id} className="vendor-card">
+              <div className="vendor-top">
                 <div>
-                  <div style={{ fontSize: 21 }}>{vendor.business_name}</div>
-                  <div style={{ color: C.mid, fontSize: 13, marginTop: 3 }}>{vendorCategoryLabel(vendor.category)} - {vendor.contact_email || 'no email yet'} - {(vendor.zip_codes_served || []).join(', ') || 'no ZIPs yet'}</div>
-                  <div style={{ color: C.soft, fontSize: 12.5, marginTop: 5 }}>{vendor.contact_phone || 'No phone'}{vendor.website ? ` - ${vendor.website}` : ''}</div>
-                  {vendor.short_description && <div style={{ color: C.mid, fontSize: 13, marginTop: 7, lineHeight: 1.5 }}>{vendor.short_description}</div>}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px,1fr) 130px 150px', gap: 8, marginTop: 10, maxWidth: 620 }}>
+                  <div className="vendor-name">{vendor.business_name}</div>
+                  <div className="vendor-meta">{vendorCategoryLabel(vendor.category)} - {vendor.contact_email || 'no email yet'} - {(vendor.zip_codes_served || []).join(', ') || 'no ZIPs yet'}</div>
+                  <div className="vendor-contact">{vendor.contact_phone || 'No phone'}{vendor.website ? ` - ${vendor.website}` : ''}</div>
+                  {vendor.short_description && <div className="vendor-desc">{vendor.short_description}</div>}
+                  <div className="connect-row">
                     <input
                       value={connectDrafts[vendor.id]?.stripeConnectAccountId ?? vendor.stripe_connect_account_id ?? ''}
                       onChange={(event) => updateConnectDraft(vendor.id, 'stripeConnectAccountId', event.target.value)}
                       placeholder="Stripe connected account ID, acct_..."
-                      style={miniInput}
                     />
                     <input
                       value={connectDrafts[vendor.id]?.marketplaceFeePercent ?? vendor.marketplace_fee_percent ?? 12}
@@ -245,9 +334,8 @@ export default function VendorAdmin() {
                       max="40"
                       step="0.1"
                       placeholder="Fee %"
-                      style={miniInput}
                     />
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.mid, fontSize: 12.5, fontWeight: 900 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--ink-500)', fontSize: 12.5, fontWeight: 600 }}>
                       <input
                         type="checkbox"
                         checked={Boolean(connectDrafts[vendor.id]?.stripePayoutsEnabled ?? vendor.stripe_payouts_enabled)}
@@ -257,14 +345,14 @@ export default function VendorAdmin() {
                     </label>
                   </div>
                 </div>
-                <span style={{ color: vendor.status === 'active' ? C.sage : vendor.status === 'rejected' ? C.rose : C.soft, background: vendor.status === 'rejected' ? C.roseFaint : C.sageFaint, borderRadius: 999, padding: '5px 9px', fontSize: 12, fontWeight: 900 }}>{vendor.status}</span>
+                <span className={`status-pill ${vendor.status === 'active' ? 'active' : vendor.status === 'rejected' ? 'rejected' : 'other'}`}>{vendor.status}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 12 }}>
-                <div style={{ color: C.mid, fontSize: 13 }}>Availability: {vendor.rush_supported ? `rush${vendor.rush_window_hours ? ` (${vendor.rush_window_hours}h)` : ''}` : 'planned'}{vendor.planned_supported ? ' + planned' : ''} ?? Payment: {vendor.stripe_connect_account_id ? 'Connect linked' : 'Connect needed'} ?? Fee {vendor.marketplace_fee_percent ?? 12}%</div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button disabled={updating === vendor.id + ':active'} onClick={() => setStatus(vendor.id, 'active')} style={{ ...smallButton, background: C.sage, color: '#fff', borderColor: C.sage }}>{updating === vendor.id + ':active' ? 'Approving...' : 'Approve vendor'}</button>
-                  <button disabled={updating === vendor.id + ':inactive'} onClick={() => setStatus(vendor.id, 'inactive')} style={smallButton}>{updating === vendor.id + ':inactive' ? 'Pausing...' : 'Pause'}</button>
-                  <button disabled={updating === vendor.id + ':rejected'} onClick={() => setStatus(vendor.id, 'rejected')} style={{ ...smallButton, color: C.rose }}>{updating === vendor.id + ':rejected' ? 'Rejecting...' : 'Reject'}</button>
+              <div className="vendor-bottom">
+                <div className="vendor-avail">Availability: {vendor.rush_supported ? `rush${vendor.rush_window_hours ? ` (${vendor.rush_window_hours}h)` : ''}` : 'planned'}{vendor.planned_supported ? ' + planned' : ''} — Payment: {vendor.stripe_connect_account_id ? 'Connect linked' : 'Connect needed'} — Fee {vendor.marketplace_fee_percent ?? 12}%</div>
+                <div className="action-row">
+                  <button disabled={updating === vendor.id + ':active'} onClick={() => setStatus(vendor.id, 'active')} className="small-btn approve">{updating === vendor.id + ':active' ? 'Approving...' : 'Approve vendor'}</button>
+                  <button disabled={updating === vendor.id + ':inactive'} onClick={() => setStatus(vendor.id, 'inactive')} className="small-btn">{updating === vendor.id + ':inactive' ? 'Pausing...' : 'Pause'}</button>
+                  <button disabled={updating === vendor.id + ':rejected'} onClick={() => setStatus(vendor.id, 'rejected')} className="small-btn reject">{updating === vendor.id + ':rejected' ? 'Rejecting...' : 'Reject'}</button>
                 </div>
               </div>
             </div>
@@ -287,8 +375,3 @@ function statusMessage(status, vendor) {
   if (status === 'rejected') return 'Vendor rejected. They will not appear in family requests.';
   return 'Vendor updated.';
 }
-
-const emptyStyle = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, color: C.ink, marginBottom: 14 };
-const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 12, padding: '12px 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
-const smallButton = { border: '1px solid ' + C.border, background: C.card, color: C.mid, borderRadius: 10, padding: '9px 11px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
-const miniInput = { border: '1px solid ' + C.border, background: C.bg, color: C.ink, borderRadius: 10, padding: '8px 9px', fontFamily: 'Georgia,serif', fontSize: 12.5, minWidth: 0 };
