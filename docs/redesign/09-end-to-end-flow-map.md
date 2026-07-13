@@ -1,6 +1,6 @@
 # End-to-End Flow Map — every persona, every screen, every click
 
-Added 2026-07-12. This is the connective tissue the individual wireframe docs don't show on their own: for each persona, the literal path from entry to exit — which screen leads to which, what triggers the transition, and what state carries forward. Every node below maps to a real screen in `04-wireframes-annotated.md` and, where a visual mockup exists, the file it lives in. No screen is an island; every arrow is a real click, notification, or handoff.
+Added 2026-07-12, updated 2026-07-12 (open items closed). This is the connective tissue the individual wireframe docs don't show on their own: for each persona, the literal path from entry to exit — which screen leads to which, what triggers the transition, and what state carries forward. Every node below maps to a real screen in `04-wireframes-annotated.md` and, where a visual mockup exists, the file it lives in. No screen is an island; every arrow is a real click, notification, or handoff.
 
 Legend: `[screen]` = a mapped screen · `→` = a direct click/nav action · `⇢` = an async trigger (notification, email, webhook) that brings the user back in · `(file)` = mockup file, where one exists.
 
@@ -28,7 +28,7 @@ Legend: `[screen]` = a mapped screen · `→` = a direct click/nav action · `�
 [Notifications] (messages-notifications-settings-mockups.html)
    ⇢ daily digest email → click-through returns to [Family Dashboard]
 ```
-Exit: service completed → workflow status `completed` → Dashboard next-action card is replaced with an archive/keep prompt (see `03-journey-maps.md` §1 exit stage — not yet a dedicated mockup, flagged in Open Items below).
+Exit: service completed → workflow status `completed` → Dashboard next-action card is replaced with an archive/keep prompt — **[Family Dashboard — "Archive or keep" exit prompt](remaining-screens-mockups.html, Screen 1)**.
 
 ## 2. Family — planning ahead
 
@@ -38,7 +38,7 @@ Exit: service completed → workflow status `completed` → Dashboard next-actio
    → select persona_type (standard/spouse/parent/business_owner)
 [Create a Passage — wizard] (family-record-sections-mockups.html)
    → step through, save-and-exit available at every step
-[Family Dashboard] (planning-mode variant: no urgent next-action card, shows setup checklist instead)
+[Family Dashboard] (planning-mode variant: no urgent next-action card, shows setup checklist instead — remaining-screens-mockups.html, Screen 2)
    → nav through Timeline / Contacts / Estate / Medical / Wishes to fill in over time
 [Settings → Who has access] (messages-notifications-settings-mockups.html)
    → add activators/witnesses for the eventual trigger
@@ -76,13 +76,13 @@ This is the shortest loop in the system by design — see `05-task-spine-coordin
    → draft → approve → send (stepper, matches messages.status)
    → back to [Funeral Home Portal case list] via "Back to cases"
 ```
-Exit (per case): service completed → case drops out of "needs attention" grouping in the case-list stat row, moves to a completed/reporting view (Reporting nav item — not yet a dedicated mockup, flagged below).
+Exit (per case): service completed → case drops out of "needs attention" grouping in the case-list stat row, moves to a completed/reporting view — **[Funeral Home Reporting view](remaining-screens-mockups.html, Screen 3)**.
 
 ## 5. Vendor
 
 ```
 ⇢ notification: new request → [Vendor Portal Dashboard] (admin-and-vendor-portal-mockups.html, Screen B)
-   → click a request card → quote form (not yet a dedicated mockup — inline in the card today, flagged below)
+   → click a request card → **[Vendor quote-submission form](remaining-screens-mockups.html, Screen 4)**
    → submit quote ⇢ funeral home/family accepts (async) → payment tracker advances
    ⇢ payment collected → tracker advances again
    → mark fulfilled → tracker reaches "Paid out"
@@ -97,7 +97,7 @@ Vendor never navigates outside this one scoped view — no cross-links to family
    → "View as" → banner appears, record renders read-only
 [Passage Record — read-only, as the viewed user would see it]
    → "End view" → banner clears, grant logged
-   → nav: Recent grants → audit list (not yet a dedicated mockup, flagged below)
+   → nav: Recent grants → audit list → click a grant → **[Recent grants audit detail](remaining-screens-mockups.html, Screen 5)**
    → nav: Platform Ops → Roadmap / Pilot health / etc. (existing System Admin pages per AGENTS.md, out of scope for this redesign — Admin Portal links to them, doesn't rebuild them)
 ```
 
@@ -106,11 +106,13 @@ Vendor never navigates outside this one scoped view — no cross-links to family
 - **Funeral Home ↔ Vendor:** a task in the funeral home's Tasks table ("Send vendor quote") is the same underlying row a vendor sees as a request card in their Portal — status changes on either side propagate to both views via the same `vendor_requests.status` field.
 - **Admin ↔ everyone:** "View as" renders the exact family or operator screen a real user would see, reusing the same components — the Admin Portal has no separate rendering path, only a read-only wrapper.
 
-## Open items — screens referenced above with no dedicated mockup yet
-- Family Dashboard "archive or keep" exit prompt (end of urgent journey)
-- Family Dashboard "planning mode" variant (setup checklist instead of next-action card)
-- Funeral Home Reporting view (post-completion case view)
-- Vendor quote-submission form (currently inline-implied on the request card)
-- Admin "Recent grants" audit list detail view
+## Open items — status
 
-These are small, well-scoped additions. Status as of 2026-07-12: the batch referenced above (auth-flow-mockups.html, family-record-sections-mockups.html, messages-notifications-settings-mockups.html) has shipped — every non-open-item screen in this map now has a real mockup file. These 5 remain the only gap. See `10-handoff-next-steps.md` for the plan to close them and for the first real production deploy.
+All 5 screens flagged in the previous version of this doc now have dedicated mockups in `remaining-screens-mockups.html`:
+- ✅ Family Dashboard "archive or keep" exit prompt — Screen 1
+- ✅ Family Dashboard "planning mode" variant — Screen 2
+- ✅ Funeral Home Reporting view — Screen 3
+- ✅ Vendor quote-submission form — Screen 4
+- ✅ Admin "Recent grants" audit list detail view — Screen 5
+
+Every screen named across this flow map now has either a dedicated mockup file or a clearly marked variant within one. No remaining open items from the original wireframe/mockup pass. Next-stage work (turning these into shipped Next.js pages, wiring real Supabase data, and QA) is scoped separately per `07-sprint-plan.md` and, for this session's findings, `docs/agent-operating-context.md`.
