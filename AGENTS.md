@@ -8,6 +8,16 @@ The owner (Steve) has explicitly authorized a complete teardown and rebuild of t
 
 Deliverable priority: the funeral-home demo path must be production-ready first. Also design the admin-access model (dedicated Admin Portal + secure view/impersonate) and a demo-instance strategy that never exposes demo pages in production. Details in the brief.
 
+### Definition of done: mockup is not shipped — added 2026-07-12 after owner correction
+
+`docs/redesign/*.html` files are **reference mockups only** — static design artifacts for review, never rendered by the live app, never linked from any real route. Producing or updating a mockup file is design/spec work, not implementation, and must never be reported to the owner as "shipped," "launched," "revamped," or "live." The owner has been explicit: what he wants is the actual site — real pages under `pages/` and `components/`, styled with the Threshold tokens, wired to live Supabase data through the app's real auth/RLS, built and QA'd at both viewports, and deployed to production so a real visitor sees the new design. Nothing short of that counts as "the redesign" being live, no matter how many mockup files exist in `docs/redesign/`.
+
+Practical rule for every future session (scheduled or interactive) working this initiative:
+- Treat each mockup file as a spec for a page/component implementation task, not the deliverable itself.
+- A sprint or session is not "done" until the corresponding `pages/*.js` (and any new `components/*.js`) exist, match the mockup, pull real data, and have gone through a **verified** `[deploy][qa-approved]` release — verified via the Vercel MCP, not assumed.
+- If a session only has time to build mockups (design/spec work) and not the real implementation, say so plainly in the report: "mockups only, no live surface changed" — do not let that read as progress toward "launched."
+- Large real-page implementation work (e.g. re-skinning `pages/funeral-home/dashboard.js`) should be broken into reviewable batches across sessions per `07-sprint-plan.md`, each with real browser QA before its own deploy — not attempted as one blind rewrite with no QA checkpoint.
+
 A scheduled agent run resumes this redesign work on 2026-07-12 at ~12:30pm ET. Prior artifacts are in the workspace folder `Passage-UX-Redesign/`.
 
 ---
