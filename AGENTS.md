@@ -18,6 +18,19 @@ Practical rule for every future session (scheduled or interactive) working this 
 - If a session only has time to build mockups (design/spec work) and not the real implementation, say so plainly in the report: "mockups only, no live surface changed" — do not let that read as progress toward "launched."
 - Large real-page implementation work (e.g. re-skinning `pages/funeral-home/dashboard.js`) should be broken into reviewable batches across sessions per `07-sprint-plan.md`, each with real browser QA before its own deploy — not attempted as one blind rewrite with no QA checkpoint.
 
+### Scale and ambition — added 2026-07-12 (run 3), owner directive: full transformation, greenfield
+
+The owner's goal is the **entire app transformed onto Threshold, greenfield** — not an indefinite trickle of one small page per day forever. Run 3 (2026-07-12) proved the safe end-to-end pattern for shipping a real page (presentation-only re-skin, throwaway-branch build proof, deploy, live post-deploy render check) on `pages/funeral-home/summary.js`. That pattern is now the default unit of work, but the *batch size* per run should scale up, not stay at one file forever.
+
+**The driving backlog is `docs/redesign/12-threshold-rollout-tracker.md`.** Read it right after this directive, before `07-sprint-plan.md` or `11-funeral-home-polish-scope.md` (those remain valid for rationale/history, but the tracker is the actual checklist and status source of truth — update it every time a page ships).
+
+Rules for every future run on this initiative:
+- Default to taking the **next 2–5 unshipped Tier 1 items** from the tracker per run (not just one), when they are independent, low-risk, presentation-only re-skins following the proven `summary.js` pattern. This still respects the Deployment Rules' batch guidance below (bundle compatible fixes into one release candidate) — it just raises the default batch size for this specific proven-safe, repeatable pattern.
+- Reserve genuine "smallest possible slice" caution for Tier 2 items only — the handful of large monoliths (`dashboard.js`, `estate.js`, `App.js`, `urgent.js`, and similar) that need PM-scoped splitting before any code changes, per `11-funeral-home-polish-scope.md`'s method. Do not let Tier 2's caution bleed into Tier 1's pace — most of Tier 1 is small, static-content-adjacent, or already-isolated pages where a full-file re-skin in one sitting is low risk.
+- Do not stop a run after shipping one Tier 1 item if there is remaining time, budget (deploy budget gate below still applies), and more independent Tier 1 items queued. Keep working the list.
+- Once all of Tier 1 is checked off in the tracker, the default next action becomes Tier 2 (`pages/funeral-home/dashboard.js` first, per the brief's funeral-home-first priority), split into its own reviewable sub-batches.
+- Still never fake QA, never skip the live post-deploy render check, never exceed the deploy budget gate below, and never treat "the tracker still has unchecked items" as license to rush an unsafe batch. Speed comes from taking more *independent, low-risk* items per run, not from cutting the safety steps that made the `summary.js` slice trustworthy.
+
 A scheduled agent run resumes this redesign work on 2026-07-12 at ~12:30pm ET. Prior artifacts are in the workspace folder `Passage-UX-Redesign/`.
 
 ---
@@ -60,7 +73,7 @@ The owner is the last resort, not the default next step. Before asking the owner
 - Browser or Chrome automation for QA and authenticated browser state.
 - A signed-in Claude session in Chrome, when available, for agent-to-agent coordination, research, handoff review, or tool-assisted checking.
 
-Claude in Chrome is an assistant path, not a permission bypass. Use it only within existing owner-approved access. Do not use Claude in Chrome to spend money, reveal or request secrets, send real customer/vendor/funeral-home communications, make destructive production data changes, bypass auth, or decide legal, privacy, security, medical, compliance, or funeral-director claims. If Claude in Chrome helps, record what it was asked to do and what it returned in docs/agent-operating-context.md.
+Claude in Chrome is an assistant path, not a permission bypass. Use it only within existing owner-approved access. Do not use Claude in Chrome to spend money, reveal or request secrets, send real customer/vendor/funeral-home communications, make destructive production data changes, bypass auth, or decide legal, privacy, security, medical, or funeral-director claims. If Claude in Chrome helps, record what it was asked to do and what it returned in docs/agent-operating-context.md.
 
 Ask the owner only after those paths are unavailable, unsafe, or insufficient and a true Agent Permissions gate remains.
 
@@ -183,7 +196,7 @@ Use meaningful batches. Avoid small deploy chains that cause Vercel rate limitin
 
 Default deploy budget: one production deploy train per hour and no more than four deploy-triggering commits per day unless production is broken or the owner explicitly approves a quota exception.
 
-Batch rule: bundle two or three compatible small/medium fixes into one release candidate. Do not deploy docs-only, roadmap-only, context-only, QA-note-only, or source-only setup commits.
+Batch rule: bundle two or three compatible small/medium fixes into one release candidate — for the Threshold rollout specifically, see "Scale and ambition" above, which raises this to up to 5 same-pattern presentation-only re-skins per batch. Do not deploy docs-only, roadmap-only, context-only, QA-note-only, or source-only setup commits.
 
 Use [skip deploy] for source batching and documentation/context updates. Use one [deploy] [qa-approved] release commit only when a coherent release candidate has passed the release train.
 
@@ -208,7 +221,7 @@ Vercel runs `scripts/vercel-ignore-build.js` as the Ignore Build Step (configure
 
 Consequences every session must know:
 
-- You CANNOT get a Vercel preview URL — even on a non-main branch — without a commit whose message has both a deploy marker and `[qa-approved]`. The gate keys on markers, not on branch; branch only decides production vs preview AFTER a build is allowed. (Exception for QA: you may remove `ignoreCommand` from vercel.json ON A THROWAWAY BRANCH ONLY to get a preview build; never merge that branch to main, and restore the gate when done.)
+- You CANNOT get a Vercel preview URL — even on a non-main branch — without a commit whose message has both a deploy marker and `[qa-approved]`. The gate keys on markers, not on branch; branch only decides production vs preview AFTER a build is allowed. (Exception for QA: you may remove `ignoreCommand` from vercel.json ON A THROWAWAY BRANCH ONLY to get a preview build; never merge that branch to main, and restore the gate when done. Note, observed 2026-07-12: even with the gate open, this project's preview deployments sit behind Vercel's own account/team SSO wall — `vercel.com/login?next=/sso-api...` — which blocks unauthenticated browser QA tools. Do not enter Vercel credentials to get past this. Treat pre-deploy preview QA as best-effort; the live post-deploy render check on production is the QA step that actually gates `[qa-approved]` in practice for this project.)
 - `[deploy] [qa-approved]` on `main` = PRODUCTION deploy. The same markers on a non-main branch (e.g. `qa-app-slice`) = a non-production PREVIEW deploy.
 - Never add `[qa-approved]` to a commit before QA has actually passed — that marker asserts QA passed and faking it defeats the gate. Earn it through the release train, then add it.
 - To browser-QA before deploy approval, run locally (`npm run dev`) and drive Chrome at localhost:3000, or use the throwaway-branch preview above, or have the owner open the gate. Do not force a build by tagging an unproven commit.
@@ -247,5 +260,5 @@ Agents must not proceed without explicit owner approval for:
 - Public and persona-facing pages must stay free of internal language.
 - Internal tools belong under System Admin.
 - Verification matters: build, deploy, browser QA, API/data proof, and screenshots where useful.
-- Mobile + web in tandem (cohesive responsive — REQUIRED): every real persona surface is built and QA'd at BOTH desktop (>=1366) and mobile (390 and 360) within the SAME slice — never ship one viewport without the other. Same status spine, same CalmKit/CalmControls components and copy across viewports so mobile and web stay cohesive; only layout (widths, stacking, density) adapts. Per-slice hard checks: zero horizontal overflow at 360/390/desktop, tap targets >= DS.tap.min, no hydration warnings.
+- Mobile + web in tandem (cohesive responsive — REQUIRED): every real persona surface is built and QA'd at BOTH desktop (>=1366) and mobile (390 and 360) within the SAME slice — never ship one viewport without the other. Same status spine, same CalmKit/CalmControls components and copy across viewports so mobile and web stay cohesive; only layout (widths, stacking, density) adapts. Per-slice hard checks: zero horizontal overflow at 360/390/desktop, tap targets >= DS.tap.min, no hydration warnings. If a session's browser tooling cannot actually resize to these viewports (record the attempt and the actual behavior observed), fall back to verifying the responsive CSS rules shipped correctly (e.g. inspect `document.styleSheets` for the expected media-query rule and selectors) and flag the visual-only gap explicitly rather than skipping the check silently.
 - Real app vs. preview shell: real signed-in/persona surfaces use `AppShell frame="app"` (clean, centered, responsive panel). The default `frame="device"` renders a phone mockup (fake "9:41" status bar + bottom tab bar) and is ONLY for /preview reference pages. Never ship the device mockup on a real surface (regression shipped + fixed 2026-06-20, commit 7dba2214).
