@@ -1,19 +1,6 @@
 import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 
-const C = {
-  bg: '#f6f3ee',
-  card: '#fff',
-  ink: '#1a1916',
-  mid: '#6a6560',
-  soft: '#a09890',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageFaint: '#f0f5f1',
-  rose: '#c47a7a',
-  roseFaint: '#fdf3f3',
-};
-
 const sections = [
   {
     title: 'Families',
@@ -64,27 +51,73 @@ const sections = [
 
 export default function FAQPage() {
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
+    <main className="th-shell">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
+        :root{
+          --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B;
+          --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+          --clay-700:#9A4F26; --clay-600:#B5622F; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+          --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+          --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081; --ink-300:#BEB6A8;
+          --line:#E6DDCB; --line-soft:#EFE8DA;
+          --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+          --e1:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03);
+          --e2:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10);
+          --ease:cubic-bezier(.22,1,.36,1);
+        }
+      `}</style>
+      <style jsx>{`
+        .th-shell {
+          min-height: 100vh;
+          background: var(--bone-100);
+          color: var(--ink-900);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          letter-spacing: -.005em;
+        }
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 28px 52px; }
+        .eyebrow { color: var(--clay-600); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; }
+        h1 { font-family: 'Fraunces', serif; font-weight: 440; font-size: clamp(34px,5vw,50px); line-height: 1.02; margin: 8px 0 10px; letter-spacing: -.02em; color: var(--pine-950); max-width: 760px; }
+        p.lede { color: var(--ink-500); font-size: 16px; line-height: 1.6; margin: 0; max-width: 760px; }
+        .boundary { background: var(--clay-50); border: 1px solid var(--clay-200); border-radius: var(--r-lg); padding: 18px; margin-top: 18px; }
+        .boundary-title { color: var(--clay-700); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+        .boundary-body { color: var(--ink-600); font-size: 15px; line-height: 1.6; margin: 8px 0 0; }
+        .sections { display: grid; gap: 14px; margin-top: 18px; }
+        .panel { background: var(--bone-50); border: 1px solid var(--line-soft); border-radius: var(--r-lg); padding: 20px; box-shadow: var(--e1); }
+        h2 { font-family: 'Fraunces', serif; font-weight: 460; font-size: 26px; line-height: 1.12; margin: 0 0 12px; letter-spacing: -.015em; color: var(--pine-950); }
+        .qa-stack { display: grid; gap: 10px; }
+        details { background: var(--pine-50); border: 1px solid #D5E4DC; border-radius: var(--r-md); padding: 14px; }
+        summary { cursor: pointer; font-size: 17px; font-weight: 600; color: var(--ink-900); }
+        details p { color: var(--ink-600); font-size: 14.5px; line-height: 1.58; margin: 10px 0 0; }
+        .cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        .th-btn {
+          display: inline-flex; align-items: center; min-height: 46px; border-radius: var(--r-full);
+          padding: 0 16px; text-decoration: none; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 13.5px;
+          border: 1px solid transparent;
+        }
+        .th-btn-primary { background: linear-gradient(155deg, var(--pine-600), var(--pine-800)); color: #fff; box-shadow: 0 1px 2px rgba(15,42,36,.15), 0 8px 16px -6px rgba(15,42,36,.35); }
+        .th-btn-secondary { background: var(--bone-50); color: var(--pine-800); border-color: var(--line); box-shadow: var(--e1); }
+      `}</style>
       <SiteHeader />
-      <section style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 28px 48px' }}>
-        <div style={eyebrow}>Passage FAQ</div>
-        <h1 style={h1}>Clear answers before anyone has to hunt.</h1>
-        <p style={lead}>Passage is built for coordination, not confusion. These answers explain how families, helpers, funeral homes, and vendors use the same shared record without seeing more than they should.</p>
+      <section className="wrap">
+        <span className="eyebrow">Passage FAQ</span>
+        <h1>Clear answers before anyone has to hunt.</h1>
+        <p className="lede">Passage is built for coordination, not confusion. These answers explain how families, helpers, funeral homes, and vendors use the same shared record without seeing more than they should.</p>
 
-        <div style={{ background: C.roseFaint, border: '1px solid ' + C.rose + '33', borderRadius: 18, padding: 18, marginTop: 18 }}>
-          <div style={{ color: C.rose, fontSize: 12, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase' }}>Important boundary</div>
-          <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.6, margin: '8px 0 0' }}>Passage provides coordination guidance and recordkeeping. It does not replace emergency services, hospice, medical professionals, legal advice, funeral directors, clergy, government offices, or local authority requirements.</p>
+        <div className="boundary">
+          <div className="boundary-title">Important boundary</div>
+          <p className="boundary-body">Passage provides coordination guidance and recordkeeping. It does not replace emergency services, hospice, medical professionals, legal advice, funeral directors, clergy, government offices, or local authority requirements.</p>
         </div>
 
-        <div style={{ display: 'grid', gap: 14, marginTop: 18 }}>
+        <div className="sections">
           {sections.map((section) => (
-            <section key={section.title} style={panel}>
-              <h2 style={h2}>{section.title}</h2>
-              <div style={{ display: 'grid', gap: 10 }}>
+            <section key={section.title} className="panel">
+              <h2>{section.title}</h2>
+              <div className="qa-stack">
                 {section.items.map(([question, answer]) => (
-                  <details key={question} style={detailCard}>
-                    <summary style={{ cursor: 'pointer', fontSize: 18, fontWeight: 900 }}>{question}</summary>
-                    <p style={{ color: C.mid, fontSize: 15, lineHeight: 1.6, margin: '10px 0 0' }}>{answer}</p>
+                  <details key={question}>
+                    <summary>{question}</summary>
+                    <p>{answer}</p>
                   </details>
                 ))}
               </div>
@@ -92,12 +125,12 @@ export default function FAQPage() {
           ))}
         </div>
 
-        <section style={{ ...panel, marginTop: 14 }}>
-          <h2 style={h2}>Still need help?</h2>
-          <p style={lead}>Support, bug reports, feature requests, billing questions, and funeral-home pilot inquiries can be routed through Contact. Vendor applications should use the vendor application form.</p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
-            <Link href="/contact" style={primaryLink}>Contact Passage</Link>
-            <Link href="/trust" style={secondaryLink}>Read trust boundaries</Link>
+        <section className="panel" style={{ marginTop: 14 }}>
+          <h2>Still need help?</h2>
+          <p className="lede">Support, bug reports, feature requests, billing questions, and funeral-home pilot inquiries can be routed through Contact. Vendor applications should use the vendor application form.</p>
+          <div className="cta-row">
+            <Link href="/contact" className="th-btn th-btn-primary">Contact Passage</Link>
+            <Link href="/trust" className="th-btn th-btn-secondary">Read trust boundaries</Link>
           </div>
         </section>
       </section>
@@ -105,12 +138,3 @@ export default function FAQPage() {
     </main>
   );
 }
-
-const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
-const h1 = { fontSize: 52, lineHeight: 1.03, margin: '8px 0 10px', fontWeight: 400, maxWidth: 760 };
-const h2 = { fontSize: 28, lineHeight: 1.12, margin: '0 0 12px', fontWeight: 400 };
-const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth: 760 };
-const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,.04)' };
-const detailCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 14 };
-const primaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 46, background: C.sage, color: '#fff', borderRadius: 13, padding: '0 16px', textDecoration: 'none', fontWeight: 900 };
-const secondaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 46, background: C.card, color: C.sage, border: '1px solid ' + C.border, borderRadius: 13, padding: '0 16px', textDecoration: 'none', fontWeight: 900 };
