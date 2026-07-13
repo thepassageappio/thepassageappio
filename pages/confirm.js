@@ -77,7 +77,7 @@ export default function ConfirmPage() {
             --ease:cubic-bezier(.22,1,.36,1);
           }
         `}</style>
-        <style jsx>{`
+        <style jsx global>{`
           .th-shell {
             min-height: 100vh;
             background: var(--bone-100);
@@ -170,7 +170,7 @@ export default function ConfirmPage() {
   return (
     shell(
       <div className="box">
-        <style jsx>{`
+        <style jsx global>{`
           .lede-box { text-align: center; margin-bottom: 28px; }
           .lede-kicker { font-size: 11px; color: var(--ink-400); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
           .lede-title { font-family: 'Fraunces', serif; font-weight: 460; font-size: 22px; color: var(--pine-950); line-height: 1.32; margin-bottom: 14px; letter-spacing: -.015em; }
