@@ -18,13 +18,13 @@ Added 2026-07-12 (run 3), owner directive: **full transformation, greenfield** �
 
 Funeral-home / operator surfaces (brief's "funeral-home demo path first" priority — clear these first within Tier 1):
 - [x] `pages/funeral-home/summary.js` — **SHIPPED 2026-07-12, commit `027bd99a5ea6c25c74b1f28f1c219bd36fed007b`** (run 3)
-- [ ] `pages/funeral-home/login.js` (5.9KB) — mockup reference: `docs/redesign/auth-flow-mockups.html`
-- [ ] `pages/funeral-home/staff.js` (5.5KB)
-- [ ] `pages/funeral-home/cases.js` (39 bytes — near-empty stub, check what it actually renders before assuming it needs a re-skin vs. a real build-out)
-- [ ] `pages/funeral-home/setup.js` (15.9KB)
-- [ ] `pages/funeral-home/sample-case.js` (8.8KB)
+- [x] `pages/funeral-home/login.js` — **SHIPPED 2026-07-12, commit `59c972f49a6a725056a15269d0066a03da603118`** (run 4). Static doorway/role-picker page, no data layer.
+- [x] `pages/funeral-home/staff.js` — **SHIPPED 2026-07-12, commit `59c972f49a6a725056a15269d0066a03da603118`** (run 4). Magic-link + Google sign-in form; sendMagicLink/signInGoogle logic byte-identical.
+- [ ] `pages/funeral-home/cases.js` — **checked, not a separate re-skin target (run 4)**: file is `export { default } from './dashboard'` — a pure re-export, no markup of its own. Tracked under the Tier 2 `dashboard.js` split instead; will inherit that work automatically once dashboard.js ships.
+- [x] `pages/funeral-home/setup.js` — **SHIPPED 2026-07-12, commit `59c972f49a6a725056a15269d0066a03da603118`** (run 4). Director onboarding form incl. Supabase auth (getSession/onAuthStateChange/signInWithOtp) + `/api/partnerSelfServeSetup`; all state/effects/handlers byte-identical. `SmartAddressInput` component itself untouched — only the `colors`/`inputStyle` props passed to it changed to Threshold hex values.
+- [x] `pages/funeral-home/sample-case.js` — **SHIPPED 2026-07-12, commit `59c972f49a6a725056a15269d0066a03da603118`** (run 4). Static sample-case marketing page; `trackEvent` calls preserved verbatim.
 - [ ] `pages/funeral-home/workspace-demo.js` (9.3KB)
-- [ ] `pages/funeral-home/pilot-proof.js` (333 bytes — likely a stub, verify)
+- [x] `pages/funeral-home/pilot-proof.js` — **inherited, no separate change needed (verified 2026-07-12, run 4)**: the file renders `FuneralHomeSampleCase` directly (a thin legacy-route wrapper that also does a `history.replaceState` to `/funeral-home/sample-case`), so it picked up the `sample-case.js` re-skin automatically. Confirmed live via the post-deploy render check.
 - [ ] `pages/funeral-home/index.js` (17.4KB) — **note:** already on the pre-Threshold calm design system (`lib/designSystem.js`, sage/cream), not yet on Threshold Pine/Clay/Bone. Needs a Threshold pass too, don't mistake "already redesigned once" for "done."
 
 Vendor portal:
@@ -53,7 +53,7 @@ Marketing / public (lower urgency than app surfaces, but still real live pages a
 ## Tier 2 — large monoliths, split-then-reskin only, never a blind rewrite
 
 Each of these needs its own PM-scoped punch list (see `11-funeral-home-polish-scope.md` as the template) before any code changes — extract into smaller components first, re-skin the extracted pieces, ship in reviewable slices:
-- [ ] `pages/funeral-home/dashboard.js` — 449KB, live director/staff console. Punch list already exists: `11-funeral-home-polish-scope.md`. **This is the single highest-leverage item once Tier 1 is clear** — it's the primary daily-use B2B surface.
+- [ ] `pages/funeral-home/dashboard.js` — 449KB, live director/staff console. Punch list already exists: `11-funeral-home-polish-scope.md`. **This is the single highest-leverage item once Tier 1 is clear** — it's the primary daily-use B2B surface. `pages/funeral-home/cases.js` re-exports this file, so splitting/re-skinning it will also resolve that tracker item.
 - [ ] `pages/estate.js` — 313KB
 - [ ] `components/App.js` — 335KB (check what mounts this — likely the legacy family app shell; may be superseded by `components/family/FamilyTodayApp.js` + `AppCalm.js` already, verify before assuming it needs a rewrite vs. deletion)
 - [ ] `pages/urgent.js` — 76.3KB
