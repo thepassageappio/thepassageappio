@@ -7,19 +7,6 @@ import { supabase } from '../lib/supabaseBrowser';
 import { buildContinuityPackets, demoContinuityInput } from '../lib/continuityPackets';
 import { trackEvent } from '../lib/trackEvent';
 
-const C = {
-  bg: '#f6f3ee',
-  card: '#ffffff',
-  ink: '#1a1916',
-  mid: '#6a6560',
-  soft: '#a09890',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageFaint: '#f0f5f1',
-  amber: '#b07d2e',
-  amberFaint: '#fdf8ee',
-};
-
 export default function PacketDemo() {
   const router = useRouter();
   const demoPackets = useMemo(() => buildContinuityPackets(demoContinuityInput()), []);
@@ -157,11 +144,24 @@ export default function PacketDemo() {
   const activeStatus = packetStatus(active);
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia, serif' }}>
-      <style>{`
+    <main className="th-shell">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
+        :root{
+          --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B;
+          --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+          --clay-700:#9A4F26; --clay-600:#B5622F; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+          --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+          --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081; --ink-300:#BEB6A8;
+          --line:#E6DDCB; --line-soft:#EFE8DA;
+          --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+          --e1:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03);
+          --e2:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10);
+          --ease:cubic-bezier(.22,1,.36,1);
+        }
         @media print {
           nav, footer, .no-print { display: none !important; }
-          main { background: #fff !important; }
+          main.th-shell { background: #fff !important; }
           .packet-shell { max-width: none !important; padding: 0 !important; }
           .packet-grid { display: block !important; }
           .packet-sheet { box-shadow: none !important; border: none !important; padding: 20px 24px !important; overflow: visible !important; }
@@ -169,113 +169,158 @@ export default function PacketDemo() {
           .packet-brand-icon { display: none !important; }
           .packet-brand-name { display: block !important; min-width: 120px !important; overflow: visible !important; line-height: 1.2 !important; letter-spacing: 0 !important; padding-left: 0 !important; margin-left: 0 !important; }
         }
+      `}</style>
+      <style jsx>{`
+        .th-shell {
+          min-height: 100vh;
+          background: var(--bone-100);
+          color: var(--ink-900);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          letter-spacing: -.005em;
+        }
+        .packet-shell { max-width: 1180px; margin: 0 auto; padding: 24px 28px 48px; }
+        .top-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 18px; align-items: end; margin-bottom: 20px; }
+        .eyebrow { color: var(--clay-600); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; }
+        h1 { font-family: 'Fraunces', serif; font-weight: 440; font-size: clamp(32px,4.6vw,48px); line-height: 1.02; margin: 8px 0 10px; letter-spacing: -.02em; color: var(--pine-950); }
+        p.lede { color: var(--ink-500); font-size: 16px; line-height: 1.6; margin: 0; max-width: 760px; }
+        .source-pill { display: inline-flex; margin-top: 12px; background: var(--pine-50); color: var(--pine-700); border: 1px solid #D5E4DC; border-radius: var(--r-full); padding: 5px 10px; font-size: 12px; font-weight: 700; }
+        .th-btn { display: inline-flex; align-items: center; min-height: 44px; border-radius: var(--r-full); padding: 0 15px; text-decoration: none; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 13.5px; border: 1px solid transparent; cursor: pointer; }
+        .th-btn-secondary { background: var(--bone-50); color: var(--pine-800); border-color: var(--line); box-shadow: var(--e1); }
+        .th-btn-primary { background: linear-gradient(155deg, var(--pine-600), var(--pine-800)); color: #fff; box-shadow: 0 1px 2px rgba(15,42,36,.15), 0 8px 16px -6px rgba(15,42,36,.35); }
+        .banner-error { background: var(--clay-50); color: var(--clay-700); border: 1px solid var(--clay-200); border-radius: var(--r-sm); padding: 10px 14px; margin-bottom: 12px; font-size: 13.5px; }
+        .banner-notice { background: var(--pine-600); color: #fff; border-radius: var(--r-sm); padding: 10px 14px; margin-bottom: 12px; display: inline-flex; font-size: 13.5px; }
+        .packet-grid { display: grid; grid-template-columns: 310px minmax(0,1fr); gap: 18px; align-items: start; }
+        aside.rail { background: var(--bone-50); border: 1px solid var(--line-soft); border-radius: var(--r-lg); padding: 12px; box-shadow: var(--e1); }
+        .rail-item { width: 100%; text-align: left; border: 1px solid var(--line-soft); background: var(--bone-50); border-radius: var(--r-md); padding: 13px; margin-bottom: 8px; cursor: pointer; font-family: 'Inter', sans-serif; }
+        .rail-item.active { border-color: var(--pine-600); background: var(--pine-50); }
+        .rail-title { font-size: 15px; font-weight: 600; line-height: 1.2; color: var(--ink-900); }
+        .rail-item.active .rail-title { color: var(--pine-700); }
+        .rail-body { color: var(--ink-500); font-size: 12.5px; line-height: 1.45; margin-top: 5px; }
+        .rail-note { border-radius: var(--r-md); padding: 13px; font-size: 12.5px; line-height: 1.5; }
+        .rail-note.demo { background: var(--clay-50); border: 1px solid var(--clay-200); color: var(--clay-700); }
+        .rail-note.review { background: var(--pine-50); border: 1px solid #D5E4DC; color: var(--pine-700); }
+        .packet-sheet { background: var(--bone-50); border: 1px solid var(--line-soft); border-radius: var(--r-lg); padding: 26px; box-shadow: var(--e2); }
+        .brand-header { display: flex; justify-content: space-between; gap: 18px; align-items: center; border-bottom: 1px solid var(--line-soft); padding-bottom: 14px; margin-bottom: 18px; }
+        .packet-brand-row { display: flex; gap: 10px; align-items: center; overflow: visible; }
+        .packet-brand-name { color: var(--ink-900); font-size: 18px; font-weight: 700; line-height: 1.1; }
+        .brand-sub { color: var(--ink-500); font-size: 11.5px; line-height: 1.35; }
+        .brand-right { color: var(--ink-500); font-size: 11.5px; line-height: 1.45; text-align: right; }
+        .sheet-head-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+        h2 { font-family: 'Fraunces', serif; font-weight: 460; font-size: 28px; margin: 5px 0 0; line-height: 1.1; letter-spacing: -.015em; color: var(--pine-950); }
+        .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), 1fr)); gap: 8px; margin-bottom: 14px; }
+        .meta-card { border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 8px 10px; background: var(--bone-50); }
+        .meta-label { color: var(--pine-700); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
+        .meta-value { color: var(--ink-900); font-size: 12.5px; font-weight: 700; margin-top: 3px; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 8px; margin-bottom: 18px; }
+        .status-card { border: 1px solid var(--line-soft); border-radius: var(--r-sm); padding: 9px 10px; }
+        .status-card.amber { background: var(--clay-50); }
+        .status-card.pine { background: var(--pine-50); }
+        .status-label { color: var(--pine-700); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; font-weight: 700; }
+        .status-value { color: var(--ink-900); font-size: 13px; line-height: 1.35; font-weight: 700; margin-top: 3px; }
+        .detail-note { border-radius: var(--r-sm); padding: 10px 12px; font-size: 12.5px; font-weight: 600; line-height: 1.45; margin-bottom: 18px; }
+        .detail-note.amber { background: var(--clay-50); color: var(--clay-700); border: 1px solid var(--clay-200); }
+        .detail-note.pine { background: var(--pine-50); color: var(--pine-700); border: 1px solid #D5E4DC; }
+        pre.packet-text { white-space: pre-wrap; font-family: 'Inter', sans-serif; color: var(--ink-900); font-size: 15.5px; line-height: 1.62; margin: 0; }
+        footer.sheet-footer { border-top: 1px solid var(--line-soft); margin-top: 20px; padding-top: 10px; color: var(--ink-400); font-size: 11.5px; line-height: 1.45; }
+
         @media (max-width: 820px) {
           .packet-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <SiteHeader />
-      <section className="packet-shell" style={{ maxWidth: 1180, margin: '0 auto', padding: '24px 28px 48px' }}>
-        <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 18, alignItems: 'end', marginBottom: 20 }}>
+      <section className="packet-shell">
+        <div className="top-row no-print">
           <div>
-            <div style={eyebrow}>Passage outputs</div>
-            <h1 style={{ fontSize: 52, lineHeight: 1.02, margin: '8px 0 10px', fontWeight: 400 }}>Prepared outputs from the family record.</h1>
-            <p style={lead}>Every packet starts from the same family record: dates, owner, message, proof, and approval boundary. Nothing sends automatically; a person reviews the output before it leaves Passage.</p>
-            <div style={{ display: 'inline-flex', marginTop: 12, background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 999, padding: '5px 10px', fontSize: 12, fontWeight: 900 }}>{loading ? 'Generating...' : displaySourceLabel}</div>
+            <span className="eyebrow">Passage outputs</span>
+            <h1>Prepared outputs from the family record.</h1>
+            <p className="lede">Every packet starts from the same family record: dates, owner, message, proof, and approval boundary. Nothing sends automatically; a person reviews the output before it leaves Passage.</p>
+            <div className="source-pill">{loading ? 'Generating...' : displaySourceLabel}</div>
           </div>
           {demoMode ? (
-            <Link href="/system/demo?demoStep=warm" style={secondaryLink}>Back to guided demo</Link>
+            <Link href="/system/demo?demoStep=warm" className="th-btn th-btn-secondary">Back to guided demo</Link>
           ) : (
-            <Link href="/funeral-home" style={secondaryLink}>See provider workflow</Link>
+            <Link href="/funeral-home" className="th-btn th-btn-secondary">See provider workflow</Link>
           )}
         </div>
 
-        {error && <div className="no-print" style={{ background: C.amberFaint, color: C.amber, border: '1px solid #edd7b1', borderRadius: 12, padding: '10px 14px', marginBottom: 12 }}>{error} Showing sample packets instead.</div>}
-        {notice && <div className="no-print" style={{ background: C.sage, color: '#fff', borderRadius: 12, padding: '10px 14px', marginBottom: 12, display: 'inline-flex' }}>{notice}</div>}
+        {error && <div className="banner-error no-print">{error} Showing sample packets instead.</div>}
+        {notice && <div className="banner-notice no-print">{notice}</div>}
 
-        <div className="packet-grid" style={{ display: 'grid', gridTemplateColumns: '310px minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>
-          <aside className="no-print" style={{ background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 12 }}>
+        <div className="packet-grid">
+          <aside className="rail no-print">
             {packets.map(packet => (
               <button
                 key={packet.id}
                 onClick={() => setActiveId(packet.id)}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  border: '1px solid ' + (active.id === packet.id ? C.sage : C.border),
-                  background: active.id === packet.id ? C.sageFaint : C.card,
-                  borderRadius: 14,
-                  padding: 13,
-                  marginBottom: 8,
-                  cursor: 'pointer',
-                  fontFamily: 'Georgia,serif',
-                }}
+                className={active.id === packet.id ? 'rail-item active' : 'rail-item'}
               >
-                <div style={{ color: active.id === packet.id ? C.sage : C.ink, fontSize: 15, fontWeight: 900, lineHeight: 1.2 }}>{packet.title}</div>
-                <div style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.45, marginTop: 5 }}>{packet.description}</div>
+                <div className="rail-title">{packet.title}</div>
+                <div className="rail-body">{packet.description}</div>
               </button>
             ))}
-            <div style={{ background: demoMode ? C.amberFaint : C.sageFaint, border: '1px solid ' + (demoMode ? '#edd7b1' : '#c8deca'), borderRadius: 14, padding: 13, color: demoMode ? C.amber : C.sage, fontSize: 12.5, lineHeight: 1.5 }}>
+            <div className={demoMode ? 'rail-note demo' : 'rail-note review'}>
               {demoMode
                 ? 'Demo output: review, copy, print, or save. Nothing sends by itself.'
                 : 'Review boundary: copy, print, or download only after the family or coordinator approves the output.'}
             </div>
           </aside>
 
-          <article className="packet-sheet" style={{ background: '#fff', border: '1px solid ' + C.border, borderRadius: 20, padding: 26, boxShadow: '0 20px 58px rgba(55,45,35,.07)' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'center', borderBottom: '1px solid ' + C.border, paddingBottom: 14, marginBottom: 18 }}>
-              <div className="packet-brand-row" style={{ display: 'flex', gap: 10, alignItems: 'center', overflow: 'visible' }}>
+          <article className="packet-sheet">
+            <header className="brand-header">
+              <div className="packet-brand-row">
                 <img className="packet-brand-icon" src="/passage-icon-light-onbg.svg" alt="Passage" style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0 }} />
                 <div>
-                  <div className="packet-brand-name" style={{ color: C.ink, fontSize: 18, fontWeight: 900, lineHeight: 1.1, overflow: 'visible' }}>Passage</div>
-                  <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.35 }}>Family coordination record</div>
+                  <div className="packet-brand-name">Passage</div>
+                  <div className="brand-sub">Family coordination record</div>
                 </div>
               </div>
-              <div style={{ color: C.mid, fontSize: 11.5, lineHeight: 1.45, textAlign: 'right' }}>
+              <div className="brand-right">
                 Powered by Passage<br />
                 thepassageapp.io
               </div>
             </header>
-            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 18, flexWrap: 'wrap' }}>
+            <div className="sheet-head-row no-print">
               <div>
-                <div style={eyebrow}>Prepared output</div>
-                <h2 style={{ fontSize: 30, lineHeight: 1.1, margin: '5px 0 0', fontWeight: 400 }}>{active.title}</h2>
+                <span className="eyebrow">Prepared output</span>
+                <h2>{active.title}</h2>
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button onClick={copyActive} style={primaryButton}>Copy packet</button>
-                <button onClick={downloadActive} style={secondaryButton}>Download .txt</button>
-                <button onClick={() => { trackEvent('packet_print_clicked', { packetId: active?.id, sourceLabel }); window.print(); }} style={secondaryButton}>Print / save PDF</button>
+              <div className="action-row">
+                <button onClick={copyActive} className="th-btn th-btn-primary">Copy packet</button>
+                <button onClick={downloadActive} className="th-btn th-btn-secondary">Download .txt</button>
+                <button onClick={() => { trackEvent('packet_print_clicked', { packetId: active?.id, sourceLabel }); window.print(); }} className="th-btn th-btn-secondary">Print / save PDF</button>
               </div>
             </div>
-            <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 145px), 1fr))', gap: 8, marginBottom: 14 }}>
+            <div className="meta-grid no-print">
               {[
                 ['From', 'Family record'],
                 ['Uses', 'Dates + owners'],
                 ['Keeps', 'Proof path'],
                 ['Before sharing', 'Human review'],
               ].map(([label, value]) => (
-                <div key={label} style={{ border: '1px solid ' + C.border, borderRadius: 12, padding: '8px 10px', background: C.card }}>
-                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-                  <div style={{ color: C.ink, fontSize: 12.5, fontWeight: 900, marginTop: 3 }}>{value}</div>
+                <div key={label} className="meta-card">
+                  <div className="meta-label">{label}</div>
+                  <div className="meta-value">{value}</div>
                 </div>
               ))}
             </div>
-            <div className="no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 170px), 1fr))', gap: 8, marginBottom: 18 }}>
+            <div className="status-grid no-print">
               {[
-                ['Packet status', activeStatus.label, activeStatus.missing ? C.amberFaint : C.sageFaint],
-                ['Approval boundary', 'Review before sharing', C.sageFaint],
-                ['Proof path', 'Copy, print, or download only', C.sageFaint],
-              ].map(([label, value, bg]) => (
-                <div key={label} style={{ background: bg, border: '1px solid ' + C.border, borderRadius: 12, padding: '9px 10px' }}>
-                  <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.11em', textTransform: 'uppercase', fontWeight: 900 }}>{label}</div>
-                  <div style={{ color: C.ink, fontSize: 13, lineHeight: 1.35, fontWeight: 900, marginTop: 3 }}>{value}</div>
+                ['Packet status', activeStatus.label, activeStatus.missing],
+                ['Approval boundary', 'Review before sharing', false],
+                ['Proof path', 'Copy, print, or download only', false],
+              ].map(([label, value, amber]) => (
+                <div key={label} className={amber ? 'status-card amber' : 'status-card pine'}>
+                  <div className="status-label">{label}</div>
+                  <div className="status-value">{value}</div>
                 </div>
               ))}
             </div>
-            <div className="no-print" style={{ background: activeStatus.missing ? C.amberFaint : C.sageFaint, border: '1px solid ' + (activeStatus.missing ? '#edd7b1' : '#c8deca'), borderRadius: 13, padding: '10px 12px', color: activeStatus.missing ? C.amber : C.sage, fontSize: 12.5, fontWeight: 900, lineHeight: 1.45, marginBottom: 18 }}>
+            <div className={activeStatus.missing ? 'detail-note amber no-print' : 'detail-note pine no-print'}>
               {activeStatus.detail} Nothing leaves Passage from this page automatically.
             </div>
-            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', color: C.ink, fontSize: 16, lineHeight: 1.62, margin: 0 }}>{displayPacketText(active.text)}</pre>
-            <footer style={{ borderTop: '1px solid ' + C.border, marginTop: 20, paddingTop: 10, color: C.soft, fontSize: 11.5, lineHeight: 1.45 }}>
+            <pre className="packet-text">{displayPacketText(active.text)}</pre>
+            <footer className="sheet-footer">
               Prepared by Passage. Review before sharing. Powered by Passage | thepassageapp.io
             </footer>
           </article>
@@ -285,12 +330,6 @@ export default function PacketDemo() {
     </main>
   );
 }
-
-const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
-const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth: 760 };
-const primaryButton = { border: 'none', background: C.sage, color: '#fff', borderRadius: 12, minHeight: 44, padding: '0 15px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
-const secondaryButton = { border: '1px solid ' + C.border, background: C.card, color: C.sage, borderRadius: 12, minHeight: 44, padding: '0 15px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer' };
-const secondaryLink = { ...secondaryButton, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' };
 
 function displayPacketText(text) {
   return String(text || '').replace(/^Passage\r?\nPowered by Passage \| thepassageapp\.io\r?\n/, '');
