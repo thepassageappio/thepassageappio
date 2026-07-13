@@ -5,6 +5,8 @@ const fs = require('fs');
 const CONTEXT_FILE = 'docs/agent-operating-context.md';
 const GUIDE_FILE = 'AGENTS.md';
 const RELEASE_TRAIN_FILE = 'docs/release-train.md';
+const REDESIGN_TRACKER_FILE = 'docs/redesign/12-threshold-rollout-tracker.md';
+const CONTEXT_ADDENDUM_PATTERN = /^docs\/agent-operating-context-.+\.md$/;
 const ROLE_FILES = [
   'docs/agents/product-manager.md',
   'docs/agents/development-engineer.md',
@@ -71,9 +73,23 @@ if (!changed.length) {
   process.exit(0);
 }
 
-const contextTouched = changed.includes(CONTEXT_FILE) || changed.includes(GUIDE_FILE) || changed.includes(RELEASE_TRAIN_FILE) || changed.includes('docs/rebuild-progress.md');
+// contextTouched recognizes the canonical context file, AGENTS.md, the release-train
+// doc, the legacy rebuild-progress doc, any dated agent-operating-context addendum
+// (docs/agent-operating-context-YYYY-MM-DD-runN.md — the sanctioned substitute once
+// the canonical file gets too large to safely read-and-rewrite in one pass, per every
+// run since run 2), or the Threshold redesign tracker (the actual status source of
+// truth for UX redesign work per AGENTS.md's UX Redesign Directive).
+const contextTouched = changed.some((path) => (
+  path === CONTEXT_FILE
+  || path === GUIDE_FILE
+  || path === RELEASE_TRAIN_FILE
+  || path === 'docs/rebuild-progress.md'
+  || path === REDESIGN_TRACKER_FILE
+  || CONTEXT_ADDENDUM_PATTERN.test(path)
+));
 const ignoredPatterns = [
   /^docs\/agent-operating-context\.md$/,
+  /^docs\/agent-operating-context-.+\.md$/,
   /^docs\/release-train\.md$/,
   /^AGENTS\.md$/,
   /^\.github\/pull_request_template\.md$/,
@@ -95,7 +111,7 @@ if (meaningful.length && !contextTouched && !isSkipDeploy) {
     'Changed files:',
     ...meaningful.map(path => '- ' + path),
     '',
-    'Before handoff, update docs/agent-operating-context.md with what changed, what was tested, deploy status, blockers, and next action.',
+    'Before handoff, update docs/agent-operating-context.md (or a dated docs/agent-operating-context-*.md addendum) and/or docs/redesign/12-threshold-rollout-tracker.md with what changed, what was tested, deploy status, blockers, and next action — ideally in the same commit as the release.',
     'Start each session by reading AGENTS.md, docs/agent-operating-context.md, and docs/release-train.md.',
   ].join('\n'));
 }
