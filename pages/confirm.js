@@ -3,26 +3,15 @@ import { supabase as sb } from "../lib/supabaseBrowser";
 import Link from "next/link";
 import { SiteFooter } from "../components/SiteChrome";
 
-const INK = "#1a1916";
-const MID = "#6a6560";
-const SOFT = "#a09890";
-const MUTED = "#c5bdb5";
-const BORDER = "#e4ddd4";
-const BG = "#f6f3ee";
-const CARD = "#ffffff";
-const SUBTLE = "#f0ece5";
-const SAGE = "#6b8f71";
-
 function Field({ label, value, onChange, placeholder, type }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>{label}</div>
+    <div className="th-field">
+      <div className="th-field-label">{label}</div>
       <input
         type={type || "text"}
         value={value}
         onChange={function(e) { onChange(e.target.value); }}
         placeholder={placeholder}
-        style={{ width: "100%", padding: "12px 14px", borderRadius: 11, border: "1.5px solid " + BORDER, fontFamily: "Georgia, serif", fontSize: 14, color: INK, outline: "none", boxSizing: "border-box" }}
       />
     </div>
   );
@@ -70,25 +59,82 @@ export default function ConfirmPage() {
   var confirms = workflow ? (workflow.confirmed_by || []).length : 0;
   var required = workflow ? (workflow.confirmation_count || 2) : 2;
 
-  var outer = { background: BG, minHeight: "calc(100vh - 94px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", fontFamily: "Georgia, serif" };
-  var box = { background: CARD, borderRadius: 20, padding: "36px 28px", width: "100%", maxWidth: 480, boxShadow: "0 4px 32px rgba(0,0,0,0.08)" };
   function shell(content) {
-    return <main style={{ background: BG, minHeight: "100vh", fontFamily: "Georgia, serif" }}><div style={outer}>{content}</div><SiteFooter /></main>;
+    return (
+      <main className="th-shell">
+        <style jsx global>{`
+          @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
+          :root{
+            --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B;
+            --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+            --clay-700:#9A4F26; --clay-600:#B5622F; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+            --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+            --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081; --ink-300:#BEB6A8;
+            --line:#E6DDCB; --line-soft:#EFE8DA;
+            --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+            --e1:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03);
+            --e2:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10);
+            --ease:cubic-bezier(.22,1,.36,1);
+          }
+        `}</style>
+        <style jsx>{`
+          .th-shell {
+            min-height: 100vh;
+            background: var(--bone-100);
+            color: var(--ink-900);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            letter-spacing: -.005em;
+          }
+          .outer {
+            min-height: calc(100vh - 94px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px 16px;
+          }
+          .box {
+            background: var(--bone-50);
+            border: 1px solid var(--line-soft);
+            border-radius: var(--r-lg);
+            padding: 36px 28px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: var(--e2);
+          }
+          .box.center { text-align: center; }
+          .kicker { font-size: 11px; color: var(--clay-600); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 12px; font-weight: 700; }
+          .kicker.neutral { color: var(--ink-400); }
+          .headline { font-family: 'Fraunces', serif; font-weight: 460; font-size: 22px; color: var(--pine-950); margin-bottom: 12px; letter-spacing: -.015em; }
+          .body-text { font-size: 14px; color: var(--ink-600); line-height: 1.65; }
+          .loading-text { text-align: center; color: var(--ink-400); }
+          .action-stack { display: grid; gap: 9px; margin-top: 18px; }
+          .th-btn {
+            min-height: 44px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 13.5px;
+            border: 1px solid transparent;
+          }
+          .th-btn-primary { background: linear-gradient(155deg, var(--pine-600), var(--pine-800)); color: #fff; }
+          .th-btn-secondary { background: var(--bone-50); color: var(--pine-700); border-color: var(--line); }
+          .footnote { margin-top: 16px; font-size: 13px; color: var(--ink-400); }
+          .headline-lg { font-family: 'Fraunces', serif; font-weight: 460; font-size: 22px; color: var(--ink-900); margin-bottom: 16px; letter-spacing: -.015em; }
+        `}</style>
+        <div className="outer">{content}</div>
+        <SiteFooter />
+      </main>
+    );
   }
 
-  if (step === "loading") return shell(<div style={Object.assign({}, box, { textAlign: "center", color: SOFT })}>Loading...</div>);
+  if (step === "loading") return shell(<div className="box center loading-text">Loading...</div>);
 
   if (step === "error") return (
     shell(
-      <div style={Object.assign({}, box, { textAlign: "center" })}>
-        <div style={{ fontSize: 11, color: SAGE, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12 }}>Passage</div>
-        <div style={{ fontSize: 20, color: INK, marginBottom: 12 }}>Link not found</div>
-        <div style={{ fontSize: 14, color: MID, lineHeight: 1.65 }}>This confirmation link is invalid or has expired. Open your assigned tasks, or ask the family coordinator to resend the confirmation request.</div>
-        <div style={{ display: "grid", gap: 9, marginTop: 18 }}>
-          <Link href="/participating" style={{ minHeight: 44, borderRadius: 12, background: SAGE, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontWeight: 800 }}>
+      <div className="box center">
+        <div className="kicker">Passage</div>
+        <div className="headline">Link not found</div>
+        <div className="body-text">This confirmation link is invalid or has expired. Open your assigned tasks, or ask the family coordinator to resend the confirmation request.</div>
+        <div className="action-stack">
+          <Link href="/participating" className="th-btn th-btn-primary">
             Open my assigned tasks
           </Link>
-          <Link href="/contact?category=urgent" style={{ minHeight: 44, borderRadius: 12, background: CARD, color: SAGE, border: "1px solid " + BORDER, display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontWeight: 800 }}>
+          <Link href="/contact?category=urgent" className="th-btn th-btn-secondary">
             Contact Passage
           </Link>
         </div>
@@ -98,61 +144,88 @@ export default function ConfirmPage() {
 
   if (step === "already") return (
     shell(
-      <div style={Object.assign({}, box, { textAlign: "center" })}>
-        <div style={{ fontSize: 11, color: SAGE, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12 }}>Confirmed</div>
-        <div style={{ fontSize: 20, color: INK, marginBottom: 12 }}>Plan already activated</div>
-        <div style={{ fontSize: 14, color: MID, lineHeight: 1.65 }}>The estate plan for {dname} was activated. All assigned contacts have been notified.</div>
+      <div className="box center">
+        <div className="kicker">Confirmed</div>
+        <div className="headline">Plan already activated</div>
+        <div className="body-text">The estate plan for {dname} was activated. All assigned contacts have been notified.</div>
       </div>
     )
   );
 
   if (step === "done") return (
     shell(
-      <div style={Object.assign({}, box, { textAlign: "center" })}>
-        <div style={{ fontSize: 11, color: SAGE, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12 }}>Passage</div>
-        <div style={{ fontSize: 22, color: INK, marginBottom: 16 }}>{result && result.triggered ? "The plan has been activated." : "Confirmation received."}</div>
-        <div style={{ fontSize: 14, color: MID, lineHeight: 1.75 }}>
+      <div className="box center">
+        <div className="kicker">Passage</div>
+        <div className="headline-lg">{result && result.triggered ? "The plan has been activated." : "Confirmation received."}</div>
+        <div className="body-text" style={{ lineHeight: 1.75 }}>
           {result && result.triggered
             ? "Both confirmations received. All assigned family and vendors have been notified with their tasks."
             : "Waiting for one more confirmation. Passage will notify everyone automatically when both confirmations arrive."}
         </div>
-        <div style={{ marginTop: 16, fontSize: 13, color: SOFT }}>We are so sorry for your loss.</div>
+        <div className="footnote">We are so sorry for your loss.</div>
       </div>
     )
   );
 
   return (
     shell(
-      <div style={box}>
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <div style={{ fontSize: 11, color: SOFT, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8 }}>Passage</div>
-          <div style={{ fontSize: 22, color: INK, lineHeight: 1.35, marginBottom: 14 }}>Confirming the passing of {dname}</div>
-          <div style={{ background: SUBTLE, borderRadius: 12, padding: "12px 16px", fontSize: 13, color: MID, lineHeight: 1.65 }}>
-            Once <strong style={{ color: INK }}>{required} people</strong> confirm, the estate plan activates and all assigned contacts are notified automatically.
+      <div className="box">
+        <style jsx>{`
+          .lede-box { text-align: center; margin-bottom: 28px; }
+          .lede-kicker { font-size: 11px; color: var(--ink-400); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+          .lede-title { font-family: 'Fraunces', serif; font-weight: 460; font-size: 22px; color: var(--pine-950); line-height: 1.32; margin-bottom: 14px; letter-spacing: -.015em; }
+          .lede-note { background: var(--pine-50); border: 1px solid #D5E4DC; border-radius: var(--r-sm); padding: 12px 16px; font-size: 13px; color: var(--ink-600); line-height: 1.65; }
+          .lede-note strong { color: var(--ink-900); }
+          .progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+          .progress-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--line-soft); }
+          .progress-bar.filled { background: linear-gradient(155deg, var(--pine-600), var(--pine-800)); }
+          .progress-count { font-size: 12px; color: var(--ink-500); white-space: nowrap; }
+          .th-field { margin-bottom: 14px; }
+          .th-field-label { font-size: 11px; font-weight: 700; color: var(--ink-400); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
+          .th-field input {
+            width: 100%; padding: 12px 14px; border-radius: var(--r-sm); border: 1.5px solid var(--line);
+            font-family: 'Inter', sans-serif; font-size: 14px; color: var(--ink-900); outline: none;
+            background: var(--bone-100); box-sizing: border-box;
+          }
+          .submit-btn {
+            width: 100%; padding: 16px; border: none; border-radius: var(--r-md);
+            font-size: 15px; font-weight: 700; font-family: 'Inter', sans-serif; margin-bottom: 14px;
+            color: #fff; cursor: pointer;
+            background: linear-gradient(155deg, var(--pine-600), var(--pine-800));
+            box-shadow: 0 1px 2px rgba(15,42,36,.15), 0 8px 16px -6px rgba(15,42,36,.35);
+          }
+          .submit-btn:disabled { cursor: not-allowed; background: var(--ink-300); box-shadow: none; }
+          .disclaimer { font-size: 11.5px; color: var(--ink-400); text-align: center; line-height: 1.65; }
+          .divider-footer { border-top: 1px solid var(--line-soft); margin-top: 24px; padding-top: 16px; text-align: center; font-size: 11px; color: var(--ink-300); }
+        `}</style>
+        <div className="lede-box">
+          <div className="lede-kicker">Passage</div>
+          <div className="lede-title">Confirming the passing of {dname}</div>
+          <div className="lede-note">
+            Once <strong>{required} people</strong> confirm, the estate plan activates and all assigned contacts are notified automatically.
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+        <div className="progress-row">
           {Array.from({ length: required }).map(function(_, i) {
-            return <div key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i < confirms ? SAGE : BORDER }} />;
+            return <div key={i} className={i < confirms ? "progress-bar filled" : "progress-bar"} />;
           })}
-          <div style={{ fontSize: 12, color: MID, whiteSpace: "nowrap" }}>{confirms}/{required}</div>
+          <div className="progress-count">{confirms}/{required}</div>
         </div>
 
         <Field label="Your name *" value={cName} onChange={setCName} placeholder="Your full name" />
         <Field label="Your email" value={cEmail} onChange={setCEmail} placeholder="your@email.com" type="email" />
         <Field label={"Relationship to " + dname} value={cRel} onChange={setCRel} placeholder="e.g. daughter, executor, spouse" />
 
-        <button onClick={submit} disabled={!cName || busy}
-          style={{ width: "100%", padding: "16px", background: (!cName || busy) ? MUTED : SAGE, color: "#fff", border: "none", borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: !cName ? "not-allowed" : "pointer", fontFamily: "Georgia, serif", marginBottom: 14 }}>
+        <button onClick={submit} disabled={!cName || busy} className="submit-btn">
           {busy ? "Confirming..." : "I confirm that " + dname + " has passed away"}
         </button>
 
-        <div style={{ fontSize: 11.5, color: SOFT, textAlign: "center", lineHeight: 1.65 }}>
+        <div className="disclaimer">
           By confirming, you authorize Passage to activate the estate coordination plan on behalf of the family.
         </div>
-        <div style={{ borderTop: "1px solid " + BORDER, marginTop: 24, paddingTop: 16, textAlign: "center", fontSize: 11, color: MUTED }}>
-          Passage · thepassageapp.io
+        <div className="divider-footer">
+          Passage &middot; thepassageapp.io
         </div>
       </div>
     )
