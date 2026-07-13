@@ -25,15 +25,15 @@ Funeral-home / operator surfaces (brief's "funeral-home demo path first" priorit
 - [x] `pages/funeral-home/sample-case.js` — **SHIPPED 2026-07-12, commit `59c972f49a6a725056a15269d0066a03da603118`** (run 4). Static sample-case marketing page; `trackEvent` calls preserved verbatim.
 - [x] `pages/funeral-home/workspace-demo.js` (9.3KB) — **SHIPPED 2026-07-13, commit `77afae690df5c11c8825e6c09e100ad41dfdfcc3`** (run 5). Static sample-workspace marketing page; `trackEvent` calls preserved verbatim.
 - [x] `pages/funeral-home/pilot-proof.js` — **inherited, no separate change needed (verified 2026-07-12, run 4)**: the file renders `FuneralHomeSampleCase` directly (a thin legacy-route wrapper that also does a `history.replaceState` to `/funeral-home/sample-case`), so it picked up the `sample-case.js` re-skin automatically. Confirmed live via the post-deploy render check.
-- [ ] `pages/funeral-home/index.js` (17.4KB) — **note:** already on the pre-Threshold calm design system (`lib/designSystem.js`, sage/cream), not yet on Threshold Pine/Clay/Bone. Needs a Threshold pass too, don't mistake "already redesigned once" for "done."
+- [ ] `pages/funeral-home/index.js` (17.4KB) — **note (updated run 6):** unlike every other page shipped so far, this page shares chrome and base `hc-*` classes with the public homepage via `components/calm/CalmPublicChrome` rather than owning isolated per-page styling — it only layers `fhx-*` overrides on top. A presentation-only page-level re-skin here risks bleeding into the homepage and any other `CalmPublicChrome` consumer, so this needs its own PM-scoped slice (either extend the `fhx-*` override pattern fully, or deliberately re-skin the shared chrome/`hc-*` classes as a separate cross-cutting decision) rather than the proven single-page pattern. Deliberately deferred out of run 6's batch for this reason — do not batch it blindly into a future run without that scoping.
 
 Vendor portal:
 - [x] `pages/vendors/index.js` (7.7KB) — **SHIPPED 2026-07-13, commit `77afae690df5c11c8825e6c09e100ad41dfdfcc3`** (run 5). Vendor front door; Supabase session watch (getSession/onAuthStateChange) + signOut + trackEvent calls byte-identical.
 - [x] `pages/vendors/login.js` (7.6KB) — **SHIPPED 2026-07-13, commit `77afae690df5c11c8825e6c09e100ad41dfdfcc3`** (run 5). Vendor owner sign-in (Google + magic link); Supabase auth logic byte-identical.
 - [x] `pages/vendors/accept.js` (7.7KB) — **SHIPPED 2026-07-13, commit `77afae690df5c11c8825e6c09e100ad41dfdfcc3`** (run 5). Vendor employee accept/sign-in with token/email query handling; Supabase auth + router.query logic byte-identical.
-- [ ] `pages/vendors/onboard.js` (11.4KB)
+- [x] `pages/vendors/onboard.js` (11.4KB) — **SHIPPED 2026-07-13, commit `358fd0aa707379a1486926ad3a1bb620a5c532e2`** (run 6). Vendor application form; form state, update()/submit() handlers, and `/api/vendors/apply` contract byte-identical. `SmartAddressInput` component itself untouched — only `colors`/`inputStyle` props changed.
 - [ ] `pages/vendors/request.js` (1KB) — **checked, not a separate re-skin target (run 5)**: it is a thin route wrapper that renders `components/vendor/VendorRequestApp.js` by default (token mode, auth dashboard mode, and `?demo=1` sample mode all live inside it); `LegacyVendorRequest` only renders behind an explicit `?legacy=1` QA fallback flag. So `VendorRequestApp.js` (not the legacy component) is the live code path and the correct future re-skin target — not yet added as its own tracker item, flagging for a future run to add under Tier 1 or 2 depending on its actual file size once read.
-- [ ] `pages/vendors/admin.js` (17KB)
+- [x] `pages/vendors/admin.js` (17KB) — **SHIPPED 2026-07-13, commit `358fd0aa707379a1486926ad3a1bb620a5c532e2`** (run 6). System-admin vendor approval console; all state, the auth/session effect, load()/setStatus()/updateConnectDraft()/signIn()/signOut() functions, and the `/api/vendors/admin` GET/POST contracts byte-identical. `isSystemAdmin()` gate and `SYSTEM_ADMIN_EMAILS` unchanged.
 
 Family / core auth and account:
 - [ ] `pages/login.js` (9.9KB) — mockup: `auth-flow-mockups.html`
@@ -71,6 +71,10 @@ Each of these needs its own PM-scoped punch list (see `11-funeral-home-polish-sc
 Several components have a "Legacy" naming pattern next to a newer "*App.js" component in the same directory (`components/participant/`, `components/vendor/`). Before spending a batch re-skinning either one, grep the actual `pages/*.js` files that import them to confirm which is live and which is dead code — do not re-skin dead code, and do not leave live legacy code unskinned because a newer-sounding file existed nearby. Record the finding here once checked.
 
 `components/vendor/`: checked run 5 — `VendorRequestApp.js` is live by default, `LegacyVendorRequest.js` is dead code behind `?legacy=1`. `components/participant/`: still unchecked, flagged in Tier 2 above.
+
+## Pages that share chrome/design-system classes rather than owning isolated styling
+
+`pages/funeral-home/index.js` shares `hc-*` base classes and `CalmPublicChrome` with the public homepage (`components/HomeCalm.js`). This is different from every other page shipped so far, which each own their full styling in an isolated `<style jsx>` block. Re-skinning a shared-chrome page safely requires either (a) fully extending its own `fhx-*` override layer so nothing shared visually changes, or (b) a deliberate, explicitly-scoped decision to re-skin the shared `hc-*`/`CalmPublicChrome` design language itself, which would affect the homepage too. Do not treat this the same as the proven single-page pattern. Check for other pages using `CalmPublicChrome` or similar shared-chrome patterns before batching them in future runs.
 
 ## Definition of "Tier 1 clear" (the milestone that unlocks Tier 2 by default)
 
