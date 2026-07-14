@@ -2,16 +2,20 @@ import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 
 const C = {
-  bg: '#f6f3ee',
-  card: '#fff',
-  ink: '#1a1916',
-  mid: '#6a6560',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageFaint: '#f0f5f1',
-  rose: '#c47a7a',
-  roseFaint: '#fdf3f3',
+  bg: '#FBF8F3',
+  card: '#FEFDFB',
+  ink: '#1C1917',
+  mid: '#5A5348',
+  border: '#E6DDCB',
+  sage: '#245A4B',
+  sageFaint: '#F2F6F3',
+  rose: '#B5622F',
+  roseFaint: '#FBF0E7',
 };
+
+const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const MOMENT_FONT = "'Fraunces', serif";
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const terms = [
   ['Guidance and coordination', 'Passage organizes practical workflows, tasks, messages, proof, and records. It does not make emergency, medical, legal, religious, financial, funeral, government, or family-authority decisions for users.'],
@@ -31,7 +35,8 @@ const terms = [
 
 export default function TermsPage() {
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
+    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
+      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={{ maxWidth: 980, margin: '0 auto', padding: '24px 28px 48px' }}>
         <div style={eyebrow}>Terms of service</div>
@@ -71,10 +76,10 @@ export default function TermsPage() {
 }
 
 const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
-const h1 = { fontSize: 52, lineHeight: 1.03, margin: '8px 0 10px', fontWeight: 400, maxWidth: 820 };
-const h2 = { fontSize: 24, lineHeight: 1.12, margin: '0 0 8px', fontWeight: 400 };
+const h1 = { fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 52, lineHeight: 1.03, margin: '8px 0 10px', maxWidth: 820, letterSpacing: '-.015em' };
+const h2 = { fontSize: 24, lineHeight: 1.12, margin: '0 0 8px', fontWeight: 600 };
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth: 760 };
-const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 4px 20px rgba(0,0,0,.04)' };
+const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 18, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' };
 const bodyText = { color: C.mid, fontSize: 15, lineHeight: 1.6, margin: 0 };
-const primaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: C.sage, color: '#fff', borderRadius: 13, padding: '0 16px', textDecoration: 'none', fontWeight: 900 };
-const secondaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: C.card, color: C.sage, border: '1px solid ' + C.border, borderRadius: 13, padding: '0 16px', textDecoration: 'none', fontWeight: 900 };
+const primaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', borderRadius: 999, padding: '0 16px', textDecoration: 'none', fontWeight: 900, boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35)' };
+const secondaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: C.card, color: C.sage, border: '1px solid ' + C.border, borderRadius: 999, padding: '0 16px', textDecoration: 'none', fontWeight: 900 };
