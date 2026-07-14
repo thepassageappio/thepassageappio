@@ -6,19 +6,23 @@ import SmartAddressInput from '../components/SmartAddressInput';
 import { calendlyUrl } from '../lib/scheduling';
 
 const C = {
-  bg: '#f6f3ee',
-  card: '#ffffff',
-  ink: '#1a1916',
-  mid: '#6a6560',
-  soft: '#a09890',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageFaint: '#f0f5f1',
-  amber: '#b07d2e',
-  amberFaint: '#fdf8ee',
-  rose: '#c47a7a',
-  roseFaint: '#fdf3f3',
+  bg: '#FBF8F3',
+  card: '#FEFDFB',
+  ink: '#1C1917',
+  mid: '#5A5348',
+  soft: '#9A9081',
+  border: '#E6DDCB',
+  sage: '#245A4B',
+  sageFaint: '#F2F6F3',
+  amber: '#9A4F26',
+  amberFaint: '#F5E4D6',
+  rose: '#B5622F',
+  roseFaint: '#FBF0E7',
 };
+
+const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const MOMENT_FONT = "'Fraunces', serif";
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const lifecycle = [
   ['1', 'Preparing during care', 'Start the family record with people, hospice/on-call contact, likely dates, and the first-hour plan.'],
@@ -214,8 +218,9 @@ export default function HospiceWarmPath() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia, serif' }}>
+    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
       <style>{`
+        ${FONT_IMPORT}
         @media (max-width: 820px) {
           .warm-hero-grid,
           .warm-two-col {
@@ -241,7 +246,7 @@ export default function HospiceWarmPath() {
         <div className="warm-hero-grid" data-demo-anchor="demo-warm-record" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .86fr) minmax(360px, 1fr)', gap: 14, alignItems: 'stretch' }}>
           <div style={heroCard}>
             <div style={eyebrow}>{activeMode.eyebrow}</div>
-            <h1 style={{ fontSize: 32, lineHeight: 1.02, margin: '7px 0 9px', fontWeight: 400 }}>
+            <h1 style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 32, lineHeight: 1.02, margin: '7px 0 9px' }}>
               {activeMode.title}
             </h1>
             <p style={{ ...lead, fontSize: 13.2, lineHeight: 1.38 }}>
@@ -256,7 +261,7 @@ export default function HospiceWarmPath() {
                   key={mode}
                   type="button"
                   onClick={() => setCareMode(mode)}
-                  style={{ border: '1px solid ' + (careMode === mode ? C.sage : C.border), background: careMode === mode ? C.sageFaint : C.card, color: careMode === mode ? C.sage : C.mid, borderRadius: 11, minHeight: 36, padding: '0 9px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}
+                  style={{ border: '1px solid ' + (careMode === mode ? C.sage : C.border), background: careMode === mode ? C.sageFaint : C.card, color: careMode === mode ? C.sage : C.mid, borderRadius: 999, minHeight: 36, padding: '0 9px', fontFamily: BODY_FONT, fontSize: 12, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}
                 >
                   {label}
                 </button>
@@ -320,8 +325,8 @@ export default function HospiceWarmPath() {
                 </div>
                 <input value={form.expectedWindow} onChange={event => updateField('expectedWindow', event.target.value)} placeholder="Expected window, if known" style={inputStyle} />
               </details>
-              {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{error}</div>}
-              {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{notice}</div>}
+              {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid ' + C.rose + '30', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{error}</div>}
+              {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #CFE0D8', borderRadius: 12, padding: '8px 10px', fontSize: 12 }}>{notice}</div>}
               <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save care-prep record' : 'Sign in and save record'}</button>
             </div>
           </div>
@@ -384,8 +389,8 @@ export default function HospiceWarmPath() {
                     <WarmDate label="Reception / gathering" value={form.receptionDate} onChange={value => updateField('receptionDate', value)} />
                   </div>
                 </details>
-                {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid #efcaca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{error}</div>}
-                {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #c8deca', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{notice}</div>}
+                {error && <div style={{ background: C.roseFaint, color: C.rose, border: '1px solid ' + C.rose + '30', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{error}</div>}
+                {notice && <div style={{ background: C.sageFaint, color: C.sage, border: '1px solid #CFE0D8', borderRadius: 12, padding: '10px 12px', fontSize: 13 }}>{notice}</div>}
                 {!user && <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.45 }}>Sign in once so Passage can save this to your family record.</div>}
                 <button onClick={saveWarmWorkspace} disabled={saving} style={{ ...primaryButton, opacity: saving ? .7 : 1 }}>{saving ? 'Saving...' : user ? 'Save care-prep record' : 'Sign in and save record'}</button>
               </div>
@@ -395,7 +400,7 @@ export default function HospiceWarmPath() {
       </section>}
 
       {false && <section style={{ ...section, paddingTop: 0 }}>
-        <div style={{ ...panel, background: C.amberFaint, borderColor: '#ead4ac' }}>
+        <div style={{ ...panel, background: C.amberFaint, borderColor: C.border }}>
           <div style={{ ...eyebrow, color: C.amber }}>For hospice conversations</div>
           <h2 style={{ ...h2, fontSize: 30 }}>Explore the coordination bridge, not hospice software.</h2>
           <p style={lead}>
@@ -468,7 +473,7 @@ export default function HospiceWarmPath() {
               </div>
             ))}
           </div>
-          <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 12 }}>
+          <div style={{ background: C.sageFaint, border: '1px solid #CFE0D8', borderRadius: 13, padding: 12, color: C.mid, fontSize: 12.8, lineHeight: 1.5, marginTop: 12 }}>
             Hospice, senior-living, and assisted-care setup should reuse the same SaaS pattern as funeral homes: organization, locations or care teams, employees and roles, family records, assigned next steps, communication, proof, and reporting. The product stays family-first; providers rotate through the persistent record.
           </div>
         </div>
@@ -513,11 +518,11 @@ export default function HospiceWarmPath() {
 
       <section style={section}>
         <div className="warm-two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .9fr) minmax(0, 1.1fr)', gap: 16, alignItems: 'stretch' }}>
-          <div style={{ ...panel, background: C.roseFaint, borderColor: '#efcaca' }}>
+          <div style={{ ...panel, background: C.roseFaint, borderColor: C.border }}>
             <div style={{ ...eyebrow, color: C.rose }}>When death occurs</div>
             <h2 style={h2}>Urgent coordination starts from what the family already prepared.</h2>
             <p style={lead}>If this is an expected death in care, Passage should put the hospice, on-call, or facility release path first, then carry known contacts and preferences into the family record.</p>
-            <Link href="/urgent" style={{ ...primaryLink, background: C.rose, marginTop: 18 }}>Open urgent help</Link>
+            <Link href="/urgent" style={{ ...primaryLink, background: `linear-gradient(155deg, ${C.rose}, #1C1917)`, marginTop: 18 }}>Open urgent help</Link>
           </div>
           <div style={panel}>
             <div style={eyebrow}>Funeral-home handoff packet</div>
@@ -574,21 +579,21 @@ function WarmDate({ label, value, onChange }) {
   );
 }
 
-const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: '18px 20px', boxShadow: '0 14px 34px rgba(55,45,35,.045)' };
+const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: '18px 20px', boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' };
 const section = { maxWidth: 1040, margin: '0 auto', padding: '8px 28px 14px' };
 const sectionHeader = { maxWidth: 760, marginBottom: 16 };
 const eyebrow = { color: C.sage, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
-const h2 = { fontSize: 34, lineHeight: 1.1, margin: '8px 0 10px', fontWeight: 400 };
+const h2 = { fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 34, lineHeight: 1.1, margin: '8px 0 10px' };
 const h3 = { fontSize: 19, lineHeight: 1.18, margin: '8px 0 6px' };
 const lead = { color: C.mid, fontSize: 16, lineHeight: 1.62, margin: 0 };
 const smallText = { color: C.mid, fontSize: 13.5, lineHeight: 1.52, margin: 0 };
-const primaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 13px', background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 12, fontWeight: 900, fontSize: 12.5 };
-const secondaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 13px', background: C.card, color: C.sage, textDecoration: 'none', borderRadius: 12, border: '1px solid #c8deca', fontWeight: 900, fontSize: 12.5 };
-const primaryButton = { border: 'none', minHeight: 40, borderRadius: 12, background: C.sage, color: '#fff', padding: '0 14px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 13 };
-const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 11, background: C.card, minHeight: 39, padding: '0 12px', fontFamily: 'Georgia,serif', fontSize: 13, color: C.ink };
-const statusRow = { background: C.card, border: '1px solid #c8deca', borderRadius: 11, padding: '8px 10px', color: C.sage, fontWeight: 900, fontSize: 12.5 };
-const card = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18 };
-const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 18, boxShadow: '0 10px 30px rgba(55,45,35,.04)' };
+const primaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 13px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', textDecoration: 'none', borderRadius: 999, fontWeight: 900, fontSize: 12.5, boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' };
+const secondaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 13px', background: C.card, color: C.sage, textDecoration: 'none', borderRadius: 999, border: '1px solid #CFE0D8', fontWeight: 900, fontSize: 12.5 };
+const primaryButton = { border: 'none', minHeight: 40, borderRadius: 999, background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', padding: '0 14px', fontFamily: BODY_FONT, fontWeight: 900, cursor: 'pointer', fontSize: 13, boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' };
+const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 11, background: C.card, minHeight: 39, padding: '0 12px', fontFamily: BODY_FONT, fontSize: 13, color: C.ink };
+const statusRow = { background: C.card, border: '1px solid #CFE0D8', borderRadius: 11, padding: '8px 10px', color: C.sage, fontWeight: 900, fontSize: 12.5 };
+const card = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 18 };
+const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 18, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' };
 const numberBubble = { width: 34, height: 34, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontWeight: 900 };
 const taskRow = { display: 'grid', gridTemplateColumns: 'minmax(0, .95fr) minmax(220px, .8fr)', gap: 12, border: '1px solid ' + C.border, borderRadius: 17, padding: 15, background: C.bg };
 const miniBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 12, padding: '10px 12px', display: 'grid', gap: 4, color: C.mid, fontSize: 13 };
@@ -596,4 +601,4 @@ const dateRow = { display: 'flex', justifyContent: 'space-between', gap: 12, ali
 const handoffRow = { display: 'grid', gridTemplateColumns: '160px minmax(0, 1fr)', gap: 12, background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: '12px 13px', color: C.mid };
 const smallCard = { background: C.bg, border: '1px solid ' + C.border, borderRadius: 15, padding: 16 };
 const spineBox = { background: C.card, border: '1px solid ' + C.border, borderRadius: 14, padding: '13px 14px' };
-const showMoreButton = { border: '1px solid #c8deca', minHeight: 38, borderRadius: 12, background: C.sageFaint, color: C.sage, padding: '0 13px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap', fontSize: 12.5 };
+const showMoreButton = { border: '1px solid #CFE0D8', minHeight: 38, borderRadius: 999, background: C.sageFaint, color: C.sage, padding: '0 13px', fontFamily: BODY_FONT, fontWeight: 900, cursor: 'pointer', whiteSpace: 'nowrap', fontSize: 12.5 };
