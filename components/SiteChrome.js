@@ -7,15 +7,21 @@ import { PASSAGE_FONT, PASSAGE_TYPE, typeStyle } from '../lib/typography';
 import { trackEvent } from '../lib/trackEvent';
 import { PASSAGE_BRAND } from '../lib/brand';
 
+// Threshold tokens (see docs/redesign/08-visual-craft-standard.md). Scoped to this
+// shared chrome file only -- lib/typography.js (PASSAGE_FONT/PASSAGE_TYPE) is left
+// untouched this run to avoid unknown blast radius into its other consumers, so nav/
+// footer/button text uses this local font-family constant instead of PASSAGE_FONT.family.
+const CHROME_FONT_FAMILY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
 export const CHROME_COLORS = {
-  bg: '#f6f3ee',
-  card: '#ffffff',
-  ink: '#1a1916',
-  mid: '#6a6560',
-  soft: '#a09890',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageFaint: '#f0f5f1',
+  bg: '#FBF8F3',
+  card: '#FEFDFB',
+  ink: '#1C1917',
+  mid: '#5A5348',
+  soft: '#9A9081',
+  border: '#E6DDCB',
+  sage: '#245A4B',
+  sageFaint: '#F2F6F3',
 };
 
 const PUBLIC_LINKS = [
@@ -65,7 +71,7 @@ export function SpineTrustStrip({ eyebrow = 'Shared record', title = 'What stays
           <div style={{ ...PASSAGE_TYPE.meta, color: CHROME_COLORS.sage }}>{eyebrow}</div>
           <div style={{ ...PASSAGE_TYPE.h3, color: CHROME_COLORS.ink, fontSize: compact ? 14 : 16, marginTop: 2 }}>{title}</div>
         </div>
-        <span style={{ ...PASSAGE_TYPE.badge, border: '1px solid #c8deca', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, whiteSpace: 'nowrap' }}>Proof-first</span>
+        <span style={{ ...PASSAGE_TYPE.badge, border: '1px solid #CFE0D8', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '4px 8px', fontSize: 10.5, whiteSpace: 'nowrap' }}>Proof-first</span>
       </div>
       {safeRows.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 7 }}>
@@ -89,7 +95,7 @@ export function RoleActionStrip({ role = 'Your role', action = 'Take the next ac
     ['Status and proof', proof],
   ];
   return (
-    <div style={{ background: CHROME_COLORS.sageFaint, border: '1px solid #c8deca', borderRadius: compact ? 13 : 15, padding: compact ? 10 : 12, color: CHROME_COLORS.mid }}>
+    <div style={{ background: CHROME_COLORS.sageFaint, border: '1px solid #CFE0D8', borderRadius: compact ? 13 : 15, padding: compact ? 10 : 12, color: CHROME_COLORS.mid }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: 7 }}>
         {rows.map(([label, body]) => (
           <div key={label} style={{ background: CHROME_COLORS.card, border: '1px solid ' + CHROME_COLORS.border, borderRadius: 11, padding: compact ? '7px 8px' : '8px 9px' }}>
@@ -108,13 +114,13 @@ export function RoleActionStrip({ role = 'Your role', action = 'Take the next ac
 export function StatusBadge({ status = 'draft', label, compact = false }) {
   const clean = String(status || '').toLowerCase();
   const state = clean === 'done' || clean === 'handled' || clean === 'completed'
-    ? { text: 'Handled', icon: 'OK', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#c8deca' }
+    ? { text: 'Handled', icon: 'OK', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#CFE0D8' }
     : clean === 'acknowledged' || clean === 'accepted' || clean === 'viewed'
-      ? { text: clean === 'viewed' ? 'Viewed' : 'Accepted', icon: 'Seen', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#c8deca' }
+      ? { text: clean === 'viewed' ? 'Viewed' : 'Accepted', icon: 'Seen', color: CHROME_COLORS.sage, bg: CHROME_COLORS.sageFaint, border: '#CFE0D8' }
       : clean === 'sent' || clean === 'assigned' || clean === 'waiting' || clean === 'pending' || clean === 'requested'
-        ? { text: clean === 'sent' ? 'Sent' : 'Waiting', icon: 'Wait', color: '#7a6a52', bg: '#f7f1e7', border: '#eadcc8' }
+        ? { text: clean === 'sent' ? 'Sent' : 'Waiting', icon: 'Wait', color: '#B5622F', bg: '#FBF0E7', border: '#EFE0CE' }
         : clean === 'blocked' || clean === 'failed' || clean === 'needs_review' || clean === 'declined'
-          ? { text: clean === 'declined' ? 'Needs another option' : 'Needs help', icon: '!', color: '#9a6842', bg: '#fdf3ec', border: '#edd0bd' }
+          ? { text: clean === 'declined' ? 'Needs another option' : 'Needs help', icon: '!', color: '#9A4F26', bg: '#F5E4D6', border: '#EBC6A4' }
           : { text: 'Draft', icon: 'New', color: CHROME_COLORS.soft, bg: CHROME_COLORS.bg, border: CHROME_COLORS.border };
   return (
     <span style={{
@@ -228,7 +234,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
   const navLink = {
     color: CHROME_COLORS.mid,
     textDecoration: 'none',
-    borderRadius: 11,
+    borderRadius: 999,
     padding: '8px 10px',
     minHeight: 38,
     display: 'inline-flex',
@@ -236,10 +242,10 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
     ...PASSAGE_TYPE.nav,
   };
   const activeStyle = {
-    background: CHROME_COLORS.sage,
+    background: `linear-gradient(155deg, ${CHROME_COLORS.sage}, #153A31)`,
     color: '#fff',
     textDecoration: 'none',
-    borderRadius: 11,
+    borderRadius: 999,
     padding: '8px 11px',
     minHeight: 38,
     display: 'inline-flex',
@@ -247,12 +253,13 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
     fontWeight: 800,
     fontSize: PASSAGE_TYPE.nav.fontSize,
     lineHeight: PASSAGE_TYPE.nav.lineHeight,
+    boxShadow: '0 1px 2px rgba(15,42,36,.15), 0 6px 14px -6px rgba(15,42,36,.4)',
   };
   const quietMyEstate = {
     color: CHROME_COLORS.mid,
     background: CHROME_COLORS.sageFaint,
     textDecoration: 'none',
-    borderRadius: 11,
+    borderRadius: 999,
     padding: '8px 12px',
     minHeight: 38,
     display: 'inline-flex',
@@ -271,7 +278,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
   }
 
   return (
-    <nav style={{ width: 'min(1180px, 100%)', boxSizing: 'border-box', maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, fontFamily: PASSAGE_FONT.family }}>
+    <nav style={{ width: 'min(1180px, 100%)', boxSizing: 'border-box', maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, fontFamily: CHROME_FONT_FAMILY }}>
       <style>{`
         @media (max-width: 720px) {
           .passage-nav-secondary { display: none !important; }
@@ -299,13 +306,13 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
         <span className="passage-nav-action-slot" style={{ width: showSystemAdminLink ? 176 : 96, display: 'inline-flex', justifyContent: 'flex-end', gap: 7, alignItems: 'center' }}>
           {!localAuthReady && <span aria-hidden="true" style={{ width: 92, minHeight: 38, display: 'inline-flex' }} />}
           {localAuthReady && showSystemAdminLink && (
-            <Link href="/system/admin" onClick={() => trackEvent('system_admin_action_clicked', { href: '/system/admin' })} style={{ minHeight: 38, border: '1px solid #c8deca', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 11, padding: '7px 10px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', ...typeStyle('button', { fontSize: 13, fontWeight: 900 }) }} aria-label="Owner-only system admin">System admin</Link>
+            <Link href="/system/admin" onClick={() => trackEvent('system_admin_action_clicked', { href: '/system/admin' })} style={{ minHeight: 38, border: '1px solid #CFE0D8', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '7px 10px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', ...typeStyle('button', { fontSize: 13, fontWeight: 900 }), fontFamily: CHROME_FONT_FAMILY }} aria-label="Owner-only system admin">System admin</Link>
           )}
           {localAuthReady && currentUser && (
-            <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer' }}>Sign out</button>
+            <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer' }}>Sign out</button>
           )}
           {localAuthReady && !currentUser && (
-            <Link href={headerSignInHref} onClick={handleHeaderSignIn} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 11, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
+            <Link href={headerSignInHref} onClick={handleHeaderSignIn} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
           )}
         </span>
       </div>
@@ -315,7 +322,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
 
 export function SiteFooter() {
   return (
-    <footer style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px 12px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', ...PASSAGE_TYPE.caption, color: CHROME_COLORS.soft, fontFamily: PASSAGE_FONT.family }}>
+    <footer style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px 12px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', ...PASSAGE_TYPE.caption, color: CHROME_COLORS.soft, fontFamily: CHROME_FONT_FAMILY }}>
       <div>Passage coordinates life-to-death transitions with care.</div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         <Link href="/faq" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>FAQ</Link>
