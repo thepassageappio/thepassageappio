@@ -3,17 +3,22 @@ import Link from 'next/link';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
 const C = {
-  bg: '#f6f3ee',
-  card: '#fffdf9',
-  ink: '#1a1916',
-  mid: '#625d56',
-  soft: '#918980',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageFaint: '#edf5ee',
-  gold: '#b8945a',
-  goldFaint: '#fbf4e7',
+  bg: '#FBF8F3',
+  card: '#FEFDFB',
+  ink: '#1C1917',
+  mid: '#5A5348',
+  soft: '#9A9081',
+  border: '#E6DDCB',
+  sage: '#245A4B',
+  sageDark: '#153A31',
+  sageFaint: '#F2F6F3',
+  gold: '#9A4F26',
+  goldFaint: '#F5E4D6',
 };
+
+const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const MOMENT_FONT = "'Fraunces', serif";
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const audiences = [
   {
@@ -119,13 +124,14 @@ export default function ResourcesPage() {
   }, []);
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
+    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
+      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '12px 28px 10px' }}>
         <section style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,.82fr) minmax(360px,.9fr)', gap: 18, alignItems: 'stretch' }} className="resources-hero-grid">
           <div>
             <div style={eyebrow}>Resources</div>
-            <h1 style={{ fontSize: 52, lineHeight: .98, margin: '0 0 9px', fontWeight: 400 }}>
+            <h1 style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 52, lineHeight: .98, margin: '0 0 9px', letterSpacing: '-.01em' }}>
               Start with the question you are carrying.
             </h1>
             <p style={{ color: C.mid, fontSize: 14.5, lineHeight: 1.42, margin: 0, maxWidth: 610 }}>
@@ -138,7 +144,20 @@ export default function ResourcesPage() {
                   key={pane.id}
                   type="button"
                   onClick={() => setActivePaneIndex(index)}
-                  style={{ border: `1px solid ${activePaneIndex === index ? pane.tone + '55' : C.border}`, background: activePaneIndex === index ? pane.bg : C.bg, color: activePaneIndex === index ? pane.tone : C.mid, borderRadius: 11, minHeight: 37, padding: '0 10px', fontFamily: 'Georgia,serif', fontSize: 12, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}
+                  style={{
+                    border: `1px solid ${activePaneIndex === index ? pane.tone + '55' : C.border}`,
+                    background: activePaneIndex === index ? `linear-gradient(155deg, ${pane.tone}, #153A31)` : C.bg,
+                    color: activePaneIndex === index ? '#fff' : C.mid,
+                    borderRadius: 999,
+                    minHeight: 37,
+                    padding: '0 10px',
+                    fontFamily: BODY_FONT,
+                    fontSize: 12,
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    boxShadow: activePaneIndex === index ? '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' : 'none',
+                  }}
                 >
                   {pane.label}
                 </button>
@@ -186,18 +205,19 @@ const eyebrow = {
 };
 
 const sectionTitle = {
+  fontFamily: MOMENT_FONT,
+  fontWeight: 440,
   fontSize: 24,
   lineHeight: 1.02,
   margin: 0,
-  fontWeight: 400,
 };
 
 const panel = {
   background: C.card,
   border: `1px solid ${C.border}`,
-  borderRadius: 16,
+  borderRadius: 20,
   padding: 18,
-  boxShadow: '0 14px 36px rgba(55,45,35,.05)',
+  boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)',
 };
 
 const primaryLink = {
@@ -206,11 +226,12 @@ const primaryLink = {
   justifyContent: 'center',
   minHeight: 44,
   padding: '0 18px',
-  borderRadius: 12,
-  background: C.sage,
+  borderRadius: 999,
+  background: `linear-gradient(155deg, ${C.sage}, #153A31)`,
   color: '#fff',
   textDecoration: 'none',
   fontWeight: 900,
+  boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35)',
 };
 
 const secondaryLink = {
@@ -219,7 +240,7 @@ const secondaryLink = {
   justifyContent: 'center',
   minHeight: 42,
   padding: '0 15px',
-  borderRadius: 11,
+  borderRadius: 999,
   border: `1px solid ${C.border}`,
   color: C.sage,
   background: '#fff',

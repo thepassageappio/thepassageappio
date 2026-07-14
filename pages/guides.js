@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 
-const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#9a9288', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#eef5ef', gold: '#b8945a', rose: '#c47a7a', roseFaint: '#fbf0ef' };
+const C = { bg: '#FBF8F3', card: '#FEFDFB', ink: '#1C1917', mid: '#5A5348', soft: '#9A9081', border: '#E6DDCB', sage: '#245A4B', sageFaint: '#F2F6F3', gold: '#9A4F26', rose: '#B5622F', roseFaint: '#FBF0E7' };
+const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const MOMENT_FONT = "'Fraunces', serif";
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const guides = [
   {
@@ -108,12 +111,13 @@ export default function ContentPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
+    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: BODY_FONT, color: C.ink }}>
+      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '6px 22px 16px' }}>
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Help guides</div>
-          <h1 style={{ fontSize: 32, lineHeight: 1.02, margin: '0 0 7px', fontWeight: 400 }}>Pick the guide you need right now.</h1>
+          <h1 style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 32, lineHeight: 1.02, margin: '0 0 7px' }}>Pick the guide you need right now.</h1>
           <p style={{ color: C.mid, fontSize: 13.2, lineHeight: 1.42, margin: 0, maxWidth: 660 }}>Choose the guide first. If it is locked, unlock it in place and keep reading here.</p>
         </div>
 
@@ -122,7 +126,7 @@ export default function ContentPage() {
             {guides.map(g => {
               const active = selected.title === g.title;
               return (
-                <button key={g.title} onClick={() => { setInterest(g.title); setUnlocked(leadUnlocked); }} style={{ textAlign: 'left', background: active ? C.sageFaint : '#fff', border: `1px solid ${active ? C.sage : C.border}`, borderRadius: 12, padding: '9px 10px', fontFamily: 'Georgia,serif', cursor: 'pointer' }}>
+                <button key={g.title} onClick={() => { setInterest(g.title); setUnlocked(leadUnlocked); }} style={{ textAlign: 'left', background: active ? C.sageFaint : '#fff', border: `1px solid ${active ? C.sage : C.border}`, borderRadius: 12, padding: '9px 10px', fontFamily: BODY_FONT, cursor: 'pointer' }}>
                   <div style={{ fontSize: 10.5, color: active ? C.sage : C.gold, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 3 }}>{g.type}</div>
                   <div style={{ fontSize: 14.2, color: C.ink, lineHeight: 1.12 }}>{g.title}</div>
                   <div style={{ fontSize: 11, color: C.mid, lineHeight: 1.28, marginTop: 3 }}>{g.audience}</div>
@@ -131,23 +135,23 @@ export default function ContentPage() {
             })}
           </div>
 
-          <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 13, boxShadow: '0 12px 34px rgba(55,45,35,.05)' }}>
+          <article style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 13, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', borderBottom: `1px solid ${C.border}`, paddingBottom: 10, marginBottom: 10 }}>
               <div>
                 <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 5 }}>{selected.type}</div>
-                <h2 style={{ fontSize: 24, lineHeight: 1.05, margin: '0 0 5px', fontWeight: 400 }}>{selected.fullTitle}</h2>
+                <h2 style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 24, lineHeight: 1.05, margin: '0 0 5px' }}>{selected.fullTitle}</h2>
                 <p style={{ color: C.mid, fontSize: 12.5, lineHeight: 1.36, margin: 0 }}>{selected.subtitle}</p>
               </div>
               {!unlocked && <span style={{ color: C.rose, background: C.roseFaint, borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 800, whiteSpace: 'nowrap' }}>Locked</span>}
             </div>
 
             {!unlocked ? (
-              <form onSubmit={submit} style={{ background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 13, padding: 13 }}>
-                <div style={{ fontSize: 17, lineHeight: 1.2, marginBottom: 5 }}>Unlock this guide</div>
+              <form onSubmit={submit} style={{ background: C.roseFaint, border: `1px solid ${C.rose}25`, borderRadius: 16, padding: 13 }}>
+                <div style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 17, lineHeight: 1.2, marginBottom: 5 }}>Unlock this guide</div>
                 <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, margin: '0 0 10px' }}>Enter your email once. The guide opens immediately on this page, and the request is recorded as a Passage guide lead.</p>
-                <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={{ ...inputStyle, borderColor: '#ead5d2' }} />
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ ...inputStyle, borderColor: '#ead5d2' }} />
-                <button style={{ width: '100%', border: 'none', borderRadius: 11, padding: '12px 14px', background: C.sage, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' }}>Unlock guide</button>
+                <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={{ ...inputStyle, borderColor: '#EFD9CC' }} />
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ ...inputStyle, borderColor: '#EFD9CC' }} />
+                <button style={{ width: '100%', border: 'none', borderRadius: 999, padding: '12px 14px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', fontFamily: BODY_FONT, fontWeight: 800, cursor: 'pointer', boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' }}>Unlock guide</button>
                 {error && <p style={{ color: C.rose, background: '#fff', border: `1px solid ${C.rose}30`, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, lineHeight: 1.45, margin: '10px 0 0' }}>{error}</p>}
               </form>
             ) : (
@@ -178,4 +182,4 @@ export default function ContentPage() {
   );
 }
 
-const inputStyle = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 11, padding: '10px 12px', fontFamily: 'Georgia,serif', fontSize: 13.5, color: C.ink, outline: 'none', background: '#fff', marginBottom: 8 };
+const inputStyle = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${C.border}`, borderRadius: 11, padding: '10px 12px', fontFamily: BODY_FONT, fontSize: 13.5, color: C.ink, outline: 'none', background: '#fff', marginBottom: 8 };
