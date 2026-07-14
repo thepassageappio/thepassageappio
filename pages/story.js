@@ -3,20 +3,23 @@ import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 
 const C = {
-  bg: '#f6f3ee',
-  card: '#fffdf9',
-  ink: '#1a1916',
-  mid: '#6a6560',
-  soft: '#9a9288',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageDark: '#4a6e50',
-  sageFaint: '#eef5ef',
-  sageLight: '#c8deca',
-  gold: '#b8945a',
-  goldFaint: '#fbf5e8',
-  roseFaint: '#fbf0ef',
+  bg: '#FBF8F3',
+  card: '#FEFDFB',
+  ink: '#1C1917',
+  mid: '#5A5348',
+  soft: '#9A9081',
+  border: '#E6DDCB',
+  sage: '#245A4B',
+  sageDark: '#153A31',
+  sageFaint: '#F2F6F3',
+  sageLight: '#CFE0D8',
+  gold: '#9A4F26',
+  goldFaint: '#F5E4D6',
+  roseFaint: '#FBF0E7',
 };
+
+const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const MOMENT_FONT = "'Fraunces', serif";
 
 const moments = [
   ['The meeting', 'There was care in the room, and still too much for the family to carry home.'],
@@ -71,29 +74,30 @@ export default function StoryPage() {
   }, []);
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
+    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
       <style suppressHydrationWarning>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
         .story-shell { max-width: 1120px; margin: 0 auto; padding: 14px 28px 18px; }
         .story-hero { display:grid; grid-template-columns:minmax(0,.98fr) minmax(340px,.68fr); gap:18px; align-items:stretch; }
-        .story-card { background:${C.card}; border:1px solid ${C.border}; border-radius:20px; padding:20px 22px; box-shadow:0 18px 54px rgba(55,45,35,.05); }
+        .story-card { background:${C.card}; border:1px solid ${C.border}; border-radius:20px; padding:20px 22px; box-shadow:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10); }
         .story-side { background:${C.sageFaint}; border-color:${C.sageLight}; display:flex; flex-direction:column; gap:12px; }
         .story-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
         .story-tab { border:1px solid ${C.border}; background:${C.card}; color:${C.mid}; border-radius:999px; min-height:34px; font-family:inherit; font-size:12px; font-weight:900; cursor:pointer; }
-        .story-tab-active { background:${C.sageFaint}; border-color:${C.sageLight}; color:${C.sageDark}; }
+        .story-tab-active { background:linear-gradient(155deg, ${C.sage}, ${C.sageDark}); border-color:${C.sage}; color:#fff; box-shadow:0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4); }
         .story-kicker { color:${C.sage}; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:900; margin-bottom:10px; }
-        .story-title { font-size:52px; line-height:.98; margin:0 0 12px; font-weight:400; letter-spacing:0; max-width:700px; }
+        .story-title { font-family:'Fraunces',serif; font-weight:440; font-size:52px; line-height:.98; margin:0 0 12px; letter-spacing:-.01em; max-width:700px; }
         .story-lede { color:${C.mid}; font-size:15px; line-height:1.55; margin:0 0 14px; max-width:760px; }
         .story-artifact { display:grid; gap:9px; margin-top:3px; }
         .story-artifact-row { display:grid; grid-template-columns:86px minmax(0,1fr); gap:10px; align-items:center; border-top:1px solid ${C.sageLight}; padding-top:9px; color:${C.mid}; font-size:13.2px; line-height:1.35; }
         .story-artifact-row:first-child { border-top:none; padding-top:0; }
         .story-artifact-row strong { color:${C.ink}; font-size:13.5px; }
-        .story-folder-note { color:${C.sageDark}; font-size:24px; line-height:1.06; margin:0; }
+        .story-folder-note { color:${C.sageDark}; font-family:'Fraunces',serif; font-weight:440; font-size:24px; line-height:1.06; margin:0; }
         .story-body { margin:12px auto 0; }
         .story-copy { background:${C.card}; border:1px solid ${C.border}; border-radius:18px; padding:16px 18px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; }
         .story-copy p { color:${C.mid}; font-size:14px; line-height:1.52; margin:0; max-width:760px; }
         .story-body strong { color:${C.ink}; font-weight:500; }
         .story-actions { display:flex; gap:9px; flex-wrap:wrap; justify-content:flex-end; }
-        .story-button { min-height:44px; border-radius:13px; display:inline-flex; align-items:center; justify-content:center; padding:0 16px; font-weight:900; text-decoration:none; white-space:nowrap; }
+        .story-button { min-height:44px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 16px; font-weight:900; text-decoration:none; white-space:nowrap; }
         @media (max-width: 760px) {
           .story-shell { padding:18px 18px 54px; }
           .story-hero { grid-template-columns:1fr; }
