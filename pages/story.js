@@ -93,11 +93,12 @@ export default function StoryPage() {
         .story-artifact-row strong { color:${C.ink}; font-size:13.5px; }
         .story-folder-note { color:${C.sageDark}; font-family:'Fraunces',serif; font-weight:440; font-size:24px; line-height:1.06; margin:0; }
         .story-body { margin:12px auto 0; }
-        .story-copy { background:${C.card}; border:1px solid ${C.border}; border-radius:18px; padding:16px 18px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; }
+        .story-copy { background:${C.card}; border:1px solid ${C.border}; border-radius:18px; padding:16px 18px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:center; box-shadow:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03); }
         .story-copy p { color:${C.mid}; font-size:14px; line-height:1.52; margin:0; max-width:760px; }
         .story-body strong { color:${C.ink}; font-weight:500; }
         .story-actions { display:flex; gap:9px; flex-wrap:wrap; justify-content:flex-end; }
-        .story-button { min-height:44px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 16px; font-weight:900; text-decoration:none; white-space:nowrap; }
+        .story-button { min-height:44px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; padding:0 16px; font-weight:900; text-decoration:none; white-space:nowrap; box-shadow:0 1px 2px rgba(20,30,25,.12), 0 6px 14px -6px rgba(20,30,25,.3); transition: transform .2s ease, box-shadow .2s ease; }
+        .story-button:hover { transform: translateY(-1px); box-shadow:0 2px 4px rgba(20,30,25,.16), 0 10px 18px -6px rgba(20,30,25,.34); }
         @media (max-width: 760px) {
           .story-shell { padding:18px 18px 54px; }
           .story-hero { grid-template-columns:1fr; }
