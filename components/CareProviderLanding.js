@@ -4,19 +4,23 @@ import { SiteFooter, SiteHeader } from './SiteChrome';
 import { calendlyUrl } from '../lib/scheduling';
 
 const C = {
-  bg: '#f6f3ee',
-  card: '#ffffff',
-  ink: '#1a1916',
-  mid: '#6a6560',
-  soft: '#a09890',
-  border: '#e4ddd4',
-  sage: '#6b8f71',
-  sageFaint: '#f0f5f1',
-  amber: '#b07d2e',
-  amberFaint: '#fdf8ee',
-  rose: '#a75d55',
-  roseFaint: '#fdf3f1',
+  bg: '#FBF8F3',
+  card: '#FEFDFB',
+  ink: '#1C1917',
+  mid: '#5A5348',
+  soft: '#9A9081',
+  border: '#E6DDCB',
+  sage: '#245A4B',
+  sageFaint: '#F2F6F3',
+  amber: '#9A4F26',
+  amberFaint: '#F5E4D6',
+  rose: '#B5622F',
+  roseFaint: '#FBF0E7',
 };
+
+const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const MOMENT_FONT = "'Fraunces', serif";
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const providerOptions = [
   ['hospice', 'Hospice'],
@@ -100,7 +104,8 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
   }
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: 'Georgia,serif' }}>
+    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
+      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={shell}>
         <div className="care-hero" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(340px, .72fr)', gap: 16, alignItems: 'stretch' }}>
@@ -115,7 +120,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
               <a href={calendlyUrl({ source: 'Care provider discovery' })} target="_blank" rel="noreferrer" style={secondaryLink}>Book walkthrough</a>
               <Link href="/hospice#start-warm-workspace" style={secondaryLink}>Create family care-prep record</Link>
             </div>
-            <div style={{ background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 14 }}>
+            <div style={{ background: C.sageFaint, border: `1px solid ${C.sage}33`, borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 14 }}>
               Start an inquiry, book a walkthrough, or help a family begin a care-prep record. Active family work stays inside permissioned Passage records.
             </div>
             <div className="care-purpose-grid" style={purposeGrid}>
@@ -160,7 +165,7 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
                 <textarea value={form.message} onChange={e => update('message', e.target.value)} placeholder="What family handoff, care transition, or coordination problem should Passage help solve?" style={{ ...inputStyle, minHeight: 88, paddingTop: 11, resize: 'vertical' }} />
                 {!requiredReady && <div style={hintBox}>Add organization name and contact email to send the inquiry.</div>}
                 {error && <div style={errorBox}>{error}</div>}
-                <button disabled={state === 'sending' || !requiredReady} style={{ ...primaryButton, background: state === 'sending' || !requiredReady ? C.border : C.sage, cursor: state === 'sending' ? 'wait' : !requiredReady ? 'not-allowed' : 'pointer' }}>{state === 'sending' ? 'Sending...' : requiredReady ? 'Send care-team inquiry' : 'Add required info'}</button>
+                <button disabled={state === 'sending' || !requiredReady} style={{ ...primaryButton, background: state === 'sending' || !requiredReady ? C.border : `linear-gradient(155deg, ${C.sage}, #153A31)`, cursor: state === 'sending' ? 'wait' : !requiredReady ? 'not-allowed' : 'pointer' }}>{state === 'sending' ? 'Sending...' : requiredReady ? 'Send care-team inquiry' : 'Add required info'}</button>
               </div>
             )}
           </form>
@@ -270,37 +275,37 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
 }
 
 const shell = { maxWidth: 1180, margin: '0 auto', padding: '22px 28px 18px' };
-const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 24, boxShadow: '0 14px 42px rgba(55,45,35,.05)' };
-const formCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 20, boxShadow: '0 14px 42px rgba(55,45,35,.05)' };
+const heroCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 24, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' };
+const formCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 20, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' };
 const section = { maxWidth: 1180, margin: '0 auto', padding: '12px 28px 18px' };
 const sectionHeader = { maxWidth: 780, marginBottom: 16 };
 const eyebrow = { color: C.sage, fontSize: 12, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
 const smallEyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.13em', textTransform: 'uppercase', fontWeight: 900 };
-const heroTitle = { fontSize: 54, lineHeight: 1.02, letterSpacing: 0, margin: '8px 0 12px', fontWeight: 400 };
-const h2 = { fontSize: 32, lineHeight: 1.08, margin: '8px 0 10px', fontWeight: 400 };
+const heroTitle = { fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 54, lineHeight: 1.0, letterSpacing: '-.015em', margin: '8px 0 12px' };
+const h2 = { fontSize: 32, lineHeight: 1.08, margin: '8px 0 10px', fontWeight: 600 };
 const h3 = { fontSize: 21, lineHeight: 1.18, margin: '8px 0 6px' };
 const lead = { color: C.mid, fontSize: 17, lineHeight: 1.58, margin: 0 };
 const smallText = { color: C.mid, fontSize: 14, lineHeight: 1.55, margin: 0 };
 const actionRow = { display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 };
-const primaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 16px', background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 13, fontWeight: 900, fontSize: 14 };
-const secondaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 16px', background: C.card, color: C.sage, textDecoration: 'none', borderRadius: 13, border: '1px solid #c8deca', fontWeight: 900, fontSize: 14 };
-const primaryButton = { border: 'none', minHeight: 48, borderRadius: 13, background: C.sage, color: '#fff', padding: '0 16px', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 14 };
-const smallButton = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 12px', background: C.sage, color: '#fff', textDecoration: 'none', borderRadius: 11, fontWeight: 900, fontSize: 12.5, whiteSpace: 'nowrap' };
-const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 12, background: C.card, minHeight: 44, padding: '0 13px', fontFamily: 'Georgia,serif', fontSize: 14, color: C.ink };
+const primaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 16px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', textDecoration: 'none', borderRadius: 999, fontWeight: 900, fontSize: 14, boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35)' };
+const secondaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 16px', background: C.card, color: C.sage, textDecoration: 'none', borderRadius: 999, border: '1px solid ' + C.border, fontWeight: 900, fontSize: 14 };
+const primaryButton = { border: 'none', minHeight: 48, borderRadius: 999, background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', padding: '0 16px', fontFamily: BODY_FONT, fontWeight: 900, cursor: 'pointer', fontSize: 14 };
+const smallButton = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 12px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', textDecoration: 'none', borderRadius: 999, fontWeight: 900, fontSize: 12.5, whiteSpace: 'nowrap' };
+const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 12, background: C.card, minHeight: 44, padding: '0 13px', fontFamily: BODY_FONT, fontSize: 14, color: C.ink };
 const purposeGrid = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 10, marginTop: 18 };
-const miniCard = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 13 };
-const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 18, padding: 20, boxShadow: '0 10px 30px rgba(55,45,35,.04)' };
+const miniCard = { background: C.sageFaint, border: '1px solid ' + C.border, borderRadius: 14, padding: 13 };
+const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 20, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' };
 const twoCol = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 };
 const twoPanelGrid = { display: 'grid', gridTemplateColumns: 'minmax(0, .94fr) minmax(0, 1.06fr)', gap: 14 };
 const stepGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 };
 const stepCard = { background: C.card, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 };
 const numberBubble = { width: 34, height: 34, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: C.sageFaint, color: C.sage, fontWeight: 900 };
 const rowBox = { display: 'grid', gridTemplateColumns: '125px minmax(0,1fr)', gap: 12, background: C.bg, border: '1px solid ' + C.border, borderRadius: 13, padding: '12px 13px', color: C.mid, fontSize: 14, lineHeight: 1.45 };
-const statusRow = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 12, padding: '11px 12px', color: C.mid, fontSize: 14, lineHeight: 1.5 };
+const statusRow = { background: C.sageFaint, border: '1px solid ' + C.border, borderRadius: 12, padding: '11px 12px', color: C.mid, fontSize: 14, lineHeight: 1.5 };
 const planCard = { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 12, alignItems: 'center', background: C.bg, border: '1px solid ' + C.border, borderRadius: 14, padding: 13 };
-const noteBox = { background: C.amberFaint, border: '1px solid #ead4ac', borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 13 };
-const successBox = { background: C.sageFaint, border: '1px solid #c8deca', borderRadius: 14, padding: 16 };
-const errorBox = { background: C.roseFaint, color: C.rose, border: '1px solid #e6c7c1', borderRadius: 12, padding: 10, fontSize: 13 };
+const noteBox = { background: C.amberFaint, border: '1px solid ' + C.border, borderRadius: 14, padding: 13, color: C.mid, fontSize: 13.5, lineHeight: 1.55, marginTop: 13 };
+const successBox = { background: C.sageFaint, border: '1px solid ' + C.border, borderRadius: 16, padding: 16 };
+const errorBox = { background: C.roseFaint, color: C.rose, border: '1px solid ' + C.rose + '30', borderRadius: 12, padding: 10, fontSize: 13 };
 const hintBox = { background: C.bg, color: C.mid, border: '1px solid ' + C.border, borderRadius: 12, padding: 10, fontSize: 12.5, lineHeight: 1.4 };
 const relatedGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 10, marginTop: 14 };
 const relatedCard = { ...stepCard, color: C.ink, textDecoration: 'none', display: 'block' };

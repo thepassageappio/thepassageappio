@@ -5,7 +5,10 @@ import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 import { trackEvent } from '../lib/trackEvent';
 import { recordOnboardingProgress } from '../lib/onboardingClient';
 
-const C = { bg: '#f6f3ee', card: '#fffdf9', ink: '#1a1916', mid: '#6a6560', soft: '#a09890', border: '#e4ddd4', sage: '#6b8f71', sageFaint: '#f0f5f1', rose: '#c47a7a', roseFaint: '#fdf3f3' };
+const C = { bg: '#FBF8F3', card: '#FEFDFB', ink: '#1C1917', mid: '#5A5348', soft: '#9A9081', border: '#E6DDCB', sage: '#245A4B', sageFaint: '#F2F6F3', rose: '#B5622F', roseFaint: '#FBF0E7' };
+const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const MOMENT_FONT = "'Fraunces', serif";
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const groups = [
   { key: 'individual', label: 'Individual', seats: '1 estate', desc: 'For one person or one loved one.', options: [
@@ -135,9 +138,10 @@ export default function PricingPage() {
   ];
 
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: 'Georgia,serif', color: C.ink }}>
+    <main style={{ minHeight: '100vh', background: C.bg, fontFamily: BODY_FONT, color: C.ink }}>
       <SiteHeader user={user} onSignIn={!user ? signIn : null} onSignOut={user ? signOut : null} />
       <style>{`
+        ${FONT_IMPORT}
         @media (max-width: 720px) {
           .pricing-hero-grid,
           .pricing-plan-grid,
@@ -162,14 +166,14 @@ export default function PricingPage() {
         }
       `}</style>
       <section className="pricing-page-section" style={{ maxWidth: 1080, margin: '0 auto', padding: '4px 22px 8px' }}>
-        <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: 13, boxShadow: '0 10px 28px rgba(55,45,35,.04)', display: 'grid', gridTemplateColumns: 'minmax(0,.68fr) minmax(360px,.92fr)', gap: 13, alignItems: 'start' }} className="pricing-hero-grid">
+        <section style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 20, padding: 13, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)', display: 'grid', gridTemplateColumns: 'minmax(0,.68fr) minmax(360px,.92fr)', gap: 13, alignItems: 'start' }} className="pricing-hero-grid">
           <div style={{ alignSelf: 'center' }}>
             <div style={{ fontSize: 10.5, color: C.sage, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 800, marginBottom: 6 }}>Pricing</div>
-            <h1 style={{ fontSize: 32, lineHeight: .98, margin: '0 0 7px', fontWeight: 400 }}>Choose the plan that protects your family.</h1>
+            <h1 style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 32, lineHeight: .98, margin: '0 0 7px' }}>Choose the plan that protects your family.</h1>
             <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.36, margin: 0, maxWidth: 560 }}>Start urgent if someone just passed. Plan ahead by choosing the number of family records you need.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 6, marginTop: 10 }}>
               {[['urgent', 'Urgent help'], ...groups.map(g => [g.key, g.label])].map(([key, label]) => (
-                <button key={key} type="button" onClick={() => setActiveChoice(key)} style={{ border: `1px solid ${activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) + '55' : C.border}`, background: activeChoice === key ? (key === 'urgent' ? C.roseFaint : C.sageFaint) : C.bg, color: activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) : C.mid, borderRadius: 11, minHeight: 36, padding: '0 11px', fontFamily: 'Georgia,serif', fontSize: 12.5, fontWeight: 900, cursor: 'pointer', textAlign: 'left' }}>
+                <button key={key} type="button" onClick={() => setActiveChoice(key)} style={{ border: `1px solid ${activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) + '55' : C.border}`, background: activeChoice === key ? (key === 'urgent' ? `linear-gradient(155deg, ${C.rose}, #1C1917)` : `linear-gradient(155deg, ${C.sage}, #153A31)`) : C.bg, color: activeChoice === key ? '#fff' : C.mid, borderRadius: 999, minHeight: 36, padding: '0 11px', fontFamily: BODY_FONT, fontSize: 12.5, fontWeight: 900, cursor: 'pointer', textAlign: 'left', boxShadow: activeChoice === key ? '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' : 'none' }}>
                   {label}
                 </button>
               ))}
@@ -187,7 +191,7 @@ export default function PricingPage() {
             {showingUrgent ? (
               <>
                 <div style={{ fontSize: 11, color: C.rose, textTransform: 'uppercase', letterSpacing: '.17em', fontWeight: 900, marginBottom: 6 }}>Someone just passed</div>
-                <div style={{ fontSize: 32, lineHeight: .98, marginBottom: 7 }}>Get help now.</div>
+                <div style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 32, lineHeight: .98, marginBottom: 7 }}>Get help now.</div>
                 <div style={{ color: C.mid, fontSize: 13, lineHeight: 1.34, marginBottom: 9 }}>A first-24-hours family record for calls, family notifications, owners, and proof.</div>
                 <div style={{ background: C.card, border: `1px solid ${C.rose}22`, borderRadius: 11, padding: '7px 9px', color: C.mid, fontSize: 11.8, lineHeight: 1.28, marginBottom: 9 }}>
                   Includes a remembrance tree dedication and contributes to the 10% Passage family pledge.
@@ -200,7 +204,7 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/urgent?source=pricing" onClick={() => trackEvent('pricing_get_help_now_clicked', { source: 'pricing' })} style={{ width: '100%', boxSizing: 'border-box', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', border: 'none', borderRadius: 13, padding: '12px 16px', background: C.rose, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 900, cursor: 'pointer', fontSize: 16, textDecoration: 'none' }}>
+                <Link href="/urgent?source=pricing" onClick={() => trackEvent('pricing_get_help_now_clicked', { source: 'pricing' })} style={{ width: '100%', boxSizing: 'border-box', display: 'inline-flex', justifyContent: 'center', alignItems: 'center', border: 'none', borderRadius: 999, padding: '12px 16px', background: `linear-gradient(155deg, ${C.rose}, #1C1917)`, color: '#fff', fontFamily: BODY_FONT, fontWeight: 900, cursor: 'pointer', fontSize: 16, textDecoration: 'none', boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35)' }}>
                   Get help now
                 </Link>
               </>
@@ -209,14 +213,14 @@ export default function PricingPage() {
                 <div style={{ color: C.sage, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 7 }}>Planning ahead</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 13 }}>
                   <div>
-                    <div style={{ fontSize: 30, lineHeight: 1.05 }}>{activeGroup.label}</div>
+                    <div style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 30, lineHeight: 1.05 }}>{activeGroup.label}</div>
                     <div style={{ color: C.sage, fontSize: 13, fontWeight: 900, marginTop: 4 }}>{activeGroup.seats}</div>
                     <div style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.45, marginTop: 7 }}>{activeGroup.desc}</div>
                   </div>
                 </div>
                 <div className="pricing-option-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10, marginTop: 18 }}>
                   {activeGroup.options.map(([id, label, price, per]) => (
-                    <button key={id} disabled={busy === id} onClick={() => checkout(id)} style={{ textAlign: 'left', border: `1px solid ${selectedPlan === id ? C.sage : C.border}`, background: selectedPlan === id ? C.sageFaint : '#fff', borderRadius: 15, padding: 15, cursor: 'pointer', fontFamily: 'Georgia,serif', minHeight: 126 }}>
+                    <button key={id} disabled={busy === id} onClick={() => checkout(id)} style={{ textAlign: 'left', border: `1px solid ${selectedPlan === id ? C.sage : C.border}`, background: selectedPlan === id ? C.sageFaint : '#fff', borderRadius: 20, padding: 15, cursor: 'pointer', fontFamily: BODY_FONT, minHeight: 126 }}>
                       <div style={{ fontSize: 11, color: C.soft, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 9 }}>{label}</div>
                       {participantDiscount ? (
                         <>
@@ -267,5 +271,5 @@ export default function PricingPage() {
 }
 
 function smallButton(background) {
-  return { border: 'none', borderRadius: 10, padding: '9px 12px', background, color: '#fff', fontFamily: 'Georgia,serif', fontWeight: 800, cursor: 'pointer' };
+  return { border: 'none', borderRadius: 999, padding: '9px 12px', background, color: '#fff', fontFamily: BODY_FONT, fontWeight: 800, cursor: 'pointer' };
 }
