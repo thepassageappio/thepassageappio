@@ -146,10 +146,10 @@ const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth:
 const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 18, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' };
 const bodyText = { color: C.mid, fontSize: 15, lineHeight: 1.6, margin: 0 };
 const primaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', borderRadius: 999, padding: '0 16px', textDecoration: 'none', fontWeight: 900, boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35)' };
-const secondaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: C.card, color: C.sage, border: '1px solid ' + C.border, borderRadius: 999, padding: '0 16px', textDecoration: 'none', fontWeight: 900 };
-const checkRow = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 14, alignItems: 'start', border: '1px solid ' + C.border, borderRadius: 16, padding: 14, background: C.card };
+const secondaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: C.card, color: C.sage, border: '1px solid ' + C.border, borderRadius: 999, padding: '0 16px', textDecoration: 'none', fontWeight: 900, boxShadow: '0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03)' };
+const checkRow = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 14, alignItems: 'start', border: '1px solid ' + C.border, borderRadius: 16, padding: 14, background: C.card, boxShadow: '0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03)' };
 const checkList = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 8, padding: 0, margin: '14px 0 0', listStyle: 'none' };
-const checkListItem = { border: '1px solid ' + C.border, borderRadius: 14, padding: '10px 12px', background: C.card, color: C.ink, fontSize: 14, lineHeight: 1.35 };
+const checkListItem = { border: '1px solid ' + C.border, borderRadius: 14, padding: '10px 12px', background: C.card, color: C.ink, fontSize: 14, lineHeight: 1.35, boxShadow: '0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03)' };
 function statusPill(status) {
   const text = String(status || '');
   const isLive = text === 'Live';
