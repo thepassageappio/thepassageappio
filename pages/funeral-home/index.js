@@ -4,6 +4,20 @@
 // via components/calm/CalmPublicChrome. This is the primary B2B conversion
 // target: the homepage hero "For funeral homes" links here.
 //
+// Threshold re-skin (2026-07-14): components/calm/CalmPublicChrome.js is NOT
+// edited here -- it is also used by the homepage (components/HomeCalm.js), so a
+// direct edit would silently re-skin the homepage too (the exact risk flagged in
+// docs/redesign/12-threshold-rollout-tracker.md for this file). Instead, every
+// hc-* class this page renders (header/footer/hero/section/card/trust) is
+// overridden with a page-scoped <style> block (the same RawStyle mechanism this
+// file already used for its own fhx-* classes) using Threshold bone/pine/clay
+// tokens per docs/redesign/08-visual-craft-standard.md. Because that <style> tag
+// is part of this page's own React tree, it mounts/unmounts with the page and
+// never bleeds onto any other page that also uses CalmPublicChrome (e.g. the
+// homepage) -- the same reasoning already proven safe by the prior fhx-*
+// pattern on this file, just extended to cover the shared classes too. Zero
+// state, effect, handler, route, or analytics changes.
+//
 // PRESERVED from the legacy page:
 //   • SEO: PAGE_META['/funeral-home'] in pages/_app.js (pathname-based) is
 //     unchanged, so title/description/canonical carry over automatically.
@@ -18,11 +32,10 @@
 // page (components/funeralHome/FuneralHomeLegacy) so rollback is per-page. The
 // flag is read in an effect (SSR-safe); the redesign is the default render.
 import { useEffect, useState } from 'react';
-import { DS, TYPE, SANS } from '../../lib/designSystem';
 import { supabase } from '../../lib/supabaseBrowser';
 import { calendlyUrl } from '../../lib/scheduling';
 import { trackEvent } from '../../lib/trackEvent';
-import CalmPublicChrome, { cssType, RawStyle } from '../../components/calm/CalmPublicChrome';
+import CalmPublicChrome, { RawStyle } from '../../components/calm/CalmPublicChrome';
 import FuneralHomeLegacy from '../../components/funeralHome/FuneralHomeLegacy';
 import {
   FH_BENEFITS,
@@ -30,6 +43,33 @@ import {
   FH_TRUST,
   FH_CASE_PREVIEW,
 } from '../../components/funeralHome/FuneralHomeData';
+
+// Threshold tokens (docs/redesign/08-visual-craft-standard.md), same hex values
+// already shipped on components/SiteChrome.js and every re-skinned page (e.g.
+// pages/trust.js) so this page stays visually consistent with the rest of the
+// site. Scoped to this file only -- lib/designSystem.js (the pre-Threshold
+// sage/cream tokens CalmPublicChrome itself still uses) is deliberately left
+// untouched, per the note above.
+const T = {
+  bg: '#FBF8F3',
+  card: '#FEFDFB',
+  ink: '#1C1917',
+  mid: '#5A5348',
+  soft: '#9A9081',
+  border: '#E6DDCB',
+  pine: '#245A4B',
+  pineDeep: '#153A31',
+  pineFaint: '#F2F6F3',
+  clay: '#9A4F26',
+  clayDeep: '#7A3D1C',
+  clayFaint: '#F5E4D6',
+  rose: '#B5622F',
+  roseFaint: '#FBF0E7',
+};
+
+const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const MOMENT_FONT = "'Fraunces', serif";
+const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 // Plan tiers preserved from the legacy page so signed-in checkout still works.
 const PLANS = [
@@ -112,33 +152,89 @@ export default function FuneralHomePage() {
 
   const walkthroughHref = calendlyUrl({ source: 'Funeral home walkthrough' });
   const pageCss = `
+        ${FONT_IMPORT}
+
+        /* ---- Threshold overrides for the shared hc-* chrome/section language ----
+           Page-scoped on purpose: this <style> tag lives inside this page's own
+           React tree (mounted by CalmPublicChrome's {children}), so it only exists
+           in the DOM while /funeral-home is the active route and never touches
+           any other page that also uses CalmPublicChrome (e.g. the homepage). */
+        .hc-root { background: ${T.bg}; color: ${T.ink}; font-family: ${BODY_FONT}; }
+
+        .hc-header { padding-top: 20px; padding-bottom: 14px; }
+        .hc-logo { color: ${T.pine}; font-weight: 700; }
+        .hc-navlink { color: ${T.mid}; border-radius: 999px; }
+        .hc-navlink:hover { color: ${T.ink}; }
+        .hc-auth-link { color: ${T.pine}; }
+        .hc-signin { color: ${T.pine}; background: ${T.card}; border: 1px solid ${T.border}; border-radius: 999px; box-shadow: 0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03); }
+        .hc-signin:hover { background: ${T.pineFaint}; }
+
+        .hc-hero { padding-top: 40px; padding-bottom: 44px; }
+        .hc-eyebrow { color: ${T.pine}; font-family: ${BODY_FONT}; }
+        .hc-h1 { font-family: ${MOMENT_FONT}; font-weight: 440; letter-spacing: -0.018em; color: ${T.ink}; }
+        .hc-lede { color: ${T.mid}; }
+        .hc-actions { margin-top: 30px; }
+        .hc-btn { border-radius: 999px; font-family: ${BODY_FONT}; transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1), background .2s ease; }
+        .hc-btn-primary { background: linear-gradient(155deg, ${T.pine}, ${T.pineDeep}); color: #fff; border: none; box-shadow: 0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35); }
+        .hc-btn-primary:hover { background: linear-gradient(155deg, ${T.pine}, ${T.pineDeep}); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(20,30,25,.18), 0 12px 22px -6px rgba(20,30,25,.4); }
+        .hc-btn-secondary { background: ${T.card}; color: ${T.pine}; border-color: ${T.border}; }
+        .hc-btn-secondary:hover { background: ${T.pineFaint}; transform: translateY(-1px); }
+        .hc-reassure { color: ${T.soft}; }
+
+        .hc-section-head { max-width: 680px; }
+        .hc-kicker { color: ${T.pine}; font-family: ${BODY_FONT}; }
+        .hc-h2 { font-family: ${MOMENT_FONT}; font-weight: 460; letter-spacing: -0.015em; color: ${T.ink}; }
+        .hc-sub { color: ${T.mid}; }
+        .hc-section { padding-top: 12px; padding-bottom: 64px; }
+
+        .hc-grid { gap: 18px; }
+        .hc-card { background: ${T.card}; border: 1px solid ${T.border}; border-radius: 20px; box-shadow: 0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10); transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1); }
+        .hc-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -6px rgba(20,30,25,.14), 0 24px 48px -20px rgba(20,30,25,.18); }
+        .hc-card-title { color: ${T.ink}; font-weight: 700; }
+        .hc-card-body { color: ${T.mid}; }
+
+        .hc-trust { background: linear-gradient(160deg, ${T.pine}, ${T.pineDeep}); border-radius: 26px; }
+        .hc-trust-kicker { color: #cfe0d2; }
+        .hc-trust-h2 { font-family: ${MOMENT_FONT}; font-weight: 460; letter-spacing: -0.014em; color: #fff; }
+        .hc-trust-sub { color: #e6ded4; }
+        .hc-trust-grid { gap: 16px; }
+        .hc-trust-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px; backdrop-filter: blur(10px) saturate(1.3); transition: background .2s ease, transform .25s cubic-bezier(.4,0,.2,1); }
+        .hc-trust-card:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
+        .hc-trust-label { color: #fff; }
+        .hc-trust-body { color: #d9e6db; }
+        .hc-pledge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; color: #f0f4f0; }
+
+        .hc-footer { border-top: 1px solid ${T.border}; }
+        .hc-footlink { color: ${T.soft}; }
+        .hc-footlink:hover { color: ${T.ink}; }
+
         /* Funeral-home page-scoped layout on top of the shared hc-* language. */
         .fhx-hero { padding-top: 40px; padding-bottom: 44px; }
         .fhx-hero-grid { display: grid; gap: 28px; align-items: start;
           grid-template-columns: minmax(0, 1.15fr) minmax(min(100%, 320px), 0.85fr); }
         .fhx-hero-copy { min-width: 0; max-width: 640px; }
-        .fhx-h1 { font-size: clamp(34px, 6.2vw, 56px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; color: ${DS.color.ink}; margin: 0 0 18px; }
-        .fhx-lede { font-size: clamp(16px, 2.2vw, 19px); line-height: 1.55; color: ${DS.color.mid}; margin: 0; max-width: 600px; }
+        .fhx-h1 { font-family: ${MOMENT_FONT}; font-weight: 440; font-size: clamp(34px, 6.2vw, 56px); letter-spacing: -0.018em; line-height: 1.04; color: ${T.ink}; margin: 0 0 18px; }
+        .fhx-lede { font-family: ${BODY_FONT}; font-size: clamp(16px, 2.2vw, 19px); line-height: 1.6; letter-spacing: -0.005em; color: ${T.mid}; margin: 0; max-width: 600px; }
 
         /* Hero proof panel - a calm "what a case shows" preview. */
-        .fhx-proof { min-width: 0; box-sizing: border-box; background: ${DS.color.card}; border: 1px solid ${DS.color.hair}; border-radius: ${DS.radius.xl}px; padding: 22px; box-shadow: ${DS.shadow.card}; }
-        .fhx-proof-kicker { ${cssType(TYPE.label)} color: ${DS.color.sage}; margin: 0 0 6px; }
-        .fhx-proof-head { ${cssType(TYPE.h1)} font-size: 18px; color: ${DS.color.ink}; margin: 0 0 14px; }
-        .fhx-case { box-sizing: border-box; background: ${DS.color.sageFaint}; border: 1px solid ${DS.color.sage}44; border-radius: ${DS.radius.lg}px; padding: 16px; }
+        .fhx-proof { min-width: 0; box-sizing: border-box; background: ${T.card}; border: 1px solid ${T.border}; border-radius: 22px; padding: 24px; box-shadow: 0 8px 20px -6px rgba(20,30,25,.14), 0 24px 48px -20px rgba(20,30,25,.18); }
+        .fhx-proof-kicker { font-family: ${BODY_FONT}; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: ${T.pine}; margin: 0 0 6px; }
+        .fhx-proof-head { font-family: ${BODY_FONT}; font-size: 18px; font-weight: 600; letter-spacing: -0.006em; color: ${T.ink}; margin: 0 0 14px; }
+        .fhx-case { box-sizing: border-box; background: ${T.pineFaint}; border: 1px solid ${T.pine}33; border-radius: 18px; padding: 16px; }
         .fhx-case-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
-        .fhx-case-name { ${cssType(TYPE.h2)} font-size: 16px; color: ${DS.color.ink}; margin: 0; min-width: 0; }
-        .fhx-pill { flex: 0 0 auto; ${cssType(TYPE.label)} letter-spacing: .04em; color: ${DS.color.sageDeep}; background: ${DS.color.card}; border: 1px solid ${DS.color.sage}55; border-radius: ${DS.radius.pill}px; padding: 5px 10px; white-space: nowrap; }
-        .fhx-case-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; padding: 9px 0; border-top: 1px solid ${DS.color.sage}33; }
+        .fhx-case-name { font-family: ${BODY_FONT}; font-size: 16px; font-weight: 600; color: ${T.ink}; margin: 0; min-width: 0; }
+        .fhx-pill { flex: 0 0 auto; font-family: ${BODY_FONT}; font-size: 11px; font-weight: 600; letter-spacing: .05em; color: ${T.pineDeep}; background: ${T.card}; border: 1px solid ${T.pine}44; border-radius: 999px; padding: 5px 11px; white-space: nowrap; }
+        .fhx-case-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; padding: 9px 0; border-top: 1px solid ${T.pine}22; }
         .fhx-case-row:first-of-type { border-top: 0; }
-        .fhx-case-label { ${cssType(TYPE.label)} font-size: 10px; color: ${DS.color.sageDeep}; align-self: start; }
-        .fhx-case-value { ${cssType(TYPE.small)} color: ${DS.color.mid}; line-height: 1.45; min-width: 0; }
-        .fhx-proof-note { ${cssType(TYPE.small)} color: ${DS.color.soft}; line-height: 1.5; margin: 14px 0 0; }
+        .fhx-case-label { font-family: ${BODY_FONT}; font-size: 10px; font-weight: 600; letter-spacing: .05em; color: ${T.pineDeep}; align-self: start; }
+        .fhx-case-value { font-family: ${BODY_FONT}; font-size: 13px; color: ${T.mid}; line-height: 1.5; min-width: 0; }
+        .fhx-proof-note { font-family: ${BODY_FONT}; font-size: 13px; color: ${T.soft}; line-height: 1.55; margin: 14px 0 0; }
 
         /* Plan cards reuse hc-card; add price emphasis + a button row. */
         .fhx-plan { display: flex; flex-direction: column; justify-content: space-between; gap: 16px; }
-        .fhx-plan-price { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; color: ${DS.color.ink}; margin: 6px 0 2px; line-height: 1.05; }
-        .fhx-plan-when { ${cssType(TYPE.small)} color: ${DS.color.soft}; margin: 0 0 6px; }
-        .fhx-error { box-sizing: border-box; margin-top: 16px; background: ${DS.color.roseFaint}; border: 1px solid ${DS.color.rose}55; border-radius: ${DS.radius.md}px; padding: 12px 14px; ${cssType(TYPE.small)} color: #8a3a3a; }
+        .fhx-plan-price { font-family: ${BODY_FONT}; font-size: 27px; font-weight: 700; letter-spacing: -0.01em; color: ${T.ink}; margin: 6px 0 2px; line-height: 1.05; }
+        .fhx-plan-when { font-family: ${BODY_FONT}; font-size: 13px; color: ${T.soft}; margin: 0 0 6px; }
+        .fhx-error { box-sizing: border-box; margin-top: 16px; background: ${T.roseFaint}; border: 1px solid ${T.rose}55; border-radius: 14px; padding: 12px 14px; font-family: ${BODY_FONT}; font-size: 13px; color: #8a3a3a; }
 
         @media (max-width: 860px) {
           .fhx-hero-grid { grid-template-columns: 1fr; gap: 24px; }
@@ -146,6 +242,8 @@ export default function FuneralHomePage() {
         @media (max-width: 680px) {
           .fhx-case-row { grid-template-columns: 1fr; gap: 3px; }
           .fhx-hero { padding-top: 28px; padding-bottom: 32px; }
+          .hc-card, .fhx-proof { border-radius: 16px; }
+          .hc-trust, .hc-trust-card { border-radius: 18px; }
         }
       `;
 
@@ -203,7 +301,7 @@ export default function FuneralHomePage() {
                   target="_blank"
                   rel="noreferrer"
                   onClick={goWalkthrough}
-                  style={{ color: DS.color.sageDeep, fontWeight: 600 }}
+                  style={{ color: T.pineDeep, fontWeight: 600 }}
                 >
                   Book a walkthrough
                 </a>{' '}
