@@ -278,45 +278,47 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
   }
 
   return (
-    <nav style={{ width: 'min(1180px, 100%)', boxSizing: 'border-box', maxWidth: 1180, margin: '0 auto', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, fontFamily: CHROME_FONT_FAMILY }}>
-      <style>{`
-        @media (max-width: 720px) {
-          .passage-nav-secondary { display: none !important; }
-          .passage-nav-wrap { gap: 6px !important; font-size: 13px !important; min-width: 0 !important; max-width: calc(100vw - 128px) !important; }
-          .passage-nav-wrap a, .passage-nav-wrap button { min-height: 40px !important; padding: 8px 9px !important; }
-          .passage-nav-action-slot { width: auto !important; }
-        }
-      `}</style>
-      <Link href="/" onClick={handleHomeClick} aria-label="Passage home" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', flex: '0 0 auto' }}>
-        <PassageLogo compact size={36} />
-      </Link>
-      <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, ...PASSAGE_TYPE.nav, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {navLinks.map(([label, href]) => (
-          <Link
-            key={href}
-            href={href}
-            onClick={() => trackEvent(ownerConsoleActive ? 'system_admin_nav_clicked' : 'public_nav_clicked', { label, href })}
-            className={['Mission', 'Our story', 'Resources', 'Blog', 'Pricing', 'Contact', 'Care providers', 'Participants', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''}
-            style={isActivePath(activePath, href) ? activeStyle : navLink}
-          >
-            {label}
-          </Link>
-        ))}
-        {showFamilyDashboardLink && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
-        <span className="passage-nav-action-slot" style={{ width: showSystemAdminLink ? 176 : 96, display: 'inline-flex', justifyContent: 'flex-end', gap: 7, alignItems: 'center' }}>
-          {!localAuthReady && <span aria-hidden="true" style={{ width: 92, minHeight: 38, display: 'inline-flex' }} />}
-          {localAuthReady && showSystemAdminLink && (
-            <Link href="/system/admin" onClick={() => trackEvent('system_admin_action_clicked', { href: '/system/admin' })} style={{ minHeight: 38, border: '1px solid #CFE0D8', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '7px 10px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', ...typeStyle('button', { fontSize: 13, fontWeight: 900 }), fontFamily: CHROME_FONT_FAMILY }} aria-label="Owner-only system admin">System admin</Link>
-          )}
-          {localAuthReady && currentUser && (
-            <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer' }}>Sign out</button>
-          )}
-          {localAuthReady && !currentUser && (
-            <Link href={headerSignInHref} onClick={handleHeaderSignIn} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
-          )}
-        </span>
-      </div>
-    </nav>
+    <div style={{ position: 'sticky', top: 0, zIndex: 40, padding: '10px 14px 0' }}>
+      <nav style={{ width: 'min(1180px, 100%)', boxSizing: 'border-box', maxWidth: 1180, margin: '0 auto', padding: '10px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, fontFamily: CHROME_FONT_FAMILY, background: 'rgba(251,248,243,0.72)', backdropFilter: 'blur(14px) saturate(1.4)', WebkitBackdropFilter: 'blur(14px) saturate(1.4)', border: '1px solid rgba(230,221,203,.6)', borderRadius: 999, boxShadow: '0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03), 0 10px 24px -14px rgba(20,30,25,.16)' }}>
+        <style>{`
+          @media (max-width: 720px) {
+            .passage-nav-secondary { display: none !important; }
+            .passage-nav-wrap { gap: 6px !important; font-size: 13px !important; min-width: 0 !important; max-width: calc(100vw - 128px) !important; }
+            .passage-nav-wrap a, .passage-nav-wrap button { min-height: 40px !important; padding: 8px 9px !important; }
+            .passage-nav-action-slot { width: auto !important; }
+          }
+        `}</style>
+        <Link href="/" onClick={handleHomeClick} aria-label="Passage home" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', flex: '0 0 auto' }}>
+          <PassageLogo compact size={36} />
+        </Link>
+        <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, ...PASSAGE_TYPE.nav, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {navLinks.map(([label, href]) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => trackEvent(ownerConsoleActive ? 'system_admin_nav_clicked' : 'public_nav_clicked', { label, href })}
+              className={['Mission', 'Our story', 'Resources', 'Blog', 'Pricing', 'Contact', 'Care providers', 'Participants', 'Vendors'].includes(label) ? 'passage-nav-secondary' : ''}
+              style={isActivePath(activePath, href) ? activeStyle : navLink}
+            >
+              {label}
+            </Link>
+          ))}
+          {showFamilyDashboardLink && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
+          <span className="passage-nav-action-slot" style={{ width: showSystemAdminLink ? 176 : 96, display: 'inline-flex', justifyContent: 'flex-end', gap: 7, alignItems: 'center' }}>
+            {!localAuthReady && <span aria-hidden="true" style={{ width: 92, minHeight: 38, display: 'inline-flex' }} />}
+            {localAuthReady && showSystemAdminLink && (
+              <Link href="/system/admin" onClick={() => trackEvent('system_admin_action_clicked', { href: '/system/admin' })} style={{ minHeight: 38, border: '1px solid #CFE0D8', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '7px 10px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', ...typeStyle('button', { fontSize: 13, fontWeight: 900 }), fontFamily: CHROME_FONT_FAMILY }} aria-label="Owner-only system admin">System admin</Link>
+            )}
+            {localAuthReady && currentUser && (
+              <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer' }}>Sign out</button>
+            )}
+            {localAuthReady && !currentUser && (
+              <Link href={headerSignInHref} onClick={handleHeaderSignIn} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
+            )}
+          </span>
+        </div>
+      </nav>
+    </div>
   );
 }
 
