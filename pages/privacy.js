@@ -1,20 +1,6 @@
 import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 
-const C = {
-  bg: '#FBF8F3',
-  card: '#FEFDFB',
-  ink: '#1C1917',
-  mid: '#5A5348',
-  border: '#E6DDCB',
-  sage: '#245A4B',
-  sageFaint: '#F2F6F3',
-};
-
-const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-const MOMENT_FONT = "'Fraunces', serif";
-const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
-
 const rows = [
   ['Information we collect', 'Passage may collect account information, estate or case details, task records, participant invitations, provider requests, messages, document references, proof notes, billing status, device/browser information, and support inquiries.'],
   ['How Passage uses information', 'We use this information to provide the family record, route scoped requests, prepare messages or packets for review, support funeral-home and vendor workflows, maintain audit trails, prevent misuse, improve the product, and respond to support or billing questions.'],
@@ -29,33 +15,69 @@ const rows = [
 
 export default function PrivacyPage() {
   return (
-    <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
-      <style>{FONT_IMPORT}</style>
+    <main className="th-shell">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
+        :root{
+          --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B;
+          --pine-100:#E7EFEA; --pine-50:#F2F6F3;
+          --clay-700:#9A4F26; --clay-600:#B5622F; --clay-200:#EBC6A4; --clay-100:#F5E4D6; --clay-50:#FBF0E7;
+          --bone-50:#FEFDFB; --bone-100:#FBF8F3; --bone-200:#F5F0E7; --bone-300:#EBE3D3; --bone-400:#DDD2BB;
+          --ink-900:#1C1917; --ink-700:#3D372F; --ink-600:#5A5348; --ink-500:#79705F; --ink-400:#9A9081; --ink-300:#BEB6A8;
+          --line:#E6DDCB; --line-soft:#EFE8DA;
+          --r-xs:8px; --r-sm:12px; --r-md:18px; --r-lg:26px; --r-full:999px;
+          --e1:0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03);
+          --e2:0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10);
+          --ease:cubic-bezier(.22,1,.36,1);
+        }
+      `}</style>
+      <style jsx>{`
+        .th-shell {
+          min-height: 100vh;
+          background: var(--bone-100);
+          color: var(--ink-900);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          letter-spacing: -.005em;
+        }
+        .wrap { max-width: 980px; margin: 0 auto; padding: 24px 28px 48px; }
+        .eyebrow { color: var(--clay-600); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; }
+        h1 { font-family: 'Fraunces', serif; font-weight: 440; font-size: clamp(30px,4.6vw,44px); line-height: 1.05; margin: 8px 0 10px; max-width: 840px; letter-spacing: -.015em; color: var(--pine-950); }
+        p.lead { color: var(--ink-500); font-size: 16px; line-height: 1.6; margin: 0; max-width: 760px; }
+        .rows { display: grid; gap: 12px; margin-top: 18px; }
+        .panel { background: var(--bone-50); border: 1px solid var(--line-soft); border-radius: var(--r-lg); padding: 18px; box-shadow: var(--e2); }
+        .panel-pine { background: var(--pine-50); }
+        h2 { font-size: 24px; line-height: 1.12; margin: 0 0 8px; font-weight: 600; color: var(--ink-900); }
+        .body-text { color: var(--ink-500); font-size: 15px; line-height: 1.6; margin: 0; }
+        .link-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        .th-btn { display: inline-flex; align-items: center; min-height: 44px; border-radius: var(--r-full); padding: 0 16px; text-decoration: none; font-weight: 700; font-size: 13.5px; border: 1px solid transparent; }
+        .th-btn-primary { background: linear-gradient(155deg, var(--pine-600), var(--pine-800)); color: #fff; box-shadow: 0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35); }
+        .th-btn-secondary { background: var(--bone-50); color: var(--pine-700); border-color: var(--line); }
+      `}</style>
       <SiteHeader />
-      <section style={{ maxWidth: 980, margin: '0 auto', padding: '24px 28px 48px' }}>
-        <div style={eyebrow}>Privacy policy</div>
-        <h1 style={h1}>Data should stay understandable, role-scoped, and exportable.</h1>
-        <p style={lead}>
+      <section className="wrap">
+        <div className="eyebrow">Privacy policy</div>
+        <h1>Data should stay understandable, role-scoped, and exportable.</h1>
+        <p className="lead">
           Effective May 13, 2026. This page explains how Passage approaches privacy, access, exports, retention, and subprocessors in plain language.
         </p>
 
-        <div style={{ display: 'grid', gap: 12, marginTop: 18 }}>
+        <div className="rows">
           {rows.map(([title, body]) => (
-            <section key={title} style={panel}>
-              <h2 style={h2}>{title}</h2>
-              <p style={bodyText}>{body}</p>
+            <section key={title} className="panel">
+              <h2>{title}</h2>
+              <p className="body-text">{body}</p>
             </section>
           ))}
         </div>
 
-        <section style={{ ...panel, marginTop: 14, background: C.sageFaint }}>
-          <h2 style={h2}>Requests and support</h2>
-          <p style={bodyText}>
+        <section className="panel panel-pine" style={{ marginTop: 14 }}>
+          <h2>Requests and support</h2>
+          <p className="body-text">
             Data export, correction, deletion, billing, subprocessor, and privacy questions should go through Contact so they are captured in the support queue. For formal partner diligence, Passage can provide a more detailed security and data-processing packet as the partnership process requires.
           </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
-            <Link href="/contact" style={primaryLink}>Contact Passage</Link>
-            <Link href="/trust" style={secondaryLink}>Trust boundaries</Link>
+          <div className="link-row">
+            <Link href="/contact" className="th-btn th-btn-primary">Contact Passage</Link>
+            <Link href="/trust" className="th-btn th-btn-secondary">Trust boundaries</Link>
           </div>
         </section>
       </section>
@@ -63,12 +85,3 @@ export default function PrivacyPage() {
     </main>
   );
 }
-
-const eyebrow = { color: C.sage, fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 };
-const h1 = { fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 52, lineHeight: 1.03, margin: '8px 0 10px', maxWidth: 840, letterSpacing: '-.015em' };
-const h2 = { fontSize: 24, lineHeight: 1.12, margin: '0 0 8px', fontWeight: 600 };
-const lead = { color: C.mid, fontSize: 16, lineHeight: 1.6, margin: 0, maxWidth: 760 };
-const panel = { background: C.card, border: '1px solid ' + C.border, borderRadius: 20, padding: 18, boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' };
-const bodyText = { color: C.mid, fontSize: 15, lineHeight: 1.6, margin: 0 };
-const primaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', borderRadius: 999, padding: '0 16px', textDecoration: 'none', fontWeight: 900, boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35)' };
-const secondaryLink = { display: 'inline-flex', alignItems: 'center', minHeight: 44, background: C.card, color: C.sage, border: '1px solid ' + C.border, borderRadius: 999, padding: '0 16px', textDecoration: 'none', fontWeight: 900 };
