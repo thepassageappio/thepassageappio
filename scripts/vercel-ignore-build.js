@@ -58,6 +58,9 @@ const skipPatterns = [
   /\[(skip deploy|no deploy)\]/i,
   /\[(skip ci|ci skip)\]/i,
 ];
+const previewPatterns = [
+  /\[(preview|qa preview)\]/i,
+];
 const deployPatterns = [
   /\[(deploy|force deploy|prod deploy|production deploy)\]/i,
   /^deploy:/i,
@@ -72,6 +75,12 @@ if (skipPatterns.some(pattern => pattern.test(message))) {
   ignore('commit explicitly opted out of deployment.');
 }
 
+// Preview builds are the environment where QA evidence is produced. They require
+// an explicit marker and can never authorize a production deployment.
+if (env === 'preview' && previewPatterns.some(pattern => pattern.test(message))) {
+  allow('explicit preview marker found for canonical project QA evidence.');
+}
+
 if (deployPatterns.some(pattern => pattern.test(message))) {
   if (!qaApprovalPatterns.some(pattern => pattern.test(message))) {
     ignore('deploy marker found without [qa-approved]. Finish Product Manager, Development Engineer, and QA handoffs before release.');
@@ -79,4 +88,4 @@ if (deployPatterns.some(pattern => pattern.test(message))) {
   allow('release marker and QA approval marker found in commit message for canonical project guard.');
 }
 
-ignore('batch QA/work changes and add [deploy] [qa-approved] to the release commit when ready.');
+ignore('batch work; use [preview] for QA evidence or [deploy] [qa-approved] for a production release.');
