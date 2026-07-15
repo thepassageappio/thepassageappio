@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { useRef, useState } from 'react';
-import styles from '../../../styles/EmployeeConsole.module.css';
+import styles from '../../styles/EmployeeConsole.module.css';
 
 const VIEWS = [
   { id: 'normal', label: 'My work', count: 4 },
