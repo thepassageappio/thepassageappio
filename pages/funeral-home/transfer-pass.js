@@ -430,7 +430,7 @@ function PassState({ code, headingRef, onReset, pass }) {
     expired: {
       eyebrow: 'Access ended',
       title: 'This Transfer Pass has expired.',
-      body: `${pass.sender}’s pass for ${pass.person} ended ${pass.expires.toLowerCase()}. The family can issue a new pass.`,
+      body: `${pass.sender || 'The family'}’s pass for ${pass.person || 'this handoff'} ended ${(pass.expires || 'earlier').toLowerCase()}. The family can issue a new pass.`,
       note: 'Expired passes cannot be accepted into a case.',
     },
     revoked: {
@@ -442,7 +442,7 @@ function PassState({ code, headingRef, onReset, pass }) {
     accepted: {
       eyebrow: 'Handoff complete',
       title: 'This pass was already accepted.',
-      body: `${pass.acceptedBy} accepted it into ${pass.acceptedCase} ${pass.acceptedAt.toLowerCase()}.`,
+      body: `${pass.acceptedBy || 'A team member'} accepted it into ${pass.acceptedCase || 'a case'} ${(pass.acceptedAt || 'earlier').toLowerCase()}.`,
       note: 'Open the destination case to review the saved receipt and shared items.',
     },
   }[pass.status] || {
