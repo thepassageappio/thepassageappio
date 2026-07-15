@@ -1,0 +1,119 @@
+.heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 24px; }
+.heading p, .entryIntro > p { margin: 0 0 9px; color: var(--signal); font-size: 9px; font-weight: 820; letter-spacing: .14em; }
+.heading h1, .entryIntro h1 { margin: 0; font-size: clamp(29px, 3.4vw, 46px); line-height: 1; letter-spacing: -.045em; }
+.entry { min-height: calc(100vh - 156px); display: grid; grid-template-columns: minmax(0, .8fr) minmax(450px, 1.2fr); grid-template-rows: 1fr auto; gap: 45px clamp(40px, 8vw, 120px); align-items: center; }
+.entryIntro h1 { max-width: 570px; font-size: clamp(40px, 5.7vw, 76px); line-height: .98; }
+.entryIntro > span { display: block; max-width: 480px; margin-top: 24px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+.entryConsole { display: grid; grid-template-columns: 62px 1fr; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.entryIndex { grid-row: 1 / 3; display: grid; place-items: center; background: var(--signal); color: white; font-size: 12px; font-weight: 780; writing-mode: vertical-rl; }
+.entryField { padding: clamp(28px, 4vw, 52px); }
+.entryField label { display: block; margin-bottom: 14px; color: var(--signal); font-size: 8px; font-weight: 830; letter-spacing: .13em; }
+.entryField input { width: 100%; height: 60px; padding: 0; border: 0; border-bottom: 2px solid var(--ink); border-radius: 0; outline: 0; background: transparent; color: var(--ink); font-size: clamp(23px, 3vw, 37px); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.entryField input:focus { border-color: var(--signal); }
+.entryField small, .entryField p { display: block; margin: 12px 0 0; color: var(--muted); font-size: 9px; }
+.entryField p { color: #a33d2f; }
+.entryConsole > button { grid-column: 2; height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; border: 0; border-top: 1px solid var(--line); background: var(--ink); color: var(--surface); font-size: 11px; font-weight: 760; cursor: pointer; }
+.entrySequence { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 14px; color: var(--muted); font-size: 8px; letter-spacing: .12em; }
+.entrySequence i { width: clamp(20px, 5vw, 75px); height: 1px; background: var(--line); }
+.inspector { margin-top: 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.inspector > header { min-height: 46px; display: grid; grid-template-columns: 140px 1fr auto; align-items: center; gap: 15px; padding: 0 18px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--canvas) 52%, var(--surface)); }
+.inspector > header > span { color: var(--signal); font-size: 8px; font-weight: 830; letter-spacing: .13em; }
+.inspector > header strong { font-size: 10px; }
+.inspector > header button { border: 0; background: transparent; color: var(--muted); font-size: 9px; text-decoration: underline; cursor: pointer; }
+.panes { display: grid; grid-template-columns: .72fr 1.15fr .9fr; }
+.panes > section, .panes > form { min-width: 0; padding: clamp(22px, 2.8vw, 38px); border-left: 1px solid var(--line); }
+.panes > :first-child { border-left: 0; }
+.panes section > span, .scope > div > span, .destination > span { color: var(--signal); font-size: 8px; font-weight: 830; letter-spacing: .12em; }
+.panes h2 { margin: 12px 0 4px; font-size: clamp(19px, 2vw, 28px); letter-spacing: -.03em; }
+.source > p { margin: 0; color: var(--muted); font-size: 10px; }
+.source dl { margin: 30px 0 0; }
+.source dl div { padding: 13px 0; border-top: 1px solid var(--line); }
+.source dt { color: var(--muted); font-size: 7px; letter-spacing: .1em; }
+.source dd { margin: 5px 0 0; font-size: 10px; font-weight: 680; }
+.familyControl { display: flex; gap: 11px; margin-top: 20px; padding: 14px; background: var(--signal-soft); }
+.familyControl i { flex: 0 0 auto; width: 7px; height: 7px; margin-top: 3px; border-radius: 2px; background: var(--signal); }
+.familyControl p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.45; }
+.familyControl strong { display: block; color: var(--ink); margin-bottom: 3px; }
+.scope > div { display: flex; align-items: center; justify-content: space-between; }
+.scope > div b { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 6px; background: var(--ink); color: var(--surface); font-size: 8px; }
+.scope ul { list-style: none; margin: 25px 0 0; padding: 0; border-top: 1px solid var(--line); }
+.scope li { min-height: 62px; display: grid; grid-template-columns: 25px 1fr 20px; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); }
+.scope li > span { color: var(--muted); font-size: 8px; }
+.scope li p { margin: 0; }
+.scope li strong, .scope li small { display: block; }
+.scope li strong { font-size: 10px; }
+.scope li small { margin-top: 4px; color: var(--muted); font-size: 8px; }
+.scope li > b { color: var(--success); font-size: 11px; }
+.private { display: grid; grid-template-columns: 22px 1fr; gap: 0 8px; margin: 18px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.private span { grid-row: 1 / 3; color: var(--signal); }
+.private strong { color: var(--ink); }
+.destination > p { color: var(--muted); font-size: 9px; line-height: 1.5; }
+.destination fieldset { margin: 24px 0 0; padding: 0; border: 0; }
+.destination legend { margin-bottom: 8px; color: var(--muted); font-size: 7px; letter-spacing: .1em; }
+.destination fieldset label { display: flex; gap: 10px; padding: 13px; border: 1px solid var(--line); border-bottom: 0; cursor: pointer; }
+.destination fieldset label:last-child { border-bottom: 1px solid var(--line); }
+.destination fieldset label.chosen { background: var(--signal-soft); border-color: color-mix(in srgb, var(--signal) 28%, var(--line)); }
+.destination fieldset input { accent-color: var(--signal); }
+.destination fieldset strong, .destination fieldset small { display: block; }
+.destination fieldset strong { font-size: 9px; }
+.destination fieldset small { margin-top: 3px; color: var(--muted); font-size: 8px; }
+.confirm { display: flex; gap: 9px; margin: 18px 0; color: var(--muted); font-size: 9px; line-height: 1.4; cursor: pointer; }
+.confirm input { accent-color: var(--signal); }
+.error { color: #a33d2f !important; }
+.accept { width: 100%; height: 45px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border: 0; border-radius: 7px; background: var(--signal); color: white; font-size: 10px; font-weight: 760; cursor: pointer; }
+.failure { min-height: calc(100vh - 156px); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; max-width: 760px; margin: 0 auto; }
+.failure h1 { max-width: 680px; margin: 18px 0; font-size: clamp(42px, 6vw, 76px); line-height: .98; letter-spacing: -.05em; }
+.failure > p { max-width: 620px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.failure > div { display: flex; gap: 10px; align-items: center; margin: 18px 0 25px; padding: 13px 15px; background: var(--signal-soft); font-size: 9px; }
+.failure > div span { color: var(--signal); font-weight: 800; }
+.failure > button, .receiptActions button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 7px; background: var(--signal); color: white; font-size: 10px; font-weight: 760; cursor: pointer; }
+.failure > button span { margin-left: 40px; }
+.failure > small { margin-top: 18px; color: var(--muted); font-size: 8px; letter-spacing: .1em; }
+.receipt { margin: 22px auto 0; max-width: 930px; display: grid; grid-template-columns: 65px 1fr; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.receiptMark { grid-row: 1 / 4; display: grid; place-items: center; background: var(--success); color: white; font-size: 20px; }
+.receiptTitle { padding: clamp(28px, 4vw, 48px); }
+.receiptTitle > span { color: var(--success); font-size: 8px; font-weight: 830; letter-spacing: .13em; }
+.receiptTitle h2 { max-width: 650px; margin: 13px 0; font-size: clamp(27px, 3.4vw, 43px); line-height: 1.08; letter-spacing: -.04em; }
+.receiptTitle p { max-width: 650px; margin: 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.receipt dl { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; border-top: 1px solid var(--line); }
+.receipt dl div { padding: 17px; border-left: 1px solid var(--line); }
+.receipt dl div:first-child { border-left: 0; }
+.receipt dt { color: var(--muted); font-size: 7px; letter-spacing: .1em; }
+.receipt dd { margin: 7px 0 0; font-size: 9px; font-weight: 700; }
+.receiptActions { display: flex; gap: 9px; padding: 16px; border-top: 1px solid var(--line); }
+.receiptActions button:first-child span { margin-left: 45px; }
+.receiptActions button:last-child { border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+@media (max-width: 940px) {
+  .panes { grid-template-columns: 1fr 1fr; }
+  .destination { grid-column: 1 / -1; border-top: 1px solid var(--line); }
+  .destination fieldset { display: grid; grid-template-columns: 1fr 1fr; }
+  .entry { grid-template-columns: 1fr; align-content: center; }
+}
+@media (max-width: 620px) {
+  .heading { align-items: start; }
+  .heading h1 { font-size: 30px; }
+  .entry { min-height: auto; display: block; padding-top: 22px; }
+  .entryIntro h1 { font-size: 48px; }
+  .entryIntro > span { font-size: 11px; }
+  .entryConsole { margin: 42px -16px 0; grid-template-columns: 48px 1fr; border-inline: 0; border-radius: 0; }
+  .entryField { padding: 28px 20px; }
+  .entryField input { font-size: 23px; }
+  .entrySequence { margin: 25px 0; gap: 6px; font-size: 6px; }
+  .inspector { margin-inline: -16px; border-inline: 0; border-radius: 0; }
+  .inspector > header { grid-template-columns: 1fr auto; padding: 10px 16px; }
+  .inspector > header strong { grid-row: 2; }
+  .panes { grid-template-columns: 1fr; }
+  .panes > section, .panes > form { border-left: 0; border-top: 1px solid var(--line); padding: 28px 20px; }
+  .panes > :first-child { border-top: 0; }
+  .destination { grid-column: auto; }
+  .destination fieldset { display: block; }
+  .failure { min-height: calc(100vh - 170px); }
+  .failure h1 { font-size: 46px; }
+  .receipt { margin-inline: -16px; grid-template-columns: 12px 1fr; border-inline: 0; border-radius: 0; }
+  .receiptMark { font-size: 0; }
+  .receiptTitle { padding: 30px 20px; }
+  .receipt dl { grid-template-columns: 1fr 1fr; }
+  .receipt dl div:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); }
+  .receipt dl div:nth-child(4) { border-top: 1px solid var(--line); }
+  .receiptActions { flex-direction: column; }
+}

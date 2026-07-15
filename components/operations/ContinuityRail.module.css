@@ -1,0 +1,25 @@
+.rail { display: grid; grid-template-columns: 155px 1fr; min-height: 98px; overflow: hidden; color: white; background: var(--signal); border-radius: 9px; }
+.label { display: flex; flex-direction: column; justify-content: center; gap: 7px; padding: 18px 20px; background: color-mix(in srgb, var(--signal) 70%, black); }
+.label span { font-size: 8px; letter-spacing: .16em; opacity: .72; }
+.label strong { font-size: 13px; }
+.rail ol { list-style: none; margin: 0; padding: 0 16px; display: grid; grid-template-columns: repeat(4, 1fr); }
+.rail li { min-width: 0; position: relative; display: flex; align-items: center; gap: 10px; padding: 15px clamp(8px, 1.5vw, 20px); }
+.rail li:not(:last-child)::after { content: ""; position: absolute; z-index: 0; top: 50%; left: calc(100% - 7px); width: 14px; height: 1px; background: rgba(255,255,255,.46); }
+.node { position: relative; z-index: 1; flex: 0 0 auto; width: 25px; height: 25px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.5); border-radius: 6px; font-size: 8px; }
+.rail li div { min-width: 0; }
+.rail li strong, .rail li small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rail li strong { font-size: 10px; }
+.rail li small { margin-top: 5px; color: rgba(255,255,255,.72); font-size: 8px; }
+.current { background: var(--warm); color: var(--ink); }
+.current small { color: color-mix(in srgb, var(--ink) 70%, transparent) !important; }
+.current .node { border-color: rgba(0,0,0,.26); background: rgba(255,255,255,.24); }
+.complete .node { background: rgba(255,255,255,.94); color: var(--signal); border-color: transparent; }
+.blocked { background: color-mix(in srgb, var(--warm) 72%, var(--signal)); }
+.compact { min-height: 78px; }
+.compact .label { padding-block: 13px; }
+@media (max-width: 720px) {
+  .rail { margin-inline: -16px; grid-template-columns: 94px 1fr; border-radius: 0; overflow-x: auto; }
+  .rail ol { min-width: 520px; }
+  .label { position: sticky; left: 0; z-index: 2; padding: 14px; }
+  .rail li { padding-inline: 12px; }
+}
