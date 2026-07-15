@@ -185,5 +185,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+  .root, .root *, .root *::before, .root *::after { scroll-behavior: auto !important; transition: none !important; }
 }
