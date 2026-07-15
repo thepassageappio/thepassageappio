@@ -1,13 +1,11 @@
 .frame {
-  --canvas: #f3f5f8;
-  --surface: #ffffff;
-  --ink: #171a21;
-  --muted: #697180;
-  --line: #dfe4ec;
-  --signal: #2457f5;
-  --signal-soft: #e7edff;
-  --warm: #ffbd8a;
-  --success: #13765d;
+  --canvas: var(--porcelain);
+  --ink: var(--graphite);
+  --line: var(--hairline);
+  --signal: var(--cobalt);
+  --signal-soft: var(--lilac-light);
+  --warm: var(--human);
+  --success: var(--positive);
   min-height: 100vh;
   background: var(--canvas);
   color: var(--ink);

@@ -4,7 +4,7 @@
   --ink: var(--graphite);
   --signal: var(--cobalt);
   --line: var(--hairline);
-  --warm: #b45324;
+  --warm: var(--human-strong);
   --success: var(--positive);
   min-height: 100vh;
   background:

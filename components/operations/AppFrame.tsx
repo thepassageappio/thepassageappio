@@ -3,7 +3,7 @@ import Link from 'next/link';
 import styles from './OperationsShell.module.css';
 
 type AppFrameProps = {
-  active: 'director' | 'staff' | 'receive';
+  active: 'director' | 'intake' | 'staff' | 'receive';
   children: ReactNode;
   identity: string;
   role: string;
@@ -22,6 +22,7 @@ export function AppFrame({ active, children, identity, role }: AppFrameProps) {
         </Link>
         <nav className={styles.nav} aria-label="Operations">
           <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Director</Link>
+          <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>
           <Link aria-current={active === 'staff' ? 'page' : undefined} href="/staff">My work</Link>
           <Link aria-current={active === 'receive' ? 'page' : undefined} href="/receive">Receive</Link>
         </nav>
