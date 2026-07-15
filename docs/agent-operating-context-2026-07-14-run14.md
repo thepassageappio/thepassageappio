@@ -38,3 +38,12 @@ Single Cowork session acting across PM/Dev/QA-review roles for a verification + 
 ## Honest note
 
 Every verification in this addendum (font-fix status, hydration bug reproduction, `/faq` clean status) is backed by either a direct GitHub file read or a live browser screenshot/console read this run -- not carried forward from a prior session's claim without checking. The hydration bug specifically was re-verified live, not assumed from the tracker.
+
+## Update -- owner feedback and re-routing (same session, continued)
+
+Reported the above to the owner. Two pieces of pushback, both incorporated:
+
+1. **Process feedback:** the owner asked why the remaining engineering-heavy work isn't being ticketed and coordinated as a real sprint instead of one session attempting everything serially and hitting the usage cap -- this is now the third session in a row (runs 12, 13, and this one) to hit the identical wall: no working code-execution shell, and files at `dashboard.js`/`estate.js`/`App.js` scale exceed what can be safely produced in a single response through the GitHub content API. That is a **tooling mismatch, not a scoping problem** -- narrowing the ticket further will not fix it. Per the owner's decision, the remaining engineering-heavy tickets (hydration bug fix, `estate.js` bug, `dashboard.js` extraction, QR Transfer Pass migrations and V1 build) are being handed to a **dedicated Claude Code session with a real repo clone, real shell, and a real dev server** -- the actual fix for the tooling gap, not another Cowork session attempt. This session's remaining job is to leave the tracker in a clean, ticket-sized state for that handoff, then stop -- not to pick up `estate.js` or `dashboard.js` itself.
+2. **Design feedback, from looking at this run's screenshots:** "not greenfield, too similar" -- the live visual output (marketing pages, funeral-home dashboard sign-in) still reads as an incremental re-skin of the original layouts, not a real reimagining, despite the Threshold tokens/fonts/shadows being technically correct. This is a distinct, real backlog item now (see the tracker's new ticket board) -- a bolder visual-language pass is needed before more pages ship, not just more careful application of the same visual moves. Logged as its own ticket rather than folded into any existing one, since it's a design-direction gap, not a bug or a missing feature.
+
+No code touched in this update -- documentation and tracker only, per the owner's explicit instruction to finalize the board and stop.
