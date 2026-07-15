@@ -6,6 +6,7 @@ import styles from './FamilyJourney.module.css';
 import { EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
 import { usePassageZero } from '../PassageZeroProvider';
 import { selectFamilyStatus } from '../../lib/passage-zero';
+import { membership } from '../../lib/sandbox/repository';
 
 const FALLBACK_PASS: TransferDraft = {
   recipientId: 'northstar',
@@ -28,6 +29,8 @@ function PassCode() {
 
 export default function ActivePass() {
   const { record, dispatch } = usePassageZero();
+  const accountableDirector = membership(record, record.case.accountableMembershipId).actor;
+  const assignedOperator = membership(record, record.commitment.assignedMembershipId).actor;
   const familyStatus = selectFamilyStatus(record);
   const [pass, setPass] = useState<TransferDraft>(FALLBACK_PASS);
   const [copied, setCopied] = useState(false);
@@ -63,7 +66,7 @@ export default function ActivePass() {
 
   function revoke() {
     window.sessionStorage.removeItem('passage.family.transfer.v1');
-    dispatch({ type: 'revoke_transfer_pass', idempotencyKey: 'family:revoke:rivera' });
+    dispatch({ type: 'revoke_transfer_pass', actorId: 'maya-rivera', idempotencyKey: 'family:revoke:rivera' });
     setConfirming(false);
   }
 
@@ -84,7 +87,7 @@ export default function ActivePass() {
       <div className={styles.passStatus}>
         <span className={styles.statusPulse} aria-hidden="true" />
         <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : 'HANDOFF ACTIVE'}</strong>
-        <span>{record.transferPass.status === 'accepted' ? `${record.organization.name} · ${record.case.id}` : `Closes ${expiry.moment}`}</span>
+        <span>{record.transferPass.status === 'accepted' ? `${record.organizations[0].name} · ${record.case.id}` : `Closes ${expiry.moment}`}</span>
       </div>
 
       <section className={styles.passHero} aria-labelledby="active-pass-heading">
@@ -136,8 +139,8 @@ export default function ActivePass() {
       <section className={styles.passControls} aria-labelledby="control-heading">
         <div>
           <p>{record.commitment.status === 'proof_submitted' ? 'PROOF RETURNED' : 'FAMILY STATUS'}</p>
-          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${record.assignedOperator.name} owns the next step.` : 'Need to stop access?'}</h2>
-          <span>{record.commitment.status === 'proof_submitted' ? `${record.accountableDirector.name} is reviewing the saved confirmation and will guide what happens next.` : record.transferPass.status === 'accepted' ? 'Northstar received only the approved handoff. Your family is waiting for the arrangement meeting time.' : 'Closing this pass is immediate. Your family record remains in place.'}</span>
+          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${assignedOperator.name} owns the next step.` : 'Need to stop access?'}</h2>
+          <span>{record.commitment.status === 'proof_submitted' ? `${accountableDirector.name} is reviewing the saved confirmation and will guide what happens next.` : record.transferPass.status === 'accepted' ? 'Northstar received only the approved handoff. Your family is waiting for the arrangement meeting time.' : 'Closing this pass is immediate. Your family record remains in place.'}</span>
         </div>
         {record.transferPass.status === 'accepted' ? (
           <a className={styles.exitPass} href="/family">Return to family space</a>

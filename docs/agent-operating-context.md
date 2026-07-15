@@ -287,57 +287,7 @@ Risks:
 - Parallel agents share the filesystem; inspect overlaps before integration.
 - Share tokens expire.
 - Client-side demo state is not durable or secure; do not confuse it with production readiness.
-- Exact legal, compliance, privacy, medical, authority-to-act, HIPAA, FTC Funeral Rule, retention, and disclosure claims require authoritative verification and owner review before product publication.
-
-Non-goals for this batch:
-
-- Charging real money or changing pricing
-- Sending real customer/vendor email or SMS
-- Claiming real funeral-home-system integration before an adapter exists
-- Publishing unverified compliance language
-- Production database writes without documented migrations
-
-## Owner gates that remain
-
-Steve has already approved the greenfield rebuild, frontend/backend restructuring, parallel agents, demo deployment, and normal documentation/QA work. Do not ask again for those.
-
-Stop only for the explicit `AGENTS.md` gates:
-
-- Changing pricing amounts
-- Sending real customer/vendor/funeral-home email or SMS
-- Raw/ad hoc production database SQL
-- Deleting functionality rather than deprecating/redirecting
-- Material legal, compliance, privacy, security, medical, or funeral-director claims
-- Irreversible production data loss
-- Spending money or starting paid campaigns
-
-## Required release-train behavior
-
-- Continue PM -> UX -> Development -> QA -> Deploy without pausing when the next action is known.
-- Keep roles distinct and record their handoffs.
-- Use meaningful batches and preserve the Vercel deploy budget.
-- Never report a mockup as shipped product.
-- Never report "working," "integrated," "secure," or "enterprise ready" without the matching functional and verification evidence.
-- Update this file before final handoff and after each integrated batch.
-
-## Immediate new-chat action
-
-1. Read the three canonical files.
-2. Confirm PR #24 head is at or after `ba71de6`; inspect any newer branch/local changes before editing.
-3. Re-instantiate PM and UX around the multi-location funeral-home operating slice: organization, locations, memberships, workspace context, assignment, and case routing.
-4. Extend the existing typed event spine rather than creating a parallel state model; keep family access unchanged and vendor fulfillment queued.
-5. Define the durable-backend what/why/breakage plan required by `AGENTS.md` before any migration. Prefer real auth/RLS-backed persistence over cosmetic progress once the multi-location contract is coherent.
-6. Run React/Next review, full cross-persona browser QA at desktop/390/360, contrast/overflow/console checks, and commit new screenshots.
-7. Publish one coherent `[deploy] [qa-approved]` batch, update PR #24 and this file, then auto-advance.
-
-## Release-train cycle 2 - shared operational truth
-
-Status: COMPLETE and preview verified for this shared-truth batch.
-
-Branch audit:
-
-- PR #24 was inspected at head `5b9ce061ac320aac6b15cc87e95779369c14c201` before this batch.
-- The two commits after the last verified code commit contained operating-context and screenshot changes only. None of the previously delegated shared-case, multi-location, or vendor implementation tracks had landed.
+- Exact legal, compliance, privacy, medical, authority-to-act, HIPAA, FTC Funeral Rule, retention, and disclosure claims require authoritative verification and owner revie÷}-¢G§²ÚîÆ­yÛs had landed.
 - The unfinished tracks were re-instantiated. Product and UX narrowed this batch to the smallest coherent dependency: one shared operational record. Multi-location operations and vendor fulfillment remain queued in that order.
 
 Role handoff record:
@@ -413,4 +363,67 @@ Readiness boundary:
 - Direct-user guided testing/onboarding experience is approximately 85% complete for the current planning-ahead and immediate-help entry story.
 - Funeral-home UX/workflow demonstration is approximately 85% complete for intake, ownership, staff execution, and proof return.
 - Neither product is 85% operationally production-ready. Funeral-home pilot readiness still requires real auth/roles, durable multi-user storage, organization/location administration, RLS/audit enforcement, notifications/recovery, and integration reliability. D2C SaaS additionally requires account lifecycle, cross-device persistence, and subscription/billing work.
+
+## Release-train cycle 4 - multi-location operating foundation
+
+Status: QA APPROVED LOCALLY; preview publication pending.
+
+Branch and role audit:
+
+- Work began from the requested PR #24 head `e8dbdd01a42c55a15ce9716d21f3fb2e3979ee3b`. The open draft PR had no review threads or requested changes. The head was a context-only commit after the cycle-3 QA-approved code commit; no parallel implementation had landed.
+- PM (`/root/pm_cycle4`) constrained the batch to Northstar Funeral Home, Portland and Beaverton locations, org-wide director Elena Torres, Portland operator Marcus Lee, Beaverton operator Avery Brooks, one location-routed intake, and same-location assignment changes.
+- UX (`/root/ux_cycle4`) passed the proposed All locations / Portland / Beaverton workspace, location-specific empty states, intake routing receipt, and non-leaking staff view with explicit copy and 44-pixel target conditions.
+- Engineering (`/root/eng_cycle4`) extended the existing typed command/event reducer and browser repository. It did not create a second case model and did not widen family access.
+- QA (`/root/qa_cycle4`) first failed six authority and state-integrity issues: destructive pass issue reset, missing actor authority, premature reassignment, invalid assignment-to-proof transition, optimistic receipt display, and undersized targets. PM kept all six in scope. Engineering corrected them, and focused static QA passed.
+- Deploy (`/root/deploy_cycle4`) is instantiated only after the integrated browser and production-build gates; it may publish the one `[deploy] [qa-approved]` preview for this batch and no more.
+
+Implemented operating contract:
+
+- Added typed organization, location, membership, membership scope, workspace context, case accountability, assignment history, and routing events to the shared case/event spine.
+- Added director workspaces for all locations, Portland, and Beaverton. Workspace choice filters presentation only and never grants authority.
+- Added an atomic intake path that creates `NS-2051`, records organization/location/accountable director/first assignee, and explains the default routing reason.
+- Added accepted-case reassignment with explicit actor and actor-membership identity. Reducer guards enforce role, membership, location, case state, and current-assignee boundaries.
+- Added staff execution guards so only the current assignee can start work and only an in-progress commitment can submit proof.
+- Preserved the family view and privacy boundary. Family proof status updates from the shared event history but never exposes organization location, staff scope, or internal routing detail.
+- Kept vendor fulfillment queued. No vendor model was introduced before location and ownership semantics became coherent.
+- The implementation remains an honestly labeled browser-persistent sandbox. It does not claim external synchronization, durable multi-user storage, or production authorization.
+
+Required database migration analysis - documented before any migration:
+
+No database migration is included in cycle 4. The following is the documentation-first gate for the next persistence batch.
+
+| Required change | Why the frontend/pilot needs it | What breaks if skipped |
+| --- | --- | --- |
+| `organizations` and `locations` tables, with stable IDs and active state | Director and intake surfaces need durable funeral-home and operating-location identity. | Workspace filtering, routing, ownership, and audit records collapse into display strings and cannot be enforced. |
+| Auth-backed `profiles` plus `organization_memberships` with role and active state | Every command needs a durable human actor and organization authority. | The app can impersonate seeded people; multi-user attribution and access revocation are not trustworthy. |
+| `membership_locations` (or an equivalently explicit scope relation) | Location-scoped operators need least-privilege access while organization-wide directors can span locations. | A user is either overexposed to the whole organization or cannot work their assigned location. |
+| Case `organization_id`, `location_id`, and `accountable_membership_id` foreign keys | The shared case must carry durable tenancy, work location, and accountability. | Cases cannot be routed, filtered, or protected consistently; family and operational projections may diverge. |
+| Append-only `case_assignments` history with assignee, actor, reason, and effective timestamps | Reassignment needs an enforceable history rather than a mutable owner label. | Current ownership can be overwritten without proof of who changed it or why; recovery and audit fail. |
+| Versioned `routing_rules` keyed by organization/location and intake attributes | Intake defaults must be deterministic and explainable while allowing controlled evolution. | Routing lives in UI conditionals, cannot be audited, and becomes unreliable across clients. |
+| Per-user `workspace_preferences` | The selected location can persist without being mistaken for authorization. | Users repeatedly lose context, or developers are tempted to encode workspace in a security-sensitive session field. |
+| Append-only `audit_events` with server-derived actor, audience, case, organization/location, command/event IDs, and timestamps | Pilot operations require tamper-resistant proof of every transition and access-relevant mutation. | Client-authored audit rows can be forged or omitted; incident review, recovery, and compliance evidence are inadequate. |
+
+RLS and breakage expectations for that migration:
+
+- Active organization membership is required for operational access; location-scoped members are restricted through their membership-location rows. Assignment may further narrow staff case visibility.
+- Family access remains independent and grant-based. It must never be inferred from funeral-home membership or broadened by organization/location changes.
+- Workspace preference is presentation state only and must never appear in an RLS predicate as authority.
+- Audit insertion is server-derived and append-only; clients may not choose actor IDs, organization IDs, or timestamps.
+- The migration will intentionally break browser-only seeded identity and local-storage-as-source-of-truth assumptions. It must ship with an adapter cutover, fixture/test updates, rollback notes, and verification that existing family grants still resolve to the same case projection.
+- It will also surface missing membership/location records as denied access rather than silently falling back to broad organization access. Seed/backfill validation is required before enabling policies.
+
+Verification evidence:
+
+- TypeScript and optimized Next.js production builds pass after integration.
+- Browser QA completed the receive -> accepted intake -> routed case -> reassignment -> staff start -> proof -> family proof-return path.
+- Desktop, 390-pixel, and 360-pixel layouts were inspected. Tested pages had no horizontal overflow; visible interactive targets in the new slice are at least 44 pixels.
+- Exact empty states were verified for Beaverton and unassigned Portland staff. The intake receipt records location, accountable director, first assignee, routing reason, proof destination, next action, and an explicit browser-only/no-external-sync boundary.
+- Browser logs contained no warnings or errors from the application.
+- Evidence is stored under `docs/evidence/passage-zero/cycle4-*.png`.
+
+Readiness estimates after cycle 4:
+
+- Family / direct-user path: **85% guided-experience readiness; 25% operational production readiness**. The shared handoff and proof-return story is coherent, but authentication, durable cross-device records, recovery, notifications, subscriptions/billing, and production authorization remain.
+- Funeral-home path: **90% guided pilot-workflow readiness; 40% operational pilot readiness**. Organization/location/membership/assignment/routing semantics now exist and are demonstrable, but they are not yet backed by real authentication, RLS, durable multi-user persistence, enforced server audit, notifications/recovery, or reliable integrations.
+- These percentages are goal-progress estimates, not production-readiness claims. The next loop is durable authentication and RLS-backed persistence using the documented migration gate above.
 

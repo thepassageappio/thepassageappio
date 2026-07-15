@@ -5,28 +5,35 @@ import { AppFrame } from '../../components/operations/AppFrame';
 import { ContinuityRail } from '../../components/operations/ContinuityRail';
 import { Signal } from '../../components/operations/Signal';
 import styles from './Staff.module.css';
+import { membership } from '../../lib/sandbox/repository';
 
 export default function StaffPage() {
   const { record, dispatch, reset } = usePassageZero();
+  const accountableDirector = membership(record, record.case.accountableMembershipId).actor;
+  const assignedOperator = membership(record, record.commitment.assignedMembershipId).actor;
+  const nextOwner = membership(record, record.commitment.nextOwnerMembershipId).actor;
+  const isMine = record.case.operatingLocationId === record.workspaceContext.staffLocationId && record.commitment.assignedMembershipId === record.workspaceContext.staffMembershipId;
   const status = record.commitment.status === 'assigned' ? 'open' : record.commitment.status === 'in_progress' ? 'working' : 'proof';
   const item = {
     id: record.case.id, family: 'Rivera', due: '10:30', task: record.commitment.title,
     blocker: record.commitment.status === 'proof_submitted' ? 'None — proof is with the director.' : `${record.familyCoordinator.name} is waiting for the meeting time.`,
     proof: record.commitment.proof?.label ?? record.commitment.proofRequirement,
-    next: record.commitment.nextOwner, state: status === 'proof' ? 'Ready' : 'Now',
+    next: nextOwner.name, state: status === 'proof' ? 'Ready' : 'Now',
   };
 
   return (
     <AppFrame active="staff" identity="Marcus Lee" role="Care coordinator · Northstar">
       <section className={styles.heading}>
         <div><p>MY WORK / TUE 14 JUL / 08:42</p><h1>One clear commitment at a time.</h1></div>
-        <p><strong>1 owned</strong><span>Scoped to {record.person.name}</span></p>
+        <p><strong>{isMine ? 1 : 0} owned</strong><span>Portland · assigned to Marcus only</span></p>
       </section>
 
+      {!isMine ? <section className={styles.empty} role="status"><Signal tone="success">No assigned work</Signal><h2>No work is assigned to you.</h2><p>New Portland commitments will appear here when a director assigns them.</p></section> : <>
+
       <ContinuityRail compact label={`${item.family} · ${item.id}`} steps={[
-        { label: 'Handoff', detail: `${record.accountableDirector.name} → ${record.assignedOperator.name}`, state: 'complete' },
+        { label: 'Handoff', detail: `${accountableDirector.name} → ${assignedOperator.name}`, state: 'complete' },
         { label: 'Case', detail: item.family, state: 'complete' },
-        { label: 'Owner', detail: record.assignedOperator.name, state: status === 'proof' ? 'complete' : 'current' },
+        { label: 'Owner', detail: assignedOperator.name, state: status === 'proof' ? 'complete' : 'current' },
         { label: 'Proof', detail: item.proof, state: status === 'proof' ? 'complete' : 'pending' },
       ]} />
 
@@ -52,16 +59,17 @@ export default function StaffPage() {
             <div><dt>NEXT HANDOFF</dt><dd>{item.next}</dd></div>
           </dl>
           {status === 'proof' ? (
-            <div className={styles.complete} role="status"><b aria-hidden="true">✓</b><p><strong>Proof received, awaiting review.</strong>{record.accountableDirector.name} is the next owner. The family sees only the returned outcome.</p><button onClick={reset} type="button">Reset sandbox story</button></div>
+            <div className={styles.complete} role="status"><b aria-hidden="true">✓</b><p><strong>Proof received, awaiting review.</strong>{accountableDirector.name} is the next owner. The family sees only the returned outcome.</p><button onClick={reset} type="button">Reset sandbox story</button></div>
           ) : (
             <div className={styles.actions}>
-              <button disabled={record.transferPass.status !== 'accepted'} onClick={() => dispatch(status === 'open' ? { type: 'start_commitment', idempotencyKey: 'staff:start:rivera' } : { type: 'submit_proof', idempotencyKey: 'staff:proof:rivera' })} type="button">{status === 'open' ? 'Start commitment' : 'Attach proof'}<span>→</span></button>
+              <button disabled={record.transferPass.status !== 'accepted'} onClick={() => dispatch(status === 'open' ? { type: 'start_commitment', actorId: 'marcus-lee', actorMembershipId: 'membership-marcus', idempotencyKey: 'staff:start:rivera' } : { type: 'submit_proof', actorId: 'marcus-lee', actorMembershipId: 'membership-marcus', idempotencyKey: 'staff:proof:rivera' })} type="button">{status === 'open' ? 'Start commitment' : 'Attach proof'}<span>→</span></button>
               <button disabled type="button">Blocker reporting follows this slice</button>
               <small>{record.transferPass.status !== 'accepted' ? 'Waiting for the director to accept the family handoff.' : status === 'working' ? 'Started now · visible to the case team.' : 'The action time, audience, and next owner are recorded in this browser sandbox.'}</small>
             </div>
           )}
         </section>
       </div>
+      </>}
     </AppFrame>
   );
 }

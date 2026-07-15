@@ -63,6 +63,7 @@ export default function TransferComposer() {
     window.sessionStorage.setItem('passage.family.transfer.v1', JSON.stringify(activated));
     dispatch({
       type: 'issue_transfer_pass',
+      actorId: 'maya-rivera',
       idempotencyKey: `family:issue:${activated.activatedAt}`,
       scope: included.map((item) => ({ name: item.label, detail: item.detail })),
       expiresLabel: expiry.moment,

@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePassageZero } from '../PassageZeroProvider';
 import { AppFrame } from './AppFrame';
@@ -38,6 +38,7 @@ export function ReceiveWorkspace() {
   const [reviewed, setReviewed] = useState(false);
   const [destination, setDestination] = useState<'new' | 'existing'>('new');
   const [accepted, setAccepted] = useState(false);
+  const [acceptRequested, setAcceptRequested] = useState(false);
   const [error, setError] = useState('');
   const record = useMemo<PassRecord | null>(() => {
     if (!queryCode) return null;
@@ -45,7 +46,7 @@ export function ReceiveWorkspace() {
       return {
         status: sandbox.transferPass.status === 'issued' ? 'active' : sandbox.transferPass.status,
         sender: sandbox.familyCoordinator.name, relationship: sandbox.familyCoordinator.role,
-        person: sandbox.person.name, destination: sandbox.organization.name,
+        person: sandbox.person.name, destination: sandbox.organizations[0].name,
         expires: sandbox.transferPass.expiresLabel, acceptedAt: sandbox.transferPass.acceptedAt,
         acceptedBy: sandbox.transferPass.acceptedBy, caseId: sandbox.case.id, scope: sandbox.transferPass.scope,
       };
@@ -53,16 +54,27 @@ export function ReceiveWorkspace() {
     return PASS_RECORDS[queryCode] || { status: 'invalid' };
   }, [queryCode, sandbox]);
 
+  useEffect(() => {
+    if (!acceptRequested) return;
+    if (sandbox.transferPass.status === 'accepted' && sandbox.transferPass.acceptedBy) {
+      setAccepted(true);
+      setAcceptRequested(false);
+    } else {
+      setError('Passage could not accept this handoff. Review the active pass and your director access, then try again.');
+      setAcceptRequested(false);
+    }
+  }, [acceptRequested, sandbox.transferPass.acceptedBy, sandbox.transferPass.status]);
+
   function inspect(event: FormEvent) {
     event.preventDefault();
     const code = normalize(draft);
     if (!code) { setError('Enter the code shown beneath the family’s QR pass.'); return; }
-    setError(''); setReviewed(false); setAccepted(false);
-    if (code === sandbox.transferPass.code) dispatch({ type: 'inspect_transfer_pass', idempotencyKey: `receive:inspect:${code}` });
+    setError(''); setReviewed(false); setAccepted(false); setAcceptRequested(false);
+    if (code === sandbox.transferPass.code) dispatch({ type: 'inspect_transfer_pass', actorId: 'elena-torres', actorMembershipId: 'membership-elena', idempotencyKey: `receive:inspect:${code}` });
     router.replace(`/receive?code=${encodeURIComponent(code)}`);
   }
 
-  function clearPass() { setDraft(''); setReviewed(false); setAccepted(false); setError(''); router.replace('/receive'); }
+  function clearPass() { setDraft(''); setReviewed(false); setAccepted(false); setAcceptRequested(false); setError(''); router.replace('/receive'); }
 
   if (!record) return (
     <AppFrame active="receive" identity="Elena Torres" role="Director · Northstar">
@@ -110,7 +122,7 @@ export function ReceiveWorkspace() {
             <p className={styles.private}><span aria-hidden="true">−</span><strong>Everything else stays private.</strong>This pass does not open the rest of the family record.</p>
           </section>
 
-          <form className={styles.destination} onSubmit={(event) => { event.preventDefault(); if (!reviewed) { setError('Confirm your review before accepting.'); return; } setError(''); dispatch({ type: 'accept_transfer_pass', idempotencyKey: `receive:accept:${queryCode}` }); setAccepted(true); }}>
+          <form className={styles.destination} onSubmit={(event) => { event.preventDefault(); if (!reviewed) { setError('Confirm your review before accepting.'); return; } setError(''); setAcceptRequested(true); dispatch({ type: 'accept_transfer_pass', actorId: 'elena-torres', actorMembershipId: 'membership-elena', idempotencyKey: `receive:accept:${queryCode}` }); }}>
             <span>03 / DESTINATION</span><h2>Choose one case record.</h2><p>Acceptance copies the scoped items and saves a handoff receipt in this browser sandbox.</p>
             <fieldset><legend>CASE DESTINATION</legend>
               <label className={destination === 'new' ? styles.chosen : ''}><input checked={destination === 'new'} name="destination" onChange={() => setDestination('new')} type="radio" /><span><strong>Create intake</strong><small>{record.person} · New case</small></span></label>
