@@ -332,7 +332,7 @@ Stop only for the explicit `AGENTS.md` gates:
 
 ## Release-train cycle 2 - shared operational truth
 
-Status: QA APPROVED; branch publication and preview verification are the remaining handoff steps.
+Status: COMPLETE and preview verified for this shared-truth batch.
 
 Branch audit:
 
@@ -356,6 +356,14 @@ Verification evidence:
 - Mobile checks at nominal 390 and 360 widths had equal document client and scroll widths with no horizontal overflow.
 - Browser evidence is stored under `docs/evidence/passage-zero/shared-*.png`.
 - The sandbox is explicitly browser-local and is not durable, secure, multi-user, or production backend evidence.
+
+Preview handoff:
+
+- QA-approved commit: `f4ba31321474fbdf4620aeadc888460c914c236b`.
+- Vercel deployment: `dpl_6o3NivMoyE93XY8woguxpLMQu9Yn` (`READY`, Next.js/Turbopack, preview target).
+- Stable branch alias: `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app`.
+- Temporary share token generated for the July 15 demo expires July 16, 2026.
+- The family/D2C journey is viable for next-week guided testing, including urgent and planning-ahead positioning, but self-serve SaaS readiness still requires authentication, durable cross-device records, account recovery, subscriptions, notifications, and production authorization.
 
 Integrated files and contracts:
 
