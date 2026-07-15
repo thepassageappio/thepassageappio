@@ -10,14 +10,19 @@ returns boolean
 language sql
 immutable
 set search_path = ''
-as $
-  select coalesce(
-    jsonb_typeof(p_scope) = 'object'
-    and jsonb_typeof(p_scope -> 'items') = 'array'
-    and jsonb_array_length(p_scope -> 'items') > 0,
-    false
-  );
-$;
+as $$
+  select case
+    when p_scope is null
+      or jsonb_typeof(p_scope) is distinct from 'object'
+      then false
+    when jsonb_typeof(p_scope -> 'items') is distinct from 'array'
+      then false
+    else
+      jsonb_array_length(p_scope -> 'items') between 1 and 50
+      and pg_column_size(p_scope) <= 65536
+      and p_scope @> '{"scope_version": 1}'::jsonb
+  end;
+$$;
 
 create table public.transfer_pass_tokens (
   id uuid primary key default extensions.gen_random_uuid(),
@@ -25,25 +30,44 @@ create table public.transfer_pass_tokens (
   issuer_user_id uuid not null references auth.users(id) on delete restrict,
   recipient_organization_id uuid not null references public.organizations(id) on delete restrict,
   recipient_display_name text,
-  scope_version smallint not null default 1 check (scope_version > 0),
+  scope_version smallint not null default 1 check (scope_version = 1),
   scope_snapshot jsonb not null check (public.transfer_pass_scope_is_valid(scope_snapshot)),
   qr_token_hash bytea not null unique,
   manual_code_hash bytea not null unique,
   state text not null default 'issued' check (state in ('issued', 'accepted', 'revoked')),
   expires_at timestamptz not null,
   accepted_at timestamptz,
-  accepted_by uuid references auth.users(id) on delete set null,
+  accepted_by uuid references auth.users(id) on delete restrict,
   revoked_at timestamptz,
-  revoked_by uuid references auth.users(id) on delete set null,
+  revoked_by uuid references auth.users(id) on delete restrict,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint transfer_pass_id_workflow_unique unique (id, workflow_id),
   constraint transfer_pass_expiry_after_creation check (expires_at > created_at),
-  constraint transfer_pass_acceptance_consistent check (
-    (state <> 'accepted') or (accepted_at is not null and accepted_by is not null)
+  constraint transfer_pass_max_expiry check (
+    expires_at <= created_at + interval '30 days'
   ),
-  constraint transfer_pass_revocation_consistent check (
-    (state <> 'revoked') or (revoked_at is not null and revoked_by is not null)
+  constraint transfer_pass_acceptor_pair check (
+    (accepted_at is null) = (accepted_by is null)
+  ),
+  constraint transfer_pass_revoker_pair check (
+    (revoked_at is null) = (revoked_by is null)
+  ),
+  constraint transfer_pass_lifecycle_consistent check (
+    (
+      state = 'issued'
+      and accepted_at is null
+      and revoked_at is null
+    )
+    or (
+      state = 'accepted'
+      and accepted_at is not null
+      and revoked_at is null
+    )
+    or (
+      state = 'revoked'
+      and revoked_at is not null
+    )
   )
 );
 
@@ -61,8 +85,8 @@ create table public.transfer_pass_consents (
   event_type text not null check (
     event_type in ('issued', 'viewed', 'accepted', 'revoked', 'expired', 'packet_generated')
   ),
-  actor_user_id uuid references auth.users(id) on delete set null,
-  actor_organization_id uuid references public.organizations(id) on delete set null,
+  actor_user_id uuid references auth.users(id) on delete restrict,
+  actor_organization_id uuid references public.organizations(id) on delete restrict,
   actor_kind text not null check (actor_kind in ('family', 'recipient', 'system')),
   channel text not null check (channel in ('qr', 'manual', 'system')),
   metadata jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata) = 'object'),
@@ -107,7 +131,8 @@ as $$
         and (
           ea.user_id = auth.uid()
           or (
-            ea.email is not null
+            ea.user_id is null
+            and ea.email is not null
             and lower(ea.email) = lower(coalesce(auth.jwt() ->> 'email', ''))
           )
         )
@@ -130,7 +155,8 @@ as $$
       and (
         om.user_id = auth.uid()
         or (
-          om.email is not null
+          om.user_id is null
+          and om.email is not null
           and lower(om.email) = lower(coalesce(auth.jwt() ->> 'email', ''))
         )
       )
@@ -163,6 +189,70 @@ create trigger transfer_pass_tokens_immutable_identity
 before update on public.transfer_pass_tokens
 for each row execute function public.prevent_transfer_pass_identity_mutation();
 
+create or replace function public.enforce_transfer_pass_state_transition()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    if new.state <> 'issued'
+      or new.accepted_at is not null
+      or new.accepted_by is not null
+      or new.revoked_at is not null
+      or new.revoked_by is not null
+    then
+      raise exception 'A new Transfer Pass must begin in the issued state';
+    end if;
+    return new;
+  end if;
+
+  if new.state = old.state then
+    if new.accepted_at is distinct from old.accepted_at
+      or new.accepted_by is distinct from old.accepted_by
+      or new.revoked_at is distinct from old.revoked_at
+      or new.revoked_by is distinct from old.revoked_by
+    then
+      raise exception 'Transfer Pass lifecycle fields may change only with a state transition';
+    end if;
+    return new;
+  end if;
+
+  if not (
+    (old.state = 'issued' and new.state in ('accepted', 'revoked'))
+    or (old.state = 'accepted' and new.state = 'revoked')
+  ) then
+    raise exception 'Illegal Transfer Pass state transition from % to %', old.state, new.state;
+  end if;
+
+  if old.state = 'issued' and new.state = 'revoked' and (
+    new.accepted_at is not null or new.accepted_by is not null
+  ) then
+    raise exception 'A directly revoked Transfer Pass cannot fabricate acceptance';
+  end if;
+
+  if old.accepted_at is not null and (
+    new.accepted_at is distinct from old.accepted_at
+    or new.accepted_by is distinct from old.accepted_by
+  ) then
+    raise exception 'Transfer Pass acceptance identity is immutable';
+  end if;
+
+  if old.revoked_at is not null and (
+    new.revoked_at is distinct from old.revoked_at
+    or new.revoked_by is distinct from old.revoked_by
+  ) then
+    raise exception 'Transfer Pass revocation identity is immutable';
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger transfer_pass_tokens_state_transition
+before insert or update on public.transfer_pass_tokens
+for each row execute function public.enforce_transfer_pass_state_transition();
+
 create or replace function public.prevent_transfer_pass_event_mutation()
 returns trigger
 language plpgsql
@@ -188,19 +278,11 @@ for select
 to authenticated
 using (issuer_user_id = auth.uid());
 
-create policy transfer_pass_consents_controller_or_recipient_select
+create policy transfer_pass_consents_controller_select
 on public.transfer_pass_consents
 for select
 to authenticated
-using (
-  public.transfer_pass_is_controller(workflow_id)
-  or exists (
-    select 1
-    from public.transfer_pass_tokens t
-    where t.id = transfer_pass_id
-      and public.transfer_pass_is_active_org_member(t.recipient_organization_id)
-  )
-);
+using (public.transfer_pass_is_controller(workflow_id));
 
 revoke all on public.transfer_pass_tokens from anon, authenticated;
 revoke all on public.transfer_pass_consents from anon, authenticated;
@@ -248,7 +330,7 @@ begin
     raise exception 'Recipient organization not found';
   end if;
   if not public.transfer_pass_scope_is_valid(p_scope_snapshot) then
-    raise exception 'Transfer Pass scope must contain a non-empty items array';
+    raise exception 'Transfer Pass scope must be version 1 with 1-50 items and no more than 64 KiB';
   end if;
   if p_expires_at <= now() or p_expires_at > now() + interval '30 days' then
     raise exception 'Expiry must be in the future and no more than 30 days away';
@@ -388,6 +470,64 @@ begin
 end;
 $$;
 
+
+create or replace function public.list_transfer_pass_events(
+  p_secret text,
+  p_channel text
+)
+returns table (
+  event_id uuid,
+  event_type text,
+  actor_kind text,
+  channel text,
+  occurred_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_pass public.transfer_pass_tokens%rowtype;
+  v_hash bytea;
+  v_channel text := lower(trim(p_channel));
+begin
+  if auth.uid() is null or v_channel not in ('qr', 'manual') then
+    raise exception 'Authenticated QR or manual audit access required';
+  end if;
+  if nullif(trim(p_secret), '') is null then
+    raise exception 'Transfer Pass is invalid, unavailable, expired, or revoked';
+  end if;
+
+  v_hash := extensions.digest(convert_to(trim(p_secret), 'UTF8'), 'sha256');
+
+  select t.* into v_pass
+  from public.transfer_pass_tokens t
+  where (v_channel = 'qr' and t.qr_token_hash = v_hash)
+     or (v_channel = 'manual' and t.manual_code_hash = v_hash)
+  limit 1;
+
+  if v_pass.id is null
+    or v_pass.state = 'revoked'
+    or v_pass.expires_at <= now()
+    or not public.transfer_pass_is_active_org_member(v_pass.recipient_organization_id)
+  then
+    raise exception 'Transfer Pass is invalid, unavailable, expired, or revoked';
+  end if;
+
+  return query
+  select
+    c.id,
+    c.event_type,
+    c.actor_kind,
+    c.channel,
+    c.occurred_at
+  from public.transfer_pass_consents c
+  where c.transfer_pass_id = v_pass.id
+    and c.workflow_id = v_pass.workflow_id
+  order by c.occurred_at asc, c.id asc;
+end;
+$$;
+
 create or replace function public.revoke_transfer_pass(p_pass_id uuid)
 returns boolean
 language plpgsql
@@ -437,6 +577,7 @@ revoke all on function public.transfer_pass_is_active_org_member(uuid) from publ
 revoke all on function public.issue_transfer_pass(uuid, uuid, text, jsonb, timestamptz) from public, anon;
 revoke all on function public.resolve_transfer_pass(text, text) from public, anon;
 revoke all on function public.accept_transfer_pass(text, text) from public, anon;
+revoke all on function public.list_transfer_pass_events(text, text) from public, anon;
 revoke all on function public.revoke_transfer_pass(uuid) from public, anon;
 
 grant execute on function public.transfer_pass_scope_is_valid(jsonb) to authenticated, service_role;
@@ -445,4 +586,6 @@ grant execute on function public.transfer_pass_is_active_org_member(uuid) to aut
 grant execute on function public.issue_transfer_pass(uuid, uuid, text, jsonb, timestamptz) to authenticated;
 grant execute on function public.resolve_transfer_pass(text, text) to authenticated;
 grant execute on function public.accept_transfer_pass(text, text) to authenticated;
+grant execute on function public.list_transfer_pass_events(text, text) to authenticated;
 grant execute on function public.revoke_transfer_pass(uuid) to authenticated;
+
