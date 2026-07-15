@@ -10,13 +10,14 @@ returns boolean
 language sql
 immutable
 set search_path = ''
-as $$
-  select case
-    when jsonb_typeof(p_scope) <> 'object' then false
-    when jsonb_typeof(p_scope -> 'items') <> 'array' then false
-    else jsonb_array_length(p_scope -> 'items') > 0
-  end;
-$$;
+as $
+  select coalesce(
+    jsonb_typeof(p_scope) = 'object'
+    and jsonb_typeof(p_scope -> 'items') = 'array'
+    and jsonb_array_length(p_scope -> 'items') > 0,
+    false
+  );
+$;
 
 create table public.transfer_pass_tokens (
   id uuid primary key default extensions.gen_random_uuid(),
@@ -36,6 +37,7 @@ create table public.transfer_pass_tokens (
   revoked_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint transfer_pass_id_workflow_unique unique (id, workflow_id),
   constraint transfer_pass_expiry_after_creation check (expires_at > created_at),
   constraint transfer_pass_acceptance_consistent check (
     (state <> 'accepted') or (accepted_at is not null and accepted_by is not null)
@@ -64,7 +66,11 @@ create table public.transfer_pass_consents (
   actor_kind text not null check (actor_kind in ('family', 'recipient', 'system')),
   channel text not null check (channel in ('qr', 'manual', 'system')),
   metadata jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata) = 'object'),
-  occurred_at timestamptz not null default now()
+  occurred_at timestamptz not null default now(),
+  constraint transfer_pass_consent_matches_workflow
+    foreign key (transfer_pass_id, workflow_id)
+    references public.transfer_pass_tokens(id, workflow_id)
+    on delete restrict
 );
 
 create index transfer_pass_consents_pass_occurred_idx
