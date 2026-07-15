@@ -1,0 +1,177 @@
+.root {
+  --bone: #f7f3eb;
+  --paper: #fffdf9;
+  --pine: #123c32;
+  --pine-deep: #0b2c24;
+  --ink: #1d2925;
+  --muted: #69736e;
+  --line: #ded8cc;
+  --clay: #bd573b;
+  --clay-soft: #f2d8cf;
+  --sage: #dce6d7;
+  --sage-deep: #2f6758;
+  min-height: 100vh;
+  background: var(--bone);
+  color: var(--ink);
+}
+
+.root *, .root *::before, .root *::after { box-sizing: border-box; }
+.root button { font: inherit; }
+.skip { position: fixed; z-index: 30; left: 16px; top: -80px; padding: 11px 16px; border-radius: 999px; background: var(--pine); color: white; font-weight: 800; }
+.skip:focus { top: 14px; }
+.mobileHeader { min-height: 64px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 13px; padding: 0 18px; border-bottom: 1px solid rgba(18, 60, 50, .12); background: rgba(247, 243, 235, .92); }
+.wordmark { color: var(--pine); font-size: 11px; font-weight: 850; letter-spacing: .18em; }
+.shiftStatus { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; }
+.shiftStatus > span, .railFooter i { width: 7px; height: 7px; border-radius: 50%; background: #4f806b; box-shadow: 0 0 0 3px rgba(79, 128, 107, .13); }
+.avatarButton, .avatar { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--pine); color: white; font-size: 11px; font-weight: 850; }
+.appShell { width: 100%; }
+.desktopRail { display: none; }
+.main { width: 100%; max-width: 1200px; margin: 0 auto; padding: 26px 18px 56px; }
+.topline h1, .sectionHeading h2, .queueHeading h2, .stateHeader h2, .emptyState h2 {
+  margin: 0; color: var(--pine); font-family: Fraunces, Georgia, serif; font-weight: 520; letter-spacing: -.035em; line-height: 1.04;
+}
+.topline h1 { font-size: 35px; }
+.eyebrow { margin: 0 0 7px; color: var(--clay); font-size: 9px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+.shiftSummary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 20px; overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: var(--line); }
+.shiftSummary span { min-height: 62px; display: flex; flex-direction: column; justify-content: center; padding: 10px 12px; background: var(--paper); color: var(--muted); font-size: 10px; }
+.shiftSummary strong { color: var(--pine); font-family: Fraunces, Georgia, serif; font-size: 21px; font-weight: 600; }
+.mobileTabs { display: flex; gap: 7px; margin: 22px -18px 30px; padding: 2px 18px 8px; overflow-x: auto; scrollbar-width: none; }
+.mobileTabs::-webkit-scrollbar { display: none; }
+.mobileTabs button { min-height: 38px; display: flex; align-items: center; gap: 7px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.mobileTabs button span { min-width: 20px; padding: 2px 6px; border-radius: 999px; background: rgba(18, 60, 50, .08); font-size: 9px; }
+.mobileTabs .tabActive { border-color: var(--pine); background: var(--pine); color: white; }
+.mobileTabs .tabActive span { background: rgba(255,255,255,.14); }
+.liveNotice { min-height: 0; color: var(--sage-deep); font-size: 12px; font-weight: 750; }
+.liveNotice:not(:empty) { margin: -12px 0 20px; padding: 11px 13px; border-radius: 11px; background: var(--sage); }
+.sectionHeading, .queueHeading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
+.sectionHeading h2, .queueHeading h2 { font-size: 30px; }
+.queueProgress, .queueHeading > span { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.focusCard { position: relative; margin-top: 18px; overflow: hidden; padding: 24px 20px 20px; border: 1px solid rgba(18, 60, 50, .24); border-radius: 24px; background: var(--pine); color: white; box-shadow: 0 22px 50px rgba(20, 45, 37, .12); }
+.focusCard::after { content: ''; position: absolute; z-index: 0; width: 220px; height: 220px; right: -100px; top: -110px; border: 1px solid rgba(255,255,255,.12); border-radius: 50%; box-shadow: 0 0 0 34px rgba(255,255,255,.025), 0 0 0 69px rgba(255,255,255,.02); }
+.focusCard > * { position: relative; z-index: 1; }
+.focusAccent { width: 42px; height: 4px; margin-bottom: 22px; border-radius: 999px; background: var(--clay); }
+.focusMeta { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: rgba(255,255,255,.62); font-size: 10px; font-weight: 750; }
+.duePill { padding: 7px 10px; border-radius: 999px; background: var(--clay); color: white; }
+.personLabel { margin: 22px 0 6px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.focusCard .personLabel { color: rgba(255,255,255,.62); }
+.focusCard h3 { max-width: 620px; margin: 0; font-family: Fraunces, Georgia, serif; font-size: 31px; font-weight: 520; letter-spacing: -.025em; line-height: 1.1; }
+.contextStrip { display: grid; grid-template-columns: 26px 1fr; gap: 10px; margin-top: 24px; padding: 14px; border-radius: 15px; background: rgba(255,255,255,.08); }
+.contextIcon { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.32); border-radius: 50%; font-size: 11px; font-weight: 850; }
+.contextStrip p { margin: 0; color: rgba(255,255,255,.72); font-size: 11px; line-height: 1.45; }
+.contextStrip strong { display: block; margin-bottom: 2px; color: white; }
+.focusActions { display: grid; gap: 9px; margin-top: 22px; }
+.primaryButton, .secondaryButton, .cardButton { min-height: 47px; border-radius: 999px; cursor: pointer; font-weight: 850; }
+.primaryButton { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 18px; border: 0; background: var(--clay); color: white; }
+.secondaryButton { padding: 0 18px; border: 1px solid currentColor; background: transparent; color: var(--pine); }
+.focusCard .secondaryButton { color: white; }
+.proofNote { margin: 15px 0 0; color: rgba(255,255,255,.55); font-size: 10px; line-height: 1.45; }
+.queueHeading { margin-top: 38px; padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+.queueHeading h2 { font-size: 27px; }
+.queueList { display: grid; }
+.queueItem { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.queueNumber { align-self: start; color: var(--clay); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; font-weight: 800; }
+.caseLine { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.queueItem h3 { margin: 5px 0 5px; color: var(--ink); font-size: 13px; line-height: 1.35; }
+.queueItem p { margin: 0; color: var(--muted); font-size: 10px; }
+.queueItem button { min-height: 38px; padding: 0 9px; border: 0; background: transparent; color: var(--pine); font-size: 10px; font-weight: 850; cursor: pointer; }
+.stateHeader { max-width: 690px; }
+.stateHeader h2 { font-size: 34px; }
+.stateHeader > p:last-child { margin: 14px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.stateList { display: grid; gap: 14px; margin-top: 26px; }
+.waitCard, .escalationCard { padding: 20px; border: 1px solid var(--line); border-radius: 21px; background: var(--paper); box-shadow: 0 14px 34px rgba(20, 45, 37, .055); }
+.escalationCard { border-top: 4px solid var(--clay); }
+.cardTop { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.cardTop small { color: var(--muted); font-size: 9px; }
+.waitPill, .escalationPill { padding: 6px 9px; border-radius: 999px; font-size: 9px; font-weight: 850; }
+.waitPill { background: #f3e8c9; color: #6f5512; }
+.escalationPill { background: var(--clay-soft); color: #7d2e1c; }
+.waitCard h3, .escalationCard h3 { margin: 0; color: var(--pine); font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 540; line-height: 1.15; }
+.waitCard dl { display: grid; gap: 12px; margin: 20px 0 0; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.waitCard dl > div { display: grid; grid-template-columns: 92px 1fr; gap: 10px; }
+.waitCard dt { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.waitCard dd { margin: 0; font-size: 11px; font-weight: 750; }
+.fallback, .familyBoundary { display: grid; grid-template-columns: 20px 1fr; gap: 8px; margin: 14px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.fallback span { color: var(--clay); font-weight: 900; }
+.decisionAsk { margin-top: 20px; padding: 15px; border-radius: 14px; background: var(--bone); }
+.decisionAsk strong { color: var(--clay); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.decisionAsk p { margin: 5px 0 0; font-size: 12px; font-weight: 750; line-height: 1.4; }
+.familyBoundary span { color: var(--sage-deep); font-size: 8px; }
+.cardButton { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding: 0 15px; border: 1px solid var(--pine); background: transparent; color: var(--pine); font-size: 11px; }
+.handledList { margin-top: 26px; overflow: hidden; border: 1px solid var(--line); border-radius: 21px; background: var(--paper); }
+.handledItem { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 11px; align-items: start; padding: 18px 15px; border-bottom: 1px solid var(--line); }
+.handledItem:last-child { border-bottom: 0; }
+.check { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--sage); color: var(--pine); font-weight: 900; }
+.handledItem div > span, .handledItem time { color: var(--muted); font-size: 9px; font-weight: 750; }
+.handledItem h3 { margin: 4px 0; font-size: 12px; line-height: 1.4; }
+.handledItem p { margin: 0; color: var(--sage-deep); font-size: 10px; line-height: 1.4; }
+.emptyState { max-width: 650px; margin: 24px auto 0; padding: 34px 22px; border: 1px solid var(--line); border-radius: 25px; background: var(--paper); text-align: center; box-shadow: 0 20px 45px rgba(20, 45, 37, .06); }
+.emptyMark { width: 54px; height: 54px; display: grid; place-items: center; margin: 0 auto 25px; border-radius: 50%; background: var(--sage); color: var(--pine); font-size: 22px; font-weight: 900; }
+.emptyState h2 { font-size: 36px; }
+.emptyState > p:not(.eyebrow) { margin: 15px auto 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.emptyProof { display: grid; gap: 4px; margin: 24px 0; padding: 15px; border-radius: 14px; background: var(--bone); }
+.emptyProof strong { color: var(--pine); font-size: 12px; }
+.emptyProof span { color: var(--muted); font-size: 10px; }
+.root button:focus-visible, .root h2:focus-visible, .root a:focus-visible { outline: 3px solid #e2a391; outline-offset: 3px; }
+.root h2:focus { border-radius: 3px; }
+
+@media (min-width: 700px) {
+  .mobileHeader { padding: 0 28px; }
+  .main { padding: 36px 34px 70px; }
+  .topline { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; }
+  .topline h1 { font-size: 45px; }
+  .shiftSummary { min-width: 320px; margin-top: 0; }
+  .mobileTabs { margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
+  .sectionHeading h2, .stateHeader h2 { font-size: 42px; }
+  .focusCard { padding: 31px; }
+  .focusCard h3 { font-size: 43px; }
+  .focusActions { grid-template-columns: auto auto; justify-content: start; }
+  .primaryButton { min-width: 240px; }
+  .queueItem { grid-template-columns: 42px minmax(0, 1fr) 100px; padding: 20px 4px; }
+  .queueItem h3 { font-size: 15px; }
+  .stateList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .waitCard, .escalationCard { padding: 24px; }
+  .handledItem { padding: 20px 24px; }
+}
+
+@media (min-width: 1080px) {
+  .mobileHeader { display: none; }
+  .appShell { min-height: 100vh; display: grid; grid-template-columns: 238px minmax(0, 1fr); }
+  .desktopRail { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 28px 20px 22px; background: var(--pine-deep); color: white; }
+  .railBrand { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 850; letter-spacing: .17em; }
+  .brandMark { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.3); border-radius: 50%; font-family: Fraunces, Georgia, serif; font-size: 16px; letter-spacing: 0; }
+  .employeeCard { display: grid; grid-template-columns: 38px 1fr; gap: 11px; align-items: center; margin-top: 44px; padding: 0 8px 23px; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .employeeCard .avatar { background: var(--clay); }
+  .employeeCard strong, .employeeCard small { display: block; }
+  .employeeCard strong { font-size: 11px; }
+  .employeeCard small { margin-top: 3px; color: rgba(255,255,255,.52); font-size: 9px; }
+  .railNav { display: grid; gap: 5px; margin-top: 24px; }
+  .railNav button { min-height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 13px; border: 0; border-radius: 11px; background: transparent; color: rgba(255,255,255,.62); font-size: 11px; font-weight: 750; cursor: pointer; }
+  .railNav button small { min-width: 23px; padding: 4px 6px; border-radius: 999px; background: rgba(255,255,255,.08); font-size: 9px; }
+  .railNav .railActive { background: rgba(255,255,255,.1); color: white; }
+  .railNav .railActive::before { content: ''; width: 3px; height: 20px; margin-left: -13px; border-radius: 99px; background: var(--clay); }
+  .railFooter { display: grid; gap: 6px; margin-top: auto; padding: 18px 8px 0; border-top: 1px solid rgba(255,255,255,.12); }
+  .railFooter span { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.76); font-size: 10px; }
+  .railFooter small { color: rgba(255,255,255,.42); font-size: 9px; }
+  .main { max-width: 1180px; padding: 44px 48px 80px; }
+  .mobileTabs { display: none; }
+  .topline { margin-bottom: 46px; }
+  .topline h1 { font-size: 52px; }
+  .sectionHeading h2, .stateHeader h2 { font-size: 49px; }
+  .focusCard { padding: 38px; border-radius: 28px; }
+  .focusCard h3 { font-size: 52px; }
+  .contextStrip { max-width: 650px; }
+  .queueHeading { margin-top: 45px; }
+  .waitCard h3, .escalationCard h3 { font-size: 29px; }
+}
+
+@media (max-width: 370px) {
+  .main { padding-left: 15px; padding-right: 15px; }
+  .topline h1 { font-size: 32px; }
+  .focusCard h3 { font-size: 28px; }
+  .queueItem { grid-template-columns: 24px minmax(0, 1fr); }
+  .queueItem button { grid-column: 2; justify-self: start; padding-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *, .root *::before, .root *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
