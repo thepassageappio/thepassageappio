@@ -6,7 +6,22 @@ Active initiative: full greenfield UX/UI/IA redesign, codename "Threshold". Sour
 
 The owner (Steve) has explicitly authorized a complete teardown and rebuild of the UI/UX/IA. For redesign work this supersedes the "prefer existing design language / CalmKit" guidance below: keep the Supabase data model, roles, and feature scope as fixed truth, but treat visual design, UX, and IA as greenfield per the brief. Retain only viewer-relative status from CalmKit; rebuild it.
 
+**This "fixed data model" constraint is itself superseded as of 2026-07-14 — see the section immediately below. Read it before assuming the backend is off-limits.**
+
 Deliverable priority: the funeral-home demo path must be production-ready first. Also design the admin-access model (dedicated Admin Portal + secure view/impersonate) and a demo-instance strategy that never exposes demo pages in production. Details in the brief.
+
+## Backend Authorization Update — 2026-07-14 (owner-approved, supersedes the fixed-data-model constraint)
+
+Owner's own words, verbatim, in response to a diagnosis showing the redesign had been executed as a re-skin (colors/fonts/shadows) rather than a real IA rebuild, preserving old page structure "byte-identical": *"It's ideas, our job is to turn it into emotional warmth but modern, millennial and Gen Z, and funeral homes. It's ok to break things, the backend needs to follow the frontend, I gave it greenfield permission, as long as we are clear on what needs to be done backend to keep up let's make sure it's clear. But I want this greenfield now, redo the whole thing, I'm not happy."*
+
+What this changes, precisely:
+
+- The line above ("keep the Supabase data model, roles, and feature scope as fixed truth") and the matching line in `docs/UX-REDESIGN-BRIEF.md`'s Mandate section are **no longer absolute constraints**. The owner has explicitly authorized backend/schema changes where the frontend rebuild genuinely requires them — e.g. the IA doc's ten-section record model, new roles like `support_view`, or data shapes the current schema doesn't cleanly support.
+- **"OK to break things" means OK to restructure and redesign, not license for reckless or undocumented destruction of real data.** Every schema change still goes through a real Supabase migration (use the Supabase MCP's migration tooling — `apply_migration`, not raw `execute_sql` for structural changes), stays reversible where reasonably possible, and gets logged in `docs/agent-operating-context.md` like any other change.
+- The owner's own condition, stated in the same breath as the authorization: *"let's make sure it's clear"* what backend/schema changes are actually required and why, **before** they're applied. Practical rule: any batch of schema changes needs a short explicit list (what table/column/role, why the frontend needs it, what breaks if it's skipped) written down first — in a plan doc or the PM Sprint Brief — not applied blind in the same motion as discovering the need. This is a documentation-first gate, not a permission-to-ask-again gate; the owner does not want to be asked again, he wants the list to exist so everyone (including him) can see what changed and why.
+- Production DB writes still require the same discipline as always: real migrations, not ad hoc SQL against live data; irreversible production data changes and applying raw production SQL remain owner-approval items per the Agent Permissions section below unless the owner has explicitly pre-approved a specific migration in writing (as with this authorization for schema evolution generally — the specific migrations still get listed and reasoned through first, per the paragraph above).
+
+This authorization applies going forward from 2026-07-14. It does not retroactively bless any specific migration already applied — none had been, as of this update.
 
 ### Definition of done: mockup is not shipped — added 2026-07-12 after owner correction
 
@@ -21,6 +36,8 @@ Practical rule for every future session (scheduled or interactive) working this 
 ### Scale and ambition — added 2026-07-12 (run 3), owner directive: full transformation, greenfield
 
 The owner's goal is the **entire app transformed onto Threshold, greenfield** — not an indefinite trickle of one small page per day forever. Run 3 (2026-07-12) proved the safe end-to-end pattern for shipping a real page (presentation-only re-skin, throwaway-branch build proof, deploy, live post-deploy render check) on `pages/funeral-home/summary.js`. That pattern is now the default unit of work, but the *batch size* per run should scale up, not stay at one file forever.
+
+**As of 2026-07-14, "presentation-only re-skin, byte-identical structure" is no longer the target pattern for remaining work — see the Backend Authorization Update above and the density/IA findings in `docs/redesign-diagnosis-2026-07-14.md`. Re-skinning was the safe default while the data model was fixed; now that real IA and backend changes are authorized, remaining Tier 1/Tier 2 work should aim for genuine rebuilds where the diagnosis or brief calls for one, not another coat of paint.**
 
 **The driving backlog is `docs/redesign/12-threshold-rollout-tracker.md`.** Read it right after this directive, before `07-sprint-plan.md` or `11-funeral-home-polish-scope.md` (those remain valid for rationale/history, but the tracker is the actual checklist and status source of truth — update it every time a page ships).
 
@@ -239,15 +256,16 @@ Agents may proceed without asking for:
 - Test and QA improvements.
 - Documentation, roadmap, backlog, and handoff updates.
 - Drafting outreach, demo scripts, handouts, and customer interview guides.
+- As of 2026-07-14: frontend IA/component rebuilds and backend/schema migrations that implement the Threshold greenfield redesign, provided the migration is done via the Supabase MCP's real migration tooling and the explicit "what and why" list required by the Backend Authorization Update above has been written down first.
 
 Agents must not proceed without explicit owner approval for:
 
 - Changing pricing amounts.
 - Sending real emails or SMS to customers, vendors, funeral homes, or leads.
-- Applying production database SQL.
+- Applying raw/ad hoc production database SQL outside a real migration.
 - Deleting user-facing functionality instead of deprecating or redirecting it.
 - Material legal, compliance, privacy, security, medical, or funeral-director claim changes.
-- Irreversible production data changes.
+- Irreversible production data changes (data loss, not schema evolution via migration).
 - Spending money or starting paid campaigns.
 
 ## Engineering Rules
