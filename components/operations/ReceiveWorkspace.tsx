@@ -111,12 +111,13 @@ export function ReceiveWorkspace() {
 }
 
 function PassFailure({ code, clearPass, record }: { code: string; clearPass: () => void; record: PassRecord }) {
+  const failureStatus: Exclude<PassStatus, 'active'> = record.status === 'active' ? 'invalid' : record.status;
   const copy = {
     expired: ['ACCESS ENDED', 'This pass has expired.', `${record.sender}’s handoff for ${record.person} ended ${record.expires}. The family can issue a new pass.`, 'No information was opened or added to a case.'],
     revoked: ['ACCESS WITHDRAWN', 'The family revoked this pass.', `${record.sender} ended this handoff before acceptance. A new family-controlled pass is required.`, 'No shared items were added to a case.'],
     accepted: ['HANDOFF COMPLETE', 'This pass was already accepted.', `${record.acceptedBy} accepted the handoff into ${record.caseId} at ${record.acceptedAt}.`, 'The saved receipt and shared items are available in the destination case.'],
     invalid: ['PASS NOT FOUND', 'This handoff cannot be verified.', 'Check each character or ask the family to issue a new Transfer Pass.', 'No information was opened or added to a case.'],
-  }[record.status] || ['PASS UNAVAILABLE', 'This pass cannot be opened.', 'Try another code.', 'No case was changed.'];
+  }[failureStatus];
   return <AppFrame active="receive" identity="Elena Torres" role="Director · Northstar"><section className={styles.failure}><Signal tone={record.status === 'accepted' ? 'success' : 'warm'}>{copy[0]}</Signal><h1>{copy[1]}</h1><p>{copy[2]}</p><div><span aria-hidden="true">i</span>{copy[3]}</div><button onClick={clearPass} type="button">Enter another code <span>→</span></button><small>REFERENCE · {code}</small></section></AppFrame>;
 }
 
