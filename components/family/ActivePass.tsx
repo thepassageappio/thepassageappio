@@ -51,7 +51,7 @@ export default function ActivePass() {
 
   async function copyCode() {
     try {
-      await navigator.clipboard.writeText('PSSG-R7K4-M2Q9');
+      await navigator.clipboard.writeText('PASS-RIVERA-7K4M');
     } finally {
       setCopied(true);
     }
@@ -103,7 +103,7 @@ export default function ActivePass() {
           <span className={styles.scanLabel}>SCAN TO OPEN</span>
           <div className={styles.manualCode}>
             <span>MANUAL CODE</span>
-            <strong>PSSG-R7K4-M2Q9</strong>
+            <strong>PASS-RIVERA-7K4M</strong>
           </div>
           <button onClick={copyCode} type="button">{copied ? 'Copied' : 'Copy code'}</button>
         </div>
