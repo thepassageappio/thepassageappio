@@ -78,7 +78,7 @@ export default function MissionPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 7, marginBottom: 8 }}>
           {proof.map(([k, v]) => (
-            <div key={k} style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 13, padding: '7px 10px' }}>
+            <div key={k} style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 13, padding: '7px 10px', boxShadow: '0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03)' }}>
               <div style={{ color: C.sage, fontSize: 10.5, fontWeight: 900, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 3 }}>{k}</div>
               <div style={{ fontSize: 14, lineHeight: 1.1 }}>{v}</div>
             </div>
@@ -86,7 +86,7 @@ export default function MissionPage() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '210px minmax(0, 1fr)', gap: 8 }}>
-          <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 15, padding: 8, display: 'grid', gap: 6 }}>
+          <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 15, padding: 8, display: 'grid', gap: 6, boxShadow: '0 1px 1px rgba(20,30,25,.03), 0 2px 4px rgba(20,30,25,.03)' }}>
             {paths.map(([label, , , , bg, accent], index) => (
               <button
                 key={label}
@@ -111,7 +111,7 @@ export default function MissionPage() {
               </button>
             ))}
           </div>
-          <Link href={activePath[1]} style={{ display: 'grid', minHeight: 118, textDecoration: 'none', color: C.ink, background: activePath[4], border: `1px solid ${activePath[5]}33`, borderRadius: 20, padding: '14px 16px' }}>
+          <Link href={activePath[1]} style={{ display: 'grid', minHeight: 118, textDecoration: 'none', color: C.ink, background: activePath[4], border: `1px solid ${activePath[5]}33`, borderRadius: 20, padding: '14px 16px', boxShadow: '0 2px 6px rgba(20,30,25,.05), 0 10px 24px -8px rgba(20,30,25,.10)' }}>
             <div>
               <div style={{ color: activePath[5], fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 900, marginBottom: 5 }}>{activePath[0]}</div>
               <div style={{ fontFamily: MOMENT_FONT, fontWeight: 440, fontSize: 23, lineHeight: 1.02, marginBottom: 6 }}>{activePath[2]}</div>

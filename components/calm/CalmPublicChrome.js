@@ -53,34 +53,36 @@ export function RawStyle({ css }) {
 
 export function CalmHeader({ session }) {
   return (
-    <header className="hc-header">
-      <a href="/" className="hc-logo" aria-label="Passage home">Passage</a>
-      <nav className="hc-nav" aria-label="Primary">
-        {NAV.map(([label, href, secondary]) => (
-          <a key={href} href={href} className={`hc-navlink${secondary ? ' hc-nav-secondary' : ''}`}>{label}</a>
-        ))}
-      </nav>
-      <div className="hc-auth">
-        {session?.user ? (
-          <>
-            <a href="/estate" className="hc-navlink hc-auth-link">My estate</a>
-            <button
-              type="button"
-              className="hc-signin"
-              onClick={() => {
-                supabase?.auth?.signOut?.().finally(() => {
-                  if (typeof window !== 'undefined') window.location.assign('/');
-                });
-              }}
-            >
-              Sign out
-            </button>
-          </>
-        ) : (
-          <a href="/login" className="hc-signin">Sign in</a>
-        )}
-      </div>
-    </header>
+    <div className="hc-header-sticky-wrap">
+      <header className="hc-header">
+        <a href="/" className="hc-logo" aria-label="Passage home">Passage</a>
+        <nav className="hc-nav" aria-label="Primary">
+          {NAV.map(([label, href, secondary]) => (
+            <a key={href} href={href} className={`hc-navlink${secondary ? ' hc-nav-secondary' : ''}`}>{label}</a>
+          ))}
+        </nav>
+        <div className="hc-auth">
+          {session?.user ? (
+            <>
+              <a href="/estate" className="hc-navlink hc-auth-link">My estate</a>
+              <button
+                type="button"
+                className="hc-signin"
+                onClick={() => {
+                  supabase?.auth?.signOut?.().finally(() => {
+                    if (typeof window !== 'undefined') window.location.assign('/');
+                  });
+                }}
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <a href="/login" className="hc-signin">Sign in</a>
+          )}
+        </div>
+      </header>
+    </div>
   );
 }
 
@@ -105,8 +107,9 @@ export function CalmPublicStyles() {
       .hc-root { background: ${DS.color.page}; min-height: 100vh; font-family: ${SANS}; color: ${DS.color.ink}; overflow-x: hidden; }
       .hc-wrap { width: min(1120px, 100%); box-sizing: border-box; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
 
-      /* Header */
-      .hc-header { width: min(1120px, 100%); box-sizing: border-box; margin: 0 auto; padding: 18px 24px 10px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+      /* Header -- sticky glass surface per docs/redesign/08-visual-craft-standard.md */
+      .hc-header-sticky-wrap { position: sticky; top: 0; z-index: 40; padding: 10px 14px 0; }
+      .hc-header { width: min(1120px, 100%); box-sizing: border-box; margin: 0 auto; padding: 10px 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; background: rgba(251,250,247,0.72); backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); border: 1px solid rgba(228,221,212,.6); border-radius: ${DS.radius.pill}px; box-shadow: ${DS.shadow.hair}, 0 10px 24px -14px rgba(20,30,25,.16); }
       .hc-logo { font-family: ${SANS}; font-weight: 700; font-size: 21px; letter-spacing: -0.01em; color: ${DS.color.sageDeep}; text-decoration: none; }
       .hc-nav { display: flex; gap: 18px; flex-wrap: wrap; flex: 1; min-width: 0; align-items: center; }
       .hc-navlink { font-family: ${SANS}; font-size: 14px; color: ${DS.color.mid}; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; min-height: 36px; }
@@ -123,11 +126,11 @@ export function CalmPublicStyles() {
       .hc-lede { font-size: clamp(16px, 2.2vw, 19px); line-height: 1.55; color: ${DS.color.mid}; margin: 0; max-width: 620px; }
       .hc-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
       .hc-actions > * { min-width: 0; }
-      .hc-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; font-family: ${SANS}; font-size: 15px; font-weight: 600; border-radius: ${DS.radius.md}px; min-height: ${DS.tap.min}px; padding: 0 22px; cursor: pointer; text-decoration: none; border: 1px solid transparent; transition: background ${DS.motion.fast} ${DS.motion.ease}, border-color ${DS.motion.fast} ${DS.motion.ease}; }
-      .hc-btn-primary { background: ${DS.color.sageDeep}; color: #fff; }
-      .hc-btn-primary:hover { background: #2f4c34; }
-      .hc-btn-secondary { background: ${DS.color.card}; color: ${DS.color.sageDeep}; border-color: ${DS.color.sage}55; }
-      .hc-btn-secondary:hover { background: ${DS.color.sageFaint}; }
+      .hc-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; font-family: ${SANS}; font-size: 15px; font-weight: 600; border-radius: ${DS.radius.pill}px; min-height: ${DS.tap.min}px; padding: 0 22px; cursor: pointer; text-decoration: none; border: 1px solid transparent; transition: background ${DS.motion.fast} ${DS.motion.ease}, border-color ${DS.motion.fast} ${DS.motion.ease}, transform ${DS.motion.fast} ${DS.motion.ease}, box-shadow ${DS.motion.fast} ${DS.motion.ease}; }
+      .hc-btn-primary { background: linear-gradient(155deg, ${DS.color.sageDeep}, #223a26); color: #fff; box-shadow: 0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35); }
+      .hc-btn-primary:hover { background: linear-gradient(155deg, #2f4c34, #1a2e1e); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(20,30,25,.18), 0 12px 22px -6px rgba(20,30,25,.4); }
+      .hc-btn-secondary { background: ${DS.color.card}; color: ${DS.color.sageDeep}; border-color: ${DS.color.sage}55; box-shadow: ${DS.shadow.hair}; }
+      .hc-btn-secondary:hover { background: ${DS.color.sageFaint}; transform: translateY(-1px); box-shadow: ${DS.shadow.card}; }
       .hc-reassure { ${cssType(TYPE.small)} color: ${DS.color.soft}; line-height: 1.5; margin: 18px 0 0; max-width: 560px; }
 
       /* Section scaffolding */
@@ -141,7 +144,8 @@ export function CalmPublicStyles() {
       .hc-grid { display: grid; gap: 16px; }
       .hc-grid-3 { grid-template-columns: repeat(3, minmax(min(100%, 260px), 1fr)); }
       .hc-grid-2 { grid-template-columns: repeat(2, minmax(min(100%, 300px), 1fr)); }
-      .hc-card { box-sizing: border-box; min-width: 0; background: ${DS.color.card}; border: 1px solid ${DS.color.hair}; border-radius: ${DS.radius.lg}px; padding: 22px; box-shadow: ${DS.shadow.hair}; }
+      .hc-card { box-sizing: border-box; min-width: 0; background: ${DS.color.card}; border: 1px solid ${DS.color.hair}; border-radius: ${DS.radius.lg}px; padding: 22px; box-shadow: ${DS.shadow.hair}; transition: box-shadow ${DS.motion.fast} ${DS.motion.ease}, transform ${DS.motion.fast} ${DS.motion.ease}; }
+      .hc-card:hover { box-shadow: ${DS.shadow.card}; transform: translateY(-2px); }
       .hc-card-title { ${cssType(TYPE.h2)} font-size: 17px; color: ${DS.color.ink}; margin: 0 0 8px; }
       .hc-card-body { ${cssType(TYPE.small)} color: ${DS.color.mid}; line-height: 1.55; margin: 0; }
 
@@ -154,13 +158,13 @@ export function CalmPublicStyles() {
       .hc-persona-body { ${cssType(TYPE.small)} color: ${DS.color.mid}; line-height: 1.5; margin: 0; }
 
       /* Trust band */
-      .hc-trust { background: ${DS.color.sageDeep}; border-radius: ${DS.radius.xl}px; box-sizing: border-box; padding: clamp(24px, 4vw, 40px); margin-bottom: 8px; }
+      .hc-trust { background: linear-gradient(165deg, ${DS.color.sageDeep}, #223a26); border-radius: ${DS.radius.xl}px; box-sizing: border-box; padding: clamp(24px, 4vw, 40px); margin-bottom: 8px; box-shadow: ${DS.shadow.card}; }
       .hc-trust-kicker { ${cssType(TYPE.label)} color: #b9d2bd; margin: 0 0 10px; }
       .hc-trust-h2 { font-size: clamp(22px, 3.2vw, 28px); font-weight: 600; letter-spacing: -0.012em; line-height: 1.18; color: #fff; margin: 0 0 8px; }
       .hc-trust-sub { ${cssType(TYPE.body)} color: #d8d0c7; margin: 0 0 22px; max-width: 580px; }
       .hc-trust-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(min(100%, 280px), 1fr)); }
-      .hc-trust-card { display: flex; flex-direction: column; box-sizing: border-box; min-width: 0; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16); border-radius: ${DS.radius.lg}px; padding: 18px; min-height: ${DS.tap.min}px; text-decoration: none; color: #fff; transition: background ${DS.motion.fast} ${DS.motion.ease}; }
-      .hc-trust-card:hover { background: rgba(255,255,255,0.12); }
+      .hc-trust-card { display: flex; flex-direction: column; box-sizing: border-box; min-width: 0; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16); border-radius: ${DS.radius.lg}px; padding: 18px; min-height: ${DS.tap.min}px; text-decoration: none; color: #fff; transition: background ${DS.motion.fast} ${DS.motion.ease}, transform ${DS.motion.fast} ${DS.motion.ease}, box-shadow ${DS.motion.fast} ${DS.motion.ease}; }
+      .hc-trust-card:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); box-shadow: 0 10px 24px -10px rgba(0,0,0,.35); }
       .hc-trust-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; ${cssType(TYPE.h2)} font-size: 15.5px; color: #fff; margin: 0 0 6px; }
       .hc-trust-body { ${cssType(TYPE.small)} color: #cfe0d2; line-height: 1.5; margin: 0; }
       .hc-pledge { box-sizing: border-box; margin-top: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: ${DS.radius.md}px; padding: 16px 18px; ${cssType(TYPE.small)} color: #e8efe9; line-height: 1.55; }
@@ -181,6 +185,7 @@ export function CalmPublicStyles() {
         .hc-actions { flex-direction: column; align-items: stretch; }
         .hc-actions > * { width: 100%; }
         .hc-hero { padding-top: 28px; padding-bottom: 36px; }
+        .hc-header-sticky-wrap { padding: 8px 8px 0; }
       }
     `;
 
