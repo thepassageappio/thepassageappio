@@ -8,7 +8,7 @@ This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` 
 
 Paste this into a new Codex chat:
 
-> Passage Release Train: start the loop. Continue the Passage Zero greenfield rebuild on `thepassageappio/thepassageappio`, branch `greenfield/passage-zero`, draft PR #24. Read `AGENTS.md`, `docs/agent-operating-context.md`, and `docs/product/persona-action-architecture.md` first. This is a complete rebuild, not a reskin. The funeral director is the primary operating wedge and the QR/no-QR walk-in case-creation experience is the signature moment. Continue without asking Steve for approval except for the genuine gates in `AGENTS.md`. Re-instantiate distinct PM, UX, engineering, QA, and deploy roles and keep the release train moving. Build the shared case/event spine first, then multi-location funeral-home operations, vendor fulfillment, and integration adapters. Verify every shipped batch on desktop and mobile and commit real screenshot evidence.
+> Passage Release Train: start the next loop. Continue the Passage Zero greenfield rebuild on `thepassageappio/thepassageappio`, branch `greenfield/passage-zero`, draft PR #24, from QA-approved head `ba71de6a5ea61d516e483d1a365a176a39fa3c7f`. Read `AGENTS.md`, `docs/agent-operating-context.md`, and `docs/product/persona-action-architecture.md` first. The shared browser-persistent case/event spine and warm editorial redesign are complete. Preserve Cormorant Garamond display type, Montserrat functional copy, warm ivory surfaces, and dusty low-saturation purple/blue/green states. Do not treat 85% guided-experience readiness as production readiness. Re-instantiate distinct PM, UX, engineering, QA, and deploy roles. Advance the funeral-home product toward a real pilot by building organization/location/membership/assignment foundations next, followed by durable auth/RLS-backed persistence; keep vendor fulfillment queued until ownership and location semantics are coherent. Continue without asking Steve except for explicit `AGENTS.md` gates. Verify each batch at desktop, 390, and 360, commit real screenshots, and use one preview deploy per coherent QA-approved batch.
 
 ## Founder mandate
 
@@ -82,24 +82,24 @@ Branch: `greenfield/passage-zero`
 
 Draft PR: https://github.com/thepassageappio/thepassageappio/pull/24
 
-Current verified code commit: `90ddc8741fd92ca369e6a95ee22a45370c9dbc16`
+Current verified code commit: `ba71de6a5ea61d516e483d1a365a176a39fa3c7f`
 
-Current evidence commit: `c4e01c88ae859dbe148fe1274f1d5c612e1d62f1`
+Current evidence commit: `ba71de6a5ea61d516e483d1a365a176a39fa3c7f`
 
 Canonical Vercel project:
 
 - Project ID: `prj_b7CKwanQaKwFQSHInr3l6wsZy9nD`
 - Team ID: `team_X0ta3bEEbRVGNM9xOwdBtCga`
 
-Verified READY deployment: `dpl_84FNna46F3C1oCLzQnHT7KHvrLjo`
+Verified READY deployment: `dpl_5RcB1ekoBJoPr1Jfxm6TJqL8TAnW`
 
 Shareable sandbox root (token may expire):
 
-`https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app/?_vercel_share=1Hbji57KRNHCIwXoSNOp0wy8nXrWUQNj`
+`https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app/?_vercel_share=ZLNPLhe7x1GBqqEwa1NL61hgchHoOFCX`
 
 Director intake:
 
-`https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app/director/intake?_vercel_share=1Hbji57KRNHCIwXoSNOp0wy8nXrWUQNj`
+`https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app/director/intake?_vercel_share=ZLNPLhe7x1GBqqEwa1NL61hgchHoOFCX`
 
 ### Implemented surfaces
 
@@ -323,12 +323,12 @@ Stop only for the explicit `AGENTS.md` gates:
 ## Immediate new-chat action
 
 1. Read the three canonical files.
-2. Inspect PR #24, the branch head, recent commits, and local `passage-zero/` for parallel-agent changes.
-3. Reconcile and review the shared-case, multi-location, and vendor tracks.
-4. Integrate the smallest coherent cross-persona story.
-5. Run React/Next review, then desktop/mobile browser QA.
-6. Commit code and evidence, deploy one preview batch, and update PR #24 plus this context.
-7. Auto-advance to the next highest-leverage incomplete product slice.
+2. Confirm PR #24 head is at or after `ba71de6`; inspect any newer branch/local changes before editing.
+3. Re-instantiate PM and UX around the multi-location funeral-home operating slice: organization, locations, memberships, workspace context, assignment, and case routing.
+4. Extend the existing typed event spine rather than creating a parallel state model; keep family access unchanged and vendor fulfillment queued.
+5. Define the durable-backend what/why/breakage plan required by `AGENTS.md` before any migration. Prefer real auth/RLS-backed persistence over cosmetic progress once the multi-location contract is coherent.
+6. Run React/Next review, full cross-persona browser QA at desktop/390/360, contrast/overflow/console checks, and commit new screenshots.
+7. Publish one coherent `[deploy] [qa-approved]` batch, update PR #24 and this file, then auto-advance.
 
 ## Release-train cycle 2 - shared operational truth
 
@@ -381,7 +381,7 @@ Next execution sequence after preview verification:
 
 ## Release-train cycle 3 - warm editorial system and onboarding
 
-Status: IMPLEMENTED; final branch publication and preview verification remain.
+Status: COMPLETE, committed, and preview verified.
 
 Founder feedback addressed:
 
@@ -400,6 +400,13 @@ Visual QA:
 - The key warm palette pairs pass WCAG AA contrast for normal text: muted/canvas 4.75:1, signal/canvas 4.63:1, and surface text on signal 5.00:1.
 - The complete issue -> inspect -> accept -> start -> proof loop still works after the visual change and produced no browser warnings or errors in the tested path.
 - New evidence uses the `warm-*.png` prefix under `docs/evidence/passage-zero`.
+
+Preview handoff:
+
+- QA-approved commit: `ba71de6a5ea61d516e483d1a365a176a39fa3c7f`.
+- Vercel deployment: `dpl_5RcB1ekoBJoPr1Jfxm6TJqL8TAnW` (`READY`, Next.js/Turbopack, preview target).
+- Stable branch alias: `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app`.
+- Temporary July 15 share token expires July 16, 2026; generate a new token if the fresh chat runs later.
 
 Readiness boundary:
 
