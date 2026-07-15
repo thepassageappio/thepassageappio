@@ -18,7 +18,7 @@ This ADR defines a product-security contract. It does not assert that a Transfer
 Create two purpose-built, additive tables:
 
 - `transfer_pass_tokens`: the current pass envelope, immutable share-scope snapshot, recipient organization, lifecycle, expiry, and hashed secrets.
-- `transfer_pass_consents`: append-only events for issuance, viewing, acceptance, revocation, expiry, packet generation, and later consent-safe extensions.
+- `transfer_pass_consents`: append-only events for issuance, viewing, acceptance, revocation, expiry, packet generation, and later consent-safe extensions. Each event is bound to the same workflow as its parent pass by a composite foreign key.
 
 Keep `provider_handoffs` unchanged. A later migration may link it to an accepted Transfer Pass if a real workflow requires that relationship.
 
@@ -32,6 +32,8 @@ A signed-in user may issue or revoke a pass when they are:
 - the coordinator whose authenticated email matches `workflows.coordinator_email`; or
 - an accepted `estate_access` member with role `owner` or `operator`.
 
+When an access or organization-membership row is already bound to a `user_id`, only that user ID authorizes access. Email matching is a fallback only for an accepted invitation whose `user_id` is still null; it can never authorize a second identity for a bound row.
+
 ### Recipient
 
 V1 requires a registered `organizations` recipient. Inspection and acceptance require both:
@@ -40,6 +42,8 @@ V1 requires a registered `organizations` recipient. Inspection and acceptance re
 2. possession of the valid QR or manual secret.
 
 An anonymous user, vendor outside the designated organization, inactive member, or member of an unrelated organization receives no pass payload.
+
+Recipient users do not receive direct table access to consent events. The `list_transfer_pass_events` RPC requires authentication, designated active-organization membership, and possession of the live QR or manual secret. It rejects expired and revoked passes and returns only the pass's limited event projection. Estate controllers may read consent events directly through RLS.
 
 ## Secrets
 
@@ -56,15 +60,15 @@ An anonymous user, vendor outside the designated organization, inactive member, 
 The token stores an immutable JSONB snapshot:
 
 - `scope_version`, initially 1;
-- a non-empty `items` array containing explicit fields/categories;
+- a non-empty `items` array containing explicit fields/categories, capped at 50 items;
 - recipient name and organization identity at issuance;
 - estate/workflow identity;
 - issuer identity; and
 - expiry.
 
-A scope change revokes the old pass and issues a new pass. It never mutates the old scope.
+A scope change revokes the old pass and issues a new pass. It never mutates the old scope. V1 accepts only `scope_version: 1`, rejects JSON null/missing/non-array scopes, and caps the serialized snapshot at 64 KiB. Application code must construct scopes from a server-owned allowlist; arbitrary user-authored JSON is not a supported sharing contract.
 
-Expiry must be in the future and no more than 30 days from issuance. Product defaults may be shorter.
+Expiry must be in the future and no more than 30 days from issuance. The limit is enforced both by the issue RPC and a table constraint. Product defaults may be shorter.
 
 ## Lifecycle
 
@@ -73,7 +77,8 @@ Stored state is `issued`, `accepted`, or `revoked`. Expiry is derived from `expi
 - Issuance logs `issued`.
 - A valid resolve logs `viewed`.
 - Acceptance is concurrency-safe and idempotent.
-- Revocation blocks future resolve and acceptance immediately.
+- Legal transitions are `issued → accepted`, `issued → revoked`, and `accepted → revoked`; lifecycle actors and timestamps are immutable after they are recorded.
+- Revocation blocks future resolve, acceptance, and recipient audit access immediately.
 - Packet generation logs `packet_generated`.
 - Audit rows cannot be updated or deleted through application roles.
 
@@ -82,8 +87,10 @@ Stored state is `issued`, `accepted`, or `revoked`. Expiry is derived from `expi
 - RLS is enabled and forced on both tables.
 - Direct inserts, updates, and deletes are denied to client roles.
 - Issuers may select safe token metadata for passes they issued.
-- Estate controllers and designated active recipient-organization members may select relevant audit events.
-- Recipient payload access occurs only through a secure resolver that validates secret, membership, state, and expiry.
+- Estate controllers may select relevant audit events through RLS.
+- Recipient payload and recipient audit access occur only through security-definer RPCs that validate secret, designated active-organization membership, state, and expiry.
+- Consent rows are constrained to the same workflow as their parent token.
+- Actor user and organization references use restrictive deletion semantics so append-only history cannot silently lose attribution; future privacy/deletion workflows require a documented forward migration that preserves an immutable pseudonymous subject.
 - `anon` receives no table or function privileges.
 - `service_role` retains operational access.
 - Functions use a fixed empty `search_path` and fully qualified references.
@@ -91,7 +98,7 @@ Stored state is `issued`, `accepted`, or `revoked`. Expiry is derived from `expi
 ## What changes
 
 - Two additive tables, indexes, constraints, triggers, RLS policies, and grants.
-- Four authenticated RPCs: issue, resolve, accept, and revoke.
+- Five authenticated RPCs: issue, resolve, accept, list events, and revoke.
 - A stable backend contract for Transfer Wallet and funeral-home scan/accept experiences.
 - No changes to existing workflow, estate-access, organization, or provider-handoff records.
 
@@ -113,8 +120,17 @@ The dedicated model makes the family’s scope and consent explicit, creates a d
 1. Commit the migration; do not apply it to production.
 2. Apply to the isolated Supabase sandbox.
 3. Run the permission matrix for issuer, accepted estate controller, intended recipient member, unrelated organization, anonymous user, expired pass, revoked pass, and cross-estate access.
-4. Connect application APIs only after tests pass.
-5. Generate synthetic sandbox passes; never seed raw secrets into production.
+4. Run the database-integrity matrix:
+   - SQL null, JSON null, missing, non-array, empty, oversized, over-50-item, and wrong-version scopes are rejected;
+   - a consent row cannot name a workflow different from its parent pass;
+   - a membership row bound to one user cannot authorize a different user through its email;
+   - direct recipient consent-table reads are denied while secret-bound recipient event RPC access succeeds;
+   - concurrent acceptance produces one accepted transition and one accepted event;
+   - illegal lifecycle reversals and direct over-30-day expiry inserts are rejected;
+   - actor deletion follows the documented restrictive-retention behavior; and
+   - anonymous and unrelated roles cannot execute or infer pass data.
+5. Connect application APIs only after tests pass.
+6. Generate synthetic sandbox passes; never seed raw secrets into production.
 
 ## Rollback
 
@@ -127,3 +143,4 @@ Before real data exists, rollback may drop the new functions, triggers, policies
 - Key rotation or peppering beyond SHA-256 random-secret digests.
 - Packet file retention.
 - Verified legal/compliance language.
+
