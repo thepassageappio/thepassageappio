@@ -690,7 +690,7 @@
 @media (max-width: 780px) {
   .familyHeader { grid-template-columns: 1fr auto; min-height: 66px; padding: 0 20px; }
   .headerContext { display: none; }
-  .familyIntro { grid-template-columns: 1fr; gap: 24px; padding: 52px 20px 44px; }
+  .familyIntro { grid-template-columns: 1fr; gap: 18px; padding: 38px 20px 30px; }
   .familyIntro h1 { font-size: clamp(54px, 17vw, 78px); }
   .familyIntro > p { font-size: 15px; }
   .journey { padding: 0 0 70px; }
@@ -704,14 +704,14 @@
   .steps button > strong { font-size: 9px; }
   .steps button > span { font-size: 8px; }
   .composerGrid { display: flex; flex-direction: column; gap: 18px; padding: 24px 20px 0; }
-  .stage { width: 100%; }
+  .stage { order: -1; width: 100%; }
   .stageInner { padding: 28px 18px 30px; }
   .stageIntro { margin-bottom: 30px; }
   .stageIntro h1 { font-size: clamp(38px, 11vw, 52px); }
   .stageIntro > span { font-size: 13px; }
 
   .signal,
-  .signalActive { position: relative; top: auto; order: -1; width: 100%; min-height: 400px; }
+  .signalActive { position: relative; top: auto; order: 0; width: 100%; min-height: 280px; }
   .signalRoute { margin: 37px 0 32px; }
   .signalDestination strong { font-size: 20px; }
   .signalCounts > div { padding-top: 14px; padding-bottom: 14px; }
@@ -772,7 +772,7 @@
   .caseLabel { gap: 7px; }
   .caseLabel span { font-size: 8px; }
   .caseLabel strong { font-size: 10px; }
-  .signal { min-height: 420px; }
+  .signal { min-height: 280px; }
   .signalCounts strong { font-size: 15px; }
   .signalCounts span { font-size: 6px; }
   .expiry small,
