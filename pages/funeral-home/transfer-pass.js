@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
-import styles from '../../../styles/StaffTransferPass.module.css';
+import styles from '../../styles/StaffTransferPass.module.css';
 
 const PASSES = {
   'PASS-RIVERA-7K4M': {
