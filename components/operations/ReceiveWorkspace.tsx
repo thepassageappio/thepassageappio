@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePassageZero } from '../PassageZeroProvider';
 import { AppFrame } from './AppFrame';
 import { ContinuityRail } from './ContinuityRail';
 import { Signal } from './Signal';
@@ -29,6 +30,7 @@ const PASS_RECORDS: Record<string, PassRecord> = {
 function normalize(value: string) { return value.trim().toUpperCase().replace(/\s+/g, '-'); }
 
 export function ReceiveWorkspace() {
+  const { record: sandbox, dispatch } = usePassageZero();
   const router = useRouter();
   const search = useSearchParams();
   const queryCode = normalize(search.get('code') || '');
@@ -37,13 +39,27 @@ export function ReceiveWorkspace() {
   const [destination, setDestination] = useState<'new' | 'existing'>('new');
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState('');
-  const record = useMemo<PassRecord | null>(() => queryCode ? (PASS_RECORDS[queryCode] || { status: 'invalid' }) : null, [queryCode]);
+  const record = useMemo<PassRecord | null>(() => {
+    if (!queryCode) return null;
+    if (queryCode === sandbox.transferPass.code) {
+      return {
+        status: sandbox.transferPass.status === 'issued' ? 'active' : sandbox.transferPass.status,
+        sender: sandbox.familyCoordinator.name, relationship: sandbox.familyCoordinator.role,
+        person: sandbox.person.name, destination: sandbox.organization.name,
+        expires: sandbox.transferPass.expiresLabel, acceptedAt: sandbox.transferPass.acceptedAt,
+        acceptedBy: sandbox.transferPass.acceptedBy, caseId: sandbox.case.id, scope: sandbox.transferPass.scope,
+      };
+    }
+    return PASS_RECORDS[queryCode] || { status: 'invalid' };
+  }, [queryCode, sandbox]);
 
   function inspect(event: FormEvent) {
     event.preventDefault();
     const code = normalize(draft);
     if (!code) { setError('Enter the code shown beneath the family’s QR pass.'); return; }
-    setError(''); setReviewed(false); setAccepted(false); router.replace(`/receive?code=${encodeURIComponent(code)}`);
+    setError(''); setReviewed(false); setAccepted(false);
+    if (code === sandbox.transferPass.code) dispatch({ type: 'inspect_transfer_pass', idempotencyKey: `receive:inspect:${code}` });
+    router.replace(`/receive?code=${encodeURIComponent(code)}`);
   }
 
   function clearPass() { setDraft(''); setReviewed(false); setAccepted(false); setError(''); router.replace('/receive'); }
@@ -66,8 +82,8 @@ export function ReceiveWorkspace() {
     </AppFrame>
   );
 
-  if (record.status !== 'active') return <PassFailure code={queryCode} clearPass={clearPass} record={record} />;
   if (accepted) return <Receipt code={queryCode} clearPass={clearPass} destination={destination} record={record} />;
+  if (record.status !== 'active') return <PassFailure code={queryCode} clearPass={clearPass} record={record} />;
 
   return (
     <AppFrame active="receive" identity="Elena Torres" role="Director · Northstar">
@@ -94,15 +110,15 @@ export function ReceiveWorkspace() {
             <p className={styles.private}><span aria-hidden="true">−</span><strong>Everything else stays private.</strong>This pass does not open the rest of the family record.</p>
           </section>
 
-          <form className={styles.destination} onSubmit={(event) => { event.preventDefault(); if (!reviewed) { setError('Confirm your review before accepting.'); return; } setError(''); setAccepted(true); }}>
-            <span>03 / DESTINATION</span><h2>Choose one case record.</h2><p>Acceptance copies the scoped items and creates a durable handoff receipt.</p>
+          <form className={styles.destination} onSubmit={(event) => { event.preventDefault(); if (!reviewed) { setError('Confirm your review before accepting.'); return; } setError(''); dispatch({ type: 'accept_transfer_pass', idempotencyKey: `receive:accept:${queryCode}` }); setAccepted(true); }}>
+            <span>03 / DESTINATION</span><h2>Choose one case record.</h2><p>Acceptance copies the scoped items and saves a handoff receipt in this browser sandbox.</p>
             <fieldset><legend>CASE DESTINATION</legend>
               <label className={destination === 'new' ? styles.chosen : ''}><input checked={destination === 'new'} name="destination" onChange={() => setDestination('new')} type="radio" /><span><strong>Create intake</strong><small>{record.person} · New case</small></span></label>
-              <label className={destination === 'existing' ? styles.chosen : ''}><input checked={destination === 'existing'} name="destination" onChange={() => setDestination('existing')} type="radio" /><span><strong>Existing match</strong><small>{record.person} · NS-2041</small></span></label>
+              <label className={destination === 'existing' ? styles.chosen : ''}><input checked={destination === 'existing'} disabled name="destination" onChange={() => setDestination('existing')} type="radio" /><span><strong>No other eligible case</strong><small>Duplicate destination is blocked for this handoff.</small></span></label>
             </fieldset>
             <label className={styles.confirm}><input checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} type="checkbox" /><span>I reviewed the sender, scope, expiry, and destination.</span></label>
             {error && <p className={styles.error} role="alert">{error}</p>}
-            <button className={styles.accept} type="submit">Accept into case <span>→</span></button>
+            <button className={styles.accept} type="submit">Accept into {sandbox.case.id} <span>→</span></button>
           </form>
         </div>
       </section>
@@ -129,9 +145,9 @@ function Receipt({ code, clearPass, destination, record }: { code: string; clear
       { label: 'Handoff', detail: `From ${record.sender}`, state: 'complete' }, { label: 'Case', detail: caseId, state: 'complete' }, { label: 'Owner', detail: 'Elena Torres', state: 'complete' }, { label: 'Proof', detail: 'Receipt saved', state: 'complete' },
     ]} />
     <section className={styles.receipt}>
-      <div className={styles.receiptMark} aria-hidden="true">✓</div><div className={styles.receiptTitle}><span>ACCEPTANCE RECEIPT</span><h2>The scoped handoff is now part of {caseId}.</h2><p>{record.sender}’s selected items were copied to one case. The source, recipient, scope, time, and destination are recorded.</p></div>
+      <div className={styles.receiptMark} aria-hidden="true">✓</div><div className={styles.receiptTitle}><span>ACCEPTANCE RECEIPT</span><h2>The scoped handoff is now part of {caseId}.</h2><p>{record.sender}’s selected items were copied to one sandbox case. The source, recipient, scope, time, and destination are recorded in this browser.</p></div>
       <dl><div><dt>CASE</dt><dd>{caseId}</dd></div><div><dt>ACCEPTED BY</dt><dd>Elena Torres</dd></div><div><dt>SCOPE</dt><dd>{record.scope?.length} selected groups</dd></div><div><dt>REFERENCE</dt><dd>{code}</dd></div></dl>
-      <div className={styles.receiptActions}><button type="button">Open {caseId} <span>↗</span></button><button onClick={clearPass} type="button">Receive another pass</button></div>
+      <div className={styles.receiptActions}><a href="/director">Open {caseId} <span>↗</span></a><button onClick={clearPass} type="button">Receive another pass</button></div>
     </section>
   </AppFrame>;
 }

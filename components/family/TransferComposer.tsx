@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import BoundarySignal from './BoundarySignal';
 import styles from './FamilyJourney.module.css';
 import { DEFAULT_DRAFT, EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
+import { usePassageZero } from '../PassageZeroProvider';
 
 const STEPS = [
   { id: 'recipient', label: 'Receiver' },
@@ -15,6 +16,7 @@ const STEPS = [
 
 export default function TransferComposer() {
   const router = useRouter();
+  const { dispatch } = usePassageZero();
   const [phase, setPhase] = useState(0);
   const [draft, setDraft] = useState<TransferDraft>(DEFAULT_DRAFT);
   const [activating, setActivating] = useState(false);
@@ -59,6 +61,12 @@ export default function TransferComposer() {
     setActivating(true);
     const activated: TransferDraft = { ...draft, activatedAt: new Date().toISOString() };
     window.sessionStorage.setItem('passage.family.transfer.v1', JSON.stringify(activated));
+    dispatch({
+      type: 'issue_transfer_pass',
+      idempotencyKey: `family:issue:${activated.activatedAt}`,
+      scope: included.map((item) => ({ name: item.label, detail: item.detail })),
+      expiresLabel: expiry.moment,
+    });
     router.push('/family/pass');
   }
 
@@ -107,9 +115,10 @@ export default function TransferComposer() {
                 <legend className={styles.srOnly}>Receiving organization</legend>
                 {RECIPIENTS.map((item, index) => {
                   const selected = draft.recipientId === item.id;
+                  const available = item.id === 'northstar';
                   return (
                     <label className={selected ? styles.recipientSelected : styles.recipient} key={item.id}>
-                      <input checked={selected} name="recipient" onChange={() => selectRecipient(item.id)} type="radio" />
+                      <input checked={selected} disabled={!available} name="recipient" onChange={() => selectRecipient(item.id)} type="radio" />
                       <span className={styles.recipientIndex}>{String(index + 1).padStart(2, '0')}</span>
                       <span className={styles.recipientMain}>
                         <strong>{item.organization}</strong>
@@ -117,7 +126,7 @@ export default function TransferComposer() {
                       </span>
                       <span className={styles.recipientPerson}>
                         <strong>{item.person}</strong>
-                        <small>{item.role}</small>
+                        <small>{available ? item.role : 'Available in a later partner slice'}</small>
                       </span>
                       <span className={styles.radioMark} aria-hidden="true"><i /></span>
                     </label>

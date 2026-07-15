@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import BoundarySignal from './BoundarySignal';
 import styles from './FamilyJourney.module.css';
 import { EXPIRIES, RECIPIENTS, SCOPES, type TransferDraft } from './types';
+import { usePassageZero } from '../PassageZeroProvider';
+import { selectFamilyStatus } from '../../lib/passage-zero';
 
 const FALLBACK_PASS: TransferDraft = {
   recipientId: 'northstar',
@@ -25,10 +27,12 @@ function PassCode() {
 }
 
 export default function ActivePass() {
+  const { record, dispatch } = usePassageZero();
+  const familyStatus = selectFamilyStatus(record);
   const [pass, setPass] = useState<TransferDraft>(FALLBACK_PASS);
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [revoked, setRevoked] = useState(false);
+  const revoked = record.transferPass.status === 'revoked';
   const closedHeading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -51,7 +55,7 @@ export default function ActivePass() {
 
   async function copyCode() {
     try {
-      await navigator.clipboard.writeText('PASS-RIVERA-7K4M');
+      await navigator.clipboard.writeText(record.transferPass.code);
     } finally {
       setCopied(true);
     }
@@ -59,7 +63,7 @@ export default function ActivePass() {
 
   function revoke() {
     window.sessionStorage.removeItem('passage.family.transfer.v1');
-    setRevoked(true);
+    dispatch({ type: 'revoke_transfer_pass', idempotencyKey: 'family:revoke:rivera' });
     setConfirming(false);
   }
 
@@ -79,15 +83,15 @@ export default function ActivePass() {
     <main className={styles.passPage}>
       <div className={styles.passStatus}>
         <span className={styles.statusPulse} aria-hidden="true" />
-        <strong>HANDOFF ACTIVE</strong>
-        <span>Closes {expiry.moment}</span>
+        <strong>{record.transferPass.status === 'accepted' ? 'HANDOFF ACCEPTED' : 'HANDOFF ACTIVE'}</strong>
+        <span>{record.transferPass.status === 'accepted' ? `${record.organization.name} · ${record.case.id}` : `Closes ${expiry.moment}`}</span>
       </div>
 
       <section className={styles.passHero} aria-labelledby="active-pass-heading">
         <div className={styles.passCopy}>
-          <p>TRANSFER PASS / SOFIA RIVERA</p>
-          <h1 id="active-pass-heading">Ready for<br />the handoff.</h1>
-          <span>Show this screen to {recipient.person}. They can scan the code or enter it manually.</span>
+          <p>TRANSFER PASS / {record.person.name.toUpperCase()}</p>
+          <h1 id="active-pass-heading">{record.transferPass.status === 'accepted' ? <>Handoff<br />received.</> : <>Ready for<br />the handoff.</>}</h1>
+          <span>{familyStatus.update}</span>
 
           <div className={styles.destinationLine}>
             <span>PREPARED FOR</span>
@@ -98,14 +102,14 @@ export default function ActivePass() {
 
         <div className={styles.passObject}>
           <div className={styles.passLight} aria-hidden="true" />
-          <div className={styles.passObjectHead}><span>PASSAGE / SINGLE USE HANDOFF</span><strong>LIVE</strong></div>
+          <div className={styles.passObjectHead}><span>PASSAGE / SINGLE USE HANDOFF</span><strong>{record.transferPass.status === 'accepted' ? 'USED' : 'LIVE'}</strong></div>
           <PassCode />
           <span className={styles.scanLabel}>SCAN TO OPEN</span>
           <div className={styles.manualCode}>
             <span>MANUAL CODE</span>
-            <strong>PASS-RIVERA-7K4M</strong>
+            <strong>{record.transferPass.code}</strong>
           </div>
-          <button onClick={copyCode} type="button">{copied ? 'Copied' : 'Copy code'}</button>
+          <button disabled={record.transferPass.status === 'accepted'} onClick={copyCode} type="button">{record.transferPass.status === 'accepted' ? 'Already accepted' : copied ? 'Copied' : 'Copy code'}</button>
         </div>
       </section>
 
@@ -131,11 +135,13 @@ export default function ActivePass() {
 
       <section className={styles.passControls} aria-labelledby="control-heading">
         <div>
-          <p>FAMILY CONTROL</p>
-          <h2 id="control-heading">Need to stop access?</h2>
-          <span>Closing this pass is immediate. Your family record remains in place.</span>
+          <p>{record.commitment.status === 'proof_submitted' ? 'PROOF RETURNED' : 'FAMILY STATUS'}</p>
+          <h2 id="control-heading">{record.commitment.status === 'proof_submitted' ? 'Confirmation received.' : record.transferPass.status === 'accepted' ? `${record.assignedOperator.name} owns the next step.` : 'Need to stop access?'}</h2>
+          <span>{record.commitment.status === 'proof_submitted' ? `${record.accountableDirector.name} is reviewing the saved confirmation and will guide what happens next.` : record.transferPass.status === 'accepted' ? 'Northstar received only the approved handoff. Your family is waiting for the arrangement meeting time.' : 'Closing this pass is immediate. Your family record remains in place.'}</span>
         </div>
-        {!confirming ? (
+        {record.transferPass.status === 'accepted' ? (
+          <a className={styles.exitPass} href="/family">Return to family space</a>
+        ) : !confirming ? (
           <button className={styles.revokeButton} onClick={() => setConfirming(true)} type="button">Close this handoff</button>
         ) : (
           <div className={styles.revokePanel} role="group" aria-labelledby="confirm-revoke-heading">

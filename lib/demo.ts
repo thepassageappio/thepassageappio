@@ -19,39 +19,39 @@ export type ContinuityStep = {
 };
 
 export const demoCase = {
-  id: 'P-1048',
-  person: 'Arthur Chen',
-  location: 'Northstar Funeral Home',
-  familyLead: 'Lena Chen',
-  lastSync: '10:24 AM',
+  id: 'NS-2051',
+  person: 'Sofia Rivera',
+  location: 'Northstar · Portland',
+  familyLead: 'Maya Rivera',
+  lastSync: '08:42 AM',
 };
 
 export const personas: Persona[] = [
   {
-    id: 'family', order: '01', name: 'Lena', role: 'Family coordinator',
+    id: 'family', order: '01', name: 'Maya', role: 'Family coordinator',
     action: 'Control what moves', detail: 'Review the record, choose what to share, and follow every handoff.',
     href: '/family', state: 'origin',
   },
   {
-    id: 'director', order: '02', name: 'Mara', role: 'Funeral director',
+    id: 'director', order: '02', name: 'Elena', role: 'Accountable director',
     action: 'See the whole case', detail: 'Orient instantly, resolve decisions, and protect the family from repetition.',
     href: '/director', state: 'active',
   },
   {
-    id: 'staff', order: '03', name: 'Elena', role: 'Care team',
+    id: 'staff', order: '03', name: 'Marcus', role: 'Assigned operator',
     action: 'Keep promises moving', detail: 'Work from one next commitment with ownership and visible proof.',
     href: '/staff', state: 'ready',
   },
   {
-    id: 'receive', order: '04', name: 'Jordan', role: 'Receiving partner',
+    id: 'receive', order: '04', name: 'Elena', role: 'Receiving director',
     action: 'Receive with confidence', detail: 'Accept a consented handoff and return a durable receipt.',
     href: '/receive', state: 'destination',
   },
 ];
 
 export const continuity: ContinuityStep[] = [
-  { id: 'consent', label: 'Family consent', meta: '09:42', state: 'complete' },
-  { id: 'intake', label: 'Intake verified', meta: '10:08', state: 'complete' },
-  { id: 'coordination', label: 'Care in motion', meta: 'NOW', state: 'active' },
-  { id: 'handoff', label: 'Partner handoff', meta: 'READY', state: 'upcoming' },
+  { id: 'consent', label: 'Family handoff', meta: 'ISSUED', state: 'complete' },
+  { id: 'intake', label: 'Case accepted', meta: 'NS-2051', state: 'complete' },
+  { id: 'coordination', label: 'Commitment owned', meta: 'MARCUS', state: 'active' },
+  { id: 'handoff', label: 'Proof review', meta: 'NEXT', state: 'upcoming' },
 ];

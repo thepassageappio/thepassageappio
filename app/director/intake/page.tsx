@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { usePassageZero } from '../../../components/PassageZeroProvider';
 import { AppFrame } from '../../../components/operations/AppFrame';
 import { ContinuityRail } from '../../../components/operations/ContinuityRail';
 import { Signal } from '../../../components/operations/Signal';
@@ -9,28 +10,27 @@ import styles from './Intake.module.css';
 type IntakeMode = 'pass' | 'manual';
 type IntakeState = 'start' | 'verified' | 'created';
 
-const transferPass = {
-  code: 'PASS-RIVERA-7K4M',
-  person: 'Sofia Rivera',
-  family: 'Maya Rivera',
-  relationship: 'Daughter · family coordinator',
-  scope: ['Identity + contacts', 'Current care', 'Service wishes', 'Selected documents'],
-};
-
 export default function DirectorIntakePage() {
+  const { record, dispatch } = usePassageZero();
   const [mode, setMode] = useState<IntakeMode>('pass');
   const [state, setState] = useState<IntakeState>('start');
-  const [code, setCode] = useState(transferPass.code);
+  const [code, setCode] = useState<string>(record.transferPass.code);
   const [person, setPerson] = useState('');
   const [familyContact, setFamilyContact] = useState('');
-  const [location, setLocation] = useState('Northstar · Portland');
-  const [lead, setLead] = useState('Elena Torres');
   const [error, setError] = useState('');
 
   function beginPass(event: FormEvent) {
     event.preventDefault();
-    if (code.trim().toUpperCase() !== transferPass.code) {
+    if (code.trim().toUpperCase() !== record.transferPass.code) {
       setError('Pass not found. Check the code or create a walk-in case.');
+      return;
+    }
+    if (record.transferPass.status === 'revoked') {
+      setError('This family pass was closed. Ask the family to issue a new handoff.');
+      return;
+    }
+    if (record.transferPass.status === 'accepted') {
+      setError(`This pass was already accepted into ${record.case.id}. Open the existing case instead.`);
       return;
     }
     setError('');
@@ -53,25 +53,28 @@ export default function DirectorIntakePage() {
     setError('');
   }
 
-  const casePerson = mode === 'pass' ? transferPass.person : person;
-  const caseFamily = mode === 'pass' ? transferPass.family : familyContact;
+  const casePerson = mode === 'pass' ? record.person.name : person;
+  const caseFamily = mode === 'pass' ? record.familyCoordinator.name : familyContact;
+  const location = record.location.name;
+  const lead = record.accountableDirector.name;
+  const displayedCaseId = mode === 'pass' ? record.case.id : 'LOCAL-DRAFT';
 
   return (
     <AppFrame active="intake" identity="Elena Torres" role="Director · Northstar">
       <section className={styles.heading}>
         <div><p>WALK-IN INTAKE</p><h1>Walk in. Working case.</h1></div>
         <Signal tone={state === 'created' ? 'success' : state === 'verified' ? 'signal' : 'warm'}>
-          {state === 'created' ? 'Case created' : state === 'verified' ? 'Ready to create' : 'No re-keying'}
+          {state === 'created' ? mode === 'pass' ? 'Case created' : 'Draft prepared' : state === 'verified' ? mode === 'pass' ? 'Ready to create' : 'Ready to prepare' : 'No re-keying'}
         </Signal>
       </section>
 
       <ContinuityRail
-        label={state === 'created' ? 'Rivera · NS-2051' : mode === 'pass' ? code : 'New walk-in'}
+        label={state === 'created' ? `${mode === 'pass' ? 'Rivera' : casePerson} · ${displayedCaseId}` : mode === 'pass' ? code : 'New walk-in'}
         steps={[
           { label: 'Source', detail: mode === 'pass' ? 'Family Transfer Pass' : 'Director quick intake', state: 'complete' },
-          { label: 'Case', detail: state === 'created' ? 'NS-2051' : 'Create destination', state: state === 'created' ? 'complete' : 'current' },
-          { label: 'Owner', detail: lead, state: state === 'created' ? 'complete' : 'pending' },
-          { label: 'Sync', detail: state === 'created' ? 'Queued for case system' : 'After case creation', state: state === 'created' ? 'current' : 'pending' },
+          { label: 'Case', detail: state === 'created' ? displayedCaseId : 'Create destination', state: state === 'created' ? 'complete' : 'current' },
+          { label: 'Owner', detail: lead, state: state === 'created' || record.transferPass.status === 'accepted' ? 'complete' : 'pending' },
+          { label: 'Sync', detail: mode === 'pass' ? state === 'created' ? 'Sandbox adapter queued' : 'After case creation' : 'Not queued · local draft', state: mode === 'pass' && state === 'created' ? 'current' : 'pending' },
         ]}
       />
 
@@ -105,21 +108,21 @@ export default function DirectorIntakePage() {
       {state === 'verified' && (
         <section className={styles.review} aria-labelledby="intake-review-title">
           <div className={styles.reviewHead}>
-            <div><span>{mode === 'pass' ? 'VERIFIED FAMILY HANDOFF' : 'MINIMAL WALK-IN'}</span><h2 id="intake-review-title">{casePerson}</h2><p>{caseFamily}{mode === 'pass' ? ` · ${transferPass.relationship}` : ' · family contact'}</p></div>
+            <div><span>{mode === 'pass' ? 'VERIFIED FAMILY HANDOFF' : 'MINIMAL WALK-IN'}</span><h2 id="intake-review-title">{casePerson}</h2><p>{caseFamily}{mode === 'pass' ? ' · family coordinator' : ' · family contact'}</p></div>
             <button onClick={() => reset(mode)} type="button">Start over</button>
           </div>
 
           <div className={styles.reviewGrid}>
             <section>
               <span>CASE SOURCE</span>
-              <strong>{mode === 'pass' ? transferPass.code : 'Director quick intake'}</strong>
-              <ul>{mode === 'pass' ? transferPass.scope.map((item) => <li key={item}>{item}<b>Included</b></li>) : <li>Person + family contact<b>Included</b></li>}</ul>
+              <strong>{mode === 'pass' ? record.transferPass.code : 'Director quick intake'}</strong>
+              <ul>{mode === 'pass' ? record.transferPass.scope.map((item) => <li key={item.name}>{item.name}<b>Included</b></li>) : <li>Person + family contact<b>Included</b></li>}</ul>
             </section>
-            <form onSubmit={(event) => { event.preventDefault(); setState('created'); }}>
-              <label>OPERATING LOCATION<select onChange={(event) => setLocation(event.target.value)} value={location}><option>Northstar · Portland</option><option>Northstar · Beaverton</option></select></label>
-              <label>LEAD DIRECTOR<select onChange={(event) => setLead(event.target.value)} value={lead}><option>Elena Torres</option><option>Marcus Lee</option><option>Avery Brooks</option></select></label>
-              <div className={styles.firstCommitment}><span>FIRST COMMITMENT</span><strong>Confirm arrangement meeting</strong><small>Due in 30 minutes · owned by {lead}</small></div>
-              <button className={styles.createButton} type="submit">Create case <span>→</span></button>
+            <form onSubmit={(event) => { event.preventDefault(); if (mode === 'pass') dispatch({ type: 'accept_transfer_pass', idempotencyKey: 'intake:accept:rivera' }); setState('created'); }}>
+              <label>OPERATING LOCATION<select value={location} disabled><option>{location}</option></select></label>
+              <label>ACCOUNTABLE DIRECTOR<select value={lead} disabled><option>{lead}</option></select></label>
+              <div className={styles.firstCommitment}><span>{mode === 'pass' ? 'FIRST COMMITMENT' : 'LOCAL DRAFT'}</span><strong>{mode === 'pass' ? record.commitment.title : 'Collect the missing family-approved information'}</strong><small>{mode === 'pass' ? `Assigned to ${record.assignedOperator.name} · accountable ${lead}` : 'This draft is not added to the shared demo case.'}</small></div>
+              <button className={styles.createButton} type="submit">{mode === 'pass' ? 'Create case' : 'Prepare intake draft'} <span>→</span></button>
             </form>
           </div>
         </section>
@@ -128,9 +131,9 @@ export default function DirectorIntakePage() {
       {state === 'created' && (
         <section className={styles.receipt} aria-labelledby="case-created-title">
           <div className={styles.receiptMark} aria-hidden="true">✓</div>
-          <div><span>CASE CREATED / NS-2051</span><h2 id="case-created-title">{casePerson} is ready for arrangement.</h2><p>{lead} owns the first commitment at {location}.</p></div>
-          <dl><div><dt>Source</dt><dd>{mode === 'pass' ? transferPass.code : 'Walk-in'}</dd></div><div><dt>Family contact</dt><dd>{caseFamily}</dd></div><div><dt>Owner</dt><dd>{lead}</dd></div><div><dt>System sync</dt><dd>Queued · no action needed</dd></div></dl>
-          <div className={styles.receiptActions}><a href="/director">Open NS-2051 <span>↗</span></a><button onClick={() => reset('pass')} type="button">Receive another family</button></div>
+          <div><span>{mode === 'pass' ? `CASE CREATED / ${record.case.id}` : 'LOCAL INTAKE DRAFT'}</span><h2 id="case-created-title">{mode === 'pass' ? `${casePerson} is ready for arrangement.` : `${casePerson}'s minimum details are ready for follow-up.`}</h2><p>{mode === 'pass' ? `${lead} is accountable; ${record.assignedOperator.name} owns the first commitment at ${location}.` : 'Missing information remains a guided next step. No shared case was created.'}</p></div>
+          <dl><div><dt>Source</dt><dd>{mode === 'pass' ? record.transferPass.code : 'Walk-in draft'}</dd></div><div><dt>Family contact</dt><dd>{caseFamily}</dd></div><div><dt>{mode === 'pass' ? 'Director' : 'Missing-information queue'}</dt><dd>{mode === 'pass' ? lead : 'Identity, timing, consent scope'}</dd></div><div><dt>Sandbox state</dt><dd>{mode === 'pass' ? 'Saved in this browser only' : 'Local to this intake screen'}</dd></div></dl>
+          <div className={styles.receiptActions}>{mode === 'pass' && <a href="/director">Open {record.case.id} <span>↗</span></a>}<button onClick={() => reset('pass')} type="button">Receive another family</button></div>
         </section>
       )}
     </AppFrame>

@@ -1,48 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { usePassageZero } from '../../components/PassageZeroProvider';
 import { AppFrame } from '../../components/operations/AppFrame';
 import { ContinuityRail } from '../../components/operations/ContinuityRail';
 import { Signal } from '../../components/operations/Signal';
 import styles from './Staff.module.css';
 
-const OWNED = [
-  { id: 'NS-2048', family: 'Chen', due: '11:15', task: 'Confirm the receiving location with transport.', blocker: 'Destination confirmation', proof: 'Location + dispatch timestamp', next: 'Transport dispatch', state: 'Now' },
-  { id: 'NS-2043', family: 'Williams', due: '13:00', task: 'Send the final keepsake proof for approval.', blocker: 'None — proof is ready', proof: 'Family approval response', next: 'Service readiness', state: 'Ready' },
-  { id: 'NS-2054', family: 'Okafor', due: '14:20', task: 'Call the cemetery to hold the selected time.', blocker: 'Schedule confirmation', proof: 'Hold reference number', next: 'Family choice', state: 'Later' },
-];
-
 export default function StaffPage() {
-  const [selected, setSelected] = useState(0);
-  const [status, setStatus] = useState<'open' | 'working' | 'proof'>('open');
-  const item = OWNED[selected];
-
-  function selectItem(index: number) { setSelected(index); setStatus('open'); }
+  const { record, dispatch, reset } = usePassageZero();
+  const status = record.commitment.status === 'assigned' ? 'open' : record.commitment.status === 'in_progress' ? 'working' : 'proof';
+  const item = {
+    id: record.case.id, family: 'Rivera', due: '10:30', task: record.commitment.title,
+    blocker: record.commitment.status === 'proof_submitted' ? 'None — proof is with the director.' : `${record.familyCoordinator.name} is waiting for the meeting time.`,
+    proof: record.commitment.proof?.label ?? record.commitment.proofRequirement,
+    next: record.commitment.nextOwner, state: status === 'proof' ? 'Ready' : 'Now',
+  };
 
   return (
     <AppFrame active="staff" identity="Marcus Lee" role="Care coordinator · Northstar">
       <section className={styles.heading}>
         <div><p>MY WORK / TUE 14 JUL / 08:42</p><h1>One clear commitment at a time.</h1></div>
-        <p><strong>{OWNED.length} owned</strong><span>Nothing unassigned</span></p>
+        <p><strong>1 owned</strong><span>Scoped to {record.person.name}</span></p>
       </section>
 
       <ContinuityRail compact label={`${item.family} · ${item.id}`} steps={[
-        { label: 'Handoff', detail: 'Director → Marcus', state: 'complete' },
+        { label: 'Handoff', detail: `${record.accountableDirector.name} → ${record.assignedOperator.name}`, state: 'complete' },
         { label: 'Case', detail: item.family, state: 'complete' },
-        { label: 'Owner', detail: 'Marcus Lee', state: 'current' },
+        { label: 'Owner', detail: record.assignedOperator.name, state: status === 'proof' ? 'complete' : 'current' },
         { label: 'Proof', detail: item.proof, state: status === 'proof' ? 'complete' : 'pending' },
       ]} />
 
       <div className={styles.workspace}>
         <aside className={styles.queue} aria-labelledby="queue-title">
-          <div className={styles.queueHead}><span id="queue-title">OWNED BY ME</span><strong>{OWNED.length}</strong></div>
-          {OWNED.map((task, index) => (
-            <button aria-pressed={selected === index} className={selected === index ? styles.active : ''} key={task.id} onClick={() => selectItem(index)} type="button">
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <div><strong>{task.family}</strong><small>{task.task}</small></div>
-              <time>{task.due}</time>
-            </button>
-          ))}
+          <div className={styles.queueHead}><span id="queue-title">OWNED BY ME</span><strong>1</strong></div>
+          <button aria-pressed="true" className={styles.active} type="button">
+            <span>01</span><div><strong>{item.family}</strong><small>{item.task}</small></div><time>{item.due}</time>
+          </button>
           <div className={styles.boundary}><Signal tone="success">Scope protected</Signal><p>You see only the case information required to complete your assigned work.</p></div>
         </aside>
 
@@ -51,7 +44,7 @@ export default function StaffPage() {
           <div className={styles.body}>
             <span>NEXT OWNED COMMITMENT</span>
             <h2 id="commitment-title">{item.task}</h2>
-            <div className={styles.boundaryLine}><span>CASE BOUNDARY</span><strong>{item.family} family</strong><small>Only relevant coordination details are shown here.</small></div>
+            <div className={styles.boundaryLine}><span>CASE BOUNDARY</span><strong>{record.person.name} · {item.family} family</strong><small>Only the assigned commitment and required proof are shown here.</small></div>
           </div>
           <dl className={styles.conditions}>
             <div><dt>BLOCKER TO REMOVE</dt><dd>{item.blocker}</dd></div>
@@ -59,12 +52,12 @@ export default function StaffPage() {
             <div><dt>NEXT HANDOFF</dt><dd>{item.next}</dd></div>
           </dl>
           {status === 'proof' ? (
-            <div className={styles.complete} role="status"><b aria-hidden="true">✓</b><p><strong>Proof attached to the case record.</strong>This commitment is ready for the next owner.</p><button onClick={() => setStatus('open')} type="button">Undo demo</button></div>
+            <div className={styles.complete} role="status"><b aria-hidden="true">✓</b><p><strong>Proof received, awaiting review.</strong>{record.accountableDirector.name} is the next owner. The family sees only the returned outcome.</p><button onClick={reset} type="button">Reset sandbox story</button></div>
           ) : (
             <div className={styles.actions}>
-              <button onClick={() => setStatus(status === 'open' ? 'working' : 'proof')} type="button">{status === 'open' ? 'Start commitment' : 'Attach proof'}<span>→</span></button>
-              <button type="button">Report a blocker</button>
-              <small>{status === 'working' ? 'Started at 08:42 · visible to Director' : 'Start time and proof are recorded.'}</small>
+              <button disabled={record.transferPass.status !== 'accepted'} onClick={() => dispatch(status === 'open' ? { type: 'start_commitment', idempotencyKey: 'staff:start:rivera' } : { type: 'submit_proof', idempotencyKey: 'staff:proof:rivera' })} type="button">{status === 'open' ? 'Start commitment' : 'Attach proof'}<span>→</span></button>
+              <button disabled type="button">Blocker reporting follows this slice</button>
+              <small>{record.transferPass.status !== 'accepted' ? 'Waiting for the director to accept the family handoff.' : status === 'working' ? 'Started now · visible to the case team.' : 'The action time, audience, and next owner are recorded in this browser sandbox.'}</small>
             </div>
           )}
         </section>

@@ -330,3 +330,44 @@ Stop only for the explicit `AGENTS.md` gates:
 6. Commit code and evidence, deploy one preview batch, and update PR #24 plus this context.
 7. Auto-advance to the next highest-leverage incomplete product slice.
 
+## Release-train cycle 2 - shared operational truth
+
+Status: QA APPROVED; branch publication and preview verification are the remaining handoff steps.
+
+Branch audit:
+
+- PR #24 was inspected at head `5b9ce061ac320aac6b15cc87e95779369c14c201` before this batch.
+- The two commits after the last verified code commit contained operating-context and screenshot changes only. None of the previously delegated shared-case, multi-location, or vendor implementation tracks had landed.
+- The unfinished tracks were re-instantiated. Product and UX narrowed this batch to the smallest coherent dependency: one shared operational record. Multi-location operations and vendor fulfillment remain queued in that order.
+
+Role handoff record:
+
+- PM: defined Sofia Rivera / Maya Rivera / `PASS-RIVERA-7K4M` / `NS-2051` at Northstar Portland as the canonical scenario, with Elena Torres accountable and Marcus Lee assigned. Required an idempotent browser-persistent sandbox event spine; excluded multi-location, vendor, and Supabase work from this batch.
+- UX: passed the concept with conditions that one event be translated by persona, family and staff boundaries remain explicit, every mutation preserve actor/time/audience/waiting/proof/next owner, sandbox-only execution be disclosed, and desktop plus 390/360 layouts be verified.
+- Development: implemented typed commands, events, fixture state, a replaceable local-storage adapter, a React provider, and cross-persona issue/inspect/accept/start/proof/revoke/reset flows. Director intake, director case, staff work, family pass, and receiver surfaces now read and mutate the same canonical record.
+- QA: first review failed on selectable destination divergence, premature director actions, ambiguous manual-draft state, staff navigation leakage, ownership wording, and receipt-link behavior. Those issues were fixed. Focused static QA then passed.
+
+Verification evidence:
+
+- TypeScript verification passed after integration.
+- Final TypeScript verification and the optimized production Next.js build passed after integration and the warning-only layout adjustment.
+- Browser QA exercised family issue -> receiver inspection -> acceptance into `NS-2051` -> director start -> staff proof -> director/family proof return.
+- Runtime state persisted after reload. Revoked, expired, already-accepted, and invalid pass outcomes preserved a no-disclosure boundary.
+- Mobile checks at nominal 390 and 360 widths had equal document client and scroll widths with no horizontal overflow.
+- Browser evidence is stored under `docs/evidence/passage-zero/shared-*.png`.
+- The sandbox is explicitly browser-local and is not durable, secure, multi-user, or production backend evidence.
+
+Integrated files and contracts:
+
+- `lib/sandbox/types.ts`, `repository.ts`, and `provider.tsx` define the shared contract and storage seam.
+- `lib/passage-zero.ts` and `components/PassageZeroProvider.tsx` expose the shared slice to the App Router.
+- Family, receive, director intake, director case, and staff routes now project persona-appropriate views of the same events.
+- Multi-location organization switching, employee administration, vendor negotiation/fulfillment, durable Supabase persistence, and real integrations remain intentionally unimplemented.
+
+Next execution sequence after preview verification:
+
+1. Re-instantiate PM and UX for the multi-location funeral-home operating slice.
+2. Preserve the shared event spine and add organization/location/membership/assignment concepts without widening family access.
+3. Run the same static -> browser -> evidence -> single-preview loop.
+4. Advance vendor fulfillment only after location and ownership semantics are coherent.
+

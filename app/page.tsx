@@ -55,13 +55,13 @@ export default function DemoGateway() {
             <span>THE RECORD MOVES. CONTROL STAYS WITH THE FAMILY.</span>
             <div><strong>04</strong><p>accountable transitions<small>One consented story, not four disconnected intakes.</small></p></div>
           </div>
-          <ContinuityRail steps={continuity} label="Arthur Chen · P-1048" />
+          <ContinuityRail steps={continuity} label={`${demoCase.person} · ${demoCase.id}`} />
         </section>
 
         <footer className="gateway__footer">
           <span>PASSAGE / CONTINUITY SYSTEM</span>
           <p>Purpose-built for the people carrying the details.</p>
-          <span>PORCELAIN / COBALT · 2026</span>
+          <span>WARM PRECISION · 2026</span>
         </footer>
       </main>
     </TopShell>
