@@ -8,7 +8,7 @@ export default function DemoGateway() {
       <main id="main-content" className="gateway">
         <section className="gateway__intro" aria-labelledby="gateway-title">
           <div className="gateway__status">
-            <span className="gateway__edition">FUNERAL HOME DEMONSTRATION</span>
+            <span className="gateway__edition">PASSAGE / CONTINUITY WORKSPACE</span>
             <span className="gateway__sync"><i aria-hidden="true" />4 participants connected</span>
           </div>
           <div className="gateway__heading">

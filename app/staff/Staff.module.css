@@ -5,7 +5,7 @@
 .heading > p strong, .heading > p span { display: block; }
 .heading > p strong { font-size: 12px; }
 .heading > p span { margin-top: 5px; color: var(--muted); font-size: 9px; }
-.workspace { display: grid; grid-template-columns: minmax(245px, .42fr) minmax(0, 1fr); margin-top: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.workspace { display: grid; grid-template-columns: minmax(245px, .42fr) minmax(0, 1fr); margin-top: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-soft); }
 .queue { background: color-mix(in srgb, var(--canvas) 52%, var(--surface)); border-right: 1px solid var(--line); }
 .queueHead { height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 8px; font-weight: 820; letter-spacing: .12em; }
 .queueHead strong { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 5px; background: var(--ink); color: var(--surface); font-size: 8px; }

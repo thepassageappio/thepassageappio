@@ -17,7 +17,7 @@ export function TopShell({ children, context = 'Connected care', mode = 'workspa
           <strong>PASSAGE</strong>
         </Link>
         <span className="top-shell__context"><i aria-hidden="true" />{context}</span>
-        <span className="top-shell__environment">DEMO / 01</span>
+        <span className="top-shell__environment">BROWSER SANDBOX</span>
       </header>
       {children}
     </div>

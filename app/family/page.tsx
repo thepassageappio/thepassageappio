@@ -25,10 +25,16 @@ export default function FamilyPage() {
       </header>
       <section className={styles.familyIntro} id="family-journey">
         <div>
-          <p>FAMILY HANDOFF</p>
-          <h1>Send less.<br /><span>Mean more.</span></h1>
+          <p>YOUR FAMILY SPACE</p>
+          <h1>Start gently.<br /><span>Stay in control.</span></h1>
         </div>
-        <p>Give one trusted organization temporary access to only what they need. Nothing else leaves your family space.</p>
+        <div className={styles.familyEntry}>
+          <p>Whether you are planning ahead or coordinating care today, share only what one trusted organization needs. Everything else stays with your family.</p>
+          <nav className={styles.entryPaths} aria-label="Choose how to begin">
+            <a href="#family-journey"><span>Planning ahead</span><small>Prepare a calm, private handoff</small></a>
+            <a href="#family-journey"><span>I need help today</span><small>Share essential details now</small></a>
+          </nav>
+        </div>
       </section>
       <TransferComposer />
     </main>

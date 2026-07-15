@@ -379,3 +379,31 @@ Next execution sequence after preview verification:
 3. Run the same static -> browser -> evidence -> single-preview loop.
 4. Advance vendor fulfillment only after location and ownership semantics are coherent.
 
+## Release-train cycle 3 - warm editorial system and onboarding
+
+Status: IMPLEMENTED; final branch publication and preview verification remain.
+
+Founder feedback addressed:
+
+- Removed the sterile martech direction across all current family and funeral-home surfaces.
+- Display typography is Cormorant Garamond, chosen for its narrow editorial serif character; all navigation, controls, labels, and body copy use Montserrat as requested.
+- The shared palette now begins with warm ivory paper surfaces and uses dusty, low-saturation purple, blue, and green for action and state.
+- Near-black glowing pass panels, vivid iris blocks, cool gradients, and console-like intake chrome were replaced with raised paper surfaces, warm borders, quieter shadows, and accessible state bands.
+- The Transfer Pass QR remains high-contrast black on white with its quiet zone preserved.
+- Direct-user onboarding now acknowledges both planning-ahead and immediate-help intent before entering one honest shared handoff flow.
+- Demo-only gateway labeling was replaced with product language while the browser-sandbox boundary remains explicit.
+
+Visual QA:
+
+- Family onboarding, family pass, receiver, funeral-home intake, director, staff, and gateway routes were inspected after the shared token change.
+- All tested routes had equal document client and scroll widths at 360 pixels; family onboarding also passed at 390 pixels.
+- The key warm palette pairs pass WCAG AA contrast for normal text: muted/canvas 4.75:1, signal/canvas 4.63:1, and surface text on signal 5.00:1.
+- The complete issue -> inspect -> accept -> start -> proof loop still works after the visual change and produced no browser warnings or errors in the tested path.
+- New evidence uses the `warm-*.png` prefix under `docs/evidence/passage-zero`.
+
+Readiness boundary:
+
+- Direct-user guided testing/onboarding experience is approximately 85% complete for the current planning-ahead and immediate-help entry story.
+- Funeral-home UX/workflow demonstration is approximately 85% complete for intake, ownership, staff execution, and proof return.
+- Neither product is 85% operationally production-ready. Funeral-home pilot readiness still requires real auth/roles, durable multi-user storage, organization/location administration, RLS/audit enforcement, notifications/recovery, and integration reliability. D2C SaaS additionally requires account lifecycle, cross-device persistence, and subscription/billing work.
+

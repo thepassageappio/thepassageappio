@@ -11,7 +11,7 @@
     linear-gradient(90deg, transparent calc(50% - .5px), color-mix(in srgb, var(--line) 38%, transparent) 50%, transparent calc(50% + .5px)) top 78px left / 100% 1px no-repeat,
     var(--canvas);
   color: var(--ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .familyPage *,
@@ -134,22 +134,29 @@
 .passControls h2 {
   margin: 0;
   color: var(--ink);
-  font-family: inherit;
-  font-weight: 680;
-  letter-spacing: -.055em;
-  line-height: .95;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -.035em;
+  line-height: .88;
 }
 
-.familyIntro h1 { font-size: clamp(56px, 8.5vw, 132px); }
+.familyIntro h1 { font-size: clamp(62px, 9vw, 138px); }
 .familyIntro h1 span { color: var(--signal); }
 
-.familyIntro > p {
+.familyEntry > p {
   max-width: 430px;
   margin: 0 0 9px;
   color: var(--muted);
   font-size: clamp(16px, 1.4vw, 20px);
   line-height: 1.55;
 }
+
+.familyEntry { display: grid; gap: 24px; align-self: end; }
+.entryPaths { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.entryPaths a { min-height: 82px; display: grid; align-content: center; gap: 5px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--surface-raised) 92%, transparent); box-shadow: var(--shadow-soft); transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+.entryPaths span { font-family: var(--font-display); font-size: 19px; font-weight: 600; }
+.entryPaths small { color: var(--muted); font-size: 10px; line-height: 1.35; }
+.entryPaths a:hover { border-color: var(--signal); background: var(--signal-soft); transform: translateY(-2px); }
 
 .journey {
   max-width: 1500px;
@@ -429,11 +436,11 @@
   overflow: hidden;
   min-height: 610px;
   padding: 24px;
-  border: 1px solid color-mix(in srgb, var(--signal) 48%, var(--line));
-  border-radius: 10px;
-  background: var(--ink);
-  color: var(--surface);
-  box-shadow: 0 28px 80px color-mix(in srgb, var(--signal) 18%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow-raised);
   isolation: isolate;
 }
 .signalActive { position: relative; top: auto; min-height: 560px; }
@@ -447,9 +454,9 @@
   width: 340px;
   height: 340px;
   border-radius: 50%;
-  background: var(--signal);
-  filter: blur(65px);
-  opacity: .72;
+  background: color-mix(in srgb, var(--calm) 34%, transparent);
+  filter: blur(80px);
+  opacity: .5;
 }
 
 .signalHeader,
@@ -459,20 +466,20 @@
   justify-content: space-between;
   gap: 20px;
   padding-bottom: 20px;
-  border-bottom: 1px solid color-mix(in srgb, var(--surface) 18%, transparent);
-  font-size: 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 10px;
   font-weight: 820;
   letter-spacing: .13em;
 }
 .signalHeader > strong,
-.passObjectHead > strong { color: var(--warm); }
+.passObjectHead > strong { color: var(--human-strong); }
 
 .signalRoute { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin: 58px 0 50px; }
 .signalOrigin,
 .signalEnd { font-size: 7px; font-weight: 800; letter-spacing: .12em; }
-.signalTrack { position: relative; height: 1px; background: color-mix(in srgb, var(--surface) 28%, transparent); }
+.signalTrack { position: relative; height: 1px; background: var(--line-strong); }
 .signalTrack::before,
-.signalTrack::after { content: ''; position: absolute; top: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--surface); }
+.signalTrack::after { content: ''; position: absolute; top: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--signal); }
 .signalTrack::before { left: 0; }
 .signalTrack::after { right: 0; }
 .signalTrack i {
@@ -484,28 +491,28 @@
   border: 5px solid color-mix(in srgb, var(--signal-soft) 85%, var(--surface));
   border-radius: 50%;
   background: var(--signal);
-  box-shadow: 0 0 0 9px color-mix(in srgb, var(--signal) 25%, transparent), 0 0 34px var(--signal);
+  box-shadow: 0 0 0 9px color-mix(in srgb, var(--signal) 14%, transparent);
   transform: translate(-50%, -50%);
 }
 
-.signalDestination { display: grid; gap: 7px; padding-bottom: 24px; border-bottom: 1px solid color-mix(in srgb, var(--surface) 18%, transparent); }
+.signalDestination { display: grid; gap: 7px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
 .signalDestination > span,
-.signalContents > span { color: color-mix(in srgb, var(--surface) 62%, transparent); font-size: 8px; font-weight: 800; letter-spacing: .14em; }
+.signalContents > span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .11em; }
 .signalDestination strong { max-width: 280px; font-size: 23px; font-weight: 650; letter-spacing: -.035em; line-height: 1.05; }
-.signalDestination small { color: color-mix(in srgb, var(--surface) 66%, transparent); font-size: 10px; }
+.signalDestination small { color: var(--muted); font-size: 11px; }
 
-.signalCounts { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid color-mix(in srgb, var(--surface) 18%, transparent); }
-.signalCounts > div { display: grid; gap: 7px; padding: 17px 8px 17px 0; border-right: 1px solid color-mix(in srgb, var(--surface) 18%, transparent); }
+.signalCounts { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
+.signalCounts > div { display: grid; gap: 7px; padding: 17px 8px 17px 0; border-right: 1px solid var(--line); }
 .signalCounts > div:not(:first-child) { padding-left: 10px; }
 .signalCounts > div:last-child { border-right: 0; }
-.signalCounts span { color: color-mix(in srgb, var(--surface) 55%, transparent); font-size: 7px; font-weight: 800; letter-spacing: .08em; }
+.signalCounts span { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .08em; }
 .signalCounts strong { font-size: 18px; font-weight: 640; }
 
 .signalContents { padding-top: 22px; }
 .signalContents ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 13px 0 0; padding: 0; list-style: none; }
-.signalContents li { padding: 7px 8px; border: 1px solid color-mix(in srgb, var(--surface) 22%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--surface) 7%, transparent); font-size: 9px; }
-.signalContents p { color: color-mix(in srgb, var(--surface) 55%, transparent); font-size: 11px; }
-.signalNote { position: absolute; right: 24px; bottom: 19px; left: 24px; margin: 0; color: color-mix(in srgb, var(--surface) 48%, transparent); font-size: 9px; line-height: 1.45; }
+.signalContents li { padding: 8px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--calm-soft); font-size: 10px; }
+.signalContents p { color: var(--muted); font-size: 11px; }
+.signalNote { position: absolute; right: 24px; bottom: 19px; left: 24px; margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 
 .reviewRoute {
   display: grid;
@@ -603,22 +610,22 @@
   justify-items: center;
   min-height: 635px;
   padding: 28px;
-  border: 1px solid color-mix(in srgb, var(--signal) 60%, var(--line));
-  border-radius: 12px;
-  background: var(--ink);
-  color: var(--surface);
-  box-shadow: 0 36px 100px color-mix(in srgb, var(--signal) 22%, transparent);
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow-raised);
   isolation: isolate;
 }
 .passObjectHead { width: 100%; align-self: start; }
-.passQr { width: min(260px, 70%); height: auto; align-self: end; padding: 9px; border: 1px solid color-mix(in srgb, var(--surface) 40%, transparent); border-radius: 8px; color: var(--signal); background: var(--surface); box-shadow: 0 0 48px color-mix(in srgb, var(--signal) 45%, transparent); }
-.qrBackground { fill: var(--surface); }
-.qrCode { fill: var(--signal); }
-.scanLabel { align-self: start; color: color-mix(in srgb, var(--surface) 60%, transparent); font-size: 8px; font-weight: 820; letter-spacing: .18em; }
-.manualCode { width: min(350px, 100%); display: grid; gap: 8px; padding: 15px; border: 1px solid color-mix(in srgb, var(--surface) 18%, transparent); border-radius: 7px; text-align: center; }
-.manualCode span { color: color-mix(in srgb, var(--surface) 55%, transparent); font-size: 7px; font-weight: 820; letter-spacing: .14em; }
+.passQr { width: min(260px, 70%); height: auto; align-self: end; padding: 12px; border: 1px solid var(--line); border-radius: 12px; color: #242124; background: #fff; box-shadow: var(--shadow-soft); }
+.qrBackground { fill: #fff; }
+.qrCode { fill: #242124; }
+.scanLabel { align-self: start; color: var(--muted); font-size: 10px; font-weight: 820; letter-spacing: .14em; }
+.manualCode { width: min(350px, 100%); display: grid; gap: 8px; padding: 15px; border: 1px solid var(--line); border-radius: 10px; text-align: center; background: var(--canvas); }
+.manualCode span { color: var(--muted); font-size: 9px; font-weight: 820; letter-spacing: .12em; }
 .manualCode strong { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 17px; letter-spacing: .11em; }
-.passObject > button { width: min(350px, 100%); min-height: 46px; align-self: start; border: 1px solid color-mix(in srgb, var(--surface) 30%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--surface) 10%, transparent); color: var(--surface); cursor: pointer; font: inherit; font-size: 11px; font-weight: 720; }
+.passObject > button { width: min(350px, 100%); min-height: 46px; align-self: start; border: 1px solid var(--line); border-radius: 10px; background: var(--signal-soft); color: var(--ink); cursor: pointer; font: inherit; font-size: 11px; font-weight: 720; }
 
 .passBoundary { display: grid; grid-template-columns: minmax(310px, .55fr) minmax(0, 1.45fr); gap: clamp(28px, 5vw, 70px); align-items: start; padding: 80px 0; border-top: 1px solid var(--line); }
 .passLedger { padding-top: 6px; }
@@ -698,7 +705,8 @@
   .headerContext { display: none; }
   .familyIntro { grid-template-columns: 1fr; gap: 18px; padding: 38px 20px 30px; }
   .familyIntro h1 { font-size: clamp(54px, 17vw, 78px); }
-  .familyIntro > p { font-size: 15px; }
+  .familyEntry > p { font-size: 15px; }
+  .entryPaths { max-width: 620px; }
   .journey { padding: 0 0 70px; }
   .journeyTop { margin: 0 20px; }
   .saveState { font-size: 0; }
@@ -773,6 +781,7 @@
 }
 
 @media (max-width: 420px) {
+  .entryPaths { grid-template-columns: 1fr; }
   .familyIntro h1 { font-size: 52px; }
   .stageIntro h1 { font-size: 39px; }
   .caseLabel { gap: 7px; }

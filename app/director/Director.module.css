@@ -6,7 +6,7 @@
 .heading dl div:first-child { border-left: 0; }
 .heading dt { color: var(--muted); font-size: 8px; text-transform: uppercase; letter-spacing: .1em; }
 .heading dd { margin: 5px 0 0; font-size: 18px; font-weight: 760; }
-.commandGrid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(260px, .55fr); margin-top: 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.commandGrid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(260px, .55fr); margin-top: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; box-shadow: var(--shadow-soft); }
 .focus { min-width: 0; }
 .sectionHead { min-height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 17px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--canvas) 55%, var(--surface)); color: var(--muted); font-size: 8px; font-weight: 820; letter-spacing: .13em; }
 .caseIdentity { min-height: 88px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 15px 22px; border-bottom: 1px solid var(--line); }
