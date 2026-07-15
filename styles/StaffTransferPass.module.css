@@ -1,0 +1,253 @@
+.root {
+  --bone: #f7f3eb;
+  --paper: #fffdf9;
+  --pine: #123c32;
+  --pine-deep: #0c2e26;
+  --ink: #1d2925;
+  --muted: #66716c;
+  --line: #ded8cc;
+  --clay: #bd573b;
+  --clay-soft: #f2d8cf;
+  --sage: #dce6d7;
+  --sage-deep: #2f6758;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 83% -12%, rgba(189, 87, 59, .12), transparent 30rem),
+    var(--bone);
+  color: var(--ink);
+}
+
+.root *, .root *::before, .root *::after { box-sizing: border-box; }
+.root button, .root input { font: inherit; }
+
+.skip {
+  position: fixed;
+  z-index: 20;
+  left: 16px;
+  top: -80px;
+  padding: 11px 15px;
+  border-radius: 999px;
+  background: var(--pine);
+  color: white;
+  font-weight: 800;
+}
+
+.skip:focus { top: 16px; }
+
+.header {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(18, 60, 50, .12);
+}
+
+.wordmark {
+  color: var(--pine);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: .19em;
+}
+
+.headerContext { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; }
+.headerContext > span:first-child { display: none; }
+
+.avatar, .senderAvatar {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pine);
+  color: white;
+  font-weight: 850;
+}
+
+.avatar { width: 38px; height: 38px; }
+
+.shell { width: 100%; max-width: 1280px; margin: 0 auto; padding: 18px 20px 42px; }
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
+.breadcrumb strong { color: var(--pine); }
+.continuityDot { width: 8px; height: 8px; border: 2px solid var(--paper); border-radius: 50%; background: var(--clay); box-shadow: 0 0 0 1px var(--clay); }
+
+.eyebrow, .cardKicker, .stepNumber {
+  margin: 0 0 8px;
+  color: var(--clay);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.intro { margin-top: 30px; }
+.intro h1, .reviewHeader h1, .stateCard h1 {
+  margin: 0;
+  color: var(--pine);
+  font-family: Fraunces, Georgia, serif;
+  font-size: 38px;
+  font-weight: 520;
+  letter-spacing: -.035em;
+  line-height: 1.04;
+}
+
+.lede { margin: 15px 0 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
+
+.entryCard, .passCard, .acceptCard, .stateCard {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 18px 45px rgba(20, 45, 37, .07);
+}
+
+.entryCard { position: relative; margin-top: 26px; padding: 24px 20px; border-radius: 24px; }
+.entryMark { width: 46px; height: 46px; display: grid; place-items: center; margin-bottom: 24px; border-radius: 14px; background: var(--sage); color: var(--pine); font-size: 25px; }
+.entryCard h2, .scopeHeader h2, .acceptCard h2 { margin: 0; color: var(--pine); font-family: Fraunces, Georgia, serif; font-size: 25px; font-weight: 550; line-height: 1.15; }
+.entryCard > div > p:last-child { margin: 10px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+.codeForm { margin-top: 24px; }
+.codeForm label, .destinationOptions legend { display: block; margin-bottom: 8px; color: var(--ink); font-size: 12px; font-weight: 800; }
+.codeRow { display: grid; gap: 10px; }
+.codeRow input {
+  width: 100%; min-height: 52px; padding: 0 15px; border: 1px solid #b8b4ab; border-radius: 13px; background: white; color: var(--ink); font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+}
+.codeRow input::placeholder { color: #909893; font-weight: 650; }
+
+.primaryButton, .secondaryButton, .acceptButton, .textButton, .sampleButtons button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 850;
+}
+.primaryButton, .acceptButton { padding: 0 20px; background: var(--clay); color: white; box-shadow: 0 9px 22px rgba(96, 39, 25, .17); }
+.secondaryButton { padding: 0 18px; border: 1px solid var(--pine); background: transparent; color: var(--pine); }
+.textButton { padding: 0 8px; background: transparent; color: var(--pine); text-decoration: underline; text-underline-offset: 4px; }
+.formHint, .formError { margin: 8px 2px 0; font-size: 12px; line-height: 1.4; }
+.formHint { color: var(--muted); }
+.formError { color: #8d351f; font-weight: 750; }
+
+.sandboxTools { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+.sandboxTools summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 800; }
+.sampleButtons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.sampleButtons button { min-height: 38px; padding: 0 12px; border: 1px solid var(--line); background: var(--bone); color: var(--pine); font-size: 11px; }
+
+.privacyNote, .outcomePreview { display: grid; grid-template-columns: 4px 1fr; gap: 13px; margin-top: 20px; padding: 18px; border-radius: 18px; background: rgba(255, 253, 249, .72); }
+.noteLine { border-radius: 99px; background: linear-gradient(var(--sage), var(--clay), var(--sage)); }
+.privacyNote strong, .outcomePreview strong { color: var(--pine); font-size: 12px; }
+.privacyNote p, .outcomePreview p { margin: 4px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+.reviewLayout { margin-top: 28px; }
+.reviewHeader { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.reviewHeader h1:focus, .stateCard h1:focus { outline: none; }
+.statusPill { min-height: 32px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-radius: 999px; font-size: 11px; font-weight: 850; white-space: nowrap; }
+.statusPill > span { font-size: 13px; }
+.status_active, .status_accepted { background: var(--sage); color: #17483c; }
+.status_expired { background: #f4e7c7; color: #725410; }
+.status_revoked, .status_invalid { background: var(--clay-soft); color: #7d2e1c; }
+
+.reviewGrid { display: grid; gap: 18px; margin-top: 24px; }
+.passCard, .acceptCard { border-radius: 24px; }
+.passCard { overflow: hidden; }
+.senderBlock { display: flex; align-items: center; gap: 14px; padding: 22px 20px; border-bottom: 1px solid var(--line); }
+.senderAvatar { width: 48px; height: 48px; background: var(--clay); }
+.senderBlock span, .senderBlock p { color: var(--muted); font-size: 11px; }
+.senderBlock h2 { margin: 2px 0; color: var(--pine); font-family: Fraunces, Georgia, serif; font-size: 25px; font-weight: 550; }
+.senderBlock p { margin: 0; }
+
+.factGrid { display: grid; grid-template-columns: 1fr; margin: 0; padding: 4px 20px; }
+.factGrid > div { padding: 15px 0; border-bottom: 1px solid var(--line); }
+.factGrid dt, .receipt dt { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.factGrid dd, .receipt dd { margin: 5px 0 0; color: var(--ink); font-size: 13px; font-weight: 750; }
+.factGrid dd small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 500; }
+.mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px !important; letter-spacing: .03em; overflow-wrap: anywhere; }
+
+.scopeHeader { display: flex; justify-content: space-between; gap: 16px; padding: 22px 20px 12px; }
+.scopeHeader h2 { font-size: 21px; }
+.scopeCount { width: 36px; height: 36px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; background: var(--sage); color: var(--pine); font-family: Fraunces, Georgia, serif; font-weight: 650; }
+.scopeList { display: grid; gap: 0; margin: 0; padding: 0 20px; list-style: none; }
+.scopeList li { display: grid; grid-template-columns: 26px 1fr; gap: 9px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.checkMark { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--sage); color: var(--pine); font-size: 12px; font-weight: 900; }
+.scopeList strong, .scopeList small { display: block; }
+.scopeList strong { color: var(--ink); font-size: 13px; }
+.scopeList small { margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.notIncluded { display: grid; grid-template-columns: 22px 1fr; gap: 9px; margin: 16px 20px 20px; padding: 14px; border-radius: 14px; background: var(--bone); }
+.notIncluded > span { width: 20px; height: 20px; display: grid; place-items: center; border: 1px solid #b5b0a6; border-radius: 50%; color: var(--muted); }
+.notIncluded p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.notIncluded strong { display: block; margin-bottom: 2px; color: var(--ink); }
+
+.acceptCard { align-self: start; padding: 22px 20px; }
+.acceptIntro { margin: 10px 0 22px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.destinationOptions { display: grid; gap: 9px; margin: 0; padding: 0; border: 0; }
+.destinationOptions label { min-height: 70px; display: grid; grid-template-columns: 20px 1fr; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 15px; cursor: pointer; }
+.destinationOptions label.radioSelected { border-color: #7a9a8e; background: var(--sage); box-shadow: 0 0 0 1px #7a9a8e; }
+.destinationOptions input { width: 18px; height: 18px; accent-color: var(--pine); }
+.destinationOptions strong, .destinationOptions small { display: block; }
+.destinationOptions strong { color: var(--ink); font-size: 13px; }
+.destinationOptions small { margin-top: 3px; color: var(--muted); font-size: 11px; }
+.confirmation { display: grid; grid-template-columns: 21px 1fr; gap: 11px; margin: 20px 0 4px; color: var(--ink); font-size: 12px; font-weight: 650; line-height: 1.45; cursor: pointer; }
+.confirmation input { width: 20px; height: 20px; margin: 0; accent-color: var(--pine); }
+.acceptButton { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+.acceptCard > .textButton { width: 100%; margin-top: 8px; }
+.outcomePreview { margin-top: 16px; padding: 14px; background: var(--bone); }
+.outcomePreview strong { display: block; }
+
+.stateLayout { max-width: 720px; margin: 42px auto 0; }
+.stateCard { padding: 28px 20px; border-radius: 26px; }
+.stateCard > .statusPill { margin-bottom: 28px; }
+.stateCard h1 { font-size: 38px; }
+.stateBody { margin: 16px 0 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
+.stateNote { display: grid; grid-template-columns: 26px 1fr; align-items: center; gap: 10px; margin: 22px 0 0; padding: 14px; border-radius: 14px; background: var(--bone); color: var(--muted); font-size: 12px; line-height: 1.45; }
+.stateNote > span { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid #aaa69e; border-radius: 50%; color: var(--pine); font-weight: 850; }
+.stateActions { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+.codeReference { margin: 20px 0 0; color: var(--muted); font-size: 10px; }
+.codeReference span { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+.successMark { width: 56px; height: 56px; display: grid; place-items: center; margin-bottom: 28px; border-radius: 50%; background: var(--sage); color: var(--pine); font-size: 25px; font-weight: 900; }
+.acceptedCard { border-top: 5px solid var(--pine); }
+.receipt { display: grid; grid-template-columns: 1fr; margin: 24px 0 0; border-top: 1px solid var(--line); }
+.receipt > div { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.receipt dd { line-height: 1.45; }
+.liveRegion { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+
+.root button:focus-visible, .root input:focus-visible, .root summary:focus-visible {
+  outline: 3px solid #e2a391;
+  outline-offset: 3px;
+}
+
+@media (min-width: 700px) {
+  .header { min-height: 74px; padding: 0 34px; }
+  .headerContext > span:first-child { display: inline; }
+  .shell { padding: 24px 34px 56px; }
+  .entryLayout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(420px, 1fr); column-gap: 64px; align-items: start; }
+  .entryLayout .breadcrumb { grid-column: 1 / -1; }
+  .intro { margin-top: 64px; }
+  .intro h1, .reviewHeader h1, .stateCard h1 { font-size: 52px; }
+  .entryCard { margin-top: 46px; padding: 30px; }
+  .privacyNote { grid-column: 1; margin-top: -110px; margin-right: 20px; }
+  .codeRow { grid-template-columns: minmax(0, 1fr) auto; }
+  .reviewHeader { flex-direction: row; justify-content: space-between; align-items: flex-end; }
+  .reviewGrid { grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); align-items: start; }
+  .senderBlock, .scopeHeader { padding-left: 28px; padding-right: 28px; }
+  .factGrid { grid-template-columns: repeat(2, 1fr); padding: 4px 28px; column-gap: 28px; }
+  .scopeList { padding: 0 28px; }
+  .notIncluded { margin-left: 28px; margin-right: 28px; }
+  .acceptCard { position: sticky; top: 20px; padding: 28px; }
+  .stateCard { padding: 42px; }
+  .stateActions { flex-direction: row; align-items: center; }
+  .stateActions .acceptButton { width: auto; min-width: 220px; margin-top: 0; }
+  .receipt { grid-template-columns: repeat(2, 1fr); column-gap: 28px; }
+}
+
+@media (min-width: 1100px) {
+  .intro h1 { font-size: 64px; }
+  .entryLayout { column-gap: 90px; }
+  .reviewGrid { gap: 24px; }
+}
+
+@media (max-width: 370px) {
+  .shell { padding-left: 16px; padding-right: 16px; }
+  .intro h1, .reviewHeader h1, .stateCard h1 { font-size: 34px; }
+  .entryCard, .passCard, .acceptCard, .stateCard { border-radius: 21px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *, .root *::before, .root *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
