@@ -786,5 +786,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .switch i { transition: none; }
-  *, *::before, *::after { scroll-behavior: auto !important; }
+  .familyPage *,
+  .familyPage *::before,
+  .familyPage *::after,
+  .activePageRoot *,
+  .activePageRoot *::before,
+  .activePageRoot *::after { scroll-behavior: auto !important; }
 }
