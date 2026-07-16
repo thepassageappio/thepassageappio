@@ -67,9 +67,9 @@ const cases: SandboxCase[] = [
 ];
 
 const commitments: SandboxCommitment[] = [
-  { id: 'confirm-arrangement-meeting', caseId: 'NS-2051', assignmentId: 'assignment-ns-2051-arrangement', assignedMembershipId: 'membership-marcus', title: 'Confirm the arrangement meeting with Maya Rivera.', status: 'assigned', waitingParty: 'Maya Rivera', due: '10:30', blocker: 'Maya Rivera is waiting for the meeting time.', proofRequirement: 'Meeting time + family acknowledgment', nextOwnerMembershipId: 'membership-marcus', output: { kind: 'family_draft', eyebrow: 'PASSAGE-PREPARED DRAFT', audience: 'Audience: Maya Rivera · family coordinator', automationLabel: 'Automation: Draft prepared', boundaryLabel: 'Review required · Not sent', body: 'Your Northstar team is coordinating the arrangement meeting. Please review the proposed time before this message is sent.', cta: 'Review family message', helper: 'Nothing is sent until an authorized team member reviews and sends it.', reviewReady: true, sentExternally: false } },
+  { id: 'confirm-arrangement-meeting', caseId: 'NS-2051', assignmentId: 'assignment-ns-2051-arrangement', assignedMembershipId: 'membership-marcus', title: 'Confirm the arrangement meeting with Maya Rivera.', status: 'assigned', waitingParty: 'Maya Rivera', due: '10:30', blocker: 'Maya Rivera is waiting for the meeting time.', proofRequirement: 'Meeting time + family acknowledgment', nextOwnerMembershipId: 'membership-marcus', output: { kind: 'family_draft', eyebrow: 'PASSAGE-PREPARED DRAFT', audience: 'Audience: Maya Rivera · family coordinator', automationLabel: 'Automation: Draft prepared', boundaryLabel: 'Review required · Not sent', body: 'Your Northstar team is coordinating the arrangement meeting. Please review the proposed time before this message is sent.', cta: 'Review family message', helper: 'Nothing is sent until an authorized team member reviews and sends it.', reviewReady: false, sentExternally: false } },
   { id: 'confirm-receiving-location', caseId: 'NS-2048', assignmentId: 'assignment-ns-2048-location', assignedMembershipId: 'membership-marcus', title: 'Confirm the receiving location so transport can dispatch.', status: 'assigned', waitingParty: 'Transport team', due: '11:15', blocker: 'Two locations are ready; destination is unconfirmed.', proofRequirement: 'Destination + dispatch timestamp', nextOwnerMembershipId: 'membership-marcus', output: { kind: 'automatic_internal_receipt', eyebrow: 'AUTOMATIC INTERNAL RECEIPT', audience: 'Audience: Northstar case team', automationLabel: 'Recorded automatically', boundaryLabel: 'Internal only', body: 'The provider handoff was received and added to the Chen case timeline.', helper: 'No external message was sent.', reviewReady: false, sentExternally: false } },
-  { id: 'resolve-benefits-document', caseId: 'NS-2039', assignmentId: 'assignment-ns-2039-benefits', assignedMembershipId: 'membership-elena', title: 'Resolve the missing benefits document before the aftercare call.', status: 'assigned', waitingParty: 'Patel family', due: '15:30', blocker: 'Family has not located the policy schedule.', proofRequirement: 'Document received or exception recorded', nextOwnerMembershipId: 'membership-elena', output: { kind: 'internal_draft', eyebrow: 'PASSAGE-PREPARED SUMMARY', audience: 'Audience: Elena Torres + Portland case team', automationLabel: 'Automation: Draft prepared', boundaryLabel: 'Review required · Not sent', body: 'Benefits document remains outstanding. Confirm the exception path before the aftercare call.', cta: 'Review internal summary', helper: 'This draft stays inside the case team and is not visible to the family.', reviewReady: true, sentExternally: false } },
+  { id: 'resolve-benefits-document', caseId: 'NS-2039', assignmentId: 'assignment-ns-2039-benefits', assignedMembershipId: 'membership-elena', title: 'Resolve the missing benefits document before the aftercare call.', status: 'assigned', waitingParty: 'Patel family', due: '15:30', blocker: 'Family has not located the policy schedule.', proofRequirement: 'Document received or exception recorded', nextOwnerMembershipId: 'membership-elena', output: { kind: 'internal_draft', eyebrow: 'PASSAGE-PREPARED SUMMARY', audience: 'Audience: Elena Torres + Portland case team', automationLabel: 'Automation: Draft prepared', boundaryLabel: 'Review required · Not sent', body: 'Benefits document remains outstanding. Confirm the exception path before the aftercare call.', cta: 'Review internal summary', helper: 'This draft stays inside the case team and is not visible to the family.', reviewReady: false, sentExternally: false } },
   { id: 'approve-keepsake-artwork', caseId: 'NS-2053', assignmentId: 'assignment-ns-2053-artwork', assignedMembershipId: null, title: 'Review keepsake artwork and record family approval.', status: 'assigned', waitingParty: 'Williams family', due: '13:45', blocker: 'No employee owns the approval follow-up.', proofRequirement: 'Family approval + final artwork version', nextOwnerMembershipId: null },
   { id: 'confirm-service-accessibility', caseId: 'NS-2056', assignmentId: 'assignment-ns-2056-accessibility', assignedMembershipId: 'membership-avery', title: 'Confirm service accessibility needs with the family.', status: 'assigned', waitingParty: 'Brooks family', due: '12:20', blocker: 'Venue seating and hearing support need confirmation.', proofRequirement: 'Accessibility plan + family acknowledgment', nextOwnerMembershipId: 'membership-avery' },
 ];
@@ -133,7 +133,7 @@ export function applySandboxCommand(record: SandboxRecord, command: SandboxComma
   }
   if (command.type === 'set_staff_identity') {
     const actor = actingMembership(record, command.actorId, command.actorMembershipId);
-    if (!actor) return record;
+    if (!actor || actor.role === 'director') return record;
     const updated = { ...record, workspaceContext: { ...record.workspaceContext, staffMembershipId: actor.id, staffLocationId: actor.locationScope === 'organization' ? record.workspaceContext.staffLocationId : actor.locationScope } };
     return append(updated, { idempotencyKey: command.idempotencyKey, kind: 'staff_identity_changed', actor: actor.actor, purpose: 'Preview a seeded staff workspace', caseId: 'NS-2051', organizationId: 'northstar', audience: 'director', summary: `Sandbox staff identity changed to ${actor.actor.name}.`, waitingParty: 'Nobody', proof: 'Preview preference saved in this browser; no access granted', nextOwner: actor.actor.name, previousState: record.workspaceContext.staffMembershipId, nextState: actor.id });
   }
@@ -186,8 +186,9 @@ export function applySandboxCommand(record: SandboxRecord, command: SandboxComma
     return append(updateCommitment(record, commitmentId, (item) => ({ ...item, status: 'in_progress' })), { ...base, idempotencyKey: command.idempotencyKey, kind: 'commitment_started', actor: actor.actor, purpose: 'Begin the assigned commitment', audience: 'case_team', summary: `${actor.actor.name} started ${current.title}`, waitingParty: current.waitingParty, proof: 'Start time recorded on the commitment', nextOwner: actor.actor.name, previousState: 'assigned', nextState: 'in_progress' });
   }
   if (command.type === 'mark_output_review_ready') {
-    if (!current.output || current.output.kind === 'automatic_internal_receipt') return record;
-    return append(record, { ...base, idempotencyKey: command.idempotencyKey, kind: 'output_review_ready', actor: actor.actor, purpose: 'Review a Passage-prepared task output before any send', audience: 'case_team', summary: `${actor.actor.name} opened the prepared ${current.output.kind === 'family_draft' ? 'family message' : 'internal summary'} for review.`, waitingParty: actor.actor.name, proof: 'Review-ready event saved; no message sent', nextOwner: actor.actor.name, previousState: 'draft_prepared', nextState: 'review_ready' });
+    if (!current.output || current.output.kind === 'automatic_internal_receipt' || current.output.reviewReady) return record;
+    const updated = updateCommitment(record, commitmentId, (item) => ({ ...item, output: item.output ? { ...item.output, reviewReady: true, boundaryLabel: 'Reviewed · Not sent' } : item.output }));
+    return append(updated, { ...base, idempotencyKey: command.idempotencyKey, kind: 'output_review_ready', actor: actor.actor, purpose: 'Review a Passage-prepared task output before any send', audience: 'case_team', summary: `${actor.actor.name} reviewed the prepared ${current.output.kind === 'family_draft' ? 'family message' : 'internal summary'}; no message was sent.`, waitingParty: actor.actor.name, proof: 'Review-ready event saved; no message sent', nextOwner: actor.actor.name, previousState: 'draft_prepared', nextState: 'review_ready' });
   }
   if (current.status !== 'in_progress') return record;
   const proofLabel = command.label?.trim() || (commitmentId === 'confirm-arrangement-meeting' ? 'Meeting time confirmed with Maya Rivera' : current.proofRequirement);
@@ -195,12 +196,23 @@ export function applySandboxCommand(record: SandboxRecord, command: SandboxComma
   return append(updated, { ...base, idempotencyKey: command.idempotencyKey, kind: 'proof_submitted', actor: actor.actor, purpose: 'Return proof to the accountable director', authorityId: itemCase.authorityId, audience: 'family_and_case_team', summary: `${actor.actor.name} attached proof for ${current.title}`, waitingParty: ELENA.name, proof: proofLabel, nextOwner: ELENA.name, previousState: 'in_progress', nextState: 'proof_submitted' });
 }
 
+function normalizePreparedOutputReviews(record: SandboxRecord): SandboxRecord {
+  return {
+    ...record,
+    commitments: record.commitments.map((item) => {
+      if (!item.output || item.output.kind === 'automatic_internal_receipt') return item;
+      const reviewReady = record.events.some((event) => event.kind === 'output_review_ready' && event.commitmentId === item.id);
+      return { ...item, output: { ...item.output, reviewReady, boundaryLabel: reviewReady ? 'Reviewed · Not sent' : 'Review required · Not sent' } };
+    }),
+  };
+}
+
 export function readSandbox(storage: Pick<Storage, 'getItem' | 'removeItem'>): SandboxRecord {
   try {
     const raw = storage.getItem(SANDBOX_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as SandboxRecord;
-      if (parsed.schemaVersion === 3 && parsed.transferPass?.code === 'PASS-RIVERA-7K4M' && parsed.cases?.length === 5) return withCanonicalAliases(parsed);
+      if (parsed.schemaVersion === 3 && parsed.transferPass?.code === 'PASS-RIVERA-7K4M' && parsed.cases?.length === 5) return withCanonicalAliases(normalizePreparedOutputReviews(parsed));
     }
   } catch { /* An invalid or older sandbox is safely replaced below. */ }
   storage.removeItem(SANDBOX_STORAGE_KEY);

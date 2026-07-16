@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePassageZero } from '../../components/PassageZeroProvider';
 import { AppFrame } from '../../components/operations/AppFrame';
 import { ContinuityRail } from '../../components/operations/ContinuityRail';
@@ -11,10 +11,11 @@ import styles from './Staff.module.css';
 
 export default function StaffPage() {
   const { record, dispatch, reset } = usePassageZero();
-  const identityId = record.workspaceContext.staffMembershipId;
+  const requestedIdentityId = record.workspaceContext.staffMembershipId;
+  const staffIdentities = record.memberships.filter((item) => item.active && item.role !== 'director');
+  const identityId = staffIdentities.some((item) => item.id === requestedIdentityId) ? requestedIdentityId : staffIdentities[0].id;
   const identity = membership(record, identityId);
   const owned = assignedCommitments(record, identityId);
-  const staffIdentities = record.memberships.filter((item) => item.active);
   const [selectedId, setSelectedId] = useState<CommitmentId>('confirm-arrangement-meeting');
   const [reviewStatus, setReviewStatus] = useState('');
   const selected = owned.find((item) => item.id === selectedId) ?? owned[0];
@@ -22,8 +23,13 @@ export default function StaffPage() {
   const accountable = itemCase ? membership(record, itemCase.accountableMembershipId) : null;
   const actionBlocked = selected?.caseId === 'NS-2051' && record.transferPass.status !== 'accepted';
 
+  useEffect(() => {
+    if (requestedIdentityId === identityId) return;
+    dispatch({ type: 'set_staff_identity', actorId: identity.actor.id as SandboxActor['id'], actorMembershipId: identityId, idempotencyKey: `staff-identity-normalize:${identityId}` });
+  }, [dispatch, identity.actor.id, identityId, requestedIdentityId]);
+
   return (
-    <AppFrame active="staff" identity={identity.actor.name} role={`${identity.role === 'director' ? 'Director' : 'Care coordinator'} · Northstar`}>
+    <AppFrame active="staff" identity={identity.actor.name} role="Care coordinator · Northstar">
       <section className={styles.heading}>
         <div><p>MY WORK / TODAY</p><h1>Only the work assigned to you.</h1></div>
         <div className={styles.identityPicker}><label htmlFor="staff-identity">Sandbox staff identity</label><select id="staff-identity" value={identityId} onChange={(event) => { const nextId = event.target.value as MembershipId; const next = membership(record, nextId); setReviewStatus(''); dispatch({ type: 'set_staff_identity', actorId: next.actor.id as SandboxActor['id'], actorMembershipId: nextId, idempotencyKey: `staff-identity:${nextId}:${Date.now()}` }); }}>{staffIdentities.map((item) => { const count = assignedCommitments(record, item.id).length; return <option key={item.id} value={item.id}>{item.actor.name} · {count} {count === 1 ? 'commitment' : 'commitments'}</option>; })}</select><small>Preview only — switching identity changes this seeded workspace. It does not sign in or grant access.</small></div>
@@ -40,10 +46,10 @@ export default function StaffPage() {
             <dl className={styles.taskContract}>
               <div><dt>OWNER</dt><dd>{identity.actor.name}</dd></div><div><dt>WAITING</dt><dd>{selected.waitingParty}</dd></div>
               <div><dt>AUDIENCE</dt><dd>{selected.output?.audience.replace('Audience: ', '') ?? 'Northstar case team'}</dd></div><div><dt>AUTOMATION</dt><dd>{selected.output?.automationLabel.replace('Automation: ', '') ?? 'Manual'}</dd></div>
-              <div><dt>PREPARED</dt><dd>{selected.output?.body ?? 'No output prepared'}</dd></div><div><dt>HUMAN ACTION</dt><dd>{selected.output?.cta ?? (selected.status === 'assigned' ? 'Start the commitment' : 'Attach the required proof')}</dd></div>
+              <div><dt>PREPARED</dt><dd>{selected.output?.body ?? 'No output prepared'}</dd></div><div><dt>HUMAN ACTION</dt><dd>{selected.output?.reviewReady ? 'Review complete; sending remains unavailable in this sandbox' : selected.output?.cta ?? (selected.status === 'assigned' ? 'Start the commitment' : 'Attach the required proof')}</dd></div>
               <div><dt>PROOF DESTINATION</dt><dd>{selected.proofRequirement}</dd></div><div><dt>NEXT STATE / OWNER</dt><dd>Proof submitted · {accountable?.actor.name}</dd></div>
             </dl>
-            {selected.output && <section className={styles.preparedOutput} aria-label="Prepared output"><span>{selected.output.eyebrow}</span><h3>{selected.output.audience}</h3><p>{selected.output.body}</p><div><strong>{selected.output.automationLabel}</strong><strong>{selected.output.boundaryLabel}</strong></div>{selected.output.cta && <button onClick={() => { dispatch({ type: 'mark_output_review_ready', actorId: identity.actor.id as SandboxActor['id'], actorMembershipId: identity.id, commitmentId: selected.id, idempotencyKey: `review:${selected.id}:${Date.now()}` }); setReviewStatus('Review-ready event saved. No message was sent.'); }} type="button">{selected.output.cta}</button>}<small>{selected.output.helper}</small>{reviewStatus && <b role="status">{reviewStatus}</b>}</section>}
+            {selected.output && <section className={styles.preparedOutput} aria-label="Prepared output"><span>{selected.output.eyebrow}</span><h3>{selected.output.audience}</h3><p>{selected.output.body}</p><div><strong>{selected.output.automationLabel}</strong><strong>{selected.output.boundaryLabel}</strong></div>{selected.output.cta && !selected.output.reviewReady && <button onClick={() => { dispatch({ type: 'mark_output_review_ready', actorId: identity.actor.id as SandboxActor['id'], actorMembershipId: identity.id, commitmentId: selected.id, idempotencyKey: `review:${selected.id}` }); setReviewStatus('Reviewed and ready. No message was sent.'); }} type="button">{selected.output.cta}</button>}<small>{selected.output.helper}</small>{selected.output.reviewReady ? <b role="status">Reviewed and ready. No message was sent.</b> : reviewStatus && <b role="status">{reviewStatus}</b>}</section>}
             {selected.status === 'proof_submitted' ? <div className={styles.complete} role="status"><b aria-hidden="true">✓</b><p><strong>Proof received, awaiting review.</strong>{accountable?.actor.name} is the next owner. The family sees only the returned outcome.</p><button onClick={reset} type="button">Reset sandbox story</button></div> : <div className={styles.actions}><button disabled={actionBlocked} onClick={() => dispatch(selected.status === 'assigned' ? { type: 'start_commitment', actorId: identity.actor.id as SandboxActor['id'], actorMembershipId: identity.id, commitmentId: selected.id, idempotencyKey: `start:${selected.id}:${Date.now()}` } : { type: 'submit_proof', actorId: identity.actor.id as SandboxActor['id'], actorMembershipId: identity.id, commitmentId: selected.id, idempotencyKey: `proof:${selected.id}:${Date.now()}` })} type="button">{selected.status === 'assigned' ? 'Start commitment' : 'Attach proof'}<span>→</span></button><small>{actionBlocked ? 'Waiting for the director to accept the Rivera family handoff.' : 'The action, audience, proof destination, and next owner are recorded in this browser sandbox.'}</small></div>}
           </section>
         </div>

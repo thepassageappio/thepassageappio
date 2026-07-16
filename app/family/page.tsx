@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import TransferComposer from '../../components/family/TransferComposer';
+import FamilyIntentJourney from '../../components/family/FamilyIntentJourney';
 import styles from '../../components/family/FamilyJourney.module.css';
 
 export const metadata: Metadata = {
@@ -21,22 +21,9 @@ export default function FamilyPage() {
           <i aria-hidden="true" />
           <strong>Sofia's record</strong>
         </div>
-        <button className={styles.familyProfile} type="button" aria-label="Open family profile">ST</button>
+        <span className={styles.familyProfile} aria-label="Signed in preview identity: Sofia Torres">ST</span>
       </header>
-      <section className={styles.familyIntro} id="family-journey">
-        <div>
-          <p>YOUR FAMILY SPACE</p>
-          <h1>Start gently.<br /><span>Stay in control.</span></h1>
-        </div>
-        <div className={styles.familyEntry}>
-          <p>Whether you are planning ahead or coordinating care today, share only what one trusted organization needs. Everything else stays with your family.</p>
-          <nav className={styles.entryPaths} aria-label="Choose how to begin">
-            <a href="#family-journey"><span>Planning ahead</span><small>Prepare a calm, private handoff</small></a>
-            <a href="#family-journey"><span>I need help today</span><small>Share essential details now</small></a>
-          </nav>
-        </div>
-      </section>
-      <TransferComposer />
+      <FamilyIntentJourney />
     </main>
   );
 }

@@ -22,9 +22,9 @@ export function AppFrame({ active, children, identity, role }: AppFrameProps) {
           <span>PASSAGE</span>
         </Link>
         <nav className={styles.nav} aria-label="Operations">
-          {!staffView && <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Director</Link>}
+          {!staffView && <Link aria-current={active === 'director' ? 'page' : undefined} href="/director">Today</Link>}
           {!staffView && <Link aria-current={active === 'intake' ? 'page' : undefined} href="/director/intake">Intake</Link>}
-          <Link aria-current={active === 'staff' ? 'page' : undefined} href="/staff">My work</Link>
+          {staffView && <Link aria-current="page" href="/staff">My work</Link>}
           {!staffView && <Link aria-current={active === 'receive' ? 'page' : undefined} href="/receive">Receive</Link>}
         </nav>
         <div className={styles.identity}>
