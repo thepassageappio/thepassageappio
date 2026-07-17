@@ -355,16 +355,7 @@ Verification evidence:
 - Browser QA exercised family issue -> receiver inspection -> acceptance into `NS-2051` -> director start -> staff proof -> director/family proof return.
 - Runtime state persisted after reload. Revoked, expired, already-accepted, and invalid pass outcomes preserved a no-disclosure boundary.
 - Mobile checks at nominal 390 and 360 widths had equal document client and scroll widths with no horizontal overflow.
-- Browser evidence is stored under `docs/evidence/passage…11257 tokens truncated…tains `user_id`, `email`, `role`, `status`, `display_name`, `title`, and legacy `location_scope`; one demo director row uses `location_scope = 'all'`.
-- The demo director organization `b36f8032-2181-5ef0-9cdf-08bcd48de6c3` has no `organization_locations` row, so its director cannot yet receive a relational location grant without an explicit seed/backfill decision.
-- `workflows` has 8 rows; 2 have no `organization_id`.
-- `tasks` has 47 rows; all reference a workflow, but 37 have no `organization_id`.
-- `workflow_events` has 0 rows and only the legacy event fields. Current owner policies allow client `INSERT`, `UPDATE`, and `DELETE`, so it is not yet a trustworthy append-only audit source.
-- Existing workflow/task policies grant broad organization-level reads through `is_org_member_of`; switching immediately to assigned-only employee policies would hide legitimate current work before the missing organization/location/assignment references are backfilled.
-- `estate_participants.invite_token` is plaintext and has a public token-lookup policy. It remains a separate participant-token hardening migration so funeral-home membership work cannot accidentally change family access.
-- Existing public SECURITY DEFINER helpers and broad/overlapping RLS policies require later least-privilege replacement, fixed `search_path`, and explicit grants. Current Supabase behavior no longer implies Data API grants for new tables, so every new-table grant is specified separately from RLS.
-
-PM breakage decision: Cycle 7A is split into an additive foundation and a later enforcement cutover. The additive migration may create hashed employee invitations, invitation-location grants, member-location grants, nullable workflow/task authority columns, richer event-spine fields, indexes, and narrowly granted invitation RPCs. It must not replace legacy workflow/task read policies, enforce assigned-only RLS, or install an unconditional append-only event trigger until deterministic backfill and adapter tests prove that current records remain reachable. Skipping this split would trade an honest operational gap for silent lockout of 37 tasks and two workflows.
+- Browser evidence is stored under `docs/evidence/passage…11749 tokens truncated…terministic backfill and adapter tests prove that current records remain reachable. Skipping this split would trade an honest operational gap for silent lockout of 37 tasks and two workflows.
 
 Engineering source artifact: `supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql`, created with Supabase CLI. It is a draft until independent SQL/RLS QA passes. It will not be applied to production. The next safe validation path is an isolated test project only after the owner approves the separate **$0/month** confirmation; a blank project can validate migration mechanics and security tests but is not equivalent to a branch copy of production data, so production-shaped fixtures and the read-only preflight remain required evidence.
 
@@ -446,5 +437,15 @@ QA/deploy boundary:
 - Hosted two-browser Auth behavior and the deployed Vercel isolated-project environment binding are not yet proven. Post-deploy QA must verify the preview's binding and confirm a mismatched or absent binding fails closed.
 - Operational readiness remains funeral home **40%** and D2C **25%**. Guided readiness remains funeral home **94%** and D2C **85%**. This preview proves a guarded foundation, not durable assigned-work, notification/recovery, complete Case Room, or production readiness.
 - Next highest-leverage action after preview verification: configure and prove the isolated preview data binding, run two independent hosted sessions through director invite -> staff acceptance -> role landing/replay/denial, then cut assigned workflow/task RLS onto the same authority spine.
+
+Deploy result:
+
+- QA-approved source commit `e13bb411ec6fed64cbcc203549ffd36c971908df` was published to `greenfield/passage-zero` with `release: authenticated funeral-home invitation foundation [deploy] [qa-approved]`.
+- Exactly one new non-production preview was created in canonical Vercel project `prj_b7CKwanQaKwFQSHInr3l6wsZy9nD`: deployment `dpl_DWcXnAHAYvaJqfdw19awsdQQxfmg`, READY, target `null`, 37-second build window, 27-second build command. Errors-only build output is clean.
+- Preview URL: `https://thepassageappio-lcoy7m45j-thepassageappio-7018s-projects.vercel.app`. Stable branch alias remains `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app`.
+- The first generated share token incorrectly redirected to Vercel login. A freshly regenerated working login-route URL is `https://thepassageappio-lcoy7m45j-thepassageappio-7018s-projects.vercel.app/login?_vercel_share=RLV41GAiZXUDOUn0w0GgpEAsYwtoReiv`; Vercel reports expiry July 18, 2026 at 12:47:45 AM without labeling the displayed timezone.
+- Post-deploy browser proof: `/login` renders the warm Auth surface and truthfully reports `Environment unavailable`; `/director`, exact `/director/intake?mode=manual`, and `/staff` render `Workspace access remains closed`; invalid invitation inspection fails closed. No organization, location, roster, case, family, or seeded operator data is exposed.
+- Deployed `/login` has zero horizontal overflow at 1440, 390, and 360. Project runtime error clusters are empty for the verification window; deployment-scoped error/warning/fatal runtime logs are empty. `docs/evidence/cycle-7a-auth/deployed-login-mobile-390.png` records the deployed mobile state.
+- Deploy status is therefore PASS for the guarded fail-closed preview and PARTIAL for operational Auth: Vercel preview environment variables are not yet bound to isolated project `uyacxqtsiwlvtmhxvoxr`, so provider actions remain unavailable. Production is unchanged.
 
 
