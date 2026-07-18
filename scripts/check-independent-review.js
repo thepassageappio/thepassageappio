@@ -87,4 +87,3 @@ async function main() {
 }
 
 main().catch((error) => fail(error.message));
-

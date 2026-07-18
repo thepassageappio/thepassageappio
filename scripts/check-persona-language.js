@@ -54,4 +54,3 @@ if (failures.length) {
 }
 
 console.log('PASS persona surfaces contain no blocked internal release or architecture narration');
-

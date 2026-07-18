@@ -89,4 +89,3 @@ assert.equal(result.status, 0, result.stderr);
 fs.rmSync(languageFixtureRoot, { recursive: true, force: true });
 
 console.log('PASS release governance distinguishes drafts, completed handoffs, and separate human approval');
-

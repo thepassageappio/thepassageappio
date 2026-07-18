@@ -68,4 +68,3 @@ if (!Number.isFinite(cycle) || cycle < 1 || cycle > 3) {
 }
 
 console.log('Release train completion gate passed.');
-

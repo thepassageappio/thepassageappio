@@ -42,4 +42,3 @@
 - Roadmap updated if scope or priority changed:
 - Deploy Decision: NOT APPROVED
 - Release marker only after all applicable gates pass: `[deploy] [qa-approved]`
-
