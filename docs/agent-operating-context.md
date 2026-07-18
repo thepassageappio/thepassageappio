@@ -287,4 +287,1015 @@ Risks:
 - Parallel agents share the filesystem; inspect overlaps before integration.
 - Share tokens expire.
 - Client-side demo state is not durable or secure; do not confuse it with production readiness.
-- Exact legal, compliance, privacy, medical, authority-to-act, HIPãÍyÒÚ$z{-®éÜj×76vU÷&—fFV—2æ÷BFF’W‡÷6VB66†VÖÂÇ&VG’w&çG266†VÖW6vRf÷"F†RW7F&Æ—6†VBw&W"GFW&âÂæBF†R&—fFR–×ÆVÖVçFF–öâW&f÷&×2W‡Æ–6—BWF‚Â÷&væ—¦F–öâÂÆö6F–öâÂæB&WÆ’×66÷R6†V6·2âF†—2&W6W'fW2F†R&WV—&VB&—f–ÆVvR6†–âv—F†÷WBW‡÷6–ærV&Æ–26V7W&—G’ÖFVf–æW"%2â¢¤'&V¶vR–b6¶—VC¢¢¢F†RGf—6÷"v&æ–ær&VÖ–ç2æBF†RV&Æ–2’†2'&öFW"W†V7WF–öâ÷7GW&RF†âæVVFVBâ¢¤'&V¶vR–bÖ—6Æ–VC¢¢¢öÖ—GF–ærF†R&—fFRw&çBÖ¶W2F†Rw&W"f–Â6Æ÷6VBv—F‚W&Ö—76–öâFVæ–VC²&W7F÷&–ærV—F†W"öÆB7&VF–öâw&çB&V÷Vç2GWÆ–6FR'—72âÇ’öæÇ’F‡&÷Vv‚Ö–w&F–öâFööÆ–ærFò—6öÆFVBW–7‡G6—vÇgFÖ‡‡f÷‡&ÂæWfW"&öGV7F–öâà ¢2227–6ÆRt&—G’–×ÆVÖVçFF–öâæB—6öÆFVB–FV×÷FVæ7’&ööbÒ##bÓrÓr#£3‚Ós£  ¥&öÆR†æFöfbæBFV6—6–öç3  ¢ÒÒ6ö×ÆWFVBF†RF—&V7F÷"Ö–çf—FF–öâ7&–çB'&–VbæB6Æ76–f–VBF†RÖ—76–ær&Wf–Wr77v÷&B6W76–öâF‚d•‚äõrâU‚–æFWVæFVçFÇ’f÷VæBæB&Æö6¶VB&÷F‚&6¶VæBÖ†VB7&VF–öâG&–gBæBg&öçFVæBÖ&V†–æBÔWF‚G&–gB&Vf÷&RF†RfW&–f–6F–öâ&Wf–WrâFWfVÆ÷ÖVçB–×ÆVÖVçFVBF†R&÷VæFVB6÷'&V7F–öç2â–æFWVæFVçB–æ—F–ÆÇ’f–ÆVBæöâÖ–FV×÷FVçB7&VF–öâÂFö¶Vâ&VfWF6‚Â&WÆ’G'WF‚ÂöÆBÕ%2'—72Â&—f–ÆVvRÖ6†–âÂ7&÷72ÖÆö6F–öâ&WÆ’ÂæBW'6—7FVBÖ–çf—FW"FVfV7G3²V6‚v26÷'&V7FVBæBF†Vâ76VB&÷F‚Ö–w&F–öç2f÷"—6öÆFVBÆ–6F–öâà¢ÒF†RF—&V7F÷"v÷&·76Ræ÷rÆ–æ·2FòöF—&V7F÷"ö–çf—FF–öç2öæWvâF†B&÷WFRFW&—fW2÷&væ—¦F–öâæB7F—fRÆö6F–öç2g&öÒF†RfW&–f–VB6W'fW"×6–FRf–WvW"Â6ÆÇ2öæÇ’F†RæWr–FV×÷FVçB%2ÂæB6†÷w2G'WF†gVÂ7&VFVBÂ&WÆ–VB×VæF–ærÂfÆ–FF–öâÂFVæ–ÂÂ6öæfÆ–7BÂæBVæf–Æ&ÆR7FFW2âF†R&V6V—BW6W2W'6—7FVBW'÷6RÂ66÷RÂ–çf—FW"ÂW‡—'’Â7FFRÂWfVçBFW7F–æF–öâÂFVÆ—fW'’æ÷E÷6VçFÂæBæW‡B7F–öââ&r×Fö¶VâÆ–æ·2F—6&ÆRæW‡B&VfWF6‚æB&R'6VçBöâ&WÆ’à¢ÒF†R&÷f–FW"ÖF—6&ÆVB—6öÆFVB&Wf–WrÆöv–âæ÷r†2&VÂ6–vä–åv—F…77v÷&FF‚f÷"WF‚FÖ–â7–çF†WF–266÷VçG2â—B—2Væ&ÆVBöæÇ’'’54tUõ$Ud”Uuõ55tõ$EôUD…ôTä$ÄTC×G'VVFövWF†W"v—F‚fW&6VÂ&Wf–WrÂ76vR&Wf–Wr'VçF–ÖRÂæBW†7B—6öÆFVB&ö¦V7B&VbW–7‡G6—vÇgFÖ‡‡f÷‡&²&öGV7F–öâæBWfW'’÷F†W"&ö¦V7Bf–Â6Æ÷6VBâæò7&VFVçF–Â—27F÷&VB–â6÷W&6R÷"&VæFW&VB6÷’à¢ÒF†RöæR×W6RfW&6VÂW†6WF–öâ&VÖ–ç2¶FWÆ÷•Ò¶7–6ÆRÓv×fW&–f–6F–öâ×&Wf–WuÖÂW†7B6æöæ–6Â&ö¦V7Bö'&æ6‚õ&Wf–WröæÇ’â—B&VÖ–ç2W‡Æ–6—FÇ’f÷&&–FFVâ–â&öGV7F–öâæBv–ÆÂ&R&VÖ÷fVB–âF†R÷7BÕ·6¶—FWÆ÷•Ö–çFVw&FVB6öÖÖ—Bà ¥fW&–f–6F–öã  ¢ÒçÒG—V6†V6¶Â÷F–Ö—¦VBçÒ'V–ÆFÂæBF†RW‡æFVBbÖ66RFWÆ÷’ÖvFRÖG&—‚72âF†R'V–ÆB–æ6ÇVFW2G–æÖ–2öF—&V7F÷"ö–çf—FF–öç2öæWvà¢ÒÖ–w&F–öâ7–6ÆUóvö–çf—FF–öåö7&VF–öåö–FV×÷FVæ7–Æ–VBöæ6RF‡&÷Vv‚7W&6RÖ–w&F–öâFööÆ–ærFò—6öÆFVBW–7‡G6—vÇgFÖ‡‡f÷‡&2fW'6–öâ##csƒ333Câ—BFG2&WVW7B–FVçF—G’Â6W&–Æ—¦W2÷&væ—¦F–öâöVÖ–Â7&VF–öâÂ&WÆ—2W†—7F–ærÆ—fR–çf—FF–öç2v—F†÷WB&V6öç7G'V7F–ærF†R&rFö¶VâÂ&WGW&ç2W'6—7FVB66÷R÷W'÷6Rö–çf—FW"÷7FFRÂ&V¦V7G27&÷72×66÷R&WÆ’ÂæB&Wfö¶W2WF†VçF–6FVBW†V7WF–öâöbF†RöÆBGWÆ–6FRÖ6&ÆRV&Æ–2÷&—fFR6öÖÖæG2à¢ÒföÆÆ÷r×W7–6ÆUóvö–çf—FF–öåö–FV×÷FVæ7•ö6Åö†&FVæ–ævÆ–VBöæ6RFòF†R6ÖR—6öÆFVB&ö¦V7B2fW'6–öâ##csƒ33s–â÷7BÖÇ’6FÆör&ööc¢V&Æ–2w&W"&÷6V6FVcÖfÇ6V²WF†VçF–6FVB6âW†V7WFRF†RæWrV&Æ–2æBæWr6†V6¶VB&—fFRgVæ7F–öç3²æöâ6ææ÷C²WF†VçF–6FVB6ææ÷BW†V7WFRV—F†W"öÆB7&VF–öâgVæ7F–öââ&÷F‚Ö–w&F–öâæÖW2&R'6VçBg&öÒ&öGV7F–öâ7fWf6‡w–Ç6&æ76fw†Và¢Ò6V7W&—G’Gf—6÷'2&R6ÆV"öbF†RFV×÷&'’V&Æ–2×6V7W&—G’ÖFVf–æW"v&æ–ærâ&VÖ–æ–ær”ädòf–æF–æw2&RF†RW‡V7FVBf–ÂÖ6Æ÷6VB7–6ÆRt"F&ÆW2†F6·6Âv÷&¶fÆ÷w6Âv÷&¶fÆ÷uöWfVçG6’v—F‚$Å2æBæòöÆ–6–W3¢‡GG3¢ò÷7W&6Ræ6öÒöFö72öwV–FW2öFF&6RöFF&6RÖÆ–çFW#öÆ–çCÓ…÷&Ç5öVæ&ÆVEöæõ÷öÆ–7’âV×G’ÖÆ"VçW6VBÖ–æFW‚”ädò&VÖ–ç2W‡V7FVC¢‡GG3¢ò÷7W&6Ræ6öÒöFö72öwV–FW2öFF&6RöFF&6RÖÆ–çFW#öÆ–çCÓU÷VçW6VEö–æFW‚à¢Ò7F'F–ær—6öÆFVB6&F–æÆ—G’&VÖ–ç2¦W&ò–çf—FF–öç2Â¦W&ò–çf—FF–öâÖÆö6F–öâ&÷w2Â¦W&òÖVÖ&W'6†—2ÂæB¦W&ò–çf—FF–öâWfVçG2â&VÂWF†VçF–6FVBf—'7BÖ7&VFR÷&WÆ’ö6&F–æÆ—G’&ööb7F–ÆÂ&WV—&W2F†RGvòWF‚FÖ–âW6W'2æBF—&V7F÷"f—‡GW&Rà ¤7W'&VçBW‡FW&æÂvFRæBæW‡BW†7B7F–öã  ¢ÒæòfW&–f–6F–öâ&Wf–Wr†2&VVâ7&VFVBæBæò·Ö&÷fVEÖÂ6öÖÖ—BÂW6‚Â"WFFRÂ67&VVç6†÷B6Æ–ÒÂ÷"&VF–æW72–æ7&V6R†2ö67W'&VBâfW&6VÂ4Ä’7F–ÆÂ†2æò7&VFVçF–Ç3²6‡&öÖRfW&6VÂæB7W&6RF6†&ö&BF'2&RÆVgBBF†V—"6–vâÖ–â67&VVç22W‡Æ–6—B†æFöfg2à¢Ò7FWfR×W7B6–vâ–âFò&÷F‚fW&6VÂæB7W&6R–âF†÷6R÷Vâ6‡&öÖRF'2æB&W÷'B&VG’Âv—F†÷WB6†&–ær7&VFVçF–Ç2âF†VâFWÆ÷’6öæf–wW&W2F†RFVâW†7BÖ'&æ6‚&Wf–Wrf&–&ÆW2‡F†RW†—7F–æræ–æRÇW254tUõ$Ud”Uuõ55tõ$EôUD…ôTä$ÄTC×G'VV’Â6öæf–wW&W2öæÇ’—6öÆFVBWF‚&VF—&V7G2Â7&VFW2F†RF—&V7F÷"÷7Ffb7–çF†WF–2W6W'2F‡&÷Vv‚WF‚FÖ–âÂ'Vç2F†RwV&FVBDÔÂf—‡GW&RÂæB7VæG2F†R6öÆRWF†÷&—¦VBfW&–f–6F–öâ×&Wf–Wr6Æ÷Bâ–æFWVæFVçB†÷7FVBF†Vâ&÷fW27&VFR÷&WÆ’÷w&öær×W6W"ö66WFæ6RöFVæ–Â÷&VÆöBö6&F–æÆ—G’æBCCó3“ó3cWf–FVæ6RöâF†B6ÖR&Wf–Wrà¢Ò÷W&F–öæÂ&VF–æW72&VÖ–ç2gVæW&Â†öÖR¢£CR¢¢æBC$2¢£#RR¢£²wV–FVB&VF–æW72&VÖ–ç2gVæW&Â†öÖR¢£“BR¢¢æBC$2¢£ƒRR¢¢â&öGV7F–öâ&VÖ–ç2VçF÷V6†VBà ¢2227–6ÆRt†÷7FVB&RÖVçG'’&—G’VF—BÒd•‚äõrÒ##bÓrÓ‚3£SRÓs£  ¤WF†VçF–6FVBF&vWBfW&–f–6F–öã  ¢ÒfW&6VÂ'&÷w6W"66W72—2WF†VçF–6FVBFòF†R6æöæ–6ÂF†W76vV–ö&ö¦V7Bâ7W&6R'&÷w6W"66W72—2WF†VçF–6FVBF—&V7FÇ’Fò—6öÆFVB&ö¦V7B76vRÖ7–6ÆRÓv×FW7F†W–7‡G6—vÇgFÖ‡‡f÷‡&’â&öGV7F–öâ&ö¦V7B7fWf6‡w–Ç6&æ76fw†Vv2æ÷B÷VæVB÷"6†ævVBà¢ÒF†RfW&6VÂ4Ä’7F–ÆÂ&WV—&W2—G26W&FRFWf–6RWF†÷&—¦F–öââæò&Wf–Wrf&–&ÆRÂWF‚6WGF–ærÂWF‚W6W"Âf—‡GW&R&÷rÂFWÆ÷–ÖVçBÂ"Ö&¶W"Â&VF–æW7266÷&RÂ÷"&öGV7F–öâfÇVR†26†ævVB–âF†—2&RÖVçG'’à ¤–æFWVæFVçBVæv–æVW&–ær&—G’VF—BFV6—6–öã¢¢¤d”Âòd•‚äõr&Vf÷&R†÷7FVB×WFF–öâ¢¢à ¢Ò¢¥Vç&V6†&ÆRg&öçFVæB6öçG&7C¢¢¢öF—&V7F÷"ö–çf—FF–öç2öæWv—2æW7FVBVæFW"öF—&V7F÷"öÆ–÷WBçG7†Â'WB÷W&F–öæÄ&÷VæF'–7W'&VçFÇ’&VæFW'2F—&V7F÷"6†–ÆG&VâöæÇ’f÷"F†RFVÖò'VçF–ÖRâF†R77v÷&BÖWF‚F‚—2FVÆ–&W&FVÇ’f–Æ&ÆRöæÇ’–âF†RW†7B—6öÆFVBfW&6VÂ&Wf–Wr'VçF–ÖRâv—F†÷WBæ'&÷rfW&–f–VB×&Wf–Wr&÷WFRÆÆ÷væ6RÂ&VÂF—&V7F÷"6W76–öâ6âWF†VçF–6FR'WB6âæWfW"&V6‚F†R–çf—FF–öâ6öÖÖæBT’âVæv–æVW&–ær×W7BW&Ö—BöæÇ’F†R&VÂÂ6W'fW"ÖWF†÷&—¦VB–çf—FF–öâ&÷WFR–âF†R—6öÆFVB&Wf–WræB×W7Bæ÷BW‡÷6RF†R6æF&÷‚F—&V7F÷"F6†&ö&BÂvV¶Vâ&öGV7F–öâÂ÷"6†ævRfÖ–Ç’÷fVæF÷"66W72à¢Ò¢¥f—6–&–Æ—G’Ö6÷’G&–gC¢¢¢F†R–çf—FF–öâ&V6V—B7W'&VçFÇ’6—2öæÇ’WF†÷&—¦VBF—&V7F÷'2æBF†RfW&–f–VB–çf—FVR6â6VRF†R–çf—FF–öââF†R&6¶VæB–çFVçF–öæÆÇ’W&Ö—G2&RÖWF‚–ç7V7F–öâFòç–öæR÷76W76–ærF†R6V7W&R&rÆ–æ²VçF–ÂW‡—'’÷"&Wfö6F–öã²66WFæ6R&VÖ–ç2&W7G&–7FVBFòF†RW†7BfW&–f–VB–çf—FVBVÖ–ÂâF†RT’6÷’×W7B7FFRF†B&÷VæF'’G'WF†gVÆÇ’à¢Ò¢¥F–ÖW7F××&ööbG&–gC¢¢¢F†R6W'fW"7F–öâ7W'&VçFÇ’–çfVçG2æWrFFR‚’çFô•4õ7G&–ær‚–gFW"F†R%2æBÆ&VÇ2—B76vR6W'fW"&V6V—BâF†BF–ÖW7F×—2æ÷BF†RGW&&ÆR–çf—FF–öâ7&VFVEöF÷"VæBÖöæÇ’7&VF–öâÖWfVçBF–ÖRâF†Rg&öçFVæB×W7BF—7Æ’W'6—7FVBFF&6RF–ÖW7F×æB–çf—FF–öâ”BÂ÷"7F÷6Æ–Ö–ærWF†÷&—FF—fRF–ÖW7F×&ööbà ¤Fö7VÖVçFF–öâÖf—'7B&6¶VæB6÷'&V7F–öâf÷"F–ÖW7F×&ööc  ¢Ò¢¥v†C¢¢¢FBfW'6–öæVBWF†VçF–6FVB–çf—FF–öâÖ7&VF–öâ&V6V—B%2F†B&W6W'fW2F†R7W'&VçB–FV×÷FVæ7’Â&WÆ’Â÷&væ—¦F–öâöÆö6F–öâWF†÷&—G’ÂöÆBÖ6öÖÖæB&Wfö6F–öç2ÂæB&r×Fö¶Vâæöâ×&V6÷fW'’&V†f–÷"Âv†–ÆR&WGW&æ–ærF†RW'6—7FVB–çf—FF–öâ7&VFVEöFâF†RöÆB–FV×÷FVçB6Æ–VçBVçG'—ö–çG2v–ÆÂ&R&Wfö¶VBgFW"F†RfW'6–öæVB%2—2f–Æ&ÆS²F†RVæFW&Ç––ær6†V6¶VB–×ÆVÖVçFF–öâ&VÖ–ç2–çFW&æÂà¢Ò¢¥v‡’F†Rg&öçFVæBæVVG2—C¢¢¢F†RF6²÷&ööb6öçG&7B&WV—&W27F÷"Â&V6—–VçBÂ7FFRÂGW&&ÆRF–ÖW7F×ÂæBÆöö·W–FVçF—G’â&W7öç6RÖvVæW&F–öâ6Æö6²6ææ÷BG'WF†gVÆÇ’&RÆ&VÆVBFF&6R÷"VæBÖöæÇ’&ööbÂæB&WÆ’×W7B6†÷rF†R÷&–v–æÂ7&VF–öâF–ÖR&F†W"F†âF†R&WÆ’F–ÖRà¢Ò¢¤'&V¶vR–b6¶—VC¢¢¢F†RF—&V7F÷"T’—2g&öçFVæBÖ†VBöbGW&&ÆR&ööbæB6âÖ—77FFRv†VâF†R–çf—FF–öâv27&VFVC²6ÖR×&WVW7B&WÆ’F—7Æ—2F–ffW&VçB–çfVçFVBF–ÖRv†–ÆR6Æ–Ö–ærF†R÷&–v–æÂWfVçBv2&W6W'fVBà¢Ò¢¤f–ÇW&R÷&V6÷fW'“¢¢¢f—'7B7&VF–öâæB&WÆ’&WGW&âF†R6ÖR–çf—FF–öâ”BæBW'6—7FVB7&VF–öâF–ÖS²&WÆ’7F–ÆÂ&WGW&ç2æò&rFö¶VââÖ—76–ærWF†÷&—G’Â–ÆöB6öæfÆ–7G2ÂæBVæf–Æ&ÆR&V6V—G2f–Â6Æ÷6VBâÇ’F†R7G'V7GW&Â%26†ævRöæÇ’F‡&÷Vv‚7W&6RÖ–w&F–öâFööÆ–ærFò—6öÆFVBW–7‡G6—vÇgFÖ‡‡f÷‡&²æWfW"&öGV7F–öâ7fWf6‡w–Ç6&æ76fw†Và ¤W‡FW&æÂ&—G’ÆæS  ¢ÒFVÆVvFVBvVçBW6†VB6öçG&7BÖÆVFvW"ö6†V6¶W"6öÖÖ—G2F‡&÷Vv‚V&##“&Fò÷&–v–âöw&VVæf–VÆB÷76vR×¦W&öâ&ö÷BfWF6†VBæB–ç7V7FVBF†÷6R6öÖÖ—G2â—G2ÆVFvW"6÷'&V7FÇ’FWFV7FVBF†R&6¶VæBÖöæÇ’7FFRöâF†R&VÖ÷FR†VBÂ'WB—B&VFFW2F†R7W'&VçBVæ6öÖÖ—GFVB–çf—FF–öâT’æBF†W&Vf÷&R×W7B&R&V6öæ6–ÆVBFòF†R&VÂ&V6†&ÆR&÷WFRæBfW'6–öæVB%2&Vf÷&R—B6â&R66WFVBâ&ö÷Bv–ÆÂ'VâF†R6†V6¶W"æB—G2FVÆ–&W&FVÇ’f–Æ–ærf—‡GW&W2Æö6ÆÇ“²æòv—D‡V"v÷&¶fÆ÷w2W&Ö—76–öâW‡ç6–öâ—2&WV—&VBf÷"F†—27–6ÆRtvFRà ¤d•‚äõr–×ÆVÖVçFF–öâæBfW&–f–6F–öã  ¢ÒVæv–æVW&–ærFFVB6W'fW"ÖFW&—fVBF†æÖRvFRv†–6‚FÖ—G2öæÇ’W†7BF‚öF—&V7F÷"ö–çf—FF–öç2öæWvv†Vâ'VçF–ÖR—2&Wf–WrÂF†R6öæf–wW&VB&ö¦V7B—2—6öÆFVB&VbW–7‡G6—vÇgFÖ‡‡f÷‡&ÂF†R&Wf–Wr77v÷&BvFR—2Væ&ÆVBÂæBF†RW†—7F–ær6W'fW"×6–FRf–WvW"&W6öÇfW2Fò÷væW"öF—&V7F÷"v—F‚â7F—fRÆö6F–öââF†RvR&WVG2F†R'VçF–ÖR÷&öÆRwV&B&Vf÷&RÖ÷VçF–ærF†Rf÷&ÒâöF—&V7F÷&ÂöF—&V7F÷"ö–çF¶VÂ÷7FffÂ7V'F‡2ÂFVÖòÂ&öGV7F–öâÂw&öær&Vg2ÂF—6&ÆVB×77v÷&B7FFRÂæBVæf–Æ&ÆR6öæf–wW&F–öâ&VÖ–âFVæ–VBâF†R&Wf–WrF—&V7F÷"WF†÷&—G’Æ6V†öÆFW"W‡÷6W2öæÇ’F†R6öçG&öÆÆVB–çf—FF–öâÆ–æ³²6VVFVBF6†&ö&Bö66RFF&VÖ–ç2v—F††VÆBà¢ÒVæv–æVW&–ær6÷'&V7FVB–çf—FF–öâf—6–&–Æ—G’Fò7FFRF†BÆ–æ²÷76W76–öâW&Ö—G2–ç7V7F–öâVçF–ÂW‡—'’÷&Wfö6F–öâv†–ÆR66WFæ6R&WV—&W2F†RW†7BfW&–f–VB–çf—FVB66÷VçBâ&ö÷B&VÖ÷fVB7–6ÆRõ÷&Wf–Wrö7WF÷fW"æ'&F–öâg&öÒW'6öæÖf6–ær6÷’âfÖ–Ç’Â'F–6—çBÂfVæF÷"ÂæB66R66W72&RVæ6†ævVBà¢Ò–æFWVæFVçB76VBÖ–w&F–öâ##csƒS#Uö7–6ÆUóvö–çf—FF–öå÷&V6V—E÷F–ÖW7F×ç7Æâ—Bv2Æ–VBöæ6RF‡&÷Vv‚7W&6RÖ–w&F–öâFööÆ–æröæÇ’Fò—6öÆFVBW–7‡G6—vÇgFÖ‡‡f÷‡&2fW'6–öâ##csƒSc†â&öGV7F–öâÖ–w&F–öâ†—7F÷'’6öçF–ç2¦W&òÖF6†–ærVçG&–W2â6FÆör&ööb6†÷w2F†RV&Æ–2c"w&W"—24T5U$•E’”ådô´U&ÂF†R&—fFRc"gVæ7F–öâ—26†V6¶VB4T5U$•E’DTd”äU&ÂWF†VçF–6FVBÆöæR6âW†V7WFRc"ÂWF†VçF–6FVB6ææ÷BW†V7WFRc÷"V—F†W"÷&–v–æÂ6öÖÖæBÂæBF†Rc"&W7VÇB–æ6ÇVFW2W'6—7FVB7&VFVEöFà¢Ò÷7BÖÇ’6V7W&—G’Gf—6÷'2–çG&öGV6VBæòæWrv&æ–æs²öæÇ’W‡V7FVB7–6ÆRt"f–ÂÖ6Æ÷6VB$Å2×v—F†÷WB×öÆ–7’”ädò&VÖ–ç2f÷"F6·2÷v÷&¶fÆ÷w2÷v÷&¶fÆ÷uöWfVçG2âV×G’ÖÆ"VçW6VBÖ–æFW‚”ädò&VÖ–ç2W‡V7FVBâF†Ræ÷r6ÆÇ2öæÇ’7&VFUöV×Æ÷–VUö–çf—FF–öåö–FV×÷FVçE÷c&Â&WV—&W27&VFVEöFÂæBF—7Æ—2F†RW'6—7FVB7&VF–öâF–ÖRÇW2–çf—FF–öâ”C²&WÆ’&WF–ç2F†R÷&–v–æÂ”B÷F–ÖRæBæò&rFö¶Vâà¢Ò&ö÷BfW&–f–6F–öâ76W3¢W†7B×&÷WFRÖG&—‚ÂG—U67&—BÂ÷F–Ö—¦VBæW‡Bæ§2&öGV7F–öâ'V–ÆB–æ6ÇVF–ærG–æÖ–2öF—&V7F÷"ö–çf—FF–öç2öæWvÂæBÆÂbFWÆ÷’ÖvFR66W2âF†RFVÆVvFVB&—G’6†V6¶W"v2W†V7WFVB–âFWF6†VB&Wf–Wrv÷&·G&VS¢æ–æRFVÆ–&W&FVÇ’76–æröf–Æ–ærVæ—B66W2ÇW2F†R&VÖ÷FRÆVFvW"–çFVw&F–öâ6†V6²ÆÂ76VBƒó’â—G2ÆVFvW"7F–ÆÂ&WV—&W2&V6öæ6–Æ–F–öâg&öÒ&6¶VæEööæÇ–FòF†Ræ÷rÖ–×ÆVÖVçFVB&÷WFR÷c"&V6V—B&Vf÷&RÖW&vR66WFæ6Rà ¥&öÆR7FFRæBæW‡BF&vWC  ¢ÒÓ¢d•‚äõr66÷R&VÖ–ç27F—fRâVæv–æVW&–æs¢52öâ6÷W&6R&V6†&–Æ—G’6÷'&V7F–öââFFVæv–æVW&–æs¢52gFW"–æFWVæFVçBæB—6öÆFVBÆ–6F–öââFWÆ÷“¢Æâ52v—F‚†&B&V6öæF—F–öç3²F†R6öÆRfW&–f–6F–öâ×&Wf–Wr6Æ÷B—27F–ÆÂVç7VçBâU‚—2&R×&Wf–Wv–ærF†R6÷'&V7FVB7W'&VçB7W&f6Râ†÷7FVB&VÖ–ç2Vç'VâÂ6ò·Ö&÷fVEÖÂ&VF–æW726†ævW2Â&öGV7F–öâÂæB&Wf–WrV&Æ–6F–öâ&VÖ–â&ö†–&—FVBà¢ÒæW‡C¢6öÖÖ—BF†RfW&–f–VB6÷W&6R&F6‚v—F‚·6¶—FWÆ÷•ÖÂÖW&vRæB6÷'&V7BF†RFVÆVvFVB&—G’ÆVFvW"Â6öæf–wW&RöæÇ’W†7BÖ'&æ6‚fW&6VÂ&Wf–Wrf&–&ÆW2Â7&VFR—6öÆFVBWF‚W6W'2÷&VF—&V7G2æB6VVBF†RwV&FVBDÔÂf—‡GW&RÂF†Vâ7VæBF†RöæRWF†÷&—¦VBfW&–f–6F–öâ&Wf–WræB'VâF†R6ö×ÆWFRGvò×6W76–öâ†÷7FVBWf–FVæ6RvFRà ¢2227–6ÆRt&—G’–çFVw&F–öâæBU‚&V6÷fW'’Ò##bÓrÓ‚C£3BÓs£  ¢ÒFWfVÆ÷ÖVçB6÷W&6R&F6‚“VS“6f†f—ƒ¢6Æ÷6R7–6ÆRt†÷7FVB&—G’v2·6¶—FWÆ÷•Ö’&V6÷&G2F†R&Wf–WvVB&÷WFR&÷VæF'’ÂfW'6–öæVBW'6—7FVB×F–ÖW7F×&V6V—BÂ—6öÆFVBÖ–w&F–öç2öf—‡GW&W2Â&Wf–WrvFRÂæB÷W&F–ærÖ6öçFW‡B†æFöfbv—F†÷WBG&–vvW&–ærFWÆ÷–ÖVçBâG—U67&—BÂ÷F–Ö—¦VB&öGV7F–öâ'V–ÆBÂW†7B÷W&F–öæÂ×&÷WFRÖG&—‚ÂæBÆÂbFWÆ÷’ÖvFR66W276VB–ÖÖVF–FVÇ’&Vf÷&R6öÖÖ—Bà¢Ò&ö÷BÖW&vVBF†RW‡FW&æÂ&—G’ÆæRg&öÒ&VÖ÷FR†VBV&##“&v—F†÷WBG&VF–ær—G2†æB×fW&–f–6F–öâ2W†V7WF–öâ&ööbâF†R&÷f–FVBVæ—Bö–çFVw&F–öâ7V—FRv2'VâÆö6ÆÇ’æB76VBÆÂFVâ66W2âF†R6öçG&7BÆVFvW"v2&V6öæ6–ÆVBg&öÒ&6¶VæEööæÇ–Fò–×ÆVÖVçFVFöæÇ’gFW"F†RW†7BöF—&V7F÷"ö–çf—FF–öç2öæWv&÷WFRÂf÷&ÒÂ6W'fW"7F–öâÂc"%2ÂGW&&ÆR&V6V—BF–ÖW7F×ÂWF†÷&—G’wV&G2ÂæB&V6÷fW'’&V†f–÷"W†—7FVBFövWF†W"âæòv—D‡V"v÷&¶fÆ÷w2W&Ö—76–öâW‡ç6–öâ—2æVVFVBf÷"F†—2&VÆV6RvFRà¢ÒF—7F–æ7BU‚&R×&Wf–Wr&WGW&æVB¢¥%D”Âòd•‚äõr¢¢â—G2F–ÖW7F×6öæ6W&âv27FÆR&V6W6RF†R7W'&VçB6W'fW"7F–öâÇ&VG’&WV—&W2W'6—7FVB7&VFVEöF²F‡&VRfÆ–B—77VW2&VÖ–æVBâVæv–æVW&–ærFFVBâW‡Æ–6—FÇ’F–ÖW¦öæRÖ&V&–ærFFR÷F–ÖRf÷&ÖGFW"f÷"W‡—'’æB7&VF–öâ&ööbÂâææ÷Væ6VBÆ—fRVæF–ær7FFRÇW2&–Ö'W7–ÂæB6W&FRVæf–Æ&ÆR×fW'7W2Ö7F—fR×&WVW7B7W'6÷"6VÖçF–72â6÷W&6R–ç7V7F–öâ–æF–6FW2F†RC‡‚6öçG&öÇ2æBöæRÖ6öÇVÖâÖö&–ÆR'VÆW2&VÖ–â7G'V7GW&ÆÇ’6÷VæBâU‚&VÖ–ç2%D”ÂVçF–ÂF†R†÷7FVBCCó3“ó3c&VæFW"Âfö7W2Âææ÷Væ6VÖVçBÂw&–ærÂæB¦W&òÖ÷fW&fÆ÷rWf–FVæ6R—27GVÆÇ’6GW&VBà¢ÒF†R&—G’7V—FRæBG—U67&—B72gFW"F†÷6R6÷'&V7F–öç2â†÷7FVB—27F–ÆÂVç'Vââæò&Wf–Wrf&–&ÆRÂ7W&6RWF‚&VF—&V7B÷W6W"ÂwV&FVBW'6öæf—‡GW&RÂ&Wf–WrFWÆ÷–ÖVçBÂ"Ö&¶W"Â·Ö&÷fVEÖÂ&VF–æW7266÷&RÂ&öGV7F–öâfÇVRÂfÖ–Ç’66W72Â÷"fVæF÷"gVÆf–ÆÆÖVçB7FFR6†ævVB–âF†—2–çFVw&F–öâ7FWà¢Ò&öÆR7FFS¢Ò66÷R4ôÕÄUDS²U‚%D”ÂVæF–ær†÷7FVBf—7VÂ&ööc²Væv–æVW&–ær52öâ6÷W&6S²FF52öâ—6öÆFVBÖ–w&F–öâ7Æ—BöÆ–6F–öã²FWÆ÷’Æâ52v—F‚†&BW†7BÖ'&æ6‚ö—6öÆFVB×&ö¦V7B&V6öæF—F–öç3²†÷7FVBäõB%TââæW‡B&öÆRF&vWB—2FWÆ÷’6öæf–wW&F–öâöböæÇ’W†7B'&æ6‚w&VVæf–VÆB÷76vR×¦W&öÂföÆÆ÷vVB'’—6öÆFVBWF‚FÖ–â6WGWæBF†R6öÆRWF†÷&—¦VBfW&–f–6F–öâ&Wf–Wrà Ð 
+- Exact legal, compliance, privacy, medical, authority-to-act, HIPAA, FTC Funeral Rule, retention, and disclosure claims require authoritative verification and owner review before product publication.
+
+Non-goals for this batch:
+
+- Charging real money or changing pricing
+- Sending real customer/vendor email or SMS
+- Claiming real funeral-home-system integration before an adapter exists
+- Publishing unverified compliance language
+- Production database writes without documented migrations
+
+## Owner gates that remain
+
+Steve has already approved the greenfield rebuild, frontend/backend restructuring, parallel agents, demo deployment, and normal documentation/QA work. Do not ask again for those.
+
+Stop only for the explicit `AGENTS.md` gates:
+
+- Changing pricing amounts
+- Sending real customer/vendor/funeral-home email or SMS
+- Raw/ad hoc production database SQL
+- Deleting functionality rather than deprecating/redirecting
+- Material legal, compliance, privacy, security, medical, or funeral-director claims
+- Irreversible production data loss
+- Spending money or starting paid campaigns
+
+## Required release-train behavior
+
+- Continue PM -> UX -> Development -> QA -> Deploy without pausing when the next action is known.
+- Keep roles distinct and record their handoffs.
+- Use meaningful batches and preserve the Vercel deploy budget.
+- Never report a mockup as shipped product.
+- Never report "working," "integrated," "secure," or "enterprise ready" without the matching functional and verification evidence.
+- Update this file before final handoff and after each integrated batch.
+
+## Immediate new-chat action
+
+1. Read the three canonical files.
+2. Confirm PR #24 head is at or after `ba71de6`; inspect any newer branch/local changes before editing.
+3. Re-instantiate PM and UX around the multi-location funeral-home operating slice: organization, locations, memberships, workspace context, assignment, and case routing.
+4. Extend the existing typed event spine rather than creating a parallel state model; keep family access unchanged and vendor fulfillment queued.
+5. Define the durable-backend what/why/breakage plan required by `AGENTS.md` before any migration. Prefer real auth/RLS-backed persistence over cosmetic progress once the multi-location contract is coherent.
+6. Run React/Next review, full cross-persona browser QA at desktop/390/360, contrast/overflow/console checks, and commit new screenshots.
+7. Publish one coherent `[deploy] [qa-approved]` batch, update PR #24 and this file, then auto-advance.
+
+## Release-train cycle 2 - shared operational truth
+
+Status: COMPLETE and preview verified for this shared-truth batch.
+
+Branch audit:
+
+- PR #24 was inspected at head `5b9ce061ac320aac6b15cc87e95779369c14c201` before this batch.
+- The two commits after the last verified code commit contained operating-context and screenshot changes only. None of the previously delegated shared-case, multi-location, or vendor implementation tracks had landed.
+- The unfinished tracks were re-instantiated. Product and UX narrowed this batch to the smallest coherent dependency: one shared operational record. Multi-location operations and vendor fulfillment remain queued in that order.
+
+Role handoff record:
+
+- PM: defined Sofia Rivera / Maya Rivera / `PASS-RIVERA-7K4M` / `NS-2051` at Northstar Portland as the canonical scenario, with Elena Torres accountable and Marcus Lee assigned. Required an idempotent browser-persistent sandbox event spine; excluded multi-location, vendor, and Supabase work from this batch.
+- UX: passed the concept with conditions that one event be translated by persona, family and staff boundaries remain explicit, every mutation preserve actor/time/audience/waiting/proof/next owner, sandbox-only execution be disclosed, and desktop plus 390/360 layouts be verified.
+- Development: implemented typed commands, events, fixture state, a replaceable local-storage adapter, a React provider, and cross-persona issue/inspect/accept/start/proof/revoke/reset flows. Director intake, director case, staff work, family pass, and receiver surfaces now read and mutate the same canonical record.
+- QA: first review failed on selectable destination divergence, premature director actions, ambiguous manual-draft state, staff navigation leakage, ownership wording, and receipt-link behavior. Those issues were fixed. Focused static QA then passed.
+
+Verification evidence:
+
+- TypeScript verification passed after integration.
+- Final TypeScript verification and the optimized production Next.js build passed after integration and the warning-only layout adjustment.
+- Browser QA exercised family issue -> receiver inspection -> acceptance into `NS-2051` -> director start -> staff proof -> director/family proof return.
+- Runtime state persisted after reload. Revoked, expired, already-accepted, and invalid pass outcomes preserved a no-disclosure boundary.
+- Mobile checks at nominal 390 and 360 widths had equal document client and scroll widths with no horizontal overflow.
+- Browser evidence is stored under `docs/evidence/passage-zero/shared-*.png`.
+- The sandbox is explicitly browser-local and is not durable, secure, multi-user, or production backend evidence.
+
+Preview handoff:
+
+- QA-approved commit: `f4ba31321474fbdf4620aeadc888460c914c236b`.
+- Vercel deployment: `dpl_6o3NivMoyE93XY8woguxpLMQu9Yn` (`READY`, Next.js/Turbopack, preview target).
+- Stable branch alias: `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app`.
+- Temporary share token generated for the July 15 demo expires July 16, 2026.
+- The family/D2C journey is viable for next-week guided testing, including urgent and planning-ahead positioning, but self-serve SaaS readiness still requires authentication, durable cross-device records, account recovery, subscriptions, notifications, and production authorization.
+
+Integrated files and contracts:
+
+- `lib/sandbox/types.ts`, `repository.ts`, and `provider.tsx` define the shared contract and storage seam.
+- `lib/passage-zero.ts` and `components/PassageZeroProvider.tsx` expose the shared slice to the App Router.
+- Family, receive, director intake, director case, and staff routes now project persona-appropriate views of the same events.
+- Multi-location organization switching, employee administration, vendor negotiation/fulfillment, durable Supabase persistence, and real integrations remain intentionally unimplemented.
+
+Next execution sequence after preview verification:
+
+1. Re-instantiate PM and UX for the multi-location funeral-home operating slice.
+2. Preserve the shared event spine and add organization/location/membership/assignment concepts without widening family access.
+3. Run the same static -> browser -> evidence -> single-preview loop.
+4. Advance vendor fulfillment only after location and ownership semantics are coherent.
+
+## Release-train cycle 3 - warm editorial system and onboarding
+
+Status: COMPLETE, committed, and preview verified.
+
+Founder feedback addressed:
+
+- Removed the sterile martech direction across all current family and funeral-home surfaces.
+- Display typography is Cormorant Garamond, chosen for its narrow editorial serif character; all navigation, controls, labels, and body copy use Montserrat as requested.
+- The shared palette now begins with warm ivory paper surfaces and uses dusty, low-saturation purple, blue, and green for action and state.
+- Near-black glowing pass panels, vivid iris blocks, cool gradients, and console-like intake chrome were replaced with raised paper surfaces, warm borders, quieter shadows, and accessible state bands.
+- The Transfer Pass QR remains high-contrast black on white with its quiet zone preserved.
+- Direct-user onboarding now acknowledges both planning-ahead and immediate-help intent before entering one honest shared handoff flow.
+- Demo-only gateway labeling was replaced with product language while the browser-sandbox boundary remains explicit.
+
+Visual QA:
+
+- Family onboarding, family pass, receiver, funeral-home intake, director, staff, and gateway routes were inspected after the shared token change.
+- All tested routes had equal document client and scroll widths at 360 pixels; family onboarding also passed at 390 pixels.
+- The key warm palette pairs pass WCAG AA contrast for normal text: muted/canvas 4.75:1, signal/canvas 4.63:1, and surface text on signal 5.00:1.
+- The complete issue -> inspect -> accept -> start -> proof loop still works after the visual change and produced no browser warnings or errors in the tested path.
+- New evidence uses the `warm-*.png` prefix under `docs/evidence/passage-zero`.
+
+Preview handoff:
+
+- QA-approved commit: `ba71de6a5ea61d516e483d1a365a176a39fa3c7f`.
+- Vercel deployment: `dpl_5RcB1ekoBJoPr1Jfxm6TJqL8TAnW` (`READY`, Next.js/Turbopack, preview target).
+- Stable branch alias: `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app`.
+- Temporary July 15 share token expires July 16, 2026; generate a new token if the fresh chat runs later.
+
+Readiness boundary:
+
+- Direct-user guided testing/onboarding experience is approximately 85% complete for the current planning-ahead and immediate-help entry story.
+- Funeral-home UX/workflow demonstration is approximately 85% complete for intake, ownership, staff execution, and proof return.
+- Neither product is 85% operationally production-ready. Funeral-home pilot readiness still requires real auth/roles, durable multi-user storage, organization/location administration, RLS/audit enforcement, notifications/recovery, and integration reliability. D2C SaaS additionally requires account lifecycle, cross-device persistence, and subscription/billing work.
+
+## Release-train cycle 4 - multi-location operating foundation
+
+Status: COMPLETE, committed, and preview verified.
+
+Branch and role audit:
+
+- Work began from the requested PR #24 head `e8dbdd01a42c55a15ce9716d21f3fb2e3979ee3b`. The open draft PR had no review threads or requested changes. The head was a context-only commit after the cycle-3 QA-approved code commit; no parallel implementation had landed.
+- PM (`/root/pm_cycle4`) constrained the batch to Northstar Funeral Home, Portland and Beaverton locations, org-wide director Elena Torres, Portland operator Marcus Lee, Beaverton operator Avery Brooks, one location-routed intake, and same-location assignment changes.
+- UX (`/root/ux_cycle4`) passed the proposed All locations / Portland / Beaverton workspace, location-specific empty states, intake routing receipt, and non-leaking staff view with explicit copy and 44-pixel target conditions.
+- Engineering (`/root/eng_cycle4`) extended the existing typed command/event reducer and browser repository. It did not create a second case model and did not widen family access.
+- QA (`/root/qa_cycle4`) first failed six authority and state-integrity issues: destructive pass issue reset, missing actor authority, premature reassignment, invalid assignment-to-proof transition, optimistic receipt display, and undersized targets. PM kept all six in scope. Engineering corrected them, and focused static QA passed.
+- Deploy (`/root/deploy_cycle4`) is instantiated only after the integrated browser and production-build gates; it may publish the one `[deploy] [qa-approved]` preview for this batch and no more.
+
+Implemented operating contract:
+
+- Added typed organization, location, membership, membership scope, workspace context, case accountability, assignment history, and routing events to the shared case/event spine.
+- Added director workspaces for all locations, Portland, and Beaverton. Workspace choice filters presentation only and never grants authority.
+- Added an atomic intake path that creates `NS-2051`, records organization/location/accountable director/first assignee, and explains the default routing reason.
+- Added accepted-case reassignment with explicit actor and actor-membership identity. Reducer guards enforce role, membership, location, case state, and current-assignee boundaries.
+- Added staff execution guards so only the current assignee can start work and only an in-progress commitment can submit proof.
+- Preserved the family view and privacy boundary. Family proof status updates from the shared event history but never exposes organization location, staff scope, or internal routing detail.
+- Kept vendor fulfillment queued. No vendor model was introduced before location and ownership semantics became coherent.
+- The implementation remains an honestly labeled browser-persistent sandbox. It does not claim external synchronization, durable multi-user storage, or production authorization.
+
+Required database migration analysis - documented before any migration:
+
+No database migration is included in cycle 4. The following is the documentation-first gate for the next persistence batch.
+
+| Required change | Why the frontend/pilot needs it | What breaks if skipped |
+| --- | --- | --- |
+| `organizations` and `locations` tables, with stable IDs and active state | Director and intake surfaces need durable funeral-home and operating-location identity. | Workspace filtering, routing, ownership, and audit records collapse into display strings and cannot be enforced. |
+| Auth-backed `profiles` plus `organization_memberships` with role and active state | Every command needs a durable human actor and organization authority. | The app can impersonate seeded people; multi-user attribution and access revocation are not trustworthy. |
+| `membership_locations` (or an equivalently explicit scope relation) | Location-scoped operators need least-privilege access while organization-wide directors can span locations. | A user is either overexposed to the whole organization or cannot work their assigned location. |
+| Case `organization_id`, `location_id`, and `accountable_membership_id` foreign keys | The shared case must carry durable tenancy, work location, and accountability. | Cases cannot be routed, filtered, or protected consistently; family and operational projections may diverge. |
+| Append-only `case_assignments` history with assignee, actor, reason, and effective timestamps | Reassignment needs an enforceable history rather than a mutable owner label. | Current ownership can be overwritten without proof of who changed it or why; recovery and audit fail. |
+| Versioned `routing_rules` keyed by organization/location and intake attributes | Intake defaults must be deterministic and explainable while allowing controlled evolution. | Routing lives in UI conditionals, cannot be audited, and becomes unreliable across clients. |
+| Per-user `workspace_preferences` | The selected location can persist without being mistaken for authorization. | Users repeatedly lose context, or developers are tempted to encode workspace in a security-sensitive session field. |
+| Append-only `audit_events` with server-derived actor, audience, case, organization/location, command/event IDs, and timestamps | Pilot operations require tamper-resistant proof of every transition and access-relevant mutation. | Client-authored audit rows can be forged or omitted; incident review, recovery, and compliance evidence are inadequate. |
+
+RLS and breakage expectations for that migration:
+
+- Active organization membership is required for operational access; location-scoped members are restricted through their membership-location rows. Assignment may further narrow staff case visibility.
+- Family access remains independent and grant-based. It must never be inferred from funeral-home membership or broadened by organization/location changes.
+- Workspace preference is presentation state only and must never appear in an RLS predicate as authority.
+- Audit insertion is server-derived and append-only; clients may not choose actor IDs, organization IDs, or timestamps.
+- The migration will intentionally break browser-only seeded identity and local-storage-as-source-of-truth assumptions. It must ship with an adapter cutover, fixture/test updates, rollback notes, and verification that existing family grants still resolve to the same case projection.
+- It will also surface missing membership/location records as denied access rather than silently falling back to broad organization access. Seed/backfill validation is required before enabling policies.
+
+Verification evidence:
+
+- TypeScript and optimized Next.js production builds pass after integration.
+- Browser QA completed the receive -> accepted intake -> routed case -> reassignment -> staff start -> proof -> family proof-return path.
+- Desktop, 390-pixel, and 360-pixel layouts were inspected. Tested pages had no horizontal overflow; visible interactive targets in the new slice are at least 44 pixels.
+- Exact empty states were verified for Beaverton and unassigned Portland staff. The intake receipt records location, accountable director, first assignee, routing reason, proof destination, next action, and an explicit browser-only/no-external-sync boundary.
+- Browser logs contained no warnings or errors from the application.
+- Evidence is stored under `docs/evidence/passage-zero/cycle4-*.png`.
+
+Preview handoff:
+
+- QA-approved commit: `5a6f06e23bac3fd13702ec4a8f6a31d639674a62` with the required `[preview] [deploy] [qa-approved]` markers.
+- Exactly one canonical preview was created: `dpl_6dJnC8jHuqDEzENrV9FwEWm7BK3v` (`READY`, Next.js project, Git branch `greenfield/passage-zero`, PR #24).
+- Stable branch alias: `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app`.
+- Temporary share URL expires July 16, 2026 at 22:31 Pacific: `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app/?_vercel_share=IlVB6d874l2GTiIjlTezoSTFGpbJBaaF`.
+- Deployment-scoped Vercel error, warning, and fatal log query returned no entries after preview creation.
+
+Readiness estimates after cycle 4:
+
+- Family / direct-user path: **85% guided-experience readiness; 25% operational production readiness**. The shared handoff and proof-return story is coherent, but authentication, durable cross-device records, recovery, notifications, subscriptions/billing, and production authorization remain.
+- Funeral-home path: **90% guided pilot-workflow readiness; 40% operational pilot readiness**. Organization/location/membership/assignment/routing semantics now exist and are demonstrable, but they are not yet backed by real authentication, RLS, durable multi-user persistence, enforced server audit, notifications/recovery, or reliable integrations.
+- These percentages are goal-progress estimates, not production-readiness claims. The next loop is durable authentication and RLS-backed persistence using the documented migration gate above.
+
+## Release-train cycle 5 - multi-employee workload and task-bound communication
+
+Status: QA APPROVED; one guarded non-production preview is authorized for this integrated batch.
+
+Owner direction carried forward:
+
+- A funeral-home organization owns the operational case at a named location; the accountable director can assign specific commitments to eligible employees.
+- Multi-location workload, current ownership, waiting parties, and communication must stay clear across director, employee, and family projections.
+- Passage-prepared work must make the human step faster without implying that an external message was sent.
+- Guided-experience progress remains separate from operational production readiness.
+
+Release-train role record:
+
+- PM (`/root/pm_cycle5`) first scoped durable auth/RLS plus workload communication. The environment check found no Supabase toolchain, credentials, or configured project variables, so PM re-scoped the executable batch to the typed browser sandbox and kept durable auth/RLS as the immediate backend blocker.
+- UX (`/root/ux_cycle5`) passed implementation with conditions: workload -> filtered queue -> selected commitment -> prepared output; explicit audience, automation, review-required, and not-sent boundaries; seeded identity labeled preview-only; 44-pixel targets; and zero family leakage.
+- Engineering (`/root/eng_cycle5`, completed by `/root/eng_cycle5_finish`) generalized the existing event spine to collections and implemented the director/staff slice. No parallel task/message model was created and family access was not widened.
+- QA (`/root/qa_cycle5`) first failed stale hardcoded member totals, then failed two undersized family-header targets. PM classified both as fix-now. Engineering moved every workload label to shared derived selectors and applied a CSS-only hit-area correction. Final integrated QA passed.
+- Deploy role may publish exactly one non-production `[deploy] [qa-approved]` preview from this coherent release commit. The exact deployment ID and accessible evidence are recorded on PR #24 after verification; no production release is authorized.
+
+Implemented operating contract:
+
+- The typed sandbox now contains five active cases and five active commitments across Northstar Portland and Beaverton: Marcus 2, Avery 1, Elena 1, and one unassigned at the canonical reset state.
+- Director workload, location/owner filters, unassigned assignment, same-location reassignment, staff ownership totals, and staff queues derive from the same current commitment collection.
+- Assigning the Williams commitment to Marcus changes director load, filtered queue, identity option, and staff-owned count from 2 to 3 immediately and after reload; reassignment reverses the same selectors.
+- Staff can switch among explicitly labeled seeded sandbox identities and sees only commitments assigned to that identity. The switch is presentation-only and explicitly does not sign in or grant access.
+- Each selected commitment exposes owner, waiting party, audience, automation level, Passage-prepared content, human action, proof destination, next state, and next owner.
+- Communication stays attached to its commitment. The fixture contains two Passage-prepared review-required outputs, one automatic internal routing receipt, and zero automatically sent external messages.
+- Family-facing confirmation copy and an internal escalation summary can be marked review-ready in the sandbox, but no send action exists and the event records that nothing was sent.
+- The Rivera accept -> route -> staff start -> proof -> family proof-return path still passes. Family files, grants, and projection remain unchanged apart from a CSS-only expansion of existing header hit areas; internal workload, locations, assignment reasons, drafts, automation metrics, and routing receipts do not appear in the family DOM.
+- Vendor fulfillment remains queued. No database migration, real authentication, RLS claim, external delivery, or integration execution is included.
+
+Automation inventory at canonical reset:
+
+- Human-owned or unowned commitments: **5**.
+- Passage-prepared drafts requiring human review: **2**.
+- Automatically recorded internal routing receipts: **1**.
+- Automatically sent external messages: **0**.
+
+Verification evidence:
+
+- Independent TypeScript and optimized Next.js 16 production builds pass; all eight App Router routes prerender.
+- Browser QA passed director, staff, and family flows at 1440x1000, 390x844, and 360x800.
+- The assignment/reassignment count mutation, location eligibility, seeded identity isolation, prepared-output review/no-send boundary, Rivera proof return, and family non-leakage checks pass.
+- Tested routes have no page-level horizontal overflow, console warning/error, or hydration error.
+- New director/staff controls meet the 44-pixel target requirement. The existing family wordmark and profile targets now render at 99x44 and 44x44 at desktop, 390, and 360; keyboard focus and Enter activation pass.
+- Real screenshots are stored under `docs/evidence/passage-zero/cycle5-*.png`.
+
+Database and operational-readiness boundary:
+
+- No migration was applied. The cycle-4 what/why/breakage gate remains controlling and now also requires durable `commitments` plus append-only assignment history, and contextual `communication_threads` / `prepared_outputs` with audience and review state.
+- Supabase tooling, preview-safe credentials, and project environment variables were not available after local environment and canonical Vercel project checks. Browser localStorage remains the explicit source of truth for this preview.
+- The next operational batch is still real authentication, RLS-backed multi-user persistence, server-derived append-only audit, then notifications/recovery and integration reliability. Do not substitute another local adapter or cosmetic surface for that cutover.
+
+Readiness estimates after cycle 5:
+
+- Family / direct-user path: **85% guided-experience readiness; 25% operational production readiness**. Family behavior did not expand and no durable account or delivery capability landed.
+- Funeral-home path: **94% guided pilot-workflow readiness; 40% operational pilot readiness**. Workload, assignment, employee scope, contextual communication, prepared outputs, and automation boundaries are demonstrably coherent, but remain unauthenticated and browser-local.
+- These are goal-progress estimates, not production-readiness claims. Operational percentages do not increase from visible sophistication alone.
+
+Auto-advance:
+
+- After the single preview and PR handoff are verified, Product Management returns immediately to the durable auth/RLS batch. The current external blocker is missing Supabase project/tool access; no owner question is needed until safe self-service paths are exhausted and a credential/access gate remains.
+
+## Release-train cycle 6 - persona pressure test and persistence truth
+
+Status: COMPLETE; QA approved and the single guarded preview is verified.
+
+Role and branch audit:
+
+- PM (`/root/pm_cycle6_pressure`) produced a 36-scenario persona-flow matrix and classified real authentication/invitation binding as the P0 operational dependency. Target first-use times are family Google login within 60 seconds, represented participant within 90 seconds, vendor owner within 2 minutes, vendor employee within 90 seconds, funeral-home owner within 3 minutes, and invited funeral-home director/employee within 90 seconds.
+- UX (`/root/ux_cycle6_onboarding`) returned FAIL/P0 for operational onboarding until real auth, invitation binding, protected routing, role onboarding, and live address autocomplete exist. UX approved an honest browser-sandbox repair batch and prohibited fake sign-in, invitation, vendor, or address routes.
+- Engineering (`/root/eng_cycle6a`, completed in the root engineering role after the delegated editor stalled) implemented only the approved sandbox repairs. The existing typed event spine remains the single state model.
+- QA (`/root/qa_cycle6a`) initially returned PARTIAL because the director queue claimed due-time order without sorting and the 360-pixel brand overlapped the director navigation. Engineering sorted the visible queue and replaced the mobile header with a compact nonoverlapping grid. QA re-tested and returned PASS.
+- Deploy will be instantiated only after QA PASS and may publish exactly one non-production `[deploy] [qa-approved]` preview for the integrated batch.
+
+Implemented batch:
+
+- Director navigation is role-pure: Today, Intake, and Receive. Staff navigation contains only My work.
+- The staff identity preview excludes the accountable director in both UI derivation and reducer authority checks; legacy browser state is normalized to an active non-director employee.
+- Director assignment choices derive from the selected case's operating location, exclude the current owner, and use the same effective assignee for displayed and submitted state across filtering, row selection, and repeated reassignment.
+- Family planning-ahead and urgent intent now produce materially different guidance and persist only in browser local storage. The copy states that the choice creates no account, does not change sharing, and can be changed at any time.
+- The inert family profile control is now a noninteractive signed-in-preview identity label.
+- Human-prepared outputs begin unreviewed. Review creates one stable idempotent event, persists `reviewReady`, changes the boundary to Reviewed / Not sent, removes the repeated review action, and never exposes a send control. Existing browser records are normalized from event evidence rather than trusting stale seeded flags.
+- TypeScript and the optimized Next.js 16 production build pass after final integration; all eight App Router routes prerender.
+
+Final Cycle 6A verification:
+
+- Browser QA passed at 1440, 390, and 360 for family intent selection/reload, director filtering/selection/reassignment/reload, staff identity isolation/empty state, and prepared-output review/reload.
+- The director queue is actually ordered 10:30, 11:15, 12:20, 13:45, 15:30. The 360/390 mobile header has no wordmark/navigation collision and 55-pixel navigation targets.
+- Staff options are Marcus and Avery only; Elena is absent. Reviewed state persists, changes to `Reviewed Â· Not sent`, removes the review button, exposes no send action, and remains one idempotent event.
+- Every tested page has equal document client/scroll width, with no page-level horizontal overflow, console warning/error, or hydration issue.
+- Ten real screenshots are committed under `docs/evidence/passage-zero/cycle6a-*.png` for family planning/urgent, director, and reviewed staff states at required viewports.
+
+Cycle 6A preview handoff:
+
+- QA-approved commit: `80e5e52b61675851d014709467db4d87d5e06891`.
+- Exactly one non-production preview was created: `dpl_5FKCPc9UmQLkMRYtazQxzUu7hM2e`, `READY`, `target: null`, on `greenfield/passage-zero` in the canonical Vercel project.
+- Deployment URL: `https://thepassageappio-rf007pfdz-thepassageappio-7018s-projects.vercel.app`.
+- Stable branch alias: `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app`.
+- Fresh share URL: `https://thepassageappio-rf007pfdz-thepassageappio-7018s-projects.vercel.app/?_vercel_share=hBd8j6oA76QvUHv2erKzYv5HxmeZ6NA5`; Vercel reports expiry July 17, 2026 at 2:21:28 AM without labeling the displayed timezone.
+- Build completed in 21 seconds. Errors-only build logs were clean; deployment-scoped preview runtime error/warning/fatal logs were empty. Protected root fetch returned HTTP 200 and rendered Passage with Cormorant Garamond and Montserrat.
+- No additional preview or production deploy was created or authorized.
+
+Operational-readiness boundary:
+
+- Family/direct-user remains **85% guided-experience readiness and 25% operational production readiness**.
+- Funeral-home remains **94% guided pilot-workflow readiness and 40% operational pilot readiness**.
+- Visible UX refinement does not raise operational readiness. Real auth, durable multi-user persistence, RLS, server-enforced audit, recovery/notifications, and integration reliability remain required.
+
+### Cycle 7 database migration contract - documentation-first gate
+
+No migration has been applied. Supabase project `qsveqfchwylsbncsfgxe` is connected and healthy. Production contains real auth users and an established public schema, so structural work must first run on an isolated Supabase development branch. Supabase quoted that branch at **$0.01344/hour**; explicit owner cost approval is still pending.
+
+The migration must extend `organizations`, `organization_locations`, `organization_members`, `workflows`, `tasks`, `workflow_events`, `estate_access`, `estate_participants`, `messages`, `notification_log`, `vendors`, `vendor_team_members`, and `vendor_requests` where applicable. It must not create a second case, task, communication, or event spine.
+
+| Required structural/policy change | Why the pilot needs it | What breaks if skipped |
+| --- | --- | --- |
+| Normalize organization membership to an authenticated `auth.users` identity; enforce one active membership state and explicit funeral-home roles for owner/director/employee. | Google and email-invited users must resolve to a durable actor before any organization access or command. | Seeded identity remains impersonable; revocation, attribution, and multi-user persistence are not trustworthy. |
+| Add an explicit membership-to-location relation and migrate away from `organization_members.location_scope` text as authority. | Directors may span approved locations while employees may be limited to one or several named locations. | RLS either overexposes the whole company or blocks legitimate multi-location work; workload and routing cannot be enforced. |
+| Add hashed, expiring, single-use organization invitations with invited email, role, organization, optional location scope, inviter, accepted user/time, and revoked/expired states. Never persist a raw bearer token. | Google login and email acceptance must bind the authenticated person to the invitation and intended role in one transaction. | Forwarded/replayed links can grant the wrong role; acceptance cannot be audited or recovered safely. |
+| Replace plaintext `estate_participants.invite_token` lookup with a token hash/digest transition and revoke/expiry/accepted state while preserving existing family grants. | Participant invitations currently expose a reusable bearer token pattern; represented-person access must remain independent from funeral-home membership. | Token disclosure can become record access, old invitations cannot be safely revoked, or a cutover can lock out legitimate family participants. |
+| Extend `organization_locations` address fields with address line 2/unit, provider, provider place ID, original input, normalized components, validation timestamp/status, source (`provider` or `manual`), and review-required state. | Required typeahead must parse city/state/postal/country as the user types while keeping every field editable and supporting manual/international fallback. | Routing and service-location data become display strings; silent provider errors can misroute cases or overwrite user corrections. |
+| Enforce durable workflow/case organization, operating location, accountable membership, current assignment, and append-only assignment history with actor, reason, effective time, and prior/next owner. | Funeral homes receive family cases and directors delegate specific commitments across employees and locations. | Ownership can be overwritten without proof; staff workload, recovery, and location routing diverge across clients. |
+| Keep task communication and prepared outputs attached to the existing task/workflow identifiers, with audience/visibility, automation level, review state, recipient, delivery state, proof destination, and next owner. | Family, director, staff, participant, and later vendor communication must explain what was prepared, who acts, who waits, and whether anything was actually sent. | A parallel chat model loses task context; the UI can imply delivery without a reliable recipient/status/proof record. |
+| Make `workflow_events` append-only to ordinary clients: remove owner UPDATE/DELETE, prohibit client-selected actor/organization/timestamps, and insert validated events through a server-side transaction/RPC or trigger. | Audit evidence must be derived from authenticated commands and survive retries without duplication. | Users can rewrite/delete history or forge actors; disputes, recovery, and operational QA have no trustworthy record. |
+| Replace broad or overlapping public-role policies with authenticated least-privilege RLS for organization, location, assignment, family grant, participant invite, and vendor request scopes; audit exposed SECURITY DEFINER helpers with fixed `search_path`. | The current advisor reports broad inserts, exposed helpers, and overlapping policies. | Cross-tenant data may be exposed, unauthorized rows may be created, or performance degrades under pilot load. |
+| Add durable notification intents/outbox rows keyed to the event spine, idempotency keys, retry/backoff, delivery provider IDs, terminal failure, and user-visible recovery state. | Invites, assignment changes, family updates, proof returns, and escalations need reliable delivery without claiming success early. | Users wait without knowing why, duplicate messages can be sent, and failed integrations have no recovery path. |
+| Add required indexes and uniqueness constraints for membership/location lookups, invitation digest, workflow organization/location/assignee, event idempotency, and notification retry queries. | RLS and event/outbox lookups sit on every authenticated workflow. | Pilot latency and database load rise quickly; retries can create duplicate effects. |
+
+Migration sequencing and breakage plan:
+
+1. Create and validate the isolated development branch only after the exact cost approval.
+2. Snapshot policy/table advisor output; add nullable structures, indexes, invitation hashing support, and backfill verification first.
+3. Backfill membership/location/case references and reject ambiguous records into an explicit manual-review report; never silently broaden access.
+4. Add invitation acceptance and command/event transactions, then integration tests for owner/director/employee, represented participant, family grant, and vendor boundaries.
+5. Enable restrictive RLS and append-only audit on the development branch; prove denied cross-org, wrong-location, unassigned-staff, expired/replayed-invite, and family-leakage cases.
+6. Cut the frontend adapter from local storage to Supabase only after the same typed event contract passes end to end. Keep an explicit rollback path until validation completes.
+7. Production application remains a separate migration action. No raw production SQL, destructive data rewrite, Google provider activation, email send, or paid address provider is authorized by this plan.
+
+Auth and integration decisions queued behind the branch gate:
+
+- Use Supabase Auth for Google OAuth and email invitation acceptance. Resolve a pending invitation after authentication by normalized verified email; never trust a client-supplied organization, role, or location claim.
+- Prefer server token-hash/OTP verification for email links because mail security scanners can prefetch and consume one-click links. Recovery must not reveal whether an email belongs to an account.
+- Implement the address UI through a provider-neutral adapter, with Google Places Autocomplete (New) as the current leading provider. Billing/API activation needs separate owner approval; the UI must remain functional with manual structured entry when the provider is unavailable.
+- Vendor owner/employee persistence and fulfillment remain after funeral-home location and ownership enforcement passes. Existing vendor tables are audited now but not widened into family-record access.
+
+#### Cycle 7A exact first-migration scope
+
+Final SQL must preflight the development branch's actual column types and names and add only missing structures; it must fail closed rather than guess.
+
+- New `organization_invitations`: UUID primary key; organization FK; normalized invited email; constrained funeral-home role; nonempty purpose; inviting auth-user FK; unique SHA-256 token hash plus nonsecret support hint; expiry; mutually exclusive accepted/revoked timestamps and user FKs; accepted member FK; created timestamp. The raw token is returned once to the trusted server caller and is never stored or logged.
+- New `organization_invitation_locations`: invitation/location composite key with FKs. The invite discloses and enforces its exact location scope before acceptance.
+- New `organization_member_locations`: member/location composite key, granting auth-user FK/time, optional revoked time, and indexes for active member and location lookups. Legacy `organization_members.location_scope` remains temporarily as deprecated read-only compatibility and receives no new writes.
+- Auth binding: use an existing auth-linked profile if branch preflight finds one; otherwise add `profiles(id -> auth.users, display_name, onboarding_state, created_at, updated_at)` and the standard creation trigger. Add only missing `organization_members.user_id`, lifecycle status, accepted time, and unique active `(organization_id,user_id)` enforcement.
+- Existing authority columns: ensure `workflows.organization_id`, `workflows.organization_location_id`, and `tasks.assigned_organization_member_id` exist with FKs and tenant/location/assignee indexes.
+- Existing `workflow_events`: add only missing organization, location, actor-user, actor-member, event type, idempotency key, audience, prior/next state, occurred time, metadata, and optional invitation FK; enforce unique `(organization_id,idempotency_key)`. Revoke client INSERT/UPDATE/DELETE, install an unconditional mutation-prevention trigger, and allow insertion only from validated server RPCs that derive actor, organization, location, and time.
+
+Required RPC boundary:
+
+1. `inspect_organization_invitation(raw_token)` hashes the token and returns only inviter display name, organization, role, location names, purpose, expiry, and state. It returns no invited email, roster, case/family data, or token digest.
+2. `accept_organization_invitation(raw_token)` requires authentication, row-locks the invitation, compares normalized verified Auth email, atomically creates/activates the member and member-location rows, stamps acceptance, emits one event, and returns the member and `/staff` landing. Replay by the same accepted user returns the existing receipt; it never creates a second member.
+3. `create_employee_invitation(org_id, invited_email, location_ids, purpose, expires_at)` requires an active authorized owner/director for every requested location, generates the raw token server-side, stores only its digest, emits an event, and does not claim an email was sent.
+4. `revoke_organization_invitation(invitation_id, reason)` requires authorized owner/director scope and records revocation plus an event. Accepted invitations require the separate membership-revocation path.
+5. The internal event append function is not executable by anon/authenticated clients. RLS helpers use SECURITY DEFINER only where needed, set a fixed `search_path`, and answer active membership, location access, task assignment, and invite-management predicates.
+
+Cycle 7A RLS must prove: no public table lookup for invitations; employee reads only own membership/location rows and assigned workflows/tasks at allowed locations; managers operate only within organization/location authority; clients cannot elevate roles, locations, or assignees; workflow events are read only for accessible workflow and audience; family grant policies remain independent. Workspace preference, client-selected location, email text alone, and a role label alone are never authority.
+
+Cycle 7B is separate and required before organization-owner onboarding: structured address line 1/2, locality, administrative area, postal code, country code, existing provider place ID, provider, validation status, suggested formatted value, validation/review timestamps and reviewer, and address version. Preserve the legacy display address until deterministic backfill. Address data never grants access. Keeping 7B separate limits the employee-invite migration while preserving the owner's mandatory live typeahead requirement for the immediately following organization/location slice.
+
+Next highest-leverage action: after explicit Supabase branch-cost approval, create the isolated development branch and implement the invited funeral-home employee path first (invite -> Google/email authentication -> account binding -> role/location onboarding -> protected My work -> audit proof), followed by funeral-home organization onboarding with live address parsing. Until approval, continue migration tests/specification and the Case Room contract without touching production schema.
+
+## Queued Cycle 7B/8 - Case Room, realtime coordination, and proof integrity
+
+Owner requirement: each case needs real-time group coordination across funeral home, family, invited participant, employee, and later vendor relationships. PM (`/root/pm_cycle6_pressure`) and UX (`/root/ux_cycle6_onboarding`) converted this into a task-attached Case Room contract. It is not a detached chat product and must extend `workflows`, `tasks`, `messages`, `workflow_events`, and the existing typed event spine.
+
+Experience and evidence contract:
+
+- The stable Case Room information architecture is `Now Â· Tasks Â· Updates Â· Proof`. `Now` shows one viewer-relative action, who is waiting, the latest permitted update, and the latest proof. Default ordering is Needs action then time, not an undifferentiated social feed.
+- A composer appears only inside a selected task/request/decision thread and says `Reply about [task]`. Effective recipients are server-derived from current grants and authority. The send boundary repeats the named audience beside the action.
+- Every message, status, proof, prepared output, receipt, correction, and handoff shows immutable actor/role plus authoritative date and time, audience/visibility, related task, delivery/read evidence, resulting state, who is waiting, proof destination, next owner, and next action.
+- Prepared external output is visibly `Passage prepared Â· Review required Â· Not sent`. After a human send, the human is the sender and preparation remains metadata. Initial external automatic sends remain zero. Internal automatic receipts are `Recorded automatically Â· Internal only` and never appear as human speech.
+- Delivery truth progresses only from durable evidence: Not sent -> Sending -> Sent/Delivered with time -> Read by permitted named recipient/time. Failure is Not delivered with retry and escalation. Unknown is Delivery not confirmed, never inferred read/unread.
+- Persona projection remains strict: director/employee internal coordination is case-team only; family sees one decision-ready question/outcome without workload/routing/vendor negotiation; participant sees only the granted task and contributes without implied approval/authority; vendor sees only the scoped request/order and never browses the family record.
+
+Proof is a structured task outcome, not a hollow green label. Required fields are what happened, submitter, authoritative timestamp, source/artifact/reference, audience, related task/event, verification state, verifier/time where applicable, proof destination, next owner, and next action. Lifecycle is Required -> Submitted -> Under review -> Verified or Rejected/Needs replacement. Corrections supersede rather than overwrite. Family may see a translated pending/verified outcome without internal artifacts unless explicitly granted.
+
+Data and realtime direction:
+
+- `messages` stays bound to workflow and normally task, with parent/correction relationship, server-derived sender/time, audience/visibility, client idempotency key, prepared-output relationship, delivery state, resulting task state, and next action. Message bodies are immutable; corrections/retractions append.
+- A `message_receipts` child relation is allowed for recipient-specific queued/sent/delivered/read/failed evidence without exposing hidden rosters. A `task_proofs` child relation is allowed for evidence on the existing task, including structured outcome, private artifact reference, submitter/time, audience, review state/reviewer/reason, and superseded proof. Neither is a parallel task or event model.
+- `workflow_events` remains the canonical append-only spine for message, delivery, blocker, escalation, proof, status, owner, waiting, and next-action transitions.
+- Realtime starts only after Cycle 7A auth/membership/location/assignment RLS passes. Subscribe to authorized Postgres changes, then reconnect by fetching after the last durable event cursor. Realtime accelerates the UI but is never the source of truth. Send/proof/status RPCs are idempotent.
+- Offline/retry preserves a visibly device-local draft, never claims sent, and cannot double-send. Provider-pending, failed/bounced recipient, revoked grant, conflicting response, and failed/resumable proof upload all retain a named recovery owner and truthful state.
+
+Phased delivery:
+
+1. Cycle 7A: real invited-employee auth, organization membership, relational location scope, assigned-only RLS, append-only audit.
+2. Cycle 7B: authenticated director/employee Case Room, structured proof review, and realtime catch-up across two sessions.
+3. Cycle 8A: funeral home/family reviewed communication and family-safe verified proof after durable independent family grants.
+4. Cycle 8B: family/invited-participant bounded thread after participant invitation/grant hardening.
+5. Cycle 8C: funeral home/vendor room only after vendor organization/member/request authority is enforced.
+
+Acceptance includes two-session updates within two seconds under normal preview conditions, reload/reconnect catch-up without gaps/duplicates, direct-URL denial, double-submit idempotency, revoked access, delivery failure, proof rejection/replacement, exact timestamps and audiences, and desktop/390/360 keyboard/overflow/console verification. Operational readiness does not increase from a visual chat shell; it increases only after authenticated multi-session RLS, immutable audit, real delivery/recovery, and integration evidence pass.
+
+### Cycle 7A live Supabase preflight and isolation gate
+
+Status: PM scope and documentation-first migration gate are complete; Engineering is drafting the additive migration; no database migration has been applied.
+
+The owner explicitly approved the quoted Supabase development-branch cost of **$0.01344/hour**. The branch create request then failed with `PaymentRequiredException: Branching is supported only on the Pro plan or above`. No branch was created, no cost was incurred, and no production schema or data changed. Upgrading the Supabase organization is not authorized. Supabase quoted a separate isolated test project at **$0/month**; creating that project is a new explicit cost-confirmation action and remains owner-gated.
+
+Read-only production preflight established the actual compatibility and backfill risks before SQL was written:
+
+- `organization_members` has 3 rows. It already contains `user_id`, `email`, `role`, `status`, `display_name`, `title`, and legacy `location_scope`; one demo director row uses `location_scope = 'all'`.
+- The demo director organization `b36f8032-2181-5ef0-9cdf-08bcd48de6c3` has no `organization_locations` row, so its director cannot yet receive a relational location grant without an explicit seed/backfill decision.
+- `workflows` has 8 rows; 2 have no `organization_id`.
+- `tasks` has 47 rows; all reference a workflow, but 37 have no `organization_id`.
+- `workflow_events` has 0 rows and only the legacy event fields. Current owner policies allow client `INSERT`, `UPDATE`, and `DELETE`, so it is not yet a trustworthy append-only audit source.
+- Existing workflow/task policies grant broad organization-level reads through `is_org_member_of`; switching immediately to assigned-only employee policies would hide legitimate current work before the missing organization/location/assignment references are backfilled.
+- `estate_participants.invite_token` is plaintext and has a public token-lookup policy. It remains a separate participant-token hardening migration so funeral-home membership work cannot accidentally change family access.
+- Existing public SECURITY DEFINER helpers and broad/overlapping RLS policies require later least-privilege replacement, fixed `search_path`, and explicit grants. Current Supabase behavior no longer implies Data API grants for new tables, so every new-table grant is specified separately from RLS.
+
+PM breakage decision: Cycle 7A is split into an additive foundation and a later enforcement cutover. The additive migration may create hashed employee invitations, invitation-location grants, member-location grants, nullable workflow/task authority columns, richer event-spine fields, indexes, and narrowly granted invitation RPCs. It must not replace legacy workflow/task read policies, enforce assigned-only RLS, or install an unconditional append-only event trigger until deterministic backfill and adapter tests prove that current records remain reachable. Skipping this split would trade an honest operational gap for silent lockout of 37 tasks and two workflows.
+
+Engineering source artifact: `supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql`, created with Supabase CLI. It is a draft until independent SQL/RLS QA passes. It will not be applied to production. The next safe validation path is an isolated test project only after the owner approves the separate **$0/month** confirmation; a blank project can validate migration mechanics and security tests but is not equivalent to a branch copy of production data, so production-shaped fixtures and the read-only preflight remain required evidence.
+
+Owner approved the **$0/month** isolated-project path. Supabase project `uyacxqtsiwlvtmhxvoxr` (`passage-cycle-7a-test`, `us-east-2`) was created in the existing Passage Supabase organization and reports `ACTIVE_HEALTHY`. It is a migration/RLS safety lab, not the customer production project and not yet the product demo instance. Production remains read-only for this batch.
+
+### Governing priority for the next operational sprints
+
+The owner set the utmost priority: make the funeral-home experience operational end to end, establish a genuinely separate demo instance, and then drive the D2C path toward **85-90% operational readiness**. Guided-experience percentages must remain separate and cannot substitute for operational evidence.
+
+The release train therefore stops awarding readiness for visual completeness alone. An operational gate passes only when two independently authenticated users can complete the relevant cross-persona flow on separate sessions/devices; RLS denies the wrong organization, location, role, or family grant; commands are idempotent; reload/reconnect preserves truth; delivery or integration failure has a visible recovery owner; audit/proof contains server-derived actor and timestamp; and desktop, 390-pixel, and 360-pixel QA pass.
+
+Current product assessment: Passage is not missing a broader feature catalog as much as it is missing proven operational trust. Current funeral-tech products already market case management, team tasks, family collaboration, mobile access, forms, reports, and integrations. Passage's differentiated product bar is the clarity and evidence of every handoff: owner, waiting party, audience, prepared work, human review/send boundary, resulting state, proof, next owner, and recovery. The product should integrate with incumbent funeral-home systems before attempting to replace their accounting, body tracking, forms, or full ERP surface.
+
+Provisional sprint order, pending the PM role's measured brief:
+
+1. **Funeral-home authority foundation:** Google/email authentication, hashed single-use employee invitations, organization/location membership, protected workspace context, assignment, RLS, append-only command audit, and recovery. Exit with owner/director/employee invite-to-assigned-work simulation across two sessions.
+2. **Funeral-home case operations:** first call/intake to accepted case, accountable director, employee delegation/workload, task-bound Case Room, reviewed family update, structured proof, reconnect/replay, notification outbox, and one provider-failure recovery path. Exit with a complete case handoff and no cross-persona leakage.
+3. **Separate demo instance:** isolated auth/database/environment/domain, deterministic seed and reset, synthetic identities, blocked production data/communications, integrations in recorded simulation mode, and an automated smoke run. It may demonstrate only flows that the real product supports and must never share production routes or customer data.
+4. **D2C operational path:** Google/email onboarding, planning-versus-urgent intent, independent family record/grants, participant invitation hardening, recovery, funeral-home handoff/acceptance, family-safe updates/proof, notification failure recovery, and account/data controls. Advance toward 85-90% only after the same two-session, RLS, audit, retry, and responsive exit gates pass.
+5. **Pilot hardening and evidence:** real funeral-director usability sessions, measured time-to-first-case/time-to-assign/time-to-family-update, accessibility/performance, observability/support runbooks, backup/recovery proof, integration contract tests, and explicit legal/privacy/security review for unresolved high-risk decisions. These are prerequisites to an 85-90% claim, not optional cleanup.
+
+Non-goals until these gates pass: broad vendor fulfillment, a generic group chat, full funeral-home accounting/ERP replacement, automatic external messaging without review, additional cosmetic redesign, or production-readiness increases based on demo polish.
+
+PM role instance `/root/pm_cycle7_operational` reviewed the operating guide, full living context, and persona architecture and converted this doctrine into the governing four-sprint brief. The canonical legacy roadmap file named in AGENTS.md (`pages/system/admin/saas-roadmap.js`) is absent from this greenfield workspace, so no competing roadmap was created. The targets are evidence-gated projections, not promises: Sprint 7A funeral home 55% / D2C 30%; Sprint 7B funeral home 72% / D2C 35%; Sprint 8A funeral home 85-88% / D2C 45%; Sprint 8B D2C 85-90% / funeral home 88-90%.
+
+Readiness caps are now explicit: no real auth/RLS caps operational readiness at 49%; no durable notifications/recovery caps it at 79%; no complete family-to-funeral-home handoff and proof return caps it at 84%. Reaching 85-90% means pilot-operational for allowlisted accounts with monitoring, support/recovery runbooks, known non-goals, and verified persona simulations. It does not mean general availability, legal/compliance completion, live billing, or universal integration readiness.
+
+Every sprint follows distinct PM -> UX -> Engineering -> QA -> Deploy handoffs and must include SQL/RLS persona tests, advisor review, TypeScript and optimized production build, desktop/390/360 browser QA, two-user/two-session evidence, direct-URL denial, replay/idempotency/reconnect/failure recovery, timestamped screenshots, and audit-row evidence. One `[deploy] [qa-approved]` preview per coherent batch goes only to the separately configured demo environment. Production promotion remains a distinct later decision.
+
+Owner differentiation direction: Passage wins by being stakeholder-agnostic and following the person through planning, nursing/hospice/care, family coordination, funeral-home operations, service partners, disposition, aftercare, and later estate work. The vision is now documented in `docs/product/persona-action-architecture.md` as stakeholder-agnostic continuity rails. Indispensability comes from permissioned portability, destination acknowledgment, lower repeated intake, task-bound communication, structured proof, and visible exception recoveryâ€”not data lock-in or an attempt to replace every vertical system.
+
+Current market grounding reviewed for this decision: Passare emphasizes cloud case management, team/family collaboration, mobile access, reports, and dozens of integrations (`https://www.passare.com/` and `/manage`); Gather emphasizes case/task visibility, mobile team coordination, family invitations, autofill/e-sign, and real-time family collaboration (`https://gather.app/case-management/`); Tribute Management Software emphasizes an operational command center spanning cases, staff, locations, schedules, facilities, families, and reporting (`https://www.tributetech.com/tribute-management-software`). This reinforced the decision not to compete on a generic feature checklist. Passage's differentiated bar is one viewer-relative continuity record with explicit purpose/scope, human-reviewed prepared outcomes, handoff receipts, proof integrity, and a named next/recovery owner across organizational boundaries.
+
+### Cycle 7A isolated-lab application and index follow-up
+
+The test-only production-shape fixture and additive invited-employee foundation passed independent static SQL/RLS QA and were applied, in that order, to isolated project `uyacxqtsiwlvtmhxvoxr`. Migration history records `test_fixture_cycle_7a_production_shape` and `cycle_7a_invited_employee_foundation`. Production project `qsveqfchwylsbncsfgxe` remains untouched. The first large-file transport attempt was rejected on invalid encoding before migration recording; migration history proved no partial application, and the exact QA-approved source was then reconstructed in bounded chunks and applied successfully.
+
+Post-apply catalog proof: invitation and invitation-location tables have RLS enabled and no anon/authenticated read or write grants; member-location has authenticated SELECT only and no client writes; public invite wrappers are SECURITY INVOKER with fixed empty `search_path`; privileged Passage functions are in `passage_private` with fixed empty `search_path`; direct raw invitation-table access remains unavailable. No family, participant, or vendor table was created or changed in the isolated lab.
+
+Security advisor output contains only expected INFO notices for the six deliberately fail-closed fixture tables that have RLS and no policies. Performance advisor output identified uncovered foreign keys in the invitation, member-location, workflow, task, and event authority paths. What: add covering indexes for those foreign keys in `20260716093113_cycle_7a_index_hardening.sql`. Why: every invite/RLS/assignment/event lookup will sit on the operational request path and FK deletes/updates otherwise require avoidable scans. Breakage if skipped: pilot latency and database load grow with memberships/events, while referential actions can lock or scan more rows. This follow-up is additive, changes no data or authority, and must pass independent review and isolated-lab advisors before it is considered ready for any production plan.
+
+Post-apply ACL simulation also found default `service_role` EXECUTE on the public SECURITY INVOKER wrappers even though those functions require an authenticated end-user context and the role cannot access the private cores. What: `20260716093406_cycle_7a_service_role_acl.sql` explicitly revokes those four misleading default grants, and the foundation source now includes the same revocation. Why: server code must pass a real user session for invitation authority rather than imply a service-role bypass. Breakage if skipped: catalog permissions suggest a trusted server path that always fails at runtime and could encourage later bypass design. This is privilege removal only; anon inspection and authenticated create/accept/revoke grants remain unchanged.
+
+### Cycle 7A invitation-acceptance ambiguity recovery gate
+
+PM recovery role `/root/pm_cycle7a_auth_recovery` received a behavioral QA FAIL after the first controlled acceptance attempt against isolated project `uyacxqtsiwlvtmhxvoxr`. PostgreSQL returned `42702` because the `RETURNS TABLE` output name `organization_member_id` in `passage_private.accept_organization_invitation(text)` collides with the unqualified conflict-target column in `ON CONFLICT (organization_member_id, organization_location_id)`. PostgreSQL rolled the command back transactionally: no membership, invitation acceptance, member-location grant, or audit-event row committed. Production project `qsveqfchwylsbncsfgxe` remains untouched, and operational-readiness percentages remain unchanged.
+
+Documentation-first what/why/breakage analysis for the corrective migration:
+
+- **What:** add a new follow-up Supabase migration that uses `CREATE OR REPLACE FUNCTION passage_private.accept_organization_invitation(text)` with the existing signature, return contract, security mode, fixed empty `search_path`, validation, locking, idempotency, event emission, and grants unchanged. Replace only the ambiguous inference clause with `ON CONFLICT ON CONSTRAINT organization_member_locations_pkey`. Do not rewrite the already-applied lab migration or use raw/ad hoc SQL. Apply the follow-up to the isolated lab first.
+- **Why:** naming the existing composite primary-key constraint removes PL/pgSQL variable/output-column ambiguity while preserving the intended member-location upsert and the transaction's existing authority boundaries. A follow-up migration keeps migration history deterministic and makes the correction independently reviewable before any production plan.
+- **Breakage if skipped:** every first-time invitation acceptance that reaches the location-grant upsert can fail with `42702`, leaving the invited employee unable to enter the workspace. Retrying cannot repair the deterministic failure, so onboarding remains non-operational even though inspection and authentication may succeed.
+- **Breakage risk of the correction:** an incorrect constraint name, altered function attribute, or copied-body drift could break fresh migration runs, widen execution authority, weaken verified-email/token checks, create duplicate grants, or change replay behavior. Engineering must therefore diff the replacement body against the current function and change only the conflict target; QA must recheck `SECURITY DEFINER`, empty `search_path`, execute ACLs, and transactional/idempotent behavior.
+
+Recovery acceptance: the follow-up migration applies cleanly to the isolated lab; the controlled invite accepts exactly once; one active organization membership and the exact invited location grants exist; the invitation records the accepted user/member/server timestamp; exactly one acceptance audit event exists; same-user replay returns the existing receipt without duplicate membership, grant, or event rows; wrong-email, expired, revoked, and second-user attempts remain denied; and a forced failure still leaves no partial rows. Until this retest passes, Cycle 7A QA remains FAIL/PARTIAL, no `[deploy] [qa-approved]` preview is authorized for live invitation behavior, and funeral-home/D2C operational readiness remains 40%/25%.
+
+### Cycle 7A Auth foundation recovery verification and deploy handoff
+
+Distinct role instances and handoffs:
+
+- PM recovery `/root/pm_cycle7a_auth_recovery` received the behavioral `42702` failure, classified it FIX NOW, and recorded the documentation-first what/why/breakage gate above before SQL changed.
+- UX `/root/ux_cycle7a_auth_handoff` set the acceptance bar for invitation disclosure, calm recovery language, protected role landing, 44-pixel targets, responsive layout, and the demo/preview boundary.
+- Engineering `/root/eng_cycle7a_auth_ui` implemented the Auth/runtime shell, server authorization, invitation UI, corrective migration, and rollback-only SQL test. The corrective function body matches the foundation except for the named primary-key conflict target.
+- QA `/root/qa_cycle7a_auth_foundation` independently returned PASS for the bounded Auth/route-guard foundation and authorized one non-production `[deploy] [qa-approved]` preview with Google and email providers disabled.
+- Deploy role target: publish one guarded Vercel preview from `greenfield/passage-zero`, verify the canonical project, build/runtime health, route rendering, and fail-closed environment state. No production promotion is authorized.
+
+Behavioral and data proof:
+
+- Local Supabase PKCE/email-capture flow passed on one exact origin: OTP callback -> authenticated invitation -> deliberate POST acceptance -> replay-verified receipt -> `/staff`. Crossing between `127.0.0.1` and `localhost` correctly did not share cookies.
+- The first acceptance exposed PostgreSQL `42702`; the command rolled back with no member, grant, accepted invitation, or event. Migration `20260716130000_cycle_7a_accept_invitation_conflict_constraint.sql` replaced only the ambiguous inference target with `ON CONFLICT ON CONSTRAINT organization_member_locations_pkey`.
+- Corrected first acceptance created exactly one active staff membership, one Portland location grant, one server-timestamped invitation receipt, and one acceptance event. Same-user replay returned the stable receipt without duplication. A different authenticated user received `22023` and gained zero membership.
+- Rollback-only test `supabase/tests/cycle_7a_accept_invitation_conflict_constraint.sql` passed and left no QA fixture residue. Catalog proof preserved `SECURITY DEFINER`, empty `search_path`, authenticated-only private execution, and no anon/service-role execution.
+- The exact corrective migration is recorded in hosted isolated project `uyacxqtsiwlvtmhxvoxr` as version `20260717004417`. Production project `qsveqfchwylsbncsfgxe` remains untouched. Hosted security advisors report only the six expected fail-closed fixture INFO notices; performance advisors report unused-index INFO only in the empty lab.
+- TypeScript and optimized Next.js 16 production build pass. Browser evidence at 1440, 390, and 360 shows no horizontal overflow for login, invitation review/receipt, verified staff authority, and staff-to-director denial. Evidence is under `docs/evidence/cycle-7a-auth/`.
+
+QA/deploy boundary:
+
+- PASS is limited to the Auth/route-guard foundation. Google and external email delivery remain disabled. No real external message was sent; local Mailpit captured only synthetic test mail.
+- Hosted two-browser Auth behavior and the deployed Vercel isolated-project environment binding are not yet proven. Post-deploy QA must verify the preview's binding and confirm a mismatched or absent binding fails closed.
+- Operational readiness remains funeral home **40%** and D2C **25%**. Guided readiness remains funeral home **94%** and D2C **85%**. This preview proves a guarded foundation, not durable assigned-work, notification/recovery, complete Case Room, or production readiness.
+- Next highest-leverage action after preview verification: configure and prove the isolated preview data binding, run two independent hosted sessions through director invite -> staff acceptance -> role landing/replay/denial, then cut assigned workflow/task RLS onto the same authority spine.
+
+Deploy result:
+
+- QA-approved source commit `e13bb411ec6fed64cbcc203549ffd36c971908df` was published to `greenfield/passage-zero` with `release: authenticated funeral-home invitation foundation [deploy] [qa-approved]`.
+- Exactly one new non-production preview was created in canonical Vercel project `prj_b7CKwanQaKwFQSHInr3l6wsZy9nD`: deployment `dpl_DWcXnAHAYvaJqfdw19awsdQQxfmg`, READY, target `null`, 37-second build window, 27-second build command. Errors-only build output is clean.
+- Preview URL: `https://thepassageappio-lcoy7m45j-thepassageappio-7018s-projects.vercel.app`. Stable branch alias remains `https://thepassageappio-git-green-4c1c26-thepassageappio-7018s-projects.vercel.app`.
+- The first generated share token incorrectly redirected to Vercel login. A freshly regenerated working login-route URL is `https://thepassageappio-lcoy7m45j-thepassageappio-7018s-projects.vercel.app/login?_vercel_share=RLV41GAiZXUDOUn0w0GgpEAsYwtoReiv`; Vercel reports expiry July 18, 2026 at 12:47:45 AM without labeling the displayed timezone.
+- Post-deploy browser proof: `/login` renders the warm Auth surface and truthfully reports `Environment unavailable`; `/director`, exact `/director/intake?mode=manual`, and `/staff` render `Workspace access remains closed`; invalid invitation inspection fails closed. No organization, location, roster, case, family, or seeded operator data is exposed.
+- Deployed `/login` has zero horizontal overflow at 1440, 390, and 360. Project runtime error clusters are empty for the verification window; deployment-scoped error/warning/fatal runtime logs are empty. `docs/evidence/cycle-7a-auth/deployed-login-mobile-390.png` records the deployed mobile state.
+- Deploy status is therefore PASS for the guarded fail-closed preview and PARTIAL for operational Auth: Vercel preview environment variables are not yet bound to isolated project `uyacxqtsiwlvtmhxvoxr`, so provider actions remain unavailable. Production is unchanged.
+- Deployment-control finding after the handoff commit: Vercel also built docs-only commit `432db9a52829b55aea107c0ee62e851e5a2ac516` as READY deployment `dpl_9WN27dmHmfYvPdNrkg9QavxHTpTZ` even though its message contains `[skip deploy]`. The product tree is identical to the QA-approved preview except for context/evidence files, but this means the greenfield Vercel project is not honoring the documented ignore-build gate. No cancellation capability was exposed through the connected Vercel tools, and the pinned CLI could not complete authentication before timeout. Stop creating follow-up commits until the ignore-build configuration is restored; treat this as a deploy-process defect, not a product or build failure.
+- Latest verified working share URL: `https://thepassageappio-f5r9mc6vi-thepassageappio-7018s-projects.vercel.app/login?_vercel_share=iO5wxs2enoUBBsMMfOnvSxw5yxHe1vgp`; Vercel reports expiry July 18, 2026 at 12:52:22 AM without labeling the displayed timezone. The URL was opened in the browser and rendered the expected fail-closed login surface.
+- PR #24 was updated with the Cycle 7A scope, proof, readiness boundary, latest share URL, isolated-project migration state, and the unexpected docs-only rebuild. No further commit or deployment was created after this finding.
+
+### Cycle 7A hosted-auth cutover - PM Sprint Brief
+
+Status: PM COMPLETE; no engineering or hosted configuration change is authorized until UX receives this handoff. This is the smallest next batch that can raise funeral-home operational readiness: turn the current guarded preview from a fail-closed Auth shell into a two-person, durable invitation proof against the isolated Supabase lab. It does not widen the batch into assigned-work RLS, Case Room, D2C, vendor fulfillment, or production promotion.
+
+Role instance and prior handoff:
+
+- Product Manager: `/root/pm_cycle7a_hosted_cutover`, Cycle 7A hosted cutover.
+- Prior handoff received: Cycle 7A Auth foundation QA PASS and guarded-preview Deploy PASS/PARTIAL. The current preview renders safely but is not bound to `uyacxqtsiwlvtmhxvoxr`; a docs-only `[skip deploy]` commit also built unexpectedly.
+- Next role targets: distinct UI/UX Review -> Development/Platform Engineering -> independent QA -> Deploy. UX is focused on the hosted sign-in/invitation/recovery experience; Deploy remains distinct and may publish only the one integrated non-production preview.
+
+Sprint goal:
+
+- Prove that a Northstar director and an invited Northstar employee can enter the hosted `greenfield/passage-zero` preview as two independent authenticated people, accept one location-scoped invitation exactly once, land in the correct workspace, and receive durable server-timestamped authority/audit evidence without exposing production, family, or broader organization data.
+- Restore source-controlled Vercel deploy gating before spending that preview so docs-only or unapproved commits cannot silently create additional builds.
+
+Requirements and sprint components:
+
+1. **Source-controlled deploy gate repair.** The greenfield tree currently has `scripts/vercel-ignore-build.js` but no `vercel.json`, so the documented script is not guaranteed to run. Add the canonical-project `ignoreCommand` wiring and align the script with the operating guide: preview builds require the approved release markers; `[skip deploy]`, docs-only, unmarked, deploy-without-QA, and wrong-project cases cancel. Add a deterministic environment/message/project matrix test. Do not create a sacrificial docs-only commit just to test the gate; prove the matrix locally and confirm the integrated preview build log ran the gate. Official Vercel behavior is exit `0` = canceled and exit `1` = build continues; repository `vercel.json` overrides the dashboard Ignored Build Step.
+2. **Branch-scoped preview binding only.** Bind Vercel Preview variables only for Git branch `greenfield/passage-zero` to isolated Supabase project `uyacxqtsiwlvtmhxvoxr`. Required public runtime values are the isolated project URL, its publishable key, `PASSAGE_RUNTIME=preview`, the exact isolated project ref, and the existing production-ref comparison used by the fail-closed guard. Do not place a secret/service-role key in the browser or Vercel runtime. Do not modify Production variables or bind any other preview branch.
+3. **Redirect and environment proof before sign-in initiation.** With Google and app email controls still disabled, verify the deployed page reports the intended preview runtime/project binding, no seeded operator data appears before authentication, protected routes still fail closed, and the isolated Supabase Auth allow-list covers the exact stable branch callback plus the current deployment callback as needed. Use one exact origin throughout each PKCE flow. Supabase recommends exact production redirects and permits Vercel preview patterns; this batch should prefer the stable branch alias for repeatable testing and explicitly record every allowed preview pattern.
+4. **Synthetic hosted identities without external delivery.** Create or reuse synthetic director and staff Auth users only in `uyacxqtsiwlvtmhxvoxr`. Generate controlled test Auth links through the isolated project's trusted admin/test path; do not enable Google, do not enable a public email sign-in button, do not send real email/SMS, and do not store an admin/service credential in the application. Provider controls remain disabled throughout this batch unless a later PM brief explicitly expands scope.
+5. **Two independent hosted sessions.** In separately isolated browser storage contexts, authenticate the authorized director, create one staff invitation through the authenticated invitation RPC, inspect and accept it as the invited staff user, then prove `/staff` access, `/director` denial for staff, same-user invitation replay returning the original receipt, and a different authenticated user receiving no membership. The director and staff session evidence must not come from one shared cookie jar or a seeded identity switcher.
+6. **Durable evidence.** Confirm exactly one active staff membership, the exact invited location grant, one accepted invitation with server timestamp/user/member, and one immutable acceptance event in the isolated database. Reload both hosted sessions and verify truth persists. Record actor, organization, role, location, invitation state, authoritative time, audience, and next action without disclosing raw tokens, invited email on public inspection, cookies, access tokens, keys, or family data.
+
+Development objectives:
+
+- Make deployment control deterministic in the repository and observable in Vercel logs.
+- Make the existing runtime guard accept only the intended isolated project for this branch while preserving its production-project rejection.
+- Use the existing Supabase SSR/PKCE, organization invitation, membership, location, and workflow-event foundations; do not introduce another identity, invitation, audit, or event model.
+- Keep Supabase clients request-scoped, Auth responses uncached, redirects origin-consistent, and authorization derived from verified Auth identity plus durable membership/location rowsâ€”not user-editable metadata, workspace selection, email text alone, or a role label alone.
+
+Acceptance criteria:
+
+- `vercel.json` invokes the gate; automated matrix proves that only a canonical non-production `greenfield/passage-zero` release carrying the required deploy and QA markers builds, while `[skip deploy]`, unmarked, partial-marker, wrong-branch/project, and production cases fail according to the documented policy.
+- One and only one new `[deploy] [qa-approved]` preview is created after all pre-deploy checks pass; no production deployment or docs-only follow-up build is created.
+- Hosted `/login` renders the bound isolated environment while Google and public email actions remain disabled. Unauthenticated `/director`, exact `/director/intake?mode=manual`, and `/staff` retain their exact safe-next/fail-closed behavior.
+- Director session A and staff session B are independently authenticated on the hosted preview. The director can create one location-scoped employee invitation; staff can inspect only approved invite metadata and deliberately accept it.
+- Staff lands at `/staff`; direct `/director` access is denied with a calm role-correct recovery action. The staff user cannot create/revoke invitations or gain a second location/role.
+- Same-user replay returns the stable receipt without a duplicate membership, location grant, or event. Wrong-email/second-user, expired, revoked, and malformed token tests fail closed without partial rows or metadata leakage.
+- After reload in both sessions, the membership/denial result persists. Database evidence shows exactly one accepted membership, exact location grant, accepted invitation receipt, and one acceptance event, all with server-derived identity and time.
+- TypeScript and optimized production build pass. Browser QA passes at 1440 desktop, 390, and 360 with zero horizontal overflow, no blocking console/hydration errors, visible keyboard focus, and minimum 44-pixel enabled targets. Real timestamped screenshots and redacted database/audit evidence are committed.
+- Vercel build/runtime error scans are clean, the canonical project/team and branch are recorded, and PR #24 plus this operating context are updated without a post-release docs commit.
+
+Dependencies:
+
+- Healthy isolated Supabase project `uyacxqtsiwlvtmhxvoxr`, its publishable key, Auth admin/test access, and already-applied Cycle 7A corrective migration.
+- Vercel project `prj_b7CKwanQaKwFQSHInr3l6wsZy9nD`, team `team_X0ta3bEEbRVGNM9xOwdBtCga`, branch-specific Preview environment management, Auth URL configuration, and deployment/build logs.
+- Two truly isolated browser sessions or equivalent independent browser contexts; a single identity switcher does not qualify.
+- Existing invitation RPCs, protected route shells, and warm Auth surfaces.
+- Missing repository references noted but not recreated: `docs/release-train.md`, role briefs under `docs/agents/`, `docs/deployment-discipline.md`, `docs/UX-REDESIGN-BRIEF.md`, the rollout tracker, and `pages/system/admin/saas-roadmap.js` are absent from this greenfield workspace. `AGENTS.md`, this living context, and the persona architecture govern this batch.
+
+QA plan:
+
+1. Static security review of branch-scoped variables, redirect allow-list, runtime binding, server/client key placement, request-scoped SSR clients, no-store Auth responses, invitation RPC ACLs, and deploy-gate matrix.
+2. Local TypeScript, optimized build, gate matrix, and focused invitation regression before any release marker.
+3. Hosted environment-bound smoke with providers disabled and unauthenticated direct-route/invalid-invite denial.
+4. Two independent hosted sessions: director Auth -> invitation creation -> staff Auth -> inspection -> deliberate acceptance -> `/staff` -> staff `/director` denial -> reload -> same-user replay.
+5. Negative data tests: wrong user/email, expired, revoked, malformed token, repeated submit, unauthorized invite management, wrong location, and forced failure/no partial rows.
+6. Redacted catalog/data proof for membership, location grant, invitation acceptance, event cardinality, server timestamps, and function/ACL invariants; run Supabase security/performance advisors and classify only expected isolated-fixture findings.
+7. Visual/interaction checks at 1440, 390, and 360 plus keyboard, focus, target size, overflow, console/hydration, and exact safe-next checks.
+
+Deploy plan:
+
+- Engineering and QA prepare one integrated release candidate containing the gate repair and any necessary bounded runtime/redirect corrections. Preview environment and isolated Auth URL settings are configured before the release commit; public provider controls remain disabled.
+- Deploy creates exactly one non-production commit on `greenfield/passage-zero` with the required `[deploy] [qa-approved]` markers only after independent QA PASS. Verify the source-controlled ignore command executes, the canonical project is used, and the resulting preview is READY.
+- Complete hosted two-session verification against that deployment, capture screenshots/data/log proof, and update PR #24 and this context through the GitHub PR body/comment or by including prepared context in the integrated release commit. Do not push a separate docs/evidence follow-up while the gate repair is still being proven.
+- Production promotion, Production environment changes, and production Supabase migration/application remain unauthorized and out of scope.
+
+Risks and recovery:
+
+- **Preview aliases and PKCE origins:** switching between the unique deployment URL, stable branch alias, share URL, or `localhost` can lose verifier/session cookies. Use one origin per flow and record it. If the protected preview requires a share token, establish protection access in each browser context before opening the Auth link.
+- **Environment changes require a new deployment:** finish branch-scoped values and Auth redirect configuration before the single release. A misbound deployment is PARTIAL/FAIL, not permission for a blind deploy chain; repair source/config and re-enter PM/QA if another deploy would be required.
+- **No UI team-invite surface yet:** invoking the existing authenticated RPC through a controlled test client is acceptable proof of the authority transaction, but it does not count as organization-team UX completion.
+- **Additive foundation does not yet enforce assigned-work RLS:** successful membership Auth must not be described as durable case/task authorization. `/staff` is an authority shell, not proof that an employee can safely read assigned cases.
+- **Deployment protection may obstruct Auth redirects:** test both sessions before declaring PASS; do not bypass protection or enter owner credentials into automation.
+- **Synthetic identities and tokens:** never include credentials, links containing bearer tokens, cookie values, or private keys in screenshots, logs, commits, PR text, or user reports. Remove/expire synthetic invitations after QA if doing so does not destroy required audit evidence.
+
+Non-goals:
+
+- Assigned workflow/task RLS cutover, staff workload data, Case Room/realtime, notifications/outbox, address autocomplete, organization-owner onboarding, family/D2C account lifecycle, participant or vendor access, Google activation, public/external email delivery, production migration, production deployment, pricing/billing, legal/compliance claims, or broader redesign.
+
+Owner gates:
+
+- No new owner approval is required for branch-scoped preview variables, isolated-project Auth URL configuration, synthetic lab users, local/controlled Auth-link generation, repository deploy-gate repair, QA, or one non-production preview; these are within the approved isolated free test path and normal engineering/deploy work.
+- Stop for the existing `AGENTS.md` gates only: any real external email/SMS, paid provider/plan change, production raw SQL or irreversible data change, production promotion, pricing change, or material legal/privacy/security claim. If the necessary isolated Auth admin or Vercel environment access is genuinely unavailable after connector/CLI/browser self-service, record the access blocker rather than substituting production credentials.
+
+Readiness change rules:
+
+- Current baseline remains funeral home **40% operational / 94% guided** and D2C **25% operational / 85% guided** until hosted evidence passes.
+- Binding alone, a rendered login page, one authenticated user, a shared-cookie simulation, or fail-closed behavior earns **no increase**.
+- If all hosted two-session invitation, replay, wrong-user/role denial, reload persistence, server audit, responsive QA, and deploy-control gates pass, funeral-home operational readiness may move to **45%**. This five-point increase recognizes durable hosted identity, membership, location grant, and invitation/audit proof only. D2C remains **25%** because family accounts/grants were not advanced.
+- Funeral-home readiness remains capped below **50%** until assigned workflow/task RLS is enforced and two users prove authorized work plus cross-location/cross-organization denials. It remains capped below **80%** until durable notifications/recovery exist and below **85%** until the complete family-to-funeral-home handoff/proof-return path, support/observability, and pilot simulations pass.
+- A PARTIAL result retains **40%/25%**, documents the failed criterion, and returns to PM. No percentage is awarded for visual polish or simulated authority.
+
+Research grounding and scope effect:
+
+- Supabase's current SSR guidance requires PKCE/cookie-based sessions and warns that authenticated responses must not be cached and request-specific clients must not be shared under Vercel Fluid compute: `https://supabase.com/docs/guides/auth/server-side` and `https://supabase.com/docs/guides/auth/server-side/advanced-guide`.
+- Supabase's redirect guide recommends exact production callback URLs and documents Vercel preview patterns plus `NEXT_PUBLIC_VERCEL_URL`: `https://supabase.com/docs/guides/auth/redirect-urls`. This narrowed QA to one exact origin per session and made redirect configuration a pre-deploy gate.
+- Vercel documents that `vercel.json` `ignoreCommand` overrides project settings and that exit `0` cancels while exit `1` continues: `https://vercel.com/docs/project-configuration/vercel-json` and `https://vercel.com/docs/project-configuration/project-settings`. The missing `vercel.json` is therefore classified FIX NOW, not a quota mystery.
+- Vercel branch-specific Preview variables override general Preview values and only affect new deployments: `https://vercel.com/docs/environment-variables`. This requires completing the isolated branch binding before the single integrated preview.
+
+Auto-advance handoff: PM scope is complete and moves to distinct UI/UX Review. No code, Vercel, Supabase, or production configuration was changed by this PM role.
+
+### Cycle 7A hosted-auth cutover - UI/UX Review handoff
+
+Status: **PASS TO ENGINEERING WITH CONDITIONS**. This is an experience-contract approval, not hosted QA. No product code, Vercel setting, Supabase setting, identity, or external configuration was changed by this role.
+
+Role instance and prior handoff:
+
+- UI/UX Review: `/root/ux_cycle7a_hosted_cutover`, Cycle 7A hosted cutover.
+- Prior handoff received: PM `/root/pm_cycle7a_hosted_cutover` completed the bounded hosted director-invite -> employee-acceptance brief, retained disabled public providers, required two isolated authenticated sessions, and excluded assigned-work RLS, Case Room, D2C, vendors, and production.
+- Required repository references `docs/release-train.md` and the UX role brief under `docs/agents/` are absent in this greenfield workspace, as already recorded by PM. The reviewer read the complete available `AGENTS.md`, living context, and persona action architecture; those sources govern this handoff.
+- Next role target: distinct Development/Platform Engineering. Independent QA must evaluate every condition below on the integrated hosted preview before Deploy can report the cutover PASS.
+
+Experience intent:
+
+- A grieving or time-pressed employee should encounter one calm decision at a time: review the invitation scope, verify identity through the controlled link, deliberately accept, then enter the role-correct workspace. The UI must never make the person infer whether a disabled provider, invitation acceptance, or workspace request succeeded.
+- A director and employee must understand that organization membership is not family access. The employee sees only the invited organization, role, and location scope; no case, family, roster, production-project, or broader organization data appears before durable authority is verified.
+- Hosted proof must feel like an operational receipt, not a green success label: who accepted, what organization/role/location was granted, authoritative date and time with timezone, who can see the receipt, where it was saved, and what happens next.
+
+Required screen and state sequence:
+
+1. **Hosted preview entry:** login, invitation, and access-boundary surfaces show a plain non-production label such as `Isolated preview Â· no external messages`. Do not expose a Supabase project ref or other infrastructure identifier in persona-facing copy. The exact project binding belongs in redacted QA evidence. Unauthenticated protected routes continue to redirect or fail closed without flashing seeded operator content.
+2. **Provider-disabled login:** Google and public email delivery remain visibly unavailable, with an adjacent explanation that no invitation or account was changed. If both are disabled, neither the email input nor its submit control may look like an available path. Remove misleading active `or` sequencing and make `Review invitation` the one obvious active action, supported by `Use the secure invitation link or paste the complete invitation code from your funeral-home administrator.` The controlled Auth link used by QA remains a test path, not a public-provider claim.
+3. **Pre-auth invitation review:** show inviter, organization, role, exact active locations, purpose, and expiration date/time with timezone. Do not show invited email, roster, cases, family data, raw-token metadata, or a digest. State plainly that review does not join the workspace and never widens family access. The one primary action is `Continue to secure sign-in`.
+4. **Authenticated confirmation:** repeat the organization, role, locations, and signed-in account immediately beside the consequential action. State that these values are read-only and that acceptance records the account and server time. The one primary action is `Accept invitation`; it changes to an announced `Acceptingâ€¦` state and cannot be submitted again while pending. A failed response restores a usable retry without optimistic success.
+5. **Accepted receipt:** show `Membership verified` only after the durable transaction is re-read. The receipt includes accepted account/actor, organization, role, locations, status, authoritative `Accepted` date/time with timezone in a semantic `time` element, audience/visibility, proof destination such as the organization membership/activity history, and next action. The primary action is role-relative (`Open My work` for staff). Same-user replay renders the same acceptance time and authority receipt; it must not imply a second acceptance.
+6. **Role-correct landing and denial:** `/staff` identifies the verified account, organization, staff role, and authorized location and truthfully states that durable assigned work is not yet loaded. Direct `/director` access returns `This workspace is outside your role`, explains that employee membership opens My work, and makes `Open My work` the first recovery action. Sign-out remains available. It does not expose the director screen, seeded operator data, or a technical authorization error.
+
+Failure and recovery acceptance:
+
+- Malformed, expired, revoked, already-claimed-by-another-account, wrong-email/second-user, environment-mismatch, and temporary verification failures each have distinct text outcomes. Each says whether access changed (`No access was granted` or `Nothing was joined or changed`) and gives one safe next action: retry, use the accepting/invited account, or request a new invitation from the funeral-home administrator.
+- Wrong-user and already-claimed states must not reveal the invited address, accepting account, valid-token hint, membership existence beyond the minimum state already permitted by the inspection contract, or any family/case detail.
+- Error and success messages are persistent text, not color/icon alone; dynamic pending/result states are programmatically announced without unexpected focus movement. On a failed acceptance, focus moves to or is programmatically associated with the error summary, while the invitation details and retry action remain available.
+- Provider-disabled controls use a normal unavailable cursor/state rather than a busy cursor. Only an in-flight action communicates busy state.
+
+Responsive and accessibility bar:
+
+- Verify the complete login -> review -> confirmation -> receipt -> staff -> director-denial sequence at 1440 desktop, 390x844, and 360x800. At 390 and 360 the details/receipt become a single readable column, the primary action stays visible in normal document flow, long names/locations/timestamps wrap, and document `scrollWidth` equals `clientWidth`.
+- Every enabled control and recovery link has at least a 44-by-44 CSS-pixel hit area, clear Montserrat functional copy, visible non-obscured keyboard focus, logical focus order, and Enter/Space behavior appropriate to its semantic element. Disabled controls remain perceivable but are not focus traps or presented as working actions.
+- Cormorant Garamond remains display-only; labels, timestamps, errors, helper text, controls, and receipt facts remain Montserrat. Preserve warm ivory paper and dusty low-saturation purple, blue, and green states. Error/success meaning must not rely on those colors alone.
+- No blocking console error, hydration warning, duplicate-submit flash, stale receipt, or protected-content flash is acceptable. Screen-reader/status semantics are checked for unavailable provider state, acceptance pending/result, invitation errors, accepted receipt, and role denial.
+
+Timestamp and evidence acceptance:
+
+- Invitation expiration and membership acceptance are rendered from server values, never `Date.now()` or browser-authored proof. Each visible proof time includes calendar date, clock time, and timezone; relative time may be supplemental only.
+- The replay receipt preserves the original server acceptance time. Reloading both independent sessions preserves the same organization/role/location authority and denial result without copying a cookie jar or using a seeded identity switcher.
+- Screenshot evidence must include the visible system date/time or a paired redacted evidence manifest tying capture time, URL origin, session label A/B, viewport, and database event time together. Never capture bearer links, cookies, access tokens, private keys, raw invitation tokens, or real/synthetic login credentials.
+- The redacted audit proof must match the receipt: actor/account, organization, role, location, invitation state, audience, acceptance time, proof destination/event, and next action. Database cardinality and ACL proof remain QA evidence rather than persona-facing copy.
+
+UX QA stop conditions:
+
+- FAIL if the two identities share browser storage, if a seeded identity switcher substitutes for Auth, if a provider appears available when disabled, if any pre-auth screen reveals email/family/case/roster data, if acceptance lacks a pending state, if receipt or replay lacks the original timezone-bearing server timestamp, if the proof omits audience or destination, if staff sees director content, or if mobile/keyboard/status-message checks fail.
+- PARTIAL if the hosted authority flow passes but the source-controlled deploy gate or isolated branch binding cannot be proven. No readiness increase is earned by a visually correct local or shared-cookie simulation.
+- PASS permits the PM-defined funeral-home operational estimate to move from 40% to 45% only when the complete two-session, replay, wrong-user/role denial, durable audit, responsive QA, and deploy-control gates also pass. D2C remains 25% operational.
+
+Research grounding and effect on this handoff:
+
+- W3C WCAG 2.2 Accessible Authentication requires an authentication path that does not depend on unaided recall/transcription and permits mechanisms such as email-link authentication and copy/paste: `https://www.w3.org/WAI/WCAG22/Understanding/accessible-authentication-minimum.html`. This preserved complete-code paste and prohibited puzzle-like or manually transcribed QA flows from becoming the product pattern.
+- W3C WCAG 2.2 Error Identification and Error Suggestion require textual identification plus a known correction path: `https://www.w3.org/WAI/WCAG22/Understanding/error-identification` and `https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion`. This made each invitation failure state name both the unchanged-access truth and one recovery action.
+- W3C WCAG 2.2 Status Messages requires programmatically determinable success, waiting, progress, and error updates: `https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html`. This added the announced acceptance-pending/result contract rather than relying on color or a page that appears unchanged during the server transaction.
+- W3C WCAG 2.2 Focus Visible, Focus Not Obscured, Target Size, and Reflow guidance informed persistent keyboard focus, the product's stricter 44-pixel target bar, and the 360/390 no-overflow checks: `https://www.w3.org/WAI/WCAG22/Understanding/focus-visible`, `https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum`, `https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum`, and `https://www.w3.org/TR/WCAG22/#reflow`.
+
+Auto-advance handoff: UX scope is complete and moves to distinct Development/Platform Engineering. Engineering should treat the provider-disabled hierarchy, acceptance pending state, and audience/proof-destination receipt fields as FIX NOW experience conditions inside the bounded hosted cutover; no broader onboarding or assigned-work UI is authorized.
+
+### Canonical operational roadmap - PM decision and handoff
+
+Status: PM COMPLETE. The owner requested one visible, focused roadmap with current scores, both product paths, demo separation, production readiness, milestones to 85-90%, and time ranges. PM `/root/pm_cycle7a_hosted_cutover` created `docs/product/operational-readiness-roadmap.md` as the single internal source of truth for this greenfield repository and updated the stale Roadmap And Planning Rules in `AGENTS.md`.
+
+Canonical-source decision:
+
+- The legacy Pages Router file `pages/system/admin/saas-roadmap.js` named in older guidance is absent, and Passage Zero has no secure System Admin route yet. Requiring a nonexistent path made the roadmap invisible and encouraged percentages to live only in handoff history.
+- The new canonical file is internal/System-Admin source material, not a public or persona roadmap. When a secure App Router System Admin route is implemented, it must render this roadmap or one structured source extracted from it; it must not maintain a second milestone set.
+- `docs/agent-operating-context.md` remains the role/evidence ledger. It may quote the current roadmap decision but is not a competing roadmap. No product page, persona navigation, deployment, database, or external system changed in this PM action.
+
+Current verified baselines remain:
+
+- Funeral home: **94% guided / 40% operational**.
+- Family/D2C: **85% guided / 25% operational**.
+- Separate demo instance: isolated Supabase lab exists, but the hosted binding, deterministic reset, communication blocking, and smoke proof are incomplete; roadmap baseline **10% operational**.
+- Production readiness: build/migration discipline exists, but production-safe identity/data/delivery/integration/support controls are not proven; roadmap baseline **10% operational**.
+- Greenfield pages remain preview-only. The current hosted Auth preview is fail-closed and production pages are unchanged.
+
+Critical-path decision:
+
+1. Hosted director/staff identity and membership proof plus deploy-control repair.
+2. Organization/location/assignment RLS, durable assigned work, revocation, and append-only command audit.
+3. Durable funeral-home intake, Case Room, structured proof, notification recovery, realtime/reconnect, and a deterministic isolated demo instance.
+4. D2C account lifecycle, independent family/participant grants, funeral-home handoff, family-safe communication/proof, recovery, and account/data controls.
+5. Observability, one reliable integration adapter, backup/restore, support/break-glass runbooks, failure drills, persona simulations, and explicit high-risk owner review before an 85-90% allowlisted pilot claim.
+
+Roadmap time ranges, assuming focused execution and no external owner-gated delay:
+
+- Hosted Auth preview: **2-4 focused working days**.
+- Assigned-work funeral-home authority: **1-2 focused weeks cumulative**.
+- End-to-end funeral-home case loop plus isolated demo: **3-5 focused weeks cumulative**.
+- Funeral-home 85-90% allowlisted pilot readiness: **approximately 5-8 focused weeks**.
+- D2C 85-90% allowlisted pilot readiness: **approximately 7-11 focused weeks** after reusing the stable authority/case spine.
+
+The next three integrated sprints are now fixed in the roadmap:
+
+1. Cycle 7A hosted authority cutover, 2-4 days; full PASS may move funeral home only from 40% to 45%.
+2. Cycle 7B assigned-work RLS, 4-7 days; full PASS may move funeral home to 55-60%, D2C remains 25%.
+3. Cycle 8A funeral-home case operations plus isolated demo, 7-10 days; full PASS may move funeral home to 72-78%, D2C to 30-35%, and demo to 75%.
+
+Readiness remains evidence-gated: no partial implementation, visual preview, local-only result, or seeded/shared-cookie identity advances a score. The next active handoff remains distinct Development/Platform Engineering for Cycle 7A, followed by independent QA and Deploy. The roadmap itself requires no deployment and does not interrupt the active hosted-cutover release train.
+
+Documentation-first hosted-QA fixture decision before engineering changes:
+
+- **What:** Engineering may create a new idempotent `supabase/test-fixtures/cycle_7a_hosted_auth_personas.sql` for isolated project `uyacxqtsiwlvtmhxvoxr`. It may seed only the synthetic Northstar organization, Portland location, and synthetic director membership/relational location grant required for hosted QA, plus the minimum narrow self-authority SELECT policies needed by the server resolver. Director and staff Auth users are created through the isolated Auth Admin API. The staff membership, location grant, accepted invitation, and acceptance event must be created only by the real director-invite/staff-acceptance RPC path, never preseeded.
+- **Why:** the isolated production-shape fixture intentionally has fail-closed tables/policies. Hosted invitation and role-landing proof needs a reproducible synthetic director authority without borrowing production data or manually inserting result rows.
+- **Breakage if skipped:** the preview can prove environment binding but cannot prove authenticated invitation authority or role landing; readiness remains 40%/25%. Manual lab edits would be irreproducible and could invalidate the event/audit cardinality evidence.
+- **Breakage risk and controls:** a fixture executed against the wrong project could modify real memberships or policies. Its execution must preflight the exact isolated project ref, explicitly reject production ref `qsveqfchwylsbncsfgxe`, use reserved synthetic IDs and `@passage.test` accounts, assert collision/row-count expectations, retain evidence, and provide ordered cleanup. It contains no family, participant, vendor, customer, or production data; sends no external communication; and stores no credentials, service key, bearer token, or raw invitation token.
+- **Classification:** test-only reversible fixture script, not a product migration, not recorded as a production migration, and not permission for ad hoc production SQL. Production-grade self-authority and assigned-work RLS remain Cycle 7B migration work behind its own what/why/breakage and backfill gate.
+
+### Cycle 7A hosted-QA fixture - Development/Data Engineering handoff
+
+Status: SOURCE COMPLETE; NOT APPLIED. Development/Data Engineering role `/root/eng_cycle7a_fixture` received the completed PM hosted-cutover brief, UX conditions, and the documentation-first hosted-fixture gate. It created only `supabase/test-fixtures/cycle_7a_hosted_auth_personas.sql`; no migration, hosted project, Auth user, Vercel setting, commit, or deployment was changed by this role.
+
+Implementation boundary:
+
+- The fixture requires a transaction-local project-ref attestation, rejects production ref `qsveqfchwylsbncsfgxe`, and accepts only isolated lab `uyacxqtsiwlvtmhxvoxr`. Its checklist also requires the executor to verify the connector/dashboard target independently before setting that attestation; a missing or mismatched value aborts before grants, policies, or rows change.
+- Reserved synthetic IDs and `cycle7a-director@passage.test` are collision-checked. Exactly one director Auth user must already exist through the supported isolated Auth Admin path. The fixture seeds one synthetic Northstar organization, one Portland location, the one director membership, and its one relational location grant.
+- Three SELECT-only authenticated policies expose only the signed-in user's active membership, organization, and granted active locations required by `lib/auth/authorization.ts`. The existing Cycle 7A member-location policy remains the authority for that relation. No INSERT/UPDATE/DELETE client policy is added.
+- `cycle7a-staff@passage.test` appears only in the execution checklist. The fixture contains no executable staff membership, staff location grant, invitation, acceptance, or event write. Those outcomes must come from the real authenticated create/accept RPC path.
+- The ordered post-evidence cleanup deletes synthetic events/invitations/members/location/organization, removes only the fixture policies/grants, and refuses cleanup if later workflow/task fixture data is attached. Auth-user removal remains an Auth Admin action.
+
+Static verification PASS: executable DDL/DML target review found only the three narrow grants/policies and four allowed synthetic authority inserts; a comment-stripped scan found no staff identity or insert into `auth.users`, `organization_invitations`, or `workflow_events`; dollar-quote pairing and trailing-whitespace checks passed. No SQL was executed locally or against a hosted database, so independent QA must still parse/apply it transactionally in the isolated lab, exercise idempotent re-run and cleanup rollback, inspect ACL/RLS behavior as director/staff/wrong user, and run advisors before any hosted cutover PASS.
+
+Research grounding: current Supabase RLS guidance requires explicit Data API grants separately from RLS, `TO authenticated`, and user-relative predicates such as `(select auth.uid())`; the April 2026 Data API breaking change makes explicit table grants intentional rather than assumed (`https://supabase.com/docs/guides/database/postgres/row-level-security` and `https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically`). This kept the fixture's grants explicit and its policies narrowly self-scoped.
+
+Next role target: independent Data/QA review and isolated-lab execution only after connector target verification. Operational readiness remains funeral home **40%** and D2C **25%** until the complete hosted two-session milestone passes.
+
+### Cycle 7A hosted-auth cutover - Development handoff (interrupted)
+
+- Development role instance: `/root/eng_cycle7a_fast`; received the completed PM and UI/UX handoffs.
+- Work stopped on parent request before an engineering patch was applied. This role changed no product, gate, package, runtime, Vercel, Supabase, or evidence file.
+- Read-only verification found `vercel.json`, `scripts/test-vercel-ignore-build.js`, and an expanded `scripts/vercel-ignore-build.js` already present in the shared working tree from parallel work. The gate still needed a strict preview rule requiring literal `[deploy]` plus `[qa-approved]`; its `release:` shortcut was too permissive for preview, and `package.json` still lacked the matrix-test script.
+- The existing login/invitation surfaces still needed the UX conditions for a single obvious invitation action when both providers are disabled, an announced disabled `Acceptingâ€¦` state, and receipt audience/proof-destination fields. The staff-to-director denial already placed `Open My work` first.
+- No test was run by this role. No commit or deployment was created. A read-only Supabase connector lookup confirmed an enabled publishable key exists for isolated project `uyacxqtsiwlvtmhxvoxr`; no secret or service-role credential was requested, stored, or changed.
+- Next handoff: Development must finish the bounded gate/runtime/UX patch, then run the deterministic gate matrix, TypeScript, and production build before independent QA. Production and family/vendor surfaces remain untouched.
+
+### Compressed operational-pilot roadmap - PM correction
+
+Status: PM COMPLETE. Owner rejected the prior 5-11-week operational estimate and asked what actually consumes time. PM `/root/pm_cycle7a_hosted_cutover` revised the canonical roadmap without changing current readiness scores or weakening evidence gates.
+
+Decision:
+
+- The core allowlisted-pilot critical path is now **10-15 focused working days**, targeting funeral home **85-88% operational** and D2C **83-87% operational** if hosted authority, RLS, recovery, cross-persona proof, demo, and QA gates all pass.
+- Full production hardening is explicitly separate and continues after the pilot. The compressed target holds out live external email/SMS, paid address-provider activation, broad live integrations, production migration, billing, general-availability support, and unresolved legal/privacy/security decisions. No unapproved claim or production promotion is included.
+- Current verified scores remain funeral home **40% operational / 94% guided** and D2C **25% operational / 85% guided**. No schedule-driven score increase is authorized.
+
+Why the earlier range was too long:
+
+- It treated authority, funeral-home operations, D2C grants, demo isolation, and QA as mostly sequential and bundled full production hardening into the pilot estimate.
+- The existing warm responsive screens, typed event spine, invitation migration, isolated Supabase lab, and guided cross-persona flows remove most net-new UI work.
+- Four parallel lanes now run from Day 1: hosted Auth/data/RLS; funeral-home case operations; D2C identity/grants; and demo/QA/release evidence. The final handoff integrates only after the shared authority predicates pass.
+
+What actually consumes focused time:
+
+- Auth redirects/cookies, organization/location/assignment RLS, deterministic fixtures/backfill, and negative authority tests: about 30-35%.
+- Idempotent event/outbox/retry/reconnect behavior and truthful failure recovery: about 20-25%.
+- Family/funeral-home/participant grants, handoff receipts, task-bound communication, and family-safe proof: about 20-25%.
+- Independent multi-session, SQL/RLS, device, failure-injection, logging, screenshot, and deploy verification: about 20-25%.
+- Net-new screens are a small remainder; visual polish is not the critical path.
+
+Compressed three-sprint plan:
+
+1. **Days 1-3:** deploy-gate repair, isolated hosted binding, director/staff Auth invitation proof; begin D2C grant contract and demo reset in parallel.
+2. **Days 4-8:** assigned-work RLS, durable intake/commitment/revocation/audit, and durable D2C identity/family-grant foundations on the same spine.
+3. **Days 9-15:** Case Room, Transfer Pass acceptance, reviewed family update, structured proof, realtime/reconnect, simulated delivery/integration failure recovery, deterministic demo smoke, and full persona/device/evidence pass.
+
+Production-hardening follow-on: production migration/backfill/rollback, live providers, broader integrations, load/restore drills, durable monitoring and support coverage, audited break-glass, security/privacy/legal decisions, billing, and general rollout. Its estimate is deferred until those owner/external inputs exist rather than padding the pilot timeline.
+
+Next handoff remains Development/Platform Engineering for the active Cycle 7A bounded patch, followed immediately by independent QA and Deploy. The parallel D2C/demo lanes may prepare contracts and fixtures now but may not bypass the shared authority or evidence gates.
+
+### Cycle 7A integrated source - independent QA handoff
+
+Status: **PARTIAL / RETURN TO PM AND ENGINEERING** at 2026-07-16 21:43:30 -07:00. QA role `/root/qa_cycle7a_integrated_source` reviewed the current uncommitted integrated source against the Cycle 7A PM brief, UI/UX conditions, roadmap M1, and `AGENTS.md`. No SQL, hosted configuration, commit, or deployment was created. The release candidate must not receive `[qa-approved]` yet.
+
+Verified PASS in source:
+
+- `pnpm test:deploy-gate` passed all 11 cases: canonical approved preview, skip-marker precedence, unmarked preview, each partial-marker case, `release:` without literal preview deploy marker, wrong branch, wrong project, approved production release, feature-branch production denial, and local build. `vercel.json` parses as JSON and its `ignoreCommand` points to the tested script.
+- `pnpm typecheck` passed. Development/root reported the optimized production build already passed; this QA role did not repeat that completed build before returning the source blockers.
+- Static review found no service-role/private/secret credential in the reviewed runtime, login, invitation, gate, or fixture files. The committed Supabase credential is explicitly a publishable browser key.
+- The production runtime guard fails closed when `VERCEL_ENV=production` is paired with the preview runtime, and the gate denies a production deployment from `greenfield/passage-zero`.
+- With Google and email disabled, `LoginClient` renders only the explicit non-delivery status and one controlled invitation-code action. `AcceptInvitationButton` uses the server-action pending state, changes to `Accepting...`, and disables repeated submission. The accepted receipt renders the server value with date, clock time, timezone, explicit server-time label, audience, proof destination, and next action. Staff role denial keeps `Open My work` as the first recovery.
+- The hosted fixture statically rejects missing, production, and non-lab project-ref attestations, requires the one exact supported director Auth user, collision-checks reserved synthetic identities, and contains no executable staff membership, staff location grant, accepted invitation, invitation row, acceptance event, or `auth.users` insert.
+
+Blocking findings:
+
+1. **Branch binding is not source-correct.** `vercel.json` places the isolated Supabase URL, publishable key, project refs, and `PASSAGE_RUNTIME=preview` in the top-level `env` object. Vercel documents this as static environment passed to all invoked functions and recommends project Environment Variables; branch-specific Preview variables must be configured for the exact Git branch. The source guard makes an accidental production deployment unavailable rather than leaking operator data, but merging this file to `main` would also inject preview runtime values and intentionally make production unavailable. Remove the top-level `env` object, retain `ignoreCommand`, and prove these values as Preview-only variables scoped to `greenfield/passage-zero` before the one integrated preview. Sources: `https://vercel.com/docs/project-configuration/vercel-json` and `https://vercel.com/docs/environment-variables`.
+2. **The hosted fixture violates the migration discipline it claims to avoid.** `supabase/test-fixtures/cycle_7a_hosted_auth_personas.sql` executes three `GRANT SELECT` statements and three `DROP POLICY` / `CREATE POLICY` replacements, with corresponding policy/grant cleanup. Those are structural ACL/RLS changes. `AGENTS.md` requires every schema change to be documented first and applied through real Supabase migration tooling, not classified as a non-migration fixture. The what/why/breakage analysis exists, but the artifact classification and application path do not comply. Separate the ACL/policies into a documented isolated-lab migration applied via `apply_migration`, or defer them to Cycle 7B and keep the fixture DML-only. Do not apply this fixture as written.
+3. **Hosted milestone evidence remains unproven.** Because the branch binding and fixture application are blocked, independent two-session hosted Auth, same-user replay, wrong-user denial, row/event cardinality, redirect allow-list, Vercel gate-log execution, runtime logs, and 1440/390/360 hosted visual evidence were not performed. Root supplied a local smoke at an actual 704-pixel viewport for the provider-disabled login, malformed invitation, and protected-route redirect; that is useful engineering evidence but does not satisfy independent M1 hosted QA or the required three-viewport matrix.
+
+QA decision and next role:
+
+- Return to Product Manager for the fixture-classification correction, then Development/Platform Engineering for the two bounded fixes above. Re-enter independent QA after the source is corrected and branch-scoped Vercel/Supabase configuration is available.
+- Operational readiness remains funeral home **40%** and D2C **25%**. No preview or Deploy handoff is authorized from this PARTIAL result.
+
+### Cycle 7A QA-PARTIAL recovery - PM decision
+
+Status: FIX NOW / ENGINEERING AUTHORIZED. PM `/root/pm_cycle7a_hosted_cutover` received independent QA PARTIAL and kept both blocking findings inside the bounded hosted-authority sprint. No readiness credit or Deploy handoff is authorized yet.
+
+Recovery decision 1 - Vercel environment scope:
+
+- **What:** remove the repository-wide top-level `env` object from `vercel.json`; retain only `$schema` and the tested `ignoreCommand`. Keep the isolated Supabase URL, publishable key, project refs, runtime, and disabled-provider flags out of repository-wide Vercel configuration.
+- **Why:** Vercel's top-level `env` applies static values across invoked functions/deployments rather than expressing the required exact-branch Preview binding. If merged, the current values would make a production deployment intentionally unavailable and would erase the environment-separation proof this sprint is meant to establish.
+- **Breakage if skipped:** every branch or production deployment can inherit the isolated-preview runtime values; production remains fail-closed but unusable, branch isolation is unproven, and M1 cannot pass.
+- **Breakage risk/recovery:** removing the source values means previews without externally configured branch variables render the already-verified fail-closed environment state. That is the correct safe fallback. Engineering must rerun the gate matrix, TypeScript, and optimized build after removal.
+- **External blocker:** the required Vercel variables must be configured as Preview variables scoped specifically to Git branch `greenfield/passage-zero`. Current connected access does not expose credentialed branch-environment mutation, so hosted binding remains an external credential/access blocker after the source correction. Do not reintroduce values into `vercel.json`, use Production variables, or request/store a secret/service-role key as a workaround.
+
+Recovery decision 2 - hosted QA ACL/RLS migration discipline:
+
+- **What:** create a new isolated-lab-only Supabase migration containing only the three authenticated SELECT grants and three narrowly self-scoped organization/membership/location policies currently embedded in `supabase/test-fixtures/cycle_7a_hosted_auth_personas.sql`. Create the migration through the Supabase migration workflow and apply it only to project `uyacxqtsiwlvtmhxvoxr` using Supabase migration tooling. Give every policy a lab-specific name. Remove all `GRANT`, `REVOKE`, `DROP POLICY`, and `CREATE POLICY` statements from the fixture, including cleanup; keep the fixture DML-only for guarded synthetic organization/location/director membership/location-grant rows.
+- **Why:** Data API grants and RLS policies are structural authority changes. Recording them in migration history makes the lab state reproducible, reviewable, advisor-visible, and separable from repeatable persona data. Fixture reruns must never silently replace authorization policy.
+- **Breakage if skipped:** applying the fixture as written violates the documented migration discipline, structural state can drift across reruns/cleanup, and independent QA cannot trust or reproduce hosted authority evidence.
+- **Breakage risk:** an incorrect or wrong-target migration could expose organization, membership, or location rows more broadly than intended, revoke access needed by another policy, or collide with later Cycle 7B enforcement. The migration must assert the expected isolated production-shape relations, use only `TO authenticated` plus user-relative active-membership/location predicates, add no client write policy, use lab-specific names, and be applied only after connector target verification rejects production ref `qsveqfchwylsbncsfgxe`.
+- **Reversibility:** structural rollback is a separate isolated-lab follow-up migration that drops only the lab-named policies and revokes only the grants introduced by this lab migration after checking no later lab policy depends on them. Persona cleanup deletes only reserved synthetic DML rows in dependency order. Production is untouched; the disposable lab may be removed after retained evidence, but that is not a substitute for migration-record clarity.
+- **Data boundary:** no family, participant, vendor, customer, case, task, production row, external communication, password, bearer token, raw invitation token, service key, or production credential is added by the migration or fixture.
+
+Engineering correction acceptance:
+
+1. `vercel.json` contains no `env` object and the 11-case deploy-gate matrix still passes.
+2. The new lab migration is independently reviewed, applies through Supabase migration tooling to `uyacxqtsiwlvtmhxvoxr`, appears once in migration history, passes catalog/ACL/RLS inspection and advisors, and is never applied to production.
+3. The hosted persona fixture contains no executable DDL/ACL/policy statement and remains idempotent, project-guarded, collision-checked, and DML-cleanup reversible.
+4. TypeScript and optimized production build pass; independent QA then rechecks source and hosted evidence when branch-scoped Vercel access is available.
+
+Role handoff: PM returns immediately to Development/Platform/Data Engineering for these two corrections, then to independent QA. The Vercel branch-binding access blocker may keep hosted QA PARTIAL, but it does not block safe source/migration correction or local/isolation testing. Operational readiness remains funeral home **40%** and D2C **25%**.
+
+### Owner-requested handoff note - 2026-07-16 21:50 -07:00
+
+Repository and release state:
+
+- Repository: `thepassageappio/thepassageappio`; branch: `greenfield/passage-zero`; draft PR: `#24`.
+- Canonical internal roadmap: `docs/product/operational-readiness-roadmap.md`. It supersedes the older sequential estimate and targets a tightly allowlisted operational pilot in **10-15 focused working days**, with full production hardening tracked separately.
+- Verified readiness remains funeral home **94% guided / 40% operational** and D2C **85% guided / 25% operational**. The full compressed-pilot evidence gate may move those to funeral home **85-88% operational** and D2C **83-87% operational**; dates alone never move a score.
+- Production, family access, participant access, vendor fulfillment, pricing, and live external messaging were not changed. No new preview or production deployment was authorized in this batch.
+
+Completed and verified in the current source batch:
+
+- Added source-controlled Vercel ignore-build wiring in `vercel.json`; removed the unsafe repository-wide preview environment values after QA review.
+- Tightened the preview release gate so only the canonical project, exact `greenfield/passage-zero` branch, literal `[deploy]` plus `[qa-approved]`, and no skip marker can build. The deterministic 11-case matrix passes.
+- Added the provider-disabled isolated-preview hierarchy: Google/email actions stay unavailable and the controlled invitation-code review is the only active login action.
+- Added a duplicate-safe, announced `Accepting...` invitation state and strengthened the acceptance receipt with the original timezone-bearing server timestamp, visibility/audience, proof destination, and next action.
+- Preserved staff-to-director denial with `Open My work` as the primary recovery. Family and vendor surfaces remain unchanged.
+- TypeScript and the optimized Next.js production build pass. Local smoke verified the isolated-preview label, one active invitation action, malformed-invitation denial, and unauthenticated `/director` redirect. The local browser was 704 pixels wide, so it is supporting evidence only, not the required 1440/390/360 release proof.
+- Created the canonical roadmap and compressed four-lane plan: hosted Auth/data/RLS, funeral-home operations, D2C identity/grants, and demo/QA/release evidence advance in parallel.
+
+Current QA decision and blockers:
+
+- Independent QA is **PARTIAL**; no `[qa-approved]` marker and no deploy are permitted yet.
+- Source blocker 1 is corrected: `vercel.json` now contains only `$schema` and `ignoreCommand`. The remaining hosted blocker is credentialed Vercel access to set the required Preview variables only for `greenfield/passage-zero`; the connected read/deploy tools do not expose branch-environment mutation. Do not work around this with repository-wide or Production variables.
+- Source blocker 2 is documented and queued: the hosted persona fixture currently mixes synthetic DML with `GRANT` and RLS policy DDL. Engineering must move those six structural authority statements into a lab-named migration, keep the fixture DML-only, and apply the migration only to isolated project `uyacxqtsiwlvtmhxvoxr` through Supabase migration tooling. Production project `qsveqfchwylsbncsfgxe` is explicitly prohibited.
+- Hosted director/staff two-session proof, redirect allow-list, replay/wrong-user/cardinality checks, Vercel gate log, runtime logs, and 1440/390/360 screenshots remain unproven and therefore earn no readiness increase.
+
+Exact next handoff:
+
+1. Development/Data Engineering splits the hosted fixture DDL into the documented isolated-lab migration and reruns static checks.
+2. Independent QA reviews the migration/fixture separation; Deploy remains closed until PASS.
+3. Configure exact-branch Vercel Preview variables and isolated Supabase Auth redirects without touching Production variables.
+4. Create synthetic director/staff Auth users through the isolated Auth Admin path, apply the lab migration through migration tooling, and seed only the guarded director fixture.
+5. Run two independent hosted sessions: director creates the location-scoped invitation; staff inspects and accepts; prove `/staff`, staff `/director` denial, reload persistence, same-user replay, wrong-user denial, and exact membership/location/invitation/event cardinality.
+6. Run TypeScript/build plus hosted desktop 1440, mobile 390, and mobile 360 QA; commit timestamped screenshots and redacted audit evidence; publish exactly one `[deploy] [qa-approved]` preview; update PR `#24` and this context in the integrated release commit.
+7. Auto-advance immediately to Cycle 7B assigned-work RLS, workload, reassignment, revocation, and append-only command audit. Vendor fulfillment stays queued until location and ownership semantics pass.
+
+Role state: PM recovery is complete; UX acceptance is complete; Development source work is partially complete; independent QA returned PARTIAL; Deploy is not authorized. The release train remains active and the next role target is Development/Data Engineering for the bounded fixture/migration correction.
+
+### Cycle 7A QA-PARTIAL recovery - isolated migration applied, hosted credentials gated - 2026-07-16 22:31 -07:00
+
+Owner parity directive:
+
+- Frontend/backend contract parity is now a standing release gate in `AGENTS.md` and the operational-readiness roadmap. For every slice, PM must identify the visible persona action/state, server command or query, durable rows, RLS/authority predicate, append-only event/proof for state change, failure/recovery behavior, and persona projection. Engineering advances those elements together; QA rejects either a UI claim the backend cannot prove or a backend capability presented as available before the UI truthfully exposes it.
+- Cycle 7A remains bounded to current invitation authorization and hosted invitation UI. The isolated self-authority policies expose only the current user-relative organization, membership, and location reads required by that UI. Assigned-work authority is not implied by these policies and remains explicitly queued for Cycle 7B with its workload, reassignment, revocation, and append-only command-audit UI states.
+
+Role and source disposition:
+
+- PM classified the two QA findings as FIX NOW without changing scope or readiness. UX independently confirmed that the SQL artifact split changes no persona copy, layout, family boundary, vendor state, or established 1440/390/360 acceptance conditions.
+- Development/Data Engineering created `supabase/migrations/20260717051552_cycle_7a_isolated_lab_self_authority.sql` through the migration workflow. It contains exactly three authenticated `SELECT` grants and three lab-named, user-relative self-authority policies; it adds no client write policy and fails closed on missing lab markers, schema/RLS drift, existing target grants/policies, or existing authority rows.
+- Development removed every executable ACL, policy, and DDL statement from `supabase/test-fixtures/cycle_7a_hosted_auth_personas.sql`. The fixture remains project-attested, production-rejecting, collision-checked, idempotent, guarded-cleanup reversible, DML-only, and limited to the synthetic organization, location, director membership, and director location grant. It does not seed staff authority, invitations, acceptance, audit events, or `auth.users`.
+- Independent QA passed the migration/fixture separation and authorized migration application only after exact isolated-project verification. The deterministic deploy-gate matrix passes all 11 cases. Root verification also passed `pnpm typecheck` and the optimized `pnpm build` after restoring frozen dependencies.
+
+Hosted database evidence:
+
+- Supabase target verification identified isolated project `uyacxqtsiwlvtmhxvoxr` (`passage-cycle-7a-test`) and separately identified prohibited production project `qsveqfchwylsbncsfgxe`. The new migration was applied exactly once to the isolated project through Supabase migration tooling and appears once in its migration history as `cycle_7a_isolated_lab_self_authority`.
+- Post-apply catalog inspection proves exactly the three lab policies and authenticated `SELECT` on organizations, locations, and memberships, with no authenticated insert/update/delete privilege. Authority-row counts remain zero before fixture seeding. A read-only production migration-history check proves the migration name is absent from production.
+- Supabase security advisors report only the expected fail-closed Cycle 7B tables with RLS enabled and no policy. Performance advisors report unused-index informational findings expected in the empty isolated lab. Neither result authorizes readiness credit.
+
+External credential gate and exact continuation:
+
+- No synthetic director or staff Auth user currently exists in the isolated project. The guarded fixture has not been seeded. Vercel Preview variables, Supabase Auth redirects, Auth Admin users, hosted sessions, screenshots, and hosted cardinality evidence remain untouched because neither the Vercel CLI nor the Vercel/Supabase browser sessions are authenticated in this workspace. No secret was requested or exposed, and no repository-wide or Production environment value was restored.
+- Deploy remains closed: no preview was published, no `[qa-approved]` marker was added, PR `#24` was not updated, and operational readiness remains funeral home **40%** and D2C **25%**. The guided figures remain funeral home **94%** and D2C **85%**.
+- Owner action required by the explicit credentials/access gate: authenticate the existing Vercel and Supabase browser/CLI sessions without sharing credentials. Then Deploy can configure only branch `greenfield/passage-zero`, configure only isolated Auth redirects, create the synthetic Auth users through Auth Admin, seed the guarded director fixture, and return to independent hosted QA for the full two-session, replay/denial/cardinality, runtime-log, and 1440/390/360 evidence gate. Exactly one non-production preview is permitted only after full PASS.
+
+### Cycle 7A Deploy re-entry - explicit sequencing gate - 2026-07-16 22:31 -07:00
+
+Deploy decision: **PARTIAL / CLOSED**. Deploy independently confirmed the canonical Vercel project/team, exact allowed branch, draft PR/head alignment, isolated-only migration history, production absence, and bounded migration/fixture QA PASS. It also confirmed that the deployed ignore gate predates the uncommitted repair and built the current `[skip deploy]` head; pushing before the integrated gate is ready could therefore create an unintended preview. No push is authorized.
+
+PM re-entry identified a real release-sequencing contradiction rather than an engineering defect:
+
+- Exact-branch Vercel Preview environment changes apply only to a new deployment, so the required hosted application sessions cannot be proven on an existing preview after those variables are staged.
+- The current owner instruction permits exactly one new non-production preview only after the complete hosted evidence gate and requires that preview to carry `[deploy] [qa-approved]`.
+- `AGENTS.md` and the roadmap prohibit a truthful `[qa-approved]` marker until independent hosted QA has actually passed. A throwaway preview, a second preview, a gate bypass, repository-wide or Production variables, or relabeling local/shared-context proof as hosted proof would violate the release contract.
+
+Safe PM decision: Deploy and hosted mutation remain closed, scores remain unchanged, and no approval semantics will be weakened implicitly. All source, migration, advisor, typecheck/build, gate, runbook, and evidence-manifest preparation may continue. Before the integrated release commit, the owner must resolve this explicit sequence gate. PM recommends one narrow exception: authorize the sole new non-production deployment as a **verification preview** with a truthful pre-QA status distinct from `[qa-approved]`; run complete independent hosted QA against that same preview; if it passes, update PR/context/evidence without creating a second preview. Any implementation of that exception must also explicitly reconcile the ignore gate. The alternative is an explicit one-time redefinition of `[qa-approved]` as pre-deploy approval with hosted QA pending, which PM does not recommend because it makes the marker misleading.
+
+The frontend/backend parity matrix for this bounded slice remains fixed: director create, staff inspect/accept, receipt, `/staff`, director denial, replay, and recovery UI map to the verified Auth session, invitation commands/RPCs, exact durable invitation/membership/location-grant rows, self-authority and invitation predicates, exactly one append-only acceptance event with server actor/time, denial without partial effects, and the correct director/staff projection. Family/vendor stay unchanged and assigned-work authority stays queued. Independent QA must reject drift in either direction.
+
+### Cycle 7A owner-authorized verification preview and parity correction - 2026-07-17 20:04 -07:00
+
+Owner decision: Steve explicitly authorized the PM-recommended one-preview sequencing exception. This authorizes exactly one non-production **verification preview** before hosted QA; it does not authorize `[qa-approved]`, Production, a second preview, repository-wide environment values, or any readiness increase.
+
+PM Sprint Brief status: **COMPLETE**. Goal: close the Cycle 7A backend-ahead contract gap by adding a reachable director-only, location-scoped invitation creation surface that uses the existing `create_employee_invitation` RPC and feeds the existing staff inspect/accept flow. Requirements and acceptance are: server-derived eligible locations only; no direct table writes; explicit pending/success/denial/conflict/retry states; receipt with actor, recipient, location, server proof, visibility, delivery state, expiry, and next action; exact invitation/location/event cardinality before acceptance; exact membership/location/accepted-event cardinality afterward; replay and wrong-user denial; `/staff` persistence and `/director` denial; 1440/390/360 responsive and accessibility proof. Family/vendor, Cycle 7B assigned work, Production, and real delivery remain non-goals.
+
+UX decision: **PARTIAL / FIX NOW**. Independent UX review found that the backend creation RPC existed but no reachable director route/component called it. Creating the hosted invitation through SQL, dashboard, or a hidden RPC would violate the new frontend/backend parity gate and cannot satisfy the owner-requested proof. The sole preview slot remains unspent until Development closes this UI/backend gap and local QA passes.
+
+Engineering deploy-gate correction: the source gate now recognizes the literal, cycle-specific `[deploy] [cycle-7a-verification-preview]` combination only for Vercel Preview, canonical project `prj_b7CKwanQaKwFQSHInr3l6wsZy9nD`, and exact branch `greenfield/passage-zero`. Skip markers still win. The exception is explicitly denied for Production even when combined with `[qa-approved]`; ordinary `[deploy] [qa-approved]` behavior remains unchanged. The expanded deterministic matrix passes all 16 cases. The exception must be removed/closed in the post-QA integrated `[skip deploy]` commit so it cannot become a standing bypass.
+
+Credential state: current Vercel CLI has no authenticated credentials. Chrome reaches Vercel and Supabase sign-in pages but has no active dashboard session. Source implementation and local verification continue; branch environment configuration, Auth redirects, Auth Admin users, fixture seed, and the one preview remain gated on the owner signing in without sharing credentials.
+
+Cycle 7A creation-idempotency backend correction (documentation-first gate):
+
+- **What:** add a nullable client request UUID to `organization_invitations`, a unique organization/request index, and a new authenticated `create_employee_invitation_idempotent` RPC. The function must serialize live invitation creation by organization plus normalized email, replay an existing request or identical live pending invitation without returning the raw token again, and delegate first creation to the already-reviewed invitation command so the existing single append-only creation event remains authoritative.
+- **Why the frontend needs it:** disabling a pending button prevents only a same-tab double click. Lost responses, reloads, parallel tabs, and concurrent requests could currently create multiple invitation rows and multiple `organization_invitation.created` events while the UI claims one pending invitation. The director receipt and exact-cardinality evidence cannot be truthful without database-enforced deduplication.
+- **Breakage if skipped:** frontend and backend drift under retry; duplicate live credentials and audit events can exist; the one-invitation proof and hosted QA must fail.
+- **Risk and recovery:** the correction is additive and leaves the existing RPC intact for compatibility. A replay returns the existing id/hint/expiry with `raw_token = null` and a truthful recovery state; it never reconstructs a stored credential digest. A request-id collision with different input fails closed. Structural application is isolated-project-only through Supabase migration tooling after independent review; Production `qsveqfchwylsbncsfgxe` remains prohibited.
+
+Post-apply ACL hardening (documentation-first gate): the isolated migration applied successfully and postconditions proved the new authenticated RPC, revoked old entrypoints, request column/index, zero starting cardinality, and Production absence. The Supabase security advisor then correctly flagged the public wrapper because it was `SECURITY DEFINER`. **What:** a follow-up migration changes only the public wrapper to `SECURITY INVOKER` and grants authenticated execution on the new private idempotent implementation; the old private/public creation functions remain revoked. **Why:** `passage_private` is not a Data API exposed schema, already grants schema usage for the established wrapper pattern, and the private implementation performs explicit Auth, organization, location, and replay-scope checks. This preserves the required privilege chain without exposing a public security-definer RPC. **Breakage if skipped:** the advisor warning remains and the public API has a broader execution posture than needed. **Breakage if misapplied:** omitting the private grant makes the wrapper fail closed with permission denied; restoring either old creation grant reopens duplicate bypass. Apply only through migration tooling to isolated `uyacxqtsiwlvtmhxvoxr`, never Production.
+
+### Cycle 7A parity implementation and isolated idempotency proof - 2026-07-17 20:38 -07:00
+
+Role handoff and decisions:
+
+- PM completed the director-invitation Sprint Brief and classified the missing preview password session path FIX NOW. UX independently found and blocked both backend-ahead creation drift and frontend-behind-Auth drift before the verification preview. Development implemented the bounded corrections. Independent QA initially failed non-idempotent creation, token prefetch, replay truth, old-RPC bypass, privilege-chain, cross-location replay, and persisted-inviter defects; each was corrected and QA then passed both migrations for isolated application.
+- The director workspace now links to `/director/invitations/new`. That route derives organization and active locations from the verified server-side viewer, calls only the new idempotent RPC, and shows truthful created, replayed-pending, validation, denial, conflict, and unavailable states. The receipt uses persisted purpose, scope, inviter, expiry, state, event destination, delivery `not_sent`, and next action. Raw-token links disable Next prefetch and are absent on replay.
+- The provider-disabled isolated Preview login now has a real `signInWithPassword` path for Auth Admin synthetic accounts. It is enabled only by `PASSAGE_PREVIEW_PASSWORD_AUTH_ENABLED=true` together with Vercel Preview, Passage preview runtime, and exact isolated project ref `uyacxqtsiwlvtmhxvoxr`; Production and every other project fail closed. No credential is stored in source or rendered copy.
+- The one-use Vercel exception remains `[deploy] [cycle-7a-verification-preview]`, exact canonical project/branch/Preview only. It remains explicitly forbidden in Production and will be removed in the post-QA `[skip deploy]` integrated commit.
+
+Verification:
+
+- `pnpm typecheck`, optimized `pnpm build`, and the expanded 16-case deploy-gate matrix pass. The build includes dynamic `/director/invitations/new`.
+- Migration `cycle_7a_invitation_creation_idempotency` applied once through Supabase migration tooling to isolated `uyacxqtsiwlvtmhxvoxr` as version `20260718033341`. It adds request identity, serializes organization/email creation, replays existing live invitations without reconstructing the raw token, returns persisted scope/purpose/inviter/state, rejects cross-scope replay, and revokes authenticated execution of the old duplicate-capable public/private commands.
+- Follow-up `cycle_7a_invitation_idempotency_acl_hardening` applied once to the same isolated project as version `20260718033709`. Post-apply catalog proof: public wrapper `prosecdef=false`; authenticated can execute the new public and new checked private functions; anon cannot; authenticated cannot execute either old creation function. Both migration names are absent from Production `qsveqfchwylsbncsfgxe`.
+- Security advisors are clear of the temporary public-security-definer warning. Remaining INFO findings are the expected fail-closed Cycle 7B tables (`tasks`, `workflows`, `workflow_events`) with RLS and no policies: https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy. Empty-lab unused-index INFO remains expected: https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index.
+- Starting isolated cardinality remains zero invitations, zero invitation-location rows, zero memberships, and zero invitation events. Real authenticated first-create/replay/cardinality proof still requires the two Auth Admin users and director fixture.
+
+Current external gate and next exact action:
+
+- No verification preview has been created and no `[qa-approved]`, commit, push, PR update, screenshot claim, or readiness increase has occurred. Vercel CLI still has no credentials; Chrome Vercel and Supabase dashboard tabs are left at their sign-in screens as explicit handoffs.
+- Steve must sign in to both Vercel and Supabase in those open Chrome tabs and report ready, without sharing credentials. Then Deploy configures the ten exact-branch Preview variables (the existing nine plus `PASSAGE_PREVIEW_PASSWORD_AUTH_ENABLED=true`), configures only isolated Auth redirects, creates the director/staff synthetic users through Auth Admin, runs the guarded DML fixture, and spends the sole authorized verification-preview slot. Independent hosted QA then proves create/replay/wrong-user/acceptance/denial/reload/cardinality and 1440/390/360 evidence on that same preview.
+- Operational readiness remains funeral home **40%** and D2C **25%**; guided readiness remains funeral home **94%** and D2C **85%**. Production remains untouched.
+
+### Cycle 7A hosted re-entry parity audit - FIX NOW - 2026-07-18 03:55 -07:00
+
+Authenticated target verification:
+
+- Vercel browser access is authenticated to the canonical `thepassageappio` project. Supabase browser access is authenticated directly to isolated project `passage-cycle-7a-test` (`uyacxqtsiwlvtmhxvoxr`). Production project `qsveqfchwylsbncsfgxe` was not opened or changed.
+- The Vercel CLI still requires its separate device authorization. No Preview variable, Auth setting, Auth user, fixture row, deployment, PR marker, readiness score, or Production value has changed in this re-entry.
+
+Independent Engineering parity audit decision: **FAIL / FIX NOW before hosted mutation**.
+
+- **Unreachable frontend contract:** `/director/invitations/new` is nested under `app/director/layout.tsx`, but `OperationalBoundary` currently renders director children only for the demo runtime. The password-auth path is deliberately available only in the exact isolated Vercel Preview runtime. Without a narrow verified-preview route allowance, a real director session can authenticate but can never reach the invitation command UI. Engineering must permit only the real, server-authorized invitation route in the isolated Preview and must not expose the sandbox director dashboard, weaken Production, or change family/vendor access.
+- **Visibility-copy drift:** the invitation receipt currently says only authorized directors and the verified invitee can see the invitation. The backend intentionally permits pre-auth inspection to anyone possessing the secure raw link until expiry or revocation; acceptance remains restricted to the exact verified invited email. The UI copy must state that boundary truthfully.
+- **Timestamp-proof drift:** the Server Action currently invents `new Date().toISOString()` after the RPC and labels it a Passage server receipt. That timestamp is not the durable invitation `created_at` or append-only creation-event time. The frontend must display a persisted database timestamp and invitation ID, or stop claiming authoritative timestamp proof.
+
+Documentation-first backend correction for timestamp proof:
+
+- **What:** add a versioned authenticated invitation-creation receipt RPC that preserves the current idempotency, replay, organization/location authority, old-command revocations, and raw-token non-recovery behavior, while returning the persisted invitation `created_at`. The old idempotent client entrypoints will be revoked after the versioned RPC is available; the underlying checked implementation remains internal.
+- **Why the frontend needs it:** the task/proof contract requires actor, recipient, state, durable timestamp, and lookup identity. A response-generation clock cannot truthfully be labeled database or append-only proof, and a replay must show the original creation time rather than the replay time.
+- **Breakage if skipped:** the director UI is frontend-ahead of durable proof and can misstate when the invitation was created; same-request replay displays a different invented time while claiming the original event was preserved.
+- **Failure/recovery:** first creation and replay return the same invitation ID and persisted creation time; replay still returns no raw token. Missing authority, payload conflicts, and unavailable receipts fail closed. Apply the structural RPC change only through Supabase migration tooling to isolated `uyacxqtsiwlvtmhxvoxr`; never Production `qsveqfchwylsbncsfgxe`.
+
+External parity lane:
+
+- A delegated agent pushed contract-ledger/checker commits through `5bb292a` to `origin/greenfield/passage-zero`. Root fetched and inspected those commits. Its ledger correctly detected the backend-only state on the remote head, but it predates the current uncommitted invitation UI and therefore must be reconciled to the real reachable route and versioned RPC before it can be accepted. Root will run the checker and its deliberately failing fixtures locally; no GitHub Workflows permission expansion is required for this Cycle 7A gate.
+
+FIX NOW implementation and verification:
+
+- Engineering added a server-derived pathname gate which admits only exact path `/director/invitations/new` when runtime is Preview, the configured project is isolated ref `uyacxqtsiwlvtmhxvoxr`, the preview password gate is enabled, and the existing server-side viewer resolves to owner/director with an active location. The page repeats the runtime/role guard before mounting the form. `/director`, `/director/intake`, `/staff`, subpaths, demo, Production, wrong refs, disabled-password state, and unavailable configuration remain denied. The Preview director authority placeholder exposes only the controlled invitation link; seeded dashboard/case data remains withheld.
+- Engineering corrected invitation visibility to state that link possession permits inspection until expiry/revocation while acceptance requires the exact verified invited account. Root removed Cycle/QA/preview/cutover narration from persona-facing copy. Family, participant, vendor, and case access are unchanged.
+- Independent QA passed migration `20260718105025_cycle_7a_invitation_receipt_timestamp.sql`. It was applied once through Supabase migration tooling only to isolated `uyacxqtsiwlvtmhxvoxr` as version `20260718105618`. Production migration history contains zero matching entries. Catalog proof shows the public v2 wrapper is `SECURITY INVOKER`, the private v2 function is checked `SECURITY DEFINER`, authenticated alone can execute v2, authenticated cannot execute v1 or either original command, and the v2 result includes persisted `created_at`.
+- Post-apply security advisors introduced no new warning; only expected Cycle 7B fail-closed RLS-without-policy INFO remains for tasks/workflows/workflow_events. Empty-lab unused-index INFO remains expected. The app now calls only `create_employee_invitation_idempotent_v2`, requires `created_at`, and displays the persisted creation time plus invitation ID; replay retains the original ID/time and no raw token.
+- Root verification passes: exact-route matrix, TypeScript, optimized Next.js production build including dynamic `/director/invitations/new`, and all 16 deploy-gate cases. The delegated parity checker was executed in a detached review worktree: nine deliberately passing/failing unit cases plus the remote ledger integration check all passed (10/10). Its ledger still requires reconciliation from `backend_only` to the now-implemented route/v2 receipt before merge acceptance.
+
+Role state and next target:
+
+- PM: FIX NOW scope remains active. Engineering: PASS on source reachability correction. Data Engineering: PASS after independent QA and isolated application. Deploy: plan PASS with hard preconditions; the sole verification-preview slot is still unspent. UX is re-reviewing the corrected current surface. Hosted QA remains unrun, so `[qa-approved]`, readiness changes, Production, and preview publication remain prohibited.
+- Next: commit the verified source batch with `[skip deploy]`, merge and correct the delegated parity ledger, configure only exact-branch Vercel Preview variables, create isolated Auth users/redirects and seed the guarded DML fixture, then spend the one authorized verification preview and run the complete two-session hosted evidence gate.
+
+### Cycle 7A parity integration and UX recovery - 2026-07-18 04:34 -07:00
+
+- Development source batch `95e913f` (`fix: close Cycle 7A hosted parity gaps [skip deploy]`) records the reviewed route boundary, versioned persisted-timestamp receipt, isolated migrations/fixtures, Preview gate, and operating-context handoff without triggering a deployment. TypeScript, optimized production build, exact operational-route matrix, and all 16 deploy-gate cases passed immediately before commit.
+- Root merged the external parity lane from remote head `5bb292a` without treating its hand-verification as execution proof. The provided unit/integration suite was run locally and passed all ten cases. The contract ledger was reconciled from `backend_only` to `implemented` only after the exact `/director/invitations/new` route, form, Server Action, v2 RPC, durable receipt timestamp, authority guards, and recovery behavior existed together. No GitHub Workflows permission expansion is needed for this release gate.
+- Distinct UX re-review returned **PARTIAL / FIX NOW**. Its timestamp concern was stale because the current Server Action already requires persisted `created_at`; three valid issues remained. Engineering added an explicitly timezone-bearing date/time formatter for expiry and creation proof, an announced live pending state plus `aria-busy`, and separate unavailable-versus-active-request cursor semantics. Source inspection indicates the 48px controls and one-column mobile rules remain structurally sound. UX remains PARTIAL until the hosted 1440/390/360 render, focus, announcement, wrapping, and zero-overflow evidence is actually captured.
+- The parity suite and TypeScript pass after those corrections. Hosted QA is still unrun. No Preview variable, Supabase Auth redirect/user, guarded persona fixture, Preview deployment, PR marker, `[qa-approved]`, readiness score, Production value, family access, or vendor fulfillment state changed in this integration step.
+- Role state: PM scope COMPLETE; UX PARTIAL pending hosted visual proof; Engineering PASS on source; Data QA PASS on isolated migration split/application; Deploy plan PASS with hard exact-branch/isolated-project preconditions; hosted QA NOT RUN. Next role target is Deploy configuration of only exact branch `greenfield/passage-zero`, followed by isolated Auth Admin setup and the sole authorized verification Preview.
+
