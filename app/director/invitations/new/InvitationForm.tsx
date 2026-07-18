@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useActionState } from 'react';
-import { createStaffInvitation, initialInvitationCreationState } from './actions';
+import { createStaffInvitation, type InvitationCreationState } from './actions';
 import styles from './Invitation.module.css';
 
 type Props = { creationRequestId: string; organizationName: string; locations: { id: string; name: string }[] };
+const initialInvitationCreationState: InvitationCreationState = { status: 'idle' };
 
 function localDateTime(daysFromNow: number) {
   const value = new Date(Date.now() + daysFromNow * 86400000);

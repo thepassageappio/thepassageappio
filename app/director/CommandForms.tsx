@@ -1,12 +1,13 @@
 'use client';
 
 import { useActionState } from 'react';
-import { assignTask, initialDirectorCommandState, revokeInvitation, revokeMember } from './actions';
+import { assignTask, revokeInvitation, revokeMember, type DirectorCommandState } from './actions';
 import styles from '../operations-beta.module.css';
 
 type Candidate = { id: string; name: string };
+const initialDirectorCommandState: DirectorCommandState = { status: 'idle' };
 
-function Receipt({ state }: { state: typeof initialDirectorCommandState }) {
+function Receipt({ state }: { state: DirectorCommandState }) {
   if (!state.message) return null;
   return (
     <div className={state.status === 'saved' ? styles.commandReceipt : styles.commandError} role={state.status === 'saved' ? 'status' : 'alert'}>

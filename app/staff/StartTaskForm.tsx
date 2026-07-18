@@ -1,8 +1,10 @@
 'use client';
 
 import { useActionState } from 'react';
-import { initialStaffCommandState, startTask } from './actions';
+import { startTask, type StaffCommandState } from './actions';
 import styles from '../operations-beta.module.css';
+
+const initialStaffCommandState: StaffCommandState = { status: 'idle' };
 
 export function StartTaskForm({ taskId, requestId, version }: { taskId: string; requestId: string; version: number }) {
   const [state, action, pending] = useActionState(startTask, initialStaffCommandState);

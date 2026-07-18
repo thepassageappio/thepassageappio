@@ -22,8 +22,6 @@ export type InvitationCreationState = {
 
 type RpcReceipt = { invitation_id: string; raw_token: string | null; token_hint: string; expires_at: string; created_at: string; invitation_purpose: string; inviter_display_name: string; organization_location_ids: string[]; invitation_state: 'pending' | 'accepted' | 'revoked' | 'expired'; replayed: boolean };
 
-export const initialInvitationCreationState: InvitationCreationState = { status: 'idle' };
-
 function failure(status: InvitationCreationState['status'], message: string): InvitationCreationState {
   return { status, message };
 }
