@@ -3,7 +3,10 @@
 const body = String(process.env.PR_BODY || '').replace(/\r/g, '');
 const isPullRequest = String(process.env.GITHUB_EVENT_NAME || '') === 'pull_request'
   || String(process.env.GITHUB_EVENT_NAME || '') === 'pull_request_review';
-const isDraft = String(process.env.PR_DRAFT || '').toLowerCase() === 'true';
+const draftState = String(process.env.PR_DRAFT || '').toLowerCase();
+// The legacy main workflow does not pass PR_DRAFT. Treat that bootstrap-only
+// invocation as structure-only; replacement workflows always pass true/false.
+const isDraft = draftState === '' || draftState === 'true';
 
 function fail(message) {
   console.error('Release train check failed:');

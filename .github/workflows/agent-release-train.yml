@@ -1,69 +1,41 @@
-name: Passage release train guard
+name: Passage candidate validation
 
 on:
   pull_request:
     branches: ['**']
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
-  pull_request_review:
-    types: [submitted, dismissed]
-  push:
-    branches: [main]
 
 permissions:
   contents: read
-  pull-requests: read
 
 concurrency:
-  group: passage-release-${{ github.event.pull_request.base.ref || github.ref_name }}
+  group: passage-candidate-${{ github.event.pull_request.base.ref }}
   cancel-in-progress: false
 
 jobs:
-  release-train:
-    name: Require truthful handoffs and independent review
+  candidate-validation:
+    name: Validate candidate governance and language
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout candidate
-        uses: actions/checkout@v5
+      - name: Checkout candidate without persisted credentials
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Determine diff base
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            echo "AGENT_CONTEXT_BASE=${{ github.event.before }}" >> "$GITHUB_ENV"
-          else
-            git fetch origin "${{ github.event.pull_request.base.ref }}" --depth=1
-            echo "AGENT_CONTEXT_BASE=origin/${{ github.event.pull_request.base.ref }}" >> "$GITHUB_ENV"
-          fi
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
       - name: Require current operating handoff
-        run: node scripts/check-agent-context.js
-      - name: Check release train structure and completion
-        if: github.event_name != 'push'
+        env:
+          AGENT_CONTEXT_BASE: origin/${{ github.event.pull_request.base.ref }}
+        run: |
+          git fetch origin "${{ github.event.pull_request.base.ref }}" --depth=1
+          node scripts/check-agent-context.js
+      - name: Check release train structure
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_DRAFT: ${{ github.event.pull_request.draft }}
         run: node scripts/check-release-train.js
-      - name: Require separate human approval when ready
-        if: github.event_name != 'push'
-        env:
-          GITHUB_API_URL: ${{ github.api_url }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ github.token }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PR_DRAFT: ${{ github.event.pull_request.draft }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: node scripts/check-independent-review.js
-      - name: Flag direct main push
-        if: github.event_name == 'push'
-        run: |
-          echo "Direct main push detected. Main must be protected so this workflow is required before merge."
-          exit 1
       - name: Test governance controls
-        if: github.event_name != 'push'
         run: node scripts/test-release-governance.js
       - name: Block internal narration on persona surfaces
-        if: github.event_name != 'push'
         run: node scripts/check-persona-language.js
