@@ -25,11 +25,25 @@
 - QA Status: NOT RUN
 - Functional, authority, recovery, responsive, accessibility, hydration, and runtime evidence:
 
-## Human Review
+## Independent Agent Review
 
-- [ ] Separate human review requested
-- Human Reviewer: UNASSIGNED
-- Review packet:
+- [ ] Independent agent review completed
+- Agent Reviewer: UNASSIGNED
+- Reviewed Head: UNASSIGNED
+- Independent Agent Review Status: NOT RUN
+- Findings and disposition:
+
+## Founder Review
+
+- [ ] Founder review requested
+- Founder Reviewer: @thepassageappio
+- Founder Review: NOT APPROVED
+- Bootstrap Exception: NONE
+
+## Production Authorization
+
+- Founder Production Authorization: NOT APPROVED
+- Protected environment or release evidence: NONE
 
 ## Loop Status
 

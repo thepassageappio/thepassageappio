@@ -29,10 +29,10 @@ for (const file of requiredFiles) if (!fs.existsSync(file)) fail(`Missing requir
 
 const guide = fs.readFileSync('AGENTS.md', 'utf8');
 const releaseTrain = fs.readFileSync('docs/release-train.md', 'utf8');
-for (const phrase of ['Passage Zero', 'docs/product/operational-readiness-roadmap.md', 'human review', 'direct', 'main']) {
+for (const phrase of ['Passage Zero', 'docs/product/operational-readiness-roadmap.md', 'founder review', 'direct', 'main']) {
   if (!guide.toLowerCase().includes(phrase.toLowerCase())) fail(`AGENTS.md must retain governance phrase: ${phrase}`);
 }
-for (const phrase of ['Product Manager', 'UX Review', 'Engineering', 'QA', 'Deploy', 'human review']) {
+for (const phrase of ['Product Manager', 'UX Review', 'Engineering', 'QA', 'Deploy', 'Founder Review']) {
   if (!releaseTrain.toLowerCase().includes(phrase.toLowerCase())) fail(`Release train must retain role/gate: ${phrase}`);
 }
 

@@ -26,7 +26,9 @@ const requiredSections = [
   '## UX Review',
   '## Development Handoff',
   '## QA Handoff',
-  '## Human Review',
+  '## Independent Agent Review',
+  '## Founder Review',
+  '## Production Authorization',
   '## Loop Status',
   '## Deploy Decision',
 ];
@@ -46,7 +48,8 @@ const requiredCheckedItems = [
   'Development handoff completed',
   'Independent QA handoff completed',
   'Agent context updated',
-  'Separate human review requested',
+  'Independent agent review completed',
+  'Founder review requested',
 ];
 
 function escapeRegExp(value) {
@@ -60,8 +63,15 @@ for (const item of requiredCheckedItems) {
 
 if (!/UX Status:\s*(PASS|N\/A)/i.test(body)) fail('UX Status must be PASS or N/A.');
 if (!/QA Status:\s*PASS/i.test(body)) fail('QA Status must be PASS. Failed QA returns to Product Manager.');
-const reviewerMatch = body.match(/Human Reviewer:\s*@?([A-Za-z0-9-]+)/i);
-if (!reviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(reviewerMatch[1])) fail('Name the separate human reviewer.');
+if (!/Independent Agent Review Status:\s*PASS/i.test(body)) fail('Independent Agent Review Status must be PASS.');
+const agentReviewerMatch = body.match(/Agent Reviewer:\s*\/?([A-Za-z0-9_\/-]+)/i);
+if (!agentReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(agentReviewerMatch[1])) fail('Name the distinct agent reviewer.');
+const reviewedHead = String((body.match(/Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
+const actualHead = String(process.env.PR_HEAD_SHA || '').toLowerCase();
+if (!actualHead || reviewedHead !== actualHead) fail('Independent Agent Review must match the current PR head SHA.');
+const founderReviewerMatch = body.match(/Founder Reviewer:\s*@?([A-Za-z0-9-]+)/i);
+if (!founderReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(founderReviewerMatch[1])) fail('Name the founder reviewer.');
+if (!/Founder Review:\s*APPROVED/i.test(body)) fail('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
 if (!/Deploy Decision:\s*APPROVED/i.test(body)) fail('Deploy Decision must be APPROVED.');
 
 const cycleMatch = body.match(/Cycle:\s*([0-9]+)/i);

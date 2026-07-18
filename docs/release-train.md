@@ -9,19 +9,22 @@ This is the App Router/Supabase release loop for Passage Zero. `AGENTS.md` contr
 3. Engineering implements the reachable UI and its server/data/RLS/event/recovery contract together.
 4. Independent QA verifies source, database authority, negative paths, browser behavior, and evidence.
 5. Deploy verifies project, branch, environment scope, release marker, deployment, logs, and post-deploy behavior.
-6. A human reviewer who neither authored nor materially implemented the change reviews the bounded PR/packet and approves before any Production merge or promotion.
-7. PM scopes the next highest-leverage slice immediately after Deploy PASS/PARTIAL.
+6. A distinct Independent Agent Reviewer challenges the exact head and records a required agent-review result. This is automated review, never founder approval.
+7. The founder reviews the current head of a Bot-authored pull request through native GitHub review controls before merge.
+8. Production separately requires founder authorization through the protected Production environment or release gate for the exact approved commit.
+9. PM scopes the next highest-leverage slice immediately after Deploy PASS/PARTIAL.
 
-No role may promote its own work to QA PASS. Agent role separation does not substitute for the independent human-review gate. Role instance, received handoff, decision, evidence, failures, next target, PR/packet, and human-review state belong in the operating context.
+No role may promote its own work to QA PASS. Agent role separation does not substitute for the distinct Independent Agent Review check, founder review, or founder Production authorization. Role instance, received handoff, decision, evidence, failures, next target, PR/packet, agent-review state, founder-review state, and Production-authorization state belong in the operating context.
 
 ## Branch, PR, and collision control
 
 - Agents and schedules never push directly to `main`; every change enters through a named branch and pull request.
+- After the one-time PR #25 bootstrap, agent and scheduled work is authored only through the dedicated Passage GitHub App/Bot identity. Automation must never use the founder's GitHub User credentials.
 - PR #24 is the Passage Zero integration umbrella, not an indivisible review unit. Large work is split into stacked PRs or named review packets with exact dependencies, contract rows, migrations, recovery, tests, and evidence.
 - Overlapping greenfield PRs are dispositioned before merge: incorporate unique bounded work, or label and close them as superseded. They never merge independently without reconciliation.
 - A failing required check is classified in the same cycle as fix now, superseded, or explicitly blocked. Red checks do not age silently because a PR is draft.
 - Production release automation is serialized with a single repository/environment lock. Concurrent schedules may prepare separate branches but may not race a merge, alias, or Production deployment.
-- Repository protections should require passing checks, one non-author human approval, stale-approval dismissal, resolved conversations, restricted bypass, and no force-push or deletion of `main`.
+- Repository protections should require passing current-head checks, the Independent Agent Review check, founder approval of Bot-authored work, stale-approval dismissal, resolved conversations, restricted bypass, and no force-push or deletion of `main`. The protected Production environment separately requires founder authorization.
 
 ## Per-slice contract
 
