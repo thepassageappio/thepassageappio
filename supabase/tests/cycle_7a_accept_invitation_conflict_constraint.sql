@@ -1,4 +1,3 @@
-
 -- Disposable local-lab behavioral check. The transaction is always rolled
 -- back so the controlled invitation and accepted membership do not persist.
 begin;
@@ -19,12 +18,13 @@ begin
 
   select created.invitation_id, created.raw_token
     into v_invitation_id, v_raw_token
-  from public.create_employee_invitation(
+  from public.create_employee_invitation_idempotent_v2(
     '11111111-1111-4111-8111-111111111111'::uuid,
     'qa-staff@passage.test',
     array['22222222-2222-4222-8222-222222222222'::uuid],
     'Cycle 7A local acceptance and replay verification',
-    pg_catalog.clock_timestamp() + interval '1 day'
+    pg_catalog.clock_timestamp() + interval '1 day',
+    '55555555-5555-4555-8555-555555555555'::uuid
   ) as created;
 
   insert into auth.users (
@@ -104,4 +104,3 @@ end
 $test$;
 
 rollback;
-

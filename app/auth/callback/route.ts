@@ -1,4 +1,3 @@
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { safeInternalPath } from '@/lib/auth/redirects';
 import { createPassageServerClient } from '@/lib/supabase/server';
@@ -30,4 +29,3 @@ export async function GET(request: NextRequest) {
 
   return privateRedirect(new URL(next, request.url));
 }
-

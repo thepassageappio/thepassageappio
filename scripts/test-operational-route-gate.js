@@ -15,9 +15,11 @@ const approved = { available: true, runtime: 'preview', projectRef: 'uyacxqtsiwl
 
 assert.equal(isolatedPreviewInvitationEnabled(approved), true);
 assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, approved), true);
-assert.equal(canRenderVerifiedOperationalChild('/director', approved), false);
+assert.equal(canRenderVerifiedOperationalChild('/director', approved), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/team', approved), true);
+assert.equal(canRenderVerifiedOperationalChild('/director/activity', approved), true);
 assert.equal(canRenderVerifiedOperationalChild('/director/intake', approved), false);
-assert.equal(canRenderVerifiedOperationalChild('/staff', approved), false);
+assert.equal(canRenderVerifiedOperationalChild('/staff', approved), true);
 assert.equal(canRenderVerifiedOperationalChild(`${DIRECTOR_INVITATION_PATH}/extra`, approved), false);
 for (const denied of [
   { ...approved, available: false },
@@ -28,6 +30,9 @@ for (const denied of [
 ]) assert.equal(canRenderVerifiedOperationalChild(DIRECTOR_INVITATION_PATH, denied), false);
 
 assert.equal(operationalRecoveryPath(DIRECTOR_INVITATION_PATH, '/director'), DIRECTOR_INVITATION_PATH);
+assert.equal(operationalRecoveryPath('/director/team', '/director'), '/director/team');
+assert.equal(operationalRecoveryPath('/director/activity', '/director'), '/director/activity');
+assert.equal(operationalRecoveryPath('/staff', '/staff'), '/staff');
 assert.equal(operationalRecoveryPath('/director', '/director'), '/director');
 assert.equal(operationalRecoveryPath('/director/invitations/new/extra', '/director'), '/director');
 console.log('PASS operational route gate fail-closed matrix');

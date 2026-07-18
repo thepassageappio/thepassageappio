@@ -1,4 +1,3 @@
-
 -- TEST-ONLY Cycle 7A local Auth/RLS personas.
 --
 -- WHAT: add the minimum self-membership, organization, and granted-location
@@ -123,4 +122,3 @@ where lower(user_row.email) = 'director@passage.test'
 on conflict (organization_member_id, organization_location_id) do update
 set revoked_at = null,
     granted_by_user_id = excluded.granted_by_user_id;
-

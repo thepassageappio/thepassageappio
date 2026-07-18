@@ -1,4 +1,3 @@
-
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getRuntimeConfiguration } from '@/lib/runtime-config';
@@ -21,4 +20,3 @@ export async function createPassageServerClient() {
     },
   });
 }
-

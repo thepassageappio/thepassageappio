@@ -1,4 +1,3 @@
-
 export function safeInternalPath(value: string | null | undefined, fallback = '/') {
   if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return fallback;
   try {
@@ -15,4 +14,3 @@ export function loginPath(next: string, error?: string) {
   if (error) params.set('error', error);
   return `/login?${params.toString()}`;
 }
-

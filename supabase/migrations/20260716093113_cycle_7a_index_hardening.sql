@@ -1,4 +1,3 @@
-
 -- Cycle 7A follow-up: cover foreign keys used by invitation, authority, and
 -- event-spine checks. Additive only; no policy or data changes.
 
@@ -50,4 +49,3 @@ create index if not exists workflow_events_actor_user_id_idx
 create index if not exists workflow_events_actor_member_id_idx
   on public.workflow_events (actor_organization_member_id)
   where actor_organization_member_id is not null;
-

@@ -1,4 +1,3 @@
-
 -- Follow-up only: preserve the accepted invitation transaction and name the
 -- existing member-location primary-key constraint to avoid PL/pgSQL output
 -- column ambiguity in the upsert conflict target.
@@ -244,4 +243,3 @@ begin
     false;
 end
 $function$;
-

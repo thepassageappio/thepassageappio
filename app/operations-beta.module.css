@@ -1,0 +1,99 @@
+.pageHeading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.pageHeading > div { max-width: 820px; }
+.pageHeading p, .sectionHeading p, .cardBody > p, .teamCard > div > p, .closed > p, .emptyState > p, .activityList article > div p { margin: 0 0 8px; color: var(--signal); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.pageHeading h1 { margin: 0; font-size: clamp(38px, 5vw, 62px); line-height: .98; letter-spacing: -.04em; }
+.pageHeading > div > span { display: block; margin-top: 14px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.pageHeading dl { display: flex; margin: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.pageHeading dl div { min-width: 88px; padding: 13px 16px; border-left: 1px solid var(--line); }
+.pageHeading dl div:first-child { border-left: 0; }
+.pageHeading dt, .facts dt { color: var(--muted); font-size: 12px; font-weight: 780; letter-spacing: .06em; text-transform: uppercase; }
+.pageHeading dd { margin: 5px 0 0; font-size: 22px; font-weight: 760; }
+.scopeBand { display: grid; grid-template-columns: auto auto 1fr; gap: 16px; align-items: center; min-height: 58px; margin-bottom: 30px; padding: 12px 16px; border: 1px solid color-mix(in srgb, var(--signal) 22%, var(--line)); border-radius: 10px; background: var(--signal-soft); }
+.scopeBand strong, .scopeBand span, .scopeBand small { font-size: 13px; line-height: 1.45; }
+.scopeBand span { color: var(--ink); }
+.scopeBand small { color: var(--muted); text-align: right; }
+.workList { display: grid; gap: 18px; margin-top: 30px; }
+.sectionHeading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.sectionHeading h2 { margin: 0; font-size: clamp(28px, 3vw, 38px); }
+.sectionHeading > span { color: var(--muted); font-size: 13px; }
+.workCard, .teamCard { min-width: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; box-shadow: var(--shadow-soft); }
+.cardTop { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 18px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--canvas) 55%, var(--surface)); }
+.cardTop span, .cardTop b { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.cardTop span { color: var(--muted); font-weight: 700; }
+.cardTop b { padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--human-soft); color: var(--ink); }
+.cardTop b[data-state="in_progress"] { background: var(--signal-soft); border-color: color-mix(in srgb, var(--signal) 35%, var(--line)); }
+.cardTop b[data-state="completed"] { background: var(--success-soft); border-color: color-mix(in srgb, var(--success) 35%, var(--line)); }
+.cardBody { padding: clamp(22px, 3vw, 38px); }
+.cardBody h3, .teamCard h3 { margin: 0 0 24px; max-width: 980px; font-size: clamp(28px, 3.5vw, 44px); line-height: 1.08; letter-spacing: -.035em; }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.facts div { min-width: 0; min-height: 84px; padding: 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.facts div:nth-child(4n) { border-right: 0; }
+.facts dd { min-width: 0; margin: 8px 0 0; color: var(--ink); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.commandForm { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(180px, .65fr) minmax(240px, 1fr) auto; gap: 12px; align-items: end; padding: 18px; border-top: 1px solid var(--line); background: var(--human-soft); }
+.commandForm > p { align-self: center; margin: 0; }
+.commandForm > p strong, .commandForm > p span { display: block; font-size: 13px; line-height: 1.5; }
+.commandForm > p span { color: var(--muted); }
+.commandForm label, .compactForm label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 760; }
+.commandForm :is(select, input, button), .compactForm :is(input, button), .startForm button, .primaryLink, .emptyState a, .closed a { min-height: 48px; border: 1px solid var(--line); border-radius: 8px; padding: 0 13px; font: inherit; font-size: 13px; }
+.commandForm :is(input, select), .compactForm input { width: 100%; background: var(--surface); color: var(--ink); }
+.commandForm button, .compactForm button, .startForm button, .primaryLink, .emptyState a, .closed a { display: inline-flex; align-items: center; justify-content: center; border-color: var(--signal); background: var(--signal); color: white; font-weight: 760; cursor: pointer; }
+.commandForm button:disabled, .compactForm button:disabled, .startForm button:disabled { cursor: not-allowed; opacity: .62; }
+.commandReceipt, .commandError { grid-column: 1 / -1; margin: 0; padding: 14px 16px; border-left: 4px solid var(--success); background: var(--success-soft); }
+.commandError { border-color: var(--danger); background: var(--danger-soft); }
+.commandReceipt strong, .commandError strong { font-size: 14px; }
+.commandReceipt p, .commandError p, .commandReceipt small, .commandError small { margin: 5px 0 0; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.commandReceipt small, .commandError small { display: block; color: var(--muted); }
+.startForm { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 18px; border-top: 1px solid var(--line); background: var(--human-soft); }
+.startForm > p { flex: 1; min-width: 220px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.startForm .commandReceipt, .startForm .commandError { flex: 1 0 100%; }
+.primaryLink { min-width: 150px; padding-inline: 18px; text-decoration: none; }
+.teamCard { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .65fr); }
+.teamCard > div:first-child { padding: 24px; }
+.teamCard h3 { margin-bottom: 18px; font-size: clamp(24px, 3vw, 36px); overflow-wrap: anywhere; }
+.teamCard .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.teamCard .facts div:nth-child(2n) { border-right: 0; }
+.compactForm { align-content: center; display: grid; gap: 12px; padding: 22px; border-left: 1px solid var(--line); background: var(--human-soft); }
+.compactForm .commandReceipt, .compactForm .commandError { grid-column: 1; }
+.formBoundary { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.activityList { display: grid; gap: 0; margin: 30px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.activityList > li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 18px; padding: 24px 0; border-bottom: 1px solid var(--line); }
+.eventMark { width: 12px; height: 12px; margin-top: 6px; border-radius: 3px; background: var(--signal); box-shadow: 0 0 0 5px var(--signal-soft); }
+.activityList article > div { display: flex; justify-content: space-between; gap: 16px; }
+.activityList article > div time { color: var(--muted); font-size: 12px; }
+.activityList h2 { margin: 0 0 18px; font-size: clamp(24px, 3vw, 34px); }
+.emptyState, .closed { padding: clamp(34px, 6vw, 72px); border: 1px solid var(--line); border-radius: 16px; background: var(--surface); text-align: center; box-shadow: var(--shadow-soft); }
+.emptyState h2, .emptyState h3, .closed h1 { margin: 0 0 12px; font-size: clamp(32px, 5vw, 50px); }
+.emptyState span, .closed span { display: block; max-width: 620px; margin: 0 auto; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.emptyState a, .closed a { width: max-content; margin: 22px auto 0; padding-inline: 18px; text-decoration: none; }
+.closed { width: min(760px, calc(100% - 32px)); margin: 8vh auto; }
+
+@media (max-width: 980px) {
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .facts div:nth-child(4n) { border-right: 1px solid var(--line); }
+  .facts div:nth-child(2n) { border-right: 0; }
+  .commandForm { grid-template-columns: 1fr 1fr; }
+  .commandForm > p, .commandForm > button { grid-column: 1 / -1; }
+  .teamCard { grid-template-columns: 1fr; }
+  .compactForm { border-left: 0; border-top: 1px solid var(--line); }
+}
+
+@media (max-width: 620px) {
+  .pageHeading { align-items: stretch; flex-direction: column; }
+  .pageHeading dl { width: 100%; }
+  .pageHeading dl div { flex: 1; min-width: 0; padding-inline: 10px; }
+  .pageHeading h1 { font-size: 40px; }
+  .scopeBand { grid-template-columns: 1fr; gap: 5px; }
+  .scopeBand small { text-align: left; }
+  .sectionHeading { align-items: start; flex-direction: column; }
+  .cardTop { align-items: start; flex-direction: column; }
+  .cardBody { padding: 22px 16px; }
+  .facts, .teamCard .facts { grid-template-columns: 1fr; }
+  .facts div, .facts div:nth-child(2n), .facts div:nth-child(4n), .teamCard .facts div { min-height: 0; border-right: 0; }
+  .commandForm { grid-template-columns: 1fr; padding: 16px; }
+  .commandForm > * { grid-column: 1; }
+  .startForm { align-items: stretch; flex-direction: column; }
+  .startForm button, .primaryLink { width: 100%; }
+  .teamCard > div:first-child, .compactForm { padding: 18px 16px; }
+  .activityList article > div { align-items: start; flex-direction: column; gap: 3px; }
+  .activityList > li { grid-template-columns: 12px minmax(0, 1fr); gap: 12px; }
+}

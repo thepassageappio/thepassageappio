@@ -28,9 +28,9 @@
 .nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--signal); }
 .identity { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 0 16px; border-left: 1px solid var(--line); }
 .identity > span { text-align: right; line-height: 1.15; }
-.identity strong { display: block; font-size: 11px; }
-.identity small { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; }
-.identity b { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 7px; background: var(--ink); color: var(--surface); font-size: 10px; }
+.identity strong { display: block; font-size: 12px; }
+.identity small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+.identity b { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 7px; background: var(--ink); color: var(--surface); font-size: 12px; }
 .main { width: min(1540px, 100%); margin: 0 auto; padding: 32px clamp(20px, 3.4vw, 54px) 64px; }
 .frame :is(h1, h2, h3) { font-family: var(--font-display); font-weight: 600; }
 .frame :is(button, a, input, select):focus-visible { outline: 3px solid var(--signal-soft); outline-offset: 2px; }
@@ -39,7 +39,7 @@
   .brand { width: 56px; gap: 0; padding: 0 18px; border-right: 1px solid var(--line); font-size: 0; }
   .brandGlyph { flex: 0 0 20px; }
   .nav { position: static; min-width: 0; width: 100%; justify-content: center; }
-  .nav a { flex: 1 1 0; justify-content: center; min-width: 0; padding: 0 5px; border-bottom: 3px solid transparent; font-size: 10px; }
+  .nav a { flex: 1 1 0; justify-content: center; min-width: 0; padding: 0 5px; border-bottom: 3px solid transparent; font-size: 12px; }
   .nav a[aria-current="page"] { border-bottom-color: var(--signal); }
   .identity { border-left: 0; }
   .identity > span { display: none; }

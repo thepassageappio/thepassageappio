@@ -1,8 +1,8 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
-  "version": 1,
+  "version": 2,
   "last_updated": "2026-07-18",
-  "owner_scope_note": "Maintained by the frontend/backend parity enforcement lane only. Does not modify app/, components/, lib/auth/, lib/supabase/, supabase/, vercel.json, or scripts/vercel-ignore-build.js -- those are owned by the Cycle 7A invitation UI / deployment-gate lane.",
+  "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",
     "backend_only": "The backend server command, durable tables, RLS predicate, and (if applicable) append-only event exist and are evidenced, but no frontend route or component currently calls it. frontend.user_visible must be false.",
@@ -33,7 +33,7 @@
         "note": "The form is reachable only for an authenticated owner/director on the exact isolated greenfield Preview route. Both the route boundary and Server Action re-check isolated-project configuration, active organization membership, role, and location authority before invoking the command."
       },
       "action_status": "ready -> submitting -> pending_acceptance receipt. A first command returns a one-time raw invitation token plus the durable invitation id and persisted created_at; same-key replay returns the same id/timestamp with no raw token or duplicate rows/events.",
-      "server_command": "public.create_employee_invitation_idempotent_v2(p_organization_id uuid, p_invited_email text, p_organization_location_ids uuid[], p_purpose text, p_expires_at timestamptz, p_idempotency_key text) -> passage_private.create_employee_invitation_idempotent_v2",
+      "server_command": "public.create_employee_invitation_idempotent_v2(p_organization_id uuid, p_invited_email text, p_organization_location_ids uuid[], p_purpose text, p_expires_at timestamptz, p_creation_request_id uuid) -> passage_private.create_employee_invitation_idempotent_v2",
       "backend_files": [
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql",
         "supabase/migrations/20260718032148_cycle_7a_invitation_creation_idempotency.sql",
@@ -246,10 +246,10 @@
       "durable_tables": [
         { "table": "organization_members", "cardinality": "role column (owner|director|staff) read once per request to drive the denial decision" }
       ],
-      "rls_authority_predicate": "Role separation here is an application-layer check (canOpenOperationalPath), not a Postgres RLS policy -- /director currently renders sandbox-fixture content rather than a real per-row Supabase query. The underlying membership read that feeds the decision is itself RLS-scoped to the caller's own row.",
+      "rls_authority_predicate": "canOpenOperationalPath resolves the authenticated membership server-side before rendering; durable /director reads then pass through organization/location RLS on workflows, tasks, team membership, invitations, and workflow events.",
       "append_only_event": {
         "applicable": false,
-        "reason": "No workflow_events row is emitted for a denied cross-role navigation attempt today. This is a known observability gap this ledger surfaces for cycle7b.command_audit to close."
+        "reason": "Denied navigation does not change product state, so it does not create a persona-facing command event. The boundary returns no protected rows."
       },
       "failure_recovery_states": [
         "staff role at /director -> fail closed, no case/workload data fetched",
@@ -266,35 +266,46 @@
       "id": "cycle7b.staff.assigned_work",
       "cycle": "7B",
       "capability": "Staff's /staff landing shows durable, RLS-scoped assigned tasks/workflows instead of client-side sandbox fixtures",
-      "status": "queued",
+      "status": "implemented",
       "persona": "staff",
       "frontend": {
-        "user_visible": false,
-        "route": null,
-        "component": null,
-        "note": "The existing /staff route (app/staff/page.tsx) renders lib/sandbox/repository fixture data today, not durable assigned work. This queued contract tracks replacing that with a real Supabase-backed, RLS-scoped query. Until it lands, /staff must not be cited as proof of durable assigned-work."
+        "user_visible": true,
+        "route": "/staff",
+        "component": "app/staff/page.tsx",
+        "files": [
+          "app/staff/page.tsx",
+          "app/staff/StartTaskForm.tsx",
+          "app/staff/actions.ts",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "The verified /staff route derives the viewer from the hosted session and renders only RLS-returned durable tasks/workflows. It imports no sandbox repository, identity switcher, or local reset command."
       },
-      "action_status": "planned: tasks.assigned_organization_member_id already exists as a column (added by the Cycle 7A migration) but is not yet populated or queried by any route",
-      "server_command": "planned: an RLS-scoped select (or wrapping RPC) against public.tasks/public.workflows filtered by assigned_organization_member_id = passage_private.current_active_member_id(organization_id)",
-      "backend_files": [],
-      "durable_tables": [
-        { "table": "tasks", "cardinality": "planned -- column tasks.assigned_organization_member_id exists (Cycle 7A migration) but is unused by any query today" },
-        { "table": "workflow_events", "cardinality": "planned -- assignment/state-change events for tasks are not yet emitted" }
+      "action_status": "durable assigned or in_progress tasks are re-read on every request; empty authority and empty assignment are distinct fail-closed states",
+      "server_command": "RLS-scoped server SELECT over public.tasks and public.workflows through loadHostedOperations",
+      "backend_files": [
+        "supabase/migrations/20260718180000_cycle_7b_assigned_work.sql",
+        "lib/operations/hosted.ts",
+        "app/staff/page.tsx"
       ],
-      "rls_authority_predicate": "planned: an RLS policy scoping public.tasks/public.workflows select to the caller's active organization_member_id and granted organization_location_id, mirroring passage_private.can_manage_location",
+      "durable_tables": [
+        { "table": "tasks", "cardinality": "one current assigned_organization_member_id and version per durable task" },
+        { "table": "workflow_events", "cardinality": "one assignment/reassignment/start event per validated command idempotency key" }
+      ],
+      "rls_authority_predicate": "passage_private.can_view_task/workflow permits active staff only when the exact task is assigned to their active membership and the workflow location grant is active; manager projections use managed organization/location authority",
       "append_only_event": {
         "applicable": true,
         "table": "workflow_events",
-        "event_type": "task.assigned (planned)",
-        "idempotency_key": null,
-        "reason": "Not yet implemented; no assignment event is emitted today."
+        "event_type": "task.assigned | task.reassigned",
+        "idempotency_key": "caller-supplied stable UUID, unique within organization"
       },
       "failure_recovery_states": [
-        "planned: reconnect/replay must preserve assignment truth, per the operational-readiness reconnect gate",
-        "planned: RLS must deny cross-organization or cross-location task reads"
+        "reload/reconnect re-reads durable assignment truth",
+        "cross-organization, cross-location, unassigned, reassigned, and revoked reads return no task rows"
       ],
-      "persona_projection": "planned: staff sees only tasks where assigned_organization_member_id matches their own active membership id",
+      "persona_projection": "Staff sees only tasks assigned to their own active membership; director sees the same durable task and event identifiers; family and vendors receive no internal work projection.",
       "evidence_test_references": [
+        "supabase/tests/cycle_7b_assigned_work.sql",
+        "scripts/test-operational-route-gate.js",
         "docs/agent-operating-context.md"
       ]
     },
@@ -302,35 +313,46 @@
       "id": "cycle7b.director.reassignment",
       "cycle": "7B",
       "capability": "Director reassigns a commitment/task to another staff member with durable RLS authority and an audit trail, replacing the in-memory sandbox reassignment dispatch",
-      "status": "queued",
+      "status": "implemented",
       "persona": "director",
       "frontend": {
-        "user_visible": false,
-        "route": null,
-        "component": null,
-        "note": "app/director/page.tsx already has a reassignment form, but it dispatches to the client-side sandbox reducer (lib/sandbox/repository), not a durable/RLS-backed server command; state is lost on reload. This queued contract tracks the durable replacement."
+        "user_visible": true,
+        "route": "/director",
+        "component": "app/director/CommandForms.tsx",
+        "files": [
+          "app/director/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "Director Today submits the durable task id, expected version, location-authorized assignee, reason, and stable request UUID through a Server Action. Success is shown only from the RPC receipt and a route refresh."
       },
-      "action_status": "planned: assigned -> reassigned, with previous_state/next_state and a required reason recorded on the audit event",
-      "server_command": "planned: e.g. public.reassign_task(p_task_id uuid, p_new_assignee_organization_member_id uuid, p_reason text) with a passage_private.can_manage_location authority check",
-      "backend_files": [],
-      "durable_tables": [
-        { "table": "tasks", "cardinality": "planned -- update assigned_organization_member_id guarded by an authority + location-membership check" },
-        { "table": "workflow_events", "cardinality": "planned -- one append-only row per reassignment with previous_state/next_state" }
+      "action_status": "assigned or in_progress -> same state with a new assigned member, incremented version, required reason, and durable receipt",
+      "server_command": "public.assign_task_idempotent(p_task_id uuid, p_expected_version integer, p_assignee_member_id uuid, p_reason text, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260718180000_cycle_7b_assigned_work.sql",
+        "app/director/actions.ts",
+        "lib/operations/hosted.ts"
       ],
-      "rls_authority_predicate": "planned: only owner/director members with an active grant on the task's organization_location_id may update assigned_organization_member_id",
+      "durable_tables": [
+        { "table": "tasks", "cardinality": "one current assignee and monotonically increasing version per task" },
+        { "table": "workflow_events", "cardinality": "one task.reassigned row per organization/request UUID" }
+      ],
+      "rls_authority_predicate": "RPC requires active owner/director authority on the workflow organization and location and locks an active staff assignee with an active grant on that same location",
       "append_only_event": {
         "applicable": true,
         "table": "workflow_events",
-        "event_type": "task.reassigned (planned)",
-        "idempotency_key": null,
-        "reason": "Not yet implemented; the current sandbox dispatch is in-memory only and lost on reload, so no durable event exists to audit."
+        "event_type": "task.reassigned",
+        "idempotency_key": "caller-supplied stable request UUID, unique within organization"
       },
       "failure_recovery_states": [
-        "planned: reassignment to a member without an active location grant must be rejected",
-        "planned: reason is required and stored on the audit event, mirroring the existing invitation-revocation reason requirement"
+        "stale expected version fails with no partial write and offers a reload",
+        "wrong organization/location/inactive assignee and same-key conflicting payload fail closed",
+        "same-key replay returns the original receipt without a duplicate event"
       ],
-      "persona_projection": "planned: director/owner scoped to their own organization/location authority only; staff cannot reassign",
+      "persona_projection": "Director/owner sees and changes only managed-location work; the former staff projection loses the task on re-read and the new assignee sees the same durable task identifier.",
       "evidence_test_references": [
+        "supabase/tests/cycle_7b_assigned_work.sql",
         "docs/agent-operating-context.md"
       ]
     },
@@ -338,16 +360,22 @@
       "id": "cycle7b.director.revoke_invitation",
       "cycle": "7B",
       "capability": "Director/owner revokes a pending invitation through a director-facing UI with a visible pending-invitation list and audit surfacing",
-      "status": "queued",
+      "status": "implemented",
       "persona": "director",
       "frontend": {
-        "user_visible": false,
-        "route": null,
-        "component": null,
-        "note": "The passage_private.revoke_organization_invitation / public.revoke_organization_invitation RPC and its append-only event already exist from the Cycle 7A migration and are independently reachable via direct RPC call, but there is no director-facing UI to list pending invitations or trigger a revocation, and no surfaced audit view. The full user-facing capability (list + trigger + surfaced result) is queued for Cycle 7B; the backend groundwork is not."
+        "user_visible": true,
+        "route": "/director/team",
+        "component": "app/director/CommandForms.tsx",
+        "files": [
+          "app/director/team/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "Team lists only RLS-returned invitations. Pending rows expose a reason-required revoke action; accepted rows direct the director to membership access instead."
       },
-      "action_status": "backend already implemented: pending_acceptance -> revoked (idempotent replay returns the same receipt); frontend not yet built",
-      "server_command": "public.revoke_organization_invitation(p_invitation_id uuid, p_reason text) -> passage_private.revoke_organization_invitation (RPC already implemented; UI wiring is what is queued)",
+      "action_status": "pending_acceptance -> revoked; replay returns the same durable receipt and no access is granted",
+      "server_command": "public.revoke_organization_invitation(p_invitation_id uuid, p_reason text) -> passage_private.revoke_organization_invitation",
       "backend_files": [
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql"
       ],
@@ -362,13 +390,14 @@
         "idempotency_key": "organization_invitation:<id>:revoked (already implemented)"
       },
       "failure_recovery_states": [
-        "already implemented: accepted invitations reject revocation (55000) and require the separate membership-revocation workflow instead",
-        "already implemented: replay on an already-revoked invitation returns the same receipt (replayed=true) without a duplicate event",
-        "planned: a director-facing UI must surface these states without requiring a direct RPC call"
+        "accepted invitations reject revocation and Team points to membership access",
+        "same-state replay returns the existing receipt without a duplicate event",
+        "wrong organization/location/role fails closed and the form reports that nothing changed"
       ],
-      "persona_projection": "planned: pending-invitation list scoped to organization/location authority, matching the create_invitation projection",
+      "persona_projection": "Director/owner sees pending invitations only within managed organization/location authority; staff, family, and vendors receive no invitation roster.",
       "evidence_test_references": [
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql",
+        "app/director/team/page.tsx",
         "docs/agent-operating-context.md"
       ]
     },
@@ -376,38 +405,230 @@
       "id": "cycle7b.command_audit",
       "cycle": "7B",
       "capability": "Director-facing, append-only command/audit trail (who did what, when, to what, with what proof) per the persona-action-architecture's universal action contract",
-      "status": "queued",
+      "status": "implemented",
       "persona": "director",
       "frontend": {
-        "user_visible": false,
-        "route": null,
-        "component": null,
-        "note": "docs/product/persona-action-architecture.md specifies /director/cases/[id]/timeline and /organization/audit as target surfaces; neither exists in app/ yet. workflow_events rows already exist (invitation created/accepted/revoked) but are not queried or rendered anywhere in the product."
+        "user_visible": true,
+        "route": "/director/activity",
+        "component": "app/director/activity/page.tsx",
+        "files": [
+          "app/director/activity/page.tsx",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "Activity is a read-only semantic event list showing actor, role, action/target, location, previous/next state, reason, server time, proof id, and visibility from the RLS-scoped event spine."
       },
-      "action_status": "planned: read-only projection of the existing workflow_events stream, scoped by manage-authority",
-      "server_command": "planned: an RLS-scoped select (or wrapping RPC) against public.workflow_events filtered by organization_id/organization_location_id authority",
+      "action_status": "read-only, server-rendered projection of durable workflow_events ordered by occurred_at",
+      "server_command": "RLS-scoped server SELECT against public.workflow_events through loadHostedOperations",
       "backend_files": [
-        "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql"
+        "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql",
+        "supabase/migrations/20260718180000_cycle_7b_assigned_work.sql",
+        "lib/operations/hosted.ts"
       ],
       "durable_tables": [
-        { "table": "workflow_events", "cardinality": "rows already exist for invitation create/accept/revoke (Cycle 7A); no RLS policy or route exposes them to any persona yet" }
+        { "table": "workflow_events", "cardinality": "one append-only row per accepted idempotent invitation/assignment/start/revocation command" }
       ],
-      "rls_authority_predicate": "planned: the Cycle 7A migration explicitly does not enforce an append-only/RLS cutover for workflow_events general reads; a director/owner-scoped audit-read policy remains to be written",
+      "rls_authority_predicate": "passage_private.can_view_workflow_event requires active organization management and every location carried by the event metadata to be managed; partial-location access cannot read a multi-location revocation event",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "Activity is a read surface and introduces no mutation; each command contract defines its own event type and idempotency key."
+      },
+      "failure_recovery_states": [
+        "wrong organization/location reads return no events",
+        "authority verification failure renders no activity and offers retry",
+        "event update/delete is rejected by the append-only trigger"
+      ],
+      "persona_projection": "Owner/director sees only managed organization/location events; staff, family, and vendors receive no operator audit projection.",
+      "evidence_test_references": [
+        "docs/product/persona-action-architecture.md",
+        "supabase/migrations/20260718180000_cycle_7b_assigned_work.sql",
+        "supabase/tests/cycle_7b_assigned_work.sql"
+      ]
+    },
+    {
+      "id": "cycle7b.director.workload",
+      "cycle": "7B",
+      "capability": "Director views durable organization/location-scoped workload and ownership instead of the sandbox repository",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director",
+        "component": "app/director/page.tsx",
+        "files": [
+          "app/director/page.tsx",
+          "lib/operations/hosted.ts",
+          "app/operations-beta.module.css"
+        ],
+        "note": "Director Today renders durable RLS-scoped workflows/tasks with accountable owner, assignee, waiting party, due state, status, and the bounded assignment action. It imports no sandbox repository."
+      },
+      "action_status": "durable workload rows grouped by case/workflow with accountable owner, assignee, waiting party, due state, status, and next action",
+      "server_command": "RLS-scoped server SELECT over public.workflows and public.tasks through loadHostedOperations",
+      "backend_files": [
+        "supabase/migrations/20260718180000_cycle_7b_assigned_work.sql",
+        "lib/operations/hosted.ts",
+        "app/director/page.tsx"
+      ],
+      "durable_tables": [
+        { "table": "workflows", "cardinality": "one durable workflow per case at one organization/location" },
+        { "table": "tasks", "cardinality": "durable commitments reference the same workflow, organization, and assigned member used by staff" }
+      ],
+      "rls_authority_predicate": "passage_private.can_view_workflow/task requires active owner/director membership plus an active grant on the workflow location; any location filtering is presentation only",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "This contract is a read-only workload projection; assignment mutations are tracked separately."
+      },
+      "failure_recovery_states": [
+        "wrong-organization and wrong-location reads return no rows without revealing identifiers",
+        "unavailable or revoked membership renders a calm closed-access recovery with no workload flash"
+      ],
+      "persona_projection": "A director sees only workloads at locations they manage; staff, family, and vendors never receive the director workload projection.",
+      "evidence_test_references": [
+        "supabase/tests/cycle_7b_assigned_work.sql",
+        "docs/product/passage-zero-cutover-plan.md",
+        "docs/agent-operating-context.md"
+      ]
+    },
+    {
+      "id": "cycle7b.director.assignment",
+      "cycle": "7B",
+      "capability": "Director assigns an unowned durable commitment to an active location-authorized staff member",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director",
+        "component": "app/director/CommandForms.tsx",
+        "files": [
+          "app/director/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "Unassigned Director Today rows expose the same durable CommandForms assignment action used for reassignment, with a stable request UUID and expected task version."
+      },
+      "action_status": "unassigned -> assigned with version increment, current/new owner, waiting party, reason, event proof, and next status returned",
+      "server_command": "public.assign_task_idempotent(p_task_id uuid, p_expected_version integer, p_assignee_member_id uuid, p_reason text, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260718180000_cycle_7b_assigned_work.sql",
+        "app/director/actions.ts",
+        "lib/operations/hosted.ts"
+      ],
+      "durable_tables": [
+        { "table": "tasks", "cardinality": "one current assigned_organization_member_id and version per task" },
+        { "table": "workflow_events", "cardinality": "one task.assigned event per organization/request UUID" }
+      ],
+      "rls_authority_predicate": "Active owner/director may assign only a managed-location task to an active staff member with an active grant on that exact location",
       "append_only_event": {
         "applicable": true,
         "table": "workflow_events",
-        "event_type": "n/a -- this contract is about reading the existing event stream, not writing a new event type",
-        "idempotency_key": null,
-        "reason": "Read-surface contract; no new write event is introduced by this capability."
+        "event_type": "task.assigned",
+        "idempotency_key": "caller-supplied stable request UUID, unique within organization"
       },
       "failure_recovery_states": [
-        "planned: audit reads must fail closed for any organization/location the caller does not manage",
-        "planned: export/evidence generation (persona-action-architecture's /organization/audit) is out of scope until read access itself is scoped"
+        "same-key replay returns the durable assignment without a second event",
+        "stale version and inactive, wrong-location, wrong-organization, null, or conflicting assignee fail without partial writes"
       ],
-      "persona_projection": "planned: owner/director see their organization's/location's events only; no persona-agnostic global audit view",
+      "persona_projection": "Directors see the selected owner; the assigned staff member sees the same durable task identifier in My work.",
       "evidence_test_references": [
-        "docs/product/persona-action-architecture.md",
-        "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql"
+        "supabase/tests/cycle_7b_assigned_work.sql",
+        "docs/product/passage-zero-cutover-plan.md",
+        "docs/agent-operating-context.md"
+      ]
+    },
+    {
+      "id": "cycle7b.staff.task_transition",
+      "cycle": "7B",
+      "capability": "Assigned staff member starts one durable commitment from My work",
+      "status": "implemented",
+      "persona": "staff",
+      "frontend": {
+        "user_visible": true,
+        "route": "/staff",
+        "component": "app/staff/StartTaskForm.tsx",
+        "files": [
+          "app/staff/page.tsx",
+          "app/staff/StartTaskForm.tsx",
+          "app/staff/actions.ts",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "Each assigned My work card exposes only the bounded Start work transition. Proof attachment, blocker, completion, and output-review claims remain hidden and queued."
+      },
+      "action_status": "assigned -> in_progress with incremented version, server actor/time, event proof, and durable route refresh",
+      "server_command": "public.start_task_idempotent(p_task_id uuid, p_expected_version integer, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260718180000_cycle_7b_assigned_work.sql",
+        "app/staff/actions.ts",
+        "lib/operations/hosted.ts"
+      ],
+      "durable_tables": [
+        { "table": "tasks", "cardinality": "one current durable status and version per assigned task" },
+        { "table": "workflow_events", "cardinality": "one task.started event per organization/request UUID" }
+      ],
+      "rls_authority_predicate": "Caller must be the task's current active assigned staff member with an active grant on the workflow location; task and member rows are locked before mutation",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "task.started",
+        "idempotency_key": "caller-supplied stable request UUID, unique within organization"
+      },
+      "failure_recovery_states": [
+        "unassigned, reassigned, revoked, wrong-location, stale-version, and invalid-state attempts fail without changing the task",
+        "same-key replay by the current assignee returns the existing durable state/event; a former assignee cannot replay after reassignment"
+      ],
+      "persona_projection": "Staff sees minimum assigned-case context, human action, proof destination, and next state; director sees the same task/event; family receives no internal work detail.",
+      "evidence_test_references": [
+        "supabase/tests/cycle_7b_assigned_work.sql",
+        "docs/product/passage-zero-cutover-plan.md",
+        "docs/agent-operating-context.md"
+      ]
+    },
+    {
+      "id": "cycle7b.director.revoke_membership",
+      "cycle": "7B",
+      "capability": "Director revokes an active staff membership and its location authority with durable audit proof",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/team",
+        "component": "app/director/CommandForms.tsx",
+        "files": [
+          "app/director/team/page.tsx",
+          "app/director/CommandForms.tsx",
+          "app/director/actions.ts",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "Team exposes End team access only when the member has zero active commitments; otherwise it blocks the command and names the exact reassignment count."
+      },
+      "action_status": "active membership -> revoked with all current location grants ended in the same transaction and one durable receipt",
+      "server_command": "public.revoke_organization_member_idempotent(p_member_id uuid, p_reason text, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260718180000_cycle_7b_assigned_work.sql",
+        "app/director/actions.ts",
+        "lib/operations/hosted.ts"
+      ],
+      "durable_tables": [
+        { "table": "organization_members", "cardinality": "one revoked_at/revoked_by/reason terminal state for the member" },
+        { "table": "organization_member_locations", "cardinality": "every current grant receives one revoked_at/revoked_by/reason state in the same transaction" },
+        { "table": "workflow_events", "cardinality": "one organization_membership.revoked event per organization/request UUID" }
+      ],
+      "rls_authority_predicate": "Active owner/director must manage the organization and every currently granted location; only staff may be revoked and any active task assignment blocks the command",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "organization_membership.revoked",
+        "idempotency_key": "caller-supplied stable request UUID, unique within organization"
+      },
+      "failure_recovery_states": [
+        "same-key replay returns the existing revocation without a duplicate event",
+        "active assignments fail with no membership or grant change and Team requires reassignment first",
+        "revoked user's next request/reload loses staff and director-route access and sees the distinct access-ended state"
+      ],
+      "persona_projection": "Director sees immutable revoked status and historical locations; revoked staff sees closed access; family and vendors see no membership detail.",
+      "evidence_test_references": [
+        "supabase/tests/cycle_7b_assigned_work.sql",
+        "docs/product/passage-zero-cutover-plan.md",
+        "docs/agent-operating-context.md"
       ]
     }
   ]

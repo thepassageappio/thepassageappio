@@ -1,4 +1,3 @@
-
 'use server';
 
 import { redirect } from 'next/navigation';
@@ -9,4 +8,3 @@ export async function signOut() {
   if (client) await client.auth.signOut();
   redirect('/login?status=signed-out');
 }
-

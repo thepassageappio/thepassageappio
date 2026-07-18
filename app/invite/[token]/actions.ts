@@ -10,6 +10,7 @@ function failureCode(message: string) {
   const normalized = message.toLowerCase();
   if (normalized.includes('verified email address that received')) return 'email-mismatch';
   if (normalized.includes('already bound to another') || normalized.includes('administrator review')) return 'claimed-other';
+  if (normalized.includes('access has ended')) return 'access-ended';
   if (normalized.includes('invalid or unavailable')) return 'unavailable';
   return 'retry';
 }

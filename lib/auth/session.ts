@@ -1,4 +1,3 @@
-
 import type { User } from '@supabase/supabase-js';
 import type { createPassageServerClient } from '@/lib/supabase/server';
 
@@ -11,4 +10,3 @@ export async function verifiedUser(client: PassageClient): Promise<User | null> 
   if (userResult.error || !userResult.data.user || userResult.data.user.id !== claims.data.claims.sub) return null;
   return userResult.data.user;
 }
-

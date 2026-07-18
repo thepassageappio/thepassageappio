@@ -7,7 +7,7 @@ export function AcceptInvitationButton() {
   const { pending } = useFormStatus();
 
   return (
-    <button aria-live="polite" className={styles.primary} disabled={pending} type="submit">
+    <button aria-busy={pending} aria-live="polite" className={styles.primary} disabled={pending} type="submit">
       {pending ? 'Accepting…' : 'Accept invitation'}
     </button>
   );

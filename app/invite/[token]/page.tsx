@@ -13,6 +13,7 @@ const failureMessages: Record<string, string> = {
   environment: 'Invitation acceptance is unavailable in this environment. Nothing was joined or changed.',
   'email-mismatch': 'Sign in with the verified email address that received this invitation.',
   'claimed-other': 'This invitation or membership needs help from the funeral-home administrator.',
+  'access-ended': 'This invitation was accepted earlier, but that team access has ended. No funeral-home work is visible.',
   unavailable: 'This invitation is no longer available. Ask the funeral-home administrator for a new one.',
   verification: 'Passage accepted the request but could not verify the refreshed membership. Access remains closed; try again or ask the administrator for help.',
   retry: 'Passage could not verify the invitation right now. Nothing is shown as accepted. Please retry.',
@@ -65,8 +66,8 @@ export default async function InvitationPage({ params, searchParams }: { params:
         {receipt && (
           <div className={styles.receipt} role="status">
             <span>MEMBERSHIP VERIFIED</span><h2>You’re ready to enter your workspace.</h2>
-            <dl><div><dt>Organization</dt><dd>{invitation?.organization_name}</dd></div><div><dt>Locations</dt><dd>{invitation?.location_names.join(' · ')}</dd></div><div><dt>Account</dt><dd>{user?.email}</dd></div><div><dt>Role</dt><dd>{receipt.member_role}</dd></div><div><dt>Status</dt><dd>Invitation accepted · membership transaction replay verified</dd></div><div><dt>Accepted</dt><dd><time dateTime={receipt.accepted_at}>{dateTime(receipt.accepted_at)} · server time</time></dd></div><div><dt>Visible to</dt><dd>The accepting employee and authorized funeral-home directors</dd></div><div><dt>Proof saved to</dt><dd>Organization membership and invitation audit history</dd></div><div><dt>Next action</dt><dd>Open your assigned work</dd></div></dl>
-            <Link className={styles.primaryLink} href={receipt.member_role === 'staff' ? '/staff' : '/director'}>{receipt.member_role === 'staff' ? 'Open My work' : 'Open director workspace'}</Link>
+            <dl><div><dt>Organization</dt><dd>{invitation?.organization_name}</dd></div><div><dt>Locations</dt><dd>{invitation?.location_names.join(' · ')}</dd></div><div><dt>Account</dt><dd>{user?.email}</dd></div><div><dt>Role</dt><dd>{receipt.member_role}</dd></div><div><dt>Status</dt><dd>Invitation accepted · membership verified</dd></div><div><dt>Accepted</dt><dd><time dateTime={receipt.accepted_at}>{dateTime(receipt.accepted_at)} · server time</time></dd></div><div><dt>Visible to</dt><dd>The accepting employee and authorized funeral-home directors</dd></div><div><dt>Proof saved to</dt><dd>Organization membership and invitation history</dd></div><div><dt>Next action</dt><dd>Enter your role-scoped workspace</dd></div></dl>
+            <Link className={styles.primaryLink} href={receipt.member_role === 'staff' ? '/staff' : '/director'}>{receipt.member_role === 'staff' ? 'Open staff workspace' : 'Open director workspace'}</Link>
           </div>
         )}
 
@@ -86,9 +87,10 @@ export default async function InvitationPage({ params, searchParams }: { params:
             {invitation.invitation_state === 'expired' && <p className={styles.alert} role="status">This invitation expired. Ask the funeral-home administrator for a new invitation.</p>}
             {invitation.invitation_state === 'revoked' && <p className={styles.alert} role="status">This invitation was revoked. No access was granted.</p>}
             {invitation.invitation_state === 'accepted' && <p className={styles.notice} role="status">This invitation was already claimed. Sign in with the accepting account or ask the administrator for a new invitation.</p>}
+            {invitation.invitation_state === 'access_ended' && <p className={styles.alert} role="status">This invitation was accepted earlier, but that team access has ended. No funeral-home work is visible.</p>}
           </>
         )}
-        <footer className={styles.privacy}>Joining a funeral-home workspace grants only the organization, location, role, and assigned-work scope verified by Passage.</footer>
+        <footer className={styles.privacy}>Joining grants only the organization, location, and role shown here. It never grants family access.</footer>
       </section>
     </main>
   );

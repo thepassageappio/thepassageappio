@@ -19,6 +19,7 @@ const reasonCopy = {
   'environment-unavailable': 'Secure workspace access is not configured for this environment.',
   'signed-out': 'Sign in before opening a funeral-home workspace.',
   'membership-required': 'This account does not have an active funeral-home membership.',
+  'membership-revoked': 'Your team access has ended. No funeral-home work is visible.',
   'membership-selection-required': 'This account belongs to more than one organization. Workspace selection must be completed before any operator data can be shown.',
   'authority-unavailable': 'Passage could not verify an active role and location for this account. Operator data remains closed.',
 } as const;

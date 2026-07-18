@@ -1,4 +1,3 @@
-
 export type InvitationInspection = {
   inviter_display_name: string;
   organization_name: string;
@@ -6,7 +5,7 @@ export type InvitationInspection = {
   location_names: string[];
   invitation_purpose: string;
   invitation_expires_at: string;
-  invitation_state: 'available' | 'accepted' | 'revoked' | 'expired';
+  invitation_state: 'available' | 'accepted' | 'revoked' | 'expired' | 'access_ended';
 };
 
 export type InvitationAcceptance = {
@@ -26,4 +25,3 @@ export function validInvitationToken(value: string) {
 export function firstRpcRow<T>(data: unknown): T | null {
   return Array.isArray(data) && data.length > 0 ? data[0] as T : null;
 }
-

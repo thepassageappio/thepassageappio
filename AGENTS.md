@@ -1,5 +1,13 @@
 # Passage Agent Operating Guide
 
+## Passage Zero canonicalization — 2026-07-18 (owner-approved; supersedes conflicting Threshold execution directives)
+
+Passage Zero on `greenfield/passage-zero`, draft PR #24, is the sole target architecture and redesign implementation. Threshold on `main` is now a production-maintenance lane only: separately governed P0/P1 live defects may be fixed, but no new Threshold dashboard, estate, information-architecture, schema, or redesign work may begin.
+
+Do not port the legacy Pages Router structure into Passage Zero. The historical Threshold sections below remain useful context only where they do not conflict with this directive. The canonical greenfield roadmap is `docs/product/operational-readiness-roadmap.md`; the cutover contract is `docs/product/passage-zero-cutover-plan.md`.
+
+Every Passage Zero slice must advance the reachable persona UI, server-authorized command or query, durable state, RLS/authority predicate, append-only event or proof for mutations, recovery behavior, responsive projection, and parity-ledger entry together. A backend-only capability must be labeled `backend_only`; a UI state without durable proof fails QA. Production remains untouched until an explicitly approved production release train passes.
+
 ## UX Redesign Directive — 2026-07-11 (owner-approved)
 
 Active initiative: full greenfield UX/UI/IA redesign, codename "Threshold". Source of truth: `docs/UX-REDESIGN-BRIEF.md` — read it FIRST for any redesign, design-system, information-architecture, or persona-surface work.

@@ -1,10 +1,9 @@
-
 import { verifiedUser } from '@/lib/auth/session';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type OperationalRole = 'owner' | 'director' | 'staff';
 export type OperationalViewer = { userId: string; email: string; membershipId: string; organizationId: string; organizationName: string; displayName: string; role: OperationalRole; locations: { id: string; name: string }[] };
-export type OperationalViewerResult = { ok: true; viewer: OperationalViewer } | { ok: false; reason: 'environment-unavailable' | 'signed-out' | 'membership-required' | 'membership-selection-required' | 'authority-unavailable' };
+export type OperationalViewerResult = { ok: true; viewer: OperationalViewer } | { ok: false; reason: 'environment-unavailable' | 'signed-out' | 'membership-required' | 'membership-revoked' | 'membership-selection-required' | 'authority-unavailable' };
 
 type MembershipRow = { id: string; organization_id: string; role: string; status: string; display_name: string | null; email: string; organizations: { name: string } | { name: string }[] | null };
 type LocationGrantRow = { organization_location_id: string; revoked_at: string | null; organization_locations: { name: string; status: string } | { name: string; status: string }[] | null };
@@ -19,7 +18,11 @@ export async function resolveOperationalViewer(): Promise<OperationalViewerResul
   const membershipResult = await client.from('organization_members').select('id, organization_id, role, status, display_name, email, organizations(name)').eq('user_id', user.id).eq('status', 'active').limit(2);
   if (membershipResult.error) return { ok: false, reason: 'authority-unavailable' };
   const rows = (membershipResult.data ?? []) as unknown as MembershipRow[];
-  if (rows.length === 0) return { ok: false, reason: 'membership-required' };
+  if (rows.length === 0) {
+    const revokedResult = await client.from('organization_members').select('id').eq('user_id', user.id).eq('status', 'revoked').limit(1);
+    if (!revokedResult.error && (revokedResult.data?.length ?? 0) > 0) return { ok: false, reason: 'membership-revoked' };
+    return { ok: false, reason: 'membership-required' };
+  }
   if (rows.length > 1) return { ok: false, reason: 'membership-selection-required' };
   const membership = rows[0];
   if (!['owner', 'director', 'staff'].includes(membership.role)) return { ok: false, reason: 'authority-unavailable' };
@@ -32,4 +35,3 @@ export async function resolveOperationalViewer(): Promise<OperationalViewerResul
 
 export function landingPathForRole(role: OperationalRole) { return role === 'staff' ? '/staff' : '/director'; }
 export function canOpenOperationalPath(role: OperationalRole, pathname: '/director' | '/staff') { return pathname === '/staff' ? role === 'staff' : role === 'owner' || role === 'director'; }
-

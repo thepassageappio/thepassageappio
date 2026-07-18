@@ -1305,3 +1305,90 @@ Role state and next target:
 - Root repaired all four connector-transformed blobs with chunked byte-exact uploads. Remote repair commit `e820257` (`fix: restore complete Cycle 7A source blobs [skip deploy]`) now has tree `5a1c2979e129fac64d104715f63ef70913fc557d`, exactly matching the locally tested HEAD tree. The local branch pointer was aligned only after tree identity was proven. The parity suite, TypeScript, production build, route matrix, and deploy-gate evidence remain the verification basis for this tree.
 - Auth confirmation remains valid in Chrome for canonical Vercel project `prj_b7CKwanQaKwFQSHInr3l6wsZy9nD` and isolated Supabase project `uyacxqtsiwlvtmhxvoxr`. No environment value, redirect, Auth user, fixture row, deployment, PR marker, or Production resource changed. The authenticated Chrome browser had already been finalized for this logical turn; the alternate in-app browser reached Vercel/GitHub sign-in but has no authenticated session. Deploy configuration therefore remains the next auto-advance target on the fresh browser turn, without requiring another owner decision or permission expansion.
 
+### Owner-approved canonicalization and 72-hour transformed beta brief - 2026-07-18 05:12 -07:00
+
+Owner decision and scope:
+
+- Steve approved the review recommendation and directed the train to proceed toward a transformed functional beta within three focused days. Passage Zero on `greenfield/passage-zero`, draft PR #24, is now the sole target architecture. Threshold/main is frozen to separately governed production P0/P1 hotfixes; no new legacy dashboard, estate, IA, schema, or redesign work may begin.
+- This is a non-production, synthetic, manually supported funeral-home beta. A complete PASS may move funeral-home operational readiness from 40% to **55-60%**. D2C remains **25% operational / 85% guided** because durable family identity/grants are not in this slice. The wider evidence-gated pilot remains 10-15 focused working days at funeral home 85-88% and D2C 83-87%; no schedule alone moves a score.
+- Production project `qsveqfchwylsbncsfgxe`, public relaunch, real customer data, live Google/email/SMS, durable D2C grants, full Case Room/realtime/outbox/proof lifecycle, vendor fulfillment, estate, billing, paid providers, broad integrations, and legal/privacy/security claim changes are explicit non-goals.
+
+Role instances and handoffs:
+
+- Product Manager `/root/pm_three_day_beta`: **COMPLETE**. It received the owner decision and latest hosted-authority handoff and produced the Sprint Brief, contract matrix, migration gate, acceptance, dependencies, risks, non-goals, owner gates, and role sequence.
+- UX Review `/root/ux_three_day_beta`: **IN PROGRESS**. It received the PM scope for invitation, durable workload, assignment/reassignment, staff transition, revoked/denied states, audit, and 1440/390/360 acceptance.
+- Engineering/Data root: **IN PROGRESS**. It restored Passage Zero-specific release-train/role guidance, recorded canonicalization/freeze and cutover governance, expanded the parity plan, and is preparing hosted configuration. No hosted mutation, deployment, readiness change, family/vendor change, or Production action has occurred in this documentation batch.
+- Independent QA/Deploy-preflight `/root/review_threshold_main`: **ASSIGNED** for the two-session evidence script and Cycle 7B RLS/RPC negative-test matrix. Deploy remains closed until independent PASS.
+
+PM Sprint Brief:
+
+- **Goal:** within 72 hours, prove a transformed funeral-home beta where two hosted identities complete director invitation -> staff acceptance, then operate one real durable assigned-work loop with assignment/reassignment, staff transition, revocation, append-only audit, reload/replay truth, denial, and responsive evidence.
+- **Day 1 components/objectives:** configure only exact-branch Preview variables; configure only isolated Auth redirects; create synthetic director/staff through Auth Admin; run the guarded DML-only director fixture; spend the authorized Cycle 7A verification Preview; prove create/inspect/accept, `/staff`, staff `/director` denial, reload, replay, wrong-user denial, exact membership/location/invitation/event cardinality, and 1440/390/360 evidence; then remove the temporary verification-preview exception.
+- **Day 2 components/objectives:** preflight existing workflows/tasks/authority columns; document and independently review the 7B what/why/breakage migration; apply only additive isolated migrations through Supabase migration tooling; seed deterministic Sofia Rivera/Northstar workflow/task data; enforce manager organization/location workload reads, staff assigned-only reads, workspace-as-presentation, idempotent assignment/reassignment, validated staff transition, invitation/membership revocation, server-only append-only events, and family-grant preservation; replace beta director/staff sandbox projections with durable server queries and add reachable revocation/audit states.
+- **Day 3 components/objectives:** prove director assignment -> staff work transition -> director activity trail -> reassignment -> revocation plus replay, stale-session, wrong-location, wrong-organization, unassigned-user, and revoked-user denial; run parity, TypeScript, optimized build, deploy gate, SQL/RLS tests, advisors, failure injection, console/hydration, keyboard/focus/target/overflow QA; commit timestamped redacted evidence; publish the one coherent non-production beta Preview only after independent QA authorization; update PR #24, roadmap, ledger, and context.
+
+Frontend/backend beta contract:
+
+| Persona action | UI | Server/data | Authority/event/recovery |
+| --- | --- | --- | --- |
+| Director creates invitation | `/director/invitations/new` | Existing v2 idempotent creation RPC; invitation + locations | Active manager and managed locations; one created event; replay preserves ID/time and no raw-token recovery |
+| Staff inspects/accepts | `/invite/[token]` | Existing inspect/accept RPCs; one membership + location grant | Exact verified invited email; accepted event; invalid/expired/revoked/wrong-user/replay fail safely |
+| Director views workload | Durable `/director` beta projection | Planned workflows/tasks query | Manager organization/location grant; empty/denied states reveal no other location |
+| Director assigns/reassigns | Reachable workload action | Planned idempotent commands | Managed task and location-authorized assignee; one event per command; conflict/replay returns durable owner |
+| Staff views/advances work | Durable `/staff` and bounded work detail | Planned assigned-only query and validated transition | Current active assignee and location; one transition event; unassigned/revoked/reassigned/invalid state denied |
+| Director revokes | Pending invitation and team actions | Existing invitation revoke RPC; planned membership revoke RPC | Manager predicate; one revoke event; accepted invite routes to membership revocation; revoked access closes on next request/reload |
+| Director reads audit | Bounded activity trail | Planned scoped event query | Read-only organization/location/case authority; no global or family-visible operator audit |
+
+Cycle 7B documentation-first migration gate:
+
+- **What:** durable organization/location/assignment references; manager workload and staff assigned-only SELECT policies; idempotent assignment/reassignment; validated staff transition; membership revocation; server-only append-only events and scoped audit reads; supporting uniqueness/indexes.
+- **Why:** the transformed UI must project the same durable ownership, task state, proof, and event identifiers that the backend authorizes; browser-only state cannot support the beta claim.
+- **Breakage if skipped:** director/staff surfaces drift, staff can see too much or no real work, retries duplicate effects, revocation fails to remove authority, and audit states can be forged, omitted, or invisible.
+- **Risk/recovery:** workspace choice never grants access; no direct client audit writes; family grants remain independent; fixtures stay guarded DML-only and reversible; migrations apply only through tooling to `uyacxqtsiwlvtmhxvoxr`; Production `qsveqfchwylsbncsfgxe` is prohibited.
+
+Documentation and parity decisions:
+
+- `AGENTS.md` now carries the superseding Passage Zero canonicalization directive.
+- `docs/product/passage-zero-cutover-plan.md` records route responsibility, beta/pilot/production definitions, PR #24 merge gates, hotfix ownership, and rollback principles without becoming a second roadmap.
+- The canonical roadmap now includes the isolated 72-hour beta milestone and preserves the 10-15-day pilot target.
+- Passage Zero-specific `docs/release-train.md` and PM/UX/Engineering/QA/Deploy role briefs now exist, closing the missing-file governance gap.
+- `cycle7b.director.revoke_invitation` is classified `backend_only`; workload, assignment, staff transition, membership revocation, reassignment, assigned work, and audit remain queued until their complete reachable contracts exist. No status may move to `implemented` before the parity suite and evidence pass.
+
+Dependencies and current evidence:
+
+- Browser access is authenticated to the canonical Vercel project and isolated Supabase URL Configuration. The isolated project is `ACTIVE_HEALTHY`; its nine Cycle 7A migrations are present once. Current security advisors show only expected INFO for `tasks`, `workflows`, and `workflow_events` with RLS enabled and no policy; performance advisors show expected unused-index INFO in the empty lab.
+- The first baseline command attempt could not execute because the fresh shell PATH omitted the bundled Node runtime. This is an environment/tooling issue, not a product test failure; Engineering must rerun the complete suite with the resolved bundled Node path before handoff.
+
+Exact next role target: UX returns the acceptance bar; Engineering then configures branch-only Vercel variables and isolated Auth, runs the guarded director fixture, publishes only the authorized verification Preview, and hands the two independent sessions to QA. Cycle 7B migration/application cannot begin until its independent review completes. The train remains active.
+
+### Cycle 7A/7B integrated beta candidate - hosted configuration and durable parity - 2026-07-18 06:56 -07:00
+
+Release sequencing and role handoffs:
+
+- The governing one-Preview sequence is now explicit: finish the combined Cycle 7A + 7B source, migration, fixture, and local/SQL gate first; publish the sole non-production verification Preview with literal `[deploy] [cycle-7a-verification-preview]`; run independent hosted QA against that same deployment; then close evidence/context/PR state with a non-deploying commit. A truthful `[qa-approved]` marker is not permitted before hosted PASS, and no second Preview is authorized.
+- PM `/root/pm_three_day_beta`: **COMPLETE** with the 72-hour beta brief. UX `/root/ux_three_day_beta`: **PARTIAL / FIX NOW** until hosted viewport/accessibility evidence, but its source blockers are implemented. Engineering/Data root: **PASS on the current source + isolated SQL candidate**. Independent QA `/root/review_threshold_main`: **PASS** on Cycle 7B assigned-work migration and its separately guarded advisor migration after rejecting and correcting multiple authority/concurrency defects. Deploy remains **CLOSED pending the sole verification commit**.
+- This is an isolated functional beta candidate, not a public relaunch, pilot-operational claim, or full production release. Funeral-home readiness remains **94% guided / 40% operational** and D2C remains **85% guided / 25% operational** until the entire hosted gate passes.
+
+Hosted configuration completed without repository-wide or Production mutation:
+
+- Canonical Vercel project `prj_b7CKwanQaKwFQSHInr3l6wsZy9nD` now has only exact-branch `greenfield/passage-zero`, Preview-only runtime, isolated-project, public URL/key, provider-disable, and controlled password-auth values needed by the beta. Repository-wide Stripe values were left untouched; no Production value was added or changed; no redeploy occurred.
+- Isolated Supabase Auth now uses the stable Passage Zero branch Preview origin/callback. Exact synthetic Auth Admin accounts exist for `cycle7a-director@passage.test` and `cycle7a-staff@passage.test`; credentials are not stored in source, docs, or evidence.
+- The guarded Cycle 7A persona fixture was applied as DML-only to isolated project `uyacxqtsiwlvtmhxvoxr`. Current pre-evidence cardinality is exactly one organization, one location, one active director membership, one active director location grant, zero invitations, zero events, zero workflows, and zero tasks.
+- Supabase's leaked-password check remains one acknowledged security WARN because the authenticated dashboard confirms it is available only on a paid Pro plan. No purchase or plan change was authorized. All database/RLS structural advisor warnings are closed; unused-index INFO is expected in the empty lab.
+
+Cycle 7B backend/frontend parity:
+
+- Migration `supabase/migrations/20260718180000_cycle_7b_assigned_work.sql` (independent-review SHA-256 `4931559B0332B8B2725A5C6FE7AD258BA61900363AB61614CBA8998AB8FAC241`) adds durable workflow/task operating fields, versioned assignment/start/revocation commands, organization/location/staff-assignment RLS, server-only append-only events, historical revoked-team visibility, and accepted-token `access_ended` truth. Family grants remain unchanged.
+- Independent review initially rejected cross-task idempotency, assignment/revocation races, stale/former-assignee replay, revocation ordering/replay, historical access, accepted-token truth, multi-location audit leakage, and null-assignee edges. Engineering corrected each defect before QA passed. The migration was then applied exactly once through Supabase migration tooling only to `uyacxqtsiwlvtmhxvoxr` as `cycle_7b_assigned_work`; Production `qsveqfchwylsbncsfgxe` was not touched.
+- The disposable `supabase/tests/cycle_7b_assigned_work.sql` matrix passes after application and again after advisor hardening, then rolls back. It proves direct-DML closure, assignment/replay/cross-task collision/stale conflict, start/replay/former-assignee denial, revocation/replay/historical projection, accepted-token denial + `access_ended`, partial-location event denial, and cross-organization read denial.
+- Advisor migration `supabase/migrations/20260718190000_cycle_7b_advisor_hardening.sql` was first rejected because a comment was not an executable isolated-project boundary. Engineering added required Cycle 7A/7B migration markers, RLS/function/column prerequisites, and exact pre/post policy-set guards. Independent QA then passed SHA-256 `82B904AA86C5C80E49EFF800AD2D7F785932A2F9A7CF218A099B58820FCCA399`; it was applied once only to the isolated lab. The resulting member policy set is exactly `cycle_7b_members_authorized_select`, and the revoker FK index is present.
+- The verified app now uses durable server/RLS projections: Director Today `/director`, Team `/director/team`, Activity `/director/activity`, and Staff My work `/staff`. Assignment/reassignment, invitation revocation, membership revocation, and staff `assigned -> in_progress` use Server Actions and idempotent RPCs with stable UUIDs/expected versions, no optimistic claim, durable re-read, and server receipt. Verified navigation does not expose sandbox Intake/Receive. Family and vendor surfaces are unchanged.
+- `docs/product/frontend-backend-contracts.json` is version 2 and promotes all completed Cycle 7A/7B beta contracts only after the reachable route, Server Action/query, migration/RLS, durable row/event, recovery state, and SQL/source evidence were present together. `pnpm test:parity` passes all 10 checker cases after reconciliation.
+
+Current verification and remaining gate:
+
+- PASS: TypeScript, runtime Preview/Production isolation matrix, operational-route fail-closed matrix, frontend/backend parity suite, 16-case Vercel deploy gate, optimized Next.js build, Cycle 7B SQL/RLS matrix, isolated migration history, post-test exact baseline cardinality, and Supabase database advisors (apart from paid-plan Auth WARN and empty-lab unused-index INFO).
+- The controlled Cycle 7B workload fixture `supabase/test-fixtures/cycle_7b_hosted_workload.sql` remains unapplied. It is guarded, idempotent, reversible, DML-only, requires successful Cycle 7A staff acceptance, and will not overwrite the invitation cardinality proof.
+- No Preview has been published, no screenshot/evidence artifact has been committed, PR #24 has not yet received this candidate update, no `[qa-approved]` marker exists, and no readiness score moved.
+- Exact next role target: Engineering completes final worktree/source review and publishes the sole verification Preview; independent hosted QA then proves two separate director/staff sessions, create/inspect/accept, replay/wrong-user/role denial/reload/cardinality, 1440/390/360 reflow/accessibility, followed by the 7B assignment/start/reassignment/revocation/activity/negative-authority story and timestamped redacted evidence. Deploy may approve only if every gate passes.
+

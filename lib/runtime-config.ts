@@ -48,6 +48,7 @@ export function getRuntimeConfiguration(): RuntimeConfiguration {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || null;
   const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() || null;
   const configuredProjectRef = process.env.PASSAGE_SUPABASE_PROJECT_REF?.trim() || null;
+  const productionProjectRef = process.env.PASSAGE_PRODUCTION_SUPABASE_PROJECT_REF?.trim() || null;
   const allowLocal = runtime !== 'production' && process.env.PASSAGE_ALLOW_LOCAL_SUPABASE === 'true';
   const urlProjectRef = supabaseUrl ? projectRefFromUrl(supabaseUrl, allowLocal) : null;
   const googleAuthEnabled = process.env.PASSAGE_GOOGLE_AUTH_ENABLED === 'true';
@@ -64,6 +65,9 @@ export function getRuntimeConfiguration(): RuntimeConfiguration {
   if (process.env.VERCEL_ENV === 'preview' && runtime !== 'preview') {
     return { ...base, available: false, reason: 'Preview runtime configuration is unavailable.' };
   }
+  if (process.env.VERCEL_ENV === 'preview' && (!productionProjectRef || productionProjectRef === urlProjectRef)) {
+    return { ...base, available: false, reason: 'Preview data binding cannot use the production project.' };
+  }
 
   if (!runtime) {
     return { ...base, available: false, reason: 'Passage runtime is not configured.' };
@@ -76,7 +80,7 @@ export function getRuntimeConfiguration(): RuntimeConfiguration {
   }
 
   const expectedRef = runtime === 'production'
-    ? process.env.PASSAGE_PRODUCTION_SUPABASE_PROJECT_REF?.trim()
+    ? productionProjectRef
     : process.env.PASSAGE_DEMO_SUPABASE_PROJECT_REF?.trim();
 
   if (!expectedRef || expectedRef !== urlProjectRef) {

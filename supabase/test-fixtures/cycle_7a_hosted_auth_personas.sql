@@ -306,6 +306,7 @@ $cycle_7a_hosted_postcondition$;
 --
 --   begin;
 --   set local passage.fixture_project_ref = 'uyacxqtsiwlvtmhxvoxr';
+--   set local passage.fixture_reset = 'cycle_7b_isolated_lab';
 --
 --   do $cleanup_project_guard$
 --   declare
