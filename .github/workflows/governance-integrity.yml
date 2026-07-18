@@ -1,0 +1,58 @@
+name: Passage immutable governance gate
+
+on:
+  pull_request_target:
+    branches: ['**']
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: passage-governance-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
+
+jobs:
+  immutable-governance:
+    name: Evaluate candidate with base-branch governance code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout trusted base controls
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: governance-base
+          persist-credentials: false
+      - name: Checkout candidate without credentials
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+      - name: Check PR handoff with trusted script
+        working-directory: governance-base
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+        run: node scripts/check-release-train.js
+      - name: Check separate current-head approval with trusted script
+        working-directory: governance-base
+        env:
+          GITHUB_API_URL: ${{ github.api_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node scripts/check-independent-review.js
+      - name: Check candidate persona language with trusted script
+        working-directory: governance-base
+        env:
+          CANDIDATE_ROOT: ../candidate
+        run: node scripts/check-persona-language.js
+
