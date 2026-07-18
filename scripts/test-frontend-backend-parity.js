@@ -268,6 +268,29 @@ function testRealLedger() {
   report('integration: docs/product/frontend-backend-contracts.json passes the checker', ok === true, ok ? '' : errors.join('\n         '));
 }
 
+function testRealPendingInvitationProjection() {
+  const repoRoot = path.resolve(__dirname, '..');
+  const pagePath = path.join(repoRoot, 'app', 'director', 'team', 'page.tsx');
+  let source;
+  try {
+    source = fs.readFileSync(pagePath, 'utf8');
+  } catch (err) {
+    report('integration: director Team invitation projection is readable', false, err.message);
+    return;
+  }
+
+  const filtersTerminalStates = source.includes('const pendingInvitations = invitations.filter(')
+    && source.includes('!invitation.accepted_at')
+    && source.includes('!invitation.revoked_at');
+  const rendersOnlyPendingRows = source.includes('{pendingInvitations.map((invitation) => {')
+    && !source.includes('{invitations.map((invitation) => {');
+  report(
+    'integration: accepted/revoked invitations cannot render as pending Team rows',
+    filtersTerminalStates && rendersOnlyPendingRows,
+    `filtersTerminalStates=${filtersTerminalStates} rendersOnlyPendingRows=${rendersOnlyPendingRows}`
+  );
+}
+
 // ---------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------
@@ -288,6 +311,7 @@ function main() {
 
     console.log('Integration test (real repository ledger):');
     testRealLedger();
+    testRealPendingInvitationProjection();
   } finally {
     fs.rmSync(repoRoot, { recursive: true, force: true });
   }

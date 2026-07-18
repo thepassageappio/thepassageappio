@@ -1416,3 +1416,48 @@ Replacement Preview acceptance:
 
 Exact next role target: Engineering runs the final clean gate and stages only the corrective source/test/context files; independent QA re-reviews the staged replacement; Deploy publishes the single PM-authorized replacement verification Preview only after that PASS. Production remains untouched.
 
+### Owner-requested Cycle 7A hosted handoff - 2026-07-18 12:30 -07:00
+
+Owner disposition: Steve asked this chat to finish the current task, update the living Markdown, and hand the remaining release train to a fresh chat. This is an explicit stop before any Cycle 7B hosted fixture or workflow mutation. It does not authorize Production, another readiness claim, or a misleading `[qa-approved]` marker.
+
+Role instances and handoffs:
+
+- PM `/root/pm_three_day_beta`: **COMPLETE**. It received the failed first Preview, classified the Server Action export failure P0/FIX NOW, and authorized the bounded replacement verification Preview.
+- UX `/root/ux_three_day_beta`: **PARTIAL**. The functional authority story passed, but the exact hosted visual pass found one accepted-invitation projection defect described below.
+- Engineering/Data root: **PASS for the source handoff**. It corrected the hosted runtime failure, added the Server Action export gate, completed the replacement hosted transaction, corrected the final Team projection, and passed the local release suite.
+- Independent QA `/root/final_publish_qa`: **PASS** on the staged Server Action recovery candidate before its replacement Preview and **PASS** on this final handoff delta. The final review verified the pending-only source projection, targeted regression assertion, screenshot dimensions/content, redaction, and absence of passwords/tokens/share URLs; it explicitly retained **PARTIAL / no `[qa-approved]`** because the last UI correction is source-only. Independent SQL QA `/root/review_threshold_main` previously passed the isolated Cycle 7B migration candidates.
+- Deploy: replacement Preview is retained as evidence; Production remains closed. The fresh chat begins with PM/Deploy re-entry, not an assumed deploy approval.
+
+Replacement Preview and hosted Cycle 7A result:
+
+- Corrective commit `f56f1fbf9ad8cd71f612db045d3eb0d1b2f019e5` deployed as Vercel Preview `dpl_F5J8DoQJhd2oKtm99PQ44gr4fTPs`, `READY`, canonical project, exact `greenfield/passage-zero` branch, and isolated Supabase only. Runtime error/fatal logs were empty after the full flow. No `[qa-approved]` marker was used.
+- Separate hosted director and staff sessions proved director first-create, same-request replay with the original ID/time and no second raw token, staff pre-auth inspection, wrong-user denial without mutation, exact-user acceptance, `/staff`, staff `/director` denial, reload persistence, and stable same-user accepted-receipt replay without another acceptance action.
+- Exact isolated post-acceptance cardinality is: organization 1; location 1; active memberships 2 (`director: 1`, `staff: 1`); active location grants 2; invitation 1; accepted invitation 1; invitation-location 1; invitation command events 2 (`metadata.event_kind` = `organization_invitation.created` and `organization_invitation.accepted`); workflows 0; tasks 0. Family/vendor data and grants were unchanged.
+- Redacted evidence is recorded at `docs/evidence/cycle-7a-auth/2026-07-18-hosted-cycle-7a-redacted-evidence.md`. Sensitive invitation material, synthetic passwords, temporary share URLs, and service credentials are not committed.
+
+Exact viewport evidence and final parity correction:
+
+- Hosted `/director/team` was checked at 1440 x 900, 390 x 844, and 360 x 800. Each viewport reported document width equal to viewport width, no horizontal overflow, and no browser console/page errors. Timestamped screenshots are committed beside the redacted evidence.
+- The 360 snapshot exposed a truthful-state defect: the already accepted invitation still rendered in the `PENDING INVITATIONS` section while the active staff membership rendered below it. The backend was correct; the director projection mapped the full invitation collection after displaying a filtered pending count.
+- Engineering now derives `pendingInvitations` once and renders only that collection, with a truthful zero-pending empty state. Accepted/revoked/expired rows no longer appear as pending controls; membership and append-only Activity remain their durable destinations.
+- The parity harness now reads the real Team source and rejects either removal of terminal-state filters or a return to mapping `invitations` directly. Final local results: frontend/backend parity **11 passed / 0 failed**; Server Action export gate PASS with ten prohibited fixtures rejected; runtime isolation PASS; operational route gate PASS; 16-case deploy gate PASS; optimized Next production build PASS; TypeScript PASS.
+- The screenshots preserve the hosted defect as QA evidence. Because the projection fix has not been deployed and visually rechecked, hosted QA remains **PARTIAL** and the branch must not be labeled `[qa-approved]` yet.
+
+Release/readiness state:
+
+- Funeral home remains **94% guided / 40% operational**. D2C remains **85% guided / 25% operational**. No score was raised; this is not a pilot-operational or full-production claim.
+- Production Supabase project `qsveqfchwylsbncsfgxe` was not mutated. Exact-branch Preview variables and isolated Auth configuration remain branch/lab scoped. Signed-in Vercel and Supabase admin tabs were deliberately left signed in; the synthetic hosted QA tabs were not used to sign the owner out.
+- The Cycle 7B migrations are present only in isolated project `uyacxqtsiwlvtmhxvoxr` as previously recorded, but `supabase/test-fixtures/cycle_7b_hosted_workload.sql` remains unapplied. No Cycle 7B assignment, start, reassignment, revocation, or activity mutation was performed in this close.
+- PR #24 must describe Cycle 7A as functionally proven with one source-only projection correction awaiting hosted re-verification. It must not claim QA approval or beta/pilot completion.
+
+Fresh-chat next highest-leverage sequence:
+
+1. Start from this handoff and inspect the pushed handoff commit, draft PR #24, deployments, and isolated cardinality before acting. Preserve the owner's signed-in admin sessions; do not sign out or replace branch-only/Preview-only values.
+2. PM/Deploy re-enter on the source-only Team projection correction and determine the truthful non-production re-verification path under the existing preview-budget/marker rules. Do not invent `[qa-approved]` before hosted PASS and do not touch Production.
+3. Reverify `/director/team` on the corrected source at 1440, 390, and 360: zero pending invitations, one active staff membership, no horizontal overflow, no console/hydration/runtime errors. Commit replacement screenshots; retain the prior screenshots as defect evidence.
+4. Preserve Cycle 7A exact cardinality, then apply the guarded DML-only `supabase/test-fixtures/cycle_7b_hosted_workload.sql` only to isolated `uyacxqtsiwlvtmhxvoxr`. Exercise director workload, assignment/start/reassignment, invitation/member revocation, append-only Activity, replay/conflict, wrong-location/organization/unassigned/former/revoked-user denial, reload persistence, and exact task/event cardinality.
+5. Rerun parity, Server Action export, TypeScript, optimized build, runtime/route/deploy gates, Cycle 7B SQL/RLS tests, Supabase security/performance advisors, Vercel runtime logs, and desktop/mobile accessibility/overflow QA. Commit only timestamped screenshots and redacted database/audit evidence.
+6. Update this context and PR #24 in the integrated handoff/release commit. Publish no Production deployment. Add `[qa-approved]` only if the complete hosted evidence gate actually passes and the governing deploy marker/preview authorization is satisfied.
+
+Auto-advance disposition: intentionally handed to a fresh PM role at the owner's request. The train is not blocked by credentials; it is paused at a deliberate owner-requested chat boundary with all remaining work and release truth recorded.
+

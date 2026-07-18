@@ -398,6 +398,7 @@
       "evidence_test_references": [
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql",
         "app/director/team/page.tsx",
+        "scripts/test-frontend-backend-parity.js",
         "docs/agent-operating-context.md"
       ]
     },
