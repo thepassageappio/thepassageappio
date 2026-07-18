@@ -611,13 +611,13 @@
       "durable_tables": [
         { "table": "organization_members", "cardinality": "one revoked_at/revoked_by/reason terminal state for the member" },
         { "table": "organization_member_locations", "cardinality": "every current grant receives one revoked_at/revoked_by/reason state in the same transaction" },
-        { "table": "workflow_events", "cardinality": "one organization_membership.revoked event per organization/request UUID" }
+        { "table": "workflow_events", "cardinality": "one organization_member.revoked event per organization/request UUID" }
       ],
       "rls_authority_predicate": "Active owner/director must manage the organization and every currently granted location; only staff may be revoked and any active task assignment blocks the command",
       "append_only_event": {
         "applicable": true,
         "table": "workflow_events",
-        "event_type": "organization_membership.revoked",
+        "event_type": "organization_member.revoked",
         "idempotency_key": "caller-supplied stable request UUID, unique within organization"
       },
       "failure_recovery_states": [

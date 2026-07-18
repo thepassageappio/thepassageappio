@@ -6,8 +6,8 @@ Scope: isolated Supabase project `uyacxqtsiwlvtmhxvoxr` and Vercel Preview for b
 
 ## Runtime and session proof
 
-- Replacement verification commit: `f56f1fbf9ad8cd71f612db045d3eb0d1b2f019e5`.
-- Replacement Vercel deployment: `dpl_F5J8DoQJhd2oKtm99PQ44gr4fTPs`, `READY`, Preview target, exact branch and canonical project.
+- Replacement verification commit: `072b37df3a97714872bfdf5e89c75cda8d00d937`.
+- Replacement Vercel deployment: `dpl_5jaw5SMPekKLEPbzzRgjRJePiKMW`, `READY`, Preview target, exact branch and canonical project. Its build log states that the owner-authorized Passage Zero verification Preview was allowed.
 - Two independent hosted browser sessions were maintained on separate deployment hostnames: one synthetic director and one synthetic staff account.
 - Director created one Portland location-scoped staff invitation. A same-request replay returned the original invitation identifier and persisted creation time without a second secure link or duplicate row/event.
 - The wrong signed-in account was denied acceptance with no mutation. The exact invited staff account inspected and accepted the invitation.
@@ -41,6 +41,16 @@ The event table's generic `event_type` remains `other`; the semantic command kin
 - No browser console or page errors were returned during these exact viewport checks.
 - These screenshots intentionally preserve a QA finding from the deployed replacement Preview: the accepted invitation still rendered inside the section titled `PENDING INVITATIONS`. Source was corrected immediately so the Team page derives and renders only live pending rows. `scripts/test-frontend-backend-parity.js` now rejects a return to mapping the unfiltered invitation collection.
 
+## Corrected projection re-verification
+
+- `2026-07-18T13-10-00-0700-director-team-reverify-1440.jpg`: corrected top-of-page content captured while the browser viewport was configured to 1440 x 900. The browser encoded the page-content raster as JPEG at 1425 x 891 after excluding browser chrome/scrollbar.
+- `2026-07-18T13-10-00-0700-director-team-reverify-390.jpg` and `2026-07-18T13-10-00-0700-director-team-reverify-390-active-staff.jpg`: corrected pending and active-staff content captured at a configured 390 x 844 viewport; each encoded JPEG is 375 x 812.
+- `2026-07-18T13-10-00-0700-director-team-reverify-360.jpg` and `2026-07-18T13-10-00-0700-director-team-reverify-360-active-staff.jpg`: corrected pending and active-staff content captured at a configured 360 x 800 viewport; each encoded JPEG is 345 x 767.
+- Every corrected viewport showed `0 pending`, `No pending invitations.`, `1 active`, the linked Portland staff account, and `0` active commitments before Cycle 7B. Document scroll width equaled client width, visible functional targets were at least 48 pixels, and browser warning/error logs were empty.
+- The configured viewport dimensions and live `innerWidth`/`clientWidth`/`scrollWidth` measurements are the viewport proof; the JPEG dimensions above are stated separately and are not represented as the viewport size. File extensions now match the actual JFIF bytes.
+- A hosted reload preserved the corrected projection. Deployment-scoped Vercel error, warning, and fatal logs were empty.
+- The original three screenshots remain committed as defect evidence; they were not replaced or rewritten.
+
 ## Release disposition
 
-Cycle 7A's hosted authority transaction is functionally proven, but the final source correction has not been republished or visually reverified on a newer Preview. The hosted release gate is therefore **PARTIAL**, not `[qa-approved]`. Operational-readiness scores remain unchanged. The Cycle 7B hosted workload fixture was not applied during this handoff close.
+Cycle 7A's hosted authority transaction and final Team projection correction are proven on the replacement Preview. The exact pre-Cycle-7B cardinality above was re-read and retained before the Cycle 7B fixture was applied. Operational-readiness scores remain unchanged; Cycle 7A proof does not by itself establish pilot-operational or full-production readiness.
