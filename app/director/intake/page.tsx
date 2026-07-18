@@ -69,7 +69,7 @@ export default function DirectorIntakePage() {
   return (
     <AppFrame active="intake" identity="Elena Torres" role="Director · Northstar">
       <section className={styles.heading}>
-        <div><p>WALK-IN INTAKE</p><h1>Walk in. Working case.</h1></div>
+        <div><p>PREVIEW DEMO · CHANGES STAY ON THIS DEVICE</p><h1>Start a case for a family.</h1><small>This demo will not create a real case, contact anyone, or update your organization.</small></div>
         <Signal tone={state === 'created' ? 'success' : state === 'verified' ? 'signal' : 'warm'}>
           {state === 'created' ? mode === 'pass' ? 'Case created' : 'Draft prepared' : state === 'verified' ? mode === 'pass' ? 'Ready to create' : 'Ready to prepare' : 'No re-keying'}
         </Signal>
@@ -89,7 +89,7 @@ export default function DirectorIntakePage() {
         <section className={styles.startGrid} aria-label="Intake method">
           <form className={mode === 'pass' ? styles.primaryMethod : styles.method} onSubmit={beginPass}>
             <div className={styles.methodHead}><span>01</span><Signal tone="success">Fastest</Signal></div>
-            <h2>Scan family pass</h2>
+            <h2>Use a Transfer Pass</h2>
             <label htmlFor="walk-in-pass">TRANSFER PASS</label>
             <div className={styles.codeRow}>
               <input id="walk-in-pass" onChange={(event) => setCode(event.target.value)} value={code} />
@@ -100,7 +100,7 @@ export default function DirectorIntakePage() {
 
           <form className={mode === 'manual' ? styles.primaryMethod : styles.method} onSubmit={beginManual}>
             <div className={styles.methodHead}><span>02</span><Signal tone="signal">No pass</Signal></div>
-            <h2>Quick walk-in</h2>
+            <h2>Start without a pass</h2>
             <div className={styles.twoFields}>
               <label>PERSON<input aria-label="Person" onChange={(event) => setPerson(event.target.value)} placeholder="Full name" value={person} /></label>
               <label>FAMILY CONTACT<input aria-label="Family contact" onChange={(event) => setFamilyContact(event.target.value)} placeholder="Name" value={familyContact} /></label>
@@ -129,9 +129,9 @@ export default function DirectorIntakePage() {
               <label>OPERATING LOCATION<select value={locationId} onChange={(event) => { const next = event.target.value as LocationId; const rule = record.routingRules.find((item) => item.locationId === next)!; setLocationId(next); setAccountableId(rule.accountableMembershipId); setAssigneeId(rule.firstAssigneeMembershipId); }}><option value="northstar-portland">Portland</option><option value="northstar-beaverton">Beaverton</option></select></label>
               <label>ACCOUNTABLE DIRECTOR<select value={accountableId} onChange={(event) => setAccountableId(event.target.value as MembershipId)}>{scopedMembers.filter((item) => item.role === 'director').map((item) => <option key={item.id} value={item.id}>{item.actor.name}</option>)}</select></label>
               <label>FIRST ASSIGNEE<select value={assigneeId} onChange={(event) => setAssigneeId(event.target.value as MembershipId)}>{scopedMembers.map((item) => <option key={item.id} value={item.id}>{item.actor.name} · {item.role === 'director' ? 'Director' : 'Care coordinator'}</option>)}</select></label>
-              <div className={styles.firstCommitment}><span>{mode === 'pass' ? 'ROUTING SUMMARY' : 'LOCAL DRAFT'}</span><strong>{mode === 'pass' ? `${operatingLocation.name} · ${record.commitment.title}` : 'Collect the missing family-approved information'}</strong><small>{mode === 'pass' ? `${lead.name} accountable · ${assignee.name} owns the first step. This creates the case, records ownership and routing, and saves a receipt in this browser sandbox.` : 'This draft is not added to the shared demo case.'}</small></div>
+              <div className={styles.firstCommitment}><span>{mode === 'pass' ? 'WHAT THIS PREVIEW WILL SHOW' : 'PREVIEW DRAFT'}</span><strong>{mode === 'pass' ? `${operatingLocation.name} · ${record.commitment.title}` : 'Collect the missing family-approved information'}</strong><small>{mode === 'pass' ? `${lead.name} leads this preview; ${assignee.name} owns the first step. No real case will be created or synced.` : 'This preview draft stays on this device and is not added to a shared case.'}</small></div>
               {error && <p className={styles.error} role="alert">{error}</p>}
-              <button className={styles.createButton} type="submit">{mode === 'pass' ? 'Accept handoff and create case' : 'Prepare intake draft'} <span>→</span></button>
+              <button className={styles.createButton} type="submit">{mode === 'pass' ? 'Create preview case' : 'Prepare preview draft'} <span>→</span></button>
             </form>
           </div>
         </section>
@@ -140,9 +140,9 @@ export default function DirectorIntakePage() {
       {state === 'created' && (
         <section className={styles.receipt} aria-labelledby="case-created-title">
           <div className={styles.receiptMark} aria-hidden="true">✓</div>
-          <div><span>{mode === 'pass' ? `CASE CREATED / ${record.case.id}` : 'LOCAL INTAKE DRAFT'}</span><h2 id="case-created-title">{mode === 'pass' ? `${casePerson} is ready for arrangement.` : `${casePerson}'s minimum details are ready for follow-up.`}</h2><p>{mode === 'pass' ? `${lead.name} is accountable; ${assignee.name} owns the first commitment at ${operatingLocation.name}.` : 'Missing information remains a guided next step. No shared case was created.'}</p></div>
+          <div><span>{mode === 'pass' ? `PREVIEW CASE / ${record.case.id}` : 'PREVIEW INTAKE DRAFT'}</span><h2 id="case-created-title">{mode === 'pass' ? `Preview case created on this device.` : `${casePerson}'s preview details are ready for follow-up.`}</h2><p>{mode === 'pass' ? `${lead.name} would lead; ${assignee.name} would own the first step at ${operatingLocation.name}. No real case was created or synced.` : 'Missing information remains the next step. No shared case was created.'}</p></div>
           <dl><div><dt>Source / pass</dt><dd>{mode === 'pass' ? record.transferPass.code : 'Walk-in draft'}</dd></div><div><dt>Location</dt><dd>{mode === 'pass' ? operatingLocation.name : 'Not assigned'}</dd></div><div><dt>Accountable director</dt><dd>{mode === 'pass' ? lead.name : 'Not assigned'}</dd></div><div><dt>First assignee</dt><dd>{mode === 'pass' ? assignee.name : 'Not assigned'}</dd></div><div><dt>Routing reason</dt><dd>{mode === 'pass' ? `${operatingLocation.name} intake default` : 'Quick walk-in draft'}</dd></div><div><dt>Proof destination</dt><dd>{mode === 'pass' ? `${record.case.id} activity` : 'Local intake screen'}</dd></div><div><dt>Next action</dt><dd>{mode === 'pass' ? `${assignee.name} confirms the arrangement meeting` : 'Collect missing information'}</dd></div><div><dt>Execution boundary</dt><dd>{mode === 'pass' ? 'Saved in this browser only · no external sync' : 'Local to this intake screen'}</dd></div></dl>
-          <div className={styles.receiptActions}>{mode === 'pass' && <a href="/director">Open {record.case.id} <span>↗</span></a>}<button onClick={() => reset('pass')} type="button">Receive another family</button></div>
+          <div className={styles.receiptActions}>{mode === 'pass' && <a href="/director">Open secure Preview workspace <span>↗</span></a>}<button onClick={() => reset('pass')} type="button">Preview another family</button></div>
         </section>
       )}
     </AppFrame>

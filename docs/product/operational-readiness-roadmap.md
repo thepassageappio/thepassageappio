@@ -12,6 +12,8 @@ Passage Zero is the sole target architecture and redesign implementation. Thresh
 
 This decision does not authorize a public relaunch or Production changes. It removes duplicate implementation work while preserving a narrow hotfix lane for current live defects.
 
+The repository and copy controls in `docs/product/release-governance-and-plain-language-policy.md` are part of every roadmap exit gate: no agent/schedule direct-main push, a non-author human review before Production, bounded PR/review packets, one disposition for overlapping drafts, and plain-language comprehension at 1440/390/360.
+
 ## Single-source rule
 
 This is the one roadmap for the greenfield repository. The legacy canonical file named in `AGENTS.md`, `pages/system/admin/saas-roadmap.js`, does not exist in this App Router rebuild, and no secure System Admin route exists yet. Until that internal route is implemented, this file is the source of truth.
@@ -45,20 +47,39 @@ Every operational milestone must prove:
 
 | Path | Guided readiness | Operational readiness | Verified now | Principal gap |
 | --- | ---: | ---: | --- | --- |
-| Funeral home | 94% | 40% | Warm responsive intake, location/workspace semantics, employee workload, assignments, prepared outputs, proof-return demonstration, local invitation transaction, and a guarded hosted Auth shell | Hosted two-user authority, assigned-work RLS, durable case operations, delivery/recovery, integrations, and pilot controls |
+| Funeral home | 94% | 40% | Hosted isolated director/staff authority; accepted invitation projection; assigned workload, start, reassignment, invitation/member revocation, append-only Activity, replay/conflict/denial, reload persistence, and 1440/390/360 evidence | Task-bound proof/review Case Room, delivery/recovery, integrations, human review, and pilot controls |
 | Family / D2C | 85% | 25% | Planning-versus-urgent entry, Transfer Pass demonstration, family-safe status/proof projection, and responsive guidance | Real account lifecycle, durable family grants, participant invitations, recovery, funeral-home handoff, notification delivery, and data controls |
-| Separate demo instance | 20% | 10% | Isolated free Supabase lab exists and production remains untouched | Branch-bound hosted Auth, deterministic synthetic seed/reset, blocked external communications, integration simulation, automated smoke, and isolated domain/environment |
+| Separate demo instance | 20% | 10% | Branch-bound Preview and isolated Supabase lab prove a synthetic director/staff authority loop; production remains untouched | Deterministic full seed/reset, blocked external communications, integration simulation, automated smoke, and isolated domain/environment |
 | Production readiness | 15% | 10% | Buildable Next.js application, controlled migration discipline, explicit environment guard, security preflight, and evidence habit | Production-safe migrations, monitoring, backups/restore, support/break-glass, notification/integration operations, security/privacy review, and rollout/runbooks |
 
-Current launch truth: the greenfield pages exist only in non-production Vercel previews. The current hosted Auth preview is intentionally fail-closed because its isolated Supabase binding has not yet been proven. Production pages are unchanged.
+Current launch truth: Passage Zero exists only in non-production Vercel Preview and the isolated Supabase project. Cycle 7A/7B is a proven synthetic functional-beta authority/work slice, not an allowlisted pilot or Production release. Production Passage Zero pages are unchanged.
+
+### Evidence status versus readiness score — 2026-07-18
+
+- Cycle 7A hosted director/staff authority is PASS. Before Cycle 7B the preserved isolated cardinality was exactly one organization, one location, two active memberships, two active location grants, one accepted invitation, one invitation-location row, two invitation events, zero workflows, and zero tasks. The corrected Team projection showed zero pending invitations and one active staff membership at 1440, 390, and 360.
+- Cycle 7B hosted assigned work is PASS as a synthetic non-production functional-beta slice. It proved director workload and assignment, staff start, reassignment, invitation/member revocation, append-only Activity, replay/conflict behavior, reload persistence, wrong-location/organization/unassigned/former/revoked denials, parity 11/11, SQL/RLS, build, advisors, runtime logs, and responsive/accessibility QA.
+- Readiness scores deliberately remain funeral home **94% guided / 40% operational** and D2C **85% guided / 25% operational**. Passing a synthetic authority/work slice does not silently promote the product to pilot-operational, and the PM has not completed a score-change gate.
+- Cycle 8 task-bound Case Room proof loop is **FAIL/PARTIAL**. Source and an additive migration candidate exist locally, but independent SQL QA rejected the first draft. The rollback-only RLS/race/reversibility matrix and re-review must pass before isolated migration application, hosted QA, or any deployment.
 
 Readiness caps:
 
-- No real hosted Auth and durable membership proof: funeral-home operational readiness remains 40%.
-- No assigned workflow/task RLS: funeral-home operational readiness remains below 50%.
+- Hosted Auth/membership and assigned-work RLS are proven only in the isolated synthetic Preview. Until the complete M2 score gate, plain-language review, and bounded human review pass, funeral-home operational readiness remains 40%.
+- No task-bound proof/review Case Room and durable failure recovery: funeral-home operational readiness remains below the M3 range.
 - No durable notifications and recovery: either path remains below 80%.
 - No complete family-to-funeral-home handoff and family-safe proof return: either path remains below 85%.
 - No observability, backup/restore proof, support runbook, persona simulations, and explicit high-risk review: no 85-90% pilot claim.
+
+## Immediate priority correction — 2026-07-18
+
+Passage Zero remains the one product lane. The live-site P1 below is a narrowly governed Threshold/main maintenance lane, not a second product initiative:
+
+Audit trigger: PRs #17, #19, #23, and #24 were all draft with zero submitted human reviews; PR #17's required release-train check had remained red because `## Product Manager scope` did not match the required `## Product Manager Scope`; and two direct-main release commits landed 2 minutes 49 seconds apart. These are confirmed control failures, not hypothetical risks.
+
+1. **Production P1 maintenance:** one reviewed Threshold/main hotfix PR fixes the shared hydration failure on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission`; every route receives console/hydration/runtime and responsive verification. This is live-site reliability work, not Passage Zero progress.
+2. **Repository governance:** correct PR #17's exact required heading or close it as superseded, prohibit agent and scheduled direct-main pushes, require passing checks plus one non-author human approval, serialize Production release jobs, and reconcile draft PRs #17, #19, and #23 against Passage Zero umbrella PR #24.
+3. **Human-readable Passage Zero:** audit all reachable public/persona Preview routes against the seven-question gate in `docs/product/release-governance-and-plain-language-policy.md`. Remove raw enums/UUIDs, cycle/fixture/QA narration, architecture wording, and contradictory demo/hosted labels. Validate comprehension at 1440/390/360.
+4. **Cycle 8 recovery:** finish and independently pass the rollback-only SQL/RLS/race/reversibility matrix before applying any proof-loop migration. Retain FAIL/PARTIAL until the complete Engineering -> QA -> Deploy gates pass.
+5. **Reviewable cutover:** retain PR #24 as the integration umbrella but present human review as bounded packets/stacked PRs for identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX. Production merge remains closed.
 
 ## Critical path
 
@@ -99,6 +120,8 @@ The work that consumes time is not drawing more screens:
 
 Target after complete evidence: funeral home **55–60% operational**; D2C remains **25% operational / 85% guided**. This is an isolated, non-production, synthetic, manually supported functional beta. It is not the 85-ish allowlisted pilot and is not full production readiness.
 
+Evidence status: Cycle 7A and Cycle 7B functional-beta behavior passed in the isolated Preview, but the readiness score remains 40% by explicit release disposition. The score does not advance merely because the three-day feature evidence exists; the canonical scoring, plain-language, review-packet, and human-review gates still apply.
+
 Day 1 closes hosted authority: exact-branch Preview variables, isolated Auth redirects and synthetic users, guarded director fixture, independent director/staff invitation creation and acceptance, reload, replay, denial, exact cardinality, and 1440/390/360 evidence.
 
 Day 2 makes assigned work operational: director organization/location workload reads, staff assigned-only reads, idempotent assignment and reassignment, task transition, invitation and membership revocation, server-only append-only events, deterministic Sofia Rivera/Northstar data, and durable director/staff projections. Family grants remain unchanged.
@@ -108,6 +131,8 @@ Day 3 proves the integrated beta: director assignment -> staff work transition -
 The beta does not include Production migration or promotion, public relaunch, live Google/email/SMS, durable D2C grants, full Case Room/realtime/outbox/proof lifecycle, vendors, estate, billing, paid providers, broad integrations, or legal/privacy/security claim changes. The broader 10–15 focused-day pilot target remains unchanged.
 
 ### M1 - Hosted funeral-home authority
+
+Evidence status: PASS for the isolated synthetic Cycle 7A slice. Production and public-provider authorization remain held out; no score is changed by this status line.
 
 Target: funeral home 45%; D2C 25%; demo 25%; production readiness 12%.
 
@@ -134,6 +159,8 @@ Documentation-first synthetic hosted-QA fixture gate:
 
 ### M2 - Assigned work and authority enforcement
 
+Evidence status: PASS for the bounded isolated synthetic Cycle 7B slice. The score remains 40% pending the integrated roadmap scoring and review gates stated above.
+
 Target: funeral home 55-60%; D2C 25%; demo 35%; production readiness 25%.
 
 Scope:
@@ -155,6 +182,8 @@ Exit evidence:
 Effort: 2-4 focused working days, beginning in parallel on Day 2 and completing after M1 authority proof.
 
 ### M3 - Funeral-home case operations and isolated demo
+
+Active status: Cycle 8 task-bound proof/review is FAIL/PARTIAL after the first independent SQL review. No migration, hosted verification, or deployment is authorized until the rollback-only SQL/RLS/race/reversibility matrix and re-review pass.
 
 Target: funeral home 72-78%; D2C 30-35%; demo 75%; production readiness 45%.
 

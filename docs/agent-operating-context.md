@@ -1,6 +1,6 @@
 # Passage Zero - Agent Operating Context
 
-Last updated: 2026-07-16 (America/Los_Angeles)
+Last updated: 2026-07-18 (America/Los_Angeles)
 
 This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` first, then this file, then `docs/product/persona-action-architecture.md` before changing product code, data contracts, or deployment state.
 
@@ -8,7 +8,7 @@ This is the living handoff for the greenfield Passage rebuild. Read `AGENTS.md` 
 
 Paste this into a new Codex chat:
 
-> Passage Release Train: start the durable-auth loop. Continue the Passage Zero greenfield rebuild on `thepassageappio/thepassageappio`, branch `greenfield/passage-zero`, draft PR #24, from QA-approved head `5a6f06e23bac3fd13702ec4a8f6a31d639674a62`. Read `AGENTS.md`, `docs/agent-operating-context.md`, and `docs/product/persona-action-architecture.md` first. The shared event spine, warm editorial redesign, and browser-sandbox organization/location/membership/workspace/assignment/routing contract are complete. Preserve family boundaries and the existing visual system. Do not treat guided workflow readiness as production readiness. Re-instantiate distinct PM, UX, engineering, QA, and deploy roles. Use the cycle-4 what/why/breakage analysis before any migration, then prioritize real authentication, RLS-backed durable multi-user persistence, server-enforced append-only audit, notifications/recovery, and integration reliability. Keep workspace context presentation-only, family access grant-based, and vendor fulfillment queued until the durable authority cutover is verified. Continue without asking Steve except for explicit `AGENTS.md` gates. Verify each batch at desktop, 390, and 360, commit real screenshots, and use one preview deploy per coherent QA-approved batch.
+> Passage Release Train: start the loop. Continue Passage Zero on `greenfield/passage-zero`, draft PR #24, from the latest recorded head and dirty-state inventory. Read `AGENTS.md`, `docs/agent-operating-context.md`, `docs/release-train.md`, the canonical roadmap, persona architecture, and role briefs completely. Passage Zero is the sole feature lane; Threshold/main is reviewed P0/P1 maintenance only. Never push directly to main. Distinct agent roles do not replace separate human GitHub review. Preserve the proven Cycle 7A/7B isolated authority/work evidence and unchanged readiness scores. Cycle 8 remains FAIL/PARTIAL until its rollback-only SQL/RLS matrix passes. Enforce the seven-question plain-language gate, truthful Demo versus Secure Preview labels, human event/status copy, and 1440/390/360 comprehension. Production hydration on six public routes remains a separate P1 hotfix. Continue without asking Steve except for explicit owner gates.
 
 ## Founder mandate
 
@@ -1490,4 +1490,111 @@ Release, SQL, advisor, and responsive gates:
 - Redacted evidence is recorded in `docs/evidence/cycle-7a-auth/2026-07-18-hosted-cycle-7a-redacted-evidence.md` and `docs/evidence/cycle-7a-auth/2026-07-18T13-35-00-0700-cycle-7b-redacted-evidence.md`. No synthetic password, invitation token, share URL, service credential, or raw database dump is committed.
 
 Exact closeout sequence: commit only the timestamped screenshots, redacted evidence, corrected parity ledger, and this context with `[skip deploy]`; push; verify Vercel cancels the skipped commit rather than creating another Preview; update draft PR #24 with exact deployment, QA/Deploy PASS, gates, scope, warnings, and unchanged readiness; then finalize only agent-created browser tabs while preserving the owner's Vercel and Supabase admin sessions. Deploy PASS must auto-advance to PM for the next highest-leverage funeral-home operating slice rather than imply pilot or production readiness.
+
+### Cycle 8 PM Sprint Brief - task-bound Case Room proof loop - 2026-07-18 13:57 -07:00
+
+Prior closeout and role transition:
+
+- Cycle 7A/7B closed at commit `6847076fd194aeaf4fde416ab34ccb0cf2f16e8d`; Vercel deployment `dpl_2Cm33okhvZumAJWzTGC1uUGKXvY8` is correctly `CANCELED` by `[skip deploy]`. Draft PR #24 now records independent QA **PASS**, Deploy **PASS**, exact hosted evidence, unchanged readiness, and Production separation.
+- Product Manager `/root/pm_cycle7a_reverify` auto-advanced after Deploy PASS and received the owner's direction to make the next chunk impactful. PM selected **Cycle 8: Task-bound Case Room Proof Loop** as the highest-leverage two-day slice. UX Review `/root/ux_cycle8_proof_loop` is **IN PROGRESS**. Engineering/Data is **PREFLIGHT ONLY** until UX returns its acceptance bar; no Cycle 8 source, migration, fixture, isolated-hosted state, or deployment has changed.
+
+Sprint goal and user problem:
+
+- Within two focused days, an independently authenticated, currently assigned staff member can open one bounded commitment, submit immutable structured proof, and recover the same truth after reload; an authorized director can verify that proof or request a replacement; both personas see one durable correction/event history without cross-location or cross-organization leakage.
+- Cycle 7B currently stops after `Start work`. The employee cannot record what happened or hand responsibility back, and the director cannot accept/reject an outcome. Passage therefore cannot yet answer what happened, who proved it, who can see it, whether it was accepted, and what happens next.
+
+Requirements and components:
+
+1. Reachable `/staff/work/[taskId]`: viewer-relative Now summary, task facts, one proof action, prior proof/review history, and no director controls; link from `/staff`.
+2. Smallest consistent linked director case/task proof surface, preferably `/director/cases/[workflowId]`: owner/waiting/due state, proof queue, verify/request-replacement action, chronological proof/event history; link from `/director`.
+3. Stable Case Room vocabulary may expose `Now`, `Tasks`, and `Proof`. No fake Updates/chat surface; durable task-bound Updates remain queued.
+4. Add immutable `task_proofs` and append-only `task_proof_reviews`. Proof includes server-derived organization/workflow/task/submitter/time/audience, structured outcome, optional non-secret reference, request identity, and optional `supersedes_proof_id`. Replacement creates a new row; no client updates/deletes prior proof or review.
+5. Add checked, versioned, idempotent submit/review commands in the existing private-command/public-wrapper pattern. Staff submit requires exact active assignment, location grant, and `in_progress`; director review requires managed organization/location. Same-key replay returns the original receipt; conflicting payload or stale version fails without partial state.
+6. State/event spine: submit `in_progress -> proof_submitted` with `task.proof_submitted`; verify `proof_submitted -> completed` with `task.proof_verified`; replacement request `proof_submitted -> in_progress` with `task.proof_replacement_requested`. Server derives actor, scope, time, audience, next owner/action, and event identity.
+7. Failure/recovery: pending controls disable safely; stale/conflict directs reload; changed assignment/revoked authority closes the action; replacement reason and prior proof remain visible; failure states say nothing changed; no optimistic success.
+8. Staff sees only current assigned task/proof scope; director sees only managed locations; family and vendors see none. Workspace selection remains presentation-only.
+
+Documentation-first migration gate:
+
+- **What:** additive isolated migration for proof/review tables, proof lifecycle task status, FKs/indexes/unique command identity, narrow SELECT RLS, no client writes, checked RPC wrappers, append-only protection, and the three event types.
+- **Why:** the frontend must save and review the same durable proof it claims; Cycle 7B ends at `in_progress`.
+- **Breakage if skipped:** completion becomes a visual claim, retries can duplicate proof, directors cannot accept/reject, and correction history cannot be trusted.
+- **Risk/recovery:** preserve the current three-task/eight-event baseline; use migration tooling only on isolated `uyacxqtsiwlvtmhxvoxr`; prohibit Production. Stop on unsafe task-status constraints, RLS recursion/BOLA, public/default function execution, schema drift, duplicate replay, cross-tenant visibility, or inability to establish a real active staff session. Reversal may remove only Cycle 8 objects after dependency checks; fixture cleanup remains DML-only.
+
+Frontend/backend contract matrix:
+
+| Persona action | Reachable UI | Durable/authorized contract | Proof/recovery |
+| --- | --- | --- | --- |
+| Staff reads task/proof history | `/staff/work/[taskId]` | Task/workflow/proof/review/event SELECT under exact assignment + active location | read-only reload truth; denied state reveals no case |
+| Staff submits/replaces proof | staff proof form + Server Action | idempotent submit RPC; immutable proof + task status/version | one submit event; replay stable; stale/former/revoked/cross-task denied |
+| Director reviews proof | linked director case/task proof panel + Server Action | idempotent review RPC; append-only review + task status/version | verified or replacement event; replay stable; wrong scope/conflict denied |
+| Director/staff read history | proof panels + Activity | exact proof/review/event cardinality under existing scope | prior bodies/reviews immutable; family/vendor projection absent |
+
+Acceptance and QA/deploy plan:
+
+- From a recorded Cycle 7B baseline, establish one controlled active synthetic staff identity without erasing retained evidence. Prove assignment/start, one submit + replay, director reload + verify to completed, and a separate replacement/re-submit/verify chain whose prior proof remains immutable.
+- Prove one proof/review/event per unique successful command and zero rows/events/partial task change for wrong organization, wrong location, unassigned, former, revoked, staff-direct-review, cross-task proof/supersedes, stale, conflicting replay, and direct insert/update/delete attempts.
+- Two isolated browser sessions must show owner, waiting party, audience, proof destination, next action, server time, and reload truth with no family/vendor leakage. At 1440/390/360: no overflow, controls at least 48px, visible focus, semantic pending/status/error, and no console/hydration/runtime error.
+- Required gates: parity ledger/checker; Server Action exports; TypeScript; optimized build; runtime/route/deploy; rollback-only SQL/RLS matrix; Supabase advisors; Vercel logs; timestamped screenshots and redacted database/event evidence. One coherent non-production Preview only after independent predeploy QA PASS under the normal gate; no verification exception or deploy chain.
+
+Dependencies, non-goals, risks, and readiness effect:
+
+- Dependencies: current PASS head/PR, canonical exact-branch Preview configuration, isolated lab, existing workflow/task/member/RLS/event spine, migration tooling, two browser contexts, and a controlled active staff user. The original hosted staff is revoked and the alternate lacks an Auth identity, so Engineering must solve this synthetic dependency truthfully rather than hand-wave it.
+- Explicit non-goals: generic chat/Updates composer, realtime, notifications/outbox/external send, Storage/file upload, family-safe proof, D2C/participants, durable intake/Transfer Pass, vendors, integrations, demo reset, Production, pricing/billing, and legal/privacy/security claims.
+- Full PASS deepens the synthetic non-production functional beta and creates the first complete assigned-work-to-verified-outcome loop. It is not an allowlisted pilot and not Production. Funeral home remains reported at **94% guided / 40% operational** until PM separately reconciles completed M2 evidence with the canonical roadmap; D2C remains **85% guided / 25% operational**.
+- No owner gate applies to additive isolated migration, synthetic identity, QA, docs, or one normal QA-approved non-production Preview. Stop for Production, real communications, paid services, irreversible data loss, pricing, or material legal/privacy/security claims.
+
+Exact next role target: UX Review returns the Case Room interaction/accessibility acceptance bar. Engineering then completes source/schema preflight and the what/why/breakage migration candidate; independent SQL QA reviews it before any isolated migration is applied.
+
+Cycle 8 UX and Engineering live handoff:
+
+- UX Review `/root/ux_cycle8_proof_loop`: **PASS for Engineering start**. The fixed experience order is Back -> case/location boundary -> Now -> task facts -> proof action/receipt -> immutable history. Staff copy distinguishes proof submission from completion; director copy distinguishes verify from request replacement; earlier proof never disappears. The approved director route is `/director/cases/[workflowId]`, with task query/anchor presentation-only. Pending, identical replay, stale reload, recoverable failure, denied/revoked/former, cross-task, empty, completed, and durable reload states are mandatory. At 1440 use a restrained dominant-action/supporting-facts composition; at 390/360 use one column with full-width actions and vertical history. Native semantics, announced status/error, visible focus, 48px controls, and no fake Updates/chat are FIX NOW.
+- Engineering created the documentation-first additive migration candidate `supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql`, added proof/review types and optional hosted queries, reachable staff/director Case Room routes, structured staff submission and director review Server Actions/forms, immutable history projections, responsive proof-loop styling, and links from current work surfaces. TypeScript passes on the uncommitted candidate.
+- Independent SQL QA `/root/qa_cycle8_sql` returned **FAIL / DO NOT APPLY** on the first migration draft. It approved the core transaction model but required a stronger isolated-baseline guard, rollback-only Cycle 8 regression, privileged-insert semantic integrity, database anti-branching, a lab-bound append-only reset escape, null normalization, advisor indexes, and explicit proof-pending reassignment behavior.
+- Engineering has corrected the candidate guard to require the exact synthetic organization/location plus 2 workflows, 3 tasks, 8 events, and `NS-2051`; added catalog-collision refusal, active staff/director/location checks in integrity triggers, one-replacement-per-prior uniqueness, missing FK indexes, a postgres + exact-project + exact-sentinel reset boundary, explicit null validation, proof-destination validation, and a proof-pending reassignment guard. These corrections are source-only and have not yet been independently re-reviewed.
+- Current QA state remains **FAIL/PARTIAL**, not release-ready: the complete rollback-only Cycle 8 SQL/RLS/race/reversibility matrix still must be authored and passed before any migration application. No Cycle 8 DDL or DML has touched isolated Supabase, no Preview was created, and Production remains untouched.
+
+Exact next action: Engineering authors the rollback-only Cycle 8 matrix covering preflight/catalog/ACL, submit/review/replacement/replay/conflict/stale/atomicity, supersession, BOLA projections, races, append-only checksums, proof-pending reassignment, cleanup, and advisor expectations. Independent SQL QA then re-reviews both files. Only PASS may authorize applying the additive migration to `uyacxqtsiwlvtmhxvoxr`.
+
+### Owner-requested governance, roadmap, reliability, and plain-language correction - 2026-07-18 14:45 -07:00
+
+Owner request and confirmed audit:
+
+- The owner required the repository learn from and prevent recurrence of four draft PRs with zero human review, self-graded release evidence, a stale red required check, direct-main agent collisions, live hydration failures, contradictory Demo/hosted language, internal persona copy, and roadmap drift.
+- GitHub evidence confirmed PRs #17, #19, #23, and #24 were draft with zero submitted reviews. PR #17's release-train job failed because `## Product Manager scope` did not exactly match `## Product Manager Scope`. Main history confirmed two release commits 2 minutes 49 seconds apart.
+- Live browser QA confirmed React hydration errors `#425`, `#418`, and `#423` on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission`. This is one P1 Threshold/main maintenance incident; it is not Passage Zero progress and has not been fixed in this dirty greenfield worktree.
+- Greenfield browser/source QA confirmed mixed `BROWSER SANDBOX` and database-authority claims, internal terms, raw event names/states, UUID activity targets, fixture/cycle language, and ambiguous consequential buttons. The intermittent reported 30-second `/director` freeze did not reproduce: one direct load was 3.1 seconds and one in-preview navigation was 0.35 seconds with no fresh console errors. It remains a P1 watch item requiring timing/query instrumentation.
+
+Role instances and decisions:
+
+- Product Manager `/root/pm_governance_consolidation`: **COMPLETE**. Passage Zero/PR #24 is the sole feature lane; Threshold/main is reviewed P0/P1 maintenance only. Direct-main agent/schedule pushes, silent red CI, self-review, overlapping greenfield merges, and architecture narration are FIX NOW. Readiness remains funeral home **94% guided / 40% operational** and D2C **85% guided / 25% operational**.
+- UX Review `/root/ux_plain_language_audit`: current preview **FAIL for release / PASS for Engineering start**. Every page must answer where the user is, what needs attention, what to do, what happens next, what is saved, who can see it, and recovery. Browser-only Demo and Secure Preview require distinct truthful labels. Raw enums, UUIDs, internal architecture, fixture/cycle/QA/deploy language, and raw backend errors are prohibited.
+- Documentation/Engineering `/root/engineering_governance_docs`: **COMPLETE**. It updated `AGENTS.md`, `docs/release-train.md`, the canonical roadmap, cutover plan, persona architecture, and new `docs/product/release-governance-and-plain-language-policy.md` without changing Cycle 8 implementation.
+- Engineering `/root`: implemented greenfield release-train controls and the first reachable-copy correction. New PR structure distinguishes drafts from merge-ready evidence, checks for a separate non-author/non-bot approval, fails direct-main pushes, serializes same-target release-train runs, requires context, and blocks the confirmed persona vocabulary regressions. It replaced the mixed environment language, internal director/staff/team/activity copy, UUID activity fallback, and ambiguous browser-only Demo actions on the sampled routes.
+- Independent QA `/root/qa_governance_language`: first returned **PARTIAL/FAIL** because the scanner missed raw enum rendering, historical Threshold language remained executable-sounding, the roadmap reintroduced two-initiative framing, the reviewer check lacked account-type/current-head proof, and candidate-head checkers were tamperable. PM re-scoped FIX NOW; Engineering added explicit human maps and regression fixtures, archived the historical directives, corrected the one-lane roadmap, required current-head `User` approval, and added a trusted base-branch immutable governance workflow. QA re-review is **PASS** for the bounded governance/roadmap/plain-language source slice and authorizes one `[skip deploy]` commit only. It does not authorize Preview, Production, `[qa-approved]`, Cycle 8 migration, or PR #24 merge.
+
+Files and contract changes:
+
+- Governance/docs: `AGENTS.md`, `docs/release-train.md`, `docs/product/operational-readiness-roadmap.md`, `docs/product/passage-zero-cutover-plan.md`, `docs/product/persona-action-architecture.md`, `docs/product/release-governance-and-plain-language-policy.md`, and this context.
+- Enforceable repo controls: `.github/workflows/agent-release-train.yml`, `.github/pull_request_template.md`, `scripts/check-agent-context.js`, `scripts/check-release-train.js`, `scripts/check-independent-review.js`, `scripts/check-persona-language.js`, `scripts/test-release-governance.js`, and `package.json` scripts.
+- Plain-language source: gateway/environment shell, family intent/pass action, receive Preview flow, director intake, hosted director/team/activity, staff landing, invitation entry/creation, and operational access boundary. Existing Cycle 8 proof-loop files remain dirty and uncommitted; no migration was applied.
+- The workflow makes a direct-main push visibly fail, but repository branch protection/rules must still make the check required, require one non-author approval, dismiss stale approvals, resolve conversations, restrict bypass, and block force-push/deletion. That external configuration is an explicit gate, not claimed complete from source files.
+
+Verification completed before independent QA:
+
+- `test:release-governance`: PASS; draft structure, ready completion, and non-author/non-bot human approval behavior proved.
+- `test:persona-language`: PASS against current reachable TSX/JSX sources.
+- Frontend/backend parity and Server Action exports: PASS, 11/11 parity and 10 prohibited export fixtures rejected.
+- TypeScript: PASS.
+- Deploy gate, runtime configuration, and operational route gate: PASS.
+- Optimized Next.js build: PASS; all current routes compiled and page data generated.
+- No browser or hosted PASS is claimed for these uncommitted copy changes. No Preview or Production deployment was created. Production Supabase and Vercel configuration remain untouched.
+
+PR, deployment, and next-role disposition:
+
+- PR #24 remains the draft integration umbrella. It must gain bounded review packets for identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX plus a named separate human reviewer before leaving draft.
+- PR #17 must have its exact heading corrected or be closed with the failure root cause recorded; #17/#19/#23 require diff-based incorporated/unique/superseded disposition against #24. No competing architecture merges independently.
+- Governance and roadmap changes are `[skip deploy]`. The six-route production hydration repair requires a separate clean main-based hotfix PR, independent human review, all-route responsive/hydration/runtime evidence, and post-deploy verification.
+- Cycle 8 remains source-only QA FAIL/PARTIAL. Its migration is not applied and no Cycle 8 deployment is authorized.
+- Exact next role: Deploy records **N/A / no deployment** for the `[skip deploy]` governance commit, verifies its Vercel deployment is canceled, and returns to PM. The immutable workflow must then reach the default branch through a separate reviewed governance PR before branch protection can require it. GitHub branch rules, a named human reviewer, PR dispositions, the clean-main hydration hotfix, and hosted 1440/390/360 copy QA remain subsequent explicit gates.
 

@@ -42,7 +42,7 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
   }
 
   if (configuration.runtime === 'demo' && pathname !== DIRECTOR_INVITATION_PATH) {
-    return <div className={styles.demoBoundary}><div className={styles.demoNotice} role="status"><span>SYNTHETIC DEMO</span><p>Signed in as {viewer.displayName}. Case data below is synthetic and no external messages are sent.</p><form action={signOut}><button type="submit">Sign out</button></form></div>{children}</div>;
+    return <div className={styles.demoBoundary}><div className={styles.demoNotice} role="status"><span>SECURE PREVIEW · CHANGES ARE SAVED</span><p>You’re signed in as {viewer.displayName}. This workspace uses sample information, and no real messages are sent.</p><form action={signOut}><button type="submit">Sign out</button></form></div>{children}</div>;
   }
 
   if (canRenderVerifiedOperationalChild(pathname, configuration)) return children;
@@ -50,15 +50,15 @@ export async function OperationalBoundary({ children, requestedPath, requiredWor
   return (
     <main className={styles.shell} id="main-content">
       <section className={styles.ready} aria-labelledby="workspace-ready-title">
-        <p className={styles.eyebrow}>SERVER-VERIFIED WORKSPACE</p>
-        <h1 id="workspace-ready-title">Your authority is verified.</h1>
-        <p>Passage has verified your team access. Assigned case work is not available for this account yet.</p>
+        <p className={styles.eyebrow}>SECURE PREVIEW</p>
+        <h1 id="workspace-ready-title">You’re signed in.</h1>
+        <p>You can manage team access, but no cases are assigned to this account yet.</p>
         <dl>
           <div><dt>Account</dt><dd>{viewer.displayName}<small>{viewer.email}</small></dd></div>
           <div><dt>Organization</dt><dd>{viewer.organizationName}</dd></div>
           <div><dt>Role</dt><dd>{viewer.role}</dd></div>
           <div><dt>Authorized locations</dt><dd>{viewer.locations.map((location) => location.name).join(' · ')}</dd></div>
-          <div><dt>Data state</dt><dd>Operator records withheld until durable assignment is available</dd></div>
+          <div><dt>Assigned work</dt><dd>No cases assigned yet</dd></div>
         </dl>
         <div className={styles.recovery}>
           {isolatedPreviewInvitationEnabled(configuration) && viewer.role !== 'staff' && <Link href={DIRECTOR_INVITATION_PATH}>Create a controlled staff invitation</Link>}

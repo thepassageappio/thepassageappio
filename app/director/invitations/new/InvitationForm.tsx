@@ -56,7 +56,7 @@ export function InvitationForm({ creationRequestId, organizationName, locations 
   return (
     <form action={action} aria-busy={pending} className={styles.form}>
       <input name="creationRequestId" type="hidden" value={creationRequestId} />
-      <div className={styles.intro}><p className={styles.eyebrow}>DIRECTOR COMMAND · MANUAL DELIVERY</p><h2>Invite one staff member.</h2><p>The selected location becomes the employee’s operational boundary. Family access is never included.</p></div>
+      <div className={styles.intro}><p className={styles.eyebrow}>STAFF INVITATION · MANUAL DELIVERY</p><h2>Invite one staff member.</h2><p>Choose which location this person can access. Family access is never included.</p></div>
       <label>Verified staff email<input autoComplete="off" name="invitedEmail" placeholder="staff@funeralhome.example" required type="email" /></label>
       <label>Authorized location<select defaultValue={locations[0]?.id} name="locationId" required>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><small>Only active locations returned by your verified membership are available.</small></label>
       <label>Purpose<input defaultValue="Team access for this location" maxLength={240} name="purpose" required /></label>

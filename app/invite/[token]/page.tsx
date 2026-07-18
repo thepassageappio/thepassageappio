@@ -82,7 +82,7 @@ export default async function InvitationPage({ params, searchParams }: { params:
               <div><dt>Expires</dt><dd><time dateTime={invitation.invitation_expires_at}>{dateTime(invitation.invitation_expires_at)}</time></dd></div>
             </dl>
 
-            {invitation.invitation_state === 'available' && !user && <div className={styles.nextStep}><strong>Sign in before joining.</strong><p>Passage will compare your server-verified email with this invitation before creating membership.</p><Link className={styles.primaryLink} href={loginPath(invitePath)}>Continue to secure sign-in</Link></div>}
+            {invitation.invitation_state === 'available' && !user && <div className={styles.nextStep}><strong>Sign in before joining.</strong><p>Use the same email address that received this invitation. Passage will confirm it before adding team access.</p><Link className={styles.primaryLink} href={loginPath(invitePath)}>Continue to secure sign-in</Link></div>}
             {invitation.invitation_state === 'available' && user && <form action={acceptInvitation.bind(null, token)} className={styles.nextStep}><strong>Ready to join {invitation.organization_name}?</strong><p>Your role and location scope are read-only. Passage records the actor and authoritative acceptance time.</p><AcceptInvitationButton /></form>}
             {invitation.invitation_state === 'expired' && <p className={styles.alert} role="status">This invitation expired. Ask the funeral-home administrator for a new invitation.</p>}
             {invitation.invitation_state === 'revoked' && <p className={styles.alert} role="status">This invitation was revoked. No access was granted.</p>}

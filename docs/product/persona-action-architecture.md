@@ -112,6 +112,28 @@ Every signed-in surface must provide:
 
 Avoid welcome essays, dashboard card collections, internal jargon, and setup that asks for information before it is needed.
 
+### Plain-language action contract
+
+Every public and persona-facing page must answer these seven questions from its rendered copy alone:
+
+1. Where am I?
+2. What needs my attention?
+3. What do I do now?
+4. What happens after I act?
+5. What will be saved as proof?
+6. Who can see it?
+7. What should I do if it fails or I cannot continue?
+
+The user should not need a walkthrough, tooltip hunt, roadmap history, or knowledge of Passage's architecture to answer them. Put the situation, one primary action, and outcome in the first useful screenful. Put short instructions beside the control they govern. Empty, pending, success, replay, stale, denied, revoked, and failure states each name one safe next action.
+
+Translate internal state into the person's outcome. Public and persona copy must not expose raw UUIDs, database IDs, enum/event keys, fixture identities, cycle labels, QA/deploy/readiness narration, or terms such as `projection`, `authority predicate`, `event spine`, `durable assignment`, `server verified`, or `RLS`. For example, render “Avery started this task” instead of an event key and actor UUID. A support reference may be deliberately revealed only when useful, with a human label and copy action.
+
+Use verbs that match the durable command and keep states distinct: prepared is not reviewed; reviewed is not sent; sent is not delivered; proof submitted is not proof verified; verified is not automatically the same as case complete. The interface must say what changed, what did not change, and who owns the next step.
+
+Environment language must also be human and singular. `Browser-only demo` means state stays in that browser. `Preview workspace` means a non-production hosted build and may use durable synthetic database records. `Functional beta`, `allowlisted pilot`, and `Production` are separate evidence levels. Never show `browser sandbox` beside a durable hosted-authority claim; prefer a boundary such as “Preview workspace—uses synthetic data; no customer records or messages.”
+
+The same comprehension contract is verified at 1440, 390, and 360. Mobile may reflow the layout but cannot hide instructions, visibility, proof, or recovery behind truncation, hover-only help, or desktop-only controls. The full enforcement policy is `docs/product/release-governance-and-plain-language-policy.md`.
+
 ## Personas and their relationship to the record
 
 | Persona | Entry | Default scope | Primary actions | Returns to the spine |

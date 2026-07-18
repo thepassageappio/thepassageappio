@@ -42,6 +42,11 @@ PR #24 must remain draft until:
 5. TypeScript, optimized build, deployment gate, advisors, and 1440/390/360 browser QA pass with timestamped redacted evidence.
 6. Production aliases, environment variables, data migration/backfill, redirects, monitoring, rollback, and support owners are written down.
 7. A final distinct PM -> UX -> Engineering -> QA -> Deploy release train records PASS. Draft status alone is never release authorization.
+8. The implementation has been presented in bounded stacked PRs or named review packets for identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX, with exact dependencies and dispositions for PRs #17, #19, and #23.
+9. At least one human GitHub reviewer who neither authored nor materially implemented the change approves the reviewed packet and final integration. Agent QA, Deploy PASS, self-graded evidence, and multiple roles operated by one automation account do not satisfy this gate.
+10. Every reachable public and persona surface passes the seven-question plain-language and 1440/390/360 comprehension gate in `docs/product/release-governance-and-plain-language-policy.md`, including truthful Demo/Preview/Pilot/Production labeling and removal of raw enums, UUIDs, fixture/cycle labels, and architecture/QA/deploy narration.
+
+Agents and schedules must never push or merge directly to `main`. The Production cutover occurs only through the protected, reviewed PR path with passing required checks and a serialized release job.
 
 ## Frontend/backend convergence rule
 
@@ -50,6 +55,8 @@ Each slice owns one matrix row containing: visible persona action/state; reachab
 ## Production hotfix lane
 
 Current live P0/P1 defects may be fixed on `main` under a separate release train. A hotfix must not extend Threshold IA or redesign scope, change Passage Zero contracts, or be reported as greenfield progress. The hotfix owner records the defect, affected live routes, verification, deployment, and rollback independently from PR #24.
+
+The known hydration failures on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission` are one P1 production-maintenance incident. They require one bounded hotfix branch/PR, independent human review, shared-cause correction, and route-by-route post-deploy console/hydration/runtime proof. No agent or schedule may bypass the PR by committing the fix directly to `main`.
 
 ## Rollback principle
 

@@ -243,7 +243,7 @@ export default function TransferComposer() {
               </button>
             ) : (
               <button className={styles.activate} disabled={activating} onClick={activate} type="button">
-                {activating ? 'Opening pass...' : 'Activate handoff'} <span aria-hidden="true">-&gt;</span>
+                {activating ? 'Creating preview pass...' : 'Create preview pass'} <span aria-hidden="true">-&gt;</span>
               </button>
             )}
           </footer>

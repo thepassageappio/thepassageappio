@@ -9,9 +9,19 @@ This is the App Router/Supabase release loop for Passage Zero. `AGENTS.md` contr
 3. Engineering implements the reachable UI and its server/data/RLS/event/recovery contract together.
 4. Independent QA verifies source, database authority, negative paths, browser behavior, and evidence.
 5. Deploy verifies project, branch, environment scope, release marker, deployment, logs, and post-deploy behavior.
-6. PM scopes the next highest-leverage slice immediately after Deploy PASS/PARTIAL.
+6. A human reviewer who neither authored nor materially implemented the change reviews the bounded PR/packet and approves before any Production merge or promotion.
+7. PM scopes the next highest-leverage slice immediately after Deploy PASS/PARTIAL.
 
-No role may promote its own work to QA PASS. Role instance, received handoff, decision, evidence, failures, and next target belong in the operating context.
+No role may promote its own work to QA PASS. Agent role separation does not substitute for the independent human-review gate. Role instance, received handoff, decision, evidence, failures, next target, PR/packet, and human-review state belong in the operating context.
+
+## Branch, PR, and collision control
+
+- Agents and schedules never push directly to `main`; every change enters through a named branch and pull request.
+- PR #24 is the Passage Zero integration umbrella, not an indivisible review unit. Large work is split into stacked PRs or named review packets with exact dependencies, contract rows, migrations, recovery, tests, and evidence.
+- Overlapping greenfield PRs are dispositioned before merge: incorporate unique bounded work, or label and close them as superseded. They never merge independently without reconciliation.
+- A failing required check is classified in the same cycle as fix now, superseded, or explicitly blocked. Red checks do not age silently because a PR is draft.
+- Production release automation is serialized with a single repository/environment lock. Concurrent schedules may prepare separate branches but may not race a merge, alias, or Production deployment.
+- Repository protections should require passing checks, one non-author human approval, stale-approval dismissal, resolved conversations, restricted bypass, and no force-push or deletion of `main`.
 
 ## Per-slice contract
 
@@ -25,6 +35,8 @@ Every user-visible action or state names:
 - failure, retry, replay, and recovery states;
 - persona projection and privacy boundary;
 - TypeScript/build, database, browser, and parity evidence.
+
+It also answers, in rendered human language: where am I; what needs attention; what do I do now; what happens next; what is saved as proof; who can see it; and what do I do if it fails. Raw enums, UUIDs, fixture/cycle labels, infrastructure identifiers, and internal architecture/QA/deploy narration are release-blocking on public or persona surfaces. The complete copy and environment-label contract is in `docs/product/release-governance-and-plain-language-policy.md`.
 
 `implemented` means the complete reachable contract exists. `backend_only` means the backend is real but no truthful reachable UI exists. `queued` means the complete contract is not built. Dates and mockups never promote status.
 
@@ -42,4 +54,7 @@ Use `[skip deploy]` while integrating source and evidence. Use `[deploy] [qa-app
 - reload/reconnect truth;
 - TypeScript, optimized build, parity, deploy-gate, Supabase advisors, and SQL/RLS tests;
 - 1440, 390, and 360 with no overflow, hydration/console errors, inaccessible focus, or undersized enabled targets;
+- 1440, 390, and 360 comprehension proof: the page purpose, primary action, result, visibility, saved proof, and failure recovery are unambiguous without training or architecture knowledge;
 - timestamped screenshots and redacted database/audit evidence.
+
+Production hydration errors are a P1 release condition. The known shared failure on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission` belongs to one separately reviewed Threshold/main hotfix PR and must pass all six routes before closure; it does not advance Passage Zero readiness.

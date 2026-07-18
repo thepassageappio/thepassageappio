@@ -47,12 +47,12 @@ export default function FamilyIntentJourney() {
           <h1>{copy?.title ?? 'What brings you here?'}<br /><span>{copy?.emphasis ?? 'Choose the path that fits.'}</span></h1>
         </div>
         <div className={styles.familyEntry}>
-          <p>{copy?.body ?? 'Choose planning ahead or immediate help. Both paths keep Sofia’s family record private and lead to the same review-before-sharing boundary.'}</p>
+          <p>{copy?.body ?? 'Choose planning ahead or immediate help. You will review exactly what this preview shares before anything changes on this device.'}</p>
           <div className={styles.entryPaths} aria-label="Choose how to begin">
             <button aria-pressed={intent === 'planning'} onClick={() => chooseIntent('planning')} type="button"><span>Planning ahead</span><small>Prepare a calm, private handoff</small></button>
             <button aria-pressed={intent === 'urgent'} onClick={() => chooseIntent('urgent')} type="button"><span>I need help today</span><small>Share essential details now</small></button>
           </div>
-          {restored && <small className={styles.intentBoundary}>{intent ? 'Change paths anytime. ' : ''}This choice saves guidance on this browser only. It does not create an account or change what is shared.</small>}
+          {restored && <small className={styles.intentBoundary}>{intent ? 'Change paths anytime. ' : ''}Preview demo: this choice stays on this device. It does not create an account, contact anyone, or change a real family record.</small>}
         </div>
       </section>
       <TransferComposer />
