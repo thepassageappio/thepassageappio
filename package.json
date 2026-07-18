@@ -1,20 +1,32 @@
 {
-  "name": "passage-app",
-  "version": "1.0.0",
+  "name": "passage-zero",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test:deploy-gate": "node scripts/test-vercel-ignore-build.js",
+    "test:operational-route-gate": "node scripts/test-operational-route-gate.js",
+    "test:release-governance": "node scripts/test-release-governance.js",
+    "test:persona-language": "node scripts/check-persona-language.js",
+    "test:agent-context": "node scripts/check-agent-context.js",
+    "test:runtime-config": "node scripts/test-runtime-config.js",
     "start": "next start",
-    "agent:check": "node scripts/check-agent-context.js && node scripts/check-release-train.js"
+    "typecheck": "tsc --noEmit",
+    "test:parity": "node scripts/test-frontend-backend-parity.js && node scripts/test-use-server-exports.js",
+    "test:server-actions": "node scripts/test-use-server-exports.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.39.0",
-    "next": "14.2.35",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "@supabase/ssr": "0.12.3",
+    "@supabase/supabase-js": "2.110.7",
+    "next": "16.1.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "playwright": "^1.59.1"
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3"
   }
 }

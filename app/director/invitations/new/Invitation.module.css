@@ -1,0 +1,41 @@
+.page { width: min(920px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 72px; color: var(--ink); }
+.page > header { margin-bottom: 24px; }
+.page > header > a { min-height: 44px; display: inline-flex; align-items: center; color: var(--signal); font-size: 14px; font-weight: 760; }
+.page > header p, .eyebrow { margin: 12px 0 8px; color: var(--signal); font-size: 12px; font-weight: 820; letter-spacing: .14em; }
+.page h1 { max-width: 760px; margin: 0 0 10px; font-family: var(--font-display); font-size: clamp(34px, 6vw, 58px); line-height: .98; letter-spacing: -.04em; }
+.page > header span, .page > footer { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.form, .receipt, .unavailable { padding: clamp(22px, 5vw, 44px); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow-soft); }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.intro, .review, .form > button, .form > .error, .status, .boundary { grid-column: 1 / -1; }
+.intro h2, .receipt h2 { margin: 0 0 8px; font-family: var(--font-display); font-size: clamp(28px, 4vw, 40px); letter-spacing: -.03em; }
+.intro > p:last-child, .receipt > p, .unavailable p { color: var(--muted); font-size: 14px; line-height: 1.65; }
+.form label { display: grid; align-content: start; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 780; letter-spacing: .08em; text-transform: uppercase; }
+.form :is(input, select) { width: 100%; min-height: 48px; padding: 0 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas); color: var(--ink); font: inherit; font-size: 14px; letter-spacing: 0; text-transform: none; }
+.form small { font-size: 12px; font-weight: 500; line-height: 1.5; letter-spacing: 0; text-transform: none; }
+.review { padding: 16px 18px; border: 1px solid color-mix(in srgb, var(--signal) 24%, var(--line)); border-radius: 10px; background: var(--signal-soft); }
+.review strong { font-size: 14px; }
+.review p { margin: 5px 0 0; color: var(--muted); font-size: 14px; }
+.form > button, .primary, .unavailable a { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 24px; padding: 0 18px; border: 1px solid var(--signal); border-radius: 8px; background: var(--signal); color: white; font-size: 14px; font-weight: 780; cursor: pointer; }
+.form > button:disabled { cursor: not-allowed; opacity: .65; }
+.form > button[aria-busy="true"] { cursor: progress; }
+.error { margin: 0; padding: 12px 14px; border-radius: 8px; background: var(--danger-soft); color: var(--danger); font-size: 14px; line-height: 1.5; }
+.status { min-height: 18px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.boundary, .secretNotice { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.receipt dl { display: grid; grid-template-columns: 1fr 1fr; margin: 24px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.receipt dl div { min-width: 0; padding: 13px 15px; border-bottom: 1px solid var(--line); }
+.receipt dl div:nth-child(odd) { border-right: 1px solid var(--line); }
+.receipt dt { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.receipt dd { margin: 5px 0 0; overflow-wrap: anywhere; font-size: 14px; line-height: 1.5; }
+.primary { width: max-content; }
+.secretNotice { margin-top: 12px; }
+.unavailable strong { font-family: var(--font-display); font-size: 28px; }
+.unavailable a { width: max-content; margin-top: 12px; }
+.page > footer { margin-top: 18px; text-align: center; }
+@media (max-width: 600px) {
+  .page { padding-top: 24px; }
+  .form { grid-template-columns: 1fr; }
+  .form > * { grid-column: 1; }
+  .receipt dl { grid-template-columns: 1fr; }
+  .receipt dl div:nth-child(odd) { border-right: 0; }
+  .primary, .unavailable a { width: 100%; }
+}

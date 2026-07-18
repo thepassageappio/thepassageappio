@@ -1,6 +1,12 @@
 #!/usr/bin/env node
+
 const body = String(process.env.PR_BODY || '').replace(/\r/g, '');
-const isPullRequest = String(process.env.GITHUB_EVENT_NAME || '') === 'pull_request';
+const isPullRequest = String(process.env.GITHUB_EVENT_NAME || '') === 'pull_request'
+  || String(process.env.GITHUB_EVENT_NAME || '') === 'pull_request_review';
+const draftState = String(process.env.PR_DRAFT || '').toLowerCase();
+// The legacy main workflow does not pass PR_DRAFT. Treat that bootstrap-only
+// invocation as structure-only; replacement workflows always pass true/false.
+const isDraft = draftState === '' || draftState === 'true';
 
 function fail(message) {
   console.error('Release train check failed:');
@@ -17,41 +23,61 @@ if (!body.trim()) fail('PR body is empty. Use the Passage release train template
 
 const requiredSections = [
   '## Product Manager Scope',
+  '## UX Review',
   '## Development Handoff',
   '## QA Handoff',
+  '## Independent Agent Review',
+  '## Founder Review',
+  '## Production Authorization',
   '## Loop Status',
   '## Deploy Decision',
 ];
+
 for (const section of requiredSections) {
-  if (!body.includes(section)) fail('Missing PR section: ' + section);
+  if (!body.includes(section)) fail(`Missing PR section: ${section}`);
+}
+
+if (isDraft) {
+  console.log('Release train structure passed for draft PR; completion gates remain intentionally open.');
+  process.exit(0);
 }
 
 const requiredCheckedItems = [
   'Product Manager scope completed',
+  'UX review completed',
   'Development handoff completed',
-  'QA handoff completed',
+  'Independent QA handoff completed',
   'Agent context updated',
+  'Independent agent review completed',
+  'Founder review requested',
 ];
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$/g, '\\$');
 }
+
 for (const item of requiredCheckedItems) {
-  const pattern = new RegExp('\\[[xX]\\]\\s*' + escapeRegExp(item));
-  if (!pattern.test(body)) {
-    fail('Before merge/sign-off, check this PR template item: ' + item);
-  }
+  const pattern = new RegExp(`\\[[xX]\\]\\s*${escapeRegExp(item)}`);
+  if (!pattern.test(body)) fail(`Before ready-for-review or merge, check this item: ${item}`);
 }
 
-const qaPass = /QA Status:\s*PASS/i.test(body);
-const deployApproved = /Deploy Decision:\s*APPROVED/i.test(body);
+if (!/UX Status:\s*(PASS|N\/A)/i.test(body)) fail('UX Status must be PASS or N/A.');
+if (!/QA Status:\s*PASS/i.test(body)) fail('QA Status must be PASS. Failed QA returns to Product Manager.');
+if (!/Independent Agent Review Status:\s*PASS/i.test(body)) fail('Independent Agent Review Status must be PASS.');
+const agentReviewerMatch = body.match(/Agent Reviewer:\s*\/?([A-Za-z0-9_\/-]+)/i);
+if (!agentReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(agentReviewerMatch[1])) fail('Name the distinct agent reviewer.');
+const reviewedHead = String((body.match(/Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
+const actualHead = String(process.env.PR_HEAD_SHA || '').toLowerCase();
+if (!actualHead || reviewedHead !== actualHead) fail('Independent Agent Review must match the current PR head SHA.');
+const founderReviewerMatch = body.match(/Founder Reviewer:\s*@?([A-Za-z0-9-]+)/i);
+if (!founderReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(founderReviewerMatch[1])) fail('Name the founder reviewer.');
+if (!/Founder Review:\s*APPROVED/i.test(body)) fail('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
+if (!/Deploy Decision:\s*APPROVED/i.test(body)) fail('Deploy Decision must be APPROVED.');
+
 const cycleMatch = body.match(/Cycle:\s*([0-9]+)/i);
 const cycle = cycleMatch ? Number(cycleMatch[1]) : NaN;
-
 if (!Number.isFinite(cycle) || cycle < 1 || cycle > 3) {
-  fail('Loop Status must include Cycle: 1, 2, or 3. After 3 failed cycles, split/de-scope/escalate instead of deploying.');
+  fail('Loop Status must include Cycle: 1, 2, or 3. After cycle 3, split, de-scope, or escalate.');
 }
 
-if (!qaPass) fail('QA Status must be PASS before merge/sign-off. Failed QA loops back to Product Manager first.');
-if (!deployApproved) fail('Deploy Decision must be APPROVED before merge/sign-off.');
-
-console.log('Release train check passed.');
+console.log('Release train completion gate passed.');

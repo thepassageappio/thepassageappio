@@ -1,289 +1,63 @@
-# Passage Agent Release Train
+# Passage Zero release train
 
-This is the required collaboration loop for Passage agents. It keeps product judgment, implementation, QA, and deployment from collapsing into one rushed step.
+This is the App Router/Supabase release loop for Passage Zero. `AGENTS.md` controls permissions; `docs/product/operational-readiness-roadmap.md` controls priority; `docs/product/frontend-backend-contracts.json` controls frontend/backend parity; `docs/agent-operating-context.md` records the living handoff.
 
-## Why This Exists
+## Required loop
 
-Passage is aiming for an enterprise-grade funeral-home coordination SaaS that can support a $300k ARR business within one year. The product is sensitive, multi-persona, and operationally complex. Agents must preserve the vision, reduce confusion, and prove flows before deployment.
+1. Product Manager writes the bounded Sprint Brief and classifies discovered work.
+2. UX Review sets the responsive, accessible, truthful experience bar.
+3. Engineering implements the reachable UI and its server/data/RLS/event/recovery contract together.
+4. Independent QA verifies source, database authority, negative paths, browser behavior, and evidence.
+5. Deploy verifies project, branch, environment scope, release marker, deployment, logs, and post-deploy behavior.
+6. A distinct Independent Agent Reviewer challenges the exact head and records a required agent-review result. This is automated review, never founder approval.
+7. The founder reviews the current head of a Bot-authored pull request through native GitHub review controls before merge.
+8. Production separately requires founder authorization through the protected Production environment or release gate for the exact approved commit.
+9. PM scopes the next highest-leverage slice immediately after Deploy PASS/PARTIAL.
 
-The required loop for user-facing work is:
+No role may promote its own work to QA PASS. Agent role separation does not substitute for the distinct Independent Agent Review check, founder review, or founder Production authorization. Role instance, received handoff, decision, evidence, failures, next target, PR/packet, agent-review state, founder-review state, and Production-authorization state belong in the operating context.
 
-Product Manager Agent -> UI/UX Review Agent -> Development Engineer Agent -> QA Agent -> Deploy Agent -> repeat.
+## Branch, PR, and collision control
 
-Each named role is a separate agent instance or explicit delegation context. Role separation is required for every loop: PM, UI/UX, Development, QA, and Deploy must not be collapsed into one generic agent judgment. If tooling cannot spawn a separate sub-agent, the agent must still create an explicit role context and record why a true sub-agent was unavailable.
+- Agents and schedules never push directly to `main`; every change enters through a named branch and pull request.
+- After the one-time PR #25 bootstrap, agent and scheduled work is authored only through the dedicated Passage GitHub App/Bot identity. Automation must never use the founder's GitHub User credentials.
+- PR #24 is the Passage Zero integration umbrella, not an indivisible review unit. Large work is split into stacked PRs or named review packets with exact dependencies, contract rows, migrations, recovery, tests, and evidence.
+- Overlapping greenfield PRs are dispositioned before merge: incorporate unique bounded work, or label and close them as superseded. They never merge independently without reconciliation.
+- A failing required check is classified in the same cycle as fix now, superseded, or explicitly blocked. Red checks do not age silently because a PR is draft.
+- Production release automation is serialized with a single repository/environment lock. Concurrent schedules may prepare separate branches but may not race a merge, alias, or Production deployment.
+- Repository protections should require passing current-head checks, the Independent Agent Review check, founder approval of Bot-authored work, stale-approval dismissal, resolved conversations, restricted bypass, and no force-push or deletion of `main`. The protected Production environment separately requires founder authorization.
 
-For backend-only, process-only, docs-only, or invisible API work, record `UX Review: N/A` with the reason and continue through Development, QA, and Deploy as appropriate.
+## Per-slice contract
 
-Dedicated role briefs live here:
+Every user-visible action or state names:
 
-- docs/agents/product-manager.md
-- docs/agents/ui-ux-agent.md
-- docs/agents/development-engineer.md
-- docs/agents/qa-agent.md
-- docs/agents/deploy-agent.md
+- route and component;
+- server-authorized command or query;
+- durable rows and expected cardinality;
+- RLS/authority predicate;
+- append-only event or proof for mutations;
+- failure, retry, replay, and recovery states;
+- persona projection and privacy boundary;
+- TypeScript/build, database, browser, and parity evidence.
 
-If QA fails or development uncovers a scope gap, the loop returns to the Product Manager Agent first.
+It also answers, in rendered human language: where am I; what needs attention; what do I do now; what happens next; what is saved as proof; who can see it; and what do I do if it fails. Raw enums, UUIDs, fixture/cycle labels, infrastructure identifiers, and internal architecture/QA/deploy narration are release-blocking on public or persona surfaces. The complete copy and environment-label contract is in `docs/product/release-governance-and-plain-language-policy.md`.
 
-## Auto-Advance Contract
+`implemented` means the complete reachable contract exists. `backend_only` means the backend is real but no truthful reachable UI exists. `queued` means the complete contract is not built. Dates and mockups never promote status.
 
-The release train should not pause merely because one role has produced a handoff. If the handoff names a next role and the agent has enough context and tool access to advance, continue immediately in the same session.
+## Deployment discipline
 
-Continue immediately by handing off to the next distinct role agent. Do not treat auto-advance as permission for the current role to self-approve the next role's responsibilities.
+Passage Zero builds only from the canonical Vercel project and exact approved branch. Preview environment variables must be branch-scoped; isolated Supabase migrations must use migration tooling; Production values and project `qsveqfchwylsbncsfgxe` are forbidden unless a later owner-approved production release explicitly names them.
 
-A successful `[skip deploy]` commit, push, source-check pass, docs/context handoff, or roadmap update is not a terminal state. It preserves the train state and then immediately returns to the next useful role, usually Product Manager consolidation or the next Development/QA slice. Do not send a final status merely because GitHub is updated; send it only if a true stop condition below exists.
+Use `[skip deploy]` while integrating source and evidence. Use `[deploy] [qa-approved]` only after independent QA PASS. A separately documented verification-preview exception may be used once for hosted evidence when `AGENTS.md` and the operating context authorize it; remove the exception afterward.
 
-Default transitions:
+## QA minimum
 
-- Product Manager scope complete for user-facing work -> UI/UX Review Agent defines the experience acceptance bar.
-- UI/UX PASS or N/A -> Development Engineer implements.
-- UI/UX FAIL or PARTIAL -> Product Manager re-scopes before implementation continues.
-- Development handoff complete -> QA validates.
-- QA PASS -> Deploy Agent prepares or verifies release.
-- QA FAIL or PARTIAL -> Product Manager re-scopes before more development.
-- Deploy READY and post-deploy QA PASS -> Product Manager scopes the next highest-leverage roadmap item.
-- Deploy ERROR, runtime failure, wrong-project deploy, rate-limit gate, or incomplete post-deploy QA -> Product Manager re-scopes the failed or unproven acceptance area before more development.
+- independent browser storage contexts for cross-persona flows;
+- wrong-user, wrong-role, wrong-organization, wrong-location, unassigned, replay, stale-session, and revoked-access denial as applicable;
+- exact durable row/event cardinality and no partial writes;
+- reload/reconnect truth;
+- TypeScript, optimized build, parity, deploy-gate, Supabase advisors, and SQL/RLS tests;
+- 1440, 390, and 360 with no overflow, hydration/console errors, inaccessible focus, or undersized enabled targets;
+- 1440, 390, and 360 comprehension proof: the page purpose, primary action, result, visibility, saved proof, and failure recovery are unambiguous without training or architecture knowledge;
+- timestamped screenshots and redacted database/audit evidence.
 
-A final response to the owner is appropriate only when the current loop is genuinely complete, blocked by an owner-approval gate, blocked by unavailable auth/credentials after safe browser/Chrome/Claude-in-Chrome paths were tried, blocked by a destructive production-data decision, blocked by a Vercel quota reset with no useful source/docs/QA prep remaining, or blocked by legal/compliance/privacy/security judgment. Otherwise the agent should keep moving and record the role transition in docs/agent-operating-context.md.
-
-## User Last Resort
-
-Agents must try safe self-service paths before asking the owner for help. Use the docs, local source review, tests, GitHub/Vercel connectors, browser automation, Chrome state, and, when available, a signed-in Claude session in Chrome to coordinate or research before escalating.
-
-Claude in Chrome may be used for agent-to-agent assistance, cross-checking, research, handoff review, or navigating an already-authenticated browser state. It must not be used to bypass Agent Permissions, reveal secrets, spend money, send real communications, change production data destructively, or decide legal/privacy/security/compliance matters.
-
-If Claude in Chrome is unavailable, blocked, or used, record that in docs/agent-operating-context.md. Owner escalation is valid only after the available self-service paths are unavailable, unsafe, insufficient, or a true owner gate remains.
-
-## Best-Practice Research Contract
-
-Each role performs a best-practice research pass before its handoff is considered complete.
-
-- Product Manager: customer/domain/job-to-be-done, comparable workflow patterns, business fit, roadmap fit, and risk.
-- UI/UX Review: usability heuristics, accessibility, interaction conventions, visual hierarchy, responsive behavior, content clarity, and performance expectations.
-- Development Engineer: official framework/library/API/platform docs, local architecture, security boundaries, and implementation tradeoffs.
-- QA Agent: expected user behavior, accessibility and browser/device risk, regression history, and acceptance-test evidence.
-- Deploy Agent: current Vercel deployment behavior, project state, logs, quota/rate-limit posture, rollback/alias risk, and production verification.
-
-Use repo/source review for stable internal facts. Use current external research for changing or high-risk subjects. Preferred baseline sources for user-facing web work include NN/g's usability heuristics, W3C WCAG 2.2, web.dev Core Web Vitals, and official Vercel docs for deployment behavior. Record the sources checked, assumptions made, and resulting decision in docs/agent-operating-context.md.
-
-## Magic Phrase
-
-Use this exact phrase in any fresh Codex conversation:
-
-`Passage Release Train: start the loop.`
-
-That phrase means:
-
-1. Read AGENTS.md, docs/agent-operating-context.md, and this file before doing work.
-2. Start as Product Manager Agent and assess vision, roadmap, objective, scope, risks, and acceptance criteria.
-3. Create or update the PR handoff using the release train template when code work begins.
-4. Move to UI/UX Review Agent for user-facing work, or record UX Review: N/A with reason for invisible backend/process-only changes.
-5. Move to Development Engineer Agent only after the PM Sprint Brief is COMPLETE and UI/UX acceptance is clear, or UX Review: N/A is recorded.
-6. Move to QA Agent only after development handoff is complete.
-7. Move to Deploy Agent only after QA is PASS or Product Manager approves a PARTIAL as non-blocking.
-8. After Deploy, return to Product Manager if the cycle is complete, failed, partial, blocked by rate limit, or has any unproven post-deploy acceptance area.
-9. Update docs/agent-operating-context.md before handoff, deploy, final response, or role transition.
-10. After any `[skip deploy]` commit/push, continue the next known PM/UI-UX/Development/QA role before ending the turn unless a true owner gate or external blocker prevents useful work.
-
-A shorter acceptable version is: `Start the Passage release train.` If the exact phrase is present, treat it as the stronger instruction.
-
-## Required Start Loop
-
-Every agent starts by reading:
-
-1. AGENTS.md
-2. docs/agent-operating-context.md
-3. docs/release-train.md
-4. the dedicated role brief in docs/agents/ for the role being played
-5. pages/system/admin/saas-roadmap.js when roadmap, sprint, product priority, or persona scope changes
-6. docs/deployment-discipline.md when deployment is possible
-
-Every agent finishes by updating docs/agent-operating-context.md with what changed, what was tested, what failed, deployment state, next action, whether Chrome/Claude-in-Chrome assistance was used, and whether the train auto-advanced or why it could not.
-
-## Product Manager Agent
-
-Owns scope, priority, acceptance, and business fit.
-
-Before development starts, the Product Manager Agent must produce a PM Sprint Brief. Loose notes are not enough. The brief must define:
-
-- Sprint brief status: COMPLETE or BLOCKED.
-- Sprint goal: one measurable objective that creates user or business value.
-- Roadmap item or reason for off-roadmap work.
-- Personas affected.
-- User problem and expected product behavior.
-- Requirements: functional, UX, data/API, privacy/visibility, analytics/proof, and operational requirements.
-- Sprint components: the broken-down slices that Development can implement and QA can verify.
-- Development objectives: files/surfaces likely affected, expected implementation shape, constraints, and explicit non-goals.
-- Acceptance criteria: testable pass/fail statements.
-- Dependencies: data, auth, browser state, external services, feature flags, environment variables, and prior commits.
-- QA plan: source checks, browser/device coverage, persona routes, API/data proof, and regression risks.
-- Deploy plan: source-only, PR-only, preview-ready, or production-release-ready; deploy budget posture; rollback/proof target if production deploy is allowed.
-- Risks, owner approval gates, and non-goals.
-- Which role agents must be created or delegated next.
-- Which self-service paths were tried before any owner escalation.
-- How any unrelated issues found during the loop will be handled: fix now, backlog, roadmap update, watch item, or owner gate.
-
-If development finds a new gap, confusing UX, broken dependency, or risky expansion, work returns here before more coding. The Product Manager decides whether to fix, split, de-scope, rewrite acceptance, or escalate.
-
-If any agent finds an issue unrelated to the active sprint, the loop should not lose it or automatically absorb it. Record the issue, source evidence, affected persona/surface, severity, and Product Manager decision in docs/agent-operating-context.md. Update pages/system/admin/saas-roadmap.js only when the finding changes priority, sprint order, milestone wording, product doctrine, or a meaningful backlog item.
-
-If Deploy records a failed build, runtime failure, post-deploy QA failure, partial verification, rate-limit blocker, or unproven hydrated/authenticated flow, the next Product Manager scope should be the smallest batch that makes that acceptance area provable or decides to split/de-scope it. While rate limited, Product Manager may continue source/docs/QA prep only as [skip deploy].
-
-## Development Engineer Agent
-
-Owns implementation against the Product Manager scope.
-
-The Development Engineer Agent must:
-
-- Implement only the scoped batch.
-- Keep changes consistent with existing product architecture.
-- Avoid new public/internal boundary leaks.
-- Update docs/agent-operating-context.md with files changed, key decisions, and known gaps.
-- Send any unplanned product question back to the Product Manager Agent instead of silently expanding scope.
-
-## UI/UX Review Agent
-
-Owns experience quality for user-facing work before Development starts and again when a visual or interaction change needs review.
-
-The UI/UX Review Agent must:
-
-- Define the experience acceptance bar from the Product Manager scope.
-- Confirm the surface changes the actual workflow, not just copy or styling.
-- Check persona fit, visual hierarchy, information density, responsive behavior, accessibility basics, copy clarity, empty/loading/error states, and one-primary-action structure.
-- Return FAIL or PARTIAL to Product Manager before Development continues when the experience bar is unclear, too cosmetic, visually confusing, inaccessible, or not testable.
-- Record Chrome/browser proof needed for QA when visual behavior matters.
-
-Backend-only, process-only, docs-only, or invisible API changes may record `UX Review: N/A` with a reason.
-
-## QA Agent
-
-Owns validation, persona clarity, and release confidence.
-
-The QA Agent must test against acceptance criteria and the persona affected by the batch. For funeral-home work, this includes director, employee, family, vendor, and reporting/export proof when relevant.
-
-QA must mark one status:
-
-- PASS: acceptance met, no blocker, release can move to deploy decision.
-- FAIL: blocker or unclear UX; return to Product Manager Agent with specific defects.
-- PARTIAL: non-blocking issues exist; Product Manager decides whether to split or release with known follow-up.
-
-QA failures do not go straight back to development. They go to Product Manager first.
-
-Because this repo has no preview environment and all non-release commits are [skip deploy], a green Vercel build is not proof a page renders. Next.js builds do not catch runtime errors. Every release must therefore include a live post-deploy render check: after the [deploy] [qa-approved] build is READY, load each affected persona page in a real browser, confirm it renders without a client-side crash, verify X-Passage-Commit matches the release commit, and log the result in docs/agent-operating-context.md before the cycle is considered closed.
-
-If post-deploy QA is incomplete because browser/auth/demo state is not available, do not mark the loop complete. Try available browser, Chrome, and Claude-in-Chrome self-service paths first. If they still cannot make the QA path runnable, return to Product Manager to scope the smallest useful next step: make the QA path runnable, split the blocked flow from the release, or identify the exact owner-gated credential/action required.
-
-## Deploy Budget Gate
-
-A deploy slot is treated as scarce even if Vercel has remaining quota.
-
-Default Passage budget:
-
-- Maximum one production deploy train per hour.
-- Maximum four deploy-triggering commits per calendar day.
-- Bundle two or three compatible small/medium fixes into one release candidate.
-- Use [skip deploy] for docs, context, roadmap, QA notes, source-only setup, and intermediate batching.
-
-Exceptions are limited to production-down incidents, immediate repair of a broken release, security/privacy/compliance fixes approved under Agent Permissions, or explicit owner quota approval.
-
-If Vercel returns build-rate-limit, deployment-rate-limit, quota, or upgrade-to-Pro, the Deploy Agent must stop creating deploy-triggering commits, record the blocked release and current production commit, and return to Product Manager. Product Manager may keep consolidating source/docs/QA prep with [skip deploy], but the next deploy attempt must wait for the reset window or explicit owner plan/quota action.
-
-## Loop Limit
-
-A release batch gets a maximum of 3 Product Manager -> Development Engineer -> QA cycles.
-
-- Cycle 1 failure: Product Manager re-scopes or clarifies, Development fixes, QA retests.
-- Cycle 2 failure: Product Manager narrows scope or splits risky work from the release.
-- Cycle 3 failure: stop deployment. Product Manager must split, de-scope, or escalate before another release attempt.
-
-Do not deploy a batch that has failed QA three times. Do not keep patching without re-scoping.
-
-## Deploy Agent
-
-Owns release hygiene and production verification.
-
-The Deploy Agent can deploy only when:
-
-- Product Manager scope is complete.
-- Development handoff is complete.
-- QA Status is PASS or Product Manager has explicitly approved a PARTIAL with non-blocking follow-up.
-- docs/agent-operating-context.md is updated.
-- The single website roadmap is updated if priority, sprint, milestone, or product doctrine changed.
-- Vercel project is canonical.
-- No unresolved Vercel rate-limit/quota gate is recorded for the current release train.
-- The release is large enough to spend a deploy slot under the Deploy Budget Gate, or an emergency/owner-approved exception is recorded.
-- The release commit uses [deploy] [qa-approved].
-
-After deployment, the Deploy Agent must record Vercel status, production URL/status, tested flows, failures, and next action in docs/agent-operating-context.md.
-
-Deploy Agent must not end the loop on a partial verification note or a rate-limit note. If production is repaired but hydrated persona QA remains unproven, immediately return to Product Manager to scope the QA enablement/fix batch. If Vercel quota blocks deployment, immediately return to Product Manager to consolidate the next batch while waiting for reset.
-
-## PR Requirements
-
-Each meaningful batch should use a PR with the Passage release train template. The PR remains unapproved until these are true:
-
-- Product Manager scope completed.
-- PM Sprint Brief completed before Development handoff.
-- UI/UX handoff completed for user-facing work, or UX Review: N/A recorded.
-- Development handoff completed.
-- QA handoff completed.
-- QA Status: PASS.
-- Deploy Decision: APPROVED.
-- Deploy Budget Gate satisfied or exception recorded.
-- Cycle is 1, 2, or 3.
-- Agent context updated.
-
-Direct commits to main should be reserved for mechanical setup, emergency build repair, or the current remote-only workflow. Even then, update docs/agent-operating-context.md and use [skip deploy] until the release is QA-approved.
-
-## Failure Handling
-
-When QA fails, record:
-
-- What failed.
-- Persona affected.
-- Expected behavior.
-- Actual behavior.
-- Severity.
-- Whether it blocks deploy.
-- Product Manager decision: fix now, split, de-scope, or escalate.
-
-When development discovers a gap, record:
-
-- Gap.
-- Why it matters.
-- Whether it changes acceptance criteria.
-- Product Manager decision before more implementation.
-
-When any loop discovers an unrelated issue, record:
-
-- Issue and source evidence.
-- Affected persona, page, API, dependency, or process.
-- Severity and whether it blocks the active sprint.
-- Product Manager disposition: fix now, backlog, roadmap update, watch item, or owner gate.
-- Where it was added: docs/agent-operating-context.md only, roadmap, issue/PR, or next-sprint scope.
-
-When Deploy or post-deploy QA is partial, record:
-
-- What deployed or failed to deploy.
-- Which production URLs and commit headers were proven.
-- Which persona flows remain unproven.
-- Why they remain unproven.
-- Product Manager decision for the next smallest cycle.
-
-When Vercel rate limit or quota blocks deployment, record:
-
-- Blocked release commit.
-- Vercel status or target URL.
-- Current production commit and deployment.
-- Reset/owner gate if known.
-- Whether work can continue as [skip deploy] prep.
-
-When owner escalation seems necessary, record:
-
-- The owner gate.
-- Which self-service paths were tried.
-- Whether Claude in Chrome was available or used.
-- Why the remaining decision cannot be made safely by agents.
-
-## Best-Practice Bias
-
-Prefer larger coherent release batches over tiny deploys. Prefer explicit role handoffs over ambiguous agent memory. Prefer one source of truth over scattered roadmaps. Prefer proof over claims. Prefer safe agent/tool self-service over owner interruption.
+Production hydration errors are a P1 release condition. The known shared failure on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission` belongs to one separately reviewed Threshold/main hotfix PR and must pass all six routes before closure; it does not advance Passage Zero readiness.

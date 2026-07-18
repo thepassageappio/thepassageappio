@@ -1,0 +1,72 @@
+name: Passage immutable governance gate
+
+on:
+  pull_request_target:
+    branches: ['**']
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: passage-governance-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
+
+jobs:
+  immutable-governance:
+    name: Evaluate trusted release structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check release handoff from trusted workflow
+        shell: bash
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node <<'NODE'
+          const body = String(process.env.PR_BODY || '').replace(/\r/g, '');
+          const draft = String(process.env.PR_DRAFT).toLowerCase() === 'true';
+          const required = [
+            '## Product Manager Scope',
+            '## UX Review',
+            '## Development Handoff',
+            '## QA Handoff',
+            '## Independent Agent Review',
+            '## Founder Review',
+            '## Production Authorization',
+            '## Loop Status',
+            '## Deploy Decision',
+          ];
+          for (const heading of required) {
+            if (!body.includes(heading)) throw new Error('Missing PR section: ' + heading);
+          }
+          if (draft) {
+            console.log('Draft structure passed; completion gates remain open.');
+            process.exit(0);
+          }
+          const checked = [
+            'Product Manager scope completed',
+            'UX review completed',
+            'Development handoff completed',
+            'Independent QA handoff completed',
+            'Independent agent review completed',
+            'Founder review requested',
+            'Agent context updated',
+          ];
+          for (const item of checked) {
+            const escaped = item.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$/g, '\\$');
+            if (!new RegExp('\\[[xX]\\]\\s*' + escaped).test(body)) throw new Error('Unchecked release item: ' + item);
+          }
+          if (!/UX Status:\s*(PASS|N\/A)/i.test(body)) throw new Error('UX Status must be PASS or N/A.');
+          if (!/QA Status:\s*PASS/i.test(body)) throw new Error('QA Status must be PASS.');
+          if (!/Independent Agent Review Status:\s*PASS/i.test(body)) throw new Error('Independent Agent Review Status must be PASS.');
+          const reviewedHead = String((body.match(/Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
+          const actualHead = String(process.env.PR_HEAD_SHA || '').toLowerCase();
+          if (!actualHead || reviewedHead !== actualHead) throw new Error('Independent Agent Review must match the current PR head SHA.');
+          if (!/Founder Review:\s*APPROVED/i.test(body)) throw new Error('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
+          if (!/Deploy Decision:\s*APPROVED/i.test(body)) throw new Error('Deploy Decision must be APPROVED.');
+          const cycle = Number((body.match(/Cycle:\s*([0-9]+)/i) || [])[1]);
+          if (!Number.isFinite(cycle) || cycle < 1 || cycle > 3) throw new Error('Cycle must be 1, 2, or 3.');
+          console.log('Trusted release structure passed. Native rules enforce founder review; the protected environment enforces Production authorization.');
+          NODE

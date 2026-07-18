@@ -1,18 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "node scripts/vercel-ignore-build.js",
-  "crons": [
-    {
-      "path": "/api/processScheduledDeliveries",
-      "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/processTaskReminders",
-      "schedule": "0 14 * * *"
-    },
-    {
-      "path": "/api/processVendorReminders",
-      "schedule": "0 15 * * *"
-    }
-  ]
+  "ignoreCommand": "node scripts/vercel-ignore-build.js"
 }
