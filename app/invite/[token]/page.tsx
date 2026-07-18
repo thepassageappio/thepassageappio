@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { acceptInvitation } from './actions';
 import { firstRpcRow, type InvitationAcceptance, type InvitationInspection, validInvitationToken } from '@/lib/auth/invitations';
@@ -6,6 +5,7 @@ import { loginPath } from '@/lib/auth/redirects';
 import { verifiedUser } from '@/lib/auth/session';
 import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
 import { createPassageServerClient } from '@/lib/supabase/server';
+import { AcceptInvitationButton } from './AcceptInvitationButton';
 import styles from '../../login/Auth.module.css';
 
 const failureMessages: Record<string, string> = {
@@ -57,15 +57,15 @@ export default async function InvitationPage({ params, searchParams }: { params:
       <header className={styles.brandBar}><Link href="/">PASSAGE</Link><span>{publicRuntimeLabel(configuration.runtime)}</span></header>
       <section className={styles.panel} aria-labelledby="invite-title">
         <p className={styles.eyebrow}>FUNERAL-HOME INVITATION</p>
-        <h1 id="invite-title">Review what youâ€™re joining.</h1>
+        <h1 id="invite-title">Review what you’re joining.</h1>
         <p className={styles.lede}>Your role and locations come from the invitation. Signing in never widens family access.</p>
 
         {(explicitError || stateError) && <div className={styles.unavailable} role="alert"><strong>We could not complete this invitation.</strong><p>{explicitError ?? stateError}</p><Link className={styles.textLink} href={invitePath}>Retry invitation check</Link></div>}
 
         {receipt && (
           <div className={styles.receipt} role="status">
-            <span>MEMBERSHIP VERIFIED</span><h2>Youâ€™re ready to enter your workspace.</h2>
-            <dl><div><dt>Organization</dt><dd>{invitation?.organization_name}</dd></div><div><dt>Locations</dt><dd>{invitation?.location_names.join(' Â· ')}</dd></div><div><dt>Account</dt><dd>{user?.email}</dd></div><div><dt>Role</dt><dd>{receipt.member_role}</dd></div><div><dt>Status</dt><dd>Invitation accepted Â· membership transaction replay verified</dd></div><div><dt>Accepted</dt><dd><time dateTime={receipt.accepted_at}>{dateTime(receipt.accepted_at)}</time></dd></div><div><dt>Next action</dt><dd>Open your assigned work</dd></div></dl>
+            <span>MEMBERSHIP VERIFIED</span><h2>You’re ready to enter your workspace.</h2>
+            <dl><div><dt>Organization</dt><dd>{invitation?.organization_name}</dd></div><div><dt>Locations</dt><dd>{invitation?.location_names.join(' · ')}</dd></div><div><dt>Account</dt><dd>{user?.email}</dd></div><div><dt>Role</dt><dd>{receipt.member_role}</dd></div><div><dt>Status</dt><dd>Invitation accepted · membership transaction replay verified</dd></div><div><dt>Accepted</dt><dd><time dateTime={receipt.accepted_at}>{dateTime(receipt.accepted_at)} · server time</time></dd></div><div><dt>Visible to</dt><dd>The accepting employee and authorized funeral-home directors</dd></div><div><dt>Proof saved to</dt><dd>Organization membership and invitation audit history</dd></div><div><dt>Next action</dt><dd>Open your assigned work</dd></div></dl>
             <Link className={styles.primaryLink} href={receipt.member_role === 'staff' ? '/staff' : '/director'}>{receipt.member_role === 'staff' ? 'Open My work' : 'Open director workspace'}</Link>
           </div>
         )}
@@ -76,13 +76,13 @@ export default async function InvitationPage({ params, searchParams }: { params:
               <div><dt>Invited by</dt><dd>{invitation.inviter_display_name}</dd></div>
               <div><dt>Organization</dt><dd>{invitation.organization_name}</dd></div>
               <div><dt>Role</dt><dd>{invitation.invitation_role}</dd></div>
-              <div><dt>Locations</dt><dd>{invitation.location_names.length ? invitation.location_names.join(' Â· ') : 'No active location scope'}</dd></div>
+              <div><dt>Locations</dt><dd>{invitation.location_names.length ? invitation.location_names.join(' · ') : 'No active location scope'}</dd></div>
               <div><dt>Purpose</dt><dd>{invitation.invitation_purpose}</dd></div>
               <div><dt>Expires</dt><dd><time dateTime={invitation.invitation_expires_at}>{dateTime(invitation.invitation_expires_at)}</time></dd></div>
             </dl>
 
             {invitation.invitation_state === 'available' && !user && <div className={styles.nextStep}><strong>Sign in before joining.</strong><p>Passage will compare your server-verified email with this invitation before creating membership.</p><Link className={styles.primaryLink} href={loginPath(invitePath)}>Continue to secure sign-in</Link></div>}
-            {invitation.invitation_state === 'available' && user && <form action={acceptInvitation.bind(null, token)} className={styles.nextStep}><strong>Ready to join {invitation.organization_name}?</strong><p>Your role and location scope are read-only. Passage records the actor and authoritative acceptance time.</p><button className={styles.primary} type="submit">Accept invitation</button></form>}
+            {invitation.invitation_state === 'available' && user && <form action={acceptInvitation.bind(null, token)} className={styles.nextStep}><strong>Ready to join {invitation.organization_name}?</strong><p>Your role and location scope are read-only. Passage records the actor and authoritative acceptance time.</p><AcceptInvitationButton /></form>}
             {invitation.invitation_state === 'expired' && <p className={styles.alert} role="status">This invitation expired. Ask the funeral-home administrator for a new invitation.</p>}
             {invitation.invitation_state === 'revoked' && <p className={styles.alert} role="status">This invitation was revoked. No access was granted.</p>}
             {invitation.invitation_state === 'accepted' && <p className={styles.notice} role="status">This invitation was already claimed. Sign in with the accepting account or ask the administrator for a new invitation.</p>}
@@ -93,4 +93,3 @@ export default async function InvitationPage({ params, searchParams }: { params:
     </main>
   );
 }
-

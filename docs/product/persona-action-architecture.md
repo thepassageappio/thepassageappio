@@ -27,6 +27,52 @@ actor → purpose → permitted scope → owner → due state
 
 No task is merely complete. Completion creates evidence and advances a named next commitment.
 
+## Ownable product doctrine
+
+Passage should not compete as another funeral-home feature suite, family checklist, memorial site, or generic chat product. Its potentially ownable category is the **continuity and proof layer** between a family, a funeral home, invited participants, care providers, and bounded partners.
+
+The durable differentiation is a coordinated handoff that remains understandable from every permitted point of view:
+
+```text
+one continuity record
+  -> viewer-relative next action
+  -> named owner and waiting party
+  -> Passage-prepared work with a human review boundary
+  -> task-bound communication
+  -> structured, timestamped proof
+  -> named recovery owner when delivery or integration fails
+  -> next handoff without re-keying or lost context
+```
+
+The following capabilities reinforce one another and should be treated as a system, not isolated features:
+
+1. **Viewer-relative shared truth.** Family, director, employee, participant, and partner see different permitted projections of the same case, task, message, proof, and event identifiers. Simplicity never requires copying the record into separate persona databases.
+2. **Handoff receipts.** Transfer Pass acceptance, assignment, message delivery, proof review, and external synchronization each produce an understandable receipt: source, destination, actor, scope, time, resulting owner, and next action.
+3. **Grief-aware work compression.** Passage reduces the number of decisions and follow-ups a grieving person must hold in mind. The family sees one humane next action and what the professional team is already handling; operators keep the underlying workload and risk controls.
+4. **Prepared outcomes, not AI theater.** Passage may prepare a message, request, comparison, checklist, packet, form field set, summary, or escalation. A named human reviews consequential external work, the UI never claims an unsent output was delivered, and the saved event distinguishes preparation from human authorization.
+5. **Proof as a service.** Proof is not a hollow completion badge. It records what happened, who submitted it, authoritative time, source/artifact, audience, verification state, correction history, next owner, and next action. Family-facing proof is translated to the minimum reassuring outcome rather than exposing internal artifacts.
+6. **Coordination health.** Directors should see unowned work, family-wait time, proof gaps, blocked handoffs, staff load, delivery failures, and integration exceptions before they become service failures. These measures should also quantify time saved and avoided follow-up without exposing internal scoring to families.
+7. **Integration truth.** Passage begins as a coordination layer around existing funeral-home systems. Every adapter preserves mappings, destination identifiers, version, last attempt, receipt, exception, retry, and recovery owner. A queued or simulated synchronization is never presented as completed.
+8. **Portable but bounded participation.** A person can invite the right helper, professional, funeral home, or partner for a named purpose, scope, and duration without opening the whole record. Revocation and expiry remain visible and auditable.
+
+These bets create a compounding product moat only when backed by real operational evidence: reusable workflow templates, reliable handoff patterns, verified outcome structures, integration mappings, and aggregate service improvements. Sensitive family data itself is never the moat and is never repurposed beyond the user's permitted scope.
+
+### Stakeholder-agnostic continuity rails
+
+Passage follows the person and the permitted purpose, not the institution that happens to hold the current step. A planning user can become a care recipient; a care handoff can become a funeral-home case; a family coordinator can invite a participant; verified outcomes can continue into disposition, aftercare, and estate work without forcing the family to recreate the story.
+
+Passage becomes the glue by owning a neutral coordination protocol across those boundaries:
+
+- A stable person/continuity identifier inside Passage, with external identifiers mapped per organization rather than merged blindly.
+- Explicit consent and purpose grants for each handoff, including categories, recipient, expiry, revocation, and provenance.
+- A common task/event/proof vocabulary that every adapter and persona projection uses.
+- A portable handoff manifest containing only approved facts, open commitments, documents, contacts, risks, and receipts.
+- Destination acknowledgment: the sender can see that the right organization or person accepted responsibility and who owns the next action.
+- Exception routing: a rejected, expired, duplicate, unavailable, undelivered, or mismatched handoff returns to a named recovery owner instead of disappearing.
+- Open integration boundaries so care systems, funeral-home systems, calendars, communications providers, document tools, and later partner systems can participate without Passage pretending to replace all of them.
+
+Indispensability must come from trusted continuity, lower workload, faster response, and clearer service—not proprietary lock-in. Users must retain understandable access, revocation, export, and correction paths. Organizations should prefer Passage because leaving the coordination layer would reintroduce duplicated intake, invisible waiting, lost proof, and fragmented communication, not because Passage withholds their records.
+
 ## Primary product excellence: the funeral director's right hand
 
 The funeral-home experience is the primary product wedge and must be excellent enough that directors prefer to operate through Passage.

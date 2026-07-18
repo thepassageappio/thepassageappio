@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, type FormEvent } from 'react';
@@ -7,13 +6,14 @@ import { validInvitationToken } from '@/lib/auth/invitations';
 import { getPassageBrowserClient } from '@/lib/supabase/browser';
 import styles from './Auth.module.css';
 
-type LoginClientProps = { next: string; supabaseUrl: string; publishableKey: string; googleEnabled: boolean; emailEnabled: boolean };
+type LoginClientProps = { next: string; supabaseUrl: string; publishableKey: string; googleEnabled: boolean; emailEnabled: boolean; passwordEnabled: boolean };
 
-export function LoginClient({ next, supabaseUrl, publishableKey, googleEnabled, emailEnabled }: LoginClientProps) {
+export function LoginClient({ next, supabaseUrl, publishableKey, googleEnabled, emailEnabled, passwordEnabled }: LoginClientProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [token, setToken] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
 
@@ -56,6 +56,26 @@ export function LoginClient({ next, supabaseUrl, publishableKey, googleEnabled, 
     setBusy(false);
   }
 
+  async function continueWithPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError('');
+    setStatus('');
+    if (!passwordEnabled) {
+      setError('Password sign-in is not available in this environment.');
+      return;
+    }
+    setBusy(true);
+    const client = getPassageBrowserClient(supabaseUrl, publishableKey);
+    const result = await client.auth.signInWithPassword({ email: email.trim(), password });
+    if (result.error || !result.data.session) {
+      setError('Passage could not verify that email and password. No workspace access was granted.');
+      setBusy(false);
+      return;
+    }
+    router.replace(next);
+    router.refresh();
+  }
+
   function openInvitation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const normalized = token.trim();
@@ -68,15 +88,28 @@ export function LoginClient({ next, supabaseUrl, publishableKey, googleEnabled, 
 
   return (
     <div className={styles.actions}>
-      <button className={styles.primary} disabled={busy || !googleEnabled} onClick={continueWithGoogle} type="button">{googleEnabled ? (busy ? 'Opening Googleâ€¦' : 'Continue with Google') : 'Google sign-in unavailable'}</button>
-      <p className={styles.helper}>Passage does not finish sign-in until the account is verified by the server.</p>
-      <div className={styles.divider}><span>or continue with invited email</span></div>
-      <form className={styles.inviteForm} onSubmit={continueWithEmail}>
-        <label htmlFor="sign-in-email">Invited email address</label>
-        <input autoComplete="email" id="sign-in-email" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
-        <button className={styles.secondary} disabled={busy || !emailEnabled} type="submit">{emailEnabled ? 'Request secure email link' : 'Email sign-in unavailable'}</button>
-      </form>
-      <div className={styles.divider}><span>or open an existing invitation</span></div>
+      {(googleEnabled || emailEnabled) ? (
+        <>
+          {googleEnabled && <button className={styles.primary} disabled={busy} onClick={continueWithGoogle} type="button">{busy ? 'Opening Google…' : 'Continue with Google'}</button>}
+          {emailEnabled && <form className={styles.inviteForm} onSubmit={continueWithEmail}>
+            <label htmlFor="sign-in-email">Invited email address</label>
+            <input autoComplete="email" id="sign-in-email" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
+            <button className={styles.secondary} disabled={busy} type="submit">Request secure email link</button>
+          </form>}
+          <p className={styles.helper}>Passage does not finish sign-in until the account is verified by the server.</p>
+          <div className={styles.divider}><span>or open an existing invitation</span></div>
+        </>
+      ) : (
+        <p className={styles.notice} role="status">Email delivery and Google sign-in are not available here. Use the secure account credentials provided by your administrator.</p>
+      )}
+      {passwordEnabled && <form className={styles.inviteForm} onSubmit={continueWithPassword}>
+        <label htmlFor="password-sign-in-email">Work email</label>
+        <input autoComplete="username" id="password-sign-in-email" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
+        <label htmlFor="password-sign-in-password">Password</label>
+        <input autoComplete="current-password" id="password-sign-in-password" onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
+        <button className={styles.primary} disabled={busy} type="submit">{busy ? 'Verifying account…' : 'Sign in securely'}</button>
+      </form>}
+      {passwordEnabled && <div className={styles.divider}><span>or open an invitation first</span></div>}
       <form className={styles.inviteForm} onSubmit={openInvitation}>
         <label htmlFor="invitation-code">Invitation code</label>
         <input autoComplete="off" id="invitation-code" onChange={(event) => setToken(event.target.value)} placeholder="Paste the code from your secure link" value={token} />
@@ -87,4 +120,3 @@ export function LoginClient({ next, supabaseUrl, publishableKey, googleEnabled, 
     </div>
   );
 }
-

@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { safeInternalPath } from '@/lib/auth/redirects';
 import { getRuntimeConfiguration, publicRuntimeLabel } from '@/lib/runtime-config';
@@ -36,11 +35,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <p>{configuration.reason} Your invitation remains unchanged. Try the approved Passage environment or ask your funeral-home administrator for help.</p>
           </div>
         ) : (
-          <LoginClient emailEnabled={configuration.emailAuthEnabled} googleEnabled={configuration.googleAuthEnabled} next={next} publishableKey={configuration.supabasePublishableKey} supabaseUrl={configuration.supabaseUrl} />
+          <LoginClient emailEnabled={configuration.emailAuthEnabled} googleEnabled={configuration.googleAuthEnabled} next={next} passwordEnabled={configuration.passwordAuthEnabled} publishableKey={configuration.supabasePublishableKey} supabaseUrl={configuration.supabaseUrl} />
         )}
         <footer className={styles.privacy}>Passage verifies your identity before showing organization or case information. An invitation does not grant family access.</footer>
       </section>
     </main>
   );
 }
-

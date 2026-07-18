@@ -1,4 +1,3 @@
-
 export type PassageRuntime = 'demo' | 'preview' | 'production';
 
 export type RuntimeConfiguration = {
@@ -8,6 +7,7 @@ export type RuntimeConfiguration = {
   projectRef: string | null;
   googleAuthEnabled: boolean;
   emailAuthEnabled: boolean;
+  passwordAuthEnabled: boolean;
   available: boolean;
   reason: string | null;
 };
@@ -52,7 +52,18 @@ export function getRuntimeConfiguration(): RuntimeConfiguration {
   const urlProjectRef = supabaseUrl ? projectRefFromUrl(supabaseUrl, allowLocal) : null;
   const googleAuthEnabled = process.env.PASSAGE_GOOGLE_AUTH_ENABLED === 'true';
   const emailAuthEnabled = process.env.PASSAGE_EMAIL_AUTH_ENABLED === 'true';
-  const base = { runtime, supabaseUrl, supabasePublishableKey, projectRef: urlProjectRef, googleAuthEnabled, emailAuthEnabled };
+  const passwordAuthEnabled = process.env.PASSAGE_PREVIEW_PASSWORD_AUTH_ENABLED === 'true'
+    && process.env.VERCEL_ENV === 'preview'
+    && runtime === 'preview'
+    && urlProjectRef === 'uyacxqtsiwlvtmhxvoxr';
+  const base = { runtime, supabaseUrl, supabasePublishableKey, projectRef: urlProjectRef, googleAuthEnabled, emailAuthEnabled, passwordAuthEnabled };
+
+  if (process.env.VERCEL_ENV === 'production' && runtime !== 'production') {
+    return { ...base, available: false, reason: 'Production runtime configuration is unavailable.' };
+  }
+  if (process.env.VERCEL_ENV === 'preview' && runtime !== 'preview') {
+    return { ...base, available: false, reason: 'Preview runtime configuration is unavailable.' };
+  }
 
   if (!runtime) {
     return { ...base, available: false, reason: 'Passage runtime is not configured.' };
@@ -76,9 +87,8 @@ export function getRuntimeConfiguration(): RuntimeConfiguration {
 }
 
 export function publicRuntimeLabel(runtime: PassageRuntime | null) {
-  if (runtime === 'demo') return 'Synthetic demo Â· no external messages';
-  if (runtime === 'preview') return 'Preview Â· no external messages';
+  if (runtime === 'demo') return 'Synthetic demo · no external messages';
+  if (runtime === 'preview') return 'Isolated preview · no external messages';
   if (runtime === 'production') return 'Production';
   return 'Environment unavailable';
 }
-

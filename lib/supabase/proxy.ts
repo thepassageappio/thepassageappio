@@ -1,10 +1,12 @@
-
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { OPERATIONAL_PATHNAME_HEADER } from '@/lib/auth/operational-route-gate';
 import { getRuntimeConfiguration } from '@/lib/runtime-config';
 
 export async function refreshPassageSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(OPERATIONAL_PATHNAME_HEADER, request.nextUrl.pathname);
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
   const configuration = getRuntimeConfiguration();
   if (!configuration.available || !configuration.supabaseUrl || !configuration.supabasePublishableKey) return response;
 
@@ -13,7 +15,7 @@ export async function refreshPassageSession(request: NextRequest) {
       getAll: () => request.cookies.getAll(),
       setAll: (values, headers) => {
         values.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
+        response = NextResponse.next({ request: { headers: requestHeaders } });
         values.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
       },
@@ -40,4 +42,3 @@ export async function refreshPassageSession(request: NextRequest) {
   }
   return response;
 }
-

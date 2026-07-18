@@ -199,7 +199,7 @@ Communication belongs to the task spine. A message, vendor request, family updat
 
 ## Roadmap And Planning Rules
 
-The website has one roadmap only: pages/system/admin/saas-roadmap.js, visible at /system/admin/saas-roadmap behind System Admin. Do not create a second roadmap tab, public roadmap, demo roadmap, or persona-facing roadmap.
+The greenfield repository has one roadmap only: `docs/product/operational-readiness-roadmap.md`. It is internal/System-Admin source material and must never appear on public or persona-facing pages. The legacy Pages Router source `pages/system/admin/saas-roadmap.js` does not exist in Passage Zero. When the secure App Router System Admin roadmap surface is implemented, it must render this roadmap or a single structured source extracted from it rather than create a second milestone/percentage set. Do not create a second roadmap tab, public roadmap, demo roadmap, or persona-facing roadmap.
 
 Other admin pages are evidence or tools, not competing plans: Pilot Health, Conversion Plan, Enterprise Readiness, Funeral-home QA, Automation Readiness, Refresh Controls, Abuse Controls, and demo sandboxes.
 
@@ -275,6 +275,7 @@ Agents must not proceed without explicit owner approval for:
 - Do not invent a new system when the task/status/audit pattern can carry the work.
 - Never fake execution states. Unknown means unknown.
 - All real actions should create visible proof: recipient, timestamp, actor, status, and next action.
+- Frontend/backend contract parity is a release gate for every slice. Every user-visible action or state must map to a server-authorized command or query, durable persisted state, the applicable RLS/authority predicate, append-only event or proof where the action changes state, explicit failure/recovery behavior, and the correct persona projection. Backend capability must have a truthful reachable UI or be explicitly documented as internal/queued; the UI must never claim a state the backend cannot prove. PM defines the contract matrix, Engineering maintains both sides in the same slice, and QA rejects either frontend-ahead or backend-ahead drift.
 - Public and persona-facing pages must stay free of internal language.
 - Internal tools belong under System Admin.
 - Verification matters: build, deploy, browser QA, API/data proof, and screenshots where useful.

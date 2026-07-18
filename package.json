@@ -1,4 +1,3 @@
-
 {
   "name": "passage-zero",
   "version": "0.1.0",
@@ -6,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test:deploy-gate": "node scripts/test-vercel-ignore-build.js",
+    "test:operational-route-gate": "node scripts/test-operational-route-gate.js",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:parity": "node scripts/test-frontend-backend-parity.js"

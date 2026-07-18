@@ -1,7 +1,7 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
   "version": 1,
-  "last_updated": "2026-07-17",
+  "last_updated": "2026-07-18",
   "owner_scope_note": "Maintained by the frontend/backend parity enforcement lane only. Does not modify app/, components/, lib/auth/, lib/supabase/, supabase/, vercel.json, or scripts/vercel-ignore-build.js -- those are owned by the Cycle 7A invitation UI / deployment-gate lane.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",
@@ -13,18 +13,33 @@
       "id": "cycle7a.director.create_invitation",
       "cycle": "7A",
       "capability": "Director/owner creates a staff invitation scoped to an organization and one or more locations",
-      "status": "backend_only",
+      "status": "implemented",
       "persona": "director",
       "frontend": {
-        "user_visible": false,
-        "route": null,
-        "component": null,
-        "note": "No app/ route or component currently calls public.create_employee_invitation. The RPC is reachable only via direct call (isolated-lab QA and the PKCE acceptance rehearsal recorded in docs/agent-operating-context.md), not through a director-facing form. This is a real, currently-open frontend/backend parity gap -- it is tracked here so the checker fails loudly if this is ever silently reported as shipped UI."
+        "user_visible": true,
+        "route": "/director/invitations/new",
+        "component": [
+          "app/director/invitations/new/page.tsx",
+          "app/director/invitations/new/InvitationForm.tsx",
+          "app/director/invitations/new/actions.ts"
+        ],
+        "files": [
+          "app/director/invitations/new/page.tsx",
+          "app/director/invitations/new/InvitationForm.tsx",
+          "app/director/invitations/new/actions.ts",
+          "components/auth/OperationalBoundary.tsx",
+          "lib/auth/operational-route-gate.ts"
+        ],
+        "note": "The form is reachable only for an authenticated owner/director on the exact isolated greenfield Preview route. Both the route boundary and Server Action re-check isolated-project configuration, active organization membership, role, and location authority before invoking the command."
       },
-      "action_status": "Invitation lifecycle begins at pending_acceptance on RPC success; no draft/composing UI state exists because no UI exists yet.",
-      "server_command": "public.create_employee_invitation(p_organization_id uuid, p_invited_email text, p_organization_location_ids uuid[], p_purpose text, p_expires_at timestamptz) -> passage_private.create_employee_invitation",
+      "action_status": "ready -> submitting -> pending_acceptance receipt. A first command returns a one-time raw invitation token plus the durable invitation id and persisted created_at; same-key replay returns the same id/timestamp with no raw token or duplicate rows/events.",
+      "server_command": "public.create_employee_invitation_idempotent_v2(p_organization_id uuid, p_invited_email text, p_organization_location_ids uuid[], p_purpose text, p_expires_at timestamptz, p_idempotency_key text) -> passage_private.create_employee_invitation_idempotent_v2",
       "backend_files": [
-        "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql"
+        "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql",
+        "supabase/migrations/20260718032148_cycle_7a_invitation_creation_idempotency.sql",
+        "supabase/migrations/20260718033547_cycle_7a_invitation_idempotency_acl_hardening.sql",
+        "supabase/migrations/20260718105025_cycle_7a_invitation_receipt_timestamp.sql",
+        "app/director/invitations/new/actions.ts"
       ],
       "durable_tables": [
         { "table": "organization_invitations", "cardinality": "one row per invitation; unique token_digest; terminal-state check prevents accepted+revoked simultaneously" },
@@ -38,6 +53,8 @@
         "idempotency_key": "organization_invitation:<id>:created"
       },
       "failure_recovery_states": [
+        "route-disabled outside the exact isolated Preview runtime, on the wrong project ref, or when password Preview auth is disabled",
+        "same-user retry uses the same idempotency key and returns the original durable id/created_at without exposing the one-time token again",
         "already-active-member (Postgres 23505: 'This person is already an active organization member')",
         "missing active organization membership / actor authority (Postgres 42501)",
         "environment-unavailable (Supabase client cannot be constructed, e.g. missing env vars)"
@@ -45,6 +62,8 @@
       "persona_projection": "Visible only to the inviting owner/director's organization; invited_email and purpose are never exposed to family, staff, or vendor personas. The select policy restricts rows to invited_by_user_id, accepted_by_user_id, or passage_private.can_manage_invitation(id).",
       "evidence_test_references": [
         "supabase/migrations/20260716035414_cycle_7a_invited_employee_foundation.sql",
+        "supabase/migrations/20260718105025_cycle_7a_invitation_receipt_timestamp.sql",
+        "scripts/test-operational-route-gate.js",
         "docs/agent-operating-context.md"
       ]
     },
