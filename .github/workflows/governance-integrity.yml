@@ -4,34 +4,36 @@ on:
   pull_request_target:
     branches: ['**']
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
 
 concurrency:
-  group: passage-governance-${{ github.event.pull_request.base.ref }}
+  group: passage-governance-${{ github.event.pull_request.number || github.event.merge_group.head_sha || github.run_id }}
   cancel-in-progress: false
 
 jobs:
   immutable-governance:
-    name: Evaluate trusted release structure
+    name: Passage Governance / trusted-contract
     runs-on: ubuntu-latest
     steps:
       - name: Checkout trusted base commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
           persist-credentials: false
           fetch-depth: 1
 
       - name: Check release handoff with trusted base checker
         env:
-          GITHUB_EVENT_NAME: pull_request
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
           PR_ACTION: ${{ github.event.action }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_DRAFT: ${{ github.event.pull_request.draft }}
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
         run: node scripts/check-release-train.js

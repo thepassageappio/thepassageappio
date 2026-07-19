@@ -22,6 +22,11 @@ function fail(message) {
   process.exit(1);
 }
 
+if (eventName === 'merge_group') {
+  console.log('Merge-group check uses the exact merge-group SHA; PR-body review remains enforced on the pull request.');
+  process.exit(0);
+}
+
 if (eventName !== 'pull_request') {
   console.log('Release train PR check skipped for non-PR event.');
   process.exit(0);
@@ -29,8 +34,6 @@ if (eventName !== 'pull_request') {
 
 if (!body.trim()) fail('PR body is empty. Use the Passage release train template.');
 
-// The payload fallback keeps the pre-governance main workflow compatible without
-// weakening the contract: GitHub's immutable event file supplies every omitted field.
 const draftState = String(process.env.PR_DRAFT || (pullRequest.draft ?? '')).toLowerCase();
 if (!['true', 'false'].includes(draftState)) fail('PR_DRAFT must be exactly true or false.');
 const isDraft = draftState === 'true';
@@ -56,56 +59,25 @@ const requiredSections = [
   '## Product Manager Scope',
   '## UX Review',
   '## Development Handoff',
-  '## QA Handoff',
-  '## Independent Agent Review',
-  '## Founder Review',
-  '## Production Authorization',
+  '## Independent QA',
+  '## Dedicated Merge Review',
+  '## Production Review',
+  '## Owner Gate',
   '## Loop Status',
   '## Deploy Decision',
 ];
 
+function countExactLine(line) {
+  const escaped = line.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return (body.match(new RegExp(`^${escaped}$`, 'gm')) || []).length;
+}
+
 for (const section of requiredSections) {
-  const count = (body.match(new RegExp(`^${section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'gm')) || []).length;
-  if (count !== 1) fail(`PR section must appear exactly once: ${section}`);
-}
-
-const START = '<!-- PASSAGE_REVIEW_ATTESTATION_START -->';
-const END = '<!-- PASSAGE_REVIEW_ATTESTATION_END -->';
-
-function countLiteral(value, literal) {
-  return value.split(literal).length - 1;
-}
-
-function parseAttestation() {
-  if (countLiteral(body, START) !== 1 || countLiteral(body, END) !== 1) {
-    fail('The review attestation must contain exactly one start marker and one end marker.');
-  }
-  const start = body.indexOf(START);
-  const end = body.indexOf(END);
-  if (end <= start) fail('The review attestation markers are out of order.');
-  const lines = body.slice(start + START.length, end).split('\n').map((line) => line.trim()).filter(Boolean);
-  const fields = [
-    ['Reviewed Base Ref', /^(?:UNASSIGNED|[^\s]+)$/],
-    ['Reviewed Base SHA', /^(?:UNASSIGNED|[0-9a-f]{40})$/i],
-    ['Reviewed Head SHA', /^(?:UNASSIGNED|[0-9a-f]{40})$/i],
-    ['Independent Agent Review Status', /^(?:NOT RUN|PASS|FAIL)$/],
-  ];
-  if (lines.length !== fields.length) fail('The review attestation must contain exactly four ordered fields.');
-  const result = {};
-  for (let index = 0; index < fields.length; index += 1) {
-    const [label, valuePattern] = fields[index];
-    const match = lines[index].match(new RegExp(`^${label}:\\s*(.+)$`));
-    if (!match || !valuePattern.test(match[1])) fail(`Invalid or out-of-order attestation field: ${label}.`);
-    const wholeBodyCount = (body.match(new RegExp(`^${label}:`, 'gm')) || []).length;
-    if (wholeBodyCount !== 1) fail(`Attestation field must appear exactly once: ${label}.`);
-    result[label] = match[1];
-  }
-  return result;
+  if (countExactLine(section) !== 1) fail(`PR section must appear exactly once: ${section}`);
 }
 
 function oneStatus(label, allowed) {
-  const pattern = new RegExp(`^- ${label}:\\s*(.+)$`, 'gm');
-  const matches = [...body.matchAll(pattern)];
+  const matches = [...body.matchAll(new RegExp(`^- ${label}:\\s*(.+)$`, 'gm'))];
   if (matches.length !== 1) fail(`${label} must appear exactly once as an anchored status field.`);
   const value = matches[0][1].trim();
   if (!allowed.includes(value)) fail(`${label} has an invalid value: ${value}.`);
@@ -121,21 +93,26 @@ function oneField(label, valuePattern) {
 }
 
 function oneCheckbox(label) {
-  const matches = [...body.matchAll(new RegExp(`^- \\[([ xX])\\] ${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'gm'))];
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const matches = [...body.matchAll(new RegExp(`^- \\[([ xX])\\] ${escaped}$`, 'gm'))];
   if (matches.length !== 1) fail(`${label} checkbox must appear exactly once.`);
   return matches[0][1].toLowerCase() === 'x';
 }
 
-if (/^\s*-?\s*Bootstrap Exception:/m.test(body)) fail('Bootstrap exceptions are expired and prohibited.');
-const attestation = parseAttestation();
+if (/Founder Review|Founder Reviewer|NATIVE APPROVAL REQUIRED|Independent Agent Review Status|Reviewed Head SHA|material implementer|human reviewer/i.test(body)) {
+  fail('Founder or human merge-review inference is prohibited. Use the dedicated exact-head Review App check.');
+}
+
 const uxStatus = oneStatus('UX Status', ['NOT RUN', 'PASS', 'FAIL', 'PARTIAL', 'N/A']);
 const qaStatus = oneStatus('QA Status', ['NOT RUN', 'PASS', 'FAIL', 'PARTIAL']);
-const founderReview = oneStatus('Founder Review', ['NATIVE APPROVAL REQUIRED']);
-const productionAuthorization = oneStatus('Founder Production Authorization', ['APPROVED', 'NOT APPROVED']);
+const mergeReview = oneStatus('Dedicated Merge Review', ['REQUIRED CHECK']);
+const productionReview = oneStatus('Production Review', ['NOT REQUESTED', 'REQUIRED CHECK']);
+const ownerGate = oneStatus('Owner Gate', ['NOT REQUIRED', 'REQUIRED', 'APPROVED']);
 const deployDecision = oneStatus('Deploy Decision', ['APPROVED', 'NOT APPROVED']);
-const agentReviewer = oneField('Agent Reviewer', /^(?:UNASSIGNED|\/?[A-Za-z0-9_\/-]+)$/);
-const founderReviewer = oneField('Founder Reviewer', /^@?[A-Za-z0-9-]+$/);
-const cycleValue = oneField('Cycle', /^[1-3]$/);
+const requiredCheck = oneField('Required check', /^`Passage Review Agent \/ merge-review`$/);
+oneField('Expected source', /^Passage Release Reviewer GitHub App$/);
+oneField('Required release check', /^`Passage Production Review \/ release-readiness`$/);
+const cycleValue = oneField('Cycle', /^[1-9][0-9]*$/);
 
 const checkboxItems = [
   'Product Manager scope completed',
@@ -143,26 +120,18 @@ const checkboxItems = [
   'Development handoff completed',
   'Independent QA handoff completed',
   'Agent context updated',
-  'Independent agent review completed',
-  'Founder review requested',
 ];
 const checkboxState = new Map(checkboxItems.map((item) => [item, oneCheckbox(item)]));
 
+if (mergeReview !== 'REQUIRED CHECK' || requiredCheck !== '`Passage Review Agent / merge-review`') {
+  fail('Dedicated Merge Review must remain an external required check, not a PR-body assertion.');
+}
+
 if (isDraft) {
-  if (attestation['Independent Agent Review Status'] !== 'NOT RUN') fail('Draft review status must be NOT RUN.');
-  const draftBindings = [
-    ['Reviewed Base Ref', actualBaseRef],
-    ['Reviewed Base SHA', actualBaseSha],
-    ['Reviewed Head SHA', actualHeadSha],
-  ];
-  for (const [field, actual] of draftBindings) {
-    const value = attestation[field].toLowerCase();
-    if (value !== 'unassigned' && value !== actual.toLowerCase()) fail(`Draft ${field} conflicts with the current PR event.`);
+  if (productionReview !== 'NOT REQUESTED' || deployDecision !== 'NOT APPROVED') {
+    fail('Draft PRs cannot claim Production review or deploy approval.');
   }
-  if (productionAuthorization !== 'NOT APPROVED' || deployDecision !== 'NOT APPROVED') {
-    fail('Draft PRs cannot claim Production or deploy approval.');
-  }
-  console.log('Release train structure passed for draft PR; completion gates remain open.');
+  console.log('Release train structure passed for draft PR; external completion gates remain open.');
   process.exit(0);
 }
 
@@ -172,15 +141,7 @@ for (const item of checkboxItems) {
 
 if (!['PASS', 'N/A'].includes(uxStatus)) fail('UX Status must be PASS or N/A.');
 if (qaStatus !== 'PASS') fail('QA Status must be PASS. Failed QA returns to Product Manager.');
-if (attestation['Independent Agent Review Status'] !== 'PASS') fail('Independent Agent Review Status must be PASS.');
-if (attestation['Reviewed Base Ref'] !== actualBaseRef) fail('Independent Agent Review must match the current PR base ref.');
-if (attestation['Reviewed Base SHA'].toLowerCase() !== actualBaseSha) fail('Independent Agent Review must match the current PR base SHA.');
-if (attestation['Reviewed Head SHA'].toLowerCase() !== actualHeadSha) fail('Independent Agent Review must match the current PR head SHA.');
+if (ownerGate === 'REQUIRED') fail('A required owner gate must be resolved before merge.');
+if (!Number.isFinite(Number(cycleValue))) fail('Loop Status must include a positive cycle number.');
 
-if (/^(UNASSIGNED|TBD|NONE)$/i.test(agentReviewer)) fail('Name the distinct agent reviewer.');
-if (/^@?(UNASSIGNED|TBD|NONE)$/i.test(founderReviewer)) fail('Name the founder reviewer.');
-if (founderReview !== 'NATIVE APPROVAL REQUIRED') fail('Founder review must remain a native GitHub approval gate, never a body assertion.');
-if (deployDecision !== 'APPROVED') fail('Deploy Decision must be APPROVED.');
-if (!Number.isFinite(Number(cycleValue))) fail('Loop Status must include Cycle: 1, 2, or 3.');
-
-console.log('Release train completion gate passed.');
+console.log('Release train structure passed; GitHub required checks remain authoritative.');

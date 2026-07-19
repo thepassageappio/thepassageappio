@@ -4,7 +4,7 @@
 - Roadmap item:
 - Personas and user problem:
 - Acceptance criteria:
-- Risks and owner gates:
+- Risks and true owner gates:
 
 ## UX Review
 
@@ -19,36 +19,29 @@
 - Files and contracts changed:
 - Known gaps returned to Product Manager:
 
-## QA Handoff
+## Independent QA
 
 - [ ] Independent QA handoff completed
 - QA Status: NOT RUN
 - Functional, authority, recovery, responsive, accessibility, hydration, and runtime evidence:
 
-## Independent Agent Review
+## Dedicated Merge Review
 
-- [ ] Independent agent review completed
-- Agent Reviewer: UNASSIGNED
+- Dedicated Merge Review: REQUIRED CHECK
+- Required check: `Passage Review Agent / merge-review`
+- Expected source: Passage Release Reviewer GitHub App
+- Findings and disposition: SEE CHECK RUN
 
-<!-- PASSAGE_REVIEW_ATTESTATION_START -->
-Reviewed Base Ref: UNASSIGNED
-Reviewed Base SHA: UNASSIGNED
-Reviewed Head SHA: UNASSIGNED
-Independent Agent Review Status: NOT RUN
-<!-- PASSAGE_REVIEW_ATTESTATION_END -->
+## Production Review
 
-- Findings and disposition:
+- Production Review: NOT REQUESTED
+- Required release check: `Passage Production Review / release-readiness`
+- Release evidence: NONE
 
-## Founder Review
+## Owner Gate
 
-- [ ] Founder review requested
-- Founder Reviewer: @thepassageappio
-- Founder Review: NATIVE APPROVAL REQUIRED
-
-## Production Authorization
-
-- Founder Production Authorization: NOT APPROVED
-- Protected environment or release evidence: NONE
+- Owner Gate: NOT REQUIRED
+- Gate reason or recorded approval: NONE
 
 ## Loop Status
 

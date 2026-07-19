@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "author": {
+    "app_slug": "passage-release-bot",
+    "app_id": 4336683,
+    "login": "passage-release-bot[bot]",
+    "may_write_checks": false,
+    "may_merge": false
+  },
+  "merge_review": {
+    "app_slug": "passage-release-reviewer",
+    "app_id": 4340300,
+    "installation_id": 147645985,
+    "check": "Passage Review Agent / merge-review",
+    "permissions": {
+      "metadata": "read",
+      "contents": "read",
+      "pull_requests": "read",
+      "checks": "write"
+    },
+    "may_write_contents": false,
+    "may_write_pull_requests": false,
+    "may_merge": false,
+    "may_deploy": false
+  },
+  "production_review": {
+    "check": "Passage Production Review / release-readiness",
+    "separate_identity_required": true,
+    "may_deploy": false
+  }
+}

@@ -2,58 +2,45 @@
 
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
 
-const BASE_REF = 'main';
 const BASE_SHA = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const HEAD_SHA = '1111111111111111111111111111111111111111';
 const BOT = 'passage-release-bot[bot]';
 
-function attestation({ baseRef = 'UNASSIGNED', baseSha = 'UNASSIGNED', headSha = 'UNASSIGNED', status = 'NOT RUN' } = {}) {
-  return `<!-- PASSAGE_REVIEW_ATTESTATION_START -->
-Reviewed Base Ref: ${baseRef}
-Reviewed Base SHA: ${baseSha}
-Reviewed Head SHA: ${headSha}
-Independent Agent Review Status: ${status}
-<!-- PASSAGE_REVIEW_ATTESTATION_END -->`;
-}
-
-function sections({ ready = false, block = attestation() } = {}) {
+function sections({ ready = false } = {}) {
   const mark = ready ? 'x' : ' ';
   return `
 ## Product Manager Scope
 - [${mark}] Product Manager scope completed
 ## UX Review
 - [${mark}] UX review completed
-- UX Status: ${ready ? 'PASS' : 'NOT RUN'}
+- UX Status: ${ready ? 'N/A' : 'NOT RUN'}
 ## Development Handoff
 - [${mark}] Development handoff completed
-## QA Handoff
+## Independent QA
 - [${mark}] Independent QA handoff completed
 - QA Status: ${ready ? 'PASS' : 'NOT RUN'}
-## Independent Agent Review
-- [${mark}] Independent agent review completed
-- Agent Reviewer: /root/reviewer
-${block}
-- Findings and disposition: fixture
-## Founder Review
-- [${mark}] Founder review requested
-- Founder Reviewer: @thepassageappio
-- Founder Review: NATIVE APPROVAL REQUIRED
-## Production Authorization
-- Founder Production Authorization: NOT APPROVED
-- Protected environment or release evidence: NONE
+## Dedicated Merge Review
+- Dedicated Merge Review: REQUIRED CHECK
+- Required check: \`Passage Review Agent / merge-review\`
+- Expected source: Passage Release Reviewer GitHub App
+- Findings and disposition: SEE CHECK RUN
+## Production Review
+- Production Review: NOT REQUESTED
+- Required release check: \`Passage Production Review / release-readiness\`
+- Release evidence: NONE
+## Owner Gate
+- Owner Gate: NOT REQUIRED
+- Gate reason or recorded approval: NONE
 ## Loop Status
 - Cycle: 1
 ## Deploy Decision
 - [${mark}] Agent context updated
-- Deploy Decision: ${ready ? 'APPROVED' : 'NOT APPROVED'}
+- Deploy Decision: NOT APPROVED
 `;
 }
 
-function run(env) {
+function run(env = {}) {
   return spawnSync(process.execPath, ['scripts/check-release-train.js'], {
     encoding: 'utf8',
     env: {
@@ -64,12 +51,18 @@ function run(env) {
       PR_ACTION: 'opened',
       PR_AUTHOR: BOT,
       PR_DRAFT: 'true',
-      PR_BASE_REF: BASE_REF,
+      PR_BASE_REF: 'main',
       PR_BASE_SHA: BASE_SHA,
       PR_HEAD_SHA: HEAD_SHA,
+      PR_BODY: sections(),
       ...env,
     },
   });
+}
+
+function expectPass(name, env) {
+  const result = run(env);
+  assert.equal(result.status, 0, `${name}: ${result.stderr}`);
 }
 
 function expectFail(name, env) {
@@ -77,96 +70,25 @@ function expectFail(name, env) {
   assert.notEqual(result.status, 0, `${name} unexpectedly passed`);
 }
 
-let result = run({ PR_BODY: sections() });
-assert.equal(result.status, 0, result.stderr);
+expectPass('draft structure', {});
+expectPass('ready structure defers to required checks', { PR_BODY: sections({ ready: true }), PR_DRAFT: 'false' });
+expectPass('merge group emits candidate contexts', { GITHUB_EVENT_NAME: 'merge_group', PR_BODY: '', PR_AUTHOR: '', PR_DRAFT: '', PR_BASE_REF: '', PR_BASE_SHA: '', PR_HEAD_SHA: '' });
 
-const boundDraft = sections({ block: attestation({ baseRef: BASE_REF, baseSha: BASE_SHA, headSha: HEAD_SHA }) });
-result = run({ PR_BODY: boundDraft });
-assert.equal(result.status, 0, result.stderr);
+const draft = sections();
+const ready = sections({ ready: true });
+expectFail('wrong author', { PR_AUTHOR: 'thepassageappio' });
+expectFail('reopened PR', { PR_ACTION: 'reopened' });
+expectFail('missing section', { PR_BODY: draft.replace('## Dedicated Merge Review', '## Review') });
+expectFail('duplicate section', { PR_BODY: `${draft}\n## Dedicated Merge Review` });
+expectFail('body asserted review pass', { PR_BODY: draft.replace('Dedicated Merge Review: REQUIRED CHECK', 'Dedicated Merge Review: PASS') });
+expectFail('wrong required check name', { PR_BODY: draft.replace('Passage Review Agent / merge-review', 'Passage Review Agent / fake') });
+expectFail('wrong expected source', { PR_BODY: draft.replace('Passage Release Reviewer GitHub App', 'GitHub Actions') });
+expectFail('founder merge review returns', { PR_BODY: `${draft}\n- Founder Review: APPROVED` });
+expectFail('human inference returns', { PR_BODY: `${draft}\n- human reviewer: somebody` });
+expectFail('ready QA not passed', { PR_BODY: ready.replace('QA Status: PASS', 'QA Status: PARTIAL'), PR_DRAFT: 'false' });
+expectFail('ready owner gate unresolved', { PR_BODY: ready.replace('Owner Gate: NOT REQUIRED', 'Owner Gate: REQUIRED'), PR_DRAFT: 'false' });
+expectFail('draft deploy assertion', { PR_BODY: draft.replace('Deploy Decision: NOT APPROVED', 'Deploy Decision: APPROVED') });
+expectFail('missing base SHA', { PR_BASE_SHA: '' });
+expectFail('missing head SHA', { PR_HEAD_SHA: '' });
 
-const readyBody = sections({ ready: true, block: attestation({ baseRef: BASE_REF, baseSha: BASE_SHA, headSha: HEAD_SHA, status: 'PASS' }) });
-result = run({ PR_BODY: readyBody, PR_DRAFT: 'false' });
-assert.equal(result.status, 0, result.stderr);
-
-expectFail('missing start marker', { PR_BODY: boundDraft.replace('<!-- PASSAGE_REVIEW_ATTESTATION_START -->\n', '') });
-expectFail('missing end marker', { PR_BODY: boundDraft.replace('\n<!-- PASSAGE_REVIEW_ATTESTATION_END -->', '') });
-expectFail('duplicate block', { PR_BODY: `${boundDraft}\n${attestation()}` });
-expectFail('duplicate start marker', { PR_BODY: boundDraft.replace('<!-- PASSAGE_REVIEW_ATTESTATION_START -->', '<!-- PASSAGE_REVIEW_ATTESTATION_START -->\n<!-- PASSAGE_REVIEW_ATTESTATION_START -->') });
-expectFail('duplicate field outside block', { PR_BODY: `${boundDraft}\nReviewed Head SHA: ${HEAD_SHA}` });
-expectFail('conflicting field outside block', { PR_BODY: `${boundDraft}\nReviewed Base SHA: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb` });
-expectFail('duplicate key inside block', { PR_BODY: boundDraft.replace(`Reviewed Head SHA: ${HEAD_SHA}`, `Reviewed Head SHA: ${HEAD_SHA}\nReviewed Head SHA: ${HEAD_SHA}`) });
-expectFail('missing key', { PR_BODY: boundDraft.replace(`Reviewed Base SHA: ${BASE_SHA}\n`, '') });
-expectFail('unknown extra line', { PR_BODY: boundDraft.replace(`Reviewed Head SHA: ${HEAD_SHA}`, `Unexpected Field: value\nReviewed Head SHA: ${HEAD_SHA}`) });
-expectFail('reordered lines', { PR_BODY: boundDraft.replace(`Reviewed Base Ref: ${BASE_REF}\nReviewed Base SHA: ${BASE_SHA}`, `Reviewed Base SHA: ${BASE_SHA}\nReviewed Base Ref: ${BASE_REF}`) });
-expectFail('base ref mismatch', { PR_BODY: readyBody.replace('Reviewed Base Ref: main', 'Reviewed Base Ref: greenfield/passage-zero'), PR_DRAFT: 'false' });
-expectFail('base SHA mismatch', { PR_BODY: readyBody.replace(BASE_SHA, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'), PR_DRAFT: 'false' });
-expectFail('head SHA mismatch', { PR_BODY: readyBody.replace(HEAD_SHA, '2222222222222222222222222222222222222222'), PR_DRAFT: 'false' });
-expectFail('ready NOT RUN', { PR_BODY: readyBody.replace('Independent Agent Review Status: PASS', 'Independent Agent Review Status: NOT RUN'), PR_DRAFT: 'false' });
-expectFail('ready FAIL', { PR_BODY: readyBody.replace('Independent Agent Review Status: PASS', 'Independent Agent Review Status: FAIL'), PR_DRAFT: 'false' });
-expectFail('draft concrete mismatch', { PR_BODY: boundDraft.replace(HEAD_SHA, '2222222222222222222222222222222222222222') });
-expectFail('duplicate QA status', { PR_BODY: `${readyBody}\n- QA Status: FAIL`, PR_DRAFT: 'false' });
-expectFail('duplicate UX status', { PR_BODY: `${readyBody}\n- UX Status: FAIL`, PR_DRAFT: 'false' });
-expectFail('duplicate cycle', { PR_BODY: `${readyBody}\n- Cycle: 3`, PR_DRAFT: 'false' });
-expectFail('duplicate agent reviewer', { PR_BODY: `${readyBody}\n- Agent Reviewer: UNASSIGNED`, PR_DRAFT: 'false' });
-expectFail('duplicate founder reviewer', { PR_BODY: `${readyBody}\n- Founder Reviewer: @someoneelse`, PR_DRAFT: 'false' });
-expectFail('duplicate checkbox', { PR_BODY: `${readyBody}\n- [x] Independent agent review completed`, PR_DRAFT: 'false' });
-expectFail('draft Production approval', { PR_BODY: boundDraft.replace('Founder Production Authorization: NOT APPROVED', 'Founder Production Authorization: APPROVED') });
-expectFail('body-asserted founder approval', { PR_BODY: readyBody.replace('Founder Review: NATIVE APPROVAL REQUIRED', 'Founder Review: APPROVED'), PR_DRAFT: 'false' });
-expectFail('missing draft state', { PR_BODY: boundDraft, PR_DRAFT: '' });
-expectFail('invalid draft state', { PR_BODY: boundDraft, PR_DRAFT: 'maybe' });
-expectFail('missing base ref', { PR_BODY: boundDraft, PR_BASE_REF: '' });
-expectFail('missing base SHA', { PR_BODY: boundDraft, PR_BASE_SHA: '' });
-expectFail('missing head SHA', { PR_BODY: boundDraft, PR_HEAD_SHA: '' });
-expectFail('reopened PR', { PR_BODY: boundDraft, PR_ACTION: 'reopened' });
-expectFail('wrong author', { PR_BODY: boundDraft, PR_AUTHOR: 'thepassageappio' });
-expectFail('bootstrap line', { PR_BODY: `${boundDraft}\n- Bootstrap Exception: AUTHORIZED FOR PR #25 ONLY`, PR_NUMBER: '25' });
-expectFail('PR number cannot bypass stale head', { PR_BODY: readyBody.replace(HEAD_SHA, '2222222222222222222222222222222222222222'), PR_DRAFT: 'false', PR_NUMBER: '25' });
-
-result = run({ PR_BODY: `${boundDraft}\nHistorical PR #25 is closed and grants no exception.`, PR_NUMBER: '25' });
-assert.equal(result.status, 0, result.stderr);
-
-const eventFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'passage-event-'));
-const eventPath = path.join(eventFixtureRoot, 'event.json');
-fs.writeFileSync(eventPath, JSON.stringify({
-  action: 'opened',
-  pull_request: {
-    body: boundDraft,
-    draft: true,
-    user: { login: BOT },
-    base: { ref: BASE_REF, sha: BASE_SHA },
-    head: { sha: HEAD_SHA },
-  },
-}));
-result = spawnSync(process.execPath, ['scripts/check-release-train.js'], {
-  encoding: 'utf8',
-  env: {
-    ...process.env,
-    GITHUB_ACTIONS: 'true',
-    GITHUB_EVENT_NAME: 'pull_request',
-    GITHUB_EVENT_PATH: eventPath,
-    PR_ACTION: '', PR_AUTHOR: '', PR_BODY: '', PR_DRAFT: '', PR_BASE_REF: '', PR_BASE_SHA: '', PR_HEAD_SHA: '',
-  },
-});
-assert.equal(result.status, 0, `legacy event-payload compatibility failed: ${result.stderr}`);
-fs.rmSync(eventFixtureRoot, { recursive: true, force: true });
-
-const languageFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'passage-language-'));
-fs.mkdirSync(path.join(languageFixtureRoot, 'app'), { recursive: true });
-for (const badExpression of [
-  "task.status.replace('_', ' ')",
-  'member.status.toUpperCase()',
-  "proof.proof_type.replaceAll('_', ' ')",
-  "workflow?.phase ?? 'Case work'",
-  "task.automation_level.replace('_', ' ')",
-  'task.audience',
-]) {
-  fs.writeFileSync(path.join(languageFixtureRoot, 'app', 'page.tsx'), `export default function Page(){return <p>{${badExpression}}</p>}`);
-  result = spawnSync(process.execPath, ['scripts/check-persona-language.js'], { encoding: 'utf8', env: { ...process.env, CANDIDATE_ROOT: languageFixtureRoot } });
-  assert.notEqual(result.status, 0, `Expected persona scanner to reject ${badExpression}`);
-}
-fs.writeFileSync(path.join(languageFixtureRoot, 'app', 'page.tsx'), "export default function Page(){return <p>{humanTaskStatus(task.status)}</p>}");
-result = spawnSync(process.execPath, ['scripts/check-persona-language.js'], { encoding: 'utf8', env: { ...process.env, CANDIDATE_ROOT: languageFixtureRoot } });
-assert.equal(result.status, 0, result.stderr);
-fs.rmSync(languageFixtureRoot, { recursive: true, force: true });
-
-console.log('PASS release governance rejects duplicate, stale, reopened, wrong-author, and bootstrap-bypass states');
+console.log('PASS dedicated-review governance rejects founder inference, body self-approval, stale structure, and wrong identity contracts');

@@ -1,53 +1,73 @@
-# Solo-founder Bot governance handoff — 2026-07-19
+# Dedicated-agent governance handoff — 2026-07-19
 
 ## Owner decision and scope
 
-The owner approved replacing the unavailable two-human rule with an honest solo-founder model. The dedicated `Passage Release Bot` GitHub App now exists and is installed only on `thepassageappio/thepassageappio`.
+The owner approved a dedicated-agent release model. Merge review is no longer a founder dependency and no agent may impersonate the founder. The governance bootstrap remains product-, runtime-, database-, Preview-, and Production-neutral.
 
-- GitHub App slug: `passage-release-bot`
+Three responsibilities are separate:
+
+- Author: `Passage Release Bot` creates non-protected branches, commits, and pull requests.
+- Merge review: `Passage Release Reviewer` reads the exact candidate and writes only `Passage Review Agent / merge-review` Check Runs.
+- Production review: a separately installed production-review identity must write `Passage Production Review / release-readiness`; it may not deploy. Any true owner gate in `AGENTS.md` remains separate.
+
+## Installed identity evidence
+
+Author App:
+
+- Slug: `passage-release-bot`
 - App ID: `4336683`
 - Installation ID: `147538305`
-- Bot login: `passage-release-bot[bot]`
-- Repository access: only `thepassageappio/thepassageappio`
-- Persistent permissions: repository metadata read, contents write, and pull-request write
-- Temporary bootstrap permission: workflow-file write was used only to author the governance correction and was removed after exact source review passed
-- No OAuth user authorization, device flow, webhook, Actions administration, checks/status, deployment, environment, secret, organization, account, or repository-administration permission
+- Login: `passage-release-bot[bot]`
+- Repository selection: only `thepassageappio/thepassageappio`
+- Persistent permissions: metadata read, contents write, pull requests write
+- Checks, merge bypass, administration, deployments, environments, secrets, variables, and organization access: none
 
-The private key remains an owner-controlled local credential. It was not printed, committed, added to PR text, or copied into product configuration. Bot API work uses one-hour installation tokens narrowed to this repository and the requested permissions.
+Merge Review App:
 
-This change is governance-only. It contains no product, runtime, database, pricing, readiness-score, Vercel configuration, or Production change.
+- Slug: `passage-release-reviewer`
+- App ID: `4340300`
+- Installation ID: `147645985`
+- Repository selection: only `thepassageappio/thepassageappio`
+- Permissions: metadata read, contents read, pull requests read, checks write
+- Contents write, pull-request write, merge, Actions/workflow write, deployments, environments, secrets, variables, and administration: none
+- Required check: `Passage Review Agent / merge-review`
 
-## PR disposition and identity proof
+Each App has a distinct private key held outside the repository and product configuration. No key, JWT, or installation token is printed, committed, added to PR text, or exposed to candidate-controlled workflows. An unused Review App key created during setup was revoked immediately; one current key remains.
 
-PR #25 is expired, remains unmerged, and grants no exception. Its close/reopen history means the former bootstrap exception can never be reused.
+## PR #26 disposition
 
-Draft PR #26 replaces it. PR #26 was created by `passage-release-bot[bot]` from `main@f6c50b293557f852cc12fe7be4ea59c397f4a072`. Its commits use `[skip deploy]`; Vercel deployment `dpl_3JE4cLBGGrA9qJhDjbVj6eXGAV3q` is `CANCELED`, target `null`, and produced no Preview or Production artifact.
+PR #26 is the governance-only bootstrap and is authored by `passage-release-bot[bot]`. Former head `0070083d23eacc90f9ba5e00be5e12db9b92acab` is superseded because it encoded founder merge review. The corrected head must remain draft until exact-head independent QA and the Review App check pass.
 
-PR #26 remains unapproved while final exact-head QA, Independent Agent Review, founder native review, and live ruleset proof remain open. Independent Agent Review is automated technical challenge and never substitutes for founder approval. Founder merge approval never substitutes for protected Production authorization.
+PR #25 is expired, unmerged, and superseded. PR #24 remains the Passage Zero umbrella and is not authorized to merge or deploy by this bootstrap.
 
-Exact source head `6d29bfca79b67c162e4a9d9a2dadd5e7bc5b2d67` passed candidate validation run `29696048460`, legacy guard run `29696048476`, independent QA, and independent agent review. Its Vercel event `dpl_DfqgGyNJTkrzdPvLgdoSLNWHWTbW` is `CANCELED`, target `null`, with no Preview or Production artifact. After those exact-head passes, the App's workflow-write permission was removed in GitHub settings. A direct installation read verified the remaining permissions are only metadata read, contents write, and pull-request write for the selected repository.
+The PR body is informational. It cannot claim merge-review PASS. GitHub required checks are authoritative and bind results to the exact head SHA. A new commit makes the prior Review App result irrelevant.
 
-## Reviewer failure and correction
+## Trusted and candidate boundaries
 
-Dedicated reviewer `/root/independent_pr25_reviewer` and independent QA rejected the former PR #25 ready-state logic because it could be reused after reopen, trusted first-match regular expressions, did not bind the reviewed base SHA, and accepted duplicate or conflicting status lines.
-
-PR #26 corrects that design through one delimited attestation block with exactly one base ref, base SHA, head SHA, and Independent Agent Review status. Both candidate and trusted checks reject duplicate markers, duplicate/conflicting fields, reordered or extra fields, stale base/head pairs, missing event data, wrong Bot authorship, reopened PRs, and all bootstrap-exception lines. Drafts remain structurally valid only with `NOT RUN` and unassigned or exact current bindings.
-
-The next exact-head correction also closes the review-stage deadlock and legacy workflow gap. The PR body never self-asserts founder approval; it says `NATIVE APPROVAL REQUIRED`, while GitHub's native branch rule is the separate authoritative approval gate. Drafts must keep Production and deploy authorization at `NOT APPROVED`. The checker parses every decision field, reviewer field, cycle field, required section, and required checkbox exactly once.
-
-The trusted `pull_request_target` workflow checks out only the exact base commit, without persisted credentials, and runs the base commit's checker. It never checks out or executes candidate code, installs dependencies, exposes secrets, queries reviews, or receives write permission. Candidate validation checks out the exact head without persisted credentials and has read-only repository permission. The former `agent-context.yml` is replaced with a pull-request-only, credentialless candidate check that supplies the complete event contract. Until that replacement is live on `main`, the checker may recover the same omitted fields from GitHub's immutable local event payload; it does not guess or waive any field.
+- `pull_request_target` checks out only the exact trusted base commit, persists no credentials, and runs no candidate code.
+- Candidate checks use read-only repository permission, an exact candidate or merge-group SHA, and no App key.
+- The Author App cannot create the merge-review check.
+- The Review App cannot edit, merge, or deploy the candidate.
+- The Review App key is never stored in GitHub Actions or any candidate-controlled location.
+- No Reviews API enumeration, GitHub `User` inference, PR-body checkbox, or founder review is accepted as identity proof.
 
 ## Role handoff
 
-- Product Manager: `/root/pm_governance_consolidation`; governance-only Bot/founder model and non-goals approved.
-- UX Review: N/A; no persona or public surface changes.
-- Development Engineering: `/root/engineering_governance_docs`; exact PR #26 bypass analysis completed and corrective contracts defined.
-- Independent QA: `/root/qa_solo_founder_governance`; exact source head `6d29bfca79b67c162e4a9d9a2dadd5e7bc5b2d67` passed adversarial QA; the final context-only head still requires exact binding.
-- Independent Agent Reviewer: `/root/independent_pr25_reviewer`; exact source head `6d29bfca79b67c162e4a9d9a2dadd5e7bc5b2d67` passed independent review; the final context-only head still requires exact binding.
-- Deploy: exact source-head Vercel suppression and Bot permission reduction verified; Production authorization remains `NOT APPROVED`.
+- Product Manager: `/root/pm_governance_consolidation`; dedicated Author, Merge Review, and Production Review separation approved.
+- UX Review: N/A; no public or persona surface changes.
+- Governance Engineering: corrected PR #26 contracts, transition checks, machine-readable identity record, and adversarial fixtures.
+- Independent QA: exact corrected head required before ready state.
+- Dedicated Merge Reviewer: exact corrected head required through App `passage-release-reviewer`.
+- Deploy Governance: `[skip deploy]`; no Vercel or Supabase action authorized.
 
-## External gates still open
+## Live-control sequence
 
-Source files do not by themselves prove live enforcement. Before this governance work can be relied upon, the train must verify the final context-only head, founder native approval with stale dismissal, resolved conversations, no Bot bypass, direct/force-push denial, and separate protected Production authorization. PR #26 is the harmless Bot-authored validation PR for the author/reviewer boundary.
+1. Keep PR #26 draft while source checks run.
+2. Run independent QA on the exact head.
+3. Have the distinct Review Agent inspect the exact base/head and emit `Passage Review Agent / merge-review` from App `passage-release-reviewer`.
+4. Pin the required check to the expected App source, retain no-bypass/no-force-push/no-delete/up-to-date/conversation rules, and remove the superseded founder approval requirement.
+5. Merge only through GitHub after every required current-head check passes.
+6. Verify trusted governance from `main`, then run a harmless Bot-authored validation PR before relying on the new check set.
+7. Install and prove the separate Production Review App before any Production release; its PASS never deploys and never replaces an applicable owner gate.
 
-No Vercel or Supabase deployment is authorized. Passage Zero PR #24 remains draft. Cycle 8 remains FAIL/PARTIAL and its local application and migration files remain untouched.
+No Vercel or Supabase deployment is authorized. Cycle 8 remains FAIL/PARTIAL and its local application and migration files remain untouched.
