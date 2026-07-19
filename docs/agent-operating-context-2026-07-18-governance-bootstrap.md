@@ -27,7 +27,7 @@ These states are deliberately separate:
 - Founder Production Authorization permits Production through the protected environment.
 - None substitutes for another.
 
-PR #25 remains draft and unmerged. The founder has approved the policy correction, but has not yet recorded the one-time bootstrap merge attestation. The exception applies only to PR #25, requires governance-only exact-head agent QA PASS and deterministic checks, uses `[skip deploy]`, grants no deployment approval, expires when PR #25 merges or closes, and may never be reused.
+The founder recorded the one-time PR #25 bootstrap attestation on 2026-07-18 at 21:13:17 -07:00 after exact-head source QA, Independent Agent Review, trusted-guard, candidate-validation, and deploy-suppression PASS. PR #25 remains draft and unmerged until the attested ready-state check completes. The exception applies only when the GitHub event number is exactly PR #25, the body records the authorization, exact-head agent QA and deterministic checks pass, Founder Review remains honestly NOT APPROVED, Deploy and Production remain NOT APPROVED, and the governance boundary retains `[skip deploy]`. It expires when PR #25 merges or closes and may never be reused.
 
 ## External gates still unverified
 

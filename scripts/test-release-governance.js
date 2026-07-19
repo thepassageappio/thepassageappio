@@ -74,6 +74,32 @@ result = run('scripts/check-release-train.js', {
 });
 assert.notEqual(result.status, 0, 'Expected stale or wrong reviewed head to fail.');
 
+const bootstrapSections = sections
+  .replace('- [x] Founder review requested', '- [ ] Founder review requested')
+  .replace('Founder Review: APPROVED', 'Founder Review: NOT APPROVED')
+  .replace('Bootstrap Exception: NONE', 'Bootstrap Exception: AUTHORIZED FOR PR #25 ONLY — founder attestation recorded')
+  .replace('Deploy Decision: APPROVED', 'Deploy Decision: NOT APPROVED')
+  + '\n## One-time bootstrap boundary\n\n- Governance-only and `[skip deploy]`.\n';
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_NUMBER: '25',
+  PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: bootstrapSections,
+});
+assert.equal(result.status, 0, result.stderr);
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_NUMBER: '26',
+  PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: bootstrapSections,
+});
+assert.notEqual(result.status, 0, 'Bootstrap exception must not work outside PR #25.');
+
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_NUMBER: '25',
+  PR_HEAD_SHA: '1111111111111111111111111111111111111111',
+  PR_BODY: bootstrapSections.replace('AUTHORIZED FOR PR #25 ONLY', 'NOT AUTHORIZED'),
+});
+assert.notEqual(result.status, 0, 'Bootstrap exception requires the recorded authorization.');
+
 const languageFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'passage-language-'));
 fs.mkdirSync(path.join(languageFixtureRoot, 'app'), { recursive: true });
 for (const badExpression of [

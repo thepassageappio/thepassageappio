@@ -7,6 +7,12 @@ const draftState = String(process.env.PR_DRAFT || '').toLowerCase();
 // The legacy main workflow does not pass PR_DRAFT. Treat that bootstrap-only
 // invocation as structure-only; replacement workflows always pass true/false.
 const isDraft = draftState === '' || draftState === 'true';
+const bootstrap = String(process.env.PR_NUMBER || '') === '25'
+  && /Bootstrap Exception:\s*AUTHORIZED FOR PR #25 ONLY/i.test(body)
+  && /Founder Review:\s*NOT APPROVED/i.test(body)
+  && /Founder Production Authorization:\s*NOT APPROVED/i.test(body)
+  && /Deploy Decision:\s*NOT APPROVED/i.test(body)
+  && /Governance-only and `\[skip deploy\]`/i.test(body);
 
 function fail(message) {
   console.error('Release train check failed:');
@@ -49,8 +55,8 @@ const requiredCheckedItems = [
   'Independent QA handoff completed',
   'Agent context updated',
   'Independent agent review completed',
-  'Founder review requested',
 ];
+if (!bootstrap) requiredCheckedItems.push('Founder review requested');
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$/g, '\\$');
@@ -71,13 +77,17 @@ const actualHead = String(process.env.PR_HEAD_SHA || '').toLowerCase();
 if (!actualHead || reviewedHead !== actualHead) fail('Independent Agent Review must match the current PR head SHA.');
 const founderReviewerMatch = body.match(/Founder Reviewer:\s*@?([A-Za-z0-9-]+)/i);
 if (!founderReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(founderReviewerMatch[1])) fail('Name the founder reviewer.');
-if (!/Founder Review:\s*APPROVED/i.test(body)) fail('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
-if (!/Deploy Decision:\s*APPROVED/i.test(body)) fail('Deploy Decision must be APPROVED.');
-
 const cycleMatch = body.match(/Cycle:\s*([0-9]+)/i);
 const cycle = cycleMatch ? Number(cycleMatch[1]) : NaN;
 if (!Number.isFinite(cycle) || cycle < 1 || cycle > 3) {
   fail('Loop Status must include Cycle: 1, 2, or 3. After cycle 3, split, de-scope, or escalate.');
 }
+
+if (bootstrap) {
+  console.log('One-time PR #25 governance bootstrap attestation passed; no deployment or Production authorization is granted.');
+  process.exit(0);
+}
+if (!/Founder Review:\s*APPROVED/i.test(body)) fail('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
+if (!/Deploy Decision:\s*APPROVED/i.test(body)) fail('Deploy Decision must be APPROVED.');
 
 console.log('Release train completion gate passed.');
