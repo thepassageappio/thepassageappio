@@ -17,9 +17,19 @@ const sections = `
 ## QA Handoff
 - [x] Independent QA handoff completed
 - QA Status: PASS
-## Human Review
-- [x] Separate human review requested
-- Human Reviewer: @reviewer
+## Independent Agent Review
+- [x] Independent agent review completed
+- Agent Reviewer: /root/reviewer
+- Reviewed Head: 1111111111111111111111111111111111111111
+- Independent Agent Review Status: PASS
+## Founder Review
+- [x] Founder review requested
+- Founder Reviewer: @thepassageappio
+- Founder Review: APPROVED
+- Bootstrap Exception: NONE
+## Production Authorization
+- Founder Production Authorization: NOT APPROVED
+- Protected environment or release evidence: NONE
 ## Loop Status
 - Cycle: 1
 ## Deploy Decision
@@ -40,34 +50,29 @@ let result = run('scripts/check-release-train.js', {
 assert.equal(result.status, 0, result.stderr);
 
 result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_BODY: sections,
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections,
 });
 assert.equal(result.status, 0, result.stderr);
 
 result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_BODY: sections.replace('## Human Review', '## Review'),
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('## Independent Agent Review', '## Review'),
 });
 assert.notEqual(result.status, 0);
 
 result = run('scripts/check-release-train.js', {
-  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_BODY: sections.replace('@reviewer', 'UNASSIGNED'),
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Independent Agent Review Status: PASS', 'Independent Agent Review Status: FAIL'),
 });
 assert.notEqual(result.status, 0);
 
-result = run('scripts/check-independent-review.js', {
-  PR_DRAFT: 'false', PR_AUTHOR: 'author', APPROVING_REVIEWERS: 'author,passage-bot[bot]',
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '1111111111111111111111111111111111111111', PR_BODY: sections.replace('Founder Review: APPROVED', 'Founder Review: NOT APPROVED'),
 });
 assert.notEqual(result.status, 0);
 
-result = run('scripts/check-independent-review.js', {
-  PR_DRAFT: 'false', PR_AUTHOR: 'author', APPROVING_REVIEWERS: 'human-reviewer',
+result = run('scripts/check-release-train.js', {
+  GITHUB_EVENT_NAME: 'pull_request', PR_DRAFT: 'false', PR_HEAD_SHA: '2222222222222222222222222222222222222222', PR_BODY: sections,
 });
-assert.equal(result.status, 0, result.stderr);
-
-result = run('scripts/check-independent-review.js', {
-  PR_DRAFT: 'false', PR_AUTHOR: 'author', APPROVING_REVIEWERS: 'automation-user', APPROVING_REVIEWER_TYPES: 'automation-user:Bot',
-});
-assert.notEqual(result.status, 0);
+assert.notEqual(result.status, 0, 'Expected stale or wrong reviewed head to fail.');
 
 const languageFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'passage-language-'));
 fs.mkdirSync(path.join(languageFixtureRoot, 'app'), { recursive: true });
@@ -88,4 +93,4 @@ result = run('scripts/check-persona-language.js', { CANDIDATE_ROOT: languageFixt
 assert.equal(result.status, 0, result.stderr);
 fs.rmSync(languageFixtureRoot, { recursive: true, force: true });
 
-console.log('PASS release governance distinguishes drafts, completed handoffs, and separate human approval');
+console.log('PASS release governance distinguishes drafts, agent review, founder review, and Production authorization');

@@ -28,6 +28,7 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/check-release-train.js
       - name: Test governance controls
         run: node scripts/test-release-governance.js

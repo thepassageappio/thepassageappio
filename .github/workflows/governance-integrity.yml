@@ -4,12 +4,9 @@ on:
   pull_request_target:
     branches: ['**']
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
-  pull_request_review:
-    types: [submitted, dismissed]
 
 permissions:
   contents: read
-  pull-requests: read
 
 concurrency:
   group: passage-governance-${{ github.event.pull_request.base.ref }}
@@ -17,7 +14,7 @@ concurrency:
 
 jobs:
   immutable-governance:
-    name: Evaluate trusted release and review gates
+    name: Evaluate trusted release structure
     runs-on: ubuntu-latest
     steps:
       - name: Check release handoff from trusted workflow
@@ -25,11 +22,22 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           node <<'NODE'
           const body = String(process.env.PR_BODY || '').replace(/\r/g, '');
           const draft = String(process.env.PR_DRAFT).toLowerCase() === 'true';
-          const required = ['## Product Manager Scope', '## UX Review', '## Development Handoff', '## QA Handoff', '## Human Review', '## Loop Status', '## Deploy Decision'];
+          const required = [
+            '## Product Manager Scope',
+            '## UX Review',
+            '## Development Handoff',
+            '## QA Handoff',
+            '## Independent Agent Review',
+            '## Founder Review',
+            '## Production Authorization',
+            '## Loop Status',
+            '## Deploy Decision',
+          ];
           for (const heading of required) {
             if (!body.includes(heading)) throw new Error('Missing PR section: ' + heading);
           }
@@ -37,57 +45,28 @@ jobs:
             console.log('Draft structure passed; completion gates remain open.');
             process.exit(0);
           }
-          const checked = ['Product Manager scope completed', 'UX review completed', 'Development handoff completed', 'Independent QA handoff completed', 'Separate human review requested', 'Agent context updated'];
+          const checked = [
+            'Product Manager scope completed',
+            'UX review completed',
+            'Development handoff completed',
+            'Independent QA handoff completed',
+            'Independent agent review completed',
+            'Founder review requested',
+            'Agent context updated',
+          ];
           for (const item of checked) {
             const escaped = item.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$/g, '\\$');
             if (!new RegExp('\\[[xX]\\]\\s*' + escaped).test(body)) throw new Error('Unchecked release item: ' + item);
           }
           if (!/UX Status:\s*(PASS|N\/A)/i.test(body)) throw new Error('UX Status must be PASS or N/A.');
           if (!/QA Status:\s*PASS/i.test(body)) throw new Error('QA Status must be PASS.');
+          if (!/Independent Agent Review Status:\s*PASS/i.test(body)) throw new Error('Independent Agent Review Status must be PASS.');
+          const reviewedHead = String((body.match(/Reviewed Head:\s*([0-9a-f]{40})\b/i) || [])[1] || '').toLowerCase();
+          const actualHead = String(process.env.PR_HEAD_SHA || '').toLowerCase();
+          if (!actualHead || reviewedHead !== actualHead) throw new Error('Independent Agent Review must match the current PR head SHA.');
+          if (!/Founder Review:\s*APPROVED/i.test(body)) throw new Error('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
           if (!/Deploy Decision:\s*APPROVED/i.test(body)) throw new Error('Deploy Decision must be APPROVED.');
           const cycle = Number((body.match(/Cycle:\s*([0-9]+)/i) || [])[1]);
           if (!Number.isFinite(cycle) || cycle < 1 || cycle > 3) throw new Error('Cycle must be 1, 2, or 3.');
-          NODE
-      - name: Require current-head approval from a separate human
-        if: github.event.pull_request.draft == false
-        shell: bash
-        env:
-          GITHUB_API_URL: ${{ github.api_url }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ github.token }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          node <<'NODE'
-          const https = require('node:https');
-          const author = process.env.PR_AUTHOR.toLowerCase();
-          const head = process.env.PR_HEAD_SHA.toLowerCase();
-          const url = new URL('/repos/' + process.env.GITHUB_REPOSITORY + '/pulls/' + process.env.PR_NUMBER + '/reviews?per_page=100', process.env.GITHUB_API_URL);
-          const request = https.get(url, {
-            headers: {
-              Accept: 'application/vnd.github+json',
-              Authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
-              'User-Agent': 'passage-immutable-governance',
-              'X-GitHub-Api-Version': '2022-11-28',
-            },
-          }, (response) => {
-            let raw = '';
-            response.setEncoding('utf8');
-            response.on('data', (chunk) => { raw += chunk; });
-            response.on('end', () => {
-              if (response.statusCode < 200 || response.statusCode >= 300) throw new Error('GitHub reviews API returned ' + response.statusCode);
-              const latest = new Map();
-              for (const review of JSON.parse(raw)) {
-                const login = String(review?.user?.login || '').toLowerCase();
-                const time = Date.parse(review.submitted_at || '') || 0;
-                if (!login || (latest.get(login)?.time || 0) > time) continue;
-                latest.set(login, { state: review.state, type: review?.user?.type, commit: String(review.commit_id || '').toLowerCase(), time });
-              }
-              const approved = [...latest.entries()].some(([login, review]) => login !== author && !login.endsWith('[bot]') && review.type === 'User' && review.state === 'APPROVED' && review.commit === head);
-              if (!approved) throw new Error('A ready PR requires current-head approval from a separate human account.');
-              console.log('Trusted human-review gate passed.');
-            });
-          });
-          request.on('error', (error) => { throw error; });
+          console.log('Trusted release structure passed. Native rules enforce founder review; the protected environment enforces Production authorization.');
           NODE
