@@ -7,6 +7,22 @@
     "may_write_checks": false,
     "may_merge": false
   },
+  "independent_qa": {
+    "app_slug": "passage-qa-reviewer",
+    "app_id": 4340450,
+    "installation_id": 147650693,
+    "check": "Passage QA / independent-qa",
+    "permissions": {
+      "metadata": "read",
+      "contents": "read",
+      "pull_requests": "read",
+      "checks": "write"
+    },
+    "may_write_contents": false,
+    "may_write_pull_requests": false,
+    "may_merge": false,
+    "may_deploy": false
+  },
   "merge_review": {
     "app_slug": "passage-release-reviewer",
     "app_id": 4340300,
@@ -24,8 +40,20 @@
     "may_deploy": false
   },
   "production_review": {
+    "app_slug": "passage-production-reviewer",
+    "app_id": 4340400,
+    "installation_id": 147649311,
     "check": "Passage Production Review / release-readiness",
     "separate_identity_required": true,
+    "permissions": {
+      "metadata": "read",
+      "contents": "read",
+      "pull_requests": "read",
+      "checks": "write"
+    },
+    "may_write_contents": false,
+    "may_write_pull_requests": false,
+    "may_merge": false,
     "may_deploy": false
   }
 }

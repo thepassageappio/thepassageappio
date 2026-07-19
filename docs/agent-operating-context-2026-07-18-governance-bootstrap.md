@@ -32,6 +32,26 @@ Merge Review App:
 - Contents write, pull-request write, merge, Actions/workflow write, deployments, environments, secrets, variables, and administration: none
 - Required check: `Passage Review Agent / merge-review`
 
+Independent QA App:
+
+- Slug: `passage-qa-reviewer`
+- App ID: `4340450`
+- Installation ID: `147650693`
+- Repository selection: only `thepassageappio/thepassageappio`
+- Permissions: metadata read, contents read, pull requests read, checks write
+- Contents write, pull-request write, merge, Actions/workflow write, deployments, environments, secrets, variables, and administration: none
+- Required check: `Passage QA / independent-qa`
+
+Production Review App:
+
+- Slug: `passage-production-reviewer`
+- App ID: `4340400`
+- Installation ID: `147649311`
+- Repository selection: only `thepassageappio/thepassageappio`
+- Permissions: metadata read, contents read, pull requests read, checks write
+- Contents write, pull-request write, merge, Actions/workflow write, deployments, environments, secrets, variables, and administration: none
+- Required release check: `Passage Production Review / release-readiness`
+
 Each App has a distinct private key held outside the repository and product configuration. No key, JWT, or installation token is printed, committed, added to PR text, or exposed to candidate-controlled workflows. An unused Review App key created during setup was revoked immediately; one current key remains.
 
 ## PR #26 disposition
@@ -62,12 +82,12 @@ The PR body is informational. It cannot claim merge-review PASS. GitHub required
 
 ## Live-control sequence
 
-1. Keep PR #26 draft while source checks run.
+1. Keep the Bot-authored governance bootstrap PR draft while source checks run. PR #26 is superseded if GitHub does not bind its live head to the Bot branch; never reopen it.
 2. Run independent QA on the exact head.
 3. Have the distinct Review Agent inspect the exact base/head and emit `Passage Review Agent / merge-review` from App `passage-release-reviewer`.
 4. Pin the required check to the expected App source, retain no-bypass/no-force-push/no-delete/up-to-date/conversation rules, and remove the superseded founder approval requirement.
 5. Merge only through GitHub after every required current-head check passes.
 6. Verify trusted governance from `main`, then run a harmless Bot-authored validation PR before relying on the new check set.
-7. Install and prove the separate Production Review App before any Production release; its PASS never deploys and never replaces an applicable owner gate.
+7. Prove the separate Production Review App before any Production release; its PASS never deploys and never replaces an applicable owner gate.
 
 No Vercel or Supabase deployment is authorized. Cycle 8 remains FAIL/PARTIAL and its local application and migration files remain untouched.

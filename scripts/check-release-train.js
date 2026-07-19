@@ -22,11 +22,6 @@ function fail(message) {
   process.exit(1);
 }
 
-if (eventName === 'merge_group') {
-  console.log('Merge-group check uses the exact merge-group SHA; PR-body review remains enforced on the pull request.');
-  process.exit(0);
-}
-
 if (eventName !== 'pull_request') {
   console.log('Release train PR check skipped for non-PR event.');
   process.exit(0);
@@ -107,10 +102,12 @@ const uxStatus = oneStatus('UX Status', ['NOT RUN', 'PASS', 'FAIL', 'PARTIAL', '
 const qaStatus = oneStatus('QA Status', ['NOT RUN', 'PASS', 'FAIL', 'PARTIAL']);
 const mergeReview = oneStatus('Dedicated Merge Review', ['REQUIRED CHECK']);
 const productionReview = oneStatus('Production Review', ['NOT REQUESTED', 'REQUIRED CHECK']);
-const ownerGate = oneStatus('Owner Gate', ['NOT REQUIRED', 'REQUIRED', 'APPROVED']);
+const ownerGate = oneStatus('Owner Gate', ['NOT REQUIRED', 'REQUIRED']);
 const deployDecision = oneStatus('Deploy Decision', ['APPROVED', 'NOT APPROVED']);
 const requiredCheck = oneField('Required check', /^`Passage Review Agent \/ merge-review`$/);
 oneField('Expected source', /^Passage Release Reviewer GitHub App$/);
+oneField('Required QA check', /^`Passage QA \/ independent-qa`$/);
+oneField('Expected QA source', /^Passage QA Reviewer GitHub App$/);
 oneField('Required release check', /^`Passage Production Review \/ release-readiness`$/);
 const cycleValue = oneField('Cycle', /^[1-9][0-9]*$/);
 
@@ -122,6 +119,43 @@ const checkboxItems = [
   'Agent context updated',
 ];
 const checkboxState = new Map(checkboxItems.map((item) => [item, oneCheckbox(item)]));
+
+function verifyIdentityContract() {
+  let identity;
+  try {
+    identity = JSON.parse(fs.readFileSync('.github/passage-review-identities.json', 'utf8'));
+  } catch {
+    fail('The trusted Passage review identity contract is missing or invalid JSON.');
+  }
+  const expected = {
+    version: 1,
+    author: { app_slug: 'passage-release-bot', app_id: 4336683, login: 'passage-release-bot[bot]', may_write_checks: false, may_merge: false },
+    independent_qa: {
+      app_slug: 'passage-qa-reviewer', app_id: 4340450, installation_id: 147650693,
+      check: 'Passage QA / independent-qa',
+      permissions: { metadata: 'read', contents: 'read', pull_requests: 'read', checks: 'write' },
+      may_write_contents: false, may_write_pull_requests: false, may_merge: false, may_deploy: false,
+    },
+    merge_review: {
+      app_slug: 'passage-release-reviewer', app_id: 4340300, installation_id: 147645985,
+      check: 'Passage Review Agent / merge-review',
+      permissions: { metadata: 'read', contents: 'read', pull_requests: 'read', checks: 'write' },
+      may_write_contents: false, may_write_pull_requests: false, may_merge: false, may_deploy: false,
+    },
+    production_review: {
+      app_slug: 'passage-production-reviewer', app_id: 4340400, installation_id: 147649311,
+      check: 'Passage Production Review / release-readiness', separate_identity_required: true,
+      permissions: { metadata: 'read', contents: 'read', pull_requests: 'read', checks: 'write' },
+      may_write_contents: false, may_write_pull_requests: false, may_merge: false, may_deploy: false,
+    },
+  };
+  if (JSON.stringify(identity) !== JSON.stringify(expected)) fail('Passage review identity contract drifted from the trusted least-privilege model.');
+  if (new Set([identity.author.app_id, identity.independent_qa.app_id, identity.merge_review.app_id, identity.production_review.app_id]).size !== 4) {
+    fail('Author, Independent QA, Merge Review, and Production Review App identities must be distinct.');
+  }
+}
+
+verifyIdentityContract();
 
 if (mergeReview !== 'REQUIRED CHECK' || requiredCheck !== '`Passage Review Agent / merge-review`') {
   fail('Dedicated Merge Review must remain an external required check, not a PR-body assertion.');
@@ -142,6 +176,7 @@ for (const item of checkboxItems) {
 if (!['PASS', 'N/A'].includes(uxStatus)) fail('UX Status must be PASS or N/A.');
 if (qaStatus !== 'PASS') fail('QA Status must be PASS. Failed QA returns to Product Manager.');
 if (ownerGate === 'REQUIRED') fail('A required owner gate must be resolved before merge.');
+if (deployDecision !== 'APPROVED') fail('Deploy Decision must be APPROVED before a PR is merge-ready.');
 if (!Number.isFinite(Number(cycleValue))) fail('Loop Status must include a positive cycle number.');
 
 console.log('Release train structure passed; GitHub required checks remain authoritative.');

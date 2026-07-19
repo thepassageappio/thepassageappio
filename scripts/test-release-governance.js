@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
+const fs = require('node:fs');
 
 const BASE_SHA = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const HEAD_SHA = '1111111111111111111111111111111111111111';
@@ -20,6 +21,8 @@ function sections({ ready = false } = {}) {
 ## Independent QA
 - [${mark}] Independent QA handoff completed
 - QA Status: ${ready ? 'PASS' : 'NOT RUN'}
+- Required QA check: \`Passage QA / independent-qa\`
+- Expected QA source: Passage QA Reviewer GitHub App
 ## Dedicated Merge Review
 - Dedicated Merge Review: REQUIRED CHECK
 - Required check: \`Passage Review Agent / merge-review\`
@@ -36,7 +39,7 @@ function sections({ ready = false } = {}) {
 - Cycle: 1
 ## Deploy Decision
 - [${mark}] Agent context updated
-- Deploy Decision: NOT APPROVED
+- Deploy Decision: ${ready ? 'APPROVED' : 'NOT APPROVED'}
 `;
 }
 
@@ -72,7 +75,6 @@ function expectFail(name, env) {
 
 expectPass('draft structure', {});
 expectPass('ready structure defers to required checks', { PR_BODY: sections({ ready: true }), PR_DRAFT: 'false' });
-expectPass('merge group emits candidate contexts', { GITHUB_EVENT_NAME: 'merge_group', PR_BODY: '', PR_AUTHOR: '', PR_DRAFT: '', PR_BASE_REF: '', PR_BASE_SHA: '', PR_HEAD_SHA: '' });
 
 const draft = sections();
 const ready = sections({ ready: true });
@@ -83,12 +85,28 @@ expectFail('duplicate section', { PR_BODY: `${draft}\n## Dedicated Merge Review`
 expectFail('body asserted review pass', { PR_BODY: draft.replace('Dedicated Merge Review: REQUIRED CHECK', 'Dedicated Merge Review: PASS') });
 expectFail('wrong required check name', { PR_BODY: draft.replace('Passage Review Agent / merge-review', 'Passage Review Agent / fake') });
 expectFail('wrong expected source', { PR_BODY: draft.replace('Passage Release Reviewer GitHub App', 'GitHub Actions') });
+expectFail('wrong QA source', { PR_BODY: draft.replace('Passage QA Reviewer GitHub App', 'GitHub Actions') });
 expectFail('founder merge review returns', { PR_BODY: `${draft}\n- Founder Review: APPROVED` });
 expectFail('human inference returns', { PR_BODY: `${draft}\n- human reviewer: somebody` });
 expectFail('ready QA not passed', { PR_BODY: ready.replace('QA Status: PASS', 'QA Status: PARTIAL'), PR_DRAFT: 'false' });
 expectFail('ready owner gate unresolved', { PR_BODY: ready.replace('Owner Gate: NOT REQUIRED', 'Owner Gate: REQUIRED'), PR_DRAFT: 'false' });
+expectFail('body cannot assert owner approval', { PR_BODY: ready.replace('Owner Gate: NOT REQUIRED', 'Owner Gate: APPROVED'), PR_DRAFT: 'false' });
+expectFail('ready deploy not approved', { PR_BODY: ready.replace('Deploy Decision: APPROVED', 'Deploy Decision: NOT APPROVED'), PR_DRAFT: 'false' });
 expectFail('draft deploy assertion', { PR_BODY: draft.replace('Deploy Decision: NOT APPROVED', 'Deploy Decision: APPROVED') });
 expectFail('missing base SHA', { PR_BASE_SHA: '' });
 expectFail('missing head SHA', { PR_HEAD_SHA: '' });
+
+const identityPath = '.github/passage-review-identities.json';
+const identity = fs.readFileSync(identityPath, 'utf8');
+try {
+  fs.writeFileSync(identityPath, identity.replace('4340300', '4336683'));
+  expectFail('duplicate app identity', {});
+  fs.writeFileSync(identityPath, identity.replace('"checks": "write"', '"checks": "read"'));
+  expectFail('review permission drift', {});
+  fs.writeFileSync(identityPath, identity.replace('Passage Review Agent / merge-review', 'Passage Review Agent / spoof'));
+  expectFail('required check drift', {});
+} finally {
+  fs.writeFileSync(identityPath, identity);
+}
 
 console.log('PASS dedicated-review governance rejects founder inference, body self-approval, stale structure, and wrong identity contracts');

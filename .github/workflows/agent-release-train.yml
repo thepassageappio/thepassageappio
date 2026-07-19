@@ -4,14 +4,12 @@ on:
   pull_request:
     branches: ['**']
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
-  merge_group:
-    types: [checks_requested]
 
 permissions:
   contents: read
 
 concurrency:
-  group: passage-candidate-${{ github.event.pull_request.number || github.event.merge_group.head_sha || github.run_id }}
+  group: passage-candidate-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
@@ -23,7 +21,7 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - name: Check release train structure
         env:
@@ -34,13 +32,13 @@ jobs:
           PR_DRAFT: ${{ github.event.pull_request.draft }}
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/check-release-train.js
       - name: Block internal narration on persona surfaces
         run: node scripts/check-persona-language.js
 
   independent-qa:
-    name: Passage QA / independent-qa
+    name: Passage CI / governance-fixtures
     needs: candidate-validation
     runs-on: ubuntu-latest
     steps:
@@ -48,7 +46,7 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 1
-          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - name: Run adversarial governance fixtures
         run: node scripts/test-release-governance.js

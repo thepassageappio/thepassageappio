@@ -4,14 +4,12 @@ on:
   pull_request_target:
     branches: ['**']
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
-  merge_group:
-    types: [checks_requested]
 
 permissions:
   contents: read
 
 concurrency:
-  group: passage-governance-${{ github.event.pull_request.number || github.event.merge_group.head_sha || github.run_id }}
+  group: passage-governance-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
@@ -22,7 +20,7 @@ jobs:
       - name: Checkout trusted base commit
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
           fetch-depth: 1
 
@@ -35,5 +33,5 @@ jobs:
           PR_DRAFT: ${{ github.event.pull_request.draft }}
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/check-release-train.js

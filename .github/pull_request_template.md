@@ -23,6 +23,8 @@
 
 - [ ] Independent QA handoff completed
 - QA Status: NOT RUN
+- Required QA check: `Passage QA / independent-qa`
+- Expected QA source: Passage QA Reviewer GitHub App
 - Functional, authority, recovery, responsive, accessibility, hydration, and runtime evidence:
 
 ## Dedicated Merge Review

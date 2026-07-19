@@ -1,3 +1,15 @@
+# Dedicated-agent governance correction — 2026-07-19 11:30 -07:00
+
+- Product Manager: `/root/pm_governance_consolidation`; dedicated Author, Independent QA, Merge Review, and Production Review identities approved.
+- UX Review: N/A; governance-only.
+- Engineering: Bot-authored governance candidate; no product/runtime/database/deployment changes.
+- Independent QA: exact-head external check required from App `passage-qa-reviewer`.
+- Dedicated Merge Review: exact-head external check required from App `passage-release-reviewer`.
+- Deploy: `[skip deploy]`; Production remains closed.
+- PR #25 is expired. PR #26 is closed/superseded because GitHub did not bind its live head to the updated Bot branch. The replacement governance PR is the only active bootstrap vehicle and must remain draft until exact-head checks pass.
+- No founder/human merge-review dependency remains. True owner gates remain only for the explicit `AGENTS.md` permission list.
+- Passage Zero PR #24 remains draft; Cycle 8 remains FAIL/PARTIAL and untouched.
+
 # Passage Agent Operating Context
 
 Last updated: 2026-07-12
