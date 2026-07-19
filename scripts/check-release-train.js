@@ -23,6 +23,10 @@ function fail(message) {
 }
 
 const allowedEvents = new Set(['pull_request', 'pull_request_target']);
+if (!eventName && process.env.GITHUB_ACTIONS !== 'true') {
+  console.log('Release train PR check skipped for an explicit local non-PR invocation.');
+  process.exit(0);
+}
 if (!allowedEvents.has(eventName)) {
   fail(`Unsupported or missing GitHub event: ${eventName || 'missing'}.`);
 }
