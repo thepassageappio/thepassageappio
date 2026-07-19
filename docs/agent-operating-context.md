@@ -1,3 +1,22 @@
+# Post-bootstrap trusted-contract validation cycle — 2026-07-19 12:45 -07:00
+
+- Prior protected result: governance PR #28 passed exact-head Independent QA and Dedicated Merge Review App checks, was released from draft only after those checks, and GitHub completed the Bot-enabled protected squash auto-merge. The resulting main commit is `8856515b7f7b0962cb168ce3e8f5fd16319887a3`.
+- Dedicated identities: Passage Release Bot authors branches, commits, and pull requests; Passage QA Reviewer emits only the independent-QA check; Passage Release Reviewer emits only the merge-review check; Passage Production Reviewer emits only the separate release-readiness check. The four GitHub Apps are distinct and least-privileged.
+- Merge authority: no founder or human merge-review dependency remains. The exact-head Independent QA and Dedicated Merge Review checks are the technical merge gates; true owner gates remain only where `AGENTS.md` explicitly requires them, including Production authorization when applicable.
+- Live protection: the main ruleset requires a protected, up-to-date pull request with resolved conversations, denies force-push/deletion and bypass, and pins required check names to their expected GitHub App sources. The harmless validation PR in this cycle must now prove the base-defined `Passage Governance / trusted-contract` path before product work relies on it.
+- Deploy truth: every PR #28 candidate commit used `[skip deploy]`; Vercel canceled at the Ignore Build Step, created no Preview or Production deployment, and Production remained unchanged.
+- Product Manager `/root`: **COMPLETE** for post-bootstrap validation. Sprint goal: prove the merged trusted governance contract and live source-pinned rules on one harmless Bot-authored pull request.
+- Requirements and components: branch from the exact main squash commit; change only this living context; use the Passage Release Bot; keep the pull request draft with QA NOT RUN, Dedicated Merge Review required, Production NOT REQUESTED, Owner Gate NOT REQUIRED, and Deploy NOT APPROVED; collect current-head candidate, trusted-contract, Independent QA, Merge Review, and deploy-suppression evidence in later role handoffs.
+- Development objectives and acceptance criteria: one-file context diff, one `[skip deploy]` commit, Bot PR authorship, exact PR/branch head alignment, no source or check spoofing, and no workflow, product, Cycle 8, database, Vercel configuration, Production, pricing, family/vendor, or readiness change.
+- Dependencies: main commit `8856515b7f7b0962cb168ce3e8f5fd16319887a3`, the merged base-defined workflows and identity contract, the live main ruleset, and the four installed GitHub Apps.
+- UX Review: **N/A** because this is an internal context-only governance proof with no rendered surface or persona copy.
+- Development Engineer `/root/engineering_validation_fast`: received the complete PM brief and is authorized to create the bounded Bot branch, commit, and draft PR only. QA, Dedicated Merge Review, and Deploy decisions remain pending and may not be self-approved by Engineering.
+- QA plan: independently verify exact base/head, Bot author, one-file diff, body structure, current-head checks and expected App sources, live ruleset enforcement, and no Product or Production mutation. Dedicated Merge Review then challenges the same exact head.
+- Deploy plan: verify Vercel cancels the `[skip deploy]` commit and that no Preview or Production deployment occurs. Production Review remains not requested.
+- Risks and recovery: stale checks, unexpected App source, branch/head drift, candidate-controlled trust, or an unintended deployment returns the cycle to Product Manager and blocks readiness. Close or supersede a misbound PR rather than relabeling evidence.
+- Non-goals and readiness: no application, roadmap score, Cycle 8, Supabase, Vercel configuration, Production, pricing, family access, vendor fulfillment, or legal/privacy/security claim changes. Funeral-home and D2C readiness remain unchanged.
+- Next roles: Independent QA, Dedicated Merge Review, then Deploy. No owner gate is required for this non-production governance validation.
+
 # Dedicated-agent governance correction — 2026-07-19 11:30 -07:00
 
 - Product Manager: `/root/pm_governance_consolidation`; dedicated Author, Independent QA, Merge Review, and Production Review identities approved.
