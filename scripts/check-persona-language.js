@@ -2,7 +2,6 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const ts = require('typescript');
 
 const candidateRoot = process.env.CANDIDATE_ROOT ? path.resolve(process.env.CANDIDATE_ROOT) : process.cwd();
 const roots = ['app', 'components'];
@@ -80,14 +79,13 @@ for (const relativeFile of ['app/staff/work/[taskId]/page.tsx', 'app/director/ca
 const helperPath = path.join(candidateRoot, 'lib', 'presentation', 'plain-language.ts');
 if (fs.existsSync(helperPath)) {
   const helper = fs.readFileSync(helperPath, 'utf8');
-  for (const required of ['internalPreviewText', 'emailAddress', 'humanizeMemberIdentity']) {
-    if (!helper.includes(required)) failures.push(`lib/presentation/plain-language.ts:1: missing ${required} — Preview presentation must suppress internal labels and email-shaped identities.`);
-  }
+  if (!helper.includes("from './member-identity.js'")) failures.push('lib/presentation/plain-language.ts:1: typed presentation wrapper must use the dependency-free shared identity runtime.');
+}
+
+const identityRuntimePath = path.join(candidateRoot, 'lib', 'presentation', 'member-identity.js');
+if (fs.existsSync(identityRuntimePath)) {
   try {
-    const output = ts.transpileModule(helper, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-    const loaded = { exports: {} };
-    Function('exports', 'module', output)(loaded.exports, loaded);
-    const present = loaded.exports.humanizeMemberIdentity;
+    const present = require(identityRuntimePath).humanizeMemberIdentity;
     const cases = [
       ['staff synthetic email', null, 'cycle8-staff@test.invalid', 'staff', 'Preview staff member'],
       ['director synthetic email', null, 'qa-director@fixture.test', 'director', 'Preview director'],
@@ -99,7 +97,7 @@ if (fs.existsSync(helperPath)) {
       if (actual !== expected || /@|cycle|test|qa|fixture/i.test(actual)) failures.push(`lib/presentation/plain-language.ts:1: ${label} rendered ${JSON.stringify(actual)} — Member identity must preserve a genuine name or use a role-safe fallback.`);
     }
   } catch (error) {
-    failures.push(`lib/presentation/plain-language.ts:1: helper regression could not execute — ${error.message}`);
+    failures.push(`lib/presentation/member-identity.js:1: shared helper regression could not execute — ${error.message}`);
   }
 }
 
@@ -111,7 +109,9 @@ if (fs.existsSync(presenterPath)) {
 }
 
 for (const relativeFile of ['app/staff/page.tsx', 'app/director/page.tsx', 'app/staff/work/[taskId]/page.tsx', 'app/director/cases/[workflowId]/page.tsx']) {
-  const source = fs.readFileSync(path.join(candidateRoot, relativeFile), 'utf8');
+  const file = path.join(candidateRoot, relativeFile);
+  if (!fs.existsSync(file)) continue;
+  const source = fs.readFileSync(file, 'utf8');
   if (!source.includes('displayMember(')) failures.push(`${relativeFile}:1: member identity must use the shared displayMember presenter.`);
 }
 

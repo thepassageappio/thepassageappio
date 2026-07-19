@@ -1676,3 +1676,9 @@ Exact next role: Engineering completes the bounded source/doc correction and det
 - Candidate governance failed before any product gate solely because the base-branch checker still required the legacy `## QA Handoff` heading while the PR body used the new `## Independent QA` heading. The PR body was corrected without changing source or head to retain the truthful new section and add the required legacy headings plus release-loop Cycle 1. A context-only Bot-authored `[skip deploy]` follow-up is the next publication action to retrigger checks.
 - Status remains **PARTIAL**: no `[qa-approved]`, no hosted Preview PASS, and no Production authorization. After governance and product checks pass on the follow-up head, the next Deploy target remains one truthful non-production Preview followed by 1440/390/360 comprehension, runtime, accessibility, and durable-reload QA.
 
+### PR #30 candidate-check dependency correction - CI handoff - 2026-07-19 14:42 -07:00
+
+- PR #30 head `9009...` failed the candidate check before product gates because that job did not install dependencies while the checker required `typescript`. Product Manager classified the mismatch **FIX NOW**.
+- Engineering extracted the shared, dependency-free member-identity implementation into `member-identity.js` with a matching `.d.ts`; the TypeScript wrapper now delegates to it, and the checker exercises the real helper using Node built-ins only. Independent focused QA passed the correction and authorized a Bot-authored follow-up. Persona language, parity **15/15**, Server Actions, TypeScript, optimized build, runtime, route, deploy, and focused checker gates all pass.
+- Overall status remains **PARTIAL**. The Bot follow-up is authorized only to retrigger PR checks; no Preview exists, `[qa-approved]` is not authorized, and Production Supabase/Vercel remain untouched.
+
