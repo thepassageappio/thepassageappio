@@ -55,9 +55,9 @@ Production Review App:
 
 Each App has a distinct private key held outside the repository and product configuration. No key, JWT, or installation token is printed, committed, added to PR text, or exposed to candidate-controlled workflows. An unused Review App key created during setup was revoked immediately; one current key remains.
 
-## PR #27 disposition
+## PR #28 disposition
 
-PR #27 is the governance-only bootstrap and is authored by `passage-release-bot[bot]`. PR #26 is closed and must never be reopened because GitHub did not bind its live head to the corrected Bot branch. PR #27 must remain draft until exact-head Independent QA and Dedicated Merge Review App checks pass.
+PR #28 is the governance-only bootstrap and is authored by `passage-release-bot[bot]`. PRs #26 and #27 are closed and must never be reopened because GitHub did not bind their live heads to later Bot branch updates. PR #28 must remain draft until exact-head Independent QA and Dedicated Merge Review App checks pass.
 
 PR #25 is expired, unmerged, and superseded. PR #24 remains the Passage Zero umbrella and is not authorized to merge or deploy by this bootstrap.
 
@@ -76,14 +76,14 @@ The PR body is informational. It cannot claim merge-review PASS. GitHub required
 
 - Product Manager: `/root/pm_governance_consolidation`; dedicated Author, Independent QA, Merge Review, and Production Review separation approved.
 - UX Review: N/A; no public or persona surface changes.
-- Governance Engineering: corrected PR #27 contracts, transition checks, machine-readable identity record, and adversarial fixtures.
+- Governance Engineering: corrected PR #28 contracts, transition checks, machine-readable identity record, and adversarial fixtures.
 - Independent QA: exact corrected head required before ready state.
 - Dedicated Merge Reviewer: exact corrected head required through App `passage-release-reviewer`.
 - Deploy Governance: `[skip deploy]`; no Vercel or Supabase action authorized.
 
 ## Live-control sequence
 
-1. Keep PR #27 draft while source and exact-head external checks run. PR #26 is closed and must never be reopened.
+1. Keep PR #28 draft while source and exact-head external checks run. PRs #26 and #27 are closed and must never be reopened.
 2. Run independent QA on the exact head.
 3. Have the distinct Review Agent inspect the exact base/head and emit `Passage Review Agent / merge-review` from App `passage-release-reviewer`.
 4. Pin the required check to the expected App source, retain no-bypass/no-force-push/no-delete/up-to-date/conversation rules, and remove the superseded founder approval requirement.
