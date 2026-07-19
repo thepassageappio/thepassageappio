@@ -58,6 +58,8 @@ function run(env) {
     encoding: 'utf8',
     env: {
       ...process.env,
+      GITHUB_ACTIONS: 'false',
+      GITHUB_EVENT_PATH: '',
       GITHUB_EVENT_NAME: 'pull_request',
       PR_ACTION: 'opened',
       PR_AUTHOR: BOT,
