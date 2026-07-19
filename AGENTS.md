@@ -241,7 +241,7 @@ Batch rule: bundle two or three compatible small/medium fixes into one release c
 
 Use [skip deploy] for source batching and documentation/context updates. Use one [deploy] [qa-approved] release commit only when a coherent release candidate has passed the release train.
 
-Agents and schedules never create that production release commit directly on `main`. The reviewed pull request is the unit of promotion. Repository rules should require Bot-authored pull requests, passing current-head checks, founder approval, resolved conversations, stale-approval dismissal, restricted bypass/force-push, and serialized production releases. Production additionally requires founder approval through the protected Production environment or release gate.
+Agents and schedules never create a Production release commit directly on `main`. The reviewed pull request is the unit of promotion. Repository rules require Bot-authored pull requests, trusted and deterministic current-head checks, expected-source Independent QA, expected-source Dedicated Merge Review, resolved conversations, strict up-to-date state, restricted bypass/force-push, and serialized release work. Production additionally requires expected-source Production Review plus any applicable owner authorization through the protected Production environment or release gate.
 
 If Vercel returns a build-rate-limit, deployment-rate-limit, quota, or upgrade-to-Pro status, stop creating deploy-triggering commits. Record the blocked commit and current production state in docs/agent-operating-context.md, continue only with [skip deploy] prep, and wait for the reset window or explicit owner plan/quota approval before the next deploy attempt.
 

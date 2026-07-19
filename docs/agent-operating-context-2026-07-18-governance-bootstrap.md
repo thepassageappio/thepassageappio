@@ -4,9 +4,10 @@
 
 The owner approved a dedicated-agent release model. Merge review is no longer a founder dependency and no agent may impersonate the founder. The governance bootstrap remains product-, runtime-, database-, Preview-, and Production-neutral.
 
-Three responsibilities are separate:
+Four responsibilities are separate:
 
 - Author: `Passage Release Bot` creates non-protected branches, commits, and pull requests.
+- Independent QA: `Passage QA Reviewer` reads the exact candidate and writes only the required QA Check Run.
 - Merge review: `Passage Release Reviewer` reads the exact candidate and writes only `Passage Review Agent / merge-review` Check Runs.
 - Production review: a separately installed production-review identity must write `Passage Production Review / release-readiness`; it may not deploy. Any true owner gate in `AGENTS.md` remains separate.
 
@@ -54,9 +55,9 @@ Production Review App:
 
 Each App has a distinct private key held outside the repository and product configuration. No key, JWT, or installation token is printed, committed, added to PR text, or exposed to candidate-controlled workflows. An unused Review App key created during setup was revoked immediately; one current key remains.
 
-## PR #26 disposition
+## PR #27 disposition
 
-PR #26 is the governance-only bootstrap and is authored by `passage-release-bot[bot]`. Former head `0070083d23eacc90f9ba5e00be5e12db9b92acab` is superseded because it encoded founder merge review. The corrected head must remain draft until exact-head independent QA and the Review App check pass.
+PR #27 is the governance-only bootstrap and is authored by `passage-release-bot[bot]`. PR #26 is closed and must never be reopened because GitHub did not bind its live head to the corrected Bot branch. PR #27 must remain draft until exact-head Independent QA and Dedicated Merge Review App checks pass.
 
 PR #25 is expired, unmerged, and superseded. PR #24 remains the Passage Zero umbrella and is not authorized to merge or deploy by this bootstrap.
 
@@ -65,7 +66,7 @@ The PR body is informational. It cannot claim merge-review PASS. GitHub required
 ## Trusted and candidate boundaries
 
 - `pull_request_target` checks out only the exact trusted base commit, persists no credentials, and runs no candidate code.
-- Candidate checks use read-only repository permission, an exact candidate or merge-group SHA, and no App key.
+- Candidate checks use read-only repository permission, the exact pull-request head SHA, and no App key. Merge queue is disabled until all external Apps can re-attest a merge-group SHA.
 - The Author App cannot create the merge-review check.
 - The Review App cannot edit, merge, or deploy the candidate.
 - The Review App key is never stored in GitHub Actions or any candidate-controlled location.
@@ -73,16 +74,16 @@ The PR body is informational. It cannot claim merge-review PASS. GitHub required
 
 ## Role handoff
 
-- Product Manager: `/root/pm_governance_consolidation`; dedicated Author, Merge Review, and Production Review separation approved.
+- Product Manager: `/root/pm_governance_consolidation`; dedicated Author, Independent QA, Merge Review, and Production Review separation approved.
 - UX Review: N/A; no public or persona surface changes.
-- Governance Engineering: corrected PR #26 contracts, transition checks, machine-readable identity record, and adversarial fixtures.
+- Governance Engineering: corrected PR #27 contracts, transition checks, machine-readable identity record, and adversarial fixtures.
 - Independent QA: exact corrected head required before ready state.
 - Dedicated Merge Reviewer: exact corrected head required through App `passage-release-reviewer`.
 - Deploy Governance: `[skip deploy]`; no Vercel or Supabase action authorized.
 
 ## Live-control sequence
 
-1. Keep the Bot-authored governance bootstrap PR draft while source checks run. PR #26 is superseded if GitHub does not bind its live head to the Bot branch; never reopen it.
+1. Keep PR #27 draft while source and exact-head external checks run. PR #26 is closed and must never be reopened.
 2. Run independent QA on the exact head.
 3. Have the distinct Review Agent inspect the exact base/head and emit `Passage Review Agent / merge-review` from App `passage-release-reviewer`.
 4. Pin the required check to the expected App source, retain no-bypass/no-force-push/no-delete/up-to-date/conversation rules, and remove the superseded founder approval requirement.

@@ -19,7 +19,7 @@ Recuse if this role or its credentials authored, edited, or materially implement
 3. Inspect every changed file and the complete compare.
 4. Challenge correctness, security, privacy boundaries, authority, recovery, tests, deployment claims, and documentation truth.
 5. Verify Independent QA and all required exact-head checks. Never run candidate code with the Review App key or another privileged credential.
-6. Verify the Author, Merge Review, and Production Review App IDs and permissions are distinct and match `.github/passage-review-identities.json` plus live installation evidence.
+6. Verify the Author, Independent QA, Merge Review, and Production Review App IDs and permissions are distinct and match `.github/passage-review-identities.json` plus live installation evidence.
 7. Record findings by severity. Any unresolved blocker, stale head, missing evidence, or identity ambiguity is FAIL.
 
 ## Check Run contract

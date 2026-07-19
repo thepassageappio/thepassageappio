@@ -12,7 +12,7 @@ Passage Zero is the sole target architecture and redesign implementation. Thresh
 
 This decision does not authorize a public relaunch or Production changes. It removes duplicate implementation work while preserving a narrow hotfix lane for current live defects.
 
-The repository and copy controls in `docs/product/release-governance-and-plain-language-policy.md` are part of every roadmap exit gate: Bot-authored agent work, no agent/schedule direct-main push, exact-head Independent Agent Review, Dedicated Merge Review before merge, separate founder Production authorization, bounded PR/review packets, one disposition for overlapping drafts, and plain-language comprehension at 1440/390/360.
+The repository and copy controls in `docs/product/release-governance-and-plain-language-policy.md` are part of every roadmap exit gate: Bot-authored agent work, no agent/schedule direct-main push, exact-head Independent QA, Dedicated Merge Review before merge, separate owner Production authorization, bounded PR/review packets, one disposition for overlapping drafts, and plain-language comprehension at 1440/390/360.
 
 ## Single-source rule
 
@@ -63,7 +63,7 @@ Current launch truth: Passage Zero exists only in non-production Vercel Preview 
 
 Readiness caps:
 
-- Hosted Auth/membership and assigned-work RLS are proven only in the isolated synthetic Preview. Until the complete M2 score gate, plain-language review, Independent Agent Review, and Dedicated Merge Review of a Bot-authored cutover pass, funeral-home operational readiness remains 40%.
+- Hosted Auth/membership and assigned-work RLS are proven only in the isolated synthetic Preview. Until the complete M2 score gate, plain-language review, Independent QA, and Dedicated Merge Review of a Bot-authored cutover pass, funeral-home operational readiness remains 40%.
 - No task-bound proof/review Case Room and durable failure recovery: funeral-home operational readiness remains below the M3 range.
 - No durable notifications and recovery: either path remains below 80%.
 - No complete family-to-funeral-home handoff and family-safe proof return: either path remains below 85%.
@@ -76,10 +76,10 @@ Passage Zero remains the one product lane. The live-site P1 below is a narrowly 
 Audit trigger: PRs #17, #19, #23, and #24 were all draft with zero Dedicated Merge Review passes; PR #17's required release-train check had remained red because `## Product Manager scope` did not match the required `## Product Manager Scope`; and two direct-main release commits landed 2 minutes 49 seconds apart. These are confirmed control failures, not hypothetical risks.
 
 1. **Production P1 maintenance:** one reviewed Threshold/main hotfix PR fixes the shared hydration failure on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission`; every route receives console/hydration/runtime and responsive verification. This is live-site reliability work, not Passage Zero progress.
-2. **Repository governance:** correct PR #17's exact required heading or close it as superseded, move agent authorship to the dedicated GitHub App/Bot, prohibit agent and scheduled direct-main pushes, require passing current-head checks plus Independent Agent Review and Dedicated Merge Review PASS, protect Production with separate owner Production authorization, serialize release jobs, and reconcile draft PRs #17, #19, and #23 against Passage Zero umbrella PR #24.
+2. **Repository governance:** correct PR #17's exact required heading or close it as superseded, move agent authorship to the dedicated GitHub App/Bot, prohibit agent and scheduled direct-main pushes, require passing current-head checks plus Independent QA and Dedicated Merge Review PASS, protect Production with separate owner Production authorization, serialize release jobs, and reconcile draft PRs #17, #19, and #23 against Passage Zero umbrella PR #24.
 3. **Human-readable Passage Zero:** audit all reachable public/persona Preview routes against the seven-question gate in `docs/product/release-governance-and-plain-language-policy.md`. Remove raw enums/UUIDs, cycle/fixture/QA narration, architecture wording, and contradictory demo/hosted labels. Validate comprehension at 1440/390/360.
 4. **Cycle 8 recovery:** finish and independently pass the rollback-only SQL/RLS/race/reversibility matrix before applying any proof-loop migration. Retain FAIL/PARTIAL until the complete Engineering -> QA -> Deploy gates pass.
-5. **Reviewable cutover:** retain PR #24 as the integration umbrella but present bounded packets/stacked PRs for Independent Agent Review and Dedicated Merge Review across identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX. The final cutover vehicle must be Bot-authored; Production remains separately closed.
+5. **Reviewable cutover:** retain PR #24 as the integration umbrella but present bounded packets/stacked PRs for Independent QA and Dedicated Merge Review across identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX. The final cutover vehicle must be Bot-authored; Production remains separately closed.
 
 ## Critical path
 
@@ -120,7 +120,7 @@ The work that consumes time is not drawing more screens:
 
 Target after complete evidence: funeral home **55–60% operational**; D2C remains **25% operational / 85% guided**. This is an isolated, non-production, synthetic, manually supported functional beta. It is not the 85-ish allowlisted pilot and is not full production readiness.
 
-Evidence status: Cycle 7A and Cycle 7B functional-beta behavior passed in the isolated Preview, but the readiness score remains 40% by explicit release disposition. The score does not advance merely because the three-day feature evidence exists; the canonical scoring, plain-language, review-packet, Independent Agent Review, Dedicated Merge Review, and protected-Production gates still apply.
+Evidence status: Cycle 7A and Cycle 7B functional-beta behavior passed in the isolated Preview, but the readiness score remains 40% by explicit release disposition. The score does not advance merely because the three-day feature evidence exists; the canonical scoring, plain-language, review-packet, Independent QA, Dedicated Merge Review, and protected-Production gates still apply.
 
 Day 1 closes hosted authority: exact-branch Preview variables, isolated Auth redirects and synthetic users, guarded director fixture, independent director/staff invitation creation and acceptance, reload, replay, denial, exact cardinality, and 1440/390/360 evidence.
 
@@ -159,7 +159,7 @@ Documentation-first synthetic hosted-QA fixture gate:
 
 ### M2 - Assigned work and authority enforcement
 
-Evidence status: PASS for the bounded isolated synthetic Cycle 7B slice. The score remains 40% pending the integrated roadmap scoring, Bot-author, Independent Agent Review, dedicated-review, and protected-Production gates stated above.
+Evidence status: PASS for the bounded isolated synthetic Cycle 7B slice. The score remains 40% pending the integrated roadmap scoring, Bot-author, Independent QA, Dedicated Merge Review, and protected-Production gates stated above.
 
 Target: funeral home 55-60%; D2C 25%; demo 35%; production readiness 25%.
 

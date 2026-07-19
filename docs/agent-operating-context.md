@@ -28,11 +28,11 @@ The product must be smart underneath and simple on the surface: one owner, one w
 
 - Agent rules: AGENTS.md
 - Agent handoff/status: docs/agent-operating-context.md
-- Website roadmap: pages/system/admin/saas-roadmap.js at /system/admin/saas-roadmap
+- Canonical roadmap: `docs/product/operational-readiness-roadmap.md`; any legacy `/system/admin/saas-roadmap` surface is historical until a secure App Router System Admin view renders the canonical source.
 - Deployment discipline: docs/deployment-discipline.md
 - Funeral-home QA script: docs/funeral-home-flawless-qa.md
 
-Do not create a second website roadmap. Older repo docs are useful history, but the website roadmap and this context file are the current operating truth.
+Do not create a second roadmap. Older repo docs and the legacy Pages Router roadmap are historical evidence only; `docs/product/operational-readiness-roadmap.md` and this living context are the current operating truth.
 
 ## Current Deployment Model
 
