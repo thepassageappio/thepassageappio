@@ -29,8 +29,14 @@
 
 - [ ] Independent agent review completed
 - Agent Reviewer: UNASSIGNED
-- Reviewed Head: UNASSIGNED
-- Independent Agent Review Status: NOT RUN
+
+<!-- PASSAGE_REVIEW_ATTESTATION_START -->
+Reviewed Base Ref: UNASSIGNED
+Reviewed Base SHA: UNASSIGNED
+Reviewed Head SHA: UNASSIGNED
+Independent Agent Review Status: NOT RUN
+<!-- PASSAGE_REVIEW_ATTESTATION_END -->
+
 - Findings and disposition:
 
 ## Founder Review
@@ -38,7 +44,6 @@
 - [ ] Founder review requested
 - Founder Reviewer: @thepassageappio
 - Founder Review: NOT APPROVED
-- Bootstrap Exception: NONE
 
 ## Production Authorization
 

@@ -1,36 +1,49 @@
-# Solo-founder governance bootstrap handoff — 2026-07-18
+# Solo-founder Bot governance handoff — 2026-07-19
 
 ## Owner decision and scope
 
-The owner explicitly approved replacing the unavailable two-human rule with an honest solo-founder model. This branch is the one-time PR #25 governance bootstrap only. It contains no product, runtime, database, pricing, readiness-score, or Production configuration change.
+The owner approved replacing the unavailable two-human rule with an honest solo-founder model. The dedicated `Passage Release Bot` GitHub App now exists and is installed only on `thepassageappio/thepassageappio`.
 
-After bootstrap:
+- GitHub App slug: `passage-release-bot`
+- App ID: `4336683`
+- Installation ID: `147538305`
+- Bot login: `passage-release-bot[bot]`
+- Repository access: only `thepassageappio/thepassageappio`
+- Persistent permissions: repository metadata read, contents write, and pull-request write
+- Temporary bootstrap permission: workflow-file write, required only to author this governance correction; it must be removed after the exact reviewed head no longer needs workflow edits
+- No OAuth user authorization, device flow, webhook, Actions administration, checks/status, deployment, environment, secret, organization, account, or repository-administration permission
 
-- Agents and schedules author only through the dedicated Passage GitHub App/Bot identity, never through the founder's GitHub User credentials.
-- A distinct Independent Agent Reviewer challenges the exact head. This is automated technical review, not founder approval.
-- The founder reviews Bot-authored pull requests through native GitHub review controls before merge.
-- Production separately requires founder authorization through the protected Production environment or release gate for the exact commit.
-- Agents and schedules never push directly to main; the Bot and schedules receive no bypass.
+The private key remains an owner-controlled local credential. It was not printed, committed, added to PR text, or copied into product configuration. Bot API work uses one-hour installation tokens narrowed to this repository and the requested permissions.
+
+This change is governance-only. It contains no product, runtime, database, pricing, readiness-score, Vercel configuration, or Production change.
+
+## PR disposition and identity proof
+
+PR #25 is expired, remains unmerged, and grants no exception. Its close/reopen history means the former bootstrap exception can never be reused.
+
+Draft PR #26 replaces it. PR #26 was created by `passage-release-bot[bot]` from `main@f6c50b293557f852cc12fe7be4ea59c397f4a072`. Its commits use `[skip deploy]`; Vercel deployment `dpl_3JE4cLBGGrA9qJhDjbVj6eXGAV3q` is `CANCELED`, target `null`, and produced no Preview or Production artifact.
+
+PR #26 remains draft and unapproved while exact-head QA, Independent Agent Review, founder native review, ruleset proof, and permission reduction remain open. Independent Agent Review is automated technical challenge and never substitutes for founder approval. Founder merge approval never substitutes for protected Production authorization.
 
 ## Reviewer failure and correction
 
-Dedicated reviewer `/root/independent_pr25_reviewer` failed prior head `657f21e9c175adac983261eadd3a4a72ecd1c350`. The custom checker could not distinguish a human from a machine-operated GitHub `User`, did not exclude material implementers, read only the first 100 reviews, and could not prove a workflow/ruleset that was not yet on base main.
+Dedicated reviewer `/root/independent_pr25_reviewer` and independent QA rejected the former PR #25 ready-state logic because it could be reused after reopen, trusted first-match regular expressions, did not bind the reviewed base SHA, and accepted duplicate or conflicting status lines.
 
-The corrected bootstrap removes the Reviews API and deletes `scripts/check-independent-review.js`. The trusted `pull_request_target` workflow now validates base-defined release structure only. It has no push/review trigger, PR-head checkout, candidate execution, dependency installation, persisted credentials, token/secret, or write permission. Candidate validation is read-only and credentialless. Both trusted and candidate checks require the Independent Agent Review's `Reviewed Head` to equal the current PR head; a wrong-head regression fixture must fail.
+PR #26 corrects that design through one delimited attestation block with exactly one base ref, base SHA, head SHA, and Independent Agent Review status. Both candidate and trusted checks reject duplicate markers, duplicate/conflicting fields, reordered or extra fields, stale base/head pairs, missing event data, wrong Bot authorship, reopened PRs, and all bootstrap-exception lines. Drafts remain structurally valid only with `NOT RUN` and unassigned or exact current bindings.
 
-## Review and authorization states
+The trusted `pull_request_target` workflow executes only base-defined inline structure checks. It does not checkout or execute candidate code, install dependencies, persist credentials, expose secrets, query reviews, or receive write permission. Candidate validation checks out the exact head without persisted credentials and has read-only repository permission.
 
-These states are deliberately separate:
+## Role handoff
 
-- Independent Agent Review supplies technical challenge.
-- Founder Review authorizes merge of Bot-authored work.
-- Founder Production Authorization permits Production through the protected environment.
-- None substitutes for another.
+- Product Manager: `/root/pm_governance_consolidation`; governance-only Bot/founder model and non-goals approved.
+- UX Review: N/A; no persona or public surface changes.
+- Development Engineering: `/root/engineering_governance_docs`; exact PR #26 bypass analysis completed and corrective contracts defined.
+- Independent QA: `/root/qa_solo_founder_governance`; former exact head failed on reopen and contradictory-state injection; fresh exact-head QA is required.
+- Independent Agent Reviewer: `/root/independent_pr25_reviewer`; exact base/head adversarial review is required after the corrective commit.
+- Deploy: Vercel suppression verified; Production authorization remains `NOT APPROVED`.
 
-PR #25 remains draft and unmerged. The founder has approved the policy correction, but has not yet recorded the one-time bootstrap merge attestation. The exception applies only to PR #25, requires governance-only exact-head agent QA PASS and deterministic checks, uses `[skip deploy]`, grants no deployment approval, expires when PR #25 merges or closes, and may never be reused.
+## External gates still open
 
-## External gates still unverified
+Source files do not by themselves prove live enforcement. Before this governance work can be relied upon, the train must verify exact-head checks, Bot-only branch updates, founder native approval with stale dismissal, resolved conversations, no Bot bypass, direct/force-push denial, and separate protected Production authorization. A harmless Bot-authored validation PR must prove the final live model.
 
-Source files do not prove live enforcement. Direct/force-push prevention, required checks, Bot identity and permissions, founder native review, stale-approval dismissal, conversation resolution, bypass denial, and the protected Production environment remain unverified until configured and tested after bootstrap. A harmless Bot-authored validation PR must prove the completed model before product or Production work relies on it.
-
-No Vercel or Supabase deployment is authorized. Passage Zero PR #24 remains draft. Cycle 8 remains FAIL/PARTIAL and untouched.
+No Vercel or Supabase deployment is authorized. Passage Zero PR #24 remains draft. Cycle 8 remains FAIL/PARTIAL and its local application and migration files remain untouched.
