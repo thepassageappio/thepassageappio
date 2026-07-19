@@ -6,7 +6,7 @@
 - Independent QA: exact-head external check required from App `passage-qa-reviewer`.
 - Dedicated Merge Review: exact-head external check required from App `passage-release-reviewer`.
 - Deploy: `[skip deploy]`; Production remains closed.
-- PR #25 is expired. PR #26 is closed/superseded because GitHub did not bind its live head to the updated Bot branch. The replacement governance PR is the only active bootstrap vehicle and must remain draft until exact-head checks pass.
+- PR #25 is expired. PRs #26 and #27 are closed/superseded because GitHub did not bind their live heads to later Bot branch updates. PR #28 is the only active governance bootstrap and must remain draft until exact-head checks pass.
 - No founder/human merge-review dependency remains. True owner gates remain only for the explicit `AGENTS.md` permission list.
 - Passage Zero PR #24 remains draft; Cycle 8 remains FAIL/PARTIAL and untouched.
 
