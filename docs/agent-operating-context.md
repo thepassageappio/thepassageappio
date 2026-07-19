@@ -1,3 +1,15 @@
+# Dedicated-agent governance correction — 2026-07-19 11:30 -07:00
+
+- Product Manager: `/root/pm_governance_consolidation`; dedicated Author, Independent QA, Merge Review, and Production Review identities approved.
+- UX Review: N/A; governance-only.
+- Engineering: Bot-authored governance candidate; no product/runtime/database/deployment changes.
+- Independent QA: exact-head external check required from App `passage-qa-reviewer`.
+- Dedicated Merge Review: exact-head external check required from App `passage-release-reviewer`.
+- Deploy: `[skip deploy]`; Production remains closed.
+- PR #25 is expired. PRs #26 and #27 are closed/superseded because GitHub did not bind their live heads to later Bot branch updates. PR #28 is the only active governance bootstrap and must remain draft until exact-head checks pass.
+- No founder/human merge-review dependency remains. True owner gates remain only for the explicit `AGENTS.md` permission list.
+- Passage Zero PR #24 remains draft; Cycle 8 remains FAIL/PARTIAL and untouched.
+
 # Passage Agent Operating Context
 
 Last updated: 2026-07-12
@@ -16,11 +28,11 @@ The product must be smart underneath and simple on the surface: one owner, one w
 
 - Agent rules: AGENTS.md
 - Agent handoff/status: docs/agent-operating-context.md
-- Website roadmap: pages/system/admin/saas-roadmap.js at /system/admin/saas-roadmap
+- Canonical roadmap: `docs/product/operational-readiness-roadmap.md`; any legacy `/system/admin/saas-roadmap` surface is historical until a secure App Router System Admin view renders the canonical source.
 - Deployment discipline: docs/deployment-discipline.md
 - Funeral-home QA script: docs/funeral-home-flawless-qa.md
 
-Do not create a second website roadmap. Older repo docs are useful history, but the website roadmap and this context file are the current operating truth.
+Do not create a second roadmap. Older repo docs and the legacy Pages Router roadmap are historical evidence only; `docs/product/operational-readiness-roadmap.md` and this living context are the current operating truth.
 
 ## Current Deployment Model
 

@@ -1,33 +1,32 @@
-name: Agent release train guard
+name: Passage immutable governance gate
 
 on:
-  pull_request:
+  pull_request_target:
     branches: ['**']
     types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
 
 permissions:
   contents: read
 
+concurrency:
+  group: passage-governance-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
 jobs:
-  agent-context:
-    name: Require agent context and release train
+  immutable-governance:
+    name: Passage Governance / trusted-contract
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout candidate without credentials
+      - name: Checkout trusted base commit
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
-      - name: Determine diff base
-        shell: bash
-        run: |
-          git fetch origin "${{ github.base_ref }}" --depth=1
-          echo "AGENT_CONTEXT_BASE=origin/${{ github.base_ref }}" >> "$GITHUB_ENV"
-      - name: Check agent context loop
-        run: node scripts/check-agent-context.js
-      - name: Check release train PR handoff
+          fetch-depth: 1
+
+      - name: Check release handoff with trusted base checker
         env:
-          GITHUB_EVENT_NAME: pull_request
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
           PR_ACTION: ${{ github.event.action }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_BODY: ${{ github.event.pull_request.body }}

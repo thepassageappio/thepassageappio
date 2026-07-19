@@ -1,8 +1,32 @@
 # Passage Agent Operating Guide
 
-## UX Redesign Directive — 2026-07-11 (owner-approved)
+## Passage Zero canonicalization — 2026-07-18 (owner-approved; supersedes conflicting Threshold execution directives)
 
-Active initiative: full greenfield UX/UI/IA redesign, codename "Threshold". Source of truth: `docs/UX-REDESIGN-BRIEF.md` — read it FIRST for any redesign, design-system, information-architecture, or persona-surface work.
+Passage Zero on `greenfield/passage-zero`, draft PR #24, is the sole target architecture and redesign implementation. Threshold on `main` is now a production-maintenance lane only: separately governed P0/P1 live defects may be fixed, but no new Threshold dashboard, estate, information-architecture, schema, or redesign work may begin.
+
+Do not port the legacy Pages Router structure into Passage Zero. The historical Threshold sections below remain useful context only where they do not conflict with this directive. The canonical greenfield roadmap is `docs/product/operational-readiness-roadmap.md`; the cutover contract is `docs/product/passage-zero-cutover-plan.md`.
+
+Every Passage Zero slice must advance the reachable persona UI, server-authorized command or query, durable state, RLS/authority predicate, append-only event or proof for mutations, recovery behavior, responsive projection, and parity-ledger entry together. A backend-only capability must be labeled `backend_only`; a UI state without durable proof fails QA. Production remains untouched until an explicitly approved production release train passes.
+
+## Dedicated-agent repository and language controls — 2026-07-19 (owner-approved)
+
+The durable policy is `docs/product/release-governance-and-plain-language-policy.md`. It supersedes every historical directive that permits agents or schedules to push directly to `main`, requires founder/human merge review, allows self-graded QA, or exposes internal implementation language on persona surfaces.
+
+- Agents and schedules author only through the installed `Passage Release Bot` GitHub App on named branches and draft pull requests. They never use the owner's GitHub User credentials and receive no `main` bypass, check-write, merge, deployment, environment, secret, variable, or administration permission.
+- Independent QA is a distinct task instance and the installed `Passage QA Reviewer` App emits `Passage QA / independent-qa` for the exact current head. Candidate-controlled workflows are deterministic CI, never Independent QA.
+- Dedicated Merge Review is a separate task instance and the installed `Passage Release Reviewer` App emits `Passage Review Agent / merge-review` for the exact current head. It cannot author, edit, merge, deploy, administer, or access secrets. A new commit invalidates both QA and review results.
+- Production Review is a third independent identity. The installed `Passage Production Reviewer` App emits `Passage Production Review / release-readiness` for the exact release commit and cannot deploy. Merge Review PASS never implies Production Review PASS.
+- PR bodies are informational. Required checks pinned to their expected Apps are authoritative. GitHub `User` type, native review enumeration, PR-body checkboxes, or same-name checks from another source never prove independence.
+- GitHub rules require current-head trusted governance, deterministic candidate CI, external Independent QA, external Dedicated Merge Review, up-to-date branches, resolved conversations, no bypass, no force push, no deletion, and serialized merge/release operations. Merge queue stays disabled until every required external App re-attests the merge-group SHA.
+- True owner gates remain only where `Agent Permissions` requires them: Production promotion, pricing, paid services/campaigns, real external communications, raw/ad hoc Production SQL, irreversible Production data loss, and material legal/privacy/security/medical/compliance/funeral-director claims. Merge review is not an owner dependency.
+- PR #24 remains the Passage Zero integration umbrella. Large work is presented as bounded Bot-authored stacked PRs or named review packets. PRs #17, #19, #23, #25, and #26 must be incorporated, uniquely bounded, or closed as superseded; overlapping drafts never merge independently.
+- The hydration failures on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission` remain a separate Threshold/main P1 hotfix lane and do not count as Passage Zero progress.
+- Every public and persona surface must pass the seven-question plain-language gate: Where am I? What needs attention? What do I do now? What happens after I act? What is saved as proof? Who can see it? What do I do if it fails? Raw enums, UUIDs, infrastructure identifiers, cycle/fixture labels, QA/deploy narration, readiness scores, and architecture terms are prohibited there.
+- `Demo`, browser-only demo, `Preview`, functional beta, allowlisted pilot, and `Production` remain distinct states. Comprehension at 1440, 390, and 360 is a release gate alongside authority, recovery, overflow, focus, console, hydration, runtime, accessibility, and parity.
+
+## Historical Threshold archive — non-executable context only
+
+Historical record: on 2026-07-11 the then-active redesign was called "Threshold." It is no longer an executable initiative, source of work, or scheduling instruction. `docs/UX-REDESIGN-BRIEF.md` and the sections below are background evidence only where they do not conflict with Passage Zero canonicalization.
 
 The owner (Steve) has explicitly authorized a complete teardown and rebuild of the UI/UX/IA. For redesign work this supersedes the "prefer existing design language / CalmKit" guidance below: keep the Supabase data model, roles, and feature scope as fixed truth, but treat visual design, UX, and IA as greenfield per the brief. Retain only viewer-relative status from CalmKit; rebuild it.
 
@@ -39,7 +63,7 @@ The owner's goal is the **entire app transformed onto Threshold, greenfield** �
 
 **As of 2026-07-14, "presentation-only re-skin, byte-identical structure" is no longer the target pattern for remaining work — see the Backend Authorization Update above and the density/IA findings in `docs/redesign-diagnosis-2026-07-14.md`. Re-skinning was the safe default while the data model was fixed; now that real IA and backend changes are authorized, remaining Tier 1/Tier 2 work should aim for genuine rebuilds where the diagnosis or brief calls for one, not another coat of paint.**
 
-**The driving backlog is `docs/redesign/12-threshold-rollout-tracker.md`.** Read it right after this directive, before `07-sprint-plan.md` or `11-funeral-home-polish-scope.md` (those remain valid for rationale/history, but the tracker is the actual checklist and status source of truth — update it every time a page ships).
+**Historical tracker only:** `docs/redesign/12-threshold-rollout-tracker.md`, `07-sprint-plan.md`, and `11-funeral-home-polish-scope.md` are archived rationale/evidence. They are not active backlogs, must not schedule work, and must not be updated as Passage Zero ships.
 
 Rules for every future run on this initiative:
 - Default to taking the **next 2–5 unshipped Tier 1 items** from the tracker per run (not just one), when they are independent, low-risk, presentation-only re-skins following the proven `summary.js` pattern. This still respects the Deployment Rules' batch guidance below (bundle compatible fixes into one release candidate) — it just raises the default batch size for this specific proven-safe, repeatable pattern.
@@ -114,7 +138,7 @@ Before changing product, code, copy, docs, roadmap, or deployment state:
 2. Read docs/agent-operating-context.md.
 3. Read docs/release-train.md and follow Product Manager -> UI/UX Review -> Development Engineer -> QA -> Deploy for user-facing work; record UX Review: N/A for invisible backend/process-only changes.
 4. Read the dedicated role brief in docs/agents/ for the role being played.
-5. If the work affects roadmap, sprint order, product vision, or priorities, read pages/system/admin/saas-roadmap.js. That owner-only page is the only website roadmap.
+5. If the work affects roadmap, sprint order, product vision, or priorities, read `docs/product/operational-readiness-roadmap.md`. It is the sole canonical roadmap. Any legacy `pages/system/admin/saas-roadmap.js` copy is historical until it is replaced by a secure App Router System Admin surface sourced from the canonical roadmap.
 6. If the work affects deployment, read docs/deployment-discipline.md and verify the canonical Vercel project before creating a deploy-triggering commit.
 7. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
 8. If an owner ask seems likely, first check whether browser/Chrome automation, Claude in Chrome, connectors, or source review can safely resolve it without owner involvement.
@@ -199,7 +223,7 @@ Communication belongs to the task spine. A message, vendor request, family updat
 
 ## Roadmap And Planning Rules
 
-The website has one roadmap only: pages/system/admin/saas-roadmap.js, visible at /system/admin/saas-roadmap behind System Admin. Do not create a second roadmap tab, public roadmap, demo roadmap, or persona-facing roadmap.
+The greenfield repository has one roadmap only: `docs/product/operational-readiness-roadmap.md`. It is internal/System-Admin source material and must never appear on public or persona-facing pages. The legacy Pages Router source `pages/system/admin/saas-roadmap.js` does not exist in Passage Zero. When the secure App Router System Admin roadmap surface is implemented, it must render this roadmap or a single structured source extracted from it rather than create a second milestone/percentage set. Do not create a second roadmap tab, public roadmap, demo roadmap, or persona-facing roadmap.
 
 Other admin pages are evidence or tools, not competing plans: Pilot Health, Conversion Plan, Enterprise Readiness, Funeral-home QA, Automation Readiness, Refresh Controls, Abuse Controls, and demo sandboxes.
 
@@ -216,6 +240,8 @@ Default deploy budget: one production deploy train per hour and no more than fou
 Batch rule: bundle two or three compatible small/medium fixes into one release candidate — for the Threshold rollout specifically, see "Scale and ambition" above, which raises this to up to 5 same-pattern presentation-only re-skins per batch. Do not deploy docs-only, roadmap-only, context-only, QA-note-only, or source-only setup commits.
 
 Use [skip deploy] for source batching and documentation/context updates. Use one [deploy] [qa-approved] release commit only when a coherent release candidate has passed the release train.
+
+Agents and schedules never create a Production release commit directly on `main`. The reviewed pull request is the unit of promotion. Repository rules require Bot-authored pull requests, trusted and deterministic current-head checks, expected-source Independent QA, expected-source Dedicated Merge Review, resolved conversations, strict up-to-date state, restricted bypass/force-push, and serialized release work. Production additionally requires expected-source Production Review plus any applicable owner authorization through the protected Production environment or release gate.
 
 If Vercel returns a build-rate-limit, deployment-rate-limit, quota, or upgrade-to-Pro status, stop creating deploy-triggering commits. Record the blocked commit and current production state in docs/agent-operating-context.md, continue only with [skip deploy] prep, and wait for the reset window or explicit owner plan/quota approval before the next deploy attempt.
 
@@ -275,7 +301,9 @@ Agents must not proceed without explicit owner approval for:
 - Do not invent a new system when the task/status/audit pattern can carry the work.
 - Never fake execution states. Unknown means unknown.
 - All real actions should create visible proof: recipient, timestamp, actor, status, and next action.
+- Frontend/backend contract parity is a release gate for every slice. Every user-visible action or state must map to a server-authorized command or query, durable persisted state, the applicable RLS/authority predicate, append-only event or proof where the action changes state, explicit failure/recovery behavior, and the correct persona projection. Backend capability must have a truthful reachable UI or be explicitly documented as internal/queued; the UI must never claim a state the backend cannot prove. PM defines the contract matrix, Engineering maintains both sides in the same slice, and QA rejects either frontend-ahead or backend-ahead drift.
 - Public and persona-facing pages must stay free of internal language.
+- Public and persona-facing pages must answer the seven plain-language questions in `docs/product/release-governance-and-plain-language-policy.md`; render human outcomes instead of raw enum/event keys, UUIDs, fixture/cycle labels, or database/agent narration.
 - Internal tools belong under System Admin.
 - Verification matters: build, deploy, browser QA, API/data proof, and screenshots where useful.
 - Mobile + web in tandem (cohesive responsive — REQUIRED): every real persona surface is built and QA'd at BOTH desktop (>=1366) and mobile (390 and 360) within the SAME slice — never ship one viewport without the other. Same status spine, same CalmKit/CalmControls components and copy across viewports so mobile and web stay cohesive; only layout (widths, stacking, density) adapts. Per-slice hard checks: zero horizontal overflow at 360/390/desktop, tap targets >= DS.tap.min, no hydration warnings. If a session's browser tooling cannot actually resize to these viewports (record the attempt and the actual behavior observed), fall back to verifying the responsive CSS rules shipped correctly (e.g. inspect `document.styleSheets` for the expected media-query rule and selectors) and flag the visual-only gap explicitly rather than skipping the check silently.

@@ -1,40 +1,58 @@
 ## Product Manager Scope
 
-- Trigger phrase used when applicable: `Passage Release Train: start the loop.`
 - [ ] Product Manager scope completed
-- Vision/context checked: AGENTS.md, docs/agent-operating-context.md, docs/release-train.md, the relevant docs/agents role brief, and the single admin roadmap if product priority changed.
 - Roadmap item:
-- Personas affected:
-- User problem:
+- Personas and user problem:
 - Acceptance criteria:
-- Risks / owner approval gates:
+- Risks and true owner gates:
+
+## UX Review
+
+- [ ] UX review completed
+- UX Status: NOT RUN
+- Plain-language seven-question review:
+- 1440 / 390 / 360 acceptance bar:
 
 ## Development Handoff
 
 - [ ] Development handoff completed
-- Engineer summary:
-- Files/modules changed:
-- Decisions made:
-- Known gaps sent back to Product Manager:
+- Files and contracts changed:
+- Known gaps returned to Product Manager:
 
-## QA Handoff
+## Independent QA
 
-- [ ] QA handoff completed
+- [ ] Independent QA handoff completed
 - QA Status: NOT RUN
-- Persona flows tested:
-- Browser/device:
-- Failures found:
-- Evidence/screenshots/logs:
+- Required QA check: `Passage QA / independent-qa`
+- Expected QA source: Passage QA Reviewer GitHub App
+- Functional, authority, recovery, responsive, accessibility, hydration, and runtime evidence:
+
+## Dedicated Merge Review
+
+- Dedicated Merge Review: REQUIRED CHECK
+- Required check: `Passage Review Agent / merge-review`
+- Expected source: Passage Release Reviewer GitHub App
+- Findings and disposition: SEE CHECK RUN
+
+## Production Review
+
+- Production Review: NOT REQUESTED
+- Required release check: `Passage Production Review / release-readiness`
+- Release evidence: NONE
+
+## Owner Gate
+
+- Owner Gate: NOT REQUIRED
+- Gate reason or recorded approval: NONE
 
 ## Loop Status
 
 - Cycle: 1
-- If QA failed, Product Manager re-scope completed: N/A
-- If this is cycle 3 and still failing, release is split/de-scoped/escalated instead of deployed: N/A
+- If QA failed, Product Manager re-scope:
 
 ## Deploy Decision
 
 - [ ] Agent context updated
-- Roadmap updated if priority/scope changed: N/A
+- Roadmap updated if scope or priority changed:
 - Deploy Decision: NOT APPROVED
-- Release marker after merge, only when QA-approved: [deploy] [qa-approved]
+- Release marker only after all applicable gates pass: `[deploy] [qa-approved]`
