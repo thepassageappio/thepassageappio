@@ -4,7 +4,7 @@ This is the App Router/Supabase release loop for Passage Zero. `AGENTS.md` contr
 
 ## Required loop
 
-The role names enforced by repository checks are Product Manager, UX Review, Development Engineer, QA, Deploy, and Dedicated Merge Review.
+The role names enforced by repository checks are Product Manager, UX Review, Development Engineer, QA Agent, Deploy Agent, and Dedicated Merge Review. The train advances for a maximum of 3 correction cycles before escalation, and every Product Manager instance reads `docs/agents/product-manager.md`.
 
 1. Product Manager writes the bounded Sprint Brief and classifies discovered work.
 2. UX Review sets the responsive, accessible, truthful experience bar.
