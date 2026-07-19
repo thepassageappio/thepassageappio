@@ -73,12 +73,34 @@ function expectFail(name, env) {
   assert.notEqual(result.status, 0, `${name} unexpectedly passed`);
 }
 
-expectPass('draft structure', {});
-expectPass('ready structure defers to required checks', { PR_BODY: sections({ ready: true }), PR_DRAFT: 'false' });
-expectPass('valid pull_request_target structure', { GITHUB_EVENT_NAME: 'pull_request_target' });
+function expectPassWithOutput(name, env, pattern) {
+  const result = run(env);
+  assert.equal(result.status, 0, `${name}: ${result.stderr}`);
+  assert.match(result.stdout, pattern, `${name}: missing expected output`);
+}
 
 const draft = sections();
 const ready = sections({ ready: true });
+const pullRequestTarget = { GITHUB_EVENT_NAME: 'pull_request_target' };
+
+expectPass('draft structure', {});
+expectPass('ready structure defers to required checks', { PR_BODY: ready, PR_DRAFT: 'false' });
+expectPass('pull_request_target valid draft', pullRequestTarget);
+expectPass('pull_request_target valid merge-ready', { ...pullRequestTarget, PR_BODY: ready, PR_DRAFT: 'false' });
+expectFail('pull_request_target missing required section', {
+  ...pullRequestTarget,
+  PR_BODY: draft.replace('## Dedicated Merge Review', '## Review'),
+});
+expectFail('pull_request_target merge-ready incomplete evidence', {
+  ...pullRequestTarget,
+  PR_BODY: ready.replace('QA Status: PASS', 'QA Status: PARTIAL'),
+  PR_DRAFT: 'false',
+});
+expectPassWithOutput('local non-Actions missing event skips explicitly', {
+  GITHUB_ACTIONS: 'false',
+  GITHUB_EVENT_NAME: '',
+}, /skipped for an explicit local non-PR invocation/);
+expectFail('Actions missing event fails closed', { GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: '' });
 expectFail('wrong author', { PR_AUTHOR: 'thepassageappio' });
 expectFail('pull_request_target validates the expected Bot author', { GITHUB_EVENT_NAME: 'pull_request_target', PR_AUTHOR: 'attacker[bot]' });
 expectFail('unsupported event fails closed', { GITHUB_EVENT_NAME: 'push' });
