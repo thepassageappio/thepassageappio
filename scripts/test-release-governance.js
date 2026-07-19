@@ -75,10 +75,13 @@ function expectFail(name, env) {
 
 expectPass('draft structure', {});
 expectPass('ready structure defers to required checks', { PR_BODY: sections({ ready: true }), PR_DRAFT: 'false' });
+expectPass('valid pull_request_target structure', { GITHUB_EVENT_NAME: 'pull_request_target' });
 
 const draft = sections();
 const ready = sections({ ready: true });
 expectFail('wrong author', { PR_AUTHOR: 'thepassageappio' });
+expectFail('pull_request_target validates the expected Bot author', { GITHUB_EVENT_NAME: 'pull_request_target', PR_AUTHOR: 'attacker[bot]' });
+expectFail('unsupported event fails closed', { GITHUB_EVENT_NAME: 'push' });
 expectFail('reopened PR', { PR_ACTION: 'reopened' });
 expectFail('missing section', { PR_BODY: draft.replace('## Dedicated Merge Review', '## Review') });
 expectFail('duplicate section', { PR_BODY: `${draft}\n## Dedicated Merge Review` });
