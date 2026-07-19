@@ -19,7 +19,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { checkLedger } = require('./check-frontend-backend-parity');
+const { checkLedger, REQUIRED_CYCLE8_CONTRACT_IDS } = require('./check-frontend-backend-parity');
 
 let passCount = 0;
 let failCount = 0;
@@ -250,6 +250,45 @@ function testEmptyContractsArray(repoRoot) {
   report('failing fixture: empty contracts array is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
 }
 
+function testCycle8RequiresSourceAssertions(repoRoot) {
+  const bad = baseImplementedContract({ id: 'cycle8.fixture.missing-bindings', cycle: '8' });
+  const { ok, errors } = checkLedger({ contracts: [bad] }, repoRoot);
+  const expected = errors.some((e) => e.includes('Cycle 8 requires a non-empty "source_assertions" array'));
+  report('failing fixture: Cycle 8 contract without source assertions is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
+}
+
+function testCycle8SourceDrift(repoRoot) {
+  const bad = baseImplementedContract({
+    id: 'cycle8.fixture.drift',
+    cycle: '8',
+    source_assertions: [{ file: 'docs/fixture/component.tsx', includes: ['required binding that is absent'] }],
+  });
+  const { ok, errors } = checkLedger({ contracts: [bad] }, repoRoot);
+  const expected = errors.some((e) => e.includes('is missing required Cycle 8 source binding'));
+  report('failing fixture: Cycle 8 source drift is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
+}
+
+function testCycle8IdentityCannotMasquerade(repoRoot) {
+  const bad = baseImplementedContract({
+    id: 'cycle8.fixture.wrong-cycle',
+    cycle: '7B',
+    source_assertions: [{ file: 'docs/fixture/component.tsx', includes: ['fixture component'] }],
+  });
+  const { ok, errors } = checkLedger({ contracts: [bad] }, repoRoot);
+  const expected = errors.some((e) => e.includes('a cycle8.* contract id must declare cycle "8"'));
+  report('failing fixture: Cycle 8 contract id cannot masquerade as an earlier cycle', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
+}
+
+function testRequiredCycle8CoverageCannotBeEmpty(repoRoot) {
+  const { ok, errors } = checkLedger(
+    { contracts: [baseImplementedContract()] },
+    repoRoot,
+    { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS }
+  );
+  const expected = REQUIRED_CYCLE8_CONTRACT_IDS.every((id) => errors.some((e) => e.includes(`Required contract id "${id}" is missing`)));
+  report('failing fixture: zero Cycle 8 contract coverage is rejected', ok === false && expected, `ok=${ok} errors=${JSON.stringify(errors)}`);
+}
+
 // ---------------------------------------------------------------------
 // 3. Integration check against the real ledger
 // ---------------------------------------------------------------------
@@ -264,7 +303,7 @@ function testRealLedger() {
     report('integration: real ledger is valid JSON and readable', false, err.message);
     return;
   }
-  const { ok, errors } = checkLedger(ledger, repoRoot);
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
   report('integration: docs/product/frontend-backend-contracts.json passes the checker', ok === true, ok ? '' : errors.join('\n         '));
 }
 
@@ -308,6 +347,10 @@ function main() {
     testUserVisibleWithoutFiles(repoRoot);
     testInvalidStatus(repoRoot);
     testEmptyContractsArray(repoRoot);
+    testCycle8RequiresSourceAssertions(repoRoot);
+    testCycle8SourceDrift(repoRoot);
+    testCycle8IdentityCannotMasquerade(repoRoot);
+    testRequiredCycle8CoverageCannotBeEmpty(repoRoot);
 
     console.log('Integration test (real repository ledger):');
     testRealLedger();

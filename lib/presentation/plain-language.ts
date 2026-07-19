@@ -1,13 +1,24 @@
-export function humanizePreviewLabel(value: string) {
-  return value
+const internalPreviewText = /\b(?:Cycle\s*\d+[A-Z]?|QA|fixture|test(?:ing)?)\b/i;
+const emailAddress = /\b[^\s@]+@[^\s@]+\.[^\s@]+\b/i;
+
+export function humanizePreviewLabel(value: string, fallback = 'Preview information') {
+  const cleaned = value
     .replace(/\s*-\s*Cycle\s+\d+[A-Z]?\s+QA\s*$/i, '')
     .replace(/\s+Cycle\s+\d+[A-Z]?\s*$/i, '')
     .trim();
+  if (!cleaned || internalPreviewText.test(cleaned) || emailAddress.test(cleaned)) return fallback;
+  return cleaned;
 }
 
 export function humanizePreviewIdentity(value: string, role?: string) {
-  const cleaned = humanizePreviewLabel(value);
-  if (/^cycle\d+[a-z-]*$/i.test(cleaned) || /^cycle\d+[a-z-]*@/i.test(cleaned)) {
+  const roleFallback = role === 'director' || role === 'owner'
+    ? 'Preview director'
+    : role === 'staff'
+      ? 'Preview staff member'
+      : 'Preview team member';
+  if (internalPreviewText.test(value) || emailAddress.test(value)) return roleFallback;
+  const cleaned = humanizePreviewLabel(value, roleFallback);
+  if (/^cycle\d+[a-z-]*$/i.test(cleaned)) {
     if (role === 'director' || role === 'owner') return 'Preview director';
     if (role === 'staff') return 'Preview staff member';
     return 'Preview team member';
@@ -15,9 +26,22 @@ export function humanizePreviewIdentity(value: string, role?: string) {
   return cleaned;
 }
 
+export function humanizeMemberIdentity(
+  displayName: string | null | undefined,
+  email: string | null | undefined,
+  role?: string,
+) {
+  const genuineName = displayName?.trim();
+  if (genuineName) return humanizePreviewIdentity(genuineName, role);
+  if (email?.trim()) return humanizePreviewIdentity(email.trim(), role);
+  if (role === 'director' || role === 'owner') return 'Preview director';
+  if (role === 'staff') return 'Preview staff member';
+  return 'Preview team member';
+}
+
 export function humanizeSavedReason(value: string | null, fallback: string) {
   if (!value) return null;
-  if (/\bCycle\s+\d+[A-Z]?\b|\bQA\b|\bfixture\b/i.test(value)) return fallback;
+  if (internalPreviewText.test(value) || emailAddress.test(value)) return fallback;
   return value;
 }
 
