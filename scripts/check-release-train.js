@@ -22,9 +22,9 @@ function fail(message) {
   process.exit(1);
 }
 
-if (eventName !== 'pull_request') {
-  console.log('Release train PR check skipped for non-PR event.');
-  process.exit(0);
+const allowedEvents = new Set(['pull_request', 'pull_request_target']);
+if (!allowedEvents.has(eventName)) {
+  fail(`Unsupported or missing GitHub event: ${eventName || 'missing'}.`);
 }
 
 if (!body.trim()) fail('PR body is empty. Use the Passage release train template.');
