@@ -92,3 +92,9 @@ The PR body is informational. It cannot claim merge-review PASS. GitHub required
 7. Prove the separate Production Review App before any Production release; its PASS never deploys and never replaces an applicable owner gate.
 
 No Vercel or Supabase deployment is authorized. Cycle 8 remains FAIL/PARTIAL and its local application and migration files remain untouched.
+
+## Trusted-gate event validation correction
+
+The Dedicated Merge Reviewer found that the trusted `pull_request_target` workflow invoked a checker that previously evaluated only `pull_request` and exited successfully for every other event. Product Management classified this as FIX NOW because the trusted check could otherwise report success without validating the pull request.
+
+Governance Engineering now evaluates the same release-train contract for both `pull_request` and `pull_request_target` and fails closed for unsupported or missing event names. Adversarial fixtures cover a valid `pull_request_target`, an invalid `pull_request_target` author, and an unsupported `push` event. This correction is governance-only, uses `[skip deploy]`, and requires fresh exact-head Independent QA and Dedicated Merge Review checks before PR #28 can leave draft.
