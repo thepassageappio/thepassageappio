@@ -43,7 +43,7 @@ Independent Agent Review Status: NOT RUN
 
 - [ ] Founder review requested
 - Founder Reviewer: @thepassageappio
-- Founder Review: NOT APPROVED
+- Founder Review: NATIVE APPROVAL REQUIRED
 
 ## Production Authorization
 

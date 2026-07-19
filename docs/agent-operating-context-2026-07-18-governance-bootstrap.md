@@ -31,7 +31,9 @@ Dedicated reviewer `/root/independent_pr25_reviewer` and independent QA rejected
 
 PR #26 corrects that design through one delimited attestation block with exactly one base ref, base SHA, head SHA, and Independent Agent Review status. Both candidate and trusted checks reject duplicate markers, duplicate/conflicting fields, reordered or extra fields, stale base/head pairs, missing event data, wrong Bot authorship, reopened PRs, and all bootstrap-exception lines. Drafts remain structurally valid only with `NOT RUN` and unassigned or exact current bindings.
 
-The trusted `pull_request_target` workflow executes only base-defined inline structure checks. It does not checkout or execute candidate code, install dependencies, persist credentials, expose secrets, query reviews, or receive write permission. Candidate validation checks out the exact head without persisted credentials and has read-only repository permission.
+The next exact-head correction also closes the review-stage deadlock and legacy workflow gap. The PR body never self-asserts founder approval; it says `NATIVE APPROVAL REQUIRED`, while GitHub's native branch rule is the separate authoritative approval gate. Drafts must keep Production and deploy authorization at `NOT APPROVED`. The checker parses every decision field, reviewer field, cycle field, required section, and required checkbox exactly once.
+
+The trusted `pull_request_target` workflow checks out only the exact base commit, without persisted credentials, and runs the base commit's checker. It never checks out or executes candidate code, installs dependencies, exposes secrets, queries reviews, or receives write permission. Candidate validation checks out the exact head without persisted credentials and has read-only repository permission. The former `agent-context.yml` is replaced with a pull-request-only, credentialless candidate check that supplies the complete event contract. Until that replacement is live on `main`, the checker may recover the same omitted fields from GitHub's immutable local event payload; it does not guess or waive any field.
 
 ## Role handoff
 

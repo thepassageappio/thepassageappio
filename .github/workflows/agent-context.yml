@@ -3,31 +3,36 @@ name: Agent release train guard
 on:
   pull_request:
     branches: ['**']
-  push:
-    branches: [main]
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
+
+permissions:
+  contents: read
 
 jobs:
   agent-context:
     name: Require agent context and release train
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout candidate without credentials
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Determine diff base
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git fetch origin "${{ github.base_ref }}" --depth=1
-            echo "AGENT_CONTEXT_BASE=origin/${{ github.base_ref }}" >> "$GITHUB_ENV"
-          else
-            echo "AGENT_CONTEXT_BASE=${{ github.event.before }}" >> "$GITHUB_ENV"
-          fi
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          echo "AGENT_CONTEXT_BASE=origin/${{ github.base_ref }}" >> "$GITHUB_ENV"
       - name: Check agent context loop
         run: node scripts/check-agent-context.js
       - name: Check release train PR handoff
-        if: github.event_name == 'pull_request'
         env:
+          GITHUB_EVENT_NAME: pull_request
+          PR_ACTION: ${{ github.event.action }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: node scripts/check-release-train.js

@@ -1,6 +1,19 @@
 #!/usr/bin/env node
 
-const body = String(process.env.PR_BODY || '').replace(/\r/g, '');
+const fs = require('node:fs');
+
+function eventPayload() {
+  if (process.env.GITHUB_ACTIONS !== 'true' || !process.env.GITHUB_EVENT_PATH) return {};
+  try {
+    return JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+const payload = eventPayload();
+const pullRequest = payload.pull_request || {};
+const body = String(process.env.PR_BODY || pullRequest.body || '').replace(/\r/g, '');
 const eventName = String(process.env.GITHUB_EVENT_NAME || '');
 
 function fail(message) {
@@ -16,23 +29,25 @@ if (eventName !== 'pull_request') {
 
 if (!body.trim()) fail('PR body is empty. Use the Passage release train template.');
 
-const draftState = String(process.env.PR_DRAFT || '').toLowerCase();
+// The payload fallback keeps the pre-governance main workflow compatible without
+// weakening the contract: GitHub's immutable event file supplies every omitted field.
+const draftState = String(process.env.PR_DRAFT || (pullRequest.draft ?? '')).toLowerCase();
 if (!['true', 'false'].includes(draftState)) fail('PR_DRAFT must be exactly true or false.');
 const isDraft = draftState === 'true';
 
-const action = String(process.env.PR_ACTION || '');
+const action = String(process.env.PR_ACTION || payload.action || '');
 const allowedActions = new Set(['opened', 'synchronize', 'edited', 'ready_for_review', 'converted_to_draft']);
 if (action === 'reopened') fail('A closed Passage PR cannot be reopened. Create a new PR and repeat exact-head review.');
 if (!allowedActions.has(action)) fail(`Unsupported or missing pull-request action: ${action || 'missing'}.`);
 
 const expectedAuthor = 'passage-release-bot[bot]';
-if (String(process.env.PR_AUTHOR || '') !== expectedAuthor) {
+if (String(process.env.PR_AUTHOR || pullRequest.user?.login || '') !== expectedAuthor) {
   fail(`Pull requests must be authored by ${expectedAuthor}.`);
 }
 
-const actualBaseRef = String(process.env.PR_BASE_REF || '');
-const actualBaseSha = String(process.env.PR_BASE_SHA || '').toLowerCase();
-const actualHeadSha = String(process.env.PR_HEAD_SHA || '').toLowerCase();
+const actualBaseRef = String(process.env.PR_BASE_REF || pullRequest.base?.ref || '');
+const actualBaseSha = String(process.env.PR_BASE_SHA || pullRequest.base?.sha || '').toLowerCase();
+const actualHeadSha = String(process.env.PR_HEAD_SHA || pullRequest.head?.sha || '').toLowerCase();
 if (!actualBaseRef) fail('PR_BASE_REF is required.');
 if (!/^[0-9a-f]{40}$/.test(actualBaseSha)) fail('PR_BASE_SHA must be a 40-character commit SHA.');
 if (!/^[0-9a-f]{40}$/.test(actualHeadSha)) fail('PR_HEAD_SHA must be a 40-character commit SHA.');
@@ -50,7 +65,8 @@ const requiredSections = [
 ];
 
 for (const section of requiredSections) {
-  if (!body.includes(section)) fail(`Missing PR section: ${section}`);
+  const count = (body.match(new RegExp(`^${section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'gm')) || []).length;
+  if (count !== 1) fail(`PR section must appear exactly once: ${section}`);
 }
 
 const START = '<!-- PASSAGE_REVIEW_ATTESTATION_START -->';
@@ -96,11 +112,41 @@ function oneStatus(label, allowed) {
   return value;
 }
 
+function oneField(label, valuePattern) {
+  const matches = [...body.matchAll(new RegExp(`^- ${label}:\\s*(.+)$`, 'gm'))];
+  if (matches.length !== 1) fail(`${label} must appear exactly once as an anchored field.`);
+  const value = matches[0][1].trim();
+  if (!valuePattern.test(value)) fail(`${label} has an invalid value: ${value}.`);
+  return value;
+}
+
+function oneCheckbox(label) {
+  const matches = [...body.matchAll(new RegExp(`^- \\[([ xX])\\] ${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'gm'))];
+  if (matches.length !== 1) fail(`${label} checkbox must appear exactly once.`);
+  return matches[0][1].toLowerCase() === 'x';
+}
+
 if (/^\s*-?\s*Bootstrap Exception:/m.test(body)) fail('Bootstrap exceptions are expired and prohibited.');
 const attestation = parseAttestation();
-const founderReview = oneStatus('Founder Review', ['APPROVED', 'NOT APPROVED']);
-oneStatus('Founder Production Authorization', ['APPROVED', 'NOT APPROVED']);
+const uxStatus = oneStatus('UX Status', ['NOT RUN', 'PASS', 'FAIL', 'PARTIAL', 'N/A']);
+const qaStatus = oneStatus('QA Status', ['NOT RUN', 'PASS', 'FAIL', 'PARTIAL']);
+const founderReview = oneStatus('Founder Review', ['NATIVE APPROVAL REQUIRED']);
+const productionAuthorization = oneStatus('Founder Production Authorization', ['APPROVED', 'NOT APPROVED']);
 const deployDecision = oneStatus('Deploy Decision', ['APPROVED', 'NOT APPROVED']);
+const agentReviewer = oneField('Agent Reviewer', /^(?:UNASSIGNED|\/?[A-Za-z0-9_\/-]+)$/);
+const founderReviewer = oneField('Founder Reviewer', /^@?[A-Za-z0-9-]+$/);
+const cycleValue = oneField('Cycle', /^[1-3]$/);
+
+const checkboxItems = [
+  'Product Manager scope completed',
+  'UX review completed',
+  'Development handoff completed',
+  'Independent QA handoff completed',
+  'Agent context updated',
+  'Independent agent review completed',
+  'Founder review requested',
+];
+const checkboxState = new Map(checkboxItems.map((item) => [item, oneCheckbox(item)]));
 
 if (isDraft) {
   if (attestation['Independent Agent Review Status'] !== 'NOT RUN') fail('Draft review status must be NOT RUN.');
@@ -113,50 +159,28 @@ if (isDraft) {
     const value = attestation[field].toLowerCase();
     if (value !== 'unassigned' && value !== actual.toLowerCase()) fail(`Draft ${field} conflicts with the current PR event.`);
   }
-  if (founderReview !== 'NOT APPROVED' || deployDecision !== 'NOT APPROVED') {
-    fail('Draft PRs cannot claim founder or deploy approval.');
+  if (productionAuthorization !== 'NOT APPROVED' || deployDecision !== 'NOT APPROVED') {
+    fail('Draft PRs cannot claim Production or deploy approval.');
   }
   console.log('Release train structure passed for draft PR; completion gates remain open.');
   process.exit(0);
 }
 
-const requiredCheckedItems = [
-  'Product Manager scope completed',
-  'UX review completed',
-  'Development handoff completed',
-  'Independent QA handoff completed',
-  'Agent context updated',
-  'Independent agent review completed',
-  'Founder review requested',
-];
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$/g, '\\$');
+for (const item of checkboxItems) {
+  if (!checkboxState.get(item)) fail(`Before ready-for-review or merge, check this item: ${item}`);
 }
 
-for (const item of requiredCheckedItems) {
-  const pattern = new RegExp(`\\[[xX]\\]\\s*${escapeRegExp(item)}`);
-  if (!pattern.test(body)) fail(`Before ready-for-review or merge, check this item: ${item}`);
-}
-
-if (!/^- UX Status:\s*(PASS|N\/A)$/im.test(body)) fail('UX Status must be PASS or N/A.');
-if (!/^- QA Status:\s*PASS$/im.test(body)) fail('QA Status must be PASS. Failed QA returns to Product Manager.');
+if (!['PASS', 'N/A'].includes(uxStatus)) fail('UX Status must be PASS or N/A.');
+if (qaStatus !== 'PASS') fail('QA Status must be PASS. Failed QA returns to Product Manager.');
 if (attestation['Independent Agent Review Status'] !== 'PASS') fail('Independent Agent Review Status must be PASS.');
 if (attestation['Reviewed Base Ref'] !== actualBaseRef) fail('Independent Agent Review must match the current PR base ref.');
 if (attestation['Reviewed Base SHA'].toLowerCase() !== actualBaseSha) fail('Independent Agent Review must match the current PR base SHA.');
 if (attestation['Reviewed Head SHA'].toLowerCase() !== actualHeadSha) fail('Independent Agent Review must match the current PR head SHA.');
 
-const agentReviewerMatch = body.match(/^- Agent Reviewer:\s*\/?([A-Za-z0-9_\/-]+)$/im);
-if (!agentReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(agentReviewerMatch[1])) fail('Name the distinct agent reviewer.');
-const founderReviewerMatch = body.match(/^- Founder Reviewer:\s*@?([A-Za-z0-9-]+)$/im);
-if (!founderReviewerMatch || /^(UNASSIGNED|TBD|NONE)$/i.test(founderReviewerMatch[1])) fail('Name the founder reviewer.');
-if (founderReview !== 'APPROVED') fail('Founder Review must be APPROVED. Native branch rules enforce the actual review.');
+if (/^(UNASSIGNED|TBD|NONE)$/i.test(agentReviewer)) fail('Name the distinct agent reviewer.');
+if (/^@?(UNASSIGNED|TBD|NONE)$/i.test(founderReviewer)) fail('Name the founder reviewer.');
+if (founderReview !== 'NATIVE APPROVAL REQUIRED') fail('Founder review must remain a native GitHub approval gate, never a body assertion.');
 if (deployDecision !== 'APPROVED') fail('Deploy Decision must be APPROVED.');
-
-const cycleMatch = body.match(/^- Cycle:\s*([0-9]+)$/im);
-const cycle = cycleMatch ? Number(cycleMatch[1]) : NaN;
-if (!Number.isFinite(cycle) || cycle < 1 || cycle > 3) {
-  fail('Loop Status must include Cycle: 1, 2, or 3. After cycle 3, split, de-scope, or escalate.');
-}
+if (!Number.isFinite(Number(cycleValue))) fail('Loop Status must include Cycle: 1, 2, or 3.');
 
 console.log('Release train completion gate passed.');

@@ -17,9 +17,16 @@ jobs:
     name: Evaluate trusted release structure
     runs-on: ubuntu-latest
     steps:
-      - name: Check release handoff from trusted workflow
-        shell: bash
+      - name: Checkout trusted base commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Check release handoff with trusted base checker
         env:
+          GITHUB_EVENT_NAME: pull_request
           PR_ACTION: ${{ github.event.action }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_BODY: ${{ github.event.pull_request.body }}
@@ -27,84 +34,4 @@ jobs:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          node <<'NODE'
-          const body = String(process.env.PR_BODY || '').replace(/\r/g, '');
-          const fail = (message) => { throw new Error(message); };
-          const draftState = String(process.env.PR_DRAFT || '').toLowerCase();
-          if (!['true', 'false'].includes(draftState)) fail('PR_DRAFT must be exactly true or false.');
-          const isDraft = draftState === 'true';
-          const action = String(process.env.PR_ACTION || '');
-          const allowedActions = new Set(['opened', 'synchronize', 'edited', 'ready_for_review', 'converted_to_draft']);
-          if (action === 'reopened') fail('A closed Passage PR cannot be reopened. Create a new PR.');
-          if (!allowedActions.has(action)) fail('Unsupported or missing pull-request action.');
-          if (String(process.env.PR_AUTHOR || '') !== 'passage-release-bot[bot]') fail('Passage PRs must be authored by the dedicated Bot.');
-          const actualBaseRef = String(process.env.PR_BASE_REF || '');
-          const actualBaseSha = String(process.env.PR_BASE_SHA || '').toLowerCase();
-          const actualHeadSha = String(process.env.PR_HEAD_SHA || '').toLowerCase();
-          if (!actualBaseRef || !/^[0-9a-f]{40}$/.test(actualBaseSha) || !/^[0-9a-f]{40}$/.test(actualHeadSha)) fail('Exact event base/head binding is required.');
-          const required = [
-            '## Product Manager Scope', '## UX Review', '## Development Handoff', '## QA Handoff',
-            '## Independent Agent Review', '## Founder Review', '## Production Authorization',
-            '## Loop Status', '## Deploy Decision',
-          ];
-          for (const heading of required) if (!body.includes(heading)) fail('Missing PR section: ' + heading);
-          const START = '<!-- PASSAGE_REVIEW_ATTESTATION_START -->';
-          const END = '<!-- PASSAGE_REVIEW_ATTESTATION_END -->';
-          const count = (literal) => body.split(literal).length - 1;
-          if (count(START) !== 1 || count(END) !== 1) fail('Exactly one attestation marker pair is required.');
-          const start = body.indexOf(START);
-          const end = body.indexOf(END);
-          if (end <= start) fail('Attestation markers are out of order.');
-          const lines = body.slice(start + START.length, end).split('\n').map((line) => line.trim()).filter(Boolean);
-          const specs = [
-            ['Reviewed Base Ref', /^(?:UNASSIGNED|[^\s]+)$/],
-            ['Reviewed Base SHA', /^(?:UNASSIGNED|[0-9a-f]{40})$/i],
-            ['Reviewed Head SHA', /^(?:UNASSIGNED|[0-9a-f]{40})$/i],
-            ['Independent Agent Review Status', /^(?:NOT RUN|PASS|FAIL)$/],
-          ];
-          if (lines.length !== specs.length) fail('Attestation must contain exactly four ordered fields.');
-          const attestation = {};
-          for (let index = 0; index < specs.length; index += 1) {
-            const [label, pattern] = specs[index];
-            const match = lines[index].match(new RegExp('^' + label + ':\\s*(.+)$'));
-            if (!match || !pattern.test(match[1])) fail('Invalid or out-of-order attestation field: ' + label);
-            if ((body.match(new RegExp('^' + label + ':', 'gm')) || []).length !== 1) fail('Attestation field must appear exactly once: ' + label);
-            attestation[label] = match[1];
-          }
-          const oneStatus = (label, allowed) => {
-            const matches = [...body.matchAll(new RegExp('^- ' + label + ':\\s*(.+)$', 'gm'))];
-            if (matches.length !== 1) fail(label + ' must appear exactly once.');
-            const value = matches[0][1].trim();
-            if (!allowed.includes(value)) fail(label + ' has an invalid value.');
-            return value;
-          };
-          if (/^\s*-?\s*Bootstrap Exception:/m.test(body)) fail('Bootstrap exceptions are expired and prohibited.');
-          const founderReview = oneStatus('Founder Review', ['APPROVED', 'NOT APPROVED']);
-          oneStatus('Founder Production Authorization', ['APPROVED', 'NOT APPROVED']);
-          const deployDecision = oneStatus('Deploy Decision', ['APPROVED', 'NOT APPROVED']);
-          if (isDraft) {
-            if (attestation['Independent Agent Review Status'] !== 'NOT RUN') fail('Draft review status must be NOT RUN.');
-            for (const [field, actual] of [['Reviewed Base Ref', actualBaseRef], ['Reviewed Base SHA', actualBaseSha], ['Reviewed Head SHA', actualHeadSha]]) {
-              const value = attestation[field].toLowerCase();
-              if (value !== 'unassigned' && value !== actual.toLowerCase()) fail('Draft attestation conflicts with the current PR event: ' + field);
-            }
-            if (founderReview !== 'NOT APPROVED' || deployDecision !== 'NOT APPROVED') fail('Drafts cannot claim founder or deploy approval.');
-            console.log('Trusted draft structure passed; completion gates remain open.');
-            process.exit(0);
-          }
-          const checked = ['Product Manager scope completed', 'UX review completed', 'Development handoff completed', 'Independent QA handoff completed', 'Independent agent review completed', 'Founder review requested', 'Agent context updated'];
-          for (const item of checked) {
-            const escaped = item.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$/g, '\\$');
-            if (!new RegExp('\\[[xX]\\]\\s*' + escaped).test(body)) fail('Unchecked release item: ' + item);
-          }
-          if (!/^- UX Status:\s*(PASS|N\/A)$/im.test(body)) fail('UX Status must be PASS or N/A.');
-          if (!/^- QA Status:\s*PASS$/im.test(body)) fail('QA Status must be PASS.');
-          if (attestation['Independent Agent Review Status'] !== 'PASS') fail('Independent review must PASS.');
-          if (attestation['Reviewed Base Ref'] !== actualBaseRef || attestation['Reviewed Base SHA'].toLowerCase() !== actualBaseSha || attestation['Reviewed Head SHA'].toLowerCase() !== actualHeadSha) fail('Independent review must match the exact current base/head pair.');
-          if (founderReview !== 'APPROVED') fail('Founder Review must be APPROVED.');
-          if (deployDecision !== 'APPROVED') fail('Deploy Decision must be APPROVED.');
-          const cycle = Number((body.match(/^- Cycle:\s*([0-9]+)$/im) || [])[1]);
-          if (!Number.isFinite(cycle) || cycle < 1 || cycle > 3) fail('Cycle must be 1, 2, or 3.');
-          console.log('Trusted release structure passed. Native rules enforce founder review; Production remains a separate protected authorization.');
-          NODE
+        run: node scripts/check-release-train.js

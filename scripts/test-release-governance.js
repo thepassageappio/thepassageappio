@@ -41,7 +41,7 @@ ${block}
 ## Founder Review
 - [${mark}] Founder review requested
 - Founder Reviewer: @thepassageappio
-- Founder Review: ${ready ? 'APPROVED' : 'NOT APPROVED'}
+- Founder Review: NATIVE APPROVAL REQUIRED
 ## Production Authorization
 - Founder Production Authorization: NOT APPROVED
 - Protected environment or release evidence: NONE
@@ -102,6 +102,14 @@ expectFail('head SHA mismatch', { PR_BODY: readyBody.replace(HEAD_SHA, '22222222
 expectFail('ready NOT RUN', { PR_BODY: readyBody.replace('Independent Agent Review Status: PASS', 'Independent Agent Review Status: NOT RUN'), PR_DRAFT: 'false' });
 expectFail('ready FAIL', { PR_BODY: readyBody.replace('Independent Agent Review Status: PASS', 'Independent Agent Review Status: FAIL'), PR_DRAFT: 'false' });
 expectFail('draft concrete mismatch', { PR_BODY: boundDraft.replace(HEAD_SHA, '2222222222222222222222222222222222222222') });
+expectFail('duplicate QA status', { PR_BODY: `${readyBody}\n- QA Status: FAIL`, PR_DRAFT: 'false' });
+expectFail('duplicate UX status', { PR_BODY: `${readyBody}\n- UX Status: FAIL`, PR_DRAFT: 'false' });
+expectFail('duplicate cycle', { PR_BODY: `${readyBody}\n- Cycle: 3`, PR_DRAFT: 'false' });
+expectFail('duplicate agent reviewer', { PR_BODY: `${readyBody}\n- Agent Reviewer: UNASSIGNED`, PR_DRAFT: 'false' });
+expectFail('duplicate founder reviewer', { PR_BODY: `${readyBody}\n- Founder Reviewer: @someoneelse`, PR_DRAFT: 'false' });
+expectFail('duplicate checkbox', { PR_BODY: `${readyBody}\n- [x] Independent agent review completed`, PR_DRAFT: 'false' });
+expectFail('draft Production approval', { PR_BODY: boundDraft.replace('Founder Production Authorization: NOT APPROVED', 'Founder Production Authorization: APPROVED') });
+expectFail('body-asserted founder approval', { PR_BODY: readyBody.replace('Founder Review: NATIVE APPROVAL REQUIRED', 'Founder Review: APPROVED'), PR_DRAFT: 'false' });
 expectFail('missing draft state', { PR_BODY: boundDraft, PR_DRAFT: '' });
 expectFail('invalid draft state', { PR_BODY: boundDraft, PR_DRAFT: 'maybe' });
 expectFail('missing base ref', { PR_BODY: boundDraft, PR_BASE_REF: '' });
@@ -114,6 +122,31 @@ expectFail('PR number cannot bypass stale head', { PR_BODY: readyBody.replace(HE
 
 result = run({ PR_BODY: `${boundDraft}\nHistorical PR #25 is closed and grants no exception.`, PR_NUMBER: '25' });
 assert.equal(result.status, 0, result.stderr);
+
+const eventFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'passage-event-'));
+const eventPath = path.join(eventFixtureRoot, 'event.json');
+fs.writeFileSync(eventPath, JSON.stringify({
+  action: 'opened',
+  pull_request: {
+    body: boundDraft,
+    draft: true,
+    user: { login: BOT },
+    base: { ref: BASE_REF, sha: BASE_SHA },
+    head: { sha: HEAD_SHA },
+  },
+}));
+result = spawnSync(process.execPath, ['scripts/check-release-train.js'], {
+  encoding: 'utf8',
+  env: {
+    ...process.env,
+    GITHUB_ACTIONS: 'true',
+    GITHUB_EVENT_NAME: 'pull_request',
+    GITHUB_EVENT_PATH: eventPath,
+    PR_ACTION: '', PR_AUTHOR: '', PR_BODY: '', PR_DRAFT: '', PR_BASE_REF: '', PR_BASE_SHA: '', PR_HEAD_SHA: '',
+  },
+});
+assert.equal(result.status, 0, `legacy event-payload compatibility failed: ${result.stderr}`);
+fs.rmSync(eventFixtureRoot, { recursive: true, force: true });
 
 const languageFixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'passage-language-'));
 fs.mkdirSync(path.join(languageFixtureRoot, 'app'), { recursive: true });
