@@ -1,0 +1,36 @@
+name: Passage candidate validation
+
+on:
+  pull_request:
+    branches: ['**']
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: passage-candidate-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
+
+jobs:
+  candidate-validation:
+    name: Validate candidate governance and language
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate without persisted credentials
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Check release train structure
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/check-release-train.js
+      - name: Test governance controls
+        run: node scripts/test-release-governance.js
+      - name: Block internal narration on persona surfaces
+        run: node scripts/check-persona-language.js
