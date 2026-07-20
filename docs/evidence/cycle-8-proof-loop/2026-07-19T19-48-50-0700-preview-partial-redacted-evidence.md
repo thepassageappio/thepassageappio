@@ -21,6 +21,11 @@ Recorded: 2026-07-19 19:48:50 -07:00
 
 ## Isolated identity preparation
 
+- Canonical committed artifact hashes use the UTF-8/LF bytes published by the Passage Bot:
+  - `supabase/test-fixtures/cycle_8_hosted_active_staff_identity.sql`: `99D12A634F286E2379D66C250F2DDC6E8FC50EFB7E084FBAF56A8FDB701802E3`
+  - `supabase/test-fixtures/cycle_7b_hosted_workload.sql`: `4E4D193DA0BA143F5A6D32F13FE828E8F365CB490B3FED10BEDC5F8188EBE349`
+  - `supabase/tests/cycle_8_hosted_active_staff_identity.sql`: `17D22A8306560FD91EC7948BA8872F1A98DB2E98134D79041B7BEFC9ECD32268`
+- The earlier mixed-CRLF worktree hash for the Cycle 7B fixture is not the canonical GitHub artifact hash and must not be used for exact-head review.
 - Scope was restricted to isolated Supabase project `uyacxqtsiwlvtmhxvoxr`; Production project `qsveqfchwylsbncsfgxe` was prohibited and untouched.
 - A controlled synthetic staff identity was created through the isolated Auth Admin path. Its email, Auth identifier, and credentials are intentionally omitted.
 - Guarded DML bound that Auth identity to the already-reserved isolated staff membership. No new organization, location, workflow, task, invitation, grant, proof, review, or workflow-event row was created by the bind.
