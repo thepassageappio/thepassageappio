@@ -20,7 +20,6 @@ const C = {
 
 const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const MOMENT_FONT = "'Fraunces', serif";
-const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const providerOptions = [
   ['hospice', 'Hospice'],
@@ -105,7 +104,6 @@ export default function CareProviderLanding({ focus = 'hospice' }) {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
-      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={shell}>
         <div className="care-hero" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(340px, .72fr)', gap: 16, alignItems: 'stretch' }}>
@@ -290,7 +288,7 @@ const actionRow = { display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 };
 const primaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 16px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', textDecoration: 'none', borderRadius: 999, fontWeight: 900, fontSize: 14, boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 8px 16px -6px rgba(20,30,25,.35)' };
 const secondaryLink = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 46, padding: '0 16px', background: C.card, color: C.sage, textDecoration: 'none', borderRadius: 999, border: '1px solid ' + C.border, fontWeight: 900, fontSize: 14 };
 const primaryButton = { border: 'none', minHeight: 48, borderRadius: 999, background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', padding: '0 16px', fontFamily: BODY_FONT, fontWeight: 900, cursor: 'pointer', fontSize: 14 };
-const smallButton = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 38, padding: '0 12px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', textDecoration: 'none', borderRadius: 999, fontWeight: 900, fontSize: 12.5, whiteSpace: 'nowrap' };
+const smallButton = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '0 12px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', textDecoration: 'none', borderRadius: 999, fontWeight: 900, fontSize: 12.5, whiteSpace: 'nowrap' };
 const inputStyle = { width: '100%', boxSizing: 'border-box', border: '1px solid ' + C.border, borderRadius: 12, background: C.card, minHeight: 44, padding: '0 13px', fontFamily: BODY_FONT, fontSize: 14, color: C.ink };
 const purposeGrid = { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 10, marginTop: 18 };
 const miniCard = { background: C.sageFaint, border: '1px solid ' + C.border, borderRadius: 14, padding: 13 };

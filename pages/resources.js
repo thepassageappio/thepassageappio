@@ -18,7 +18,6 @@ const C = {
 
 const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const MOMENT_FONT = "'Fraunces', serif";
-const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const audiences = [
   {
@@ -125,7 +124,6 @@ export default function ResourcesPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
-      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '12px 28px 10px' }}>
         <section style={{ ...panel, display: 'grid', gridTemplateColumns: 'minmax(0,.82fr) minmax(360px,.9fr)', gap: 18, alignItems: 'stretch' }} className="resources-hero-grid">
@@ -149,7 +147,7 @@ export default function ResourcesPage() {
                     background: activePaneIndex === index ? `linear-gradient(155deg, ${pane.tone}, #153A31)` : C.bg,
                     color: activePaneIndex === index ? '#fff' : C.mid,
                     borderRadius: 999,
-                    minHeight: 37,
+                    minHeight: 44,
                     padding: '0 10px',
                     fontFamily: BODY_FONT,
                     fontSize: 12,

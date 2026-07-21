@@ -93,7 +93,6 @@ export default function ContactPage() {
   return (
     <main className="th-shell">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');
         :root{
           --pine-950:#0A1F1A; --pine-900:#0F2A24; --pine-800:#153A31; --pine-700:#1C4A3E; --pine-600:#245A4B;
           --pine-100:#E7EFEA; --pine-50:#F2F6F3;

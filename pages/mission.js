@@ -17,7 +17,6 @@ const C = {
   amber: '#9A4F26',
 };
 
-const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const MOMENT_FONT = "'Fraunces', serif";
 
@@ -49,7 +48,6 @@ export default function MissionPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: BODY_FONT, color: C.ink }}>
-      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={{ maxWidth: 1120, margin: '0 auto', padding: '6px 22px 10px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, .96fr) minmax(320px, .64fr)', gap: 10, alignItems: 'stretch', marginBottom: 7 }}>
@@ -99,6 +97,7 @@ export default function MissionPage() {
                   color: activePathIndex === index ? '#fff' : C.mid,
                   borderRadius: 999,
                   padding: '9px 12px',
+                  minHeight: 44,
                   textAlign: 'left',
                   fontFamily: BODY_FONT,
                   fontSize: 12,
