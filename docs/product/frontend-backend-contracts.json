@@ -669,7 +669,8 @@
       "failure_recovery_states": [
         "missing, unassigned, reassigned, revoked, wrong-location, and wrong-organization task access renders a closed route without proof detail",
         "query failure renders no durable task or proof state and offers a return to My work",
-        "reload reconstructs the same ordered proof and review chain from durable rows"
+        "reload reconstructs the same ordered proof and review chain from durable rows",
+        "a failed submission moves focus to the unchanged result and offers exact-task reload plus a return to My work"
       ],
       "persona_projection": "Current assigned staff sees only the authorized task's case-team proof chain; directors receive their managed-location projection; former staff, family, vendors, and unrelated organizations receive no proof detail.",
       "evidence_test_references": [
@@ -684,7 +685,7 @@
             "export const dynamic = 'force-dynamic'",
             "loadHostedOperations({ proofs: true })",
             "proofReviews.filter((review) => review.task_id === task.id)",
-            "taskProofs.map((proof) =>",
+            "taskProofs.map((proof, index) =>",
             "Proof and replacement history.",
             "This work is not available to your account."
           ]
@@ -773,7 +774,9 @@
             "name=\"expectedVersion\"",
             "name=\"supersedesProofId\"",
             "Submit replacement proof",
-            "Submit proof for review"
+            "Submit proof for review",
+            "resultRef.current?.focus()",
+            "Reload current task"
           ]
         },
         {
@@ -855,7 +858,9 @@
         "same-key same-decision replay returns the original review/event receipt with no duplicate rows",
         "same-key conflict, stale version, already-reviewed proof, non-latest proof, invalid decision/reason, wrong-location, cross-organization, staff, revoked, and unaffiliated attempts fail atomically",
         "proof-pending work cannot be reassigned until the director verifies it or requests replacement",
-        "reload reconstructs the completed or replacement-requested state from durable task, proof, review, and event rows"
+        "reload reconstructs the completed or replacement-requested state from durable task, proof, review, and event rows",
+        "a supplied task query that does not match this managed workflow fails closed instead of selecting another task",
+        "an empty replacement reason stays client-side, focuses the reason field, and changes no durable state; command failure focuses the unchanged result and offers exact-task reload"
       ],
       "persona_projection": "Managed directors see review controls and the full authorized proof chain; current assigned staff sees the saved decision and replacement instruction; former staff, family, vendors, and unrelated organizations receive no proof detail.",
       "evidence_test_references": [
@@ -869,6 +874,8 @@
           "includes": [
             "export const dynamic = 'force-dynamic'",
             "loadHostedOperations({ proofs: true })",
+            "const selectedTask = query.task",
+            "workflowTasks.find((task) => task.id === query.task)",
             "selectedTask.status === 'proof_submitted'",
             "<ProofReviewForms",
             "Saved submission and review history.",
@@ -883,7 +890,10 @@
             "value=\"verified\"",
             "value=\"needs_replacement\"",
             "Verify proof",
-            "Send replacement request"
+            "Send replacement request",
+            "resultRef.current?.focus()",
+            "aria-invalid={Boolean(reasonError)}",
+            "Reload current task"
           ]
         },
         {
@@ -963,7 +973,7 @@
         {
           "file": "app/staff/work/[taskId]/page.tsx",
           "includes": [
-            "taskProofs.map((proof) =>",
+            "taskProofs.map((proof, index) =>",
             "reviewByProof.get(proof.id)",
             "Your earlier proof stays in history."
           ]
@@ -971,7 +981,7 @@
         {
           "file": "app/director/cases/[workflowId]/page.tsx",
           "includes": [
-            "taskProofs.map((proof) =>",
+            "taskProofs.map((proof, index) =>",
             "reviewByProof.get(proof.id)",
             "Saved submission and review history."
           ]

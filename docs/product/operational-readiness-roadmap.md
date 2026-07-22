@@ -59,7 +59,7 @@ Current launch truth: Passage Zero exists only in non-production Vercel Preview 
 - Cycle 7A hosted director/staff authority is PASS. Before Cycle 7B the preserved isolated cardinality was exactly one organization, one location, two active memberships, two active location grants, one accepted invitation, one invitation-location row, two invitation events, zero workflows, and zero tasks. The corrected Team projection showed zero pending invitations and one active staff membership at 1440, 390, and 360.
 - Cycle 7B hosted assigned work is PASS as a synthetic non-production functional-beta slice. It proved director workload and assignment, staff start, reassignment, invitation/member revocation, append-only Activity, replay/conflict behavior, reload persistence, wrong-location/organization/unassigned/former/revoked denials, parity 11/11, SQL/RLS, build, advisors, runtime logs, and responsive/accessibility QA.
 - Readiness scores deliberately remain funeral home **94% guided / 40% operational** and D2C **85% guided / 25% operational**. Passing a synthetic authority/work slice does not silently promote the product to pilot-operational, and the PM has not completed a score-change gate.
-- Cycle 8 task-bound Case Room proof loop is **FAIL/PARTIAL**. Source and an additive migration candidate exist locally, but independent SQL QA rejected the first draft. The rollback-only RLS/race/reversibility matrix and re-review must pass before isolated migration application, hosted QA, or any deployment.
+- Cycle 8 task-bound Case Room proof loop is **PARTIAL**. The reviewed additive migration and rollback-only SQL/RLS/race/reversibility matrix pass in the isolated lab; the controlled active-staff identity bind and idempotent replay pass without changing the retained invitation/event digest or public cardinalities; and the exact-branch replacement Preview is READY with the isolated runtime binding and clean build/runtime logs. Interactive staff/director proof-review behavior, durable reload, authority denials, and 1440/390/360 browser evidence remain blocked by the protected-Preview browser handshake and are not yet proven.
 
 Readiness caps:
 
@@ -78,7 +78,7 @@ Audit trigger: PRs #17, #19, #23, and #24 were all draft with zero founder appro
 1. **Production P1 maintenance:** one reviewed Threshold/main hotfix PR fixes the shared hydration failure on `/pricing`, `/resources`, `/guides`, `/care-providers`, `/trust`, and `/mission`; every route receives console/hydration/runtime and responsive verification. This is live-site reliability work, not Passage Zero progress.
 2. **Repository governance:** correct PR #17's exact required heading or close it as superseded, move agent authorship to the dedicated GitHub App/Bot, prohibit agent and scheduled direct-main pushes, require passing current-head checks plus Independent Agent Review and founder approval, protect Production with separate founder authorization, serialize release jobs, and reconcile draft PRs #17, #19, and #23 against Passage Zero umbrella PR #24.
 3. **Human-readable Passage Zero:** audit all reachable public/persona Preview routes against the seven-question gate in `docs/product/release-governance-and-plain-language-policy.md`. Remove raw enums/UUIDs, cycle/fixture/QA narration, architecture wording, and contradictory demo/hosted labels. Validate comprehension at 1440/390/360.
-4. **Cycle 8 recovery:** finish and independently pass the rollback-only SQL/RLS/race/reversibility matrix before applying any proof-loop migration. Retain FAIL/PARTIAL until the complete Engineering -> QA -> Deploy gates pass.
+4. **Cycle 8 recovery:** resume independent two-session proof/review QA on the existing bound replacement Preview when the supported protected-browser handshake works; prove replacement history, replay/conflict/reload, authority denials, and 1440/390/360 comprehension/accessibility/runtime evidence. Retain PARTIAL until the complete hosted QA and Deploy gates pass.
 5. **Reviewable cutover:** retain PR #24 as the integration umbrella but present bounded packets/stacked PRs for Independent Agent Review and founder review across identity/authority, data/RLS, director/staff operations, Transfer Pass/family boundaries, and responsive UX. The final cutover vehicle must be Bot-authored; Production remains separately closed.
 
 ## Critical path
@@ -183,7 +183,7 @@ Effort: 2-4 focused working days, beginning in parallel on Day 2 and completing 
 
 ### M3 - Funeral-home case operations and isolated demo
 
-Active status: Cycle 8 task-bound proof/review is FAIL/PARTIAL after the first independent SQL review. No migration, hosted verification, or deployment is authorized until the rollback-only SQL/RLS/race/reversibility matrix and re-review pass.
+Active status: Cycle 8 task-bound proof/review is PARTIAL. Isolated migration/rollback SQL, controlled staff identity binding/replay, and the exact-branch replacement Preview setup pass. Hosted interactive proof/review, reload, denial, and 1440/390/360 evidence remain unproven because protected-browser access did not complete; no `[qa-approved]` or Production authorization exists.
 
 Target: funeral home 72-78%; D2C 30-35%; demo 75%; production readiness 45%.
 
