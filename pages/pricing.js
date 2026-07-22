@@ -8,7 +8,6 @@ import { recordOnboardingProgress } from '../lib/onboardingClient';
 const C = { bg: '#FBF8F3', card: '#FEFDFB', ink: '#1C1917', mid: '#5A5348', soft: '#9A9081', border: '#E6DDCB', sage: '#245A4B', sageFaint: '#F2F6F3', rose: '#B5622F', roseFaint: '#FBF0E7' };
 const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const MOMENT_FONT = "'Fraunces', serif";
-const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const groups = [
   { key: 'individual', label: 'Individual', seats: '1 estate', desc: 'For one person or one loved one.', options: [
@@ -141,7 +140,6 @@ export default function PricingPage() {
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: BODY_FONT, color: C.ink }}>
       <SiteHeader user={user} onSignIn={!user ? signIn : null} onSignOut={user ? signOut : null} />
       <style>{`
-        ${FONT_IMPORT}
         @media (max-width: 720px) {
           .pricing-hero-grid,
           .pricing-plan-grid,
@@ -173,7 +171,7 @@ export default function PricingPage() {
             <p style={{ color: C.mid, fontSize: 13.5, lineHeight: 1.36, margin: 0, maxWidth: 560 }}>Start urgent if someone just passed. Plan ahead by choosing the number of family records you need.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 6, marginTop: 10 }}>
               {[['urgent', 'Urgent help'], ...groups.map(g => [g.key, g.label])].map(([key, label]) => (
-                <button key={key} type="button" onClick={() => setActiveChoice(key)} style={{ border: `1px solid ${activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) + '55' : C.border}`, background: activeChoice === key ? (key === 'urgent' ? `linear-gradient(155deg, ${C.rose}, #1C1917)` : `linear-gradient(155deg, ${C.sage}, #153A31)`) : C.bg, color: activeChoice === key ? '#fff' : C.mid, borderRadius: 999, minHeight: 36, padding: '0 11px', fontFamily: BODY_FONT, fontSize: 12.5, fontWeight: 900, cursor: 'pointer', textAlign: 'left', boxShadow: activeChoice === key ? '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' : 'none' }}>
+                <button key={key} type="button" onClick={() => setActiveChoice(key)} style={{ border: `1px solid ${activeChoice === key ? (key === 'urgent' ? C.rose : C.sage) + '55' : C.border}`, background: activeChoice === key ? (key === 'urgent' ? `linear-gradient(155deg, ${C.rose}, #1C1917)` : `linear-gradient(155deg, ${C.sage}, #153A31)`) : C.bg, color: activeChoice === key ? '#fff' : C.mid, borderRadius: 999, minHeight: 44, padding: '0 11px', fontFamily: BODY_FONT, fontSize: 12.5, fontWeight: 900, cursor: 'pointer', textAlign: 'left', boxShadow: activeChoice === key ? '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' : 'none' }}>
                   {label}
                 </button>
               ))}
@@ -271,5 +269,5 @@ export default function PricingPage() {
 }
 
 function smallButton(background) {
-  return { border: 'none', borderRadius: 999, padding: '9px 12px', background, color: '#fff', fontFamily: BODY_FONT, fontWeight: 800, cursor: 'pointer' };
+  return { border: 'none', borderRadius: 999, padding: '9px 12px', minHeight: 44, background, color: '#fff', fontFamily: BODY_FONT, fontWeight: 800, cursor: 'pointer' };
 }

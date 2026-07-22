@@ -17,7 +17,6 @@ const C = {
 
 const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const MOMENT_FONT = "'Fraunces', serif";
-const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const trustCards = [
   ['Coordination, not emergency response', 'Passage helps organize next steps, ownership, messages, proof, and records. It is not an emergency service, medical provider, legal advisor, funeral director, government agency, bank, clergy member, or hospice provider.'],
@@ -55,7 +54,6 @@ const diligenceItems = [
 export default function TrustPage() {
   return (
     <main style={{ minHeight: '100vh', background: C.bg, color: C.ink, fontFamily: BODY_FONT }}>
-      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 28px 48px' }}>
         <div style={eyebrow}>Trust and boundaries</div>

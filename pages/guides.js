@@ -4,7 +4,6 @@ import { SiteHeader, SiteFooter } from '../components/SiteChrome';
 const C = { bg: '#FBF8F3', card: '#FEFDFB', ink: '#1C1917', mid: '#5A5348', soft: '#9A9081', border: '#E6DDCB', sage: '#245A4B', sageFaint: '#F2F6F3', gold: '#9A4F26', rose: '#B5622F', roseFaint: '#FBF0E7' };
 const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const MOMENT_FONT = "'Fraunces', serif";
-const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 const guides = [
   {
@@ -112,7 +111,6 @@ export default function ContentPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: C.bg, fontFamily: BODY_FONT, color: C.ink }}>
-      <style>{FONT_IMPORT}</style>
       <SiteHeader />
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '6px 22px 16px' }}>
         <div style={{ marginBottom: 12 }}>
@@ -151,7 +149,7 @@ export default function ContentPage() {
                 <p style={{ color: C.mid, fontSize: 13, lineHeight: 1.45, margin: '0 0 10px' }}>Enter your email once. The guide opens immediately on this page, and the request is recorded as a Passage guide lead.</p>
                 <input required type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Real email address" style={{ ...inputStyle, borderColor: '#EFD9CC' }} />
                 <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ ...inputStyle, borderColor: '#EFD9CC' }} />
-                <button style={{ width: '100%', border: 'none', borderRadius: 999, padding: '12px 14px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', fontFamily: BODY_FONT, fontWeight: 800, cursor: 'pointer', boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' }}>Unlock guide</button>
+                <button style={{ width: '100%', minHeight: 44, border: 'none', borderRadius: 999, padding: '12px 14px', background: `linear-gradient(155deg, ${C.sage}, #153A31)`, color: '#fff', fontFamily: BODY_FONT, fontWeight: 800, cursor: 'pointer', boxShadow: '0 1px 2px rgba(20,30,25,.15), 0 6px 14px -6px rgba(20,30,25,.4)' }}>Unlock guide</button>
                 {error && <p style={{ color: C.rose, background: '#fff', border: `1px solid ${C.rose}30`, borderRadius: 10, padding: '9px 10px', fontSize: 12.5, lineHeight: 1.45, margin: '10px 0 0' }}>{error}</p>}
               </form>
             ) : (

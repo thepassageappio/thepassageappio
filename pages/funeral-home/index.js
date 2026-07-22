@@ -69,7 +69,6 @@ const T = {
 
 const BODY_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const MOMENT_FONT = "'Fraunces', serif";
-const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,520&family=Inter:wght@400;500;600;700&display=swap');";
 
 // Plan tiers preserved from the legacy page so signed-in checkout still works.
 const PLANS = [
@@ -152,8 +151,6 @@ export default function FuneralHomePage() {
 
   const walkthroughHref = calendlyUrl({ source: 'Funeral home walkthrough' });
   const pageCss = `
-        ${FONT_IMPORT}
-
         /* ---- Threshold overrides for the shared hc-* chrome/section language ----
            Page-scoped on purpose: this <style> tag lives inside this page's own
            React tree (mounted by CalmPublicChrome's {children}), so it only exists

@@ -218,7 +218,14 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
 
   const signInHandler = onSignIn || defaultSignIn;
   const signOutHandler = onSignOut || defaultSignOut;
-  const currentPathWithQuery = (typeof window !== 'undefined' ? window.location.pathname + window.location.search : asPath) || '/';
+  // Keep the server render and the first client render identical. Static pages
+  // do not reliably include the query string in asPath during hydration, so the
+  // exact browser URL is read only after the hydration effect has completed.
+  const currentPathWithQuery = (
+    hydrated && typeof window !== 'undefined'
+      ? window.location.pathname + window.location.search
+      : path || asPath
+  ) || '/';
   const safeCurrentPath = currentPathWithQuery.startsWith('/') && !currentPathWithQuery.startsWith('//') ? currentPathWithQuery : '/';
   const headerSignInHref = safeCurrentPath && safeCurrentPath !== '/' ? `/login?next=${encodeURIComponent(safeCurrentPath)}` : '/login';
   const adminUser = isSystemAdminUser(currentUser);
@@ -236,7 +243,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
     textDecoration: 'none',
     borderRadius: 999,
     padding: '8px 10px',
-    minHeight: 38,
+    minHeight: 44,
     display: 'inline-flex',
     alignItems: 'center',
     ...PASSAGE_TYPE.nav,
@@ -247,7 +254,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
     textDecoration: 'none',
     borderRadius: 999,
     padding: '8px 11px',
-    minHeight: 38,
+    minHeight: 44,
     display: 'inline-flex',
     alignItems: 'center',
     fontWeight: 800,
@@ -261,7 +268,7 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
     textDecoration: 'none',
     borderRadius: 999,
     padding: '8px 12px',
-    minHeight: 38,
+    minHeight: 44,
     display: 'inline-flex',
     alignItems: 'center',
     fontWeight: 800,
@@ -284,11 +291,11 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
           @media (max-width: 720px) {
             .passage-nav-secondary { display: none !important; }
             .passage-nav-wrap { gap: 6px !important; font-size: 13px !important; min-width: 0 !important; max-width: calc(100vw - 128px) !important; }
-            .passage-nav-wrap a, .passage-nav-wrap button { min-height: 40px !important; padding: 8px 9px !important; }
+            .passage-nav-wrap a, .passage-nav-wrap button { min-height: 44px !important; padding: 8px 9px !important; }
             .passage-nav-action-slot { width: auto !important; }
           }
         `}</style>
-        <Link href="/" onClick={handleHomeClick} aria-label="Passage home" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', flex: '0 0 auto' }}>
+        <Link href="/" onClick={handleHomeClick} aria-label="Passage home" style={{ color: CHROME_COLORS.ink, textDecoration: 'none', flex: '0 0 auto', minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
           <PassageLogo compact size={36} />
         </Link>
         <div className="passage-nav-wrap" style={{ display: 'flex', gap: 7, ...PASSAGE_TYPE.nav, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -305,15 +312,15 @@ export function SiteHeader({ user, authReady = true, onSignIn, onSignOut, onDash
           ))}
           {showFamilyDashboardLink && <Link href={dashboardHref} onClick={(event) => { trackEvent('my_estate_nav_clicked', { href: dashboardHref }); handleDashboardClick(event); }} style={estateActive ? activeStyle : quietMyEstate}>My estate</Link>}
           <span className="passage-nav-action-slot" style={{ width: showSystemAdminLink ? 176 : 96, display: 'inline-flex', justifyContent: 'flex-end', gap: 7, alignItems: 'center' }}>
-            {!localAuthReady && <span aria-hidden="true" style={{ width: 92, minHeight: 38, display: 'inline-flex' }} />}
+            {!localAuthReady && <span aria-hidden="true" style={{ width: 92, minHeight: 44, display: 'inline-flex' }} />}
             {localAuthReady && showSystemAdminLink && (
-              <Link href="/system/admin" onClick={() => trackEvent('system_admin_action_clicked', { href: '/system/admin' })} style={{ minHeight: 38, border: '1px solid #CFE0D8', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '7px 10px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', ...typeStyle('button', { fontSize: 13, fontWeight: 900 }), fontFamily: CHROME_FONT_FAMILY }} aria-label="Owner-only system admin">System admin</Link>
+              <Link href="/system/admin" onClick={() => trackEvent('system_admin_action_clicked', { href: '/system/admin' })} style={{ minHeight: 44, border: '1px solid #CFE0D8', background: CHROME_COLORS.sageFaint, color: CHROME_COLORS.sage, borderRadius: 999, padding: '7px 10px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', ...typeStyle('button', { fontSize: 13, fontWeight: 900 }), fontFamily: CHROME_FONT_FAMILY }} aria-label="Owner-only system admin">System admin</Link>
             )}
             {localAuthReady && currentUser && (
-              <button onClick={signOutHandler} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer' }}>Sign out</button>
+              <button onClick={signOutHandler} style={{ width: 92, minHeight: 44, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer' }}>Sign out</button>
             )}
             {localAuthReady && !currentUser && (
-              <Link href={headerSignInHref} onClick={handleHeaderSignIn} style={{ width: 92, minHeight: 38, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
+              <Link href={headerSignInHref} onClick={handleHeaderSignIn} style={{ width: 92, minHeight: 44, border: '1px solid ' + CHROME_COLORS.border, background: CHROME_COLORS.card, borderRadius: 999, padding: '7px 0', ...typeStyle('button', { fontSize: 14, fontWeight: 800 }), fontFamily: CHROME_FONT_FAMILY, cursor: 'pointer', textDecoration: 'none', color: CHROME_COLORS.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Sign in</Link>
             )}
           </span>
         </div>
@@ -327,12 +334,22 @@ export function SiteFooter() {
     <footer style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 24px 12px', borderTop: '1px solid ' + CHROME_COLORS.border, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', ...PASSAGE_TYPE.caption, color: CHROME_COLORS.soft, fontFamily: CHROME_FONT_FAMILY }}>
       <div>Passage coordinates life-to-death transitions with care.</div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        <Link href="/faq" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>FAQ</Link>
-        <Link href="/trust" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Trust</Link>
-        <Link href="/privacy" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Privacy</Link>
-        <Link href="/terms" style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Terms</Link>
-        <Link href="/contact" onClick={() => trackEvent('footer_contact_clicked')} style={{ color: CHROME_COLORS.soft, textDecoration: 'none' }}>Contact</Link>
+        <Link href="/faq" style={footerLinkStyle}>FAQ</Link>
+        <Link href="/trust" style={footerLinkStyle}>Trust</Link>
+        <Link href="/privacy" style={footerLinkStyle}>Privacy</Link>
+        <Link href="/terms" style={footerLinkStyle}>Terms</Link>
+        <Link href="/contact" onClick={() => trackEvent('footer_contact_clicked')} style={footerLinkStyle}>Contact</Link>
       </div>
     </footer>
   );
 }
+
+const footerLinkStyle = {
+  color: CHROME_COLORS.soft,
+  textDecoration: 'none',
+  minWidth: 44,
+  minHeight: 44,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
