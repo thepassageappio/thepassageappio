@@ -19,7 +19,7 @@ const taskStatusLabels: Record<string, string> = {
 const proofTypeLabels: Record<string, string> = {
   confirmation: 'Confirmation',
   handoff: 'Handoff note',
-  reference: 'Work reference',
+  reference: 'Reference confirmation',
   completion_note: 'Completion note',
 };
 
@@ -32,7 +32,7 @@ const workflowPhaseLabels: Record<string, string> = {
 };
 
 const audienceLabels: Record<string, string> = {
-  case_team: 'Authorized case team',
+  case_team: 'Current task owner and directors authorized for this location',
   family_coordinator: 'Family coordinator',
   organization_team: 'Authorized organization team',
 };
@@ -54,7 +54,7 @@ export function humanMemberStatus(value: string) {
 }
 
 export function humanProofType(value: string) {
-  return proofTypeLabels[value] ?? 'Submitted proof';
+  return proofTypeLabels[value] ?? 'Submitted evidence';
 }
 
 export function humanWorkflowPhase(value: string | null | undefined) {
@@ -63,7 +63,7 @@ export function humanWorkflowPhase(value: string | null | undefined) {
 }
 
 export function humanAudience(value: string) {
-  return audienceLabels[value] ?? 'Authorized case team';
+  return audienceLabels[value] ?? 'People authorized for this work';
 }
 
 export function humanAutomationLevel(value: string) {
