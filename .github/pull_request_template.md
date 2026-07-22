@@ -29,6 +29,7 @@
 
 ## Dedicated Merge Review
 
+- Development Head / Release Authority Role: REQUIRED EXACT-HEAD REVIEW
 - Dedicated Merge Review: REQUIRED CHECK
 - Required check: `Passage Review Agent / merge-review`
 - Expected source: Passage Release Reviewer GitHub App

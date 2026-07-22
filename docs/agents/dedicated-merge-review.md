@@ -1,4 +1,6 @@
-# Dedicated Merge Review Agent
+# Development Head / Release Authority
+
+`Dedicated Merge Review` is the installed check/control label for this role. It is not a separate role and never means founder or owner review.
 
 ## Mission
 

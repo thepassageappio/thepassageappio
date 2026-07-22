@@ -4,7 +4,7 @@ This is the App Router/Supabase release loop for Passage Zero. `AGENTS.md` contr
 
 ## Required loop
 
-The role names enforced by repository checks are Product Manager, UX Review, Development Engineer, QA Agent, Deploy Agent, and Dedicated Merge Review. The train advances for a maximum of 3 correction cycles before escalation, and every Product Manager instance reads `docs/agents/product-manager.md`. Exact-head external checks remain authoritative after every source or documentation correction.
+The role names are Product Manager, UX Review, Development Engineer, QA Agent, Deploy Agent, and Development Head / Release Authority. The installed `Dedicated Merge Review` control label is the exact-head GitHub check implementation for the Development Head role; it is not a founder/human review requirement. The train advances for a maximum of 3 correction cycles before escalation, and every Product Manager instance reads `docs/agents/product-manager.md`. Exact-head external checks remain authoritative after every source or documentation correction.
 
 1. Product Manager writes the bounded Sprint Brief and classifies discovered work.
 2. UX Review sets the responsive, accessible, truthful experience bar.
@@ -12,7 +12,7 @@ The role names enforced by repository checks are Product Manager, UX Review, Dev
 4. Independent QA verifies source, database authority, negative paths, browser behavior, and evidence.
 5. Deploy verifies project, branch, environment scope, release marker, deployment, logs, and post-deploy behavior.
 6. A distinct Independent QA instance reviews the exact head and the `Passage QA Reviewer` App records `Passage QA / independent-qa`. Candidate-controlled CI never substitutes for this check.
-7. A distinct Dedicated Merge Review instance challenges the exact head and the `Passage Release Reviewer` App records `Passage Review Agent / merge-review`. It never authors, edits, merges, or deploys.
+7. A distinct Development Head / Release Authority instance challenges the exact head and the `Passage Release Reviewer` App records `Passage Review Agent / merge-review`. It never authors, edits, merges, or deploys.
 8. Production separately requires `Passage Production Review / release-readiness` from the distinct Production Review App plus any applicable owner authorization through the protected Production environment for the exact release commit.
 9. PM scopes the next highest-leverage slice immediately after Deploy PASS/PARTIAL.
 
@@ -26,7 +26,7 @@ No role may promote its own work to QA or review PASS. Role separation, a PR-bod
 - Overlapping greenfield PRs are dispositioned before merge: incorporate unique bounded work, or label and close them as superseded. They never merge independently without reconciliation.
 - A failing required check is classified in the same cycle as fix now, superseded, or explicitly blocked. Red checks do not age silently because a PR is draft.
 - Production release automation is serialized with a single repository/environment lock. Concurrent schedules may prepare separate branches but may not race a merge, alias, or Production deployment.
-- Repository protections require passing current-head trusted/candidate checks, expected-source Independent QA and Dedicated Merge Review checks, resolved conversations, strict up-to-date state, restricted bypass, and no force-push or deletion of `main`. Production separately requires the exact-commit Production Review check plus any applicable owner gate.
+- Repository protections require passing current-head trusted/candidate checks, expected-source Independent QA and Development Head / Release Authority checks, resolved conversations, strict up-to-date state, restricted bypass, and no force-push or deletion of `main`. Production separately requires the exact-commit Production Review check plus any applicable owner gate.
 
 ## Per-slice contract
 
