@@ -22,7 +22,7 @@ Agents and schedules never push directly to `main` and never operate through the
 
 The App IDs, installations, required contexts, and least-privilege contract are recorded in `.github/passage-review-identities.json` and verified by the trusted checker. Live rules additionally pin each required context to its expected App source. A new head commit invalidates prior QA and review results. PR bodies, native human reviews, GitHub `User` type, review enumeration, and same-name checks from another source are never identity proof.
 
-Distinct PM, UX, Engineering, Independent QA, Dedicated Merge Review, Deploy, and Production Review roles remain mandatory. A role recuses if it authored or materially edited the candidate it must judge. Candidate-controlled workflows are deterministic CI only. Merge Review PASS never means Production Review PASS, and neither authorizes deployment.
+Distinct PM, UX, Engineering, Independent QA, Development Head / Release Authority, Deploy, and Production Review roles remain mandatory. The installed `Dedicated Merge Review` label is the Release Reviewer App control for the Development Head role. A role recuses if it authored or materially edited the candidate it must judge. Candidate-controlled workflows are deterministic CI only. Development Head PASS never means Production Review PASS, and neither authorizes deployment. There is no routine founder/human code-review gate.
 
 Branch protection requires a pull request, exact-current-head required checks, strict up-to-date state, resolved conversations, no App/agent bypass, no force push, no deletion, and serialized merge/release work. Merge queue remains disabled until every external App can re-attest the merge-group SHA.
 
@@ -84,7 +84,7 @@ Plain-language comprehension is tested at 1440, 390, and 360 in the same slice. 
 - no horizontal overflow, hydration warning, console error, or runtime error occurs;
 - a reviewer can restate the seven answers from rendered copy alone.
 
-Automated string and parity checks support this gate but never replace distinct UX review, expected-source Independent QA, Dedicated Merge Review, Production Review, or an applicable owner Production gate.
+Automated string and parity checks support this gate but never replace distinct UX review, expected-source Independent QA, Development Head / Release Authority, Production Review, or an applicable owner Production gate.
 
 ## Enforcement and evidence
 

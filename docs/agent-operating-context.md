@@ -636,3 +636,12 @@ Append or update this section before final response:
 - Self-service attempted / Claude in Chrome: no Claude-in-Chrome task was needed for this docs hardening. Rule now says future agents should try Claude in Chrome when safely available before owner escalation.
 - Next action: scheduled loop should use docs as source of truth, try repo/connectors/browser/Chrome/Claude-in-Chrome self-service before owner escalation, and wait for Vercel quota before deploying the queued redirect release.
 - Auto-advance decision: no product development should start solely from this instruction update. The next scheduled release-train run can continue from Product Manager with the owner-last-resort rule active.
+
+### 2026-07-22 - Development Head authority and no-routine-approval contract
+
+- Owner directive: there is no founder/human code-review requirement and no routine owner approval queue. Product, UX, Engineering, QA, GitHub/PR/CI work, merge readiness, documentation, roadmap sequencing, non-production Preview work, and already-authorized reversible incident recovery auto-advance through the agent chain.
+- The specific merge-readiness authority is Development Head / Release Authority. The installed `Dedicated Merge Review` control and `Passage Review Agent / merge-review` exact-head check implement this role. It remains distinct from the Bot author, implementation, Independent QA, Deploy, and Production Review.
+- A head, base, evidence, required-check, or material-scope change makes the Development Head result stale. PASS authorizes merge readiness only and never Production.
+- Owner interaction is limited to true `AGENTS.md` gates: exact Production authorization, destructive Production data work, spending money, real external communications, pricing, and material legal/privacy/security/medical/compliance/funeral-director judgment.
+- Source QA: governance regression fixtures and agent-context checks pass. Deploy decision: `[skip deploy]`; Production unchanged by this documentation packet.
+- Next action: distinct Independent QA and Development Head review the exact head, then resume the revenue-ranked Passage Zero roadmap without asking the owner for routine approvals.
