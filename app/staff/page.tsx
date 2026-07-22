@@ -49,11 +49,7 @@ export default async function StaffPage() {
                     <div><dt>Next state</dt><dd>{task.next_state ?? 'In progress'}</dd></div>
                   </dl>
                 </div>
-                {task.status === 'assigned' ? (
-                  <StartTaskForm requestId={randomUUID()} taskId={task.id} version={task.version} />
-                ) : (
-                  <div className={styles.commandReceipt} role="status"><strong>Work is in progress.</strong><p>The saved server state is visible to authorized directors in Activity.</p></div>
-                )}
+                {task.status === 'assigned' ? <StartTaskForm requestId={randomUUID()} taskId={task.id} version={task.version} /> : <div className={styles.startForm}><p>{task.status === 'completed' ? 'Verified proof and the complete history are ready.' : task.status === 'proof_submitted' ? 'Proof is waiting for an authorized director.' : 'Work is in progress. Save proof when the outcome is ready.'}</p><Link className={styles.primaryLink} href={`/staff/work/${task.id}`}>{task.status === 'in_progress' ? 'Open proof step' : 'Open task history'}</Link></div>}
               </article>
             );
           })}

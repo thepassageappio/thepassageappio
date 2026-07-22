@@ -48,6 +48,12 @@ const REQUIRED_CONTRACT_FIELDS = [
 ];
 
 const VALID_STATUSES = ['implemented', 'backend_only', 'queued'];
+const REQUIRED_CYCLE8_CONTRACT_IDS = [
+  'cycle8.staff.proof_history',
+  'cycle8.staff.proof_submission',
+  'cycle8.director.proof_review',
+  'cycle8.shared.immutable_proof_history',
+];
 
 function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
@@ -67,6 +73,48 @@ function fileExists(repoRoot, relPath) {
     return fs.existsSync(path.join(repoRoot, filePart));
   } catch {
     return false;
+  }
+}
+
+function checkSourceAssertions(contract, label, repoRoot, errors) {
+  const assertions = contract.source_assertions;
+  if (!Array.isArray(assertions) || assertions.length === 0) {
+    errors.push(`${label}: Cycle 8 requires a non-empty "source_assertions" array so file existence alone cannot produce a false green.`);
+    return;
+  }
+
+  for (const [assertionIndex, assertion] of assertions.entries()) {
+    const assertionLabel = `${label}.source_assertions[${assertionIndex}]`;
+    if (!assertion || typeof assertion !== 'object' || Array.isArray(assertion)) {
+      errors.push(`${assertionLabel}: entry must be an object.`);
+      continue;
+    }
+    if (!isNonEmptyString(assertion.file)) {
+      errors.push(`${assertionLabel}: "file" must be a non-empty repository-relative path.`);
+      continue;
+    }
+    if (!Array.isArray(assertion.includes) || assertion.includes.length === 0 || !assertion.includes.every(isNonEmptyString)) {
+      errors.push(`${assertionLabel}: "includes" must be a non-empty array of non-empty source strings.`);
+      continue;
+    }
+
+    const absolute = path.join(repoRoot, assertion.file);
+    if (!fileExists(repoRoot, assertion.file)) {
+      errors.push(`${assertionLabel}: source assertion file does not exist: "${assertion.file}".`);
+      continue;
+    }
+    let source;
+    try {
+      source = fs.readFileSync(absolute, 'utf8');
+    } catch (error) {
+      errors.push(`${assertionLabel}: could not read "${assertion.file}": ${error.message}.`);
+      continue;
+    }
+    for (const expected of assertion.includes) {
+      if (!source.includes(expected)) {
+        errors.push(`${assertionLabel}: "${assertion.file}" is missing required Cycle 8 source binding ${JSON.stringify(expected)}.`);
+      }
+    }
   }
 }
 
@@ -106,6 +154,14 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
   if (!isNonEmptyStringOrArray(contract.server_command)) errors.push(`${label}: "server_command" must be a non-empty string or array of strings.`);
   if (!isNonEmptyString(contract.rls_authority_predicate)) errors.push(`${label}: "rls_authority_predicate" must be a non-empty string.`);
   if (!isNonEmptyString(contract.persona_projection)) errors.push(`${label}: "persona_projection" must be a non-empty string.`);
+
+  const claimsCycle8 = isNonEmptyString(contract.id) && contract.id.startsWith('cycle8.');
+  if (claimsCycle8 && contract.cycle !== '8') {
+    errors.push(`${label}: a cycle8.* contract id must declare cycle "8".`);
+  }
+  if (contract.cycle === '8' || claimsCycle8) {
+    checkSourceAssertions(contract, label, repoRoot, errors);
+  }
 
   const status = contract.status;
   if (!VALID_STATUSES.includes(status)) {
@@ -245,7 +301,7 @@ function checkContract(contract, index, repoRoot, errors, seenIds) {
  * @param {string} repoRoot absolute path used to resolve referenced repository files
  * @returns {{ ok: boolean, errors: string[] }}
  */
-function checkLedger(ledger, repoRoot) {
+function checkLedger(ledger, repoRoot, options = {}) {
   const errors = [];
 
   if (!ledger || typeof ledger !== 'object' || Array.isArray(ledger)) {
@@ -259,6 +315,13 @@ function checkLedger(ledger, repoRoot) {
   ledger.contracts.forEach((contract, index) => {
     checkContract(contract, index, repoRoot, errors, seenIds);
   });
+
+  const requiredContractIds = Array.isArray(options.requiredContractIds) ? options.requiredContractIds : [];
+  for (const requiredId of requiredContractIds) {
+    if (!seenIds.has(requiredId)) {
+      errors.push(`Required contract id "${requiredId}" is missing; required cycle coverage cannot be empty or partial.`);
+    }
+  }
 
   return { ok: errors.length === 0, errors };
 }
@@ -282,7 +345,7 @@ function main() {
     return;
   }
 
-  const { ok, errors } = checkLedger(ledger, repoRoot);
+  const { ok, errors } = checkLedger(ledger, repoRoot, { requiredContractIds: REQUIRED_CYCLE8_CONTRACT_IDS });
   if (!ok) {
     console.error(`check-frontend-backend-parity: FAIL (${errors.length} issue${errors.length === 1 ? '' : 's'})`);
     for (const e of errors) console.error(`  - ${e}`);
@@ -299,6 +362,7 @@ module.exports = {
   fileExists,
   REQUIRED_CONTRACT_FIELDS,
   VALID_STATUSES,
+  REQUIRED_CYCLE8_CONTRACT_IDS,
 };
 
 if (require.main === module) {

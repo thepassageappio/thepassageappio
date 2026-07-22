@@ -13,7 +13,7 @@ function Receipt({ state }: { state: DirectorCommandState }) {
     <div className={state.status === 'saved' ? styles.commandReceipt : styles.commandError} role={state.status === 'saved' ? 'status' : 'alert'}>
       <strong>{state.status === 'saved' ? 'Saved by Passage' : 'Nothing changed'}</strong>
       <p>{state.message}</p>
-      {state.receipt && <small>Server time {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'long' }).format(new Date(state.receipt.occurredAt))} · receipt reference {state.receipt.eventId}</small>}
+      {state.receipt && <small>Saved {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'long' }).format(new Date(state.receipt.occurredAt))} · visible to authorized organization staff · recorded in team activity</small>}
     </div>
   );
 }
@@ -25,7 +25,7 @@ export function AssignTaskForm({ taskId, requestId, version, candidates, current
       <input name="taskId" type="hidden" value={taskId} />
       <input name="requestId" type="hidden" value={requestId} />
       <input name="expectedVersion" type="hidden" value={version} />
-      <p><strong>{currentOwner === 'Unassigned' ? 'Assign this commitment' : 'Change the current owner'}</strong><span>Current owner: {currentOwner}. Passage validates location authority again when you save.</span></p>
+      <p><strong>{currentOwner === 'Unassigned' ? 'Assign this commitment' : 'Change the current owner'}</strong><span>Current owner: {currentOwner}. Passage checks that the new owner can work at this location before saving.</span></p>
       <label>New owner<select disabled={pending || candidates.length === 0} name="assigneeId" required>{candidates.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}</select></label>
       <label>Reason<input disabled={pending || candidates.length === 0} maxLength={240} name="reason" placeholder="Why ownership is changing" required /></label>
       <button aria-busy={pending} disabled={pending || candidates.length === 0} type="submit">{pending ? 'Saving ownership…' : candidates.length ? (currentOwner === 'Unassigned' ? 'Assign work' : 'Save reassignment') : 'No alternate staff'}</button>

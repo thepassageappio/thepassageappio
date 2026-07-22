@@ -56,7 +56,8 @@ export default async function DirectorPage() {
                     <div><dt>Proof destination</dt><dd>{task.proof_destination ?? 'Organization activity'}</dd></div>
                   </dl>
                 </div>
-                <AssignTaskForm candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))} currentOwner={currentOwner} requestId={randomUUID()} taskId={task.id} version={task.version} />
+                {!['proof_submitted', 'completed'].includes(task.status) && <AssignTaskForm candidates={authorizedCandidates.map((member) => ({ id: member.id, name: displayMember(member) }))} currentOwner={currentOwner} requestId={randomUUID()} taskId={task.id} version={task.version} />}
+                <div className={styles.startForm}><p>Review this task, its submitted proof, and its saved history.</p><Link className={styles.primaryLink} href={`/director/cases/${task.workflow_id}?task=${task.id}#proof`}>Review task</Link></div>
               </article>
             );
           })}
