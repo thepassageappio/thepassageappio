@@ -57,6 +57,34 @@ The following capabilities reinforce one another and should be treated as a syst
 
 These bets create a compounding product moat only when backed by real operational evidence: reusable workflow templates, reliable handoff patterns, verified outcome structures, integration mappings, and aggregate service improvements. Sensitive family data itself is never the moat and is never repurposed beyond the user's permitted scope.
 
+### Passage V2 future experience contract - owner-approved 2026-07-21
+
+This contract guides design and architecture as the existing roadmap reaches M3 through M6. It is not permission to expand Cycle 8, expose unfinished concepts, or claim capabilities before their complete evidence gates pass.
+
+The **Transition Brief** is the shared human-readable artifact at the center of a transition. It is assembled from the same authorized continuity record and changes by viewer: a family sees reassurance and one next action; a director sees ownership, waiting, risk, proof, and recovery; staff and partners see only the work and context granted to them. It contains approved facts, open commitments, owners, waiting parties, due state, evidence receipts, and the next safe action. A Transfer Pass is the permissioned handoff mechanism that can carry the brief; acceptance creates a receipt and a named next owner.
+
+The **Director Right Hand** and **Family Companion** are coordinated views of that brief, not separate products backed by copied records. The Director Right Hand compresses case flow, staff load, family waiting, proof gaps, failed handoffs, and the next operational action. The Family Companion reduces memory and decision burden by showing what needs attention now, what the professional team is handling, what was saved as proof, who can see it, and how to recover when something fails.
+
+Four rails must advance together whenever a slice uses them:
+
+1. **Continuity:** stable identity, explicit purpose and audience, bounded grants, versioned handoff scope, destination acceptance, revocation, and the next owner.
+2. **Proof:** append-only evidence, authoritative actor/time, review state, corrections rather than erasure, minimum necessary audience, and understandable receipts.
+3. **Partner:** scoped invitations or adapters, external mappings, request and receipt identifiers, truthful delivery state, and no browsing outside the granted purpose.
+4. **Recovery:** visible exceptions, safe retry or correction, idempotency/conflict behavior, and a named person responsible for resolving the failure.
+
+Progressive autonomy has four explicit levels: observe and organize; prepare and recommend; execute only after a named human approves; and automate only inside an approved policy boundary. Each transition records who or what acted, the authority used, what changed, who can see it, and who owns recovery. The interface must never collapse prepared, reviewed, sent, delivered, verified, and completed into one ambiguous state.
+
+Designs and implementations must preserve these evolution seams:
+
+- Stable identifiers for continuity, organization, location, case, workflow template/version, task, message, proof, handoff, and event.
+- A common append-only event envelope with actor, purpose, audience, organization/location scope, authoritative time, idempotency key, schema version, causation/correlation, prior/next state, next owner, and recovery owner.
+- A common command receipt that distinguishes accepted, replayed, conflicted, denied, queued, delivered, failed, and recovered outcomes.
+- Versioned purpose grants and handoff manifests/receipts with expiry, revocation, provenance, destination acknowledgment, and correction history.
+- Provider-neutral external mappings and event cursors so adapters can change without rewriting the continuity record.
+- Proof references and minimum necessary human summaries rather than sensitive artifacts or family details copied into event metadata.
+
+This contract deliberately excludes broad record access, autonomous consequential communication, hidden machine approval, partner family browsing, separate persona data stores, a generic feed, and UI-only states without durable authority and proof.
+
 ### Stakeholder-agnostic continuity rails
 
 Passage follows the person and the permitted purpose, not the institution that happens to hold the current step. A planning user can become a care recipient; a care handoff can become a funeral-home case; a family coordinator can invite a participant; verified outcomes can continue into disposition, aftercare, and estate work without forcing the family to recreate the story.
