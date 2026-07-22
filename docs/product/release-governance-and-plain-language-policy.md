@@ -84,7 +84,7 @@ Plain-language comprehension is tested at 1440, 390, and 360 in the same slice. 
 - no horizontal overflow, hydration warning, console error, or runtime error occurs;
 - a reviewer can restate the seven answers from rendered copy alone.
 
-Automated string and parity checks support this gate but never replace distinct UX review, expected-source Independent QA, Dedicated Merge Review, Production Review, or an applicable owner Production gate.
+Automated string and parity checks support this gate but never replace distinct UX review, expected-source Independent QA, Development Head / Release Authority, Production Review, or an applicable owner Production gate.
 
 ## Enforcement and evidence
 
