@@ -12,6 +12,7 @@ const ROLE_FILES = [
   'docs/agents/development-engineer.md',
   'docs/agents/qa-agent.md',
   'docs/agents/deploy-agent.md',
+  'docs/agents/development-head-release-authority.md',
 ];
 const REQUIRED_CONTEXT_SECTIONS = [
   '## Current Objective',
