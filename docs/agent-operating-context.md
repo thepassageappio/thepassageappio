@@ -645,3 +645,26 @@ Append or update this section before final response:
 - Owner interaction is limited to true `AGENTS.md` gates: exact Production authorization, destructive Production data work, spending money, real external communications, pricing, and material legal/privacy/security/medical/compliance/funeral-director judgment.
 - Source QA: governance regression fixtures and agent-context checks pass. Deploy decision: `[skip deploy]`; Production unchanged by this documentation packet.
 - Next action: distinct Independent QA and Development Head review the exact head, then resume the revenue-ranked Passage Zero roadmap without asking the owner for routine approvals.
+
+### Mission mobile occlusion repair hosted handoff - 2026-07-22 17:42 -07:00
+
+- Supersession: PR #32 previously carried a source-parent handoff describing Production at dpl_3rA..., no Preview, and hosted proof pending. That text is preserved in Git history and defect evidence but is not copied into this current-main resolution because it is no longer the release truth.
+- Product Manager /root/pm_p1_and_roadmap_return: **REPAIR-FORWARD BRIEF COMPLETE**. Another rollback was rejected because the preceding artifact has known hydration failures. Scope remains only the /mission responsive grid repair.
+- UX /root/ux_mission_responsive_repair: **PASS FOR ENGINEERING START** with mission -> promise -> proof -> paths -> selected destination -> footer in normal flow at 390/360 and exact 1440 preservation.
+- Engineering /root/engineering_pr32_mission_repair: **COMPLETE**. Application source parent 9434e779628b3b20ed25b575b1ca3efa2ba7fc86 contains the bounded CSS fix; no additional runtime source was required.
+- Hosted QA /root/qa_pr32_hosted_preview: **PASS** on READY non-production Preview dpl_3EDEQAJTQ3aGHN8yw7sMyAsvQTr6, Preview head a58d2c564110f5a38cc1e81e0f412ae5237521df. The six-route x three-width direct/client matrix passed 36/36 cells; every screenshot content was covered; the mobile occlusion is absent; Vercel build and runtime logs are clean.
+- Evidence publication: Passage Bot retained 77 timestamped/redacted defect and replacement evidence files. Share tokens, credentials, cookies, private identities, and database output are excluded.
+- Current Production remains dpl_5GVpgdmZ6oqLkVeWcgcrwSpGPNmj, commit 09ddb9e5601432f9dd2c36bbdbd829719dd66859, with **Production QA FAIL** because /mission overlaps at 390/360. Overall Production state remains **INVALIDATED/REOPENED**. Production was not changed by this repair.
+
+Source QA: PASS
+Hosted Preview QA: PASS
+Independent Agent Review: REQUIRED
+Development Head / Release Authority: REQUIRED
+Owner Gate: NOT REQUIRED
+Production Authorization: NOT REQUESTED
+Production Deployment: NOT DEPLOYED
+Production QA: NOT RUN
+Overall release state: PREVIEW VERIFIED
+
+- Exact next action: current-head CI, Independent QA, and Development Head review must pass after this current-main conflict resolution. Merge readiness does not authorize Production. A later exact-commit Production promotion remains a separate owner gate.
+- Production Supabase, Production Vercel configuration, pricing, family/vendor access, readiness scores, and Passage Zero/Cycle 8 source were untouched. No owner question or owner browser action was used.
