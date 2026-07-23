@@ -649,3 +649,26 @@ Append or update this section before final response:
 - Self-service attempted / Claude in Chrome: no Claude-in-Chrome task was needed for this docs hardening. Rule now says future agents should try Claude in Chrome when safely available before owner escalation.
 - Next action: scheduled loop should use docs as source of truth, try repo/connectors/browser/Chrome/Claude-in-Chrome self-service before owner escalation, and wait for Vercel quota before deploying the queued redirect release.
 - Auto-advance decision: no product development should start solely from this instruction update. The next scheduled release-train run can continue from Product Manager with the owner-last-resort rule active.
+
+### Mission mobile occlusion repair hosted handoff - 2026-07-22 17:42 -07:00
+
+- Supersession: this heading replaces the earlier PR #32 source-parent handoff that described Production at dpl_3rA..., no Preview, and hosted proof pending. That earlier text remains historical defect evidence and is not the current release state.
+- Product Manager /root/pm_p1_and_roadmap_return: **REPAIR-FORWARD BRIEF COMPLETE**. Another rollback was rejected because the preceding artifact has known hydration failures. Scope remains only the /mission responsive grid repair.
+- UX /root/ux_mission_responsive_repair: **PASS FOR ENGINEERING START** with mission -> promise -> proof -> paths -> selected destination -> footer in normal flow at 390/360 and exact 1440 preservation.
+- Engineering /root/engineering_pr32_mission_repair: **COMPLETE**. PR #32 application source parent 9434e779628b3b20ed25b575b1ca3efa2ba7fc86 already contains the bounded CSS fix; no additional runtime source was required.
+- Hosted QA /root/qa_pr32_hosted_preview: **PASS** on READY non-production Preview dpl_3EDEQAJTQ3aGHN8yw7sMyAsvQTr6, Preview head a58d2c564110f5a38cc1e81e0f412ae5237521df. Git comparison proves identical application source plus only the throwaway vercel.json gate removal. The six-route x three-width direct/client matrix passed 36/36 cells; all screenshot contents were visually covered; the mobile occlusion is absent; Vercel build and runtime logs are clean.
+- Evidence publication: Passage Bot added 77 timestamped/redacted defect and replacement evidence files at evidence-only head 83319da115db6563417b44315d40aaee3b2061e2. Share tokens, credentials, cookies, private identities, and database output are excluded.
+- Current Production remains dpl_5GVpgdmZ6oqLkVeWcgcrwSpGPNmj, commit 09ddb9e5601432f9dd2c36bbdbd829719dd66859, with **Production QA FAIL** because its /mission page overlaps at 390/360. Overall Production state remains **INVALIDATED/REOPENED**. Production was not changed by this repair or evidence packet.
+
+Source QA: PASS
+Hosted Preview QA: PASS
+Independent Agent Review: REQUIRED
+Development Head / Release Authority: REQUIRED
+Owner Gate: NOT REQUIRED
+Production Authorization: NOT REQUESTED
+Production Deployment: NOT DEPLOYED
+Production QA: NOT RUN
+Overall release state: PREVIEW VERIFIED
+
+- Exact next action: current-head CI, Independent QA, and Development Head review must rerun after this context correction. Merge readiness does not authorize Production. A later exact-commit Production promotion remains a separate owner gate after every pre-promotion check passes.
+- Production Supabase, Production Vercel configuration, pricing, family/vendor access, readiness scores, and Passage Zero/Cycle 8 source were untouched. No owner question, owner browser action, or Claude-in-Chrome assistance was used.
