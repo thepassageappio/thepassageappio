@@ -1,5 +1,39 @@
 # Passage Agent Operating Guide
 
+## Review-Driven Process Corrections — 2026-07-22 (owner-approved; binding on every future session, agent, and role; supersedes conflicting prior governance language below where noted)
+
+Owner's own words, verbatim, on receiving back a second consecutive independent QA review that found repeat and worsening issues despite existing AGENTS.md guidance: *"I feel like a lot's slipping though even with my MD file learning and instructions."* The five corrections below are binding process rules, not findings to note and move past. Every future session — this agent, any other agent, any scheduled run — must treat them as release-train gates, not advisory context.
+
+### 1. Self-review is not review — no same-identity merge, ever
+
+Evidence: PR #32 ("Repair mission mobile overflow") and PR #35 ("Designate Development Head release authority") were both authored AND merged by the identical `passage-release-bot[bot]` account, with zero comment or review from any separate identity — human or agent — anywhere in either thread. The PR bodies claimed "Development Head / Release Authority: APPROVED" and "Independent Agent Review: PASS," but the approving and merging actor was the same bot that authored the PR. That is self-grading, not independent review, no matter how many automated checks pass or how the PR template describes the role. Only PR #31 (the hydration fix) had a real human (`thepassageappio`) actually press merge.
+
+**RULE:** No pull request may be merged by the same account/identity that authored it, full stop, regardless of any self-graded PASS status recorded in the PR body. "Development Head / Release Authority" (and its legacy alias "Dedicated Merge Review") must be evidenced by either: (a) a genuinely separate agent role/task instance whose review is externally verifiable as a different actor's output — not the authoring bot's own subsequent comment or self-assessment — or (b) explicit human (owner) sign-off recorded as a real PR comment or review. A required check with the correct name is NOT sufficient proof of independence if the merging account and authoring account are identical. If no genuinely separate reviewer identity exists yet, the PR waits for the owner — it does not self-merge in the meantime. Any PR found merged by its own author must be flagged in the next QA review as a governance violation, not a closed/resolved item.
+
+### 2. Roadmap/backlog drift is a release gate, not a recurring finding
+
+Evidence: three consecutive independent reviews (initial audit, round 1, round 2 on 2026-07-22) have all flagged that `pages/system/admin/saas-roadmap.js` and `docs/backlog.md` do not mention Passage Zero, Transfer Pass, or any of the governance/hydration/Cycle 8 work shipped this week. `docs/backlog.md` still opens "Now (May 4-May 6, 2026)" — approaching three months stale. Nothing has fixed this across three review cycles.
+
+**RULE:** Any commit or PR that changes product direction or scope materially cannot land as `[deploy][qa-approved]` unless the same PR also touches the canonical roadmap (`docs/product/operational-readiness-roadmap.md` or its successor) and/or `docs/backlog.md` when the change affects near-term priority. "Material scope change" includes: a new named initiative (e.g. Passage Zero, Transfer Pass), a governance/process framework change, or any change where the PR body's own "Deploy Decision / Roadmap updated if scope or priority changed" field answers yes. The release-train guard (`scripts/check-release-train.js` or successor) must treat a missing roadmap/backlog touch on a material-scope commit as a failing condition — exactly how a missing agent-context touch already fails it. Stale-by-default is a failure, not a warning.
+
+### 3. GitHub Issues tracker: officially deprecated as a live signal
+
+Evidence: 9 open issues (#8, #11, #13-#16, #20-#22), all dated 2026-07-15, with zero references from any PR or commit since. A tracker nobody updates is worse than no tracker, because it looks like a live signal and isn't.
+
+**DECISION (owner-approved):** the GitHub Issues tracker is deprecated as a live tracking signal effective 2026-07-22. It must not be treated as representing current backlog, priority, or status by any agent or session. `docs/product/operational-readiness-roadmap.md` and `docs/backlog.md` are the sole sources of truth for outstanding work going forward. Existing open issues (#8, #11, #13-16, #20-22) remain as historical scope reference only. The next session touching this area must either close each one with a pointer comment to its roadmap/backlog equivalent, or explicitly re-adopt the tracker (every future PR references/closes the relevant issue going forward) — pick one, do not leave it ambiguous.
+
+### 4. Branch divergence: two-strikes forcing function
+
+Evidence: `main` and `greenfield/passage-zero` have been flagged as diverging with no reconciliation plan across multiple reviews now, and nothing has changed except both branches independently gaining more infrastructure (main: hydration hotfix + governance bootstrap; greenfield: Cycle 8 draft work) with no merge path discussed anywhere in the repo. This review is strike two.
+
+**RULE:** if an independent QA/review pass finds unresolved branch divergence between `main` and `greenfield/passage-zero` (or any long-lived parallel-initiative branch) for a second consecutive review cycle, the next PM Sprint Brief on either branch — no exceptions — must include an explicit reconciliation proposal (options plus a recommendation) for owner decision, not another status flag. That proposal is now due on the next PM Sprint Brief touching either branch.
+
+### 5. QA infrastructure gaps get their own fix-it ticket, not silent absorption
+
+Evidence: PR #30's hosted QA is stuck "PARTIAL / NOT RUN" because "enterprise browser policy rejected the corrected Preview hostname before navigation or login and prohibited workaround" — that is infrastructure debt blocking verification, not a product defect.
+
+**RULE:** when independent QA is blocked by infrastructure/tooling (browser policy, SSO wall, rate limit, missing credential, etc.) rather than by a product defect, the blocking condition must be logged as its own explicit fix-it item in `docs/backlog.md` with an owner and next step — it must not be folded into "QA: N/A" or "PARTIAL" on the feature PR and left there. A feature PR blocked on infrastructure should name the infra ticket it is waiting on.
+
 ## Passage Zero canonicalization — 2026-07-18 (owner-approved; supersedes conflicting Threshold execution directives)
 
 Passage Zero on `greenfield/passage-zero`, draft PR #24, is the sole target architecture and redesign implementation. Threshold on `main` is now a production-maintenance lane only: separately governed P0/P1 live defects may be fixed, but no new Threshold dashboard, estate, information-architecture, schema, or redesign work may begin.
@@ -14,7 +48,7 @@ The durable policy is `docs/product/release-governance-and-plain-language-policy
 
 - Agents and schedules author only through the installed `Passage Release Bot` GitHub App on named branches and draft pull requests. They never use the owner's GitHub User credentials and receive no `main` bypass, check-write, merge, deployment, environment, secret, variable, or administration permission.
 - Independent QA is a distinct task instance and the installed `Passage QA Reviewer` App emits `Passage QA / independent-qa` for the exact current head. Candidate-controlled workflows are deterministic CI, never Independent QA.
-- Development Head / Release Authority is the dedicated merge-readiness role. It is a separate task instance, and the installed `Passage Release Reviewer` App emits `Passage Review Agent / merge-review` for the exact current head. It cannot author, edit, merge, deploy, administer, or access secrets. A new commit invalidates both QA and Development Head results. `Dedicated Merge Review` is the legacy control label for this same function, not a separate or founder-review step.
+- Development Head / Release Authority is the dedicated merge-readiness role. It is a separate task instance, and the installed `Passage Release Reviewer` App emits `Passage Review Agent / merge-review` for the exact current head. It cannot author, edit, merge, deploy, administer, or access secrets. A new commit invalidates both QA and Development Head results. `Dedicated Merge Review` is the legacy control label for this same function, not a separate or founder-review step. **See "Review-Driven Process Corrections — 2026-07-22" #1 above: this role is void if evidenced only by the authoring bot's own comment — it requires a genuinely separate identity or owner sign-off.**
 - Production Review is a third independent identity. The installed `Passage Production Reviewer` App emits `Passage Production Review / release-readiness` for the exact release commit and cannot deploy. Merge Review PASS never implies Production Review PASS.
 - PR bodies are informational. Required checks pinned to their expected Apps are authoritative. GitHub `User` type, native review enumeration, PR-body checkboxes, or same-name checks from another source never prove independence.
 - GitHub rules require current-head trusted governance, deterministic candidate CI, external Independent QA, external Development Head / Release Authority review through `Passage Review Agent / merge-review`, up-to-date branches, resolved conversations, no bypass, no force push, no deletion, and serialized merge/release operations. Merge queue stays disabled until every required external App re-attests the merge-group SHA.
@@ -144,7 +178,7 @@ Before changing product, code, copy, docs, roadmap, or deployment state:
 7. If browser QA is needed, use the available browser or Chrome skill and record what was actually verified.
 8. If an owner ask seems likely, first check whether browser/Chrome automation, Claude in Chrome, connectors, or source review can safely resolve it without owner involvement.
 
-Development cannot begin until the Product Manager Agent has produced a PM Sprint Brief with a clear sprint goal, requirements, sprint components, development objectives, acceptance criteria, dependencies, QA plan, deploy plan, risks, non-goals, owner gates, and the next role agents to involve.
+Development cannot begin until the Product Manager Agent has produced a PM Sprint Brief with a clear sprint goal, requirements, sprint components, development objectives, acceptance criteria, dependencies, QA plan, deploy plan, risks, non-goals, owner gates, and the next role agents to involve. **Per "Review-Driven Process Corrections — 2026-07-22" #4: if branch divergence between main and greenfield/passage-zero has now been flagged for a second consecutive review cycle, this Sprint Brief must include an explicit reconciliation proposal.**
 
 Before handoff, final response, or final commit, update docs/agent-operating-context.md with:
 
@@ -162,7 +196,7 @@ Before handoff, final response, or final commit, update docs/agent-operating-con
 - Whether the train auto-advanced to the next role or why it could not.
 - Any Claude-in-Chrome or external-agent assistance used.
 
-The repository enforces this loop with scripts/check-agent-context.js, scripts/check-release-train.js, the Agent release train GitHub Action, and the PR template.
+The repository enforces this loop with scripts/check-agent-context.js, scripts/check-release-train.js, the Agent release train GitHub Action, and the PR template. **Per "Review-Driven Process Corrections — 2026-07-22" #2: these scripts must also fail on a material-scope commit that does not touch the canonical roadmap or docs/backlog.md.**
 
 ## Product Context
 
@@ -228,9 +262,11 @@ The greenfield repository has one roadmap only: `docs/product/operational-readin
 
 Other admin pages are evidence or tools, not competing plans: Pilot Health, Conversion Plan, Enterprise Readiness, Funeral-home QA, Automation Readiness, Refresh Controls, Abuse Controls, and demo sandboxes.
 
-When any loop uncovers an issue outside the active sprint, do not drop it and do not silently expand scope. The Product Manager Agent must classify it as fix now, backlog, roadmap update, watch item, or owner gate; record source evidence and the decision in docs/agent-operating-context.md, and update the single roadmap when priority, sprint order, milestone, or product doctrine changes.
+When any loop uncovers an issue outside the active sprint, do not drop it and do not silently expand scope. The Product Manager Agent must classify it as fix now, backlog, roadmap update, watch item, or owner gate; record source evidence and the decision in docs/agent-operating-context.md, and update the single roadmap when priority, sprint order, milestone, or product doctrine changes. **Per "Review-Driven Process Corrections — 2026-07-22" #2, a material-scope change is not release-eligible until this update actually happens — it is a gate, not a best-effort courtesy.**
 
 Repo docs may contain historical plans. When they conflict, the canonical roadmap and this operating guide win.
+
+**The GitHub Issues tracker (#8, #11, #13-16, #20-22, and any future issue) is deprecated as a live signal per "Review-Driven Process Corrections — 2026-07-22" #3. Do not treat open/closed issue counts as representing current scope or priority.**
 
 ## Deployment Rules
 
@@ -242,7 +278,7 @@ Batch rule: bundle two or three compatible small/medium fixes into one release c
 
 Use [skip deploy] for source batching and documentation/context updates. Use one [deploy] [qa-approved] release commit only when a coherent release candidate has passed the release train.
 
-Agents and schedules never create a Production release commit directly on `main`. The reviewed pull request is the unit of promotion. Repository rules require Bot-authored pull requests, trusted and deterministic current-head checks, expected-source Independent QA, expected-source Development Head / Release Authority, resolved conversations, strict up-to-date state, restricted bypass/force-push, and serialized release work. Production additionally requires expected-source Production Review plus any applicable owner authorization through the protected Production environment or release gate.
+Agents and schedules never create a Production release commit directly on `main`. The reviewed pull request is the unit of promotion. Repository rules require Bot-authored pull requests, trusted and deterministic current-head checks, expected-source Independent QA, expected-source Development Head / Release Authority, resolved conversations, strict up-to-date state, restricted bypass/force-push, and serialized release work. Production additionally requires expected-source Production Review plus any applicable owner authorization through the protected Production environment or release gate. **A pull request is not "reviewed" for purposes of this rule if the merging identity and authoring identity are the same account — see "Review-Driven Process Corrections — 2026-07-22" #1.**
 
 If Vercel returns a build-rate-limit, deployment-rate-limit, quota, or upgrade-to-Pro status, stop creating deploy-triggering commits. Record the blocked commit and current production state in docs/agent-operating-context.md, continue only with [skip deploy] prep, and wait for the reset window or explicit owner plan/quota approval before the next deploy attempt.
 
@@ -258,14 +294,14 @@ Canceled Vercel deployments from [skip deploy] commits are expected. Treat faile
 Vercel runs `scripts/vercel-ignore-build.js` as the Ignore Build Step (configured via `ignoreCommand` in vercel.json) on EVERY git deployment, production and preview alike. Exit 0 = build canceled; exit 1 = build allowed. A `CANCELED` deployment is this gate doing its job — it is NOT a broken pipeline, a Vercel outage, or a read-only/credential problem. Decode the commit message before reacting:
 
 - Message contains `[skip deploy]`, `[no deploy]`, `[skip ci]`, or `[ci skip]` -> canceled.
-- Message contains a deploy marker (`[deploy]`, `[force deploy]`, `[prod deploy]`, `[production deploy]`, or starts with `deploy:` / `release:`) but NO `[qa-approved]` (or `[qa approved]`) -> canceled (finish PM/Dev/QA first).
+- Message contains a deploy marker (`[deploy]`, `[force deploy]`, `[prod deploy]`, or `[production deploy]`, or starts with `deploy:` / `release:`) but NO `[qa-approved]` (or `[qa approved]`) -> canceled (finish PM/Dev/QA first).
 - Message contains a deploy marker AND `[qa-approved]` -> build allowed.
 - Any other message (no markers at all) -> canceled.
 - Non-canonical Vercel project id -> canceled (canonical is prj_b7CKwanQaKwFQSHInr3l6wsZy9nD only).
 
 Consequences every session must know:
 
-- You CANNOT get a Vercel preview URL — even on a non-main branch — without a commit whose message has both a deploy marker and `[qa-approved]`. The gate keys on markers, not on branch; branch only decides production vs preview AFTER a build is allowed. (Exception for QA: you may remove `ignoreCommand` from vercel.json ON A THROWAWAY BRANCH ONLY to get a preview build; never merge that branch to main, and restore the gate when done. Note, observed 2026-07-12: even with the gate open, this project's preview deployments sit behind Vercel's own account/team SSO wall — `vercel.com/login?next=/sso-api...` — which blocks unauthenticated browser QA tools. Do not enter Vercel credentials to get past this. Treat pre-deploy preview QA as best-effort; the live post-deploy render check on production is the QA step that actually gates `[qa-approved]` in practice for this project.)
+- You CANNOT get a Vercel preview URL — even on a non-main branch — without a commit whose message has both a deploy marker and `[qa-approved]`. The gate keys on markers, not on branch; branch only decides production vs preview AFTER a build is allowed. (Exception for QA: you may remove `ignoreCommand` from vercel.json ON A THROWAWAY BRANCH ONLY to get a preview build; never merge that branch to main, and restore the gate when done. Note, observed 2026-07-12: even with the gate open, this project's preview deployments sit behind Vercel's own account/team SSO wall — `vercel.com/login?next=/sso-api...` — which blocks unauthenticated browser QA tools. Do not enter Vercel credentials to get past this. Treat pre-deploy preview QA as best-effort; the live post-deploy render check on production is the QA step that actually gates `[qa-approved]` in practice for this project. **Per "Review-Driven Process Corrections — 2026-07-22" #5: if a QA blocker like this (or the enterprise-browser-policy hostname rejection seen on PR #30) recurs, log it as its own fix-it item in docs/backlog.md rather than absorbing it into a PARTIAL/N/A QA status.**)
 - `[deploy] [qa-approved]` on `main` = PRODUCTION deploy. The same markers on a non-main branch (e.g. `qa-app-slice`) = a non-production PREVIEW deploy.
 - Never add `[qa-approved]` to a commit before QA has actually passed — that marker asserts QA passed and faking it defeats the gate. Earn it through the release train, then add it.
 - To browser-QA before deploy approval, run locally (`npm run dev`) and drive Chrome at localhost:3000, or use the throwaway-branch preview above, or have the owner open the gate. Do not force a build by tagging an unproven commit.
@@ -294,6 +330,7 @@ Agents must not proceed without explicit owner approval for:
 - Material legal, compliance, privacy, security, medical, or funeral-director claim changes.
 - Irreversible production data changes (data loss, not schema evolution via migration).
 - Spending money or starting paid campaigns.
+- **Merging any pull request where the merging identity would be the same as the authoring identity (see "Review-Driven Process Corrections — 2026-07-22" #1) — this now requires either a genuinely separate reviewer identity or explicit owner sign-off before merge, not after.**
 
 ## Engineering Rules
 
