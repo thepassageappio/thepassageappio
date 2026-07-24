@@ -1,5 +1,17 @@
 # Passage Backlog
 
+## Reality Check — 2026-07-24 (read this before treating anything below as current)
+
+This file predates the Passage Zero pivot and does not reflect current architecture status. Recorded here per AGENTS.md's roadmap/backlog staleness finding (independently proposed as a hard release gate in open, unmerged PR #37 — "Governance: codify 5 binding process corrections from 2026-07-22 review").
+
+- **Passage Zero is the sole target architecture**, built on `greenfield/passage-zero` (draft integration PR #24). It is not reflected anywhere below. The canonical roadmap for that work is `docs/product/operational-readiness-roadmap.md`, not this file.
+- **Threshold on `main` is a production-maintenance lane only** (per AGENTS.md, "Passage Zero canonicalization — 2026-07-18"): separately governed P0/P1 live-defect fixes are allowed; no new Threshold dashboard, estate, information-architecture, schema, or redesign work may begin on `main`. The "Now"/"Next"/"Later" items below that describe new Threshold-era product build-out (task-card spine, dashboard simplification, etc.) are stale under this freeze and should not be treated as active instructions without an explicit owner decision to resume Threshold work.
+- **`pages/funeral-home/dashboard.js` and `pages/estate.js` remain unconverted to any post-Threshold design system** — both are still 100% legacy hardcoded-hex/inline-style/Georgia-serif styling (dashboard.js alone has 156 literal `Georgia` references). This is a known, verified gap, not yet scheduled as Passage Zero work.
+- **Transfer Pass** consent/security and deterministic demo-reset requirements are recorded in `docs/agent-operating-context.md` as a future Passage Zero input; not yet designed or scheduled here.
+- **Governance PR #37** (open, unmerged as of 2026-07-24) proposes 5 binding process rules: no same-identity PR merge ever; roadmap/backlog touch required on every material-scope release; GitHub Issues tracker formally deprecated as a live signal (roadmap + backlog are sole sources of truth); a two-strikes rule requiring an explicit reconciliation proposal for `main` vs `greenfield/passage-zero` divergence; and QA-infrastructure gaps must get their own ticket rather than being absorbed into "QA: N/A." Treat these as pending, not yet binding, until the PR merges — but see the QA-infra ticket added below, which is worth tracking regardless of merge status.
+- **QA infrastructure gap (tracking ahead of PR #37 merge, per its rule #5):** PR #30's hosted QA has been stuck PARTIAL/NOT RUN because an enterprise browser policy rejects the preview hostname. This is infrastructure debt, not a product defect — needs an owner-assigned fix-it item, not to be silently folded into "QA: N/A" on future PRs.
+- **Live status snapshot (2026-07-24):** a "mission mobile repair" release candidate (PR #32-adjacent work) is recorded in `docs/agent-operating-context.md` as PREVIEW VERIFIED — hosted QA passed a full 36-cell route/viewport matrix — and is waiting only on protected owner authorization to deploy to production, followed by a repeat post-deploy QA pass. This is currently the fastest available path to a visible production change, independent of any work in this PR.
+
 ## Now (May 4-May 6, 2026)
 
 - Round 14 ironclad spine pass: treat `docs/ironclad-operating-spine-roadmap.md` as the readiness contract for families, participants, funeral homes, funeral-home staff, vendors, Passage system admins, messaging, permissions, demo, and task orchestration.
@@ -108,3 +120,6 @@
 - Production SQL changes require owner approval and manual Supabase execution (unless deployment pipeline changes).
 - Real customer/vendor/funeral-home emails or SMS require owner approval.
 - Pricing changes require owner approval.
+- QA infrastructure gap: PR #30 hosted QA blocked PARTIAL/NOT RUN by an enterprise browser policy rejecting the preview hostname — needs an owner-assigned infra fix, not a silent "QA: N/A."
+- `main` vs `greenfield/passage-zero` reconciliation: flagged across multiple reviews with no plan yet; needs an explicit owner decision on sequencing/timeline.
+- Whether to lift the Threshold-on-main freeze for a scoped `pages/funeral-home/dashboard.js` / `pages/estate.js` visual pass is an owner decision, not an agent one — see PR opened 2026-07-24 for the concrete ask.
