@@ -8,7 +8,43 @@ Do not port the legacy Pages Router structure into Passage Zero. The historical 
 
 Every Passage Zero slice must advance the reachable persona UI, server-authorized command or query, durable state, RLS/authority predicate, append-only event or proof for mutations, recovery behavior, responsive projection, and parity-ledger entry together. A backend-only capability must be labeled `backend_only`; a UI state without durable proof fails QA. Production remains untouched until an explicitly approved production release train passes.
 
+## Release governance correction — 2026-07-24 (owner-directed; corrects the self-certified independence claims in the section below)
+
+An audit of this repository's actual GitHub state (not just its docs) found the "distinct role" governance below has not been mechanically enforced:
+
+- PR #36 (`Release mission mobile repair to Production`, merged 2026-07-23) was both authored **and merged** by the same identity, `passage-release-bot[bot]`. GitHub's PR-review API for that PR returns zero reviews (`get_reviews` == `[]`). No account other than the author ever reviewed it.
+- The three "independent" checks named below (`Passage QA / independent-qa`, `Passage Review Agent / merge-review`, `Passage Production Review / release-readiness`) are not produced by any Actions workflow in this repo (only `agent-context.yml`, `agent-release-train.yml`, and `governance-integrity.yml` exist, and none of them emit those names). They were posted directly via the Checks API. A check run is not a review, and posting one under a distinct-sounding name does not make it independent.
+- `.github/passage-review-identities.json` declares three separate App slugs/IDs for QA, merge-review, and production-review, but every one of them is scoped `may_write_pull_requests: false` — even if genuinely installed and distinct from `passage-release-bot`, none of them is currently *able* to submit a real approving review. They can only write checks, which is exactly the gap the owner flagged: green checks, no distinct approval.
+- `governance-integrity.yml`'s "trusted contract" check (`scripts/check-release-train.js`) validates PR body text/metadata, not who actually approved anything. It cannot detect or block self-certification.
+
+**Net effect: written role names in PR bodies and check names are not proof of independence, and must stop being treated as such.**
+
+### What "real" means going forward
+
+Per owner direction, the release loop this repo needs is simple and matches the existing PM → UI/UX Review → Development Engineer → QA → Deploy structure already defined below — the concept was never the problem. The only structural fix needed is: **the QA step and the Release/Development-Head-approval step must each be satisfied by a GitHub pull request review from an identity other than the PR's author.** GitHub itself refuses to let an account approve its own pull request — that refusal is the actual mechanism that blocks self-certification. A same-account check run under a different label is not that mechanism, no matter what it's named.
+
+The minimum enforcement, at the branch-protection level on `main` (and on `greenfield/passage-zero` once it carries real work):
+
+- Require at least 1 approving pull request review before merge.
+- Dismiss stale approvals when new commits are pushed.
+- Enforce this for everyone, including repository admins and Apps — no bypass.
+
+This setting could not be read or applied via this session's connected GitHub tooling: the available GitHub integration exposes repository, file, branch, PR, and issue operations but no branch-protection read/write endpoint, and this session had no shell/API-token path to call the REST branch-protection endpoint directly. Applying it requires either the GitHub UI (Settings → Branches → edit the `main` rule) or an admin-scoped API token — both are owner-only actions from here. The exact settings to toggle are listed in the pull request that carries this change.
+
+### Until a genuinely separate identity exists
+
+Treat the QA and Release-approval gates as satisfied only by one of:
+
+1. **Steve's own GitHub review** on the PR (not a bot account) — zero new infrastructure, works today once required-reviews is turned on.
+2. **GitHub's built-in Copilot code review** (`request_copilot_review`) as a first, genuinely separate identity for the QA gate, with Steve (or a second real account) covering release-approval.
+
+The three-App architecture below (`passage-qa-reviewer`, `passage-release-reviewer`, `passage-production-reviewer`) remains the eventual target, but is **aspirational, not live-verified**, until: (a) each App is confirmed actually installed and is a distinct identity from `passage-release-bot`, (b) each is re-granted `pull_requests: write` (not just `checks: write`) so it can submit a real `APPROVE`/`REQUEST_CHANGES` review under its own identity, and (c) branch protection requires that review. Creating or re-scoping a GitHub App installation is an org-admin action in GitHub's own settings (Organization → Settings → GitHub Apps, or Developer settings → GitHub Apps) that cannot be done from this session's repo-scoped access.
+
+Until those three conditions are met, do not report "Independent QA," "Development Head / Release Authority," or "Production Review" as passed based on a check run alone — report the actual reviewer identity (a GitHub login, human or App) that submitted the approving review, or report that the gate is currently satisfied by the owner's manual review.
+
 ## Dedicated-agent repository and language controls — 2026-07-19 (owner-approved)
+
+**Corrected 2026-07-24 — see "Release governance correction" above. The three-App independence claims in this section are not verified live from this repository's actual GitHub state and must not be presented as proof of independent review until confirmed per the conditions above.**
 
 The durable policy is `docs/product/release-governance-and-plain-language-policy.md`. It supersedes every historical directive that permits agents or schedules to push directly to `main`, requires founder/human merge review, allows self-graded QA, or exposes internal implementation language on persona surfaces.
 
