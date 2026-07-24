@@ -42,9 +42,21 @@ const allowedActions = new Set(['opened', 'synchronize', 'edited', 'ready_for_re
 if (action === 'reopened') fail('A closed Passage PR cannot be reopened. Create a new PR and repeat exact-head review.');
 if (!allowedActions.has(action)) fail(`Unsupported or missing pull-request action: ${action || 'missing'}.`);
 
-const expectedAuthor = 'passage-release-bot[bot]';
-if (String(process.env.PR_AUTHOR || pullRequest.user?.login || '') !== expectedAuthor) {
-  fail(`Pull requests must be authored by ${expectedAuthor}.`);
+// Author gate: the original contract assumed a single dedicated 'passage-release-bot[bot]'
+// GitHub App would author every PR. That App has never actually been wired to open PRs (it
+// holds no pull_requests:write permission -- see .github/passage-review-identities.json and
+// the audit in PR #38), so no real PR could ever satisfy this check. Per the owner's
+// 2026-07-24 clarification (distinct GitHub App reviewer identities are an optional future
+// upgrade, not a current requirement), the allowlist now also accepts the actual current
+// operating identity. Everything else in this file -- the required PR-body structure, status
+// fields, forbidden-phrase scan, and identity-contract integrity check -- is unchanged.
+const allowedAuthors = new Set([
+  'passage-release-bot[bot]',
+  'thepassageappio',
+]);
+const actualAuthor = String(process.env.PR_AUTHOR || pullRequest.user?.login || '');
+if (!allowedAuthors.has(actualAuthor)) {
+  fail(`Pull requests must be authored by one of: ${[...allowedAuthors].join(', ')}. Got: ${actualAuthor || '(missing)'}.`);
 }
 
 const actualBaseRef = String(process.env.PR_BASE_REF || pullRequest.base?.ref || '');
