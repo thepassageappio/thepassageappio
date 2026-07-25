@@ -1,5 +1,7 @@
 # Passage Agent Operating Guide
 
+> **Start here first:** `docs/agent-operating-context-2026-07-24-consolidation.md` is the single authoritative current-state summary (what's live where, standing rules actually in force, PR disposition, confirmed infrastructure blockers, real backlog order). Read it before this file's older dated sections, before `docs/agent-operating-context.md`, and before any other dated addendum.
+
 ## Passage Zero canonicalization — 2026-07-18 (owner-approved; supersedes conflicting Threshold execution directives)
 
 Passage Zero on `greenfield/passage-zero`, draft PR #24, is the sole target architecture and redesign implementation. Threshold on `main` is now a production-maintenance lane only: separately governed P0/P1 live defects may be fixed, but no new Threshold dashboard, estate, information-architecture, schema, or redesign work may begin.

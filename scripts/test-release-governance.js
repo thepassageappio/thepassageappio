@@ -87,6 +87,7 @@ expectPass('draft structure', {});
 expectPass('ready structure defers to required checks', { PR_BODY: ready, PR_DRAFT: 'false' });
 expectPass('pull_request_target valid draft', pullRequestTarget);
 expectPass('pull_request_target valid merge-ready', { ...pullRequestTarget, PR_BODY: ready, PR_DRAFT: 'false' });
+expectPass('widened allowlist accepts current operating identity', { PR_AUTHOR: 'thepassageappio' });
 expectFail('pull_request_target missing required section', {
   ...pullRequestTarget,
   PR_BODY: draft.replace('## Dedicated Merge Review', '## Review'),
@@ -101,7 +102,7 @@ expectPassWithOutput('local non-Actions missing event skips explicitly', {
   GITHUB_EVENT_NAME: '',
 }, /skipped for an explicit local non-PR invocation/);
 expectFail('Actions missing event fails closed', { GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: '' });
-expectFail('wrong author', { PR_AUTHOR: 'thepassageappio' });
+expectFail('wrong author', { PR_AUTHOR: 'someone-else' });
 expectFail('pull_request_target validates the expected Bot author', { GITHUB_EVENT_NAME: 'pull_request_target', PR_AUTHOR: 'attacker[bot]' });
 expectFail('unsupported event fails closed', { GITHUB_EVENT_NAME: 'push' });
 expectFail('reopened PR', { PR_ACTION: 'reopened' });
