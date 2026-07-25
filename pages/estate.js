@@ -1968,7 +1968,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
         <div style={{ minWidth: 170, background: overallStatusBg, border: '1px solid ' + (blockedCount ? ROSE + '35' : waitingCount ? AMBER_BORDER : SAGE_LIGHT), borderRadius: 14, padding: '10px 12px', textAlign: 'right' }}>
           <div style={{ color: overallStatusTone, fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 900 }}>{blockedCount ? 'Needs attention' : waitingCount ? 'Waiting' : 'On track'}</div>
           <div style={{ color: INK, fontSize: 20, lineHeight: 1.1, fontWeight: 900, marginTop: 4 }}>{handledCount} handled</div>
-          <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{waitingCount} waiting ?? {blockedCount} needs help</div>
+          <div style={{ color: MID, fontSize: 11.5, lineHeight: 1.4, marginTop: 3 }}>{waitingCount} waiting · {blockedCount} needs help</div>
         </div>
       </div>
 
@@ -2016,7 +2016,7 @@ function TaskSpineCommandCenter({ outcomes, tasks, events, actions, people, coor
               return (
                 <div key={state.key} style={{ background: state.key === workflowStates.activeState?.key ? SAGE_FAINT : SUBTLE, border: '1px solid ' + (state.key === workflowStates.activeState?.key ? SAGE_LIGHT : BORDER), borderRadius: 11, padding: '8px 9px' }}>
                   <div style={{ color: INK, fontSize: 12.3, lineHeight: 1.25, fontWeight: 900 }}>{state.label}</div>
-                  <div style={{ color: tone, fontSize: 10.8, lineHeight: 1.35, fontWeight: 900, marginTop: 4 }}>{familyWorkflowLabel(state.statusLabel)} ?? {state.openCount} open</div>
+                  <div style={{ color: tone, fontSize: 10.8, lineHeight: 1.35, fontWeight: 900, marginTop: 4 }}>{familyWorkflowLabel(state.statusLabel)} · {state.openCount} open</div>
                 </div>
               );
             })}
