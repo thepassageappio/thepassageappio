@@ -43,6 +43,65 @@ Every operational milestone must prove:
 8. One coherent `[deploy] [qa-approved]` preview after distinct PM -> UX -> Engineering -> QA -> Deploy handoffs.
 9. A frontend/backend contract matrix showing that each visible persona action and status is backed by the matching server command/query, durable rows, RLS/authority rule, append-only event/proof when state changes, failure/recovery state, and persona projection. QA fails the milestone if either side ships ahead of the other; intentionally internal or queued backend capability must be named as such and must not appear as completed UI functionality.
 
+### Passage V2 north star and design program - owner-approved 2026-07-21
+
+Passage V2 is the **verified continuity network for deathcare**: one permissioned record that helps a family, funeral home, care provider, and bounded partner understand what is happening, who owns the next commitment, what has been proven, and how a failed handoff recovers. Funeral directors remain the primary distribution and operating wedge. This is a design program within Passage Zero and the milestones below, not a second product lane, a second roadmap, or authorization to start a parallel rebuild.
+
+The future experience is organized around three humane products and four shared rails:
+
+- **Transition Brief:** the current, viewer-appropriate summary of approved facts, open commitments, owners, waiting parties, evidence, and the next safe action. A Transfer Pass can authorize and carry a Transition Brief; this does not silently rename or replace the current Transfer Pass contract.
+- **Director Right Hand:** a calm operating view that identifies workload, risk, family waiting, proof gaps, failed handoffs, and the one action that will move each case safely.
+- **Family Companion:** one reassuring next step, a clear view of what professionals are handling, understandable receipts, privacy boundaries, and recovery help without exposing operator complexity.
+- **Continuity rail:** stable identity, consent, scope, ownership, and handoff history across permitted organizations and people.
+- **Proof rail:** append-only evidence, review state, correction history, audience, and a human-readable receipt.
+- **Partner rail:** purpose-limited participation and provider-neutral adapters that report queued, accepted, delivered, rejected, and failed states truthfully.
+- **Recovery rail:** every failed delivery, integration, or workflow transition remains visible, retriable where safe, and assigned to a named recovery owner.
+
+Autonomy advances only with evidence: **observe and organize -> prepare and recommend -> human-approved execution -> policy-bounded automation**. Every level must preserve the human actor, authorization, resulting event, audience, and recovery owner. No consequential external action may be described as sent, approved, delivered, or completed before its distinct proof exists.
+
+Dependency incorporation into the existing milestones:
+
+1. **Cycle 8 stays unchanged.** Close the hosted task-bound proof/review loop and its authority, recovery, responsive, and comprehension evidence before broadening the active implementation scope.
+2. **M3 establishes the operating primitives.** Durable case intake, `Now / Tasks / Updates / Proof`, task-bound communication, structured proof, outbox/retry, realtime recovery, and the isolated demo become the first usable Transition Brief, Director Right Hand, Proof rail, and Recovery rail.
+3. **M4 establishes family continuity.** Real family identity/recovery, durable purpose grants, participant boundaries, the complete Transfer Pass handoff, family-safe proof return, and data controls make the Family Companion and Continuity rail operational.
+4. **M5 establishes bounded network participation.** One honest adapter simulation, partner scopes, integration receipts/exceptions, coordination-health evidence, support controls, and pilot simulations make the Partner rail testable without claiming universal coverage.
+5. **M6 remains the Production gate.** Live providers, production migrations, retention/deletion decisions, security/privacy/legal review, load/restore drills, support coverage, and rollout controls precede policy-bounded automation or a full-production claim.
+
+Architecture work must preserve seams for stable continuity/case/work/task/message/proof/event identifiers; versioned handoff manifests and receipts; explicit purpose grants; common command receipts; prepared/reviewed/sent/delivered state separation; provider-neutral external mappings; workflow template identity and version; event cursors; proof references outside sensitive event metadata; and named recovery ownership. `docs/product/persona-action-architecture.md` holds the detailed future contract.
+
+Explicit non-goals for this program are replacing funeral-home ERPs, a generic chat or social feed, autonomous AI sending or approval, broad family or partner record access, separate persona databases, a data marketplace, blockchain storage of sensitive records, a general workflow builder before repeatable pilot evidence, universal integrations, and Production automation before the applicable owner and evidence gates.
+
+#### V4 horizon - consumer-directed deathcare network (non-executable)
+
+The long-horizon product ladder is **V1 trusted record -> V2 supervised coordination intelligence -> V3 verified partner and integration rails -> V4 consumer-directed deathcare network**. V4 helps funeral homes digitize while giving consumers one guided, transparent, permissioned experience across planning, care transition, funeral-home service, disposition, aftercare, and other explicitly chosen participants. It is a horizon for architectural coherence and research, not an active implementation lane, milestone change, launch promise, or permission to skip V1-V3 evidence.
+
+V4 is a network, not a lead marketplace. The consumer directs permission and participation, while the selected funeral home retains the service relationship and professional responsibility. Passage does not rank providers by commission, sell preferential placement, resell family data, or route a family to the highest bidder.
+
+The network cannot advance until its barriers are resolved with evidence and explicit gates:
+
+- **Provider trust and channel conflict:** demonstrate that Passage strengthens funeral-home relationships, avoids disintermediation, and makes responsibility and economics understandable.
+- **Transparent price truth:** version general price lists, service/package prices, third-party cash advances, effective dates, jurisdiction, source, and acknowledgement without presenting stale or incomparable numbers as a quote.
+- **Authority and consent:** establish who may plan, disclose, decide, revoke, correct, and transfer each category of information, with purpose, recipient, duration, and provenance.
+- **State and jurisdiction variance:** model location-specific rules and hold legal, preneed, disposition, licensing, and claim decisions behind applicable expert and owner gates.
+- **Fragmented systems:** support versioned adapters, acknowledgements, exceptions, and manual recovery for EDRS, funeral-home ERPs, care systems, and other legacy or closed workflows without claiming universal interoperability.
+- **Identity and fraud:** prove account recovery, representative authority, duplicate/mismatch handling, document and payment safeguards, abuse controls, and auditable intervention.
+- **Physical operations and recovery:** connect digital commitments to transport, custody, timing, inventory, service, disposition, and partner fulfillment with a named recovery owner when the real-world step fails.
+- **Payments, preneed, and legal boundaries:** keep money movement, funding, insurance, preneed, refunds, tax, and regulated disclosures outside autonomous operation until the complete product, legal, compliance, security, and Production gates pass.
+- **AI authorization:** preserve human approval for consequential recommendations, communications, routing, prices, and decisions until a narrow policy boundary has been explicitly approved and independently proven.
+- **Regional cold start:** earn density region by region through trusted funeral-home anchors, useful consumer continuity, and verified partner coverage; do not manufacture network claims from unverified listings or purchased leads.
+
+This incorporation changes no Cycle 8 scope or status, current milestone status or target, July 23 operating target, readiness score, or Production state.
+
+#### V5 horizon - direct acquisition and digital continuity (non-executable)
+
+V5 researches a direct household/helper entry and an authority-aware Digital Continuity Locker and Brief for account references, subscriptions, social identity, cloud photos, custodial crypto, and other provider-specific after-death work. Implementation is downstream of M3-M6 and the V4 consumer-directed network; gated research may run earlier without creating a product, provider relationship, acquisition campaign, or Production change. Passage may organize intent, permissioned tasks, official provider routes, receipts, exceptions, and recovery, but it does not become a password/private-key vault, executor, provider marketplace, grief-content funnel, or autonomous account actor. Online-first/direct-cremation providers and death-positive educators are research channels, not proven distribution; community rules, sponsorship, professional responsibility, consumer choice, and no-promotion boundaries control every experiment.
+
+Revenue portfolio order, based on likely time to first Passage revenue and explicitly **hypothetical until paid-pilot evidence exists**, is: **(1)** Passage Zero/Cycle 8 funeral-home operating SaaS, **(2)** M3 Director Right Hand/Transition Brief, **(3)** M4 family continuity/Transfer Pass, **(4)** online-first/direct-cremation provider handoff, **(5)** V3 partner/integration rails, **(6)** Digital Continuity Locker, **(7)** Help a Friend, **(8)** V5 creator/community distribution, and **(9)** V4 consumer-directed provider network. The first two are the near-term revenue engine; M4, the provider handoff, V3 rails, and the Locker are retention/expansion candidates; Help a Friend and creator/community work are acquisition hypotheses rather than required revenue lines; V4 is a future network option. Market evidence validates digital funeral adoption, institutional sponsorship, digital-estate products, and community activity, but it does not prove Passage willingness to pay, sales velocity, CAC/LTV, margin, conversion, or retention.
+
+Allocation is **Now:** close Cycle 8 and then fund the first bounded M3 slice; **Next:** M4 plus research-only provider-handoff/V3 simulation and isolated Locker/Help a Friend prototypes; **Later:** one evidence-backed integration, a bounded non-custodial Locker pilot, and disclosed community education; **Do not fund yet:** V4 network infrastructure, paid ranking/marketplace behavior, live custodian actions, secret custody, paid creator acquisition, or a standalone viral helper loop. Each initiative advances or stops only at the buyer, authority, recovery, comprehension, support-burden, and ethical kill gates in `docs/product/v5-direct-acquisition-and-digital-continuity-strategy.md`.
+
+This V5 link creates no active sprint, score, milestone, implementation authorization, pricing change, acquisition campaign, provider relationship, or Production change. Cycle 8 remains PARTIAL, the July 23 owner-testable Preview target is unchanged, and the M3-M6/V4 gates remain controlling.
+
 ## Verified baseline
 
 | Path | Guided readiness | Operational readiness | Verified now | Principal gap |
