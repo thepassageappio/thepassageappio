@@ -261,7 +261,11 @@ export default function AnnouncePage() {
   }
 
   async function discardPendingReview(id) {
-    await sb.from('announcements').update({ status: 'cancelled' }).eq('id', id);
+    var result = await sb.from('announcements').update({ status: 'cancelled' }).eq('id', id);
+    if (result && result.error) {
+      setFeedback('Could not discard that item. Try again.');
+      return;
+    }
     setPendingReviews(function(list) { return list.filter(function(r) { return r.id !== id; }); });
   }
 
@@ -579,29 +583,38 @@ export default function AnnouncePage() {
         </div>
       </div>
 
-      <div style={{ marginBottom: 20, background: SUBTLE, borderRadius: 13, padding: '16px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 12 }}>Would you like someone to review this before it sends?</div>
-        {!addReviewer ? (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={function() { setAddReviewer(true); }}
-              style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
-              Add reviewer
-            </button>
-            <button onClick={function() { setAddReviewer(false); }}
-              style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1px solid ' + BORDER, background: CARD, color: MID, fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
-              Skip
-            </button>
+      {resumingId ? (
+        <div style={{ marginBottom: 20, background: SUBTLE, borderRadius: 13, padding: '16px' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 6 }}>Review complete</div>
+          <div style={{ fontSize: 12.5, color: SOFT, lineHeight: 1.5 }}>
+            {reviewerName ? reviewerName + ' was' : 'A reviewer was'} asked to look at this before it sends. Confirming below sends it now — it will not be queued for another round of review.
           </div>
-        ) : (
-          <div>
-            <input value={reviewerName} onChange={function(e) { setReviewerName(e.target.value); }} placeholder="Their name"
-              style={{ width: '100%', padding: '12px', borderRadius: 10, border: '1.5px solid ' + BORDER, fontFamily: 'inherit', fontSize: 14, color: INK, outline: 'none', boxSizing: 'border-box', background: CARD, marginBottom: 8, minHeight: 46 }} />
-            <div style={{ fontSize: 12, color: SOFT }}>They will be noted as a reviewer. You are still in control of when this sends.</div>
-            <button onClick={function() { setAddReviewer(false); setReviewerName(''); }}
-              style={{ marginTop: 8, fontSize: 12, color: SOFT, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Remove</button>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div style={{ marginBottom: 20, background: SUBTLE, borderRadius: 13, padding: '16px' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginBottom: 12 }}>Would you like someone to review this before it sends?</div>
+          {!addReviewer ? (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={function() { setAddReviewer(true); }}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+                Add reviewer
+              </button>
+              <button onClick={function() { setAddReviewer(false); }}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1px solid ' + BORDER, background: CARD, color: MID, fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+                Skip
+              </button>
+            </div>
+          ) : (
+            <div>
+              <input value={reviewerName} onChange={function(e) { setReviewerName(e.target.value); }} placeholder="Their name"
+                style={{ width: '100%', padding: '12px', borderRadius: 10, border: '1.5px solid ' + BORDER, fontFamily: 'inherit', fontSize: 14, color: INK, outline: 'none', boxSizing: 'border-box', background: CARD, marginBottom: 8, minHeight: 46 }} />
+              <div style={{ fontSize: 12, color: SOFT }}>They will be noted as a reviewer. You are still in control of when this sends.</div>
+              <button onClick={function() { setAddReviewer(false); setReviewerName(''); }}
+                style={{ marginTop: 8, fontSize: 12, color: SOFT, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Remove</button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: SOFT, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Delivery</div>
