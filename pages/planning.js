@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SiteFooter, SiteHeader } from '../components/SiteChrome';
 import { supabase } from '../lib/supabaseBrowser';
 
@@ -18,6 +18,31 @@ const emptyForm = {
   cemeteryName: '',
   documentLocation: '',
 };
+
+const STEP_COUNT = 4;
+
+const STEP_META = [
+  {
+    eyebrow: 'Step 1 of 4',
+    title: 'Who this plan protects.',
+    sub: 'Start with the essentials. You can add the rest as you go.',
+  },
+  {
+    eyebrow: 'Step 2 of 4',
+    title: 'Primary trusted contact.',
+    sub: 'The first person Passage asks to confirm this plan later.',
+  },
+  {
+    eyebrow: 'Step 3 of 4',
+    title: 'Second trusted contact.',
+    sub: 'A different person, so activation never depends on one confirmation alone.',
+  },
+  {
+    eyebrow: 'Step 4 of 4',
+    title: 'Anything else to add now?',
+    sub: 'Everything below is optional. Leave it blank and continue if you do not have it yet.',
+  },
+];
 
 function cleanEmail(value) {
   return String(value || '').trim().toLowerCase();
@@ -39,6 +64,8 @@ export default function PlanningPage() {
   const [message, setMessage] = useState('');
   const [magicSent, setMagicSent] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [step, setStep] = useState(0);
+  const autoAdvancedRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -75,6 +102,25 @@ export default function PlanningPage() {
     setAuthChecked(true);
     return () => { active = false; };
   }, []);
+
+  // Returning from the magic-link round trip: if a signed-in session already has a
+  // complete required trio saved (from the pre-link localStorage draft), skip straight
+  // to the final step instead of making the person re-click through steps they already
+  // finished before leaving to check email.
+  useEffect(() => {
+    if (autoAdvancedRef.current) return;
+    if (!user) return;
+    if (step >= STEP_COUNT - 1) return;
+    const ready = Boolean(form.personName.trim())
+      && Boolean(cleanEmail(form.coordinatorEmail))
+      && Boolean(cleanEmail(form.executorEmail))
+      && Boolean(cleanEmail(form.secondConfirmerEmail))
+      && cleanEmail(form.secondConfirmerEmail) !== cleanEmail(form.executorEmail);
+    if (ready) {
+      autoAdvancedRef.current = true;
+      setStep(STEP_COUNT - 1);
+    }
+  }, [user, form.personName, form.coordinatorEmail, form.executorEmail, form.secondConfirmerEmail, step]);
 
   function set(key, value) {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -151,6 +197,24 @@ export default function PlanningPage() {
     }
   }
 
+  const canContinueStep0 = Boolean(form.personName.trim()) && Boolean(cleanEmail(form.coordinatorEmail));
+  const canContinueStep1 = Boolean(cleanEmail(form.executorEmail));
+  const canContinueStep2 = Boolean(cleanEmail(form.secondConfirmerEmail))
+    && cleanEmail(form.secondConfirmerEmail) !== cleanEmail(form.executorEmail);
+  const canContinue = step === 0 ? canContinueStep0 : step === 1 ? canContinueStep1 : step === 2 ? canContinueStep2 : true;
+  const isLastStep = step === STEP_COUNT - 1;
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!isLastStep) {
+      if (canContinue) setStep(step + 1);
+      return;
+    }
+    savePlanningEstate();
+  }
+
+  const meta = STEP_META[step];
+
   return (
     <main className="th-shell">
       <style jsx global>{`
@@ -189,7 +253,12 @@ export default function PlanningPage() {
         .form-eyebrow { color: var(--clay-600); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; display: block; }
         h2 { font-family: 'Fraunces', serif; font-weight: 460; font-size: 26px; margin: 0 0 6px; line-height: 1.1; letter-spacing: -.015em; color: var(--pine-950); }
         p.form-sub { color: var(--ink-500); font-size: 13.5px; line-height: 1.5; margin: 0 0 16px; }
+        .progress-dots { display: flex; gap: 6px; margin-bottom: 14px; }
+        .progress-dot { height: 6px; width: 6px; border-radius: var(--r-full); background: var(--bone-300); transition: width .2s var(--ease), background .2s var(--ease); }
+        .progress-dot.is-active { width: 20px; background: var(--pine-600); }
+        .progress-dot.is-done { background: var(--pine-100); }
         .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .field-grid.is-single { grid-template-columns: 1fr; max-width: 360px; }
         .th-field-label { font-size: 10.5px; color: var(--pine-700); text-transform: uppercase; letter-spacing: .14em; font-weight: 700; margin-bottom: 6px; }
         input {
           width: 100%; box-sizing: border-box; border: 1.5px solid var(--line); border-radius: var(--r-sm);
@@ -199,18 +268,25 @@ export default function PlanningPage() {
         .status-msg { margin-top: 14px; border-radius: var(--r-md); padding: 11px 12px; font-size: 13.5px; line-height: 1.45; font-weight: 600; }
         .status-msg.ok { background: var(--pine-50); border: 1px solid #D5E4DC; color: var(--pine-700); }
         .status-msg.err { background: var(--clay-50); border: 1px solid var(--clay-200); color: var(--clay-700); }
+        .step-nav { margin-top: 18px; display: flex; gap: 10px; }
         .submit-btn {
-          margin-top: 15px; width: 100%; min-height: 52px; border: none; border-radius: var(--r-full);
+          flex: 1; min-height: 52px; border: none; border-radius: var(--r-full);
           font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer;
           background: linear-gradient(155deg, var(--pine-600), var(--pine-800)); color: #fff;
           box-shadow: 0 1px 2px rgba(15,42,36,.15), 0 8px 16px -6px rgba(15,42,36,.35);
         }
-        .submit-btn:disabled { opacity: .72; cursor: default; }
+        .submit-btn:disabled { opacity: .55; cursor: default; box-shadow: none; }
+        .back-btn {
+          flex: 0 0 auto; min-height: 52px; padding: 0 18px; border-radius: var(--r-full);
+          border: 1.5px solid var(--line); background: transparent; color: var(--ink-700);
+          font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer;
+        }
         .footnote { color: var(--ink-400); font-size: 12.5px; line-height: 1.45; margin-top: 10px; }
 
         @media (max-width: 860px) {
           .wrap { grid-template-columns: 1fr !important; padding: 16px 18px 26px !important; }
           .field-grid { grid-template-columns: 1fr !important; }
+          .field-grid.is-single { max-width: none; }
         }
       `}</style>
       <SiteHeader user={user} authReady={authChecked} onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }} />
@@ -235,62 +311,91 @@ export default function PlanningPage() {
           </div>
         </div>
 
-        <form onSubmit={e => { e.preventDefault(); savePlanningEstate(); }} className="th-form">
-          <span className="form-eyebrow">Planning Setup</span>
-          <h2>Create the planning record.</h2>
-          <p className="form-sub">Start with the person, the coordinator, and two trusted contacts. You can fill in the rest inside the estate.</p>
-
-          <div className="field-grid">
-            <Field label="Person this plan protects">
-              <input value={form.personName} onChange={e => set('personName', e.target.value)} placeholder="Full name" />
-            </Field>
-            <Field label="Your email">
-              <input type="email" value={form.coordinatorEmail} onChange={e => set('coordinatorEmail', e.target.value)} placeholder="you@example.com" />
-            </Field>
-            <Field label="Primary trusted contact">
-              <input value={form.executorName} onChange={e => set('executorName', e.target.value)} placeholder="Name" />
-            </Field>
-            <Field label="Primary contact email">
-              <input type="email" value={form.executorEmail} onChange={e => set('executorEmail', e.target.value)} placeholder="trusted@example.com" />
-            </Field>
-            <Field label="Second trusted contact">
-              <input value={form.secondConfirmerName} onChange={e => set('secondConfirmerName', e.target.value)} placeholder="Name" />
-            </Field>
-            <Field label="Second contact email">
-              <input type="email" value={form.secondConfirmerEmail} onChange={e => set('secondConfirmerEmail', e.target.value)} placeholder="backup@example.com" />
-            </Field>
-            <Field label="Healthcare proxy">
-              <input value={form.healthcareProxyName} onChange={e => set('healthcareProxyName', e.target.value)} placeholder="Optional" />
-            </Field>
-            <Field label="Proxy email">
-              <input type="email" value={form.healthcareProxyEmail} onChange={e => set('healthcareProxyEmail', e.target.value)} placeholder="Optional" />
-            </Field>
-            <Field label="Burial or cremation preference">
-              <input value={form.disposition} onChange={e => set('disposition', e.target.value)} placeholder="Optional" />
-            </Field>
-            <Field label="Service preference">
-              <input value={form.serviceType} onChange={e => set('serviceType', e.target.value)} placeholder="Optional" />
-            </Field>
-            <Field label="Faith or cultural notes">
-              <input value={form.faithTradition} onChange={e => set('faithTradition', e.target.value)} placeholder="Optional" />
-            </Field>
-            <Field label="Documents location">
-              <input value={form.documentLocation} onChange={e => set('documentLocation', e.target.value)} placeholder="Optional" />
-            </Field>
+        <form onSubmit={handleSubmit} className="th-form">
+          <span className="form-eyebrow">{meta.eyebrow}</span>
+          <div className="progress-dots">
+            {STEP_META.map((s, i) => (
+              <div key={s.eyebrow} className={`progress-dot${i === step ? ' is-active' : i < step ? ' is-done' : ''}`} />
+            ))}
           </div>
+          <h2>{meta.title}</h2>
+          <p className="form-sub">{meta.sub}</p>
 
-          {message && (
+          {step === 0 && (
+            <div className="field-grid is-single">
+              <Field label="Person this plan protects">
+                <input value={form.personName} onChange={e => set('personName', e.target.value)} placeholder="Full name" autoFocus />
+              </Field>
+              <Field label="Your email">
+                <input type="email" value={form.coordinatorEmail} onChange={e => set('coordinatorEmail', e.target.value)} placeholder="you@example.com" />
+              </Field>
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="field-grid is-single">
+              <Field label="Primary trusted contact">
+                <input value={form.executorName} onChange={e => set('executorName', e.target.value)} placeholder="Name (optional)" autoFocus />
+              </Field>
+              <Field label="Primary contact email">
+                <input type="email" value={form.executorEmail} onChange={e => set('executorEmail', e.target.value)} placeholder="trusted@example.com" />
+              </Field>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="field-grid is-single">
+              <Field label="Second trusted contact">
+                <input value={form.secondConfirmerName} onChange={e => set('secondConfirmerName', e.target.value)} placeholder="Name (optional)" autoFocus />
+              </Field>
+              <Field label="Second contact email">
+                <input type="email" value={form.secondConfirmerEmail} onChange={e => set('secondConfirmerEmail', e.target.value)} placeholder="backup@example.com" />
+              </Field>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="field-grid">
+              <Field label="Healthcare proxy">
+                <input value={form.healthcareProxyName} onChange={e => set('healthcareProxyName', e.target.value)} placeholder="Optional" />
+              </Field>
+              <Field label="Proxy email">
+                <input type="email" value={form.healthcareProxyEmail} onChange={e => set('healthcareProxyEmail', e.target.value)} placeholder="Optional" />
+              </Field>
+              <Field label="Burial or cremation preference">
+                <input value={form.disposition} onChange={e => set('disposition', e.target.value)} placeholder="Optional" />
+              </Field>
+              <Field label="Service preference">
+                <input value={form.serviceType} onChange={e => set('serviceType', e.target.value)} placeholder="Optional" />
+              </Field>
+              <Field label="Faith or cultural notes">
+                <input value={form.faithTradition} onChange={e => set('faithTradition', e.target.value)} placeholder="Optional" />
+              </Field>
+              <Field label="Documents location">
+                <input value={form.documentLocation} onChange={e => set('documentLocation', e.target.value)} placeholder="Optional" />
+              </Field>
+            </div>
+          )}
+
+          {isLastStep && message && (
             <div className={magicSent ? 'status-msg ok' : 'status-msg err'}>
               {message}
             </div>
           )}
 
-          <button type="submit" disabled={saving} className="submit-btn">
-            {saving ? 'Working...' : user ? 'Create planning record' : 'Email me a secure link'}
-          </button>
-          <div className="footnote">
-            If you are already signed in, Passage saves the record now. If not, we send a secure link first so the record belongs to you.
+          <div className="step-nav">
+            {step > 0 && (
+              <button type="button" className="back-btn" onClick={() => setStep(step - 1)}>Back</button>
+            )}
+            <button type="submit" disabled={isLastStep ? saving : !canContinue} className="submit-btn">
+              {isLastStep ? (saving ? 'Working...' : user ? 'Create planning record' : 'Email me a secure link') : 'Continue'}
+            </button>
           </div>
+          {isLastStep && (
+            <div className="footnote">
+              If you are already signed in, Passage saves the record now. If not, we send a secure link first so the record belongs to you.
+            </div>
+          )}
         </form>
       </section>
       <SiteFooter />
