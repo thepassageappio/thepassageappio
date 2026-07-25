@@ -140,6 +140,9 @@ export default function AnnouncePage() {
   var s10 = useState('draft'); var savedStatus = s10[0]; var setSavedStatus = s10[1];
   var s11 = useState([]); var serviceEvents = s11[0]; var setServiceEvents = s11[1];
   var s12 = useState(''); var recipientText = s12[0]; var setRecipientText = s12[1];
+  var s13 = useState([]); var pendingReviews = s13[0]; var setPendingReviews = s13[1];
+  var s14 = useState(false); var queueDismissed = s14[0]; var setQueueDismissed = s14[1];
+  var s15 = useState(null); var resumingId = s15[0]; var setResumingId = s15[1];
 
   function estateHref() {
     return estateId ? '/estate?id=' + encodeURIComponent(estateId) : '/';
@@ -194,6 +197,22 @@ export default function AnnouncePage() {
       });
   }, [estateId, retryRecipient]);
 
+  // Close the review loop: a message saved with "requires_review" has no other
+  // page or mechanism that ever revisits it. Surface pending items here so
+  // whoever comes back to /announce for this estate can finish sending or
+  // discard them, instead of them sitting unreachable forever.
+  useEffect(function() {
+    if (!estateId) return;
+    sb.from('announcements')
+      .select('id,audience,tone,content,channel,reviewed_by,created_at')
+      .eq('estate_id', estateId)
+      .eq('status', 'pending_review')
+      .order('created_at', { ascending: false })
+      .then(function(result) {
+        setPendingReviews((result && result.data) || []);
+      });
+  }, [estateId]);
+
   function back() { setStep(function(s) { return Math.max(1, s - 1); }); }
 
   function selectTone(toneId) {
@@ -228,8 +247,39 @@ export default function AnnouncePage() {
     return String(e.name || e.title || e.event_type || 'Service detail').replace(/_/g, ' ');
   }
 
+  function resumePendingReview(row) {
+    setAudience(row.audience);
+    setTone(row.tone);
+    setMessage(row.content);
+    setChannel(row.channel);
+    setAddReviewer(false);
+    setReviewerName(row.reviewed_by || '');
+    setResumingId(row.id);
+    setQueueDismissed(true);
+    setFeedback('');
+    setStep(3);
+  }
+
+  async function discardPendingReview(id) {
+    await sb.from('announcements').update({ status: 'cancelled' }).eq('id', id);
+    setPendingReviews(function(list) { return list.filter(function(r) { return r.id !== id; }); });
+  }
+
+  function startNewFromQueue() {
+    setQueueDismissed(true);
+  }
+
+  async function markResumedSent() {
+    if (!resumingId) return;
+    await sb.from('announcements').update({ status: 'sent' }).eq('id', resumingId);
+    setPendingReviews(function(list) { return list.filter(function(r) { return r.id !== resumingId; }); });
+  }
+
   async function saveDraft() {
-    if (!estateId) return;
+    if (!estateId) {
+      setFeedback('Open this page from a family record to save a draft.');
+      return;
+    }
     await sb.from('announcements').insert([{
       estate_id: estateId,
       audience: audience,
@@ -281,6 +331,7 @@ export default function AnnouncePage() {
           channel: channel,
         }]);
       }
+      await markResumedSent();
       setSending(false);
       setDone(true);
       return;
@@ -314,6 +365,7 @@ export default function AnnouncePage() {
         return;
       }
       setFeedback('Family update sent to ' + (data.sent || 0) + ' recipient' + ((data.sent || 0) === 1 ? '' : 's') + (data.failed ? '. Some recipients need review.' : '.'));
+      await markResumedSent();
       setSending(false);
       setDone(true);
       return;
@@ -348,6 +400,7 @@ export default function AnnouncePage() {
       }),
     }).catch(function() {});
 
+    await markResumedSent();
     setSending(false);
     setDone(true);
   }
@@ -376,11 +429,51 @@ export default function AnnouncePage() {
           <PrimaryBtn onClick={returnToEstate}>
             Return to family record
           </PrimaryBtn>
-          <GhostBtn onClick={function() { setDone(false); setStep(1); setAudience(null); setTone(null); setMessage(''); setChannel(null); }}>
+          <GhostBtn onClick={function() { setDone(false); setStep(1); setAudience(null); setTone(null); setMessage(''); setChannel(null); setResumingId(null); setAddReviewer(false); setReviewerName(''); setQueueDismissed(true); }}>
             Prepare another message
           </GhostBtn>
         </div>
       </div>
+    </Shell>
+  );
+
+  // Pending-review queue — closes the loop for messages saved for someone
+  // else to review: without this screen a "pending_review" record had no
+  // page that could ever move it forward to sent or discarded.
+  if (!retryRecipient && !queueDismissed && pendingReviews.length > 0) return (
+    <Shell step={0} total={3}>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: INK, marginBottom: 8, lineHeight: 1.3 }}>Waiting on a review</div>
+      <div style={{ fontSize: 14, color: SOFT, marginBottom: 24, lineHeight: 1.6 }}>
+        {pendingReviews.length === 1 ? 'One update is saved for someone to review before it sends.' : pendingReviews.length + ' updates are saved for someone to review before they send.'} Nothing has gone out yet.
+      </div>
+      {pendingReviews.map(function(row) {
+        var rowAudience = AUDIENCES.find(function(a) { return a.id === row.audience; });
+        var preview = String(row.content || '');
+        return (
+          <div key={row.id} style={{ border: '1.5px solid ' + BORDER, borderRadius: 13, padding: '16px', marginBottom: 12, background: CARD }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 4 }}>
+              Reviewer: {row.reviewed_by || 'Not named'}
+            </div>
+            <div style={{ fontSize: 12, color: SOFT, marginBottom: 10 }}>
+              {rowAudience ? rowAudience.label : row.audience}
+            </div>
+            <div style={{ fontSize: 13, color: MID, lineHeight: 1.6, marginBottom: 12, whiteSpace: 'pre-wrap' }}>
+              {preview.slice(0, 140)}{preview.length > 140 ? '...' : ''}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={function() { resumePendingReview(row); }}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid ' + SAGE_LIGHT, background: SAGE_FAINT, color: SAGE, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+                Finish sending
+              </button>
+              <button onClick={function() { discardPendingReview(row.id); }}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1px solid ' + BORDER, background: CARD, color: MID, fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', minHeight: 44 }}>
+                Discard
+              </button>
+            </div>
+          </div>
+        );
+      })}
+      <GhostBtn onClick={startNewFromQueue}>Start a new update instead</GhostBtn>
     </Shell>
   );
 
@@ -453,6 +546,12 @@ export default function AnnouncePage() {
       {retryRecipient ? (
         <div style={{ background: ROSE + '10', border: '1px solid ' + ROSE + '40', borderRadius: 12, padding: '13px 16px', marginBottom: 14, fontSize: 14, color: ROSE, lineHeight: 1.55, fontWeight: 700 }}>
           Repairing a previous delivery issue for {retryRecipient}. Review the message and recipient, then resend only when it looks right.
+        </div>
+      ) : null}
+
+      {resumingId ? (
+        <div style={{ background: SAGE_FAINT, border: '1px solid ' + SAGE_LIGHT, borderRadius: 12, padding: '13px 16px', marginBottom: 14, fontSize: 14, color: SAGE, lineHeight: 1.55, fontWeight: 700 }}>
+          Finishing a message that was saved for review{reviewerName ? ' by ' + reviewerName : ''}. Confirm it below to send it now.
         </div>
       ) : null}
 
