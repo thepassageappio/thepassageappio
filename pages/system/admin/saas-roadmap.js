@@ -20,6 +20,11 @@ const C = {
 
 const SYSTEM_ADMIN_EMAILS = ['steventurrisi@gmail.com'];
 
+const realityCheckNotice = {
+  title: 'Reality check — 2026-07-24',
+  body: 'Passage Zero on greenfield/passage-zero (draft integration PR #24) is now the sole target architecture. This page describes the legacy Threshold/main plan below and is historical until replaced by a secure App Router System Admin surface sourced from the canonical docs/product/operational-readiness-roadmap.md. Threshold/main is a production-maintenance lane only: separately governed P0/P1 live-defect fixes are allowed here; no new Threshold dashboard, estate, information-architecture, schema, or redesign work may begin on main without an explicit owner decision to lift that freeze. pages/funeral-home/dashboard.js and pages/estate.js remain fully unconverted legacy styling (dashboard.js alone has 156 hardcoded Georgia references) — a known, unscheduled gap, not yet Passage Zero work. Governance PR #37 ("5 binding process corrections from the 2026-07-22 review", incl. no same-identity PR merge and a mandatory roadmap/backlog touch on every material-scope release) is open and unmerged as of this update.',
+};
+
 const headlineMetrics = [
   ['ARR target', '$300k', 'Owner-only target. Never show this on external pages.'],
   ['Primary buyer', 'Funeral homes', 'B2B operating workflow first; B2C becomes easier once the funeral-home workflow is solid.'],
@@ -439,6 +444,11 @@ export default function SaasRoadmapPage() {
           </div>
         </div>
 
+        <Panel tone="rose">
+          <div style={eyebrow}>{realityCheckNotice.title}</div>
+          <p style={{ ...smallText, marginTop: 8, color: C.ink }}>{realityCheckNotice.body}</p>
+        </Panel>
+
         <section style={grid4}>{headlineMetrics.map(([label, value, detail]) => <Metric key={label} label={label} value={value} detail={detail} />)}</section>
 
         <Panel tone="sage">
@@ -504,7 +514,7 @@ function Shell({ children, user, onSignIn, onSignOut }) {
 }
 
 function Panel({ children, tone = 'default' }) {
-  return <section style={{ background: tone === 'sage' ? C.sageFaint : C.card, border: '1px solid ' + (tone === 'sage' ? '#c8deca' : C.border), borderRadius: 18, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.04)', marginTop: 18 }}>{children}</section>;
+  return <section style={{ background: tone === 'sage' ? C.sageFaint : tone === 'rose' ? C.roseFaint : C.card, border: '1px solid ' + (tone === 'sage' ? '#c8deca' : tone === 'rose' ? '#e9c9c9' : C.border), borderRadius: 18, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,.04)', marginTop: 18 }}>{children}</section>;
 }
 
 function Metric({ label, value, detail }) {
