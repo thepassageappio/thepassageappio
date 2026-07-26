@@ -151,6 +151,7 @@ function PassFailure({ code, clearPass, record }: { code: string; clearPass: () 
 
 function Receipt({ code, clearPass, destination, record }: { code: string; clearPass: () => void; destination: 'new' | 'existing'; record: PassRecord }) {
   const caseId = destination === 'new' ? 'NS-2051' : 'NS-2041';
+  const scopeCount = record.scope?.length ?? 0;
   return <AppFrame active="receive" identity="Elena Torres" role="Director · Northstar">
     <section className={styles.heading}><div><p>TRANSFER PASS / PREVIEW RECEIPT</p><h1>Preview handoff complete.</h1></div><Signal tone="success">Accepted in preview</Signal></section>
     <ContinuityRail label={caseId} steps={[
@@ -158,7 +159,7 @@ function Receipt({ code, clearPass, destination, record }: { code: string; clear
     ]} />
     <section className={styles.receipt}>
       <div className={styles.receiptMark} aria-hidden="true">✓</div><div className={styles.receiptTitle}><span>PREVIEW RECEIPT</span><h2>The selected information now appears in preview case {caseId}.</h2><p>The preview saved the sender, recipient, selected information, time, and destination on this device. No real case was created or updated.</p></div>
-      <dl><div><dt>CASE</dt><dd>{caseId}</dd></div><div><dt>ACCEPTED BY</dt><dd>Elena Torres</dd></div><div><dt>SCOPE</dt><dd>{record.scope?.length} selected groups</dd></div><div><dt>REFERENCE</dt><dd>{code}</dd></div></dl>
+      <dl><div><dt>CASE</dt><dd>{caseId}</dd></div><div><dt>ACCEPTED BY</dt><dd>Elena Torres</dd></div><div><dt>SCOPE</dt><dd>{scopeCount} selected {scopeCount === 1 ? 'group' : 'groups'}</dd></div><div><dt>REFERENCE</dt><dd>{code}</dd></div></dl>
       <div className={styles.receiptActions}><a href="/director">Open {caseId} <span>↗</span></a><button onClick={clearPass} type="button">Receive another pass</button></div>
     </section>
   </AppFrame>;
