@@ -35,24 +35,18 @@ export default async function FamilyCaseTodayPage({ params }: { params: Promise<
       </nav>
       <header className={styles.hero}>
         <div>
-          <p>{humanizePreviewLabel(workflow.caseReference ?? '', 'Your case')} · {humanWorkflowPhase(workflow.phase)}</p>
+          <p>{humanWorkflowPhase(workflow.phase)}</p>
           <h1>{humanizePreviewLabel(workflow.personName ?? '', 'Your family record')}</h1>
           <span>{humanizePreviewLabel(workflow.familyName ?? '', 'Your family')} · what's happening now</span>
         </div>
         {currentTask && <strong className={styles.status} data-state={currentTask.status}>{humanTaskStatus(currentTask.status)}</strong>}
       </header>
-      <div className={styles.layout}>
-        <section className={styles.panel} aria-labelledby="now-heading">
-          <p className={styles.eyebrow}>Now</p>
-          <h2 id="now-heading">{currentTask ? humanizePreviewLabel(currentTask.title ?? '', 'Current step') : 'Nothing needs your attention right now.'}</h2>
-          <p>{currentTask?.lastUpdateSummary ?? 'Passage will show the next update here as soon as there is one.'}</p>
-        </section>
-        <aside className={styles.panel} aria-labelledby="facts-heading">
-          <p className={styles.eyebrow}>Who's helping</p>
-          <h2 id="facts-heading">{currentTask?.ownerLabel ?? 'Your care team'}</h2>
-          <p>You'll see who's helping and what to expect next here.</p>
-        </aside>
-      </div>
+      <section className={styles.panel} aria-labelledby="now-heading">
+        <p className={styles.eyebrow}>Now</p>
+        <h2 id="now-heading">{currentTask ? humanizePreviewLabel(currentTask.title ?? '', 'Current step') : 'Nothing needs your attention right now.'}</h2>
+        <p>{currentTask?.lastUpdateSummary ?? 'Passage will show the next update here as soon as there is one.'}</p>
+        {currentTask && <p>{currentTask.ownerLabel} is on this.</p>}
+      </section>
       <section className={styles.panel} aria-labelledby="updates-heading" style={{ marginTop: 18 }}>
         <p className={styles.eyebrow}>Recent updates</p>
         <h2 id="updates-heading">What's changed.</h2>
