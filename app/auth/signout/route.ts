@@ -1,1 +1,12 @@
-aW1wb3J0IHsgTmV4dFJlc3BvbnNlIH0gZnJvbSAnbmV4dC9zZXJ2ZXInOwppbXBvcnQgeyBjcmVhdGVQYXNzYWdlU2VydmVyQ2xpZW50IH0gZnJvbSAnQC9saWIvc3VwYWJhc2Uvc2VydmVyJzsKCi8vIFBsYWluIHJvdXRlIGhhbmRsZXIgKG5vdCBhIFNlcnZlciBBY3Rpb24pIHNvIHRoZSBzaWduLW91dCBmb3JtIGJlbG93IGNhbgovLyBzdWJtaXQgYXMgYSByZWFsIEhUTUwgUE9TVCBhbmQgc3VjY2VlZCBldmVuIGlmIGNsaWVudC1zaWRlIEpTL2ZldGNoIGlzCi8vIGludGVycnVwdGVkIC0gc2VlIGNvbXBvbmVudHMvYXV0aC9PcGVyYXRpb25hbEJvdW5kYXJ5LnRzeC4KZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIFBPU1QocmVxdWVzdDogUmVxdWVzdCkgewogIGNvbnN0IGNsaWVudCA9IGF3YWl0IGNyZWF0ZVBhc3NhZ2VTZXJ2ZXJDbGllbnQoKTsKICBpZiAoY2xpZW50KSBhd2FpdCBjbGllbnQuYXV0aC5zaWduT3V0KCk7CiAgY29uc3QgdXJsID0gbmV3IFVSTCgnL2xvZ2luP3N0YXR1cz1zaWduZWQtb3V0JywgcmVxdWVzdC51cmwpOwogIHJldHVybiBOZXh0UmVzcG9uc2UucmVkaXJlY3QodXJsLCB7IHN0YXR1czogMzAzIH0pOwp9Cg==
+import { NextResponse } from 'next/server';
+import { createPassageServerClient } from '@/lib/supabase/server';
+
+// Plain route handler (not a Server Action) so the sign-out form below can
+// submit as a real HTML POST and succeed even if client-side JS/fetch is
+// interrupted - see components/auth/OperationalBoundary.tsx.
+export async function POST(request: Request) {
+  const client = await createPassageServerClient();
+  if (client) await client.auth.signOut();
+  const url = new URL('/login?status=signed-out', request.url);
+  return NextResponse.redirect(url, { status: 303 });
+}
