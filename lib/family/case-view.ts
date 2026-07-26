@@ -50,6 +50,7 @@ type TaskRow = { id: string; workflow_id: string; title: string | null; status: 
 type EventRow = { id: string; name: string; occurred_at: string };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const RECENT_UPDATE_LIMIT = 3;
 
 // Deliberately generic -- a family/participant identity has no RLS grant on
 // organization_members (confirmed: its SELECT policy is self-row or
@@ -68,6 +69,17 @@ function familyTaskSummary(status: string): string {
   if (status === 'blocked') return 'This step needs a little more time before it can continue.';
   if (status === 'completed') return 'This step is complete.';
   return 'Passage will show the next update here as soon as there is one.';
+}
+
+// Prefers a task waiting on review, then the earliest still-open task, and
+// only falls back to a completed one if every task on the case is done --
+// a "what's happening now" surface should never lead with something that's
+// already finished when there's real open work to show instead.
+function selectCurrentTask(tasks: TaskRow[]): TaskRow | null {
+  return tasks.find((task) => task.status === 'proof_submitted')
+    ?? tasks.find((task) => task.status !== 'completed')
+    ?? tasks.at(-1)
+    ?? null;
 }
 
 // Plain-language sentence per event *name*, never the raw event name,
@@ -116,10 +128,7 @@ export async function loadFamilyCaseView(workflowId: string): Promise<FamilyCase
     .order('due_at', { ascending: true });
   if (tasksResult.error) return { ok: false, reason: 'unavailable' };
   const tasks = (tasksResult.data ?? []) as TaskRow[];
-  // Same "what needs attention" heuristic as the director Case Room
-  // (app/director/cases/[workflowId]/page.tsx): a task waiting on review
-  // takes priority, otherwise the earliest-due task.
-  const selectedTask = tasks.find((task) => task.status === 'proof_submitted') ?? tasks[0] ?? null;
+  const selectedTask = selectCurrentTask(tasks);
 
   const currentTask: FamilyTaskView | null = selectedTask
     ? {
@@ -140,7 +149,7 @@ export async function loadFamilyCaseView(workflowId: string): Promise<FamilyCase
     .select('id, name, occurred_at')
     .eq('workflow_id', workflowId)
     .order('occurred_at', { ascending: false })
-    .limit(5);
+    .limit(RECENT_UPDATE_LIMIT);
   if (eventsResult.error) return { ok: false, reason: 'unavailable' };
   const events = (eventsResult.data ?? []) as EventRow[];
   const recentUpdates: FamilyCaseUpdate[] = events.map((event) => ({
