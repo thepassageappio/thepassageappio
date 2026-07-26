@@ -41,13 +41,30 @@ begin
       using errcode = '55000';
   end if;
 
-  if (select count(*) from public.organizations) <> 1
-     or (select count(*) from public.organization_locations) <> 1
-     or (select count(*) from public.workflows) <> 2
-     or (select count(*) from public.tasks) <> 3
-     or (select count(*) from public.workflow_events) <> 8
-     or (select count(*) from public.organization_invitations) <> 2
-     or (select count(*) from public.organization_invitation_locations) <> 2
+  -- NOTE (2026-07-26 hardening): uyacxqtsiwlvtmhxvoxr is now shared by multiple
+  -- concurrent lanes by design (docs/agent-operating-context-2026-07-24-consolidation.md).
+  -- These checks assert this test's own fixture rows -- the Cycle 7A organization
+  -- and the specific Cycle 7B workflows/tasks it depends on -- exist and are
+  -- structurally intact, instead of asserting whole-table exact counts (which a
+  -- different lane's legitimate, unrelated activity elsewhere in the shared lab
+  -- could trip) or refusing outright on prior proof/review/event history on
+  -- these exact fixture tasks (which, it turns out, concurrent lanes legitimately
+  -- produce by design -- see below). The blanket `workflows <> 2` / `tasks <> 3`
+  -- global counts were removed as redundant with the id-scoped versions here.
+  if not exists (
+       select 1 from public.organizations
+       where id = 'c7a00001-7a00-47a0-87a0-000000000001'
+     )
+     or not exists (
+       select 1 from public.organization_locations
+       where id = 'c7a00002-7a00-47a0-87a0-000000000002'
+         and organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
+     )
+     or (select count(*) from public.organization_invitations
+         where organization_id = 'c7a00001-7a00-47a0-87a0-000000000001') <> 2
+     or (select count(*) from public.organization_invitation_locations as il
+         join public.organization_invitations as i on i.id = il.invitation_id
+         where i.organization_id = 'c7a00001-7a00-47a0-87a0-000000000001') <> 2
      or (select count(*) from public.organization_members
          where organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
            and status = 'active') <> 2
@@ -74,14 +91,73 @@ begin
        select 1 from public.workflows
        where id = 'c7b10001-7b00-47b0-87b0-000000000001'
          and case_reference = 'NS-2051'
-     )
-     or exists (select 1 from public.task_proofs)
-     or exists (select 1 from public.task_proof_reviews) then
+     ) then
     raise exception 'Cycle 8 tests refused: retained isolated baseline drifted'
       using errcode = '42501';
   end if;
 end
 $cycle_8_preflight_tests$;
+
+-- Scoping the preflight to fixture IDs (above) was necessary but not
+-- sufficient: the drift traced in docs/product/cycle-8-rls-audit-2026-07-26.md
+-- turned out to be real, committed proof/review/event history on these exact
+-- three shared fixture tasks (c7b20001/2/3) -- other lanes legitimately
+-- exercise the same shared Cycle 7B tasks for their own live functional
+-- testing (e.g. the director Case Room / staff work-detail QA), since they're
+-- the only realistic case fixtures available in this isolated lab. Refusing
+-- to run whenever that happens would make this suite unusable by design in a
+-- multi-lane environment. Instead, reset these three tasks' proof/review/event
+-- history transaction-locally before testing, using the same sanctioned
+-- append-only bypass (`passage.fixture_reset` / `passage.fixture_project_ref`,
+-- gated to postgres/postgres, org c7a00001, and exactly these three task ids)
+-- this file's own cleanup section already relies on later. Everything here is
+-- inside the outer `begin ... rollback`, so this never touches real,
+-- persisted data outside this transaction -- any other lane's actual proof
+-- history is untouched once this transaction ends.
+select set_config('passage.fixture_reset', 'cycle_8_isolated_lab', true);
+select set_config('passage.fixture_project_ref', 'uyacxqtsiwlvtmhxvoxr', true);
+
+delete from public.task_proof_reviews
+where organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
+  and task_id in (
+    'c7b20001-7b00-47b0-87b0-000000000001',
+    'c7b20002-7b00-47b0-87b0-000000000002',
+    'c7b20003-7b00-47b0-87b0-000000000003'
+  );
+
+delete from public.task_proofs
+where organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
+  and task_id in (
+    'c7b20001-7b00-47b0-87b0-000000000001',
+    'c7b20002-7b00-47b0-87b0-000000000002',
+    'c7b20003-7b00-47b0-87b0-000000000003'
+  );
+
+delete from public.workflow_events
+where organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
+  and workflow_id in (
+    'c7b10001-7b00-47b0-87b0-000000000001',
+    'c7b10002-7b00-47b0-87b0-000000000002'
+  )
+  and task_id in (
+    'c7b20001-7b00-47b0-87b0-000000000001',
+    'c7b20002-7b00-47b0-87b0-000000000002',
+    'c7b20003-7b00-47b0-87b0-000000000003'
+  )
+  and name in (
+    'task.proof_submitted', 'task.proof_verified',
+    'task.proof_replacement_requested'
+  );
+
+-- `set_config(..., true)` sets these LOCAL to the transaction, which means
+-- "in effect until explicitly reset or the transaction ends" -- not just for
+-- the statements immediately above. Left set, they would silently satisfy the
+-- append-only trigger's own sanctioned-cleanup bypass condition later in this
+-- same transaction, during the tests that specifically expect a mutation
+-- attempt to be denied. Reset them back to unset immediately after use so the
+-- rest of the suite sees the same "no bypass in effect" state it always has.
+reset passage.fixture_reset;
+reset passage.fixture_project_ref;
 
 do $cycle_8_catalog_tests$
 declare
