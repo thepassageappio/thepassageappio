@@ -30,6 +30,13 @@ const doneRows = [
   ['First proof packet', 'Release, service detail, work outcome, and note proof have a place to land.'],
 ];
 
+const STAFF_ROLES = [
+  { id: 'staff', label: 'Staff' },
+  { id: 'location_manager', label: 'Location manager' },
+  { id: 'manager', label: 'Manager' },
+  { id: 'director', label: 'Director' },
+];
+
 export default function FuneralHomeSetupPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -53,6 +60,13 @@ export default function FuneralHomeSetupPage() {
     placeId: '',
     planId: 'partner_local',
   });
+  const [workspace, setWorkspace] = useState(null);
+  const [staffRows, setStaffRows] = useState([]);
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [newStaffRole, setNewStaffRole] = useState('staff');
+  const [staffBusy, setStaffBusy] = useState(false);
+  const [staffError, setStaffError] = useState('');
 
   const selectedPlan = partnerPlanFor(form.planId);
   const setupReady = Boolean(form.organizationName.trim() && form.locationAddress.trim());
@@ -138,7 +152,58 @@ export default function FuneralHomeSetupPage() {
     const json = await response.json().catch(() => ({}));
     setLoading(false);
     if (!response.ok) return setError(json.error || 'Could not create the funeral-home dashboard.');
+    setWorkspace(json);
+  }
+
+  function goToDashboard() {
     router.push(`/funeral-home/dashboard?partner=1&email=${encodeURIComponent(user.email)}`);
+  }
+
+  async function addStaffMember(event) {
+    event.preventDefault();
+    const cleanStaffEmail = normalizeEmail(newStaffEmail);
+    if (!cleanStaffEmail || !cleanStaffEmail.includes('@')) {
+      setStaffError('Add a valid employee email.');
+      return;
+    }
+    setStaffError('');
+    setStaffBusy(true);
+    const rowKey = cleanStaffEmail + ':' + Date.now();
+    const label = newStaffName.trim() || cleanStaffEmail;
+    setStaffRows(prev => [{ key: rowKey, name: newStaffName.trim(), email: cleanStaffEmail, role: newStaffRole, status: 'saving' }, ...prev]);
+    try {
+      const saveResponse = await fetch('/api/partnerStaff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ email: cleanStaffEmail, name: newStaffName.trim(), role: newStaffRole }),
+      });
+      const saveJson = await saveResponse.json().catch(() => ({}));
+      if (!saveResponse.ok) {
+        setStaffRows(prev => prev.map(row => (row.key === rowKey ? { ...row, status: 'error', message: saveJson.error || 'Could not save this employee.' } : row)));
+        setStaffBusy(false);
+        return;
+      }
+      setStaffRows(prev => prev.map(row => (row.key === rowKey ? { ...row, status: 'inviting' } : row)));
+      const inviteResponse = await fetch('/api/partnerStaffInvite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ email: cleanStaffEmail }),
+      });
+      const inviteJson = await inviteResponse.json().catch(() => ({}));
+      if (!inviteResponse.ok) {
+        setStaffRows(prev => prev.map(row => (row.key === rowKey ? { ...row, status: 'error', message: inviteJson.error || 'Employee saved, but the invite email could not be sent.' } : row)));
+        setStaffBusy(false);
+        return;
+      }
+      const invited = inviteJson.blocked || inviteJson.skipped ? 'saved' : 'invited';
+      setStaffRows(prev => prev.map(row => (row.key === rowKey ? { ...row, status: invited, message: invited === 'invited' ? `Invite sent to ${label}.` : 'Saved. Invite email is not active in this environment.' } : row)));
+      setNewStaffName('');
+      setNewStaffEmail('');
+      setNewStaffRole('staff');
+    } catch (err) {
+      setStaffRows(prev => prev.map(row => (row.key === rowKey ? { ...row, status: 'error', message: 'Could not reach Passage. Try again.' } : row)));
+    }
+    setStaffBusy(false);
   }
 
   return (
@@ -319,12 +384,34 @@ export default function FuneralHomeSetupPage() {
         .done-row strong { color: var(--ink-900); }
         .not-ready { color: var(--ink-500); font-size: 12.5px; line-height: 1.48; }
         form { display: grid; gap: 10px; }
+        .staff-add-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 140px; gap: 8px; }
+        .staff-list { display: grid; gap: 8px; margin-top: 14px; }
+        .staff-row {
+          background: var(--bone-100);
+          border: 1px solid var(--line-soft);
+          border-radius: var(--r-sm);
+          padding: 10px 12px;
+          font-size: 13px;
+          color: var(--ink-700);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        }
+        .staff-row .who { min-width: 0; }
+        .staff-row .who strong { color: var(--ink-900); display: block; }
+        .staff-row .who span { color: var(--ink-500); font-size: 12px; }
+        .staff-status { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+        .staff-status.invited, .staff-status.saved { color: var(--pine-700); }
+        .staff-status.saving, .staff-status.inviting { color: var(--clay-600); }
+        .staff-status.error { color: var(--clay-700); }
 
         @media (max-width: 780px) {
           .wrap { padding: 18px 16px 44px; }
           .grid { grid-template-columns: 1fr; }
           .panel { padding: 20px; border-radius: var(--r-md); }
           .field-row { grid-template-columns: 1fr; }
+          .staff-add-grid { grid-template-columns: 1fr; }
         }
       `}</style>
       <SiteHeader user={user} />
@@ -332,9 +419,11 @@ export default function FuneralHomeSetupPage() {
         <div className="grid">
           <div className="panel">
             <span className="eyebrow">Funeral-home setup</span>
-            <h1>Create the funeral-home dashboard.</h1>
+            <h1>{workspace ? 'Invite your team.' : 'Create the funeral-home dashboard.'}</h1>
             <p className="lede">
-              Start with the funeral-home name, owner, subscription, and first location. Setup is complete only when staff can open a case and see what to do next, who owns it, who Passage is waiting on, the family message, and where proof saves.
+              {workspace
+                ? 'Every person needs their own sign-in so Passage can show them only the client steps their role is allowed to handle. You can always invite more people later from the dashboard.'
+                : 'Start with the funeral-home name, owner, subscription, and first location. Setup is complete only when staff can open a case and see what to do next, who owns it, who Passage is waiting on, the family message, and where proof saves.'}
             </p>
             <div className="outcome-list">
               {setupOutcomes.map(([number, title, body]) => (
@@ -348,7 +437,7 @@ export default function FuneralHomeSetupPage() {
               <strong>What done means:</strong> the first case has an owner, a visible next step, a drafted family message, and a proof packet destination before the team starts using Passage with families.
             </div>
             <div className="callout pine">
-              <strong>Recommended next action:</strong> sign in as an owner or director, add the funeral-home name and main location, then create one real case so staff can see who owns the next step and where proof saves.
+              <strong>Recommended next action:</strong> {workspace ? 'invite the people who will work cases day-to-day, then open the dashboard and create one real case.' : 'sign in as an owner or director, add the funeral-home name and main location, then create one real case so staff can see who owns the next step and where proof saves.'}
             </div>
           </div>
 
@@ -365,6 +454,47 @@ export default function FuneralHomeSetupPage() {
                   <button disabled={magicLoading} onClick={sendMagicLink} className="th-btn th-btn-secondary">{magicLoading ? 'Sending...' : 'Email link'}</button>
                 </div>
                 {magicSent && <div className="th-confirm">Check your email. Come back here after signing in.</div>}
+              </div>
+            ) : workspace ? (
+              <div>
+                <span className="eyebrow">Add operating roles</span>
+                <h2>Invite directors and staff.</h2>
+                <p className="lede" style={{ fontSize: 13.2, marginBottom: 12 }}>
+                  {workspace.organization?.name || form.organizationName} is created. Add each person's name, email, and role, then send their invite.
+                </p>
+                <form onSubmit={addStaffMember}>
+                  <div className="staff-add-grid">
+                    <input value={newStaffName} onChange={event => setNewStaffName(event.target.value)} placeholder="Name" />
+                    <input type="email" required value={newStaffEmail} onChange={event => setNewStaffEmail(event.target.value)} placeholder="employee@funeralhome.com" />
+                    <select value={newStaffRole} onChange={event => setNewStaffRole(event.target.value)}>
+                      {STAFF_ROLES.map(role => (
+                        <option key={role.id} value={role.id}>{role.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {staffError && <div className="th-error" style={{ marginTop: 10 }}>{staffError}</div>}
+                  <button disabled={staffBusy || !newStaffEmail.trim()} className="th-btn th-btn-primary th-btn-full" style={{ marginTop: 10 }}>
+                    {staffBusy ? 'Adding...' : 'Add and invite'}
+                  </button>
+                </form>
+                {staffRows.length > 0 && (
+                  <div className="staff-list">
+                    {staffRows.map(row => (
+                      <div key={row.key} className="staff-row">
+                        <div className="who">
+                          <strong>{row.name || row.email}</strong>
+                          <span>{row.email} - {(STAFF_ROLES.find(r => r.id === row.role) || {}).label || row.role}</span>
+                        </div>
+                        <span className={'staff-status ' + row.status}>
+                          {row.status === 'saving' ? 'Saving' : row.status === 'inviting' ? 'Inviting' : row.status === 'invited' ? 'Invited' : row.status === 'saved' ? 'Saved' : 'Error'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button onClick={goToDashboard} className="th-btn th-btn-secondary th-btn-full" style={{ marginTop: 16 }}>
+                  Continue to dashboard
+                </button>
               </div>
             ) : (
               <form onSubmit={createWorkspace}>
