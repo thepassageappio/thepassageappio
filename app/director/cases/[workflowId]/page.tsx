@@ -2,7 +2,10 @@ import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
+import { formatPartnerAmount, formatPartnerTime, humanPartnerCategory, humanPartnerRequestStatus, loadPartnerContextForWorkflow } from '@/lib/partner/hosted';
 import { humanAudience, humanProofType, humanizePreviewIdentity, humanizePreviewLabel, humanizeSavedReason, humanTaskStatus, humanWorkflowPhase } from '@/lib/presentation/plain-language';
+import { createPassageServerClient } from '@/lib/supabase/server';
+import { CreatePartnerRequestForm, VerifyPartnerRequestForm } from './PartnerRequestForms';
 import { ProofReviewForms } from './ProofReviewForms';
 import styles from '../../../proof-loop.module.css';
 
@@ -32,6 +35,13 @@ export default async function DirectorCasePage({ params, searchParams }: { param
   const submitterName = latestProof ? humanizePreviewIdentity(displayMember(members.find((member) => member.id === latestProof.submitted_by_organization_member_id)), 'staff') : 'Staff member';
   const latestReviewer = latestReview ? humanizePreviewIdentity(displayMember(members.find((member) => member.id === latestReview.reviewed_by_organization_member_id)), 'director') : null;
   const latestReason = humanizeSavedReason(latestReview?.reason ?? null, 'The proof needs a clearer or corrected replacement.');
+
+  // Vendor requests for this case (Batch 2 addition). Loaded separately from
+  // loadHostedOperations() since partner_requests/partner_organizations are
+  // their own table lineage, not part of the funeral-home operational data set.
+  const client = await createPassageServerClient();
+  const partnerContext = client ? await loadPartnerContextForWorkflow(client, workflow.id) : { requests: [], partnerOrganizations: [], error: null };
+
   return <AppFrame active="director" identity={humanizePreviewIdentity(viewer.displayName, viewer.role)} mode="verified" role={`${viewer.role === 'owner' ? 'Owner' : 'Director'} · ${humanizePreviewLabel(viewer.organizationName, 'Your organization')}`}>
     <Link className={styles.backLink} href="/director">← Today</Link>
     <ol aria-label="Case Room position" className={styles.orientation}><li>Now</li><li>Tasks</li><li aria-current="step" data-active="true">Proof</li></ol>
@@ -44,6 +54,24 @@ export default async function DirectorCasePage({ params, searchParams }: { param
       <aside className={styles.panel} aria-labelledby="now-heading"><p className={styles.eyebrow}>Now · Tasks</p><h2 id="now-heading">{humanizePreviewLabel(selectedTask.title ?? '', 'Assigned commitment')}</h2><dl className={styles.facts}><div><dt>Owner</dt><dd>{ownerName}</dd></div><div><dt>Waiting party</dt><dd>{humanizePreviewLabel(selectedTask.waiting_party ?? '', 'Nobody recorded')}</dd></div><div><dt>Due</dt><dd>{formatOperationalTime(selectedTask.due_at)}</dd></div><div><dt>Audience</dt><dd>{humanAudience(selectedTask.audience)}</dd></div><div><dt>Proof is saved in</dt><dd>{humanizePreviewLabel(selectedTask.proof_destination ?? '', 'This task’s proof history')}</dd></div><div><dt>Next action</dt><dd>{selectedTask.status === 'proof_submitted' ? 'Review the submitted proof' : selectedTask.status === 'completed' ? 'No further action; the task is complete' : selectedTask.status === 'blocked' ? 'Help the owner clear the blocker' : selectedTask.status === 'assigned' ? 'The owner starts the work' : 'The owner completes the work and submits proof'}</dd></div></dl></aside>
     </div>
     <section className={styles.panel} aria-labelledby="history-heading" style={{ marginTop: 18 }}><p className={styles.eyebrow}>Proof history</p><h2 id="history-heading">Saved submission and review history.</h2>{taskProofs.length === 0 ? <p>No proof has been submitted for this task.</p> : <ol className={styles.history}>{taskProofs.map((proof, index) => { const review = reviewByProof.get(proof.id); const reason = humanizeSavedReason(review?.reason ?? null, 'The proof needs a clearer or corrected replacement.'); const reviewer = review ? humanizePreviewIdentity(displayMember(members.find((member) => member.id === review.reviewed_by_organization_member_id)), 'director') : null; const submitter = humanizePreviewIdentity(displayMember(members.find((member) => member.id === proof.submitted_by_organization_member_id)), 'staff'); const replacedIndex = proof.supersedes_proof_id ? taskProofs.findIndex((candidate) => candidate.id === proof.supersedes_proof_id) : -1; const replacedProof = replacedIndex >= 0 ? taskProofs[replacedIndex] : null; return <li key={proof.id}><h3>{review?.decision === 'verified' ? 'Proof verified — task complete' : review?.decision === 'needs_replacement' ? 'Replacement requested' : 'Proof submitted for review'}</h3><p>{humanizePreviewLabel(proof.completion_summary, 'Proof summary available')}</p>{proof.reference && <p>Supporting reference: {humanizePreviewLabel(proof.reference, 'Reference saved')}</p>}<small>Evidence #{index + 1} · submitted by {submitter} · {formatOperationalTime(proof.submitted_at)}</small>{replacedProof && <small>Replaces evidence #{replacedIndex + 1} submitted {formatOperationalTime(replacedProof.submitted_at)}</small>}{reason && <p>Director reason: {reason}</p>}{review && <small>Director decision: {review.decision === 'verified' ? 'Verified' : 'Replacement requested'} by {reviewer} · {formatOperationalTime(review.reviewed_at)}</small>}</li>; })}</ol>}</section>
+
+    <section className={styles.panel} aria-labelledby="vendor-heading" style={{ marginTop: 18 }}>
+      <p className={styles.eyebrow}>Vendors</p><h2 id="vendor-heading">Vendor requests for this case.</h2>
+      {partnerContext.requests.length === 0 ? <p>No vendor requests have been sent for this case yet.</p> : (
+        <ol className={styles.history}>
+          {partnerContext.requests.map((request) => (
+            <li key={request.id}>
+              <h3>{request.title}</h3>
+              <p>{humanPartnerCategory(request.category)} · {humanPartnerRequestStatus(request.status)}{request.quote_amount_cents !== null ? ` · ${formatPartnerAmount(request.quote_amount_cents)}` : ''}</p>
+              {request.proof_summary && <p>Delivery proof: {request.proof_summary}</p>}
+              <small>Sent {formatPartnerTime(request.sent_at)}</small>
+              {request.status === 'proof_submitted' && <VerifyPartnerRequestForm partnerRequestId={request.id} requestId={randomUUID()} version={request.version} workflowId={workflow.id} />}
+            </li>
+          ))}
+        </ol>
+      )}
+      <CreatePartnerRequestForm partnerOrganizations={partnerContext.partnerOrganizations} requestId={randomUUID()} workflowId={workflow.id} />
+    </section>
   </AppFrame>;
 }
 
