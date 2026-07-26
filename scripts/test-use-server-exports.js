@@ -4,6 +4,10 @@ const ts = require('typescript');
 
 const repositoryRoot = path.resolve(__dirname, '..');
 const appRoot = path.join(repositoryRoot, 'app');
+const requiredCycle8ServerActions = [
+  { file: 'app/staff/actions.ts', exportName: 'submitTaskProof' },
+  { file: 'app/director/actions.ts', exportName: 'reviewTaskProof' },
+];
 
 function isExported(statement) {
   return Boolean(statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword));
@@ -68,6 +72,15 @@ function walk(directory) {
   });
 }
 
+function hasExportedAsyncFunction(sourceFile, exportName) {
+  return sourceFile.statements.some((statement) =>
+    ts.isFunctionDeclaration(statement)
+    && statement.name?.text === exportName
+    && isExported(statement)
+    && isAsync(statement)
+  );
+}
+
 const passingFixtures = [
   "'use server'; export type State = { ok: true }; export async function save() { return true; }",
   "'use server'; export interface State { ok: true }; export const save = async () => true;",
@@ -95,9 +108,21 @@ if (passingFixtureFailures.length !== 0 || failingFixtureMisses.length !== 0) {
 }
 
 const errors = walk(appRoot).flatMap((absolute) => validateUseServerSource(path.relative(repositoryRoot, absolute), fs.readFileSync(absolute, 'utf8')));
+for (const required of requiredCycle8ServerActions) {
+  const absolute = path.join(repositoryRoot, required.file);
+  if (!fs.existsSync(absolute)) {
+    errors.push(`${required.file}: required Cycle 8 Server Action module is missing`);
+    continue;
+  }
+  const source = fs.readFileSync(absolute, 'utf8');
+  const sourceFile = ts.createSourceFile(required.file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  if (!hasExportedAsyncFunction(sourceFile, required.exportName)) {
+    errors.push(`${required.file}: required Cycle 8 Server Action ${required.exportName} must remain an exported async function`);
+  }
+}
 if (errors.length) {
   errors.forEach((error) => console.error(`FAIL ${error}`));
   process.exit(1);
 }
 
-console.log(`PASS use-server modules export async functions only (${failingFixtures.length} prohibited fixtures rejected)`);
+console.log(`PASS use-server modules export async functions only (${failingFixtures.length} prohibited fixtures rejected; ${requiredCycle8ServerActions.length} Cycle 8 actions bound)`);

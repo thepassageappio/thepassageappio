@@ -40,6 +40,9 @@ end
 $cycle_7b_hosted_guard$;
 
 do $cycle_7b_hosted_persona_guard$
+declare
+  v_alternate_member_id constant uuid := 'c7b00004-7b00-47b0-87b0-000000000004';
+  v_alternate_email constant text := 'avery-cycle7b@passage.test';
 begin
   if (select count(*) from public.organization_members
       where organization_id = 'c7a00001-7a00-47a0-87a0-000000000001'
@@ -56,6 +59,67 @@ begin
            and ml.revoked_at is null) <> 1 then
     raise exception 'Cycle 7B fixture refused: retain and prove the real accepted Cycle 7A staff authority first'
       using errcode = '55000';
+  end if;
+
+  if exists (
+       select 1 from public.organization_members
+       where id <> v_alternate_member_id
+         and lower(btrim(email)) = v_alternate_email
+     )
+     or exists (
+       select 1 from public.organization_members as target
+       where target.id = v_alternate_member_id
+         and (
+           target.organization_id <> 'c7a00001-7a00-47a0-87a0-000000000001'
+           or lower(btrim(target.email)) <> v_alternate_email
+           or target.role <> 'staff'
+           or target.status <> 'active'
+           or target.display_name <> 'Avery Brooks'
+           or target.title <> 'Care coordinator'
+         )
+     )
+     or (select count(*) from auth.users
+         where lower(btrim(email)) = v_alternate_email) > 1
+     or exists (
+       select 1
+       from public.organization_members as target
+       join auth.users as auth_user on auth_user.id = target.user_id
+       where target.id = v_alternate_member_id
+         and lower(btrim(auth_user.email)) <> v_alternate_email
+     )
+     or exists (
+       select 1 from public.organization_members as target
+       where target.id = v_alternate_member_id
+         and target.user_id is not null
+         and not exists (
+           select 1 from auth.users as auth_user
+           where auth_user.id = target.user_id
+         )
+     )
+     or exists (
+       select 1 from public.organization_members as target
+       join auth.users as auth_user
+         on lower(btrim(auth_user.email)) = v_alternate_email
+       where target.id = v_alternate_member_id
+         and target.user_id is not null
+         and target.user_id <> auth_user.id
+     )
+     or exists (
+       select 1
+       from auth.users as auth_user
+       join public.organization_members as collision
+         on collision.user_id = auth_user.id
+       where lower(btrim(auth_user.email)) = v_alternate_email
+         and collision.id <> v_alternate_member_id
+     )
+     or exists (
+       select 1 from public.organization_members as target
+       join public.organization_members as collision
+         on collision.id <> target.id and collision.user_id = target.user_id
+       where target.id = v_alternate_member_id and target.user_id is not null
+     ) then
+    raise exception 'Cycle 7B fixture refused: reserved alternate member/Auth identity collided'
+      using errcode = '23505';
   end if;
 end
 $cycle_7b_hosted_persona_guard$;
@@ -77,14 +141,14 @@ insert into public.organization_members (
 )
 on conflict (id) do update set
   organization_id = excluded.organization_id,
-  user_id = null,
+  user_id = organization_members.user_id,
   email = excluded.email,
   role = excluded.role,
   status = excluded.status,
   display_name = excluded.display_name,
   title = excluded.title,
   location_scope = null,
-  accepted_at = excluded.accepted_at,
+  accepted_at = organization_members.accepted_at,
   revoked_at = null,
   revoked_by_user_id = null,
   revocation_reason = null,

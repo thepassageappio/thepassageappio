@@ -1,23 +1,10 @@
-export function humanizePreviewLabel(value: string) {
-  return value
-    .replace(/\s*-\s*Cycle\s+\d+[A-Z]?\s+QA\s*$/i, '')
-    .replace(/\s+Cycle\s+\d+[A-Z]?\s*$/i, '')
-    .trim();
-}
+import { containsInternalPreviewText } from './member-identity.js';
 
-export function humanizePreviewIdentity(value: string, role?: string) {
-  const cleaned = humanizePreviewLabel(value);
-  if (/^cycle\d+[a-z-]*$/i.test(cleaned) || /^cycle\d+[a-z-]*@/i.test(cleaned)) {
-    if (role === 'director' || role === 'owner') return 'Preview director';
-    if (role === 'staff') return 'Preview staff member';
-    return 'Preview team member';
-  }
-  return cleaned;
-}
+export { humanizeMemberIdentity, humanizePreviewIdentity, humanizePreviewLabel } from './member-identity.js';
 
 export function humanizeSavedReason(value: string | null, fallback: string) {
   if (!value) return null;
-  if (/\bCycle\s+\d+[A-Z]?\b|\bQA\b|\bfixture\b/i.test(value)) return fallback;
+  if (containsInternalPreviewText(value)) return fallback;
   return value;
 }
 
@@ -32,7 +19,7 @@ const taskStatusLabels: Record<string, string> = {
 const proofTypeLabels: Record<string, string> = {
   confirmation: 'Confirmation',
   handoff: 'Handoff note',
-  reference: 'Work reference',
+  reference: 'Reference confirmation',
   completion_note: 'Completion note',
 };
 
@@ -45,7 +32,7 @@ const workflowPhaseLabels: Record<string, string> = {
 };
 
 const audienceLabels: Record<string, string> = {
-  case_team: 'Authorized case team',
+  case_team: 'Current task owner and directors authorized for this location',
   family_coordinator: 'Family coordinator',
   organization_team: 'Authorized organization team',
 };
@@ -67,7 +54,7 @@ export function humanMemberStatus(value: string) {
 }
 
 export function humanProofType(value: string) {
-  return proofTypeLabels[value] ?? 'Submitted proof';
+  return proofTypeLabels[value] ?? 'Submitted evidence';
 }
 
 export function humanWorkflowPhase(value: string | null | undefined) {
@@ -76,7 +63,7 @@ export function humanWorkflowPhase(value: string | null | undefined) {
 }
 
 export function humanAudience(value: string) {
-  return audienceLabels[value] ?? 'Authorized case team';
+  return audienceLabels[value] ?? 'People authorized for this work';
 }
 
 export function humanAutomationLevel(value: string) {

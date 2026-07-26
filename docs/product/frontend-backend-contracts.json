@@ -1,7 +1,7 @@
 {
   "$description": "Machine-readable frontend/backend parity contract ledger for Passage Zero. Enforced by scripts/check-frontend-backend-parity.js (pnpm test:parity). Do not hand-edit status to 'implemented' or set frontend.user_visible=true without a real, existing route/component -- the checker verifies file existence, not intent.",
-  "version": 2,
-  "last_updated": "2026-07-18",
+  "version": 3,
+  "last_updated": "2026-07-19",
   "owner_scope_note": "PM defines each contract before implementation; Engineering advances UI, durable state, RLS, commands, events, and recovery in the same slice; independent QA rejects drift before status promotion.",
   "statuses": {
     "implemented": "A reachable frontend route/component AND a real backend server command/durable table/RLS predicate/failure states are both wired together and evidenced.",
@@ -630,6 +630,385 @@
         "supabase/tests/cycle_7b_assigned_work.sql",
         "docs/product/passage-zero-cutover-plan.md",
         "docs/agent-operating-context.md"
+      ]
+    },
+    {
+      "id": "cycle8.staff.proof_history",
+      "cycle": "8",
+      "capability": "Assigned staff reads the task-bound proof and replacement history for current work",
+      "status": "implemented",
+      "persona": "staff",
+      "frontend": {
+        "user_visible": true,
+        "route": "/staff/work/[taskId]",
+        "component": "app/staff/work/[taskId]/page.tsx",
+        "files": [
+          "app/staff/work/[taskId]/page.tsx",
+          "lib/operations/hosted.ts",
+          "app/proof-loop.module.css"
+        ],
+        "note": "The dynamic staff task route loads the RLS-scoped proof and review rows, preserves replacement order, and closes without disclosing task or proof details when the current assignment is unavailable."
+      },
+      "action_status": "read-only current-assignment projection of every immutable submission and review in task order",
+      "server_command": "RLS-scoped server SELECT over public.task_proofs and public.task_proof_reviews through loadHostedOperations({ proofs: true })",
+      "backend_files": [
+        "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+        "lib/operations/hosted.ts",
+        "app/staff/work/[taskId]/page.tsx"
+      ],
+      "durable_tables": [
+        { "table": "task_proofs", "cardinality": "one root proof per task and at most one replacement successor per prior proof" },
+        { "table": "task_proof_reviews", "cardinality": "at most one append-only director decision per proof" },
+        { "table": "tasks", "cardinality": "one current assignment, status, and version controls staff visibility" }
+      ],
+      "rls_authority_predicate": "passage_private.can_view_task(task_id) requires the caller to remain the current active assigned staff member with an active grant on the workflow location; unavailable, former, revoked, wrong-location, and cross-organization identities receive no rows",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "This contract is a read-only history projection; submission and review contracts define the append-only events that populate it."
+      },
+      "failure_recovery_states": [
+        "missing, unassigned, reassigned, revoked, wrong-location, and wrong-organization task access renders a closed route without proof detail",
+        "query failure renders no durable task or proof state and offers a return to My work",
+        "reload reconstructs the same ordered proof and review chain from durable rows",
+        "a failed submission moves focus to the unchanged result and offers exact-task reload plus a return to My work"
+      ],
+      "persona_projection": "Current assigned staff sees only the authorized task's case-team proof chain; directors receive their managed-location projection; former staff, family, vendors, and unrelated organizations receive no proof detail.",
+      "evidence_test_references": [
+        "supabase/tests/cycle_8_task_proof_loop.sql",
+        "scripts/test-frontend-backend-parity.js",
+        "docs/agent-operating-context.md"
+      ],
+      "source_assertions": [
+        {
+          "file": "app/staff/work/[taskId]/page.tsx",
+          "includes": [
+            "export const dynamic = 'force-dynamic'",
+            "loadHostedOperations({ proofs: true })",
+            "proofReviews.filter((review) => review.task_id === task.id)",
+            "taskProofs.map((proof, index) =>",
+            "Proof and replacement history.",
+            "This work is not available to your account."
+          ]
+        },
+        {
+          "file": "lib/operations/hosted.ts",
+          "includes": [
+            "proofs?: boolean;",
+            "client.from('task_proofs').select(",
+            "client.from('task_proof_reviews').select(",
+            "proofs: (proofResult.data ?? []) as HostedTaskProof[]",
+            "proofReviews: (proofReviewResult.data ?? []) as HostedTaskProofReview[]"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+          "includes": [
+            "create table public.task_proofs",
+            "create table public.task_proof_reviews",
+            "create policy cycle_8_task_proofs_authorized_select on public.task_proofs",
+            "create policy cycle_8_task_proof_reviews_authorized_select on public.task_proof_reviews",
+            "using (passage_private.can_view_task(task_id))"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cycle8.staff.proof_submission",
+      "cycle": "8",
+      "capability": "Assigned staff submits a first or director-requested replacement proof with a durable receipt",
+      "status": "implemented",
+      "persona": "staff",
+      "frontend": {
+        "user_visible": true,
+        "route": "/staff/work/[taskId]",
+        "component": [
+          "app/staff/work/[taskId]/page.tsx",
+          "app/staff/work/[taskId]/ProofSubmissionForm.tsx",
+          "app/staff/actions.ts"
+        ],
+        "files": [
+          "app/staff/work/[taskId]/page.tsx",
+          "app/staff/work/[taskId]/ProofSubmissionForm.tsx",
+          "app/staff/actions.ts",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "The current assignee can submit only in-progress work, receives a server receipt, and can submit a replacement only for the latest proof after an authorized director requested it."
+      },
+      "action_status": "in_progress -> proof_submitted with version increment; a requested replacement appends a successor and returns to the same review state",
+      "server_command": "public.submit_task_proof_idempotent(p_task_id uuid, p_expected_task_version integer, p_proof_type text, p_completion_summary text, p_reference text, p_supersedes_proof_id uuid, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+        "app/staff/actions.ts",
+        "lib/operations/hosted.ts"
+      ],
+      "durable_tables": [
+        { "table": "task_proofs", "cardinality": "one immutable proof per successful unique organization/request UUID with one root and no branching successors" },
+        { "table": "tasks", "cardinality": "one atomic proof_submitted status and incremented version per successful submission" },
+        { "table": "workflow_events", "cardinality": "one task.proof_submitted event per successful unique organization/request UUID" }
+      ],
+      "rls_authority_predicate": "The command locks the task and requires auth.uid() to map to its current active assigned staff member with an active exact-location grant; direct table mutation is revoked and privileged inserts are scope-checked",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "task.proof_submitted",
+        "idempotency_key": "task_proof_submission:<caller-supplied request UUID>, unique within organization"
+      },
+      "failure_recovery_states": [
+        "same-key same-payload replay returns the original proof/event receipt with no duplicate rows",
+        "same-key conflicting payload, stale version, invalid state, unassigned, reassigned, revoked, wrong-location, and cross-organization attempts fail atomically",
+        "replacement submission requires the latest proof to have one needs_replacement review; cross-task, missing, already-succeeded, and branching replacements fail",
+        "route reload shows the durable receipt or current recovery instruction after any response uncertainty"
+      ],
+      "persona_projection": "Only current assigned staff can submit and see the bounded case-team proof; managed directors see the same immutable submission for review; former staff, family, vendors, and unrelated organizations receive no proof detail.",
+      "evidence_test_references": [
+        "supabase/tests/cycle_8_task_proof_loop.sql",
+        "scripts/test-use-server-exports.js",
+        "scripts/test-frontend-backend-parity.js"
+      ],
+      "source_assertions": [
+        {
+          "file": "app/staff/work/[taskId]/ProofSubmissionForm.tsx",
+          "includes": [
+            "import { submitTaskProof",
+            "useActionState(submitTaskProof, initialState)",
+            "name=\"expectedVersion\"",
+            "name=\"supersedesProofId\"",
+            "Submit replacement proof",
+            "Submit proof for review",
+            "resultRef.current?.focus()",
+            "Reload current task"
+          ]
+        },
+        {
+          "file": "app/staff/actions.ts",
+          "includes": [
+            "export async function submitTaskProof",
+            "client.rpc('submit_task_proof_idempotent'",
+            "p_supersedes_proof_id: supersedesProofId || null",
+            "result.error.code === '40001'",
+            "result.error.code === '22023' || result.error.code === '55000'",
+            "revalidatePath(`/staff/work/${taskId}`)"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+          "includes": [
+            "create or replace function public.submit_task_proof_idempotent(",
+            "create or replace function passage_private.submit_task_proof_idempotent(",
+            "v_key := 'task_proof_submission:' || p_request_id::text",
+            "set status = 'proof_submitted', version = v_next_version",
+            "'task.proof_submitted', 'in_progress', 'proof_submitted'",
+            "create unique index task_proofs_one_replacement_per_prior_unique",
+            "create unique index task_proofs_one_root_per_task_unique"
+          ]
+        },
+        {
+          "file": "supabase/tests/cycle_8_task_proof_loop.sql",
+          "includes": [
+            "Proof replay was not cardinality-stable",
+            "Expected conflicting submission replay denial",
+            "Expected stale proof version denial",
+            "Expected anti-branching successor denial"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cycle8.director.proof_review",
+      "cycle": "8",
+      "capability": "Authorized director verifies proof or requests a reasoned replacement",
+      "status": "implemented",
+      "persona": "director",
+      "frontend": {
+        "user_visible": true,
+        "route": "/director/cases/[workflowId]",
+        "component": [
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/director/cases/[workflowId]/ProofReviewForms.tsx",
+          "app/director/actions.ts"
+        ],
+        "files": [
+          "app/director/cases/[workflowId]/page.tsx",
+          "app/director/cases/[workflowId]/ProofReviewForms.tsx",
+          "app/director/actions.ts",
+          "lib/operations/hosted.ts"
+        ],
+        "note": "The dynamic managed Case Room shows the latest unreviewed proof and gives the director two explicit outcomes: verify to complete or request a reasoned replacement that returns work to the current assignee."
+      },
+      "action_status": "proof_submitted -> completed when verified, or proof_submitted -> in_progress when replacement is requested, with one version increment and receipt",
+      "server_command": "public.review_task_proof_idempotent(p_proof_id uuid, p_expected_task_version integer, p_decision text, p_reason text, p_request_id uuid)",
+      "backend_files": [
+        "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+        "app/director/actions.ts",
+        "lib/operations/hosted.ts"
+      ],
+      "durable_tables": [
+        { "table": "task_proof_reviews", "cardinality": "one immutable review per proof and one review per successful unique organization/request UUID" },
+        { "table": "tasks", "cardinality": "one atomic completed or in_progress state and incremented version per successful decision" },
+        { "table": "workflow_events", "cardinality": "one task.proof_verified or task.proof_replacement_requested event per successful unique organization/request UUID" }
+      ],
+      "rls_authority_predicate": "The command locks the task and requires active owner/director authority over the proof's exact workflow location; only the latest unreviewed proof in proof_submitted state can be reviewed",
+      "append_only_event": {
+        "applicable": true,
+        "table": "workflow_events",
+        "event_type": "task.proof_verified or task.proof_replacement_requested",
+        "idempotency_key": "task_proof_review:<caller-supplied request UUID>, unique within organization"
+      },
+      "failure_recovery_states": [
+        "same-key same-decision replay returns the original review/event receipt with no duplicate rows",
+        "same-key conflict, stale version, already-reviewed proof, non-latest proof, invalid decision/reason, wrong-location, cross-organization, staff, revoked, and unaffiliated attempts fail atomically",
+        "proof-pending work cannot be reassigned until the director verifies it or requests replacement",
+        "reload reconstructs the completed or replacement-requested state from durable task, proof, review, and event rows",
+        "a supplied task query that does not match this managed workflow fails closed instead of selecting another task",
+        "an empty replacement reason stays client-side, focuses the reason field, and changes no durable state; command failure focuses the unchanged result and offers exact-task reload"
+      ],
+      "persona_projection": "Managed directors see review controls and the full authorized proof chain; current assigned staff sees the saved decision and replacement instruction; former staff, family, vendors, and unrelated organizations receive no proof detail.",
+      "evidence_test_references": [
+        "supabase/tests/cycle_8_task_proof_loop.sql",
+        "scripts/test-use-server-exports.js",
+        "scripts/test-frontend-backend-parity.js"
+      ],
+      "source_assertions": [
+        {
+          "file": "app/director/cases/[workflowId]/page.tsx",
+          "includes": [
+            "export const dynamic = 'force-dynamic'",
+            "loadHostedOperations({ proofs: true })",
+            "const selectedTask = query.task",
+            "workflowTasks.find((task) => task.id === query.task)",
+            "selectedTask.status === 'proof_submitted'",
+            "<ProofReviewForms",
+            "Saved submission and review history.",
+            "This case is not available to your account."
+          ]
+        },
+        {
+          "file": "app/director/cases/[workflowId]/ProofReviewForms.tsx",
+          "includes": [
+            "import { reviewTaskProof",
+            "useActionState(reviewTaskProof, initialState)",
+            "value=\"verified\"",
+            "value=\"needs_replacement\"",
+            "Verify proof",
+            "Send replacement request",
+            "resultRef.current?.focus()",
+            "aria-invalid={Boolean(reasonError)}",
+            "Reload current task"
+          ]
+        },
+        {
+          "file": "app/director/actions.ts",
+          "includes": [
+            "export async function reviewTaskProof",
+            "client.rpc('review_task_proof_idempotent'",
+            "p_decision: decision",
+            "p_reason: reason || null",
+            "revalidatePath(`/director/cases/${workflowId}`)"
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+          "includes": [
+            "create or replace function public.review_task_proof_idempotent(",
+            "create or replace function passage_private.review_task_proof_idempotent(",
+            "v_key := 'task_proof_review:' || p_request_id::text",
+            "then 'task.proof_verified' else 'task.proof_replacement_requested' end",
+            "set status = v_next_status, version = v_next_version",
+            "create trigger tasks_cycle_8_proof_pending_assignment_guard"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cycle8.shared.immutable_proof_history",
+      "cycle": "8",
+      "capability": "Staff and directors share one immutable, task-bound submission and review history without cross-persona leakage",
+      "status": "implemented",
+      "persona": ["staff", "director"],
+      "frontend": {
+        "user_visible": true,
+        "route": "/staff/work/[taskId] and /director/cases/[workflowId]",
+        "component": [
+          "app/staff/work/[taskId]/page.tsx",
+          "app/director/cases/[workflowId]/page.tsx"
+        ],
+        "files": [
+          "app/staff/work/[taskId]/page.tsx",
+          "app/director/cases/[workflowId]/page.tsx",
+          "lib/operations/hosted.ts",
+          "app/proof-loop.module.css"
+        ],
+        "note": "Both persona routes render the same ordered durable proof/review chain while keeping actions and language scoped to the current staff assignment or managed director location."
+      },
+      "action_status": "read-only shared history: submitted -> replacement requested -> replacement submitted -> verified, with every prior row retained",
+      "server_command": "RLS-scoped server SELECT over task_proofs/task_proof_reviews plus append-only trigger enforcement on task_proofs, task_proof_reviews, and workflow_events",
+      "backend_files": [
+        "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+        "lib/operations/hosted.ts"
+      ],
+      "durable_tables": [
+        { "table": "task_proofs", "cardinality": "one non-branching immutable proof chain per task" },
+        { "table": "task_proof_reviews", "cardinality": "one immutable decision attached to each reviewed proof" },
+        { "table": "workflow_events", "cardinality": "one immutable operational receipt for every successful submit or review command" }
+      ],
+      "rls_authority_predicate": "Both proof tables use passage_private.can_view_task(task_id); direct authenticated writes are revoked; scope-integrity and append-only triggers protect privileged paths; proof-pending reassignment is rejected",
+      "append_only_event": {
+        "applicable": false,
+        "reason": "This is the shared read and immutability contract; the staff submission and director review contracts define the three event types and their idempotency keys."
+      },
+      "failure_recovery_states": [
+        "proof and review UPDATE/DELETE and workflow-event mutation are rejected without changing checksums",
+        "direct authenticated table mutation and semantically invalid privileged insert are rejected",
+        "wrong-location, wrong-organization, unassigned, former, revoked, and unaffiliated identities receive no proof or review rows",
+        "rollback-only isolated cleanup is exact-project and retained-fixture guarded; wrong-project cleanup fails",
+        "reload after submit, review, replacement, denial, or response uncertainty preserves the same ordered history and next action"
+      ],
+      "persona_projection": "Staff sees the chain only while currently assigned and receives the next staff action; directors see the same chain only for managed locations and receive the review action; all other personas and scopes receive no internal proof detail.",
+      "evidence_test_references": [
+        "supabase/tests/cycle_8_task_proof_loop.sql",
+        "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+        "scripts/test-frontend-backend-parity.js"
+      ],
+      "source_assertions": [
+        {
+          "file": "app/staff/work/[taskId]/page.tsx",
+          "includes": [
+            "taskProofs.map((proof, index) =>",
+            "reviewByProof.get(proof.id)",
+            "Your earlier proof stays in history."
+          ]
+        },
+        {
+          "file": "app/director/cases/[workflowId]/page.tsx",
+          "includes": [
+            "taskProofs.map((proof, index) =>",
+            "reviewByProof.get(proof.id)",
+            "Saved submission and review history."
+          ]
+        },
+        {
+          "file": "supabase/migrations/20260718210000_cycle_8_task_proof_loop.sql",
+          "includes": [
+            "create trigger task_proofs_append_only",
+            "create trigger task_proof_reviews_append_only",
+            "raise exception 'Task proof history is append-only'",
+            "create trigger tasks_cycle_8_proof_pending_assignment_guard",
+            "revoke all on table public.task_proofs from public, anon, authenticated",
+            "grant select on table public.task_proofs to authenticated",
+            "grant select on table public.task_proof_reviews to authenticated"
+          ]
+        },
+        {
+          "file": "supabase/tests/cycle_8_task_proof_loop.sql",
+          "includes": [
+            "Unaffiliated/BOLA projection leaked proof history",
+            "Former assignee retained proof/review projection",
+            "Revoked user retained proof projection authority",
+            "Expected append-only proof update denial",
+            "Append-only denial changed a retained proof/review/event checksum",
+            "rollback;"
+          ]
+        }
       ]
     }
   ]

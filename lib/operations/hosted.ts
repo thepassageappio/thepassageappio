@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { resolveOperationalViewer, type OperationalViewer } from '@/lib/auth/authorization';
+import { humanizeMemberIdentity } from '@/lib/presentation/plain-language';
 import { createPassageServerClient } from '@/lib/supabase/server';
 
 export type HostedWorkflow = {
@@ -21,7 +22,7 @@ export type HostedTask = {
   organization_id: string;
   assigned_organization_member_id: string | null;
   title: string | null;
-  status: 'assigned' | 'in_progress' | 'blocked' | 'completed';
+  status: 'assigned' | 'in_progress' | 'proof_submitted' | 'blocked' | 'completed';
   waiting_party: string | null;
   due_at: string | null;
   audience: string;
@@ -82,6 +83,35 @@ export type HostedInvitationLocation = {
   organization_location_id: string;
 };
 
+export type HostedTaskProof = {
+  id: string;
+  organization_id: string;
+  workflow_id: string;
+  task_id: string;
+  submitted_by_user_id: string;
+  submitted_by_organization_member_id: string;
+  proof_type: 'confirmation' | 'handoff' | 'reference' | 'completion_note';
+  completion_summary: string;
+  reference: string | null;
+  audience: 'case_team';
+  proof_destination: string;
+  supersedes_proof_id: string | null;
+  submitted_at: string;
+};
+
+export type HostedTaskProofReview = {
+  id: string;
+  organization_id: string;
+  workflow_id: string;
+  task_id: string;
+  proof_id: string;
+  reviewed_by_user_id: string;
+  reviewed_by_organization_member_id: string;
+  decision: 'verified' | 'needs_replacement';
+  reason: string | null;
+  reviewed_at: string;
+};
+
 export type HostedOperationsData = {
   viewer: OperationalViewer;
   workflows: HostedWorkflow[];
@@ -91,6 +121,8 @@ export type HostedOperationsData = {
   events: HostedEvent[];
   invitations: HostedInvitation[];
   invitationLocations: HostedInvitationLocation[];
+  proofs: HostedTaskProof[];
+  proofReviews: HostedTaskProofReview[];
 };
 
 export type HostedOperationsResult =
@@ -100,6 +132,7 @@ export type HostedOperationsResult =
 export async function loadHostedOperations(options: {
   events?: boolean;
   invitations?: boolean;
+  proofs?: boolean;
 } = {}): Promise<HostedOperationsResult> {
   const viewerResult = await resolveOperationalViewer();
   if (!viewerResult.ok) {
@@ -108,7 +141,7 @@ export async function loadHostedOperations(options: {
   const client = await createPassageServerClient();
   if (!client) return { ok: false, message: 'The isolated workspace data service is unavailable.' };
 
-  const [workflowResult, taskResult, memberResult, grantResult, eventResult, invitationResult, invitationLocationResult] = await Promise.all([
+  const [workflowResult, taskResult, memberResult, grantResult, eventResult, invitationResult, invitationLocationResult, proofResult, proofReviewResult] = await Promise.all([
     client.from('workflows').select('id, organization_id, organization_location_id, accountable_organization_member_id, case_reference, family_name, person_name, phase, status').eq('organization_id', viewerResult.viewer.organizationId).order('case_reference'),
     client.from('tasks').select('id, workflow_id, organization_id, assigned_organization_member_id, title, status, waiting_party, due_at, audience, automation_level, prepared_output, human_action, proof_destination, next_state, version').eq('organization_id', viewerResult.viewer.organizationId).order('due_at'),
     client.from('organization_members').select('id, organization_id, user_id, email, role, status, display_name, title, revoked_at').eq('organization_id', viewerResult.viewer.organizationId).order('display_name'),
@@ -122,10 +155,17 @@ export async function loadHostedOperations(options: {
     options.invitations
       ? client.from('organization_invitation_locations').select('invitation_id, organization_location_id')
       : Promise.resolve({ data: [], error: null }),
+    options.proofs
+      ? client.from('task_proofs').select('id, organization_id, workflow_id, task_id, submitted_by_user_id, submitted_by_organization_member_id, proof_type, completion_summary, reference, audience, proof_destination, supersedes_proof_id, submitted_at').eq('organization_id', viewerResult.viewer.organizationId).order('submitted_at')
+      : Promise.resolve({ data: [], error: null }),
+    options.proofs
+      ? client.from('task_proof_reviews').select('id, organization_id, workflow_id, task_id, proof_id, reviewed_by_user_id, reviewed_by_organization_member_id, decision, reason, reviewed_at').eq('organization_id', viewerResult.viewer.organizationId).order('reviewed_at')
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   const error = workflowResult.error ?? taskResult.error ?? memberResult.error ?? grantResult.error
-    ?? eventResult.error ?? invitationResult.error ?? invitationLocationResult.error;
+    ?? eventResult.error ?? invitationResult.error ?? invitationLocationResult.error
+    ?? proofResult.error ?? proofReviewResult.error;
   if (error) return { ok: false, message: 'Passage could not verify durable workload. No operational data is shown.' };
 
   return {
@@ -139,12 +179,15 @@ export async function loadHostedOperations(options: {
       events: (eventResult.data ?? []) as HostedEvent[],
       invitations: (invitationResult.data ?? []) as HostedInvitation[],
       invitationLocations: (invitationLocationResult.data ?? []) as HostedInvitationLocation[],
+      proofs: (proofResult.data ?? []) as HostedTaskProof[],
+      proofReviews: (proofReviewResult.data ?? []) as HostedTaskProofReview[],
     },
   };
 }
 
 export function displayMember(member: HostedMember | undefined) {
-  return member?.display_name?.trim() || member?.email || 'Unassigned';
+  if (!member) return 'Unassigned';
+  return humanizeMemberIdentity(member.display_name, member.email, member.role);
 }
 
 export function formatOperationalTime(value: string | null) {
