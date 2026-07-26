@@ -1,5 +1,7 @@
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { loadFamilyCaseView, type FamilyCaseViewResult } from '@/lib/family/case-view';
+import { loginPath } from '@/lib/auth/redirects';
 import { humanTaskStatus, humanWorkflowPhase, humanizePreviewLabel } from '@/lib/presentation/plain-language';
 import styles from '../../../proof-loop.module.css';
 
@@ -18,14 +20,12 @@ const FAMILY_NAV = [
 export default async function FamilyCaseTodayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const result: FamilyCaseViewResult = await loadFamilyCaseView(id);
+  if (!result.ok && result.reason === 'signed-out') redirect(loginPath(`/case/${id}/today`));
   if (!result.ok) return <Closed reason={result.reason} />;
   const { workflow, currentTask, recentUpdates } = result.data;
 
   return (
     <main id="main-content">
-      <div className={styles.boundary} role="note" style={{ marginBottom: 20 }}>
-        <strong>Shell preview.</strong> This page shows layout and sample text only. It is not connected to a real case yet.
-      </div>
       <nav aria-label="Your case" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 20 }}>
         {FAMILY_NAV.map((item) => (
           item.available
