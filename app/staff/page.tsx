@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { AppFrame } from '@/components/operations/AppFrame';
 import { displayMember, formatOperationalTime, loadHostedOperations } from '@/lib/operations/hosted';
-import { humanAudience, humanizePreviewIdentity, humanizePreviewLabel, humanTaskStatus } from '@/lib/presentation/plain-language';
+import { humanAudience, humanizePreviewIdentity, humanizePreviewLabel, humanNextStep, humanTaskStatus } from '@/lib/presentation/plain-language';
 import { StartTaskForm } from './StartTaskForm';
 import styles from '../operations-beta.module.css';
 
@@ -46,7 +46,7 @@ export default async function StaffPage() {
                     <div><dt>Passage prepared</dt><dd>{task.prepared_output ?? 'No prepared output'}</dd></div>
                     <div><dt>Human action</dt><dd>{task.human_action ?? 'Start the assigned work'}</dd></div>
                     <div><dt>Proof destination</dt><dd>{task.proof_destination ?? 'Organization activity'}</dd></div>
-                    <div><dt>Next state</dt><dd>{task.next_state ?? 'In progress'}</dd></div>
+                    <div><dt>Next state</dt><dd>{humanNextStep(task.status)}</dd></div>
                   </dl>
                 </div>
                 {task.status === 'assigned' ? <StartTaskForm requestId={randomUUID()} taskId={task.id} version={task.version} /> : <div className={styles.startForm}><p>{task.status === 'completed' ? 'Verified proof and the complete history are ready.' : task.status === 'proof_submitted' ? 'Proof is waiting for an authorized director.' : 'Work is in progress. Save proof when the outcome is ready.'}</p><Link className={styles.primaryLink} href={`/staff/work/${task.id}`}>{task.status === 'in_progress' ? 'Open proof step' : 'Open task history'}</Link></div>}
