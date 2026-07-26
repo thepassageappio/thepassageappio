@@ -20,8 +20,10 @@ const FAMILY_NAV = [
 export default async function FamilyCaseTodayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const result: FamilyCaseViewResult = await loadFamilyCaseView(id);
-  if (!result.ok && result.reason === 'signed-out') redirect(loginPath(`/case/${id}/today`));
-  if (!result.ok) return <Closed reason={result.reason} />;
+  if (!result.ok) {
+    if (result.reason === 'signed-out') redirect(loginPath(`/case/${id}/today`));
+    return <Closed reason={result.reason} />;
+  }
   const { workflow, currentTask, recentUpdates } = result.data;
 
   return (
