@@ -26,6 +26,7 @@ const eventLabels: Record<string, string> = {
 };
 
 const stateLabels: Record<string, string> = {
+  accepted: 'Accepted',
   active: 'Active access',
   assigned: 'Assigned',
   completed: 'Complete',
